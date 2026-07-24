@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   release-nightly:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
     steps:

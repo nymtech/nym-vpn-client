@@ -105,7 +105,7 @@ concurrency:
 jobs:
   bump-all:
     name: Update all software versions
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
       - name: Configure git
         run: |

@@ -39,7 +39,7 @@ jobs:
     # (nym-vpn-core-v*, nym-vpn-app-v*) and nightly (nym-vpn-nightly-*) tags --
     # none of those share the 'nym-vpn-v' prefix.
     if: ${{ startsWith(github.event.release.tag_name, 'nym-vpn-v') }}
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
@@ -65,7 +65,7 @@ jobs:
   # --prerelease, and 'released' never fires for prereleases.
   delete-betas:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
     steps:
@@ -137,7 +137,7 @@ jobs:
   # (NymVPN_<ver>_x64-setup.exe.sig) — parse it rather than assume tag==app version.
   win-sigs:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       enabled: ${{ steps.sig.outputs.enabled }}
       app_version: ${{ steps.sig.outputs.app_version }}
@@ -217,7 +217,7 @@ jobs:
   # HMAC-SHA256 the endpoint verifies via the X-Hub-Signature-256 header.
   revalidate-website:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
       - name: Invalidate release cache
         env:

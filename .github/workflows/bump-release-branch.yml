@@ -30,7 +30,7 @@ concurrency:
 jobs:
   next-release-version:
     name: Compute ${{ case(inputs.is_release_bump, 'release', 'next beta') }} version
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
     outputs:

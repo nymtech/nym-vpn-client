@@ -120,7 +120,7 @@ env:
 
 jobs:
   resolve:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       publish_github_release: ${{ steps.flags.outputs.publish_github_release }}
       tag: ${{ steps.v.outputs.tag }}
@@ -231,7 +231,7 @@ jobs:
         run: bash .github/scripts/release/resolve-version.sh
 
   check-release-exists:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     needs: [resolve]
     steps:
       - name: Check if release exists
@@ -251,7 +251,7 @@ jobs:
     needs: [resolve, check-release-exists]
     # IMPORTANT: Disable this workflow with `if: false` once done testing!
     if: true
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
       pkg_installer_name: ${{ steps.restore-build-outputs.outputs.pkg_installer_name }}
@@ -392,7 +392,7 @@ jobs:
 
   # This step is only used for testing purposes when developing this workflow
   save-build-cache:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     needs: [resolve, build, restore-build-cache]
     # IMPORTANT: Disable this workflow with `&& false` once done testing!
     if: |
@@ -440,7 +440,7 @@ jobs:
           key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
   build-outputs:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     needs: [build, restore-build-cache, save-build-cache]
     if: |
       !cancelled() && (

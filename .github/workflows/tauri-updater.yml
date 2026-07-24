@@ -51,7 +51,7 @@ on:
 
 jobs:
   update-metadata:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
       pull-requests: write

@@ -119,7 +119,7 @@ permissions:
 
 jobs:
   resolve:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       version: ${{ steps.resolve.outputs.version }}
       channel: ${{ steps.resolve.outputs.channel }}

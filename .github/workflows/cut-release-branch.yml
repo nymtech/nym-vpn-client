@@ -33,7 +33,7 @@ concurrency:
 jobs:
   push-release-branch:
     name: Push release branch
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       major: ${{ steps.next_version.outputs.major }}
       minor: ${{ steps.next_version.outputs.minor }}

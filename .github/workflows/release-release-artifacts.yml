@@ -82,7 +82,7 @@ env:
 
 jobs:
   resolve:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       tag: ${{ steps.resolve.outputs.tag }}
       github_release_type: ${{ steps.resolve.outputs.github_release_type }}
@@ -134,7 +134,7 @@ jobs:
           echo "::notice:: tag=$TAG, github_release_type=$GITHUB_RELEASE_TYPE, version=$VERSION, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
 
   create-release:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     needs: [resolve]
     permissions:
       contents: write
