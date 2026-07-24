@@ -58,32 +58,48 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        Self::add_favorite(&mut self.cache.entry, selector);
-        flush(&self.cache, &self.file_path).await
+        let list = self.cache.entry.clone();
+        Self::add_favorite(&mut list, selector);
+        flush(&self.cache, &self.file_path).await?;
+        self.cache.entry = list;
+
+        Ok(())
     }
 
     pub async fn remove_favorite_entry(
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
+        let list = self.cache.entry.clone();
         Self::remove_favorite(&mut self.cache.entry, selector);
-        flush(&self.cache, &self.file_path).await
+        flush(&self.cache, &self.file_path).await?;
+        self.cache.entry = list;
+
+        Ok(())
     }
 
     pub async fn add_favorite_exit(
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
+        let list = self.cache.exit.clone();
         Self::add_favorite(&mut self.cache.exit, selector);
-        flush(&self.cache, &self.file_path).await
+        flush(&self.cache, &self.file_path).await?;
+        self.cache.exit = list;
+
+        Ok(())
     }
 
     pub async fn remove_favorite_exit(
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
+        let list = self.cache.exit.clone();
         Self::remove_favorite(&mut self.cache.exit, selector);
-        flush(&self.cache, &self.file_path).await
+        flush(&self.cache, &self.file_path).await?;
+        self.cache.exit = list;
+
+        Ok(())
     }
 
     pub fn get_favorites(&self) -> FavoriteSelectors {
