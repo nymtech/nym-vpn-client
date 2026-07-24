@@ -4,6 +4,7 @@ import AppSettings
 import ConfigurationManager
 import ConnectionTypes
 import Logging
+import TunnelStatus
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -215,6 +216,22 @@ import GRPCManager
             false
         case let .gateway(identifier):
             vpn.contains { $0.id == identifier && $0.isResidentialAvailable }
+        }
+    }
+}
+
+// MARK: - Recents -
+extension GatewayManager {
+    /// Gateways recently connected through, most recent first, for the given tunnel type.
+    /// Entry and exit are tracked separately by core.
+    public func recentGateways(
+        for tunnelType: ConnectionTunnelType
+    ) async -> (entry: [GatewayNode], exit: [GatewayNode]) {
+        do {
+            return try await worker.fetchRecents(for: tunnelType)
+        } catch {
+            logger.error("Failed to fetch recent gateways: \(error.localizedDescription)")
+            return ([], [])
         }
     }
 }
