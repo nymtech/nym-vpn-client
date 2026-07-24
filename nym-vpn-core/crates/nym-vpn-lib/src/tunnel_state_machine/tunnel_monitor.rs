@@ -564,6 +564,7 @@ impl TunnelMonitor {
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
             .bandwidth_request_sender(self.bandwidth_command_tx.clone())
+            .spend_time_skew(self.skew_manager.cached_skew())
             .enable_lp_registration(ENABLE_LP_REGISTRATION)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(

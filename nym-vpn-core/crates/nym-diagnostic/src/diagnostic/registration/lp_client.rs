@@ -68,6 +68,7 @@ impl LpClientRegistration {
                 &registration_config.local_wg_keypair,
                 &registration_config.gateway_id_key,
                 &registration_config.bandwidth_provider,
+                None,
                 TicketType::V1WireguardEntry,
             )
             .await;

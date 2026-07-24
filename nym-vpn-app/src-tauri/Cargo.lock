@@ -3716,7 +3716,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "1.21.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.14-amsterdam#1bff1b388b3a2d5fb2dc299c5e9462d44893a5bd"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.14-amsterdam#ab72e03625ef09a1c50dd22bd99494a3c340b2c7"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3763,7 +3763,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "1.21.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.14-amsterdam#1bff1b388b3a2d5fb2dc299c5e9462d44893a5bd"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.14-amsterdam#ab72e03625ef09a1c50dd22bd99494a3c340b2c7"
 dependencies = [
  "pem",
  "tracing",

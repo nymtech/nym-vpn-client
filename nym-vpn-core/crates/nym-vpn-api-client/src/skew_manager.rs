@@ -261,15 +261,34 @@ impl SkewManager {
     }
 
     /// Returns a timestamp corrected for the skew between the local device clock and the VPN API
-    /// server clock, if a valid cached skew is available right now - or `None` otherwise (skew
-    /// not yet known, expired, not significant, or the cache is momentarily locked for writing).
+    /// server clock, falling back to the device clock as-is if no valid skew is cached right now
+    /// (not yet known, expired, or the cache is momentarily locked for writing).
     ///
     /// Synchronous and non-blocking: this never performs network I/O and never waits on a lock
     /// (a locked cache is simply treated as "not available"), so it's safe to call from
-    /// time-sensitive paths that must not be delayed. Callers decide what "not available" means
-    /// for them - typically, falling back to `device_time()`.
-    pub fn cached_skew_corrected_time(&self) -> Option<OffsetDateTime> {
-        let skew = match self
+    /// time-sensitive paths that must not be delayed.
+    ///
+    /// Note this samples the device clock *now* - if the result is going to be used significantly
+    /// later (e.g. after a slow async operation), prefer [`Self::cached_skew`] instead and apply
+    /// it to a clock reading taken at the point of actual use, or this correction will itself
+    /// become stale by the time it's used.
+    pub fn cached_skew_corrected_time(&self) -> OffsetDateTime {
+        let device_time = self.device_time();
+        self.cached_skew()
+            .map_or(device_time, |skew| device_time - skew)
+    }
+
+    /// Returns the currently cached clock skew (how far ahead of the VPN API server's clock the
+    /// local device clock is) - or `None` if none is cached yet, it's expired, or the cache is
+    /// momentarily locked for writing.
+    ///
+    /// Unlike [`Self::cached_skew_corrected_time`], this doesn't sample the device clock itself:
+    /// it returns just the offset, so callers can apply it to a clock reading taken right before
+    /// it's actually needed (e.g. `OffsetDateTime::now_utc() - skew`) instead of one taken well
+    /// before, which would let unrelated async work (network round-trips, retries, ...) make the
+    /// correction stale before it's used.
+    pub fn cached_skew(&self) -> Option<TimeDuration> {
+        match self
             .inner
             .skew_state
             .try_read()
@@ -277,11 +296,9 @@ impl SkewManager {
             .as_ref()?
             .status(Instant::now())
         {
-            SkewStatus::Valid(skew) => skew,
-            SkewStatus::Expired => return None,
-        };
-
-        Self::use_remote_time(self.estimate_remote_time(skew)).then(|| self.device_time() - skew)
+            SkewStatus::Valid(skew) => Some(skew),
+            SkewStatus::Expired => None,
+        }
     }
 }
 
@@ -347,13 +364,13 @@ mod tests {
 
     #[tokio::test]
     #[tracing_test::traced_test]
-    async fn test_cached_skew_corrected_time_uses_significant_cached_skew() {
-        // Fixed so the later `device_time()` reads inside `cached_skew_corrected_time` (there
-        // are two) return exactly this instant rather than drifting a few microseconds past it.
+    async fn test_cached_skew_corrected_time_applies_large_cached_skew() {
+        // Fixed so the `device_time()` read inside `cached_skew_corrected_time` returns exactly
+        // this instant rather than drifting a few microseconds past it.
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = time_before - Duration::from_hours(2);
         let skew_manager = SkewManager::new_for_testing(
-            MockDeviceTimeProvider::new(vec![time_before; 4]),
+            MockDeviceTimeProvider::new(vec![time_before]),
             PanickingTimeProvider,
         );
 
@@ -364,32 +381,41 @@ mod tests {
             .expect("skew is significant");
 
         // Reads the cache synchronously: no network request (which would panic)
-        let corrected = skew_manager
-            .cached_skew_corrected_time()
-            .expect("cached skew is significant");
+        let corrected = skew_manager.cached_skew_corrected_time();
         assert_eq!((time_before - corrected).whole_hours(), 2);
     }
 
     #[tokio::test]
     #[tracing_test::traced_test]
-    async fn test_cached_skew_corrected_time_none_when_skew_negligible_or_missing() {
+    async fn test_cached_skew_corrected_time_falls_back_to_device_time_when_none_cached() {
+        let time_before = OffsetDateTime::now_utc();
         let skew_manager = SkewManager::new_for_testing(
-            MockDeviceTimeProvider::new(vec![]),
+            MockDeviceTimeProvider::new(vec![time_before]),
             PanickingTimeProvider,
         );
 
-        // No skew has been recorded yet
-        assert!(skew_manager.cached_skew_corrected_time().is_none());
+        // No skew has been recorded yet: falls back to the device clock as-is
+        assert_eq!(skew_manager.cached_skew_corrected_time(), time_before);
+    }
 
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_cached_skew_corrected_time_applies_small_cached_skew() {
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = time_before + Duration::from_secs(30);
+        let skew_manager = SkewManager::new_for_testing(
+            MockDeviceTimeProvider::new(vec![time_before]),
+            PanickingTimeProvider,
+        );
+
         skew_manager
             .sync_with_response_timestamp(time_before, remote_timestamp, time_before)
             .await
             .unwrap();
 
-        // A negligible skew is cached, but not significant enough to correct for
-        assert!(skew_manager.cached_skew_corrected_time().is_none());
+        // Even a skew as small as 30s is applied - no "is it significant enough" filtering
+        let corrected = skew_manager.cached_skew_corrected_time();
+        assert_eq!((corrected - time_before).whole_seconds(), 30);
     }
 
     #[tokio::test]
