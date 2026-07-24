@@ -116,7 +116,7 @@ env:
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_BUILD_CACHE_KEY: all_artifacts_v4 # used when testing workflow
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v5 # used when testing workflow
 
 jobs:
   resolve:
