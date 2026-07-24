@@ -68,12 +68,24 @@ impl CommandInterface {
     {
         let (tx, rx) = oneshot::channel();
 
+        let queued_at = std::time::Instant::now();
+        tracing::debug!("command_interface: enqueueing command at {queued_at:?}");
+
         self.vpn_command_tx
             .send(command(tx, opts))
             .map_err(|_| tonic::Status::internal("Command channel is closed"))?;
 
-        rx.await
-            .map_err(|_| tonic::Status::internal("Response channel is closed"))
+        let result = rx
+            .await
+            .map_err(|_| tonic::Status::internal("Response channel is closed"));
+
+        tracing::debug!(
+            "command_interface: command answered after {:?} (ok={})",
+            queued_at.elapsed(),
+            result.is_ok()
+        );
+
+        result
     }
 }
 
@@ -541,9 +553,18 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<bool>> {
+        let received_at = time::OffsetDateTime::now_utc();
+        tracing::debug!("command_interface[disconnect_tunnel]: received at {received_at}");
+
         let accepted = self
             .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Unsecured)
             .await?;
+
+        tracing::debug!(
+            "command_interface[disconnect_tunnel]: responding at {} (received {})",
+            time::OffsetDateTime::now_utc(),
+            received_at
+        );
 
         Ok(tonic::Response::new(accepted))
     }
@@ -552,10 +573,19 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::TunnelState>> {
+        let received_at = time::OffsetDateTime::now_utc();
+        tracing::debug!("command_interface[get_tunnel_state]: received at {received_at}");
+
         let tunnel_state = self
             .send_and_wait(VpnServiceCommand::GetTunnelState, ())
             .await
             .map(proto::TunnelState::from)?;
+
+        tracing::debug!(
+            "command_interface[get_tunnel_state]: responding at {} (received {})",
+            time::OffsetDateTime::now_utc(),
+            received_at
+        );
 
         Ok(tonic::Response::new(tunnel_state))
     }

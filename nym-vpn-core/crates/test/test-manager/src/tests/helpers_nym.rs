@@ -251,6 +251,7 @@ where
     let deadline = tokio::time::Instant::now() + timeout;
     let mut last_observed = None;
     let mut last_rpc_error = None;
+    let mut attempt: u64 = 0;
 
     loop {
         let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
@@ -258,10 +259,16 @@ where
             break;
         }
 
+        attempt += 1;
         let rpc_timeout = TUNNEL_STATE_RPC_TIMEOUT.min(remaining);
+        let sent_at = time::OffsetDateTime::now_utc();
+        log::info!("poll[{state_name}#{attempt}] sending get_{state_name}_state at {sent_at}");
         match tokio::time::timeout(rpc_timeout, reader.read_state()).await {
             Ok(Ok(state)) => {
-                log::debug!("Current {state_name} state: {state:?}");
+                log::info!(
+                    "poll[{state_name}#{attempt}] received response at {}: {state:?}",
+                    time::OffsetDateTime::now_utc()
+                );
                 if accept_state_fn(&state) {
                     log::debug!("Reached expected {state_name} state: {state:?}");
                     return Ok(state);
@@ -270,12 +277,16 @@ where
                 last_rpc_error = None;
             }
             Ok(Err(error)) => {
-                log::debug!("get_{state_name}_state poll failed: {error}");
+                log::info!(
+                    "poll[{state_name}#{attempt}] rpc error at {}: {error}",
+                    time::OffsetDateTime::now_utc()
+                );
                 last_rpc_error = Some(format!("Err({error}) (RpcFailed)"));
             }
             Err(_) => {
-                log::debug!(
-                    "get_{state_name}_state poll timed out after {}s",
+                log::info!(
+                    "poll[{state_name}#{attempt}] client-side timeout at {} after {}s (no response)",
+                    time::OffsetDateTime::now_utc(),
                     rpc_timeout.as_secs()
                 );
                 last_rpc_error = Some(format!(
