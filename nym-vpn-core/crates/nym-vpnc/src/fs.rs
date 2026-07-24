@@ -3,7 +3,10 @@
 
 use std::path::PathBuf;
 
-pub const APP_DIR: &str = "nym-vpn-app";
+#[cfg(target_os = "macos")]
+const APP_DIR: &str = "net.nymtech.vpn";
+#[cfg(not(target_os = "macos"))]
+const APP_DIR: &str = "nym-vpn-app";
 
 pub async fn app_data_dir() -> Option<PathBuf> {
     let app_dir = dirs::data_dir().map(|mut d| {
