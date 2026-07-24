@@ -3716,6 +3716,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "1.21.4"
+source = "git+https://github.com/nymtech/nym?branch=feature%2Fnym-1408-registration-client-skew-manager#60a4abaf2d9c9e50c423781ecdb876ef649e6ab6"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3762,6 +3763,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "1.21.4"
+source = "git+https://github.com/nymtech/nym?branch=feature%2Fnym-1408-registration-client-skew-manager#60a4abaf2d9c9e50c423781ecdb876ef649e6ab6"
 dependencies = [
  "pem",
  "tracing",
