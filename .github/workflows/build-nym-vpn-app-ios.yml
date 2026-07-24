@@ -42,7 +42,7 @@ env:
 jobs:
   build-nym-vpn-app-ios:
     if: github.actor != 'dependabot[bot]'
-    runs-on: AppleSilicon #custom-macos-15
+    runs-on: custom-macos-15
     timeout-minutes: 45
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
