@@ -11,11 +11,10 @@ use crate::{
 };
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
-use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
 use test_macro::test_function_nym;
-use test_rpc::NymServiceClient;
+use test_rpc::{NymServiceClient, nym_daemon::ObservedAccountState};
 
 /// Per-hostname budget for in-VM DNS after connect (matches tunnel reconnect checks).
 const ROUNDTRIP_DNS_TIMEOUT: Duration = Duration::from_secs(30);
@@ -26,7 +25,13 @@ pub async fn test_account_and_tunnel_roundtrip(
     rpc: NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_proxy_client, &test_context.rpc_provider, false).await?;
+    dc_and_ensure_logged_in(
+        &rpc,
+        &mut nym_proxy_client,
+        &test_context.rpc_provider,
+        false,
+    )
+    .await?;
 
     // Verify account identity
     let identity = nym_proxy_client
@@ -44,6 +49,7 @@ pub async fn test_account_and_tunnel_roundtrip(
     log::info!("Connecting tunnel...");
     nym_proxy_client.connect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(
+        &rpc,
         &mut nym_proxy_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
@@ -65,6 +71,7 @@ pub async fn test_account_and_tunnel_roundtrip(
     log::info!("Disconnecting tunnel...");
     nym_proxy_client.disconnect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(
+        &rpc,
         &mut nym_proxy_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
@@ -112,27 +119,23 @@ pub async fn test_account_and_tunnel_roundtrip(
 
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.
 pub async fn dc_and_ensure_logged_in(
+    runner: &NymServiceClient,
     nym_proxy_client: &mut NymProxyClient,
     provider: &RpcClientProvider,
     forget_account: bool,
 ) -> anyhow::Result<()> {
     log::debug!("🔄 Resetting daemon settings before test...");
-    helpers_nym::disconnect_and_wait(nym_proxy_client, provider)
+    helpers_nym::disconnect_and_wait(runner, nym_proxy_client, provider)
         .await
         .context("Failed to disconnect")?;
 
     if forget_account {
         log::debug!("🔄 Resetting device identity & ticketbooks...");
         nym_proxy_client.forget_account().await?;
-        helpers_nym::wait_for_account_state(
-            nym_proxy_client,
-            provider,
-            AccountControllerState::LoggedOut,
-        )
-        .await?;
+        helpers_nym::wait_for_account_state(runner, ObservedAccountState::LoggedOut).await?;
     }
 
-    helpers_nym::login_idempotent(nym_proxy_client, provider)
+    helpers_nym::login_idempotent(runner, nym_proxy_client)
         .await
         .context("Failed to ensure logged in")?;
 

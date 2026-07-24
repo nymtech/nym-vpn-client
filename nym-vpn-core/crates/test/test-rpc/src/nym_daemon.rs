@@ -39,3 +39,79 @@ pub enum Verbosity {
     Debug,
     Trace,
 }
+
+/// Tunnel type carried on `ObservedTunnelState::Connected` (guest-local UDS observation).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ObservedTunnelType {
+    Mixnet,
+    Wireguard,
+}
+
+/// Tunnel state discriminant observed via guest-local daemon UDS (tarpc), not serial gRPC.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ObservedTunnelState {
+    Connected { tunnel_type: ObservedTunnelType },
+    Disconnected,
+    Connecting,
+    Disconnecting,
+    Offline,
+    Error(String),
+}
+
+/// Account controller discriminant observed via guest-local daemon UDS (tarpc).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ObservedAccountState {
+    Offline,
+    Syncing,
+    LoggedOut,
+    ReadyToConnect,
+    Decentralised,
+    PendingSubscription,
+    Error(String),
+}
+
+#[cfg(test)]
+mod observed_contract_tests {
+    use super::{ObservedAccountState, ObservedTunnelState, ObservedTunnelType};
+
+    #[test]
+    fn observed_tunnel_state_roundtrips() {
+        let samples = [
+            ObservedTunnelState::Connected {
+                tunnel_type: ObservedTunnelType::Mixnet,
+            },
+            ObservedTunnelState::Connected {
+                tunnel_type: ObservedTunnelType::Wireguard,
+            },
+            ObservedTunnelState::Disconnected,
+            ObservedTunnelState::Connecting,
+            ObservedTunnelState::Disconnecting,
+            ObservedTunnelState::Offline,
+            ObservedTunnelState::Error("reason".into()),
+        ];
+        for sample in samples {
+            let bytes = serde_json::to_vec(&sample).expect("serialize");
+            let decoded: ObservedTunnelState = serde_json::from_slice(&bytes).expect("deserialize");
+            assert_eq!(decoded, sample);
+        }
+    }
+
+    #[test]
+    fn observed_account_state_roundtrips() {
+        let samples = [
+            ObservedAccountState::Offline,
+            ObservedAccountState::Syncing,
+            ObservedAccountState::LoggedOut,
+            ObservedAccountState::ReadyToConnect,
+            ObservedAccountState::Decentralised,
+            ObservedAccountState::PendingSubscription,
+            ObservedAccountState::Error("reason".into()),
+        ];
+        for sample in samples {
+            let bytes = serde_json::to_vec(&sample).expect("serialize");
+            let decoded: ObservedAccountState =
+                serde_json::from_slice(&bytes).expect("deserialize");
+            assert_eq!(decoded, sample);
+        }
+    }
+}

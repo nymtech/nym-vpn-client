@@ -11032,6 +11032,8 @@ dependencies = [
  "log",
  "nix 0.31.3",
  "nym-ipc",
+ "nym-vpn-lib-types",
+ "nym-vpn-proto",
  "rand 0.8.6",
  "rs-release",
  "serde",

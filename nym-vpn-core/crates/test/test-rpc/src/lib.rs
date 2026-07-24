@@ -80,6 +80,8 @@ pub enum Error {
     TokioJoinError(String),
     #[error("gRPC command is not implemented for this target")]
     TargetNotImplemented,
+    #[error("Local nym-vpnd RPC failed: {0}")]
+    DaemonRpc(String),
     #[error("{0}")]
     Other(String),
 }
@@ -171,6 +173,12 @@ mod service {
 
         /// Return status of the system service.
         async fn nymvpn_daemon_get_status() -> nym_daemon::ServiceStatus;
+
+        /// Tunnel state via guest-local daemon UDS (bypasses serial gRPC forward).
+        async fn get_observed_tunnel_state() -> Result<nym_daemon::ObservedTunnelState, Error>;
+
+        /// Account state via guest-local daemon UDS (bypasses serial gRPC forward).
+        async fn get_observed_account_state() -> Result<nym_daemon::ObservedAccountState, Error>;
 
         /// Return version number of installed daemon.
         async fn nymvpn_version() -> Result<String, Error>;

@@ -152,6 +152,26 @@ impl NymServiceClient {
             .map_err(Error::Tarpc)
     }
 
+    /// Tunnel discriminant from guest-local daemon UDS (not serial-forwarded gRPC).
+    pub async fn get_observed_tunnel_state(
+        &self,
+    ) -> Result<nym_daemon::ObservedTunnelState, Error> {
+        self.client
+            .get_observed_tunnel_state(tarpc::context::current())
+            .await
+            .map_err(Error::Tarpc)?
+    }
+
+    /// Account discriminant from guest-local daemon UDS (not serial-forwarded gRPC).
+    pub async fn get_observed_account_state(
+        &self,
+    ) -> Result<nym_daemon::ObservedAccountState, Error> {
+        self.client
+            .get_observed_account_state(tarpc::context::current())
+            .await
+            .map_err(Error::Tarpc)?
+    }
+
     /// Return the version string as reported by `mullvad --version`.
     ///
     /// TODO: Replace with nicer version type.
