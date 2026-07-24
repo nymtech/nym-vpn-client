@@ -135,6 +135,10 @@ jobs:
       macos: ${{ steps.flags.outputs.macos }}
       publish_metadata: ${{ steps.flags.outputs.publish_metadata }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
@@ -221,10 +225,6 @@ jobs:
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
             echo "publish_metadata=$PUBLISH_METADATA"
           } >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
 
       - uses: baptiste0928/cargo-install@v3
         with:
