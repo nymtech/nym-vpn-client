@@ -205,6 +205,13 @@ jobs:
           path: python-venv
           key: ${{ runner.os }}-${{ runner.arch }}-python-venv
 
+      - name: Uninstall system code-magic-cli-tools
+        if: ${{ runner.name == 'TimApple' }}
+        run: |
+          which codemagic-cli-tools || true
+          which keychain || true
+          sudo pip3 uninstall -y codemagic-cli-tools
+
       - name: Setup virtual env
         if: steps.cache-virtual-env.outputs.cache-hit != 'true'
         run: python3 -m venv python-venv
@@ -216,6 +223,8 @@ jobs:
 
       - name: Install codemagic-cli-tools
         run: |
+          which python3 || true
+          ls -la python-venv/bin || true
           python3 -m pip install codemagic-cli-tools
           keychain --version
 
