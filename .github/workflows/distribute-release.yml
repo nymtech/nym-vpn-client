@@ -19,6 +19,10 @@ on:
         description: Publish to public TestFlight group
         type: boolean
         required: true
+      play_artifact_name:
+        description: The name of the Play Store artifact (aab)
+        type: string
+        required: false
     secrets:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
@@ -38,8 +42,9 @@ jobs:
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
-      publish-bundle: true
-      publish-metadata: ${{ inputs.publish_play_metadata }}
+      publish_bundle: true
+      publish_metadata: ${{ inputs.publish_play_metadata }}
+      play_artifact_name: ${{ inputs.play_artifact_name }}
     secrets: inherit
 
   publish-testflight:

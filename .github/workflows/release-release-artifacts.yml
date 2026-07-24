@@ -40,6 +40,14 @@ on:
         description: "macOS (.pkg + Sparkle)"
         type: boolean
         required: true
+      pkg_installer_name:
+        description: "macOS pkg installer name"
+        type: string
+        required: false
+      fdroid_artifact_name:
+        description: "F-droid artifact name"
+        type: string
+        required: false
     outputs:
       github_release_url:
         value: ${{ jobs.create-release.outputs.github_release_url }}
@@ -231,14 +239,11 @@ jobs:
       - name: Copy artifacts (macOS)
         if: ${{ needs.resolve.outputs.macos == 'true' }}
         env:
-          MACOS_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+          MACOS_INSTALLER_NAME: ${{ inputs.pkg_installer_name }}
         run: |
           if [ -z "$MACOS_INSTALLER_NAME" ]; then
-            MACOS_INSTALLER_NAME=$(find "${{ env.MACOS_ARTIFACTS }}" -name "*.pkg" -type f -printf "%f" | head -1)
-            if [ -z "$MACOS_INSTALLER_NAME" ]; then
-              echo "::error:: Failed to locate pkg installer"
-              exit 1
-            fi
+            echo "::error:: PKG artifact name is not set!"
+            exit 1
           fi
 
           echo "MACOS_INSTALLER_NAME=$MACOS_INSTALLER_NAME" >> $GITHUB_ENV
@@ -288,14 +293,11 @@ jobs:
       - name: Copy artifacts (Android)
         if: ${{ needs.resolve.outputs.fdroid == 'true' }}
         env:
-          ANDROID_APK: ${{ needs.build.outputs.fdroid_artifact_name }}
+          ANDROID_APK: ${{ inputs.fdroid_artifact_name }}
         run: |
           if [ -z "$ANDROID_APK" ]; then
-            ANDROID_APK=$(find "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}" -name "*.apk" -type f -printf "%f" | head -1)
-            if [ -z "$ANDROID_APK" ]; then
-              echo "::error:: Failed to locate fdroid apk"
-              exit 1
-            fi
+            echo "::error:: APK artifact name is not set!"
+            exit 1
           fi
 
           echo "ANDROID_APK=${ANDROID_APK}" >> $GITHUB_ENV

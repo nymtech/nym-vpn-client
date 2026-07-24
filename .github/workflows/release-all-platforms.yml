@@ -254,11 +254,16 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
+      pkg_installer_name: ${{ steps.restore-build-outputs.outputs.pkg_installer_name }}
+      ios_build: ${{ steps.restore-build-outputs.outputs.ios_build }}
+      fdroid_artifact_name: ${{ steps.restore-build-outputs.outputs.fdroid_artifact_name }}
+      play_artifact_name: ${{ steps.restore-build-outputs.outputs.play_artifact_name }}
     steps:
       - uses: actions/cache/restore@v6
         id: cache
         with:
           path: |
+            restore-build-outputs.sh
             ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
             ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
             ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
@@ -274,6 +279,13 @@ jobs:
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
           key: ${{ env.DANGER_BUILD_CACHE_KEY }}
+
+      - name: Restore build outputs
+        id: restore-build-outputs
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        run: |
+          chmod +x restore-build-outputs.sh
+          ./restore-build-outputs.sh
 
       - uses: actions/upload-artifact@v7
         if: ${{ steps.cache.outputs.cache-hit == 'true' }}
@@ -380,17 +392,37 @@ jobs:
 
   # This step is only used for testing purposes when developing this workflow
   save-build-cache:
+    runs-on: ubuntu-latest
     needs: [resolve, build, restore-build-cache]
     # IMPORTANT: Disable this workflow with `&& false` once done testing!
     if: |
-      !cancelled() && needs.restore-build-cache.result == 'success' && true
-    runs-on: ubuntu-latest
+      !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true' && needs.build.result == 'success' && true
     steps:
       - uses: actions/download-artifact@v8
+
+      - name: Save build outputs
+        env:
+          PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+          IOS_BUILD: ${{ needs.build.outputs.ios_build }}
+          FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
+          PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
+        run: |
+          cat << 'EOF' > restore-build-outputs.sh
+          #!/bin/bash
+          pkg_installer_name="$PKG_INSTALLER_NAME" >> \$GITHUB_OUTPUT
+          ios_build="$IOS_BUILD" >> \$GITHUB_OUTPUT
+          fdroid_artifact_name="$FDROID_ARTIFACT_NAME" >> \$GITHUB_OUTPUT
+          play_artifact_name="$PLAY_ARTIFACT_NAME" >> \$GITHUB_OUTPUT
+          EOF
+
+          echo "✅ Generated restore-build-outputs.sh:"
+          cat restore-build-outputs.sh
+
       - uses: actions/cache/save@v6
         id: cache
         with:
           path: |
+            restore-build-outputs.sh
             ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
             ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
             ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
@@ -407,13 +439,37 @@ jobs:
             ${{ env.MACOS_ARTIFACTS }}
           key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
-  release:
-    needs: [resolve, build, restore-build-cache, save-build-cache]
+  build-outputs:
+    runs-on: ubuntu-latest
+    needs: [build, restore-build-cache, save-build-cache]
     if: |
       !cancelled() && (
         needs.restore-build-cache.outputs.cache-hit == 'true' ||
         needs.build.result == 'success'
-      ) && needs.resolve.outputs.publish_github_release == 'true'
+      )
+    outputs:
+      pkg_installer_name: ${{ steps.set-outputs.outputs.pkg_installer_name }}
+      fdroid_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
+      play_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
+      ios_build: ${{ steps.set-outputs.outputs.ios_build }}
+    steps:
+      - name: Resolve build outputs
+        id: set-outputs
+        env:
+          PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name || needs.restore-build-cache.outputs.pkg_installer_name }}
+          FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name || needs.restore-build-cache.outputs.fdroid_artifact_name }}
+          PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name || needs.restore-build-cache.outputs.play_artifact_name }}
+          IOS_BUILD: ${{ needs.build.outputs.ios_build || needs.restore-build-cache.outputs.ios_build }}
+        run: |
+          echo "pkg_installer_name=$PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
+          echo "fdroid_artifact_name=$FDROID_ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "play_artifact_name=$PLAY_ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "ios_build=$IOS_BUILD" >> $GITHUB_OUTPUT
+
+  release:
+    needs: [resolve, build-outputs]
+    if: |
+      !cancelled() && needs.build-outputs.result == 'success' && needs.resolve.outputs.publish_github_release == 'true'
     uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
@@ -427,13 +483,15 @@ jobs:
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
       ios: ${{ needs.resolve.outputs.ios == 'true' }}
       macos: ${{ needs.resolve.outputs.macos == 'true' }}
+      pkg_installer_name: ${{ needs.build-outputs.outputs.pkg_installer_name }}
+      fdroid_artifact_name: ${{ needs.build-outputs.outputs.fdroid_artifact_name }}
     secrets: inherit
 
   distribute:
-    needs: [resolve, restore-build-cache, release]
+    needs: [resolve, build-outputs, release]
     # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
-      !cancelled() && needs.release.result == 'success'
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
     uses: ./.github/workflows/distribute-release.yml
     permissions:
       contents: read
@@ -443,16 +501,14 @@ jobs:
       # only publish nightly builds to avoid downgrades
       publish_testflight: ${{ needs.resolve.outputs.ios == 'true' && needs.resolve.outputs.channel == 'nightly' }}
       publish_to_public_testflight: true
+      play_artifact_name: ${{ needs.build-outputs.play_artifact_name }}
     secrets: inherit
 
   zulip:
-    needs: [resolve, build, release]
+    needs: [resolve, release, build-outputs]
     # && needs.resolve.outputs.publish_github_release == 'true'
     if: |
-      !cancelled() && (
-        needs.restore-build-cache.outputs.cache-hit == 'true' ||
-        needs.build.result == 'success'
-      ) && needs.release.result == 'success'
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
     uses: ./.github/workflows/zulip-notify-release.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
@@ -465,5 +521,5 @@ jobs:
       windows_installer_arm64_url: ${{ needs.release.outputs.windows_installer_arm64_url }}
       macos_installer_url: ${{ needs.release.outputs.macos_installer_url }}
       android_apk_url: ${{ needs.release.outputs.android_apk_url }}
-      ios_build: ${{ needs.build.outputs.ios_build || '0' }} # this needs some sort of handling when using caching!
+      ios_build: ${{ needs.build-outputs.outputs.ios_build }}
     secrets: inherit
