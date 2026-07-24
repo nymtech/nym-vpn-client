@@ -422,7 +422,7 @@ jobs:
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
           PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
         run: |
-          cat << 'EOF' > restore-build-outputs.sh
+          cat << EOF > restore-build-outputs.sh
           #!/bin/bash
           pkg_installer_name="$PKG_INSTALLER_NAME" >> \$GITHUB_OUTPUT
           ios_build="$IOS_BUILD" >> \$GITHUB_OUTPUT
