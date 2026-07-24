@@ -10,6 +10,8 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
+        sccache --stop-server || true
+
         echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
         echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
         echo "SCCACHE_CACHE_SIZE=20G" >> "$GITHUB_ENV"
@@ -20,8 +22,10 @@ runs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        "RUSTC_WRAPPER=sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
-        "SCCACHE_DIR=$HOME\.cache\sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
-        "SCCACHE_CACHE_SIZE=20G" | Out-File -FilePath $env:GITHUB_ENV -Append
-        "SCCACHE_IDLE_TIMEOUT=0" | Out-File -FilePath $env:GITHUB_ENV -Append
-        "CARGO_INCREMENTAL=0" | Out-File -FilePath $env:GITHUB_ENV -Append
+        & sccache --stop-server 2>$null | Out-Null
+
+        Add-Content -Path $env:GITHUB_ENV -Value "RUSTC_WRAPPER=sccache" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_DIR=$env:USERPROFILE\.cache\sccache" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_CACHE_SIZE=20G" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_IDLE_TIMEOUT=0" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "CARGO_INCREMENTAL=0" -Encoding utf8
