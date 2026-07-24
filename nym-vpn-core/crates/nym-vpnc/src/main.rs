@@ -172,10 +172,7 @@ pub enum Command {
 
 impl Command {
     pub fn needs_rpc_client(&self) -> bool {
-        match self {
-            Self::Favorites { .. } => false,
-            _ => true,
-        }
+        !matches!(self, Self::Favorites { .. })
     }
 
     pub async fn execute_no_rpc_client(self) -> Result<()> {
