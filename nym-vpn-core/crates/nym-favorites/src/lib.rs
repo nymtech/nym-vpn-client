@@ -58,10 +58,10 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let mut list = self.cache.entry.clone();
-        Self::add_favorite(&mut list, selector);
-        save_to_file(&self.cache, &self.file_path).await?;
-        self.cache.entry = list;
+        let mut cache = self.cache.clone();
+        Self::add_favorite(&mut cache.entry, selector);
+        save_to_file(&cache, &self.file_path).await?;
+        self.cache = cache;
 
         Ok(())
     }
@@ -70,10 +70,10 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let mut list = self.cache.entry.clone();
-        Self::remove_favorite(&mut list, selector);
-        save_to_file(&self.cache, &self.file_path).await?;
-        self.cache.entry = list;
+        let mut cache = self.cache.clone();
+        Self::remove_favorite(&mut cache.entry, selector);
+        save_to_file(&cache, &self.file_path).await?;
+        self.cache = cache;
 
         Ok(())
     }
@@ -82,10 +82,10 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let mut list = self.cache.exit.clone();
-        Self::add_favorite(&mut list, selector);
-        save_to_file(&self.cache, &self.file_path).await?;
-        self.cache.exit = list;
+        let mut cache = self.cache.clone();
+        Self::add_favorite(&mut cache.exit, selector);
+        save_to_file(&cache, &self.file_path).await?;
+        self.cache = cache;
 
         Ok(())
     }
@@ -94,10 +94,10 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let mut list = self.cache.exit.clone();
-        Self::remove_favorite(&mut list, selector);
-        save_to_file(&self.cache, &self.file_path).await?;
-        self.cache.exit = list;
+        let mut cache = self.cache.clone();
+        Self::remove_favorite(&mut cache.exit, selector);
+        save_to_file(&cache, &self.file_path).await?;
+        self.cache = cache;
 
         Ok(())
     }
