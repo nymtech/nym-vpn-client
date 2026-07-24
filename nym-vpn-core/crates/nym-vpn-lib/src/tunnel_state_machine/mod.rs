@@ -32,13 +32,13 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 
+use crate::adblocker;
 #[cfg(not(target_os = "android"))]
 use crate::resolver;
 #[cfg(not(target_os = "ios"))]
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
-use crate::{adblocker, recents::RecentsManager};
 
 use crate::{
     GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
@@ -54,6 +54,7 @@ use nym_bandwidth_controller::{
 };
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_credentials_interface::TicketType;
+use nym_favorites::RecentsManager;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;

@@ -31,6 +31,7 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
+use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters};
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
@@ -85,7 +86,6 @@ use crate::{
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},
-    recents::RecentsManager,
     tunnel_state_machine::{
         NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
         tunnel::gateway_provider::GatewayProvider,

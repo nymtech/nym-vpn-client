@@ -4,10 +4,16 @@
 use nym_vpn_lib_types::TunnelType;
 
 #[derive(thiserror::Error, Debug)]
-pub enum RecentsError {
+pub enum FavoritesError {
     #[error("failed to lookup gateway cache")]
     GetGateways {
         tunnel_type: TunnelType,
-        source: crate::gateway_directory::Error,
+        source: nym_gateway_directory::Error,
     },
+
+    #[error("{0}")]
+    Serde(#[from] serde_json::Error),
+
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
 }

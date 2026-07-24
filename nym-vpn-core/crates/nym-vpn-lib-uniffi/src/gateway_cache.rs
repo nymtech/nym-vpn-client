@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use nym_vpn_lib::RecentGatewayCache;
+use nym_favorites::RecentGatewayCache;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 

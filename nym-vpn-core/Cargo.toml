@@ -24,6 +24,7 @@ members = [
     "crates/nym-socks5-proxy-ipc",
     "crates/nym-statistics",
     "crates/nym-statistics-api-client",
+    "crates/nym-favorites",
     "crates/nym-file-updater",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
@@ -247,6 +248,7 @@ nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }
 nym-dbus = { path = "crates/nym-dbus" }
 nym-dns = { path = "crates/nym-dns" }
+nym-favorites = { path = "crates/nym-favorites" }
 nym-firewall = { path = "crates/nym-firewall" }
 nym-firewall-config = { path = "crates/nym-firewall-config" }
 nym-gateway-directory = { path = "crates/nym-gateway-directory" }

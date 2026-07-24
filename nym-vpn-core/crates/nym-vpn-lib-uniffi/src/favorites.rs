@@ -1,23 +1,28 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
-use nym_vpn_lib::{RecentsError, RecentsManager};
-use nym_vpn_lib_types::{RecentGateways, TunnelType};
+use nym_favorites::{FavoritesError as LibFavoritesError, FavoritesManager, RecentsManager};
+use nym_vpn_lib_types::{FavoriteSelector, FavoriteSelectors, RecentGateways, TunnelType};
+use tokio::sync::RwLock;
 
 use crate::gateway_cache::NymGatewayCache;
 
 #[derive(Debug, thiserror::Error)]
 enum FavoritesInnerError {
     #[error("failed to get recent gateways ({0})")]
-    Recents(RecentsError),
+    Recents(LibFavoritesError),
+
+    #[error("failed to modify favorite selectors ({0})")]
+    Favorites(LibFavoritesError),
 }
 
 impl FavoritesInnerError {
     pub fn error_chain(&self) -> String {
         match self {
             Self::Recents(err) => err.to_string(),
+            Self::Favorites(err) => err.to_string(),
         }
     }
 }
@@ -67,4 +72,74 @@ pub async fn get_recent_gateways_no_service(
         .get_recent(tunnel_type)
         .await
         .map_err(FavoritesInnerError::Recents)?)
+}
+
+#[derive(uniffi::Object)]
+pub struct FavoritesController {
+    manager: Arc<RwLock<FavoritesManager>>,
+}
+
+#[uniffi::export(async_runtime = "tokio")]
+impl FavoritesController {
+    #[uniffi::constructor]
+    pub async fn new(data_dir: PathBuf) -> Self {
+        let manager = Arc::new(RwLock::new(FavoritesManager::new(data_dir).await));
+        Self { manager }
+    }
+
+    pub async fn add_favorite_entry(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
+        self.manager
+            .write()
+            .await
+            .add_favorite_entry(selector)
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
+    }
+
+    pub async fn add_favorite_exit(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
+        self.manager
+            .write()
+            .await
+            .add_favorite_exit(selector)
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
+    }
+
+    pub async fn remove_favorite_entry(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
+        self.manager
+            .write()
+            .await
+            .remove_favorite_entry(selector)
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
+    }
+
+    pub async fn remove_favorite_exit(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
+        self.manager
+            .write()
+            .await
+            .add_favorite_exit(selector)
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
+    }
+
+    pub async fn get_favorites(&self) -> FavoriteSelectors {
+        self.manager.read().await.get_favorites()
+    }
 }
