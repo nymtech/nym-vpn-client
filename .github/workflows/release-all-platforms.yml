@@ -239,6 +239,7 @@ jobs:
         run: bash .github/scripts/release/resolve-version.sh
 
   check-release-exists:
+    name: Check release exists
     runs-on: arc-linux-latest
     needs: [resolve]
     steps:
