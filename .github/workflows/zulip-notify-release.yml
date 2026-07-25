@@ -222,7 +222,7 @@ jobs:
             *) MODE="${RELEASE_CHANNEL}" ;;
           esac
 
-          $TAB="&nbsp;&nbsp;&nbsp;&nbsp;"
+          TAB="&nbsp;&nbsp;&nbsp;&nbsp;"
 
           {
             echo "zulip_message<<EOF"
