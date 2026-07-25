@@ -268,7 +268,7 @@ jobs:
           fi
 
           if [ -z "$VPNC_MACOS_INSTALLER_NAME" ]; then
-            echo "::error:: PKG artifact name is not set!"
+            echo "::error:: VPNC PKG artifact name is not set!"
             exit 1
           fi
 

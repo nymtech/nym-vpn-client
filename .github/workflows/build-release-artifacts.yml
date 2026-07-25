@@ -104,6 +104,9 @@ on:
       pkg_installer_name:
         description: "Name of the PKG installer artifact"
         value: ${{ jobs.apple.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name:
+        description: "Name of the nym-vpnc PKG installer artifact"
+        value: ${{ jobs.apple.outputs.vpnc_pkg_installer_name }}
       ios_ipa_name:
         description: "Name of the IPA artifact"
         value: ${{ jobs.apple.outputs.ios_ipa_name }}

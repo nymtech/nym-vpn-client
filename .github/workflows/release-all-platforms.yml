@@ -117,7 +117,7 @@ env:
   MACOS_ARTIFACTS: macos_artifacts
   VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_BUILD_CACHE_KEY: all_artifacts_v8 # used when testing workflow
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v9 # used when testing workflow
 
 jobs:
   resolve:
