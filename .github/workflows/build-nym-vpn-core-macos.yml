@@ -204,7 +204,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  merge-artifacts:
+  merge-core-artifacts-macos:
     needs: [build-nym-vpn-core-macos, build-nym-vpn-rpc]
     runs-on: custom-macos-15
     steps:
