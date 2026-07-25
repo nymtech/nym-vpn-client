@@ -486,6 +486,7 @@ jobs:
           IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name || needs.restore-build-cache.outputs.ios_ipa_name }}
           IOS_BUILD: ${{ needs.build.outputs.ios_build || needs.restore-build-cache.outputs.ios_build }}
         run: |
+          echo "IOS_IPA_NAME=$IOS_IPA_NAME"
           echo "pkg_installer_name=$PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
           echo "fdroid_artifact_name=$FDROID_ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "play_artifact_name=$PLAY_ARTIFACT_NAME" >> $GITHUB_OUTPUT
