@@ -87,8 +87,13 @@ jobs:
       - name: Build macOS app
         working-directory: nym-vpn-apple
         run: |
-          xcodebuild archive \
+          set -o pipefail
+
+          xcodebuild \
             -workspace "NymVPN.xcworkspace" \
             -scheme "NymVPNDaemon" \
             -configuration "Debug" \
-            -destination "platform=macOS" | xcbeautify --renderer github-actions
+            -destination "platform=macOS" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build | xcbeautify --renderer github-actions
