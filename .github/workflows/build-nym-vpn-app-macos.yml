@@ -158,7 +158,7 @@ jobs:
         with:
           crate: cargo-edit
 
-      - name: Add Homebrew, Ruby, and user Python tools to PATH
+      - name: Add Homebrew, Ruby to PATH
         run: |
           set -euxo pipefail
 

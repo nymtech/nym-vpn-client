@@ -137,7 +137,7 @@ jobs:
         with:
           crate: cargo-edit
 
-      - name: Add Homebrew, Ruby, and user Python tools to PATH
+      - name: Add Homebrew, Ruby to PATH
         run: |
           set -euxo pipefail
 
@@ -239,7 +239,7 @@ jobs:
             --avoid-build-deps \
             > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
 
-      - name: Prepare Keychain and import Developer ID certificate
+      - name: Prepare Keychain
         working-directory: nym-vpn-apple
         id: setup-keychain
         run: |
