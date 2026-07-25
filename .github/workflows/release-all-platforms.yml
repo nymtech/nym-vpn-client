@@ -525,7 +525,7 @@ jobs:
     secrets: inherit
 
   zulip:
-    needs: [resolve, release, build-outputs]
+    needs: [resolve, release, build-outputs, distribute]
     # && needs.resolve.outputs.publish_github_release == 'true'
     if: |
       !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
