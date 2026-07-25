@@ -378,15 +378,9 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
-          if ! command -v crowdin >/dev/null 2>&1; then
-            brew tap crowdin/crowdin
-            brew trust crowdin/crowdin 2>/dev/null || true
-            brew install crowdin@4 || brew upgrade crowdin@4 || true
-            crowdin_prefix="$(brew --prefix crowdin@4)"
-            export PATH="$crowdin_prefix/bin:$PATH"
-          fi
-
-          which crowdin || echo "crowdin not in PATH"
+          brew install crowdin
+          crowdin_prefix="$(brew --prefix crowdin)"
+          export PATH="$crowdin_prefix/bin:$PATH"
 
           crowdin download translations \
             --config crowdin-configs/macos-ios.yml \
