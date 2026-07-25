@@ -91,22 +91,7 @@ jobs:
 
       - name: Build core
         run: |
-          ARCH=$(uname -m)
-
-          case "$ARCH" in
-              arm64)
-                  RUST_TRIPLET="aarch64-apple-ios-sim"
-                  ;;
-              x86_64)
-                  RUST_TRIPLET="x86_64-apple-ios-sim"
-                  ;;
-              *)
-                  echo "Unsupported architecture: $ARCH"
-                  exit 1
-                  ;;
-          esac
-
-          make -C nym-vpn-core -f iOS.mk swift-package RELEASE="false" RUST_TRIPLET="$RUST_TRIPLET"
+          make -C nym-vpn-core -f iOS.mk swift-package RELEASE="false" RUST_TRIPLET="aarch64-apple-ios-sim"
           rm -rf "nym-vpn-apple/NymVPNLib"
           mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib nym-vpn-apple/NymVPNLib
 
@@ -123,5 +108,6 @@ jobs:
           xcodebuild -workspace "NymVPN.xcworkspace" \
            -scheme "NymVPN" \
            -configuration Debug \
+           -arch=arm64 \
            -destination 'generic/platform=iOS Simulator' \
            build 2>&1 | xcbeautify --renderer github-actions
