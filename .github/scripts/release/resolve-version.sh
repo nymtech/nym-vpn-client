@@ -87,7 +87,6 @@ echo "::notice:: version=${VERSION} tag=${TAG}"
   echo "tag=${TAG}"
 } >> "$GITHUB_OUTPUT"
 
-echo "nightly_timestamp is $NIGHTLY_TIMESTAMP"
 if [ -n "$NIGHTLY_TIMESTAMP" ]; then
   echo "nightly_timestamp=${NIGHTLY_TIMESTAMP}" >> "$GITHUB_OUTPUT"
 fi
