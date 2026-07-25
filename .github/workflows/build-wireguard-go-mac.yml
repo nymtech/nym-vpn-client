@@ -18,6 +18,14 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v7
         with:
