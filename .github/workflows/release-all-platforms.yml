@@ -116,7 +116,7 @@ env:
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_BUILD_CACHE_KEY: all_artifacts_v6 # used when testing workflow
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v7 # used when testing workflow
 
 jobs:
   resolve:
@@ -271,7 +271,7 @@ jobs:
         id: cache
         with:
           path: |
-            restore-build-outputs.sh
+            build-outputs.json
             ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
             ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
             ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
@@ -292,9 +292,7 @@ jobs:
         id: restore-build-outputs
         if: ${{ steps.cache.outputs.cache-hit == 'true' }}
         run: |
-          chmod +x restore-build-outputs.sh
-          cat restore-build-outputs.sh
-          ./restore-build-outputs.sh
+          jq -r 'to_entries[] | "\(.key)=\(.value)"' build-outputs.json >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v7
         if: ${{ steps.cache.outputs.cache-hit == 'true' }}
@@ -424,23 +422,29 @@ jobs:
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
           PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
         run: |
-          cat << EOF > restore-build-outputs.sh
-          #!/bin/bash
-          pkg_installer_name="$PKG_INSTALLER_NAME" >> \$GITHUB_OUTPUT
-          ios_ipa_name="$IOS_IPA_NAME" >> \$GITHUB_OUTPUT
-          ios_build="$IOS_BUILD" >> \$GITHUB_OUTPUT
-          fdroid_artifact_name="$FDROID_ARTIFACT_NAME" >> \$GITHUB_OUTPUT
-          play_artifact_name="$PLAY_ARTIFACT_NAME" >> \$GITHUB_OUTPUT
-          EOF
+          # Construct a safe JSON file using jq argument flags
+          jq -n \
+            --arg pkg "$PKG_INSTALLER_NAME" \
+            --arg ipa "$IOS_IPA_NAME" \
+            --arg ios_build "$IOS_BUILD" \
+            --arg fdroid "$FDROID_ARTIFACT_NAME" \
+            --arg play "$PLAY_ARTIFACT_NAME" \
+            '{
+              pkg_installer_name: $pkg,
+              ios_ipa_name: $ipa,
+              ios_build: $ios_build,
+              fdroid_artifact_name: $fdroid,
+              play_artifact_name: $play
+            }' > build-outputs.json
 
-          echo "✅ Generated restore-build-outputs.sh:"
-          cat restore-build-outputs.sh
+          echo "✅ Generated build-outputs.json:"
+          cat build-outputs.json
 
       - uses: actions/cache/save@v6
         id: cache
         with:
           path: |
-            restore-build-outputs.sh
+            build-outputs.json
             ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
             ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
             ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
