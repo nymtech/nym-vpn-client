@@ -1,0 +1,132 @@
+name: ci-nym-vpn-app-ios
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    paths:
+      - ".github/workflows/ci-nym-vpn-app-ios.yml"
+      - "nym-vpn-apple/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+  RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  IPA_DIR: ${{ github.workspace }}/nym-vpn-apple/build/ios/ipa
+
+jobs:
+  build:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: aarch64-apple-ios aarch64-apple-ios-sim
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache-dependency-path: wireguard/libwg/go.sum
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Enable QA mode
+        working-directory: nym-vpn-apple
+        run: |
+          if /usr/libexec/PlistBuddy -c "Print :IsCiBuild" "NymVPNDaemon/Resources/Info.plist" >/dev/null 2>&1; then
+            /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "NymVPNDaemon/Resources/Info.plist"
+          else
+            /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "NymVPNDaemon/Resources/Info.plist"
+          fi
+
+          echo "✅ Updated Info.plist contents:"
+          /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
+
+      - name: Fetch and import signing files
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          echo "📦 Fetching iOS signing files from App Store Connect..."
+          app-store-connect fetch-signing-files net.nymtech.vpn \
+            --type IOS_APP_ADHOC \
+            --create \
+            --delete-stale-profiles \
+            --platform IOS
+
+          keychain add-certificates
+          echo "✅ Signing files successfully fetched and imported."
+
+      - name: Install Apple WWDR Intermediates
+        uses: ./.github/workflows/apple/install-wwdr
+        with:
+          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
+
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNRpc || true
+          mkdir NymVPNRpc || true
+          cd NymVPNRpc
+          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
+
+      - name: Build core
+        run: |
+          make -C nym-vpn-core -f iOS.mk swift-package RELEASE="false"
+          rm -rf "nym-vpn-apple/NymVPNLib"
+          mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib nym-vpn-apple/NymVPNLib
+
+      - name: Apple unit tests
+        uses: ./.github/workflows/apple/tests
+        with:
+          account-report-path: ${{ github.workspace }}/account-report.md
+
+      - name: Build iOS (Debug, unsigned)
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          xcodebuild -workspace "NymVPN.xcworkspace" \
+           -scheme "NymVPN" \
+           -configuration Debug \
+           -destination 'generic/platform=iOS' \
+           CODE_SIGN_IDENTITY="-" \
+           build 2>&1 | xcbeautify --renderer github-actions
