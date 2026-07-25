@@ -61,6 +61,12 @@ jobs:
         with:
           crate: cargo-edit
 
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
+
       - name: Enable QA mode
         working-directory: nym-vpn-apple
         run: |
