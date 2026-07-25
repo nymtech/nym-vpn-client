@@ -292,6 +292,7 @@ jobs:
         id: restore-build-outputs
         if: ${{ steps.cache.outputs.cache-hit == 'true' }}
         run: |
+          cat build-outputs.json
           jq -r 'to_entries[] | "\(.key)=\(.value)"' build-outputs.json >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v7
