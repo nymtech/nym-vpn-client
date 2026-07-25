@@ -293,6 +293,7 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit == 'true' }}
         run: |
           chmod +x restore-build-outputs.sh
+          cat restore-build-outputs.sh
           ./restore-build-outputs.sh
 
       - uses: actions/upload-artifact@v7
