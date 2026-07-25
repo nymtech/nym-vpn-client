@@ -222,6 +222,8 @@ jobs:
             *) MODE="${RELEASE_CHANNEL}" ;;
           esac
 
+          $TAB="&nbsp;&nbsp;&nbsp;&nbsp;"
+
           {
             echo "zulip_message<<EOF"
             echo "[IGNORE; THIS IS TEST]"
@@ -232,19 +234,19 @@ jobs:
             if [[ -n "$WIN_X64_INSTALLER" || -n "$WIN_ARM64_INSTALLER" ]]; then
               echo "• Windows:"
               if [ -n "$WIN_X64_INSTALLER" ]; then
-                echo "    x64: ${WIN_X64_INSTALLER}"
+                echo "${TAB}• x64: [${WIN_X64_INSTALLER##*/}](${WIN_X64_INSTALLER})"
               fi
               if [ -n "$WIN_ARM64_INSTALLER" ]; then
-                echo "    arm64: ${WIN_ARM64_INSTALLER}"
+                echo "${TAB}• arm64: [${WIN_ARM64_INSTALLER##*/}](${WIN_ARM64_INSTALLER})"
               fi
             fi
             if [[ -n "$LINUX_X64_INSTALLER" || -n "$LINUX_ARM64_INSTALLER" ]]; then
               echo "• Linux (deb):"
               if [ -n "$LINUX_X64_INSTALLER" ]; then
-                echo "    x64: ${LINUX_X64_INSTALLER}"
+                echo "${TAB}• x64: [${LINUX_X64_INSTALLER##*/}](${LINUX_X64_INSTALLER})"
               fi
               if [ -n "$LINUX_ARM64_INSTALLER" ]; then
-                echo "    arm64: ${LINUX_ARM64_INSTALLER}"
+                echo "${TAB}• arm64: [${LINUX_ARM64_INSTALLER##*/}](${LINUX_ARM64_INSTALLER})"
               fi
             fi
             echo "EOF"
