@@ -163,6 +163,7 @@ jobs:
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
             RELEASE_CHANNEL="nightly"
             VERSION="${{ inputs.version }}"
+            NIGHTLY_TIMESTAMP="${{ inputs.nightly_timestamp }}"
             ANDROID=true
             FDROID=true
             LINUX=true
@@ -172,6 +173,7 @@ jobs:
           else
             RELEASE_CHANNEL="${{ inputs.release_channel }}"
             VERSION="${{ inputs.version }}"
+            NIGHTLY_TIMESTAMP="${{ inputs.nightly_timestamp }}"
             ANDROID="${{ inputs.android }}"
             FDROID="${{ inputs.fdroid }}"
             LINUX="${{ inputs.linux }}"
@@ -188,6 +190,7 @@ jobs:
           echo "windows=$WINDOWS" >> "$GITHUB_OUTPUT"
           echo "ios=$IOS" >> "$GITHUB_OUTPUT"
           echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
+          echo "nightly_timestamp=$NIGHTLY_TIMESTAMP" >> "$GITHUB_OUTPUT"
 
           echo "::notice:: release_channel=$RELEASE_CHANNEL, version=$VERSION, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
 
