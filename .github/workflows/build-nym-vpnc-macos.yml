@@ -293,11 +293,18 @@ jobs:
 
           echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
 
+      - name: Move assets for upload
+        env:
+          PKG: ${{ steps.make-pkg.outputs.pkg_path }}
+        run: |
+          mkdir -p "${{ env.UPLOAD_DIR_MACOS }}"
+          cp "$PKG" "${{ env.UPLOAD_DIR_MACOS }}"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_MACOS }}
-          path: ${{ steps.build-pkg.outputs.pkg_path }}
+          path: ${{ env.UPLOAD_DIR_MACOS }}
           if-no-files-found: error
           retention-days: 1
 
