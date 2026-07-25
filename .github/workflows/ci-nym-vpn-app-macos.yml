@@ -1,10 +1,10 @@
-name: ci-build-nym-vpn-core-macos
+name: ci-nym-vpn-app-macos
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - ".github/workflows/ci-build-nym-vpn-core-macos.yml"
+      - ".github/workflows/ci-nym-vpn-app-macos.yml"
       - nym-vpn-apple/**
   workflow_dispatch:
 
@@ -100,4 +100,4 @@ jobs:
             -workspace "NymVPN.xcworkspace" \
             -scheme "NymVPNDaemon" \
             -configuration "Debug" \
-            -destination "generic/platform=macOS" | xcbeautify --renderer github-actions
+            -destination "platform=macOS" | xcbeautify --renderer github-actions
