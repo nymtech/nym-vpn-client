@@ -125,6 +125,7 @@ jobs:
     runs-on: arc-linux-latest
     outputs:
       version: ${{ steps.resolve.outputs.version }}
+      nightly_timestamp: ${{ steps.resolve.outputs.nightly_timestamp }}
       channel: ${{ steps.resolve.outputs.channel }}
       android: ${{ steps.resolve.outputs.android }}
       fdroid: ${{ steps.resolve.outputs.fdroid }}
@@ -192,7 +193,7 @@ jobs:
           echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
           echo "nightly_timestamp=$NIGHTLY_TIMESTAMP" >> "$GITHUB_OUTPUT"
 
-          echo "::notice:: release_channel=$RELEASE_CHANNEL, version=$VERSION, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
+          echo "::notice:: release_channel=$RELEASE_CHANNEL, version=$VERSION, nightly_timestamp=$NIGHTLY_TIMESTAMP, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
 
   core:
     needs: [resolve]
