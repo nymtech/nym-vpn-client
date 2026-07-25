@@ -103,12 +103,6 @@ jobs:
             *)         mode=pr ;;
           esac
 
-          # If triggered by schedule, force QA and build both platforms
-          if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then
-            mode=qa
-            echo "🕒 Scheduled run detected → forcing QA with macOS"
-          fi
-
           echo "🧩 Selected mode (raw): $sel"
           echo "🧩 Normalized mode: $mode"
 
