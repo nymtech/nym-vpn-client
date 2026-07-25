@@ -116,9 +116,20 @@ jobs:
         run: |
           set -euo pipefail
 
+          SIM_NAME=$(xcrun simctl list devices available -j | jq -r '
+            .devices
+            | to_entries
+            | map(select(.key | contains("iOS")))
+            | sort_by(.key)
+            | last
+            | .value[0].name
+          ')
+
+          echo "📱 Picked iOS simulator: $SIM_NAME"
+
           xcodebuild -workspace "NymVPN.xcworkspace" \
            -scheme "NymVPN" \
            -configuration Debug \
-           -destination 'platform=iOS Simulator' \
+           -destination "platform=iOS Simulator,name=$SIM_NAME" \
            ONLY_ACTIVE_ARCH=YES \
            build 2>&1 | xcbeautify --renderer github-actions
