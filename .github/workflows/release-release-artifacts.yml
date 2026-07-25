@@ -334,7 +334,8 @@ jobs:
 
       - name: Generate checksums
         run: |
-          for file in "${{ env.OUTPUT_DIR }}/"*; do
+          cd "${{ env.OUTPUT_DIR }}"
+          for file in *; do
             if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
               echo "#️⃣ Generating SHA: $file > ${file}.sha256sum"
               sha256sum "$file" > "${file}.sha256sum"
