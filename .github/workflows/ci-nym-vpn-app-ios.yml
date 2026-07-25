@@ -40,7 +40,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
-          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios-sim
+          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -94,7 +94,7 @@ jobs:
                   RUST_TRIPLET="aarch64-apple-ios-sim"
                   ;;
               x86_64)
-                  RUST_TRIPLET="x86_64-apple-ios-sim"
+                  RUST_TRIPLET="x86_64-apple-ios"
                   ;;
               *)
                   echo "Unsupported architecture: $ARCH"
