@@ -131,16 +131,18 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --allow-app codesign \
-            --allow-app productsign
+            --allow-all-applications # todo: restore --allow-app
+            # --allow-app codesign \
+            # --allow-app productsign
 
           echo "Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            --allow-app codesign \
-            --allow-app productsign
+            --allow-all-applications # todo: restore --allow-app
+            # --allow-app codesign \
+            # --allow-app productsign
 
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
 
