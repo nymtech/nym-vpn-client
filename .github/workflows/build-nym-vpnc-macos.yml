@@ -41,6 +41,7 @@ env:
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc
   PKG_INSTALL_LOCATION: /usr/local/bin
+  CORE_ARTIFACTS_MACOS: core_artifacts_macos
   UPLOAD_DIR_MACOS: vpnc_macos_artifacts
 
 jobs:
@@ -67,60 +68,9 @@ jobs:
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
 
-      - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
-
-      - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          targets: x86_64-apple-darwin aarch64-apple-darwin
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
-
-      - name: Set version for nightly builds
-        shell: bash
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo fetch
-
       - name: Add Homebrew to PATH
         run: |
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
-
-      - name: Set locale (for Fastlane)
-        run: |
-          echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
-          echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
 
       - name: Set Xcode directories
         run: |
@@ -153,43 +103,11 @@ jobs:
           python3 -m pip install codemagic-cli-tools
           keychain --version
 
-      - name: Apply orchestrated version (core)
-        uses: ./.github/workflows/platform/apply-version
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          version: ${{ inputs.version }}
-          target: core
-
-      - name: Get workspace version
-        id: workspace-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: workspace.package.version --entry nym-vpn-core
-
-
-      - name: Build nym-vpnc (aarch64)
-        working-directory: nym-vpn-core
-        run: |
-          cargo build -p nym-vpnc --release --target aarch64-apple-darwin
-
-      - name: Build nym-vpnc (x86_64)
-        working-directory: nym-vpn-core
-        run: |
-          cargo build -p nym-vpnc --release --target x86_64-apple-darwin
-
-      - name: Create universal binary
-        run: |
-          set -euo pipefail
-
-          AARCH64_BIN="nym-vpn-core/target/aarch64-apple-darwin/release/nym-vpnc"
-          X86_64_BIN="nym-vpn-core/target/x86_64-apple-darwin/release/nym-vpnc"
-          UNIVERSAL_BIN="nym-vpn-core/target/release/nym-vpnc"
-
-          mkdir -p "$(dirname "$UNIVERSAL_BIN")"
-          lipo -create "$AARCH64_BIN" "$X86_64_BIN" -output "$UNIVERSAL_BIN"
-
-          echo "Universal binary:"
-          file "$UNIVERSAL_BIN"
-          lipo -info "$UNIVERSAL_BIN"
+          name: ${{ env.CORE_ARTIFACTS_MACOS }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS }}
 
       - name: Prepare Keychain and import certificates
         id: setup-keychain
@@ -232,10 +150,9 @@ jobs:
       - name: Codesign binary
         env:
           APP_SIGNING_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
         run: |
           set -euo pipefail
-
-          BINARY="nym-vpn-core/target/release/nym-vpnc"
 
           echo "Codesigning $BINARY..."
           codesign --sign "$APP_SIGNING_IDENTITY" \
@@ -251,12 +168,12 @@ jobs:
         id: make-pkg
         env:
           INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
-          VERSION: ${{ steps.workspace-version.outputs.metadata }}
+          VERSION: ${{ inputs.version }}
+          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
         run: |
           set -euo pipefail
           which xmlstarlet || brew install xmlstarlet
 
-          BINARY="nym-vpn-core/target/release/nym-vpnc"
           STAGING_DIR="$PWD/build/pkg"
           STAGING_BIN_DIR="$STAGING_DIR/payload"
           NESTED_PKG="$STAGING_DIR/${PKG_IDENTIFIER}.pkg"
@@ -266,6 +183,8 @@ jobs:
           PKG_NAME="nym-vpnc-${VERSION}.pkg"
           PKG_PATH="$STAGING_DIR/$PKG_NAME"
           KEYCHAIN_PATH="${{ steps.setup-keychain.outputs.keychain_path }}"
+
+          MARKETING_VERSION="${VERSION%%-*}"
 
           rm -rf "$STAGING_DIR" || true
           mkdir -p "$STAGING_BIN_DIR"
@@ -277,7 +196,7 @@ jobs:
           pkgbuild \
             --root "$STAGING_BIN_DIR" \
             --identifier "$PKG_IDENTIFIER" \
-            --version "$VERSION" \
+            --version "$MARKETING_VERSION" \
             --install-location "$PKG_INSTALL_LOCATION" \
             --min-os-version 14.0 \
             --compression latest \
