@@ -42,7 +42,7 @@ env:
 
 jobs:
   publish-playstore:
-    if: ${{ inputs.publish_play && inputs.play_artifact_name != '' }}
+    if: ${{ inputs.publish_play && inputs.play_artifact_name }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
@@ -52,7 +52,7 @@ jobs:
     secrets: inherit
 
   publish-testflight:
-    if: ${{ inputs.publish_testflight && inputs.ios_ipa_name != '' }}
+    if: ${{ inputs.publish_testflight && inputs.ios_ipa_name }}
     uses: ./.github/workflows/publish-nym-vpn-ios.yml
     with:
       is_public: ${{ inputs.publish_to_public_testflight }}
