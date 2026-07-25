@@ -108,6 +108,5 @@ jobs:
           xcodebuild -workspace "NymVPN.xcworkspace" \
            -scheme "NymVPN" \
            -configuration Debug \
-           -arch=arm64 \
-           -destination 'generic/platform=iOS Simulator' \
+           -destination 'platform=iOS Simulator,arch=arm64' \
            build 2>&1 | xcbeautify --renderer github-actions
