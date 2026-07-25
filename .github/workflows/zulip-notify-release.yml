@@ -91,7 +91,7 @@ jobs:
             echo "• Version: \`${APP_VERSION}\`"
             echo "• Branch: \`${BRANCH}\`"
             echo "• Release: ${RELEASE_URL}"
-            echo "• APK: ${APK_URL}"
+            echo "• APK: [${APK_URL##*/}](${APK_URL})"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -177,7 +177,7 @@ jobs:
             echo "• Version: \`${APP_VERSION}\`"
             echo "• Branch: \`${BRANCH}\`"
             echo "• Release: ${RELEASE_URL}"
-            echo "• Download: ${PKG_URL}"
+            echo "• Download: [${PKG_URL##*/}](${PKG_URL})"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
