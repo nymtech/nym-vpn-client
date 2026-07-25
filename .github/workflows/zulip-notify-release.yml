@@ -24,6 +24,8 @@ on:
         type: string
       macos_installer_url:
         type: string
+      vpnc_macos_installer_url:
+        type: string
       android_apk_url:
         type: string
       ios_build:
@@ -157,6 +159,7 @@ jobs:
         env:
           APP_VERSION: ${{ inputs.version }}
           PKG_URL: ${{ inputs.macos_installer_url }}
+          VPNC_PKG_URL: ${{ inputs.vpnc_macos_installer_url }}
           BRANCH: ${{ inputs.github_branch }}
           RELEASE_CHANNEL: ${{ inputs.release_channel }}
           RELEASE_URL: ${{ inputs.github_release_url }}
@@ -170,6 +173,8 @@ jobs:
             *) MODE="${RELEASE_CHANNEL}" ;;
           esac
 
+          TAB="&nbsp;&nbsp;&nbsp;&nbsp;"
+
           {
             echo "zulip_message<<EOF"
             echo "[IGNORE; THIS IS TEST]"
@@ -177,7 +182,9 @@ jobs:
             echo "• Version: \`${APP_VERSION}\`"
             echo "• Branch: \`${BRANCH}\`"
             echo "• Release: ${RELEASE_URL}"
-            echo "• Download: [${PKG_URL##*/}](${PKG_URL})"
+            echo "• Download:"
+            echo "${TAB}• macOS app: [${PKG_URL##*/}](${PKG_URL})"
+            echo "${TAB}• macOS cli: [${VPNC_PKG_URL##*/}](${VPNC_PKG_URL})"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 

@@ -115,8 +115,9 @@ env:
   DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
+  VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_BUILD_CACHE_KEY: all_artifacts_v7 # used when testing workflow
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v8 # used when testing workflow
 
 jobs:
   resolve:
@@ -256,135 +257,141 @@ jobs:
           fi
 
   # This step is only used for testing purposes when developing this workflow
-  # restore-build-cache:
-  #   needs: [resolve, check-release-exists]
-  #   runs-on: arc-linux-latest
-  #   outputs:
-  #     cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
-  #     pkg_installer_name: ${{ steps.restore-build-outputs.outputs.pkg_installer_name }}
-  #     ios_ipa_name: ${{ steps.restore-build-outputs.outputs.ios_ipa_name }}
-  #     ios_build: ${{ steps.restore-build-outputs.outputs.ios_build }}
-  #     fdroid_artifact_name: ${{ steps.restore-build-outputs.outputs.fdroid_artifact_name }}
-  #     play_artifact_name: ${{ steps.restore-build-outputs.outputs.play_artifact_name }}
-  #   steps:
-  #     - uses: actions/cache/restore@v6
-  #       id: cache
-  #       with:
-  #         path: |
-  #           build-outputs.json
-  #           ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
-  #           ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
-  #           ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
-  #           ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
-  #           ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
-  #           ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
-  #           ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
-  #           ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
-  #           ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
-  #           ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
-  #           ${{ env.DEB_ARTIFACTS_X86_64 }}
-  #           ${{ env.DEB_ARTIFACTS_AARCH64 }}
-  #           ${{ env.IOS_ARTIFACTS }}
-  #           ${{ env.MACOS_ARTIFACTS }}
-  #         key: ${{ env.DANGER_BUILD_CACHE_KEY }}
-  #
-  #     - name: Restore build outputs
-  #       id: restore-build-outputs
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       run: |
-  #         cat build-outputs.json
-  #         jq -r 'to_entries[] | "\(.key)=\(.value)"' build-outputs.json >> $GITHUB_OUTPUT
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
-  #         path: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
-  #         path: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
-  #         path: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
-  #         path: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
-  #         path: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
-  #         path: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
-  #         path: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
-  #         path: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
-  #         path: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
-  #         path: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.DEB_ARTIFACTS_X86_64 }}
-  #         path: ${{ env.DEB_ARTIFACTS_X86_64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.DEB_ARTIFACTS_AARCH64 }}
-  #         path: ${{ env.DEB_ARTIFACTS_AARCH64 }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.IOS_ARTIFACTS }}
-  #         path: ${{ env.IOS_ARTIFACTS }}
-  #
-  #     - uses: actions/upload-artifact@v7
-  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
-  #       with:
-  #         name: ${{ env.MACOS_ARTIFACTS }}
-  #         path: ${{ env.MACOS_ARTIFACTS }}
-
   restore-build-cache:
-    name: Restore build cache (noop)
-    runs-on: arc-linux-latest
     needs: [resolve, check-release-exists]
+    runs-on: arc-linux-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
+      pkg_installer_name: ${{ steps.restore-build-outputs.outputs.pkg_installer_name }}
+      ios_ipa_name: ${{ steps.restore-build-outputs.outputs.ios_ipa_name }}
+      ios_build: ${{ steps.restore-build-outputs.outputs.ios_build }}
+      fdroid_artifact_name: ${{ steps.restore-build-outputs.outputs.fdroid_artifact_name }}
+      play_artifact_name: ${{ steps.restore-build-outputs.outputs.play_artifact_name }}
     steps:
-      - run: exit 0
+      - uses: actions/cache/restore@v6
+        id: cache
+        with:
+          path: |
+            build-outputs.json
+            ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+            ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.DEB_ARTIFACTS_X86_64 }}
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}
+            ${{ env.IOS_ARTIFACTS }}
+            ${{ env.MACOS_ARTIFACTS }}
+          key: ${{ env.DANGER_BUILD_CACHE_KEY }}
+
+      - name: Restore build outputs
+        id: restore-build-outputs
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        run: |
+          cat build-outputs.json
+          jq -r 'to_entries[] | "\(.key)=\(.value)"' build-outputs.json >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+          path: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+          path: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+          path: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+          path: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+          path: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+          path: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+          path: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+          path: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+          path: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+          path: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.DEB_ARTIFACTS_X86_64 }}
+          path: ${{ env.DEB_ARTIFACTS_X86_64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.DEB_ARTIFACTS_AARCH64 }}
+          path: ${{ env.DEB_ARTIFACTS_AARCH64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.IOS_ARTIFACTS }}
+          path: ${{ env.IOS_ARTIFACTS }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.MACOS_ARTIFACTS }}
+          path: ${{ env.MACOS_ARTIFACTS }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.VPNC_MACOS_ARTIFACTS }}
+          path: ${{ env.VPNC_MACOS_ARTIFACTS }}
+
+  # restore-build-cache:
+  #   name: Restore build cache (noop)
+  #   runs-on: arc-linux-latest
+  #   needs: [resolve, check-release-exists]
+  #   steps:
+  #     - run: exit 0
 
   build:
     needs: [resolve, check-release-exists, restore-build-cache]
@@ -406,60 +413,61 @@ jobs:
     secrets: inherit
 
   # This step is only used for testing purposes when developing this workflow
-  # save-build-cache:
-  #   runs-on: arc-linux-latest
-  #   needs: [resolve, build, restore-build-cache]
-  #   if: |
-  #     !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true' && needs.build.result == 'success'
-  #   steps:
-  #     - uses: actions/download-artifact@v8
+  save-build-cache:
+    runs-on: arc-linux-latest
+    needs: [resolve, build, restore-build-cache]
+    if: |
+      !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true' && needs.build.result == 'success'
+    steps:
+      - uses: actions/download-artifact@v8
 
-  #     - name: Save build outputs
-  #       env:
-  #         PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
-  #         IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name }}
-  #         IOS_BUILD: ${{ needs.build.outputs.ios_build }}
-  #         FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
-  #         PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
-  #       run: |
-  #         # Construct a safe JSON file using jq argument flags
-  #         jq -n \
-  #           --arg pkg "$PKG_INSTALLER_NAME" \
-  #           --arg ipa "$IOS_IPA_NAME" \
-  #           --arg ios_build "$IOS_BUILD" \
-  #           --arg fdroid "$FDROID_ARTIFACT_NAME" \
-  #           --arg play "$PLAY_ARTIFACT_NAME" \
-  #           '{
-  #             pkg_installer_name: $pkg,
-  #             ios_ipa_name: $ipa,
-  #             ios_build: $ios_build,
-  #             fdroid_artifact_name: $fdroid,
-  #             play_artifact_name: $play
-  #           }' > build-outputs.json
+      - name: Save build outputs
+        env:
+          PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+          IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name }}
+          IOS_BUILD: ${{ needs.build.outputs.ios_build }}
+          FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
+          PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
+        run: |
+          # Construct a safe JSON file using jq argument flags
+          jq -n \
+            --arg pkg "$PKG_INSTALLER_NAME" \
+            --arg ipa "$IOS_IPA_NAME" \
+            --arg ios_build "$IOS_BUILD" \
+            --arg fdroid "$FDROID_ARTIFACT_NAME" \
+            --arg play "$PLAY_ARTIFACT_NAME" \
+            '{
+              pkg_installer_name: $pkg,
+              ios_ipa_name: $ipa,
+              ios_build: $ios_build,
+              fdroid_artifact_name: $fdroid,
+              play_artifact_name: $play
+            }' > build-outputs.json
 
-  #         echo "✅ Generated build-outputs.json:"
-  #         cat build-outputs.json
+          echo "✅ Generated build-outputs.json:"
+          cat build-outputs.json
 
-  #     - uses: actions/cache/save@v6
-  #       id: cache
-  #       with:
-  #         path: |
-  #           build-outputs.json
-  #           ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
-  #           ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
-  #           ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
-  #           ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
-  #           ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
-  #           ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
-  #           ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
-  #           ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
-  #           ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
-  #           ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
-  #           ${{ env.DEB_ARTIFACTS_X86_64 }}
-  #           ${{ env.DEB_ARTIFACTS_AARCH64 }}
-  #           ${{ env.IOS_ARTIFACTS }}
-  #           ${{ env.MACOS_ARTIFACTS }}
-  #         key: ${{ env.DANGER_BUILD_CACHE_KEY }}
+      - uses: actions/cache/save@v6
+        id: cache
+        with:
+          path: |
+            build-outputs.json
+            ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+            ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.DEB_ARTIFACTS_X86_64 }}
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}
+            ${{ env.IOS_ARTIFACTS }}
+            ${{ env.MACOS_ARTIFACTS }}
+            ${{ env.VPNC_MACOS_ARTIFACTS }}
+          key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
   build-outputs:
     runs-on: arc-linux-latest
@@ -471,6 +479,7 @@ jobs:
       )
     outputs:
       pkg_installer_name: ${{ steps.set-outputs.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name: ${{ steps.set-outputs.outputs.vpnc_pkg_installer_name }}
       fdroid_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
       play_artifact_name: ${{ steps.set-outputs.outputs.play_artifact_name }}
       ios_ipa_name: ${{ steps.set-outputs.outputs.ios_ipa_name }}
@@ -480,12 +489,14 @@ jobs:
         id: set-outputs
         env:
           PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name || needs.restore-build-cache.outputs.pkg_installer_name }}
+          VPNC_PKG_INSTALLER_NAME: ${{ needs.build.outputs.vpnc_pkg_installer_name || needs.restore-build-cache.outputs.vpnc_pkg_installer_name }}
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name || needs.restore-build-cache.outputs.fdroid_artifact_name }}
           PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name || needs.restore-build-cache.outputs.play_artifact_name }}
           IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name || needs.restore-build-cache.outputs.ios_ipa_name }}
           IOS_BUILD: ${{ needs.build.outputs.ios_build || needs.restore-build-cache.outputs.ios_build }}
         run: |
           echo "pkg_installer_name=$PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
+          echo "vpnc_pkg_installer_name=$VPNC_PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
           echo "fdroid_artifact_name=$FDROID_ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "play_artifact_name=$PLAY_ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "ios_ipa_name=$IOS_IPA_NAME" >> $GITHUB_OUTPUT
@@ -516,6 +527,7 @@ jobs:
       ios: ${{ needs.resolve.outputs.ios == 'true' }}
       macos: ${{ needs.resolve.outputs.macos == 'true' }}
       pkg_installer_name: ${{ needs.build-outputs.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name: ${{ needs.build-outputs.outputs.vpnc_pkg_installer_name }}
       fdroid_artifact_name: ${{ needs.build-outputs.outputs.fdroid_artifact_name }}
     secrets: inherit
 
@@ -552,6 +564,7 @@ jobs:
       windows_installer_x64_url: ${{ needs.release.outputs.windows_installer_x64_url }}
       windows_installer_arm64_url: ${{ needs.release.outputs.windows_installer_arm64_url }}
       macos_installer_url: ${{ needs.release.outputs.macos_installer_url }}
+      vpnc_macos_installer_url: ${{ needs.release.outputs.vpnc_macos_installer_url }}
       android_apk_url: ${{ needs.release.outputs.android_apk_url }}
       ios_build: ${{ needs.build-outputs.outputs.ios_build }}
     secrets: inherit

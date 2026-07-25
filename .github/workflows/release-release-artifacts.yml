@@ -41,7 +41,11 @@ on:
         type: boolean
         required: true
       pkg_installer_name:
-        description: "macOS pkg installer name"
+        description: "macOS app pkg installer name"
+        type: string
+        required: false
+      vpnc_pkg_installer_name:
+        description: "macOS vpnc pkg installer name"
         type: string
         required: false
       fdroid_artifact_name:
@@ -61,6 +65,8 @@ on:
         value: ${{ jobs.create-release.outputs.windows_installer_arm64_url }}
       macos_installer_url:
         value: ${{ jobs.create-release.outputs.macos_installer_url }}
+      vpnc_macos_installer_url:
+        value: ${{ jobs.create-release.outputs.vpnc_macos_installer_url }}
       android_apk_url:
         value: ${{ jobs.create-release.outputs.android_apk_url }}
 
@@ -79,6 +85,7 @@ env:
   DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
+  VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
 
 jobs:
   resolve:
@@ -161,6 +168,7 @@ jobs:
         windows_installer_x64_url: ${{ steps.extract_urls.outputs.windows_installer_x64_url }}
         windows_installer_arm64_url: ${{ steps.extract_urls.outputs.windows_installer_arm64_url }}
         macos_installer_url: ${{ steps.extract_urls.outputs.macos_installer_url }}
+        vpnc_macos_installer_url: ${{ steps.extract_urls.outputs.vpnc_macos_installer_url }}
         android_apk_url: ${{ steps.extract_urls.outputs.android_apk_url }}
     steps:
       - name: Download artifacts
@@ -252,15 +260,23 @@ jobs:
         if: ${{ needs.resolve.outputs.macos == 'true' }}
         env:
           MACOS_INSTALLER_NAME: ${{ inputs.pkg_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ inputs.vpnc_pkg_installer_name }}
         run: |
           if [ -z "$MACOS_INSTALLER_NAME" ]; then
             echo "::error:: PKG artifact name is not set!"
             exit 1
           fi
 
+          if [ -z "$VPNC_MACOS_INSTALLER_NAME" ]; then
+            echo "::error:: PKG artifact name is not set!"
+            exit 1
+          fi
+
           echo "MACOS_INSTALLER_NAME=$MACOS_INSTALLER_NAME" >> $GITHUB_ENV
+          echo "VPNC_MACOS_INSTALLER_NAME=$VPNC_MACOS_INSTALLER_NAME" >> $GITHUB_ENV
 
           cp -v ${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.VPNC_MACOS_ARTIFACTS }}/${VPNC_MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Linux/App)
         if: ${{ needs.resolve.outputs.linux == 'true' }}
@@ -374,6 +390,9 @@ jobs:
             FILES+=(
               ${{ env.MACOS_INSTALLER_NAME }}
               ${{ env.MACOS_INSTALLER_NAME }}.sha256sum
+              ${{ env.VPNC_MACOS_INSTALLER_NAME }}
+              ${{ env.VPNC_MACOS_INSTALLER_NAME }}.sha256sum
+
             )
           fi
 
@@ -472,6 +491,15 @@ jobs:
             else
               echo "::notice:: macOS installer: $MACOS_INSTALLER"
               echo "macos_installer_url=$MACOS_INSTALLER" >> $GITHUB_OUTPUT
+            fi
+
+            VPNC_MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.VPNC_MACOS_INSTALLER_NAME }}")) | .browser_download_url')
+            if [ -z "$VPNC_MACOS_INSTALLER" ]; then
+              echo "::error:: URL for vpnc macOS installer could not be found."
+              exit 1
+            else
+              echo "::notice:: vpnc macOS installer: $VPNC_MACOS_INSTALLER"
+              echo "vpnc_macos_installer_url=$VPNC_MACOS_INSTALLER" >> $GITHUB_OUTPUT
             fi
           fi
 
