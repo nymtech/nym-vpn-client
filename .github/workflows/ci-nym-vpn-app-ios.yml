@@ -91,7 +91,22 @@ jobs:
 
       - name: Build core
         run: |
-          make -C nym-vpn-core -f iOS.mk swift-package RELEASE="false"
+          ARCH=$(uname -m)
+
+          case "$ARCH" in
+              arm64)
+                  RUST_TRIPLET="aarch64-apple-ios-sim"
+                  ;;
+              x86_64)
+                  RUST_TRIPLET="x86_64-apple-ios-sim"
+                  ;;
+              *)
+                  echo "Unsupported architecture: $ARCH"
+                  exit 1
+                  ;;
+          esac
+
+          make -C nym-vpn-core -f iOS.mk swift-package RELEASE="false" RUST_TRIPLET="$RUST_TRIPLET"
           rm -rf "nym-vpn-apple/NymVPNLib"
           mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib nym-vpn-apple/NymVPNLib
 

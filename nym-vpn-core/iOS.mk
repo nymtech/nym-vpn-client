@@ -16,7 +16,7 @@ RELEASE_FLAG := --release
 TARGET_DIR := release
 endif
 
-RUST_TRIPLET := aarch64-apple-ios
+RUST_TRIPLET ?= aarch64-apple-ios
 
 LIB_CRATE_NAME := nym-vpn-lib-uniffi
 LIB_CRATE_DIR := $(CURDIR)/crates/$(LIB_CRATE_NAME)
@@ -42,7 +42,7 @@ build: $(LIBWG_BUILD_DIR)/libwg.a
 
 swift-package: $(LIBWG_BUILD_DIR)/libwg.a
 	cd $(LIB_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --target aarch64-apple-ios --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --target $(RUST_TRIPLET) --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
 
 	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
 	cd $(LIB_CRATE_DIR); \
