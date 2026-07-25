@@ -41,16 +41,6 @@ env:
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
-  print-inputs:
-    runs-on: arc-linux-latest
-    steps:
-      - name: Print inputs
-        run: |
-          echo "publish_play: ${{ inputs.publish_play }}"
-          echo "play_artifact_name: ${{ inputs.play_artifact_name }}"
-          echo "publish_testflight: ${{ inputs.publish_testflight }}"
-          echo "ios_ipa_name: ${{ inputs.ios_ipa_name }}"
-
   publish-playstore:
     if: ${{ inputs.publish_play && inputs.play_artifact_name }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
