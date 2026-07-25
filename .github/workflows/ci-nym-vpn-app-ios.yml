@@ -53,11 +53,6 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
-
       - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
         with:

@@ -48,20 +48,11 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install cargo-edit
+      - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
         with:
-          crate: cargo-edit
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
 
       - name: Install xcbeautify
         run: |
