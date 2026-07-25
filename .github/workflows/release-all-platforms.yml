@@ -526,6 +526,7 @@ jobs:
       publish_play_metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
       # only publish nightly builds to avoid downgrades
       publish_testflight: ${{ needs.resolve.outputs.ios == 'true' && needs.resolve.outputs.channel == 'nightly' }}
+      ios_ipa_name: ${{ needs.build-outputs.ios_ipa_name }}
       publish_to_public_testflight: true
       play_artifact_name: ${{ needs.build-outputs.play_artifact_name }}
     secrets: inherit
