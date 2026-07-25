@@ -465,7 +465,7 @@ jobs:
     outputs:
       pkg_installer_name: ${{ steps.set-outputs.outputs.pkg_installer_name }}
       fdroid_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
-      play_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
+      play_artifact_name: ${{ steps.set-outputs.outputs.play_artifact_name }}
       ios_build: ${{ steps.set-outputs.outputs.ios_build }}
     steps:
       - name: Resolve build outputs
