@@ -14,7 +14,7 @@ runs:
       run: |
         echo "RUSTC_WRAPPER=$SCCACHE_PATH" >> "$GITHUB_ENV"
         echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
-        echo "SCCACHE_CACHE_SIZE=20G" >> "$GITHUB_ENV"
+        echo "SCCACHE_CACHE_SIZE=15G" >> "$GITHUB_ENV"
         echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
         echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 
@@ -24,6 +24,6 @@ runs:
       run: |
         Add-Content -Path $env:GITHUB_ENV -Value "RUSTC_WRAPPER=$env:SCCACHE_PATH" -Encoding utf8
         Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_DIR=$env:USERPROFILE\.cache\sccache" -Encoding utf8
-        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_CACHE_SIZE=20G" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_CACHE_SIZE=15G" -Encoding utf8
         Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_IDLE_TIMEOUT=0" -Encoding utf8
         Add-Content -Path $env:GITHUB_ENV -Value "CARGO_INCREMENTAL=0" -Encoding utf8
