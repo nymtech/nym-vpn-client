@@ -30,6 +30,9 @@ on:
         type: string
         default: ""
     outputs:
+      ios_ipa_name:
+        description: "Name of the IPA file"
+        value: ${{ jobs.build-nym-vpn-app-ios.outputs.ios_ipa_name }}
       ios_build:
         description: "Build number of the iOS app"
         value: ${{ jobs.build-nym-vpn-app-ios.outputs.ios_build }}
@@ -38,6 +41,7 @@ env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  IPA_DIR: ${{ github.workspace }}/nym-vpn-apple/build/ios/ipa
 
 jobs:
   build-nym-vpn-app-ios:
@@ -46,6 +50,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      ios_ipa_name: ${{ steps.find_ipa.outputs.ios_ipa_name }}
       ios_build: ${{ steps.ios_build_number.outputs.ios_build }}
     steps:
       - name: "Cleanup working directory"
@@ -427,25 +432,20 @@ jobs:
           echo "✅ Signed archive + .ipa exported"
           echo "🔢 Build used: $IOS_BUILD_NUMBER (TestFlight latest=${IOS_TESTFLIGHT_LATEST:-n/a})"
 
-          # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
-          IOS_VERSION=$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
-          )
-
-          if [[ -z "${IOS_VERSION:-}" ]]; then
-            echo "❌ Could not determine iOS MARKETING_VERSION"
+      - name: Find IPA file
+        id: find_ipa
+        run: |
+          IPA_FILE=$(find "$IPA_DIR" -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA_FILE" ]; then
+            echo "::error:: No IPA file found"
             exit 1
           fi
 
-          echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
-          echo "✅ iOS version captured: $IOS_VERSION ($IOS_BUILD_NUMBER)"
+          IPA_NAME=$(basename "$IPA_FILE")
+          echo "ios_ipa_name=$IPA_NAME" >> $GITHUB_OUTPUT
+          echo "::notice:: Found IPA file: $IPA_FILE"
 
       - name: Move assets for upload
-        env:
-          IPA_DIR: nym-vpn-apple/build/ios/ipa
         run: |
           cp -R "$IPA_DIR" "${{ env.UPLOAD_DIR_IOS }}"
 

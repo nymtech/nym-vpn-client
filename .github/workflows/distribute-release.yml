@@ -15,6 +15,10 @@ on:
         description: Publish to TestFlight
         type: boolean
         required: true
+      ios_ipa_name:
+        description: The name of the iOS IPA artifact
+        type: string
+        required: false
       publish_to_public_testflight:
         description: Publish to public TestFlight group
         type: boolean
@@ -38,7 +42,7 @@ env:
 
 jobs:
   publish-playstore:
-    if: ${{ inputs.publish_play }}
+    if: ${{ inputs.publish_play && inputs.play_artifact_name != '' }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
@@ -48,10 +52,11 @@ jobs:
     secrets: inherit
 
   publish-testflight:
-    if: ${{ inputs.publish_testflight }}
+    if: ${{ inputs.publish_testflight && inputs.ios_ipa_name != '' }}
     uses: ./.github/workflows/publish-nym-vpn-ios.yml
     with:
       is_public: ${{ inputs.publish_to_public_testflight }}
+      ios_ipa_name: ${{ inputs.ios_ipa_name }}
     secrets: inherit
 
   handle-testflight-failures:

@@ -418,6 +418,7 @@ jobs:
       - name: Save build outputs
         env:
           PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+          IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name }}
           IOS_BUILD: ${{ needs.build.outputs.ios_build }}
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
           PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
@@ -425,6 +426,7 @@ jobs:
           cat << EOF > restore-build-outputs.sh
           #!/bin/bash
           pkg_installer_name="$PKG_INSTALLER_NAME" >> \$GITHUB_OUTPUT
+          ios_ipa_name="$IOS_IPA_NAME" >> \$GITHUB_OUTPUT
           ios_build="$IOS_BUILD" >> \$GITHUB_OUTPUT
           fdroid_artifact_name="$FDROID_ARTIFACT_NAME" >> \$GITHUB_OUTPUT
           play_artifact_name="$PLAY_ARTIFACT_NAME" >> \$GITHUB_OUTPUT
@@ -466,6 +468,7 @@ jobs:
       pkg_installer_name: ${{ steps.set-outputs.outputs.pkg_installer_name }}
       fdroid_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
       play_artifact_name: ${{ steps.set-outputs.outputs.play_artifact_name }}
+      ios_ipa_name: ${{ steps.set-outputs.outputs.ios_ipa_name }}
       ios_build: ${{ steps.set-outputs.outputs.ios_build }}
     steps:
       - name: Resolve build outputs
@@ -474,11 +477,13 @@ jobs:
           PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name || needs.restore-build-cache.outputs.pkg_installer_name }}
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name || needs.restore-build-cache.outputs.fdroid_artifact_name }}
           PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name || needs.restore-build-cache.outputs.play_artifact_name }}
+          IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name || needs.restore-build-cache.outputs.ios_ipa_name }}
           IOS_BUILD: ${{ needs.build.outputs.ios_build || needs.restore-build-cache.outputs.ios_build }}
         run: |
           echo "pkg_installer_name=$PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
           echo "fdroid_artifact_name=$FDROID_ARTIFACT_NAME" >> $GITHUB_OUTPUT
           echo "play_artifact_name=$PLAY_ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "ios_ipa_name=$IOS_IPA_NAME" >> $GITHUB_OUTPUT
           echo "ios_build=$IOS_BUILD" >> $GITHUB_OUTPUT
 
   release:

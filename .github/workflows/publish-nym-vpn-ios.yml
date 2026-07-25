@@ -3,9 +3,14 @@ name: publish-nym-vpn-ios
 on:
   workflow_call:
     inputs:
+      ios_ipa_name:
+        description: "The name of the iOS IPA artifact"
+        type: string
+        required: true
       is_public:
         description: "Whether the build is available to the general public (true/false)"
         type: boolean
+        required: true
     secrets:
       APP_STORE_CONNECT_API_KEY:
         required: true
@@ -22,6 +27,14 @@ jobs:
     runs-on: custom-macos-15
     timeout-minutes: 30
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - uses: actions/checkout@v7
 
       - name: Install python3
@@ -56,26 +69,19 @@ jobs:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: dist
 
-      - name: Find artifact file
-        id: find_artifact
-        run: |
-          ARTIFACT_FILE=$(find "${{ github.workspace }}/dist/" -name '*.ipa' -type f | head -1)
-          echo "artifact_file=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
-          echo "::notice:: Found artifact for upload: $ARTIFACT_FILE"
-
       - name: Upload to TestFlight
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-          ARTIFACT_FILE: ${{ steps.find_artifact.outputs.artifact_file }}
+          IPA_FILE: ${{ github.workspace }}/dist/${{ inputs.ios_ipa_name }}
           BETA_GROUP: ${{ inputs.is_public == true && 'World' || 'Nym Team External' }}
         run: |
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight (beta group: $BETA_GROUP)..."
 
-          app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$ARTIFACT_FILE"
+          app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$IPA_FILE"
 
           echo "✅ Upload completed successfully."
