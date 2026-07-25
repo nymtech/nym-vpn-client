@@ -79,10 +79,10 @@ jobs:
           make -C nym-vpn-core -f macOS.mk rpc-swift-package RELEASE="false"
           mv "nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc" "nym-vpn-apple/NymVPNRpc"
 
-      # - name: Apple unit tests
-      #   uses: ./.github/workflows/apple/tests
-      #   with:
-      #     account-report-path: ${{ github.workspace }}/account-report.md
+      - name: Apple unit tests
+        uses: ./.github/workflows/apple/tests
+        with:
+          account-report-path: ${{ github.workspace }}/account-report.md
 
       - name: Build macOS app
         working-directory: nym-vpn-apple
