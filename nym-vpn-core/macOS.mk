@@ -86,10 +86,8 @@ rpc-swift-package:
 	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
 	cd $(RPC_CRATE_DIR); \
 	for HEADERS_DIR in NymVPNRpc/NymVPNRpcUniffi.xcframework/*/Headers ; do \
-		echo "🔨 Fixing up headers in $${HEADERS_DIR}…"; \
 		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
 			[[ -d "$${SUBDIR}" ]] || continue; \
-			echo "🔨 Copying headers from $${SUBDIR}…"; \
 			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
 			rm -rf "$${SUBDIR}"; \
 		done \
