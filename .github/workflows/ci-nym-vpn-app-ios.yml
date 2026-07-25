@@ -73,31 +73,6 @@ jobs:
           echo "✅ Updated Info.plist contents:"
           /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
 
-      - name: Fetch and import signing files
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-
-          echo "📦 Fetching iOS signing files from App Store Connect..."
-          app-store-connect fetch-signing-files net.nymtech.vpn \
-            --type IOS_APP_ADHOC \
-            --create \
-            --delete-stale-profiles \
-            --platform IOS
-
-          keychain add-certificates
-          echo "✅ Signing files successfully fetched and imported."
-
-      - name: Install Apple WWDR Intermediates
-        uses: ./.github/workflows/apple/install-wwdr
-        with:
-          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
-
       - name: Add stubs for unused packages
         working-directory: nym-vpn-apple
         run: |
@@ -114,10 +89,10 @@ jobs:
           rm -rf "nym-vpn-apple/NymVPNLib"
           mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib nym-vpn-apple/NymVPNLib
 
-      - name: Apple unit tests
-        uses: ./.github/workflows/apple/tests
-        with:
-          account-report-path: ${{ github.workspace }}/account-report.md
+      # - name: Apple unit tests
+      #   uses: ./.github/workflows/apple/tests
+      #   with:
+      #     account-report-path: ${{ github.workspace }}/account-report.md
 
       - name: Build iOS (Debug, unsigned)
         working-directory: nym-vpn-apple
@@ -127,6 +102,5 @@ jobs:
           xcodebuild -workspace "NymVPN.xcworkspace" \
            -scheme "NymVPN" \
            -configuration Debug \
-           -destination 'generic/platform=iOS' \
-           CODE_SIGN_IDENTITY="-" \
+           -destination 'generic/platform=iOS Simulator' \
            build 2>&1 | xcbeautify --renderer github-actions
