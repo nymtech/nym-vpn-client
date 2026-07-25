@@ -10,9 +10,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_IOS: ios_artifacts
-  RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
-  IPA_DIR: ${{ github.workspace }}/nym-vpn-apple/build/ios/ipa
 
 jobs:
   build:
@@ -67,6 +64,10 @@ jobs:
           crate: cargo-swift
           version: ${{ env.CARGO_SWIFT_VERSION }}
 
+      - name: Install xcbeautify
+        run: |
+          brew install xcbeautify
+
       - name: Enable QA mode
         working-directory: nym-vpn-apple
         run: |
@@ -109,11 +110,6 @@ jobs:
           make -C nym-vpn-core -f iOS.mk swift-package RELEASE="false" RUST_TRIPLET="$RUST_TRIPLET"
           rm -rf "nym-vpn-apple/NymVPNLib"
           mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib nym-vpn-apple/NymVPNLib
-
-      # - name: Apple unit tests
-      #   uses: ./.github/workflows/apple/tests
-      #   with:
-      #     account-report-path: ${{ github.workspace }}/account-report.md
 
       - name: Build iOS (Debug, unsigned)
         working-directory: nym-vpn-apple
