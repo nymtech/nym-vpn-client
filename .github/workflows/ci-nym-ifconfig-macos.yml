@@ -34,8 +34,8 @@ jobs:
 
       - name: Build
         working-directory: nym-vpn-core
-        run: cargo build --package nym-ifconfig --locked
+        run: cargo build --profile ci --package nym-ifconfig --locked
 
       - name: Test
         working-directory: nym-vpn-core
-        run: sudo cargo test --package nym-ifconfig
+        run: sudo cargo test --profile ci --package nym-ifconfig

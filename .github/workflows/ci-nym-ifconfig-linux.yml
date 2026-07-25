@@ -34,13 +34,13 @@ jobs:
 
       - name: Build
         working-directory: nym-vpn-core
-        run: cargo build --package nym-ifconfig --locked
+        run: cargo build --profile ci --package nym-ifconfig --locked
 
       - name: Build tests
         working-directory: nym-vpn-core
         id: build-tests
         run: |
-          EXEC=$(cargo test --package nym-ifconfig --no-run --locked --message-format json | jq 'select(.reason == "compiler-artifact" and .target.name == "nym_ifconfig" and .executable != null) | .executable')
+          EXEC=$(cargo test --profile ci --package nym-ifconfig --no-run --locked --message-format json | jq 'select(.reason == "compiler-artifact" and .target.name == "nym_ifconfig" and .executable != null) | .executable')
           echo "Got executable: $EXEC"
           echo "exec=$EXEC" >> "$GITHUB_OUTPUT"
 
@@ -50,4 +50,4 @@ jobs:
 
       - name: Test
         working-directory: nym-vpn-core
-        run: cargo test --package nym-ifconfig
+        run: cargo test --profile ci --package nym-ifconfig

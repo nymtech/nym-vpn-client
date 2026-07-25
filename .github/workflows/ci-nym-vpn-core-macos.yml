@@ -73,5 +73,5 @@ jobs:
       - name: Build and test
         working-directory: nym-vpn-core
         run: |
-          cargo build --workspace --locked
-          cargo test --workspace --locked --exclude nym-ifconfig
+          cargo build --profile ci --workspace --locked
+          cargo test --profile ci --workspace --locked --exclude nym-ifconfig

@@ -76,12 +76,12 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --workspace --locked
+          cargo build --profile ci --workspace --locked
 
       - name: Build tests
         working-directory: nym-vpn-core
         run: |
-          CARGO_OUTPUT=$(cargo test --no-run --workspace --locked --message-format json)
+          CARGO_OUTPUT=$(cargo test --profile ci --no-run --workspace --locked --message-format json)
 
           NYM_CONNECTION_MONITOR_TESTS_BIN=$(echo "$CARGO_OUTPUT" | jq --raw-output 'select(.reason == "compiler-artifact" and .target.name == "nym_connection_monitor" and .executable != null) | .executable')
 
@@ -91,4 +91,4 @@ jobs:
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --workspace --locked --exclude nym-ifconfig
+          cargo test --profile ci --workspace --locked --exclude nym-ifconfig
