@@ -85,6 +85,7 @@ jobs:
       #     account-report-path: ${{ github.workspace }}/account-report.md
 
       - name: Build macOS app
+        working-directory: nym-vpn-apple
         run: |
           xcodebuild archive \
             -workspace "NymVPN.xcworkspace" \
