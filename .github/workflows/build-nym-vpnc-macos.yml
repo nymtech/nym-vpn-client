@@ -239,6 +239,7 @@ jobs:
           echo "pkg_name=$PKG_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
+        if: ${{ inputs.release_type == 'qa' || inputs.release_type == 'ship' }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -309,7 +310,9 @@ jobs:
           keychain delete
 
           echo "Removing ASC API key..."
-          rm -rf "$HOME/private_keys"
+          if [ -d "$HOME/private_keys" ]; then
+            rm -rf "$HOME/private_keys"
+          fi
 
           echo "🧹 Removing downloaded certificates..."
           if [ -d "$CERTIFICATES_DIR" ]; then
