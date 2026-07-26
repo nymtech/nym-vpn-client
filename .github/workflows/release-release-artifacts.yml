@@ -91,6 +91,7 @@ env:
   MACOS_ARTIFACTS: macos_artifacts
   VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
   RELEASE_NOTES: release-notes.md
+  RELEASE_ASSETS: release-assets.txt
 
 jobs:
   resolve:
@@ -305,8 +306,6 @@ jobs:
   prepare-release-notes:
     runs-on: arc-linux-latest
     needs: [resolve, resolve-artifacts]
-    outputs:
-      release_notes: ${{ steps.set_outputs.outputs.release_notes }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -339,6 +338,7 @@ jobs:
           ### 🛠️ Core Changes
 
           $UPDATED_CORE_CHANGES
+
           EOF
           fi
 
@@ -350,10 +350,12 @@ jobs:
           - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
           - `nym-diagnostic`: System information and network troubleshooting tool.
           - `nym-setup`: macOS helper tool for system service configuration.
+
           EOF
 
           cat << 'EOF' >> "$RELEASE_NOTES"
           ## 💾 Downloads & Assets
+
           EOF
 
       - name: Add release notes (Android)
@@ -370,12 +372,14 @@ jobs:
           <details>
           <summary>How to verify the build fingerprint?</summary>
 
-          **Signing Certificate SHA-256 Fingerprint (4096-bit):**
+          #### Signing Certificate SHA-256 Fingerprint (4096-bit):
+
           ```text
           3c98a016aa4f14a3ba185c764ed363415cf7ff3c3d328a87ffff2ff1b140ff06
           ```
 
-          **Verification Steps:**
+          #### Verification Steps:
+
           To verify the build fingerprint on your system, run:
           ```sh
           apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
@@ -393,6 +397,8 @@ jobs:
           VPND_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
           VPNC_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
           VPNC_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
           LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
           LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
         run: |
@@ -400,13 +406,16 @@ jobs:
           ### 🐧 Linux
 
           - **Desktop App**
+            - `${{ env.LINUX_APP_DEB_X64 }}`: Nym VPN app, deb (x86_64)
+            - `${{ env.LINUX_APP_DEB_ARM64 }}`: Nym VPN app, deb (arm64)
             - `${{ env.LINUX_APP_APPIMAGE_X64 }}`: Nym VPN app, AppImage (x86_64)
             - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
           - **CLI & Daemon**
-            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN app, debian package (x86_64)
-            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN app, debian package (arm64)
+            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN daemon, debian package (x86_64)
+            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN daemon, debian package (arm64)
             - `${{ env.VPNC_DEB_X86_64 }}`: Nym VPN command-line tool, debian package (x86_64)
             - `${{ env.VPNC_DEB_ARM64 }}`: Nym VPN command-line tool, debian package (arm64)
+
           EOF
 
       - name: Add release notes (macOS)
@@ -421,6 +430,7 @@ jobs:
 
           - `${{ env.MACOS_INSTALLER_NAME }}`: Desktop App Installer
           - `${{ env.VPNC_MACOS_INSTALLER_NAME }}`: Command-Line Tool Installer
+
           EOF
 
       - name: Add release notes (Windows)
@@ -435,17 +445,14 @@ jobs:
 
           - `${{ env.WINDOWS_APP_INSTALLER_X64 }}`: Desktop App Installer (x64)
           - `${{ env.WINDOWS_APP_INSTALLER_ARM64 }}`: Desktop App Installer (arm64)
+
           EOF
 
-      - name: Set outputs
-        id: set_outputs
-        env:
-          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-        run: |
-          DELIMITER=$(openssl rand -hex 8)
-          echo "release_notes<<$DELIMITER" >> "$GITHUB_OUTPUT"
-          cat "$RELEASE_NOTES" >> "$GITHUB_OUTPUT"
-          echo "$DELIMITER" >> "$GITHUB_OUTPUT"
+      - name: Upload release notes
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.RELEASE_NOTES }}
+          path: ${{ env.RELEASE_NOTES }}
 
   create-release:
     runs-on: arc-linux-latest
@@ -664,11 +671,8 @@ jobs:
             )
           fi
 
-          echo "Assets for upload: ${FILES[*]}"
-
           if [ ${#FILES[@]} -gt 0 ]; then
-            printf "%s\n" "${FILES[@]}" > "release_assets.txt"
-            cat release_assets.txt
+            printf "%s\n" "${FILES[@]}" > "${{ env.RELEASE_ASSETS }}"
           else
             echo "::error::No files to upload"
             exit 1
@@ -677,8 +681,8 @@ jobs:
       - name: Upload release assets list
         uses: actions/upload-artifact@v7
         with:
-          name: release_assets.txt
-          path: release_assets.txt
+          name: ${{ env.RELEASE_ASSETS }}
+          path: ${{ env.RELEASE_ASSETS }}
 
       - name: Publish GitHub Release
         working-directory: ${{ env.OUTPUT_DIR }}
@@ -688,8 +692,8 @@ jobs:
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
-          BODY: ${{ needs.prepare-release-notes.outputs.release_notes }}
-          ASSETS_FILE: "${{ github.workspace }}/release_assets.txt"
+          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES }}
+          ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS }}"
         run: |
           set -euo pipefail
 
@@ -697,31 +701,23 @@ jobs:
           if [ -f "$ASSETS_FILE" ]; then
             mapfile -t ASSET_FILES < "$ASSETS_FILE"
           else
-            echo "::error:: release_assets.txt not found!"
+            echo "::error:: ${{ env.RELEASE_ASSETS }} not found!"
             exit 1
           fi
 
           ARGS=()
           ARGS+=(--title "$VERSION_NAME")
-          ARGS+=(--notes "$BODY")
+          ARGS+=(--notes-file "$RELEASE_NOTES")
 
           if [ "$RELEASE_TYPE" = "draft" ]; then
             ARGS+=(--draft)
-            # Drafts do not require a tag upfront
-            TARGET_TAG=""
           elif [ "$RELEASE_TYPE" = "prerelease" ]; then
             ARGS+=(--prerelease)
-            TARGET_TAG="$TAG_NAME"
           else
-            # Standard release: set as latest
             ARGS+=(--latest)
-            TARGET_TAG="$TAG_NAME"
           fi
 
-          # Enable debug logging for GitHub CLI
-          export GH_DEBUG=1
-          RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" --repo "$GITHUB_REPOSITORY" "${ASSET_FILES[@]}")
-
+          RELEASE_URL=$(gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" "${ARGS[@]}" "${ASSET_FILES[@]}")
           RELEASE_TAG="${RELEASE_URL##*/}"
 
           echo "::notice:: Release URL: $RELEASE_URL"
