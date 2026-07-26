@@ -679,7 +679,6 @@ jobs:
         id: gh-release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
@@ -707,9 +706,9 @@ jobs:
 
           # Note: If targeting a draft, we omit the tag argument
           if [ -z "$TARGET_TAG" ]; then
-            RELEASE_URL=$(gh release create "${ARGS[@]}" $ASSETS --repo "$REPO")
+            RELEASE_URL=$(gh release create "${ARGS[@]}" $ASSETS --repo "$GITHUB_REPOSITORY")
           else
-            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS --repo "$REPO")
+            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS --repo "$GITHUB_REPOSITORY")
           fi
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
 
@@ -718,7 +717,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           URL: ${{ steps.gh-release.outputs.release_url }}
         run: |
-          gh release view "$URL" --json assets > release-payload.json
+          gh release view "$URL" --json assets --repo "$GITHUB_REPOSITORY" > release-payload.json
 
       - name: Upload release payload
         uses: actions/upload-artifact@v7
