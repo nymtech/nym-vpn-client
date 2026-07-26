@@ -711,7 +711,7 @@ jobs:
           else
             RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS --repo "$GITHUB_REPOSITORY")
           fi
-          echo "Release URL: $RELEASE_URL"
+          echo "::notice:: Release URL: $RELEASE_URL"
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
 
       - name: List asset URLs
