@@ -553,24 +553,24 @@ jobs:
       play_artifact_name: ${{ needs.build-outputs.outputs.play_artifact_name }}
     secrets: inherit
 
-  zulip:
-    needs: [resolve, release, build-outputs, distribute]
-    if: |
-      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
-    uses: ./.github/workflows/zulip-notify-release.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      release_channel: ${{ needs.resolve.outputs.channel }}
-      github_branch: ${{ github.ref_name }}
-      github_release_url: ${{ needs.release.outputs.github_release_url }}
-      linux_app_deb_x64_url: ${{ needs.release.outputs.linux_app_deb_x64_url }}
-      linux_app_deb_arm64_url: ${{ needs.release.outputs.linux_app_deb_arm64_url }}
-      linux_app_appimage_x64_url: ${{ needs.release.outputs.linux_app_appimage_x64_url }}
-      linux_app_appimage_arm64_url: ${{ needs.release.outputs.linux_app_appimage_arm64_url }}
-      windows_installer_x64_url: ${{ needs.release.outputs.windows_installer_x64_url }}
-      windows_installer_arm64_url: ${{ needs.release.outputs.windows_installer_arm64_url }}
-      macos_installer_url: ${{ needs.release.outputs.macos_installer_url }}
-      vpnc_macos_installer_url: ${{ needs.release.outputs.vpnc_macos_installer_url }}
-      android_apk_url: ${{ needs.release.outputs.android_apk_url }}
-      ios_build: ${{ needs.build-outputs.outputs.ios_build }}
-    secrets: inherit
+  # zulip:
+  #   needs: [resolve, release, build-outputs, distribute]
+  #   if: |
+  #     !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
+  #   uses: ./.github/workflows/zulip-notify-release.yml
+  #   with:
+  #     version: ${{ needs.resolve.outputs.version }}
+  #     release_channel: ${{ needs.resolve.outputs.channel }}
+  #     github_branch: ${{ github.ref_name }}
+  #     github_release_url: ${{ needs.release.outputs.github_release_url }}
+  #     linux_app_deb_x64_url: ${{ needs.release.outputs.linux_app_deb_x64_url }}
+  #     linux_app_deb_arm64_url: ${{ needs.release.outputs.linux_app_deb_arm64_url }}
+  #     linux_app_appimage_x64_url: ${{ needs.release.outputs.linux_app_appimage_x64_url }}
+  #     linux_app_appimage_arm64_url: ${{ needs.release.outputs.linux_app_appimage_arm64_url }}
+  #     windows_installer_x64_url: ${{ needs.release.outputs.windows_installer_x64_url }}
+  #     windows_installer_arm64_url: ${{ needs.release.outputs.windows_installer_arm64_url }}
+  #     macos_installer_url: ${{ needs.release.outputs.macos_installer_url }}
+  #     vpnc_macos_installer_url: ${{ needs.release.outputs.vpnc_macos_installer_url }}
+  #     android_apk_url: ${{ needs.release.outputs.android_apk_url }}
+  #     ios_build: ${{ needs.build-outputs.outputs.ios_build }}
+  #   secrets: inherit
