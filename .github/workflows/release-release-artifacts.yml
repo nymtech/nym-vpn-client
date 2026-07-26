@@ -665,6 +665,8 @@ jobs:
             )
           fi
 
+          echo "Assets for upload: ${FILES[*]}"
+
           if [ ${#FILES[@]} -gt 0 ]; then
             printf -v JOINED '%s ' "${FILES[@]}"
             echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
