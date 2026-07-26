@@ -692,6 +692,18 @@ jobs:
           files: |
             ${{ steps.assets.outputs.asset_paths }}
 
+      - name: Store release payload
+        env:
+          RELEASE_PAYLOAD: ${{ steps.gh-release.outputs.assets }}
+        run: |
+          echo "$RELEASE_PAYLOAD" > release-payload.json
+
+      - name: Upload release payload
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-payload
+          path: release-payload.json
+
       - name: Extract asset URLs
         id: extract_urls
         env:
