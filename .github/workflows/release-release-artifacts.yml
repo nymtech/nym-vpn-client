@@ -679,6 +679,7 @@ jobs:
         id: gh-release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
@@ -706,9 +707,9 @@ jobs:
 
           # Note: If targeting a draft, we omit the tag argument
           if [ -z "$TARGET_TAG" ]; then
-            RELEASE_URL=$(gh release create "${ARGS[@]}" $ASSETS)
+            RELEASE_URL=$(gh release create "${ARGS[@]}" $ASSETS --repo "$REPO")
           else
-            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS)
+            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS --repo "$REPO")
           fi
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
 
