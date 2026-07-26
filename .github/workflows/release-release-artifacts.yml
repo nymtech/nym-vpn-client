@@ -431,7 +431,7 @@ jobs:
           VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
         run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
-          ### 🍏 macOS
+          ### 🍎 macOS
 
           - `${{ env.MACOS_INSTALLER_NAME }}`: Desktop App Installer
           - `${{ env.VPNC_MACOS_INSTALLER_NAME }}`: Command-Line Tool Installer
