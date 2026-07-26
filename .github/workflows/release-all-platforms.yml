@@ -117,7 +117,7 @@ env:
   MACOS_ARTIFACTS: macos_artifacts
   VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_BUILD_CACHE_KEY: all_artifacts_v9 # used when testing workflow
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v10 # used when testing workflow
 
 jobs:
   resolve:
@@ -426,6 +426,7 @@ jobs:
       - name: Save build outputs
         env:
           PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+          VPNC_PKG_INSTALLER_NAME: ${{ needs.build.outputs.vpnc_pkg_installer_name }}
           IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name }}
           IOS_BUILD: ${{ needs.build.outputs.ios_build }}
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
@@ -434,12 +435,14 @@ jobs:
           # Construct a safe JSON file using jq argument flags
           jq -n \
             --arg pkg "$PKG_INSTALLER_NAME" \
+            --arg vpnc_pkg "$VPNC_PKG_INSTALLER_NAME" \
             --arg ipa "$IOS_IPA_NAME" \
             --arg ios_build "$IOS_BUILD" \
             --arg fdroid "$FDROID_ARTIFACT_NAME" \
             --arg play "$PLAY_ARTIFACT_NAME" \
             '{
               pkg_installer_name: $pkg,
+              vpnc_pkg_installer_name: $vpnc_pkg,
               ios_ipa_name: $ipa,
               ios_build: $ios_build,
               fdroid_artifact_name: $fdroid,
