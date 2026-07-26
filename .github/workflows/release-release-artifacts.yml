@@ -198,7 +198,7 @@ jobs:
           ARCHIVE_BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
           RAW_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
-          DEB_VERSION="${RAW_VERSION//-/~}"
+          DEB_VERSION="${RAW_VERSION//-/\~}"
           VPNC_DEB_BASENAME="nym-vpnc_${DEB_VERSION}"
           VPND_DEB_BASENAME="nym-vpnd_${DEB_VERSION}"
 
