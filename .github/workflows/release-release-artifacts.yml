@@ -668,10 +668,7 @@ jobs:
           echo "Assets for upload: ${FILES[*]}"
 
           if [ ${#FILES[@]} -gt 0 ]; then
-            printf -v JOINED '%s ' "${FILES[@]}"
-            echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
-            echo "$JOINED" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            echo "asset_paths=${FILES[*]}" >> $GITHUB_OUTPUT
           else
             echo "::error::No files to upload"
             exit 1
