@@ -697,8 +697,8 @@ jobs:
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
-          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES_ARTIFACT }}/${{ env.RELEASE_NOTES }}
-          ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS_ARTIFACT }}/${{ env.RELEASE_ASSETS }}"
+          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES }}
+          ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS }}"
         run: |
           set -euo pipefail
 
@@ -707,6 +707,11 @@ jobs:
             mapfile -t ASSET_FILES < "$ASSETS_FILE"
           else
             echo "::error:: ${{ env.RELEASE_ASSETS }} not found!"
+            exit 1
+          fi
+
+          if [ ! -f "$RELEASE_NOTES" ]; then
+            echo "::error:: ${{ env.RELEASE_NOTES }} not found!"
             exit 1
           fi
 
