@@ -429,8 +429,11 @@ jobs:
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
         run: |
-          NOTES=$(cat "$RELEASE_NOTES")
-          echo "release_notes=$NOTES" >> "$GITHUB_OUTPUT"
+          DELIMITER=$(openssl rand -hex 8)
+          echo "release_notes<<$DELIMITER" >> "$GITHUB_OUTPUT"
+          cat "$RELEASE_NOTES" >> "$GITHUB_OUTPUT"
+          echo "$DELIMITER" >> "$GITHUB_OUTPUT"
+
 
   create-release:
     runs-on: arc-linux-latest
