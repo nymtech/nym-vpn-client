@@ -301,7 +301,7 @@ jobs:
     runs-on: arc-linux-latest
     needs: [resolve, resolve-artifacts]
     outputs:
-      release_notes: ${{ steps.extract_urls.outputs.release_notes }}
+      release_notes: ${{ steps.set_outputs.outputs.release_notes }}
     steps:
       - uses: actions/checkout@v7
         with:
