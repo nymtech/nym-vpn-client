@@ -369,6 +369,7 @@ jobs:
 
           <details>
           <summary>How to verify the build fingerprint?</summary>
+
           **Signing Certificate SHA-256 Fingerprint (4096-bit):**
           ```text
           3c98a016aa4f14a3ba185c764ed363415cf7ff3c3d328a87ffff2ff1b140ff06
@@ -379,6 +380,7 @@ jobs:
           ```sh
           apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
           ```
+
           </details>
           EOF
 
@@ -390,14 +392,14 @@ jobs:
           VPND_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
           VPNC_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
           VPNC_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
-          LINUX_APP_APPIMAGE_X86_64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
           LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
         run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
           ### 🐧 Linux
 
           - **Desktop App**
-            - `${{ env.LINUX_APP_APPIMAGE_X86_64 }}`: Nym VPN app, AppImage (x86_64)
+            - `${{ env.LINUX_APP_APPIMAGE_X64 }}`: Nym VPN app, AppImage (x86_64)
             - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
           - **CLI & Daemon**
             - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN app, debian package (x86_64)
@@ -709,7 +711,7 @@ jobs:
         env:
           RELEASE_PAYLOAD: ${{ steps.gh-release.outputs.assets }}
           GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.url }}
-          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_instal }}
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
           LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
@@ -747,7 +749,7 @@ jobs:
             fi
 
             echo "::notice:: Matching $LINUX_APP_APPIMAGE_X64"
-            LINUX_APP_APPIMAGE_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_APPIMAGE_X64}"-r '.[] | select(.name == $name) | .browser_download_url')
+            LINUX_APP_APPIMAGE_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_APPIMAGE_X64}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$LINUX_APP_APPIMAGE_X64" ]; then
               echo "::error:: URL for Linux AppImage (x64) could not be found."
               exit 1
