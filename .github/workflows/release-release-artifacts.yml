@@ -261,7 +261,7 @@ jobs:
           DEB_BASENAME: nym-vpn-app_${{ needs.resolve.outputs.version }}
           APPIMAGE_BASENAME: NymVPN_${{ needs.resolve.outputs.version }}
         run: |
-          LINUX_INSTALL=install
+          LINUX_INSTALL="install"
           LINUX_APP_X64_BIN="${BIN_BASENAME}_linux_x64"
           LINUX_APP_ARM64_BIN="${BIN_BASENAME}_linux_arm64"
           LINUX_APP_DEB_X64="${DEB_BASENAME}_amd64.deb"
@@ -526,7 +526,7 @@ jobs:
       - name: Copy artifacts (Linux/App)
         if: ${{ needs.resolve.outputs.linux == 'true' }}
         env:
-          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_installer_name }}
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
           LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
@@ -581,7 +581,7 @@ jobs:
           VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
           VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
           VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
-          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_installer_name }}
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
           LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
@@ -692,7 +692,7 @@ jobs:
         env:
           RELEASE_PAYLOAD: ${{ steps.gh-release.outputs.assets }}
           GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.url }}
-          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_installer_name }}
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_instal }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
           LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
