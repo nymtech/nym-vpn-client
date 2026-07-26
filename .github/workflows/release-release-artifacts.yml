@@ -283,18 +283,23 @@ jobs:
         env:
           BIN_BASENAME: nym-vpn_${{ needs.resolve.outputs.version }}
           DEB_BASENAME: nym-vpn-app_${{ needs.resolve.outputs.version }}
+          APPIMAGE_BASENAME: NymVPN_${{ needs.resolve.outputs.version }}
         run: |
           LINUX_INSTALL=install
           LINUX_APP_X64_BIN="${BIN_BASENAME}_linux_x64"
           LINUX_APP_ARM64_BIN="${BIN_BASENAME}_linux_arm64"
           LINUX_APP_DEB_X64="${DEB_BASENAME}_amd64.deb"
           LINUX_APP_DEB_ARM64="${DEB_BASENAME}_arm64.deb"
+          LINUX_APPIMAGE_X64="${APPIMAGE_BASENAME}_amd64.AppImage"
+          LINUX_APPIMAGE_ARM64="${APPIMAGE_BASENAME}_aarch64.AppImage"
 
           echo "LINUX_INSTALL=$LINUX_INSTALL" >> $GITHUB_ENV
           echo "LINUX_APP_X64_BIN=$LINUX_APP_X64_BIN" >> $GITHUB_ENV
           echo "LINUX_APP_ARM64_BIN=$LINUX_APP_ARM64_BIN" >> $GITHUB_ENV
           echo "LINUX_APP_DEB_X64=$LINUX_APP_DEB_X64" >> $GITHUB_ENV
           echo "LINUX_APP_DEB_ARM64=$LINUX_APP_DEB_ARM64" >> $GITHUB_ENV
+          echo "LINUX_APPIMAGE_X64=$LINUX_APPIMAGE_X64" >> $GITHUB_ENV
+          echo "LINUX_APPIMAGE_ARM64=$LINUX_APPIMAGE_ARM64" >> $GITHUB_ENV
 
           cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL ${{ env.OUTPUT_DIR }}
 
@@ -303,6 +308,9 @@ jobs:
 
           cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64} ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64} ${{ env.OUTPUT_DIR }}
+
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APPIMAGE_X64} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APPIMAGE_ARM64} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Windows/App)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -363,6 +371,10 @@ jobs:
               ${{ env.LINUX_APP_DEB_X64 }}.sha256sum
               ${{ env.LINUX_APP_DEB_ARM64 }}
               ${{ env.LINUX_APP_DEB_ARM64 }}.sha256sum
+              ${{ env.LINUX_APPIMAGE_X64 }}
+              ${{ env.LINUX_APPIMAGE_X64 }}.sha256sum
+              ${{ env.LINUX_APPIMAGE_ARM64 }}
+              ${{ env.LINUX_APPIMAGE_ARM64 }}.sha256sum
               ${{ env.VPNC_DEB_X86_64 }}
               ${{ env.VPNC_DEB_X86_64 }}.sha256sum
               ${{ env.VPNC_DEB_AARCH64 }}
