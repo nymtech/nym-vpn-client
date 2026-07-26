@@ -447,7 +447,6 @@ jobs:
           cat "$RELEASE_NOTES" >> "$GITHUB_OUTPUT"
           echo "$DELIMITER" >> "$GITHUB_OUTPUT"
 
-
   create-release:
     runs-on: arc-linux-latest
     needs: [resolve, resolve-artifacts, prepare-release-notes]
@@ -668,11 +667,18 @@ jobs:
           echo "Assets for upload: ${FILES[*]}"
 
           if [ ${#FILES[@]} -gt 0 ]; then
-            echo "asset_paths=${FILES[*]}" >> $GITHUB_OUTPUT
+            printf "%s\n" "${FILES[@]}" > "release_assets.txt"
+            cat release_assets.txt
           else
             echo "::error::No files to upload"
             exit 1
           fi
+
+      - name: Upload release assets list
+        uses: actions/upload-artifact@v7
+        with:
+          name: release_assets.txt
+          path: release_assets.txt
 
       - name: Publish GitHub Release
         working-directory: ${{ env.OUTPUT_DIR }}
@@ -683,9 +689,17 @@ jobs:
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
           BODY: ${{ needs.prepare-release-notes.outputs.release_notes }}
-          ASSETS: ${{ steps.assets.outputs.asset_paths }}
+          ASSETS_FILE: "${{ github.workspace }}/release_assets.txt"
         run: |
           set -euo pipefail
+
+          ASSET_FILES=()
+          if [ -f "$ASSETS_FILE" ]; then
+            mapfile -t ASSET_FILES < "$ASSETS_FILE"
+          else
+            echo "::error:: release_assets.txt not found!"
+            exit 1
+          fi
 
           ARGS=()
           ARGS+=(--title "$VERSION_NAME")
@@ -706,9 +720,9 @@ jobs:
 
           # Note: If targeting a draft, we omit the tag argument
           if [ -z "$TARGET_TAG" ]; then
-            RELEASE_URL=$(gh release create "${ARGS[@]}" $ASSETS --repo "$GITHUB_REPOSITORY")
+            RELEASE_URL=$(gh release create "${ARGS[@]}" --repo "$GITHUB_REPOSITORY" "${ASSET_FILES[@]}")
           else
-            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS --repo "$GITHUB_REPOSITORY")
+            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" --repo "$GITHUB_REPOSITORY" "${ASSET_FILES[@]}")
           fi
 
           RELEASE_TAG="${RELEASE_URL##*/}"
