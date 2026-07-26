@@ -263,6 +263,7 @@ jobs:
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
       pkg_installer_name: ${{ steps.restore-build-outputs.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name: ${{ steps.restore-build-outputs.outputs.vpnc_pkg_installer_name }}
       ios_ipa_name: ${{ steps.restore-build-outputs.outputs.ios_ipa_name }}
       ios_build: ${{ steps.restore-build-outputs.outputs.ios_build }}
       fdroid_artifact_name: ${{ steps.restore-build-outputs.outputs.fdroid_artifact_name }}
