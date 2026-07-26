@@ -665,7 +665,7 @@ jobs:
           fi
 
           if [ ${#FILES[@]} -gt 0 ]; then
-            printf -v JOINED '%s\n' "${FILES[@]}"
+            printf -v JOINED '%s ' "${FILES[@]}"
             echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
             echo "$JOINED" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
