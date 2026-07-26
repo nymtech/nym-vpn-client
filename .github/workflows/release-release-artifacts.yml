@@ -711,15 +711,21 @@ jobs:
           else
             RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS --repo "$GITHUB_REPOSITORY")
           fi
+
+          RELEASE_TAG="${RELEASE_URL##*/}"
+
           echo "::notice:: Release URL: $RELEASE_URL"
+          echo "::notice:: Release tag: $RELEASE_TAG"
+
           echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: List asset URLs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          URL: ${{ steps.gh-release.outputs.release_url }}
+          TAG: ${{ steps.gh-release.outputs.release_tag }}
         run: |
-          gh release view "$URL" --json assets --repo "$GITHUB_REPOSITORY" > release-payload.json
+          gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > release-payload.json
 
       - name: Upload release payload
         uses: actions/upload-artifact@v7
