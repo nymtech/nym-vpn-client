@@ -411,8 +411,8 @@ jobs:
           ### 🐧 Linux
 
           - **Desktop App**
-            - `${{ env.LINUX_APP_DEB_X64 }}`: Nym VPN app, deb (x86_64)
-            - `${{ env.LINUX_APP_DEB_ARM64 }}`: Nym VPN app, deb (arm64)
+            - `${{ env.LINUX_APP_DEB_X64 }}`: Nym VPN app, debian package (x86_64)
+            - `${{ env.LINUX_APP_DEB_ARM64 }}`: Nym VPN app, debian package (arm64)
             - `${{ env.LINUX_APP_APPIMAGE_X64 }}`: Nym VPN app, AppImage (x86_64)
             - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
           - **CLI & Daemon**
