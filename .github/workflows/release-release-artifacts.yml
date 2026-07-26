@@ -497,6 +497,9 @@ jobs:
           test -d "${ARCHIVE_LINUX_X86_64_DIR}" && tar cvzf "${ARCHIVE_LINUX_X86_64}" "${ARCHIVE_LINUX_X86_64_DIR}"
           test -d "${ARCHIVE_LINUX_AARCH64_DIR}" && tar cvzf "${ARCHIVE_LINUX_AARCH64}" "${ARCHIVE_LINUX_AARCH64_DIR}"
 
+          ls -la "${ARCHIVE_LINUX_X86_64_DIR}"
+          ls -la "${ARCHIVE_LINUX_X86_64}"
+
           cp -v "${ARCHIVE_LINUX_X86_64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${ARCHIVE_LINUX_AARCH64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
@@ -700,6 +703,8 @@ jobs:
             echo "::error:: release_assets.txt not found!"
             exit 1
           fi
+
+          ls -la
 
           ARGS=()
           ARGS+=(--title "$VERSION_NAME")
