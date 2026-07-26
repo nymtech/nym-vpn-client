@@ -324,18 +324,10 @@ jobs:
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           VERSION: ${{ needs.resolve.outputs.version }}
-          CORE_CHANGES: ${{ needs.core-changelog.outputs.release_notes }}
+          CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
         run: |
           cat << 'EOF' > "$RELEASE_NOTES"
           Nym VPN v${{ env.VERSION }} application and core binaries.
-
-          ## 📦 Component Overview
-
-          - `nym-vpnd`: Background daemon service managed via the UI app or CLI.
-          - `nym-vpnc`:  Command-line interface (CLI) to control the daemon (`nym-vpnd`).
-          - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
-          - `nym-diagnostic`: System information and network troubleshooting tool.
-          - `nym-setup`: macOS helper tool for system service configuration.
           EOF
 
           if [ -n "$CORE_CHANGES" ]; then
@@ -349,6 +341,16 @@ jobs:
           $UPDATED_CORE_CHANGES
           EOF
           fi
+
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ## 📦 Core Components Overview
+
+          - `nym-vpnd`: Background daemon service managed via the UI app or CLI.
+          - `nym-vpnc`:  Command-line interface (CLI) to control the daemon (`nym-vpnd`).
+          - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
+          - `nym-diagnostic`: System information and network troubleshooting tool.
+          - `nym-setup`: macOS helper tool for system service configuration.
+          EOF
 
           cat << 'EOF' >> "$RELEASE_NOTES"
           ## 💾 Downloads & Assets
