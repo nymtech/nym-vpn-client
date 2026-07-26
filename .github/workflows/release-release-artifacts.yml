@@ -329,7 +329,7 @@ jobs:
           cat << 'EOF' > "$RELEASE_NOTES"
           Nym VPN v${{ env.VERSION }} application and core binaries.
 
-          📦 Component Overview
+          ## 📦 Component Overview
 
           - `nym-vpnd`: Background daemon service managed via the UI app or CLI.
           - `nym-vpnc`:  Command-line interface (CLI) to control the daemon (`nym-vpnd`).
@@ -365,6 +365,8 @@ jobs:
 
           - `${{ env.ANDROID_APK }}`: Android App (F-Droid Build)
 
+          <details>
+          <summary>How to verify the build fingerprint?</summary>
           **Signing Certificate SHA-256 Fingerprint (4096-bit):**
           ```text
           3c98a016aa4f14a3ba185c764ed363415cf7ff3c3d328a87ffff2ff1b140ff06
@@ -375,6 +377,7 @@ jobs:
           ```sh
           apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
           ```
+          </details>
           EOF
 
       - name: Add release notes (Linux)
