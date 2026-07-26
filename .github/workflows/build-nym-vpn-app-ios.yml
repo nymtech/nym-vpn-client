@@ -334,13 +334,6 @@ jobs:
         run: |
           mv core_artifacts_ios/NymVPNLib nym-vpn-apple/NymVPNLib
 
-      # todo: move to ci-nym-vpn-app-ios.yml workflow
-      # - name: Apple unit tests
-      #   if: ${{ env.RELEASE_TYPE == 'pr' }}
-      #   uses: ./.github/workflows/apple/tests
-      #   with:
-      #     account-report-path: ${{ github.workspace }}/account-report.md
-
       - name: Resolve iOS build number (qa/ship only)
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
         working-directory: nym-vpn-apple

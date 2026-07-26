@@ -429,13 +429,6 @@ jobs:
 
           mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
 
-      # todo: move to ci-nym-vpn-app-macos.yml workflow
-      # - name: Apple unit tests
-      #   if: ${{ env.RELEASE_TYPE == 'pr' }}
-      #   uses: ./.github/workflows/apple/tests
-      #   with:
-      #     account-report-path: ${{ github.workspace }}/account-report.md
-
       - name: Archive macOS
         id: archive-macos
         working-directory: nym-vpn-apple
