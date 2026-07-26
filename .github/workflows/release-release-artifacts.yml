@@ -675,30 +675,47 @@ jobs:
           fi
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v3
+        working-directory: ${{ env.OUTPUT_DIR }}
         id: gh-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          working_directory: ${{ env.OUTPUT_DIR }}
-          # Use blank tag_name to avoid tagging draft releases
-          tag_name: ${{ case(needs.resolve.outputs.github_release_type == 'draft', '', needs.resolve.outputs.tag) }}
-          name: "v${{ needs.resolve.outputs.version }}"
-          prerelease: ${{ needs.resolve.outputs.github_release_type == 'prerelease' }}
-          make_latest: ${{ needs.resolve.outputs.github_release_type == 'release' }}
-          draft: ${{ needs.resolve.outputs.github_release_type == 'draft' }}
-          body: ${{ needs.prepare-release-notes.outputs.release_notes }}
-          fail_on_unmatched_files: true
-          overwrite_files: false
-          preserve_order: true
-          files: |
-            ${{ steps.assets.outputs.asset_paths }}
-
-      - name: Store release payload
-        env:
-          RELEASE_PAYLOAD: ${{ steps.gh-release.outputs.assets }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
+          TAG_NAME: ${{ needs.resolve.outputs.tag }}
+          VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
+          BODY: ${{ needs.prepare-release-notes.outputs.release_notes }}
+          ASSETS: ${{ steps.assets.outputs.asset_paths }}
         run: |
-          echo "$RELEASE_PAYLOAD" > release-payload.json
+          ARGS=()
+          ARGS+=(--title "$VERSION_NAME")
+          ARGS+=(--notes "$BODY")
+
+          if [ "$RELEASE_TYPE" = "draft" ]; then
+            ARGS+=(--draft)
+            # Drafts do not require a tag upfront
+            TARGET_TAG=""
+          elif [ "$RELEASE_TYPE" = "prerelease" ]; then
+            ARGS+=(--prerelease)
+            TARGET_TAG="$TAG_NAME"
+          else
+            # Standard release: set as latest
+            ARGS+=(--latest)
+            TARGET_TAG="$TAG_NAME"
+          fi
+
+          # Note: If targeting a draft, we omit the tag argument
+          if [ -z "$TARGET_TAG" ]; then
+            RELEASE_URL=$(gh release create "${ARGS[@]}" $ASSETS)
+          else
+            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" $ASSETS)
+          fi
+          echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
+
+      - name: List asset URLs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL: ${{ steps.gh-release.outputs.release_url }}
+        run: |
+          gh release view "$URL" --json assets > release-payload.json
 
       - name: Upload release payload
         uses: actions/upload-artifact@v7
