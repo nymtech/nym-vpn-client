@@ -196,9 +196,12 @@ jobs:
         if: ${{ needs.resolve.outputs.linux == 'true' }}
         env:
           ARCHIVE_BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
-          VPNC_DEB_BASENAME: nym-vpnc_${{ needs.resolve.outputs.version }}
-          VPND_DEB_BASENAME: nym-vpnd_${{ needs.resolve.outputs.version }}
+          RAW_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
+          DEB_VERSION="${RAW_VERSION//-/~}"
+          VPNC_DEB_BASENAME="nym-vpnc_${DEB_VERSION}"
+          VPND_DEB_BASENAME="nym-vpnd_${DEB_VERSION}"
+
           ARCHIVE_LINUX_X86_64=${ARCHIVE_BASENAME}_linux_x86_64
           ARCHIVE_LINUX_AARCH64=${ARCHIVE_BASENAME}_linux_aarch64
           VPNC_DEB_X86_64="${VPNC_DEB_BASENAME}_amd64.deb"
