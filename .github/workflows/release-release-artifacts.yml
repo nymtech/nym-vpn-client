@@ -90,8 +90,12 @@ env:
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
   VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
+  RELEASE_NOTES_ARTIFACT: release-notes
   RELEASE_NOTES: release-notes.md
+  RELEASE_ASSETS_ARTIFACT: release-assets
   RELEASE_ASSETS: release-assets.txt
+  RELEASE_PAYLOAD_ARTIFACT: release-payload
+  RELEASE_PAYLOAD: release-payload.json
 
 jobs:
   resolve:
@@ -327,6 +331,7 @@ jobs:
         run: |
           cat << 'EOF' > "$RELEASE_NOTES"
           Nym VPN v${{ env.VERSION }} application and core binaries.
+
           EOF
 
           if [ -n "$CORE_CHANGES" ]; then
@@ -451,7 +456,7 @@ jobs:
       - name: Upload release notes
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.RELEASE_NOTES }}
+          name: ${{ env.RELEASE_NOTES_ARTIFACT }}
           path: ${{ env.RELEASE_NOTES }}
 
   create-release:
@@ -681,7 +686,7 @@ jobs:
       - name: Upload release assets list
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.RELEASE_ASSETS }}
+          name: ${{ env.RELEASE_ASSETS_ARTIFACT }}
           path: ${{ env.RELEASE_ASSETS }}
 
       - name: Publish GitHub Release
@@ -692,8 +697,8 @@ jobs:
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
-          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES }}
-          ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS }}"
+          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES_ARTIFACT }}/${{ env.RELEASE_NOTES }}
+          ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS_ARTIFACT }}/${{ env.RELEASE_ASSETS }}"
         run: |
           set -euo pipefail
 
@@ -731,13 +736,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.gh-release.outputs.release_tag }}
         run: |
-          gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > release-payload.json
+          gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > "${{ env.RELEASE_PAYLOAD }}"
 
       - name: Upload release payload
         uses: actions/upload-artifact@v7
         with:
-          name: release-payload
-          path: release-payload.json
+          name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
+          path: ${{ env.RELEASE_PAYLOAD }}
 
       - name: Extract asset URLs
         id: extract_urls
@@ -758,7 +763,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          JSON_FILE="release-payload.json"
+          JSON_FILE="${{ env.RELEASE_PAYLOAD }}/${{ env.RELEASE_PAYLOAD }}"
 
           echo "github_release_url=$GITHUB_RELEASE_URL" >> $GITHUB_OUTPUT
 
