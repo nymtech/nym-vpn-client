@@ -768,7 +768,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          JSON_FILE="${{ env.RELEASE_PAYLOAD }}/${{ env.RELEASE_PAYLOAD }}"
+          JSON_FILE="${{ env.RELEASE_PAYLOAD }}"
 
           echo "github_release_url=$GITHUB_RELEASE_URL" >> $GITHUB_OUTPUT
 
