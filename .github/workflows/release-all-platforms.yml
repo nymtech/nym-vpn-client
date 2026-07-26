@@ -287,6 +287,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
+            ${{ env.VPNC_MACOS_ARTIFACTS }}
           key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
       - name: Restore build outputs
@@ -469,9 +470,16 @@ jobs:
             ${{ env.VPNC_MACOS_ARTIFACTS }}
           key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
+  # save-build-cache:
+  #   name: Save build cache (noop)
+  #   runs-on: arc-linux-latest
+  #   needs: [resolve, build, restore-build-cache]
+  #   steps:
+  #     - run: exit 0
+
   build-outputs:
     runs-on: arc-linux-latest
-    needs: [build, restore-build-cache]
+    needs: [build, restore-build-cache, save-build-cache]
     if: |
       !cancelled() && (
         needs.restore-build-cache.outputs.cache-hit == 'true' ||
