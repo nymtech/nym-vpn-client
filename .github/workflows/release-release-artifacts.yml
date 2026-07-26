@@ -331,7 +331,6 @@ jobs:
           - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
           - `nym-diagnostic`: System information and network troubleshooting tool.
           - `nym-setup`: macOS helper tool for system service configuration.
-
           EOF
 
           if [ -n "$CORE_CHANGES" ]; then
@@ -339,17 +338,15 @@ jobs:
             UPDATED_CORE_CHANGES=$(sed 's/^### /#### /' <<< "$CORE_CHANGES")
 
             envsubst '$UPDATED_CORE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
-            ## 🚀 What's New
-            ### 🛠️ Core Changes
+          ## 🚀 What's New
+          ### 🛠️ Core Changes
 
-            $UPDATED_CORE_CHANGES
-
-            EOF
+          $UPDATED_CORE_CHANGES
+          EOF
           fi
 
-          cat << EOF >> "$RELEASE_NOTES"
-            ## 💾 Downloads & Assets
-
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ## 💾 Downloads & Assets
           EOF
 
       - name: Add release notes (Android)
@@ -373,7 +370,6 @@ jobs:
           ```sh
           apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
           ```
-
           EOF
 
       - name: Add release notes (Linux)
