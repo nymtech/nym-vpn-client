@@ -59,6 +59,10 @@ on:
         value: ${{ jobs.create-release.outputs.linux_app_deb_x64_url }}
       linux_app_deb_arm64_url:
         value: ${{ jobs.create-release.outputs.linux_app_deb_arm64_url }}
+      linux_appimage_x64_url:
+        value: ${{ jobs.create-release.outputs.linux_appimage_x64_url }}
+      linux_appimage_arm64_url:
+        value: ${{ jobs.create-release.outputs.linux_appimage_arm64_url }}
       windows_installer_x64_url:
         value: ${{ jobs.create-release.outputs.windows_installer_x64_url }}
       windows_installer_arm64_url:
@@ -165,6 +169,8 @@ jobs:
         github_release_url: ${{ steps.extract_urls.outputs.github_release_url }}
         linux_app_deb_x64_url: ${{ steps.extract_urls.outputs.linux_app_deb_x64_url }}
         linux_app_deb_arm64_url: ${{ steps.extract_urls.outputs.linux_app_deb_arm64_url }}
+        linux_appimage_x64_url: ${{ steps.extract_urls.outputs.linux_appimage_x64_url }}
+        linux_appimage_arm64_url: ${{ steps.extract_urls.outputs.linux_appimage_arm64_url }}
         windows_installer_x64_url: ${{ steps.extract_urls.outputs.windows_installer_x64_url }}
         windows_installer_arm64_url: ${{ steps.extract_urls.outputs.windows_installer_arm64_url }}
         macos_installer_url: ${{ steps.extract_urls.outputs.macos_installer_url }}
@@ -459,6 +465,24 @@ jobs:
             else
               echo "::notice:: Linux app deb (arm64): $LINUX_APP_DEB_ARM64"
               echo "linux_app_deb_arm64_url=$LINUX_APP_DEB_ARM64" >> $GITHUB_OUTPUT
+            fi
+
+            LINUX_APPIMAGE_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APPIMAGE_X64 }}")) | .browser_download_url')
+            if [ -z "$LINUX_APPIMAGE_X64" ]; then
+              echo "::error:: URL for Linux AppImage (x64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux AppImage (x64): $LINUX_APPIMAGE_X64"
+              echo "linux_appimage_x64_url=$LINUX_APPIMAGE_X64" >> $GITHUB_OUTPUT
+            fi
+
+            LINUX_APPIMAGE_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APPIMAGE_ARM64 }}")) | .browser_download_url')
+            if [ -z "$LINUX_APPIMAGE_ARM64" ]; then
+              echo "::error:: URL for Linux AppImage (arm64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux AppImage (arm64): $LINUX_APPIMAGE_ARM64"
+              echo "linux_appimage_arm64_url=$LINUX_APPIMAGE_ARM64" >> $GITHUB_OUTPUT
             fi
           fi
 

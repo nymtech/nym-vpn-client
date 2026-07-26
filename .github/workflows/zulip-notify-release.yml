@@ -18,6 +18,10 @@ on:
         type: string
       linux_app_deb_arm64_url:
         type: string
+      linux_appimage_x64_url:
+        type: string
+      linux_appimage_arm64_url:
+        type: string
       windows_installer_x64_url:
         type: string
       windows_installer_arm64_url:
@@ -214,6 +218,8 @@ jobs:
           WIN_ARM64_INSTALLER: ${{ inputs.windows_installer_arm64_url }}
           LINUX_X64_INSTALLER: ${{ inputs.linux_app_deb_x64_url }}
           LINUX_ARM64_INSTALLER: ${{ inputs.linux_app_deb_arm64_url }}
+          LINUX_APPIMAGE_X64: ${{ inputs.linux_appimage_x64_url }}
+          LINUX_APPIMAGE_ARM64: ${{ inputs.linux_appimage_arm64_url }}
           RELEASE_URL: ${{ inputs.github_release_url }}
         run: |
           set -euo pipefail
@@ -247,13 +253,19 @@ jobs:
                 echo "${TAB}• arm64: [${WIN_ARM64_INSTALLER##*/}](${WIN_ARM64_INSTALLER})"
               fi
             fi
-            if [[ -n "$LINUX_X64_INSTALLER" || -n "$LINUX_ARM64_INSTALLER" ]]; then
-              echo "• Linux (deb):"
+            if [[ -n "$LINUX_X64_INSTALLER" || -n "$LINUX_ARM64_INSTALLER" || -n "$LINUX_APPIMAGE_X64" || -n "$LINUX_APPIMAGE_ARM64" ]]; then
+              echo "• Linux:"
               if [ -n "$LINUX_X64_INSTALLER" ]; then
-                echo "${TAB}• x64: [${LINUX_X64_INSTALLER##*/}](${LINUX_X64_INSTALLER})"
+                echo "${TAB}• deb (x64): [${LINUX_X64_INSTALLER##*/}](${LINUX_X64_INSTALLER})"
               fi
               if [ -n "$LINUX_ARM64_INSTALLER" ]; then
-                echo "${TAB}• arm64: [${LINUX_ARM64_INSTALLER##*/}](${LINUX_ARM64_INSTALLER})"
+                echo "${TAB}• deb (arm64): [${LINUX_ARM64_INSTALLER##*/}](${LINUX_ARM64_INSTALLER})"
+              fi
+              if [ -n "$LINUX_APPIMAGE_X64" ]; then
+                echo "${TAB}• AppImage (arm64): [${LINUX_APPIMAGE_X64##*/}](${LINUX_APPIMAGE_X64})"
+              fi
+              if [ -n "$LINUX_APPIMAGE_ARM64" ]; then
+                echo "${TAB}• AppImage (arm64): [${LINUX_APPIMAGE_ARM64##*/}](${LINUX_APPIMAGE_ARM64})"
               fi
             fi
             echo "EOF"
