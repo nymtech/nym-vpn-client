@@ -736,7 +736,7 @@ jobs:
       - name: Extract asset URLs
         id: extract_urls
         env:
-          GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.url }}
+          GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.release_url }}
           LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
@@ -754,7 +754,6 @@ jobs:
 
           JSON_FILE="release-payload.json"
 
-          echo "::notice:: Github release URL: $GITHUB_RELEASE_URL"
           echo "github_release_url=$GITHUB_RELEASE_URL" >> $GITHUB_OUTPUT
 
           if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
