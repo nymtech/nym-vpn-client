@@ -335,7 +335,7 @@ jobs:
 
           if [ -n "$CORE_CHANGES" ]; then
             # Increase indentation from h3 to h4 to better fit the release notes
-            UPDATED_CORE_CHANGES=$(sed 's/^### /#### /' <<< "$CORE_CHANGES")
+            export UPDATED_CORE_CHANGES=$(sed 's/^### /#### /' <<< "$CORE_CHANGES")
 
             envsubst '$UPDATED_CORE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
           ## 🚀 What's New
