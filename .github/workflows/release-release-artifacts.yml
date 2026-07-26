@@ -714,7 +714,7 @@ jobs:
           echo "github_release_url=$GITHUB_RELEASE_URL" >> $GITHUB_OUTPUT
 
           if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
-            LINUX_APP_DEB_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_DEB_X64}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            LINUX_APP_DEB_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_DEB_X64}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$LINUX_APP_DEB_X64" ]; then
               echo "::error:: URL for Linux app deb (x64) could not be found."
               exit 1
@@ -723,7 +723,7 @@ jobs:
               echo "linux_app_deb_x64_url=$LINUX_APP_DEB_X64" >> $GITHUB_OUTPUT
             fi
 
-            LINUX_APP_DEB_ARM64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_DEB_ARM64}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            LINUX_APP_DEB_ARM64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_DEB_ARM64}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$LINUX_APP_DEB_ARM64" ]; then
               echo "::error:: URL for Linux app deb (arm64) could not be found."
               exit 1
@@ -732,7 +732,8 @@ jobs:
               echo "linux_app_deb_arm64_url=$LINUX_APP_DEB_ARM64" >> $GITHUB_OUTPUT
             fi
 
-            LINUX_APP_APPIMAGE_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_APPIMAGE_X64}"-r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            echo "::notice:: Matching $LINUX_APP_APPIMAGE_X64"
+            LINUX_APP_APPIMAGE_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_APPIMAGE_X64}"-r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$LINUX_APP_APPIMAGE_X64" ]; then
               echo "::error:: URL for Linux AppImage (x64) could not be found."
               exit 1
@@ -741,7 +742,8 @@ jobs:
               echo "linux_app_appimage_x64_url=$LINUX_APP_APPIMAGE_X64" >> $GITHUB_OUTPUT
             fi
 
-            LINUX_APP_APPIMAGE_ARM64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_APPIMAGE_ARM64}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            echo "::notice:: Matching $LINUX_APP_APPIMAGE_ARM64"
+            LINUX_APP_APPIMAGE_ARM64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${LINUX_APP_APPIMAGE_ARM64}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$LINUX_APP_APPIMAGE_ARM64" ]; then
               echo "::error:: URL for Linux AppImage (arm64) could not be found."
               exit 1
@@ -752,7 +754,7 @@ jobs:
           fi
 
           if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
-            WINDOWS_INSTALLER_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${WINDOWS_APP_INSTALLER_X64}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            WINDOWS_INSTALLER_X64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${WINDOWS_APP_INSTALLER_X64}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$WINDOWS_INSTALLER_X64" ]; then
               echo "::error:: URL for Windows installer (x64) could not be found."
               exit 1
@@ -761,7 +763,7 @@ jobs:
               echo "windows_installer_x64_url=$WINDOWS_INSTALLER_X64" >> $GITHUB_OUTPUT
             fi
 
-            WINDOWS_INSTALLER_ARM64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${WINDOWS_APP_INSTALLER_ARM64}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            WINDOWS_INSTALLER_ARM64=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${WINDOWS_APP_INSTALLER_ARM64}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$WINDOWS_INSTALLER_ARM64" ]; then
               echo "::error:: URL for Windows installer (arm64) could not be found."
               exit 1
@@ -772,7 +774,7 @@ jobs:
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
-            MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${MACOS_INSTALLER_NAME}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${MACOS_INSTALLER_NAME}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$MACOS_INSTALLER" ]; then
               echo "::error:: URL for macOS installer could not be found."
               exit 1
@@ -781,7 +783,7 @@ jobs:
               echo "macos_installer_url=$MACOS_INSTALLER" >> $GITHUB_OUTPUT
             fi
 
-            VPNC_MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${VPNC_MACOS_INSTALLER_NAME}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            VPNC_MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${VPNC_MACOS_INSTALLER_NAME}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$VPNC_MACOS_INSTALLER" ]; then
               echo "::error:: URL for vpnc macOS installer could not be found."
               exit 1
@@ -792,7 +794,7 @@ jobs:
           fi
 
           if [ "${{ needs.resolve.outputs.fdroid }}" = "true" ]; then
-            ANDROID_APK=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${ANDROID_APK}" -r '.[] | select(.name | endswith($name)) | .browser_download_url')
+            ANDROID_APK=$(echo "$RELEASE_PAYLOAD" | jq --arg name "${ANDROID_APK}" -r '.[] | select(.name == $name) | .browser_download_url')
             if [ -z "$ANDROID_APK" ]; then
               echo "::error:: URL for Android APK could not be found."
               exit 1
