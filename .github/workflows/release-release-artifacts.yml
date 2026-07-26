@@ -685,6 +685,8 @@ jobs:
           BODY: ${{ needs.prepare-release-notes.outputs.release_notes }}
           ASSETS: ${{ steps.assets.outputs.asset_paths }}
         run: |
+          set -euo pipefail
+
           ARGS=()
           ARGS+=(--title "$VERSION_NAME")
           ARGS+=(--notes "$BODY")
