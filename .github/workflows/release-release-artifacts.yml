@@ -321,8 +321,8 @@ jobs:
           VERSION: ${{ needs.resolve.outputs.version }}
           CORE_CHANGES: ${{ needs.core-changelog.outputs.release_notes }}
         run: |
-          cat << EOF > "$RELEASE_NOTES"
-            Nym VPN v$VERSION application and core binaries.
+          cat << 'EOF' > "$RELEASE_NOTES"
+            Nym VPN v${{ env.VERSION }} application and core binaries.
 
             The core binaries are comprised of:
 
@@ -335,10 +335,10 @@ jobs:
           EOF
 
           if [ -n "$CORE_CHANGES" ]; then
-            cat << EOF >> "$RELEASE_NOTES"
+            cat << 'EOF' >> "$RELEASE_NOTES"
               ## Changes (core)
 
-              $CORE_CHANGES
+              ${{ env.CORE_CHANGES }}
 
             EOF
           fi
@@ -354,10 +354,10 @@ jobs:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
         run: |
-          cat << EOF >> "$RELEASE_NOTES"
+          cat << 'EOF' >> "$RELEASE_NOTES"
             ### Android
 
-            - `${ANDROID_APK}`: Nym VPN Android app (F-droid build)
+            - `${{ env.ANDROID_APK }}`: Nym VPN Android app (F-droid build)
           EOF
 
       - name: Add release notes (Linux)
@@ -371,17 +371,17 @@ jobs:
           LINUX_APP_APPIMAGE_X86_64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
           LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
         run: |
-          cat << EOF >> "$RELEASE_NOTES"
+          cat << 'EOF' >> "$RELEASE_NOTES"
             ### Linux
 
-            - `nym-vpn-app_2026.11.0-beta.12_amd64.deb`: Nym VPN app, debian package (x86_64)
-            - `nym-vpn-app_2026.11.0-beta.12_arm64.deb`: Nym VPN app, debian package (arm64)
-            - `${LINUX_APP_APPIMAGE_X86_64}`: Nym VPN app, AppImage (x86_64)
-            - `${LINUX_APP_APPIMAGE_ARM64}`: Nym VPN app, AppImage (arm64)
-            - `${VPND_DEB_X86_64}`: Nym VPN daemon, debian package (x86_64)
-            - `${VPND_DEB_ARM64}`: Nym VPN daemon, debian package (arm64)
-            - `${VPNC_DEB_X86_64}`: Nym VPN command-line tool, debian package (x86_64)
-            - `${VPNC_DEB_ARM64}`: Nym VPN command-line tool, debian package (arm64)
+            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN app, debian package (x86_64)
+            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN app, debian package (arm64)
+            - `${{ env.LINUX_APP_APPIMAGE_X86_64 }}`: Nym VPN app, AppImage (x86_64)
+            - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
+            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN daemon, debian package (x86_64)
+            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN daemon, debian package (arm64)
+            - `${{ env.VPNC_DEB_X86_64 }}`: Nym VPN command-line tool, debian package (x86_64)
+            - `${{ env.VPNC_DEB_ARM64 }}`: Nym VPN command-line tool, debian package (arm64)
           EOF
 
       - name: Add release notes (macOS)
@@ -391,11 +391,11 @@ jobs:
           MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
           VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
         run: |
-          cat << EOF >> "$RELEASE_NOTES"
+          cat << 'EOF' >> "$RELEASE_NOTES"
             ### macOS
 
-            - `${MACOS_INSTALLER_NAME}`: Nym VPN app installer
-            - `${VPNC_MACOS_INSTALLER_NAME}`: Nym VPN command-line tool installer
+            - `${{ env.MACOS_INSTALLER_NAME }}`: Nym VPN app installer
+            - `${{ env.VPNC_MACOS_INSTALLER_NAME }}`: Nym VPN command-line tool installer
           EOF
 
       - name: Add release notes (Windows)
@@ -405,11 +405,11 @@ jobs:
           WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
           WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
         run: |
-          cat << EOF >> "$RELEASE_NOTES"
+          cat << 'EOF' >> "$RELEASE_NOTES"
             ### Windows
 
-            - `${WINDOWS_APP_INSTALLER_X64}`: Nym VPN app installer (x64)
-            - `${WINDOWS_APP_INSTALLER_ARM64}`: Nym VPN app installer (arm64)
+            - `${{ env.WINDOWS_APP_INSTALLER_X64 }}`: Nym VPN app installer (x64)
+            - `${{ env.WINDOWS_APP_INSTALLER_ARM64 }}`: Nym VPN app installer (arm64)
           EOF
 
       - name: Set outputs
