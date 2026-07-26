@@ -497,9 +497,6 @@ jobs:
           test -d "${ARCHIVE_LINUX_X86_64_DIR}" && tar cvzf "${ARCHIVE_LINUX_X86_64}" "${ARCHIVE_LINUX_X86_64_DIR}"
           test -d "${ARCHIVE_LINUX_AARCH64_DIR}" && tar cvzf "${ARCHIVE_LINUX_AARCH64}" "${ARCHIVE_LINUX_AARCH64_DIR}"
 
-          ls -la "${ARCHIVE_LINUX_X86_64_DIR}"
-          ls -la "${ARCHIVE_LINUX_X86_64}"
-
           cp -v "${ARCHIVE_LINUX_X86_64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${ARCHIVE_LINUX_AARCH64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
@@ -704,8 +701,6 @@ jobs:
             exit 1
           fi
 
-          ls -la
-
           ARGS=()
           ARGS+=(--title "$VERSION_NAME")
           ARGS+=(--notes "$BODY")
@@ -723,12 +718,9 @@ jobs:
             TARGET_TAG="$TAG_NAME"
           fi
 
-          # Note: If targeting a draft, we omit the tag argument
-          if [ -z "$TARGET_TAG" ]; then
-            RELEASE_URL=$(gh release create "${ARGS[@]}" --repo "$GITHUB_REPOSITORY" "${ASSET_FILES[@]}")
-          else
-            RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" --repo "$GITHUB_REPOSITORY" "${ASSET_FILES[@]}")
-          fi
+          # Enable debug logging for GitHub CLI
+          export GH_DEBUG=1
+          RELEASE_URL=$(gh release create "$TARGET_TAG" "${ARGS[@]}" --repo "$GITHUB_REPOSITORY" "${ASSET_FILES[@]}")
 
           RELEASE_TAG="${RELEASE_URL##*/}"
 
