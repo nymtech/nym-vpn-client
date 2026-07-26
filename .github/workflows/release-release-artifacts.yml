@@ -697,7 +697,7 @@ jobs:
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
-          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES }}
+          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES_ARTIFACT }}/${{ env.RELEASE_NOTES }}
           ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS }}"
         run: |
           set -euo pipefail
