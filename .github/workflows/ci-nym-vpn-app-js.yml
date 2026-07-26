@@ -2,7 +2,7 @@ name: ci-nym-vpn-app-js
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/ci-nym-vpn-app-js.yml"
       - "nym-vpn-app/**"

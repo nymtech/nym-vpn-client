@@ -1,7 +1,7 @@
 name: build-nym-vpn-core-linux
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
   workflow_dispatch:

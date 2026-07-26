@@ -1,7 +1,7 @@
 name: build-nym-vpn-core-ios
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/build-nym-vpn-core-macos.yml"
   workflow_dispatch:

@@ -2,7 +2,7 @@ name: build-release-artifacts
 
 on:
   # pull_request:
-  #   types: [opened, reopened]
+  #   types: [opened, synchronize, reopened]
   #   paths:
   #     - ".github/workflows/build-release-artifacts.yml"
   workflow_call:

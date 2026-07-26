@@ -2,7 +2,7 @@ name: ci-nym-vpn-app-rust
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/ci-nym-vpn-app-rust.yml"
       - "nym-vpn-app/src-tauri/**"
