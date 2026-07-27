@@ -1,4 +1,7 @@
 //! Censorship scenario tests
+//!
+//! Priorities are intentionally high so these run after the core suite. Block rules can
+//! poison guest networking / serial RPC if cleanup is skipped on failure.
 
 use crate::tests::{
     TestContext,
@@ -8,8 +11,25 @@ use crate::tests::{
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use std::future::Future;
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
+
+/// Prefer the body error; still surface cleanup failure when the body succeeded.
+fn merge_body_and_cleanup(
+    body: Result<(), anyhow::Error>,
+    cleanup: Result<(), anyhow::Error>,
+) -> Result<(), anyhow::Error> {
+    match (body, cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Ok(()), Err(cleanup_err)) => Err(cleanup_err),
+        (Err(body_err), Ok(())) => Err(body_err),
+        (Err(body_err), Err(cleanup_err)) => {
+            log::warn!("blocklist cleanup after failure also failed: {cleanup_err:#}");
+            Err(body_err)
+        }
+    }
+}
 
 /// get socket addresses for default dns nameservers used by the vpn client
 fn get_default_nameserver_sockaddrs() -> Vec<String> {
@@ -59,163 +79,154 @@ async fn verify_tunnel_connectivity(rpc: &NymServiceClient) -> anyhow::Result<()
     Ok(())
 }
 
+async fn with_socket_blocks<F, Fut>(
+    rpc: &NymServiceClient,
+    socket_addrs: &[String],
+    body: F,
+) -> anyhow::Result<()>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = anyhow::Result<()>>,
+{
+    block_socket_addrs(rpc, socket_addrs).await?;
+    let body_result = body().await;
+    let cleanup = unblock_socket_addrs(rpc, socket_addrs)
+        .await
+        .context("Failed to unblock socket addresses after test");
+    merge_body_and_cleanup(body_result, cleanup)
+}
+
+async fn with_sni_blocks<F, Fut>(
+    rpc: &NymServiceClient,
+    domains: &[&str],
+    body: F,
+) -> anyhow::Result<()>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = anyhow::Result<()>>,
+{
+    block_server_name_indicators(rpc, domains).await?;
+    let body_result = body().await;
+    let cleanup = unblock_server_name_indicators(rpc, domains)
+        .await
+        .context("Failed to unblock SNI domains after test");
+    merge_body_and_cleanup(body_result, cleanup)
+}
+
+async fn with_delayed_and_dns_blocks<F, Fut>(
+    rpc: &NymServiceClient,
+    dns_addrs: &[String],
+    delayed_addrs: &[&str],
+    body: F,
+) -> anyhow::Result<()>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = anyhow::Result<()>>,
+{
+    block_socket_addrs(rpc, dns_addrs).await?;
+    let delayed_block = block_socket_addrs_delayed(rpc, delayed_addrs).await;
+    if let Err(e) = delayed_block {
+        let _ = unblock_socket_addrs(rpc, dns_addrs).await;
+        return Err(e);
+    }
+
+    let body_result = body().await;
+
+    let delayed_cleanup = unblock_socket_addrs_delayed(rpc, delayed_addrs)
+        .await
+        .context("Failed to unblock delayed socket addresses after test");
+    let dns_cleanup = unblock_socket_addrs(rpc, dns_addrs)
+        .await
+        .context("Failed to unblock DNS socket addresses after test");
+    let cleanup = match (delayed_cleanup, dns_cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Err(e), Ok(())) | (Ok(()), Err(e)) => Err(e),
+        (Err(e), Err(dns_err)) => {
+            log::warn!("DNS unblock after delayed unblock failure also failed: {dns_err:#}");
+            Err(e)
+        }
+    };
+    merge_body_and_cleanup(body_result, cleanup)
+}
+
+async fn connect_verify_disconnect(
+    test_context: &TestContext,
+    rpc: &NymServiceClient,
+    nym_client: NymProxyClient,
+) -> anyhow::Result<()> {
+    let mut nym_client =
+        dc_and_ensure_logged_in(rpc, nym_client, &test_context.rpc_provider, false).await?;
+
+    nym_client.set_enable_two_hop(true).await?;
+
+    log::info!("Connecting tunnel...");
+    nym_client.connect_tunnel().await?;
+    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
+        rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
+
+    verify_tunnel_connectivity(rpc).await?;
+
+    log::info!("Disconnecting tunnel...");
+    nym_client.disconnect_tunnel().await?;
+    helpers_nym::wait_for_tunnel_state(
+        rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Disconnected,
+    )
+    .await?;
+
+    Ok(())
+}
+
 /// Ensure connection with default DNS Nameservers blocklisted
-#[test_function_nym]
+#[test_function_nym(priority = 100)]
 pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     test_context: TestContext,
     rpc: NymServiceClient,
     nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    // Common DNS nameservers to block
     let dns_nameservers = get_default_nameserver_sockaddrs();
-
-    // Block DNS nameservers
     log::debug!("Blocking DNS nameservers: {:?}", dns_nameservers);
-    block_socket_addrs(&rpc, &dns_nameservers).await?;
-
-    // Ensure proper login state
-    let mut nym_client =
-        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
-
-    // connect with wg
-    nym_client.set_enable_two_hop(true).await?;
-
-    // Connect tunnel
-    log::info!("Connecting tunnel...");
-    nym_client.connect_tunnel().await?;
-    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
-
-    // Verify tunnel connectivity
-    verify_tunnel_connectivity(&rpc).await?;
-
-    // Disconnect tunnel
-    log::info!("Disconnecting tunnel...");
-    nym_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Disconnected,
-    )
-    .await?;
-
-    // Clean up: unblock DNS nameservers
-    log::debug!("Unblocking DNS nameservers...");
-    unblock_socket_addrs(&rpc, &dns_nameservers).await?;
-
-    Ok(())
+    with_socket_blocks(&rpc, &dns_nameservers, || async {
+        connect_verify_disconnect(&test_context, &rpc, nym_client).await
+    })
+    .await
 }
 
 /// Test Connection with default VPN API host blocklisted
-#[test_function_nym]
+#[test_function_nym(priority = 101)]
 pub async fn test_tunnel_blocklisted_vpn_api(
     test_context: TestContext,
     rpc: NymServiceClient,
     nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    // TODO: Determine the actual VPN API endpoints to block
     let vpn_api_hosts = ["nymvpn.com:443"];
-
-    // Block VPN API hosts
     log::debug!("Adding blocking rule for the VPN API: {:?}", vpn_api_hosts);
-    block_server_name_indicators(&rpc, &vpn_api_hosts).await?;
-
-    // Ensure we're logged out first
-    let mut nym_client =
-        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
-
-    // connect with wg
-    nym_client.set_enable_two_hop(true).await?;
-
-    // Attempt to connect - this should either fail or bypass the blocking
-    log::info!("Attempting to connect tunnel with VPN API blocked...");
-    nym_client.connect_tunnel().await?;
-    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
-
-    // Verify tunnel connectivity
-    verify_tunnel_connectivity(&rpc).await?;
-
-    // Disconnect tunnel
-    log::info!("Disconnecting tunnel...");
-    nym_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Disconnected,
-    )
-    .await?;
-
-    // Clean up: unblock the VPN API hosts
-    log::debug!("Removing SNI based blocking rule for the VPN API ...");
-    unblock_server_name_indicators(&rpc, &vpn_api_hosts).await?;
-
-    Ok(())
+    with_sni_blocks(&rpc, &vpn_api_hosts, || async {
+        connect_verify_disconnect(&test_context, &rpc, nym_client).await
+    })
+    .await
 }
 
 /// Test Connection with default NYM API host blocklisted
-#[test_function_nym]
+#[test_function_nym(priority = 102)]
 pub async fn test_tunnel_blocklisted_nym_api(
     test_context: TestContext,
     rpc: NymServiceClient,
     nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    // TODO: Determine the actual Nym API endpoints to block
     let nym_api_hosts = ["validator.nymtech.net:443"];
-
-    // Block Nym API hosts
     log::debug!("Adding blocking rule for the Nym API: {:?}", nym_api_hosts);
-    block_server_name_indicators(&rpc, &nym_api_hosts).await?;
-
-    // Ensure we're logged out first
-    let mut nym_client =
-        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
-
-    // connect with wg
-    nym_client.set_enable_two_hop(true).await?;
-
-    // Attempt to connect - this should either fail or bypass the blocking
-    log::info!("Attempting to connect tunnel with Nym API blocked...");
-    nym_client.connect_tunnel().await?;
-    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
-
-    // Verify tunnel connectivity
-    verify_tunnel_connectivity(&rpc).await?;
-
-    // Disconnect tunnel
-    log::info!("Disconnecting tunnel...");
-    nym_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Disconnected,
-    )
-    .await?;
-
-    // Clean up: unblock the Nym API hosts
-    log::debug!("Removing SNI based blocking rule for the Nym API ...");
-    unblock_server_name_indicators(&rpc, &nym_api_hosts).await?;
-
-    Ok(())
+    with_sni_blocks(&rpc, &nym_api_hosts, || async {
+        connect_verify_disconnect(&test_context, &rpc, nym_client).await
+    })
+    .await
 }
 
 /// Test connection establishment with conditions seen in Russian ISP in Feb 2026.
@@ -227,70 +238,30 @@ pub async fn test_tunnel_blocklisted_nym_api(
 /// This test should result in a Read error during topology fetching that enables domain fronting
 /// and then successfully connects. I block DNS to force usage of the  default fallback address for
 /// the Nym API.
-#[test_function_nym]
+#[test_function_nym(priority = 103)]
 pub async fn test_tunnel_delayed_blocklisted_nym_api(
     test_context: TestContext,
     rpc: NymServiceClient,
     nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     let default_nym_api_socket_addr = ["212.71.233.232:443"];
-
-    // Common DNS nameservers to block
     let dns_nameservers = get_default_nameserver_sockaddrs();
 
-    // Block DNS nameservers
     log::debug!("Blocking DNS nameservers: {:?}", dns_nameservers);
-    block_socket_addrs(&rpc, &dns_nameservers).await?;
-
-    // Block DNS nameservers
     log::debug!(
         "Adding Delayed Blocking rule for Nym API: {:?}",
         default_nym_api_socket_addr
     );
-    block_socket_addrs_delayed(&rpc, &default_nym_api_socket_addr).await?;
 
-    // Ensure we're logged out first
-    let mut nym_client =
-        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
-
-    // connect with wg
-    nym_client.set_enable_two_hop(true).await?;
-
-    // Attempt to connect - this should either fail or bypass the blocking
-    log::info!("Attempting to connect tunnel with Nym API blocked...");
-    nym_client.connect_tunnel().await?;
-    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
+    with_delayed_and_dns_blocks(
         &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
+        &dns_nameservers,
+        &default_nym_api_socket_addr,
+        || async { connect_verify_disconnect(&test_context, &rpc, nym_client).await },
     )
-    .await?;
-
-    // Verify tunnel connectivity
-    verify_tunnel_connectivity(&rpc).await?;
-
-    // Disconnect tunnel
-    log::info!("Disconnecting tunnel...");
-    nym_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Disconnected,
-    )
-    .await?;
-
-    // Block DNS nameservers
-    log::debug!("Removing Delayed Blocking rule for Nym API...");
-    unblock_socket_addrs_delayed(&rpc, &default_nym_api_socket_addr).await?;
-
-    // Clean up: unblock DNS nameservers
-    log::debug!("Unblocking DNS nameservers...");
-    unblock_socket_addrs(&rpc, &dns_nameservers).await?;
-
-    Ok(())
+    .await
 }
+
 async fn block_socket_addrs<T: AsRef<str> + std::fmt::Debug>(
     rpc: &NymServiceClient,
     socket_addrs: &[T],
@@ -430,4 +401,88 @@ async fn unblock_socket_addrs_delayed<T: AsRef<str> + std::fmt::Debug>(
         socket_addrs
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::merge_body_and_cleanup;
+    use crate::tests::get_test_descriptions;
+
+    /// Must match `#[test_function_nym(priority = …)]` on the blocklist tests (after tunnel max 25).
+    const BLOCKLIST_PRIORITY_DNS: i32 = 100;
+    const BLOCKLIST_PRIORITY_VPN_API: i32 = 101;
+    const BLOCKLIST_PRIORITY_NYM_API: i32 = 102;
+    const BLOCKLIST_PRIORITY_DELAYED: i32 = 103;
+
+    #[test]
+    fn merge_prefers_body_error_when_cleanup_also_fails() {
+        let err = merge_body_and_cleanup(
+            Err(anyhow::anyhow!("body failed")),
+            Err(anyhow::anyhow!("cleanup failed")),
+        )
+        .expect_err("body error must win");
+        assert!(err.to_string().contains("body failed"));
+    }
+
+    #[test]
+    fn merge_surfaces_cleanup_error_when_body_ok() {
+        let err = merge_body_and_cleanup(Ok(()), Err(anyhow::anyhow!("cleanup failed")))
+            .expect_err("cleanup must fail the test when body succeeded");
+        assert!(err.to_string().contains("cleanup failed"));
+    }
+
+    #[test]
+    fn merge_ok_when_both_ok() {
+        merge_body_and_cleanup(Ok(()), Ok(())).expect("both ok");
+    }
+
+    #[test]
+    fn blocklist_priorities_run_after_core_suite() {
+        assert!(BLOCKLIST_PRIORITY_DNS > 25);
+        assert!(BLOCKLIST_PRIORITY_VPN_API > BLOCKLIST_PRIORITY_DNS);
+        assert!(BLOCKLIST_PRIORITY_NYM_API > BLOCKLIST_PRIORITY_VPN_API);
+        assert!(BLOCKLIST_PRIORITY_DELAYED > BLOCKLIST_PRIORITY_NYM_API);
+
+        let tests = get_test_descriptions();
+        let max_non_blocklist = tests
+            .iter()
+            .filter(|t| !t.name.contains("blocklist"))
+            .map(|t| t.priority.unwrap_or(0))
+            .max()
+            .unwrap_or(0);
+        let min_blocklist = tests
+            .iter()
+            .filter(|t| t.name.contains("blocklist"))
+            .map(|t| t.priority.unwrap_or(0))
+            .min()
+            .expect("blocklist tests must be registered");
+        assert!(
+            min_blocklist > max_non_blocklist,
+            "blocklist min priority {min_blocklist} must exceed non-blocklist max {max_non_blocklist}"
+        );
+
+        let priority_of = |name: &str| {
+            tests
+                .iter()
+                .find(|t| t.name == name)
+                .and_then(|t| t.priority)
+                .unwrap_or(0)
+        };
+        assert_eq!(
+            priority_of("test_tunnel_blocklisted_dns_nameservers_by_ip"),
+            BLOCKLIST_PRIORITY_DNS
+        );
+        assert_eq!(
+            priority_of("test_tunnel_blocklisted_vpn_api"),
+            BLOCKLIST_PRIORITY_VPN_API
+        );
+        assert_eq!(
+            priority_of("test_tunnel_blocklisted_nym_api"),
+            BLOCKLIST_PRIORITY_NYM_API
+        );
+        assert_eq!(
+            priority_of("test_tunnel_delayed_blocklisted_nym_api"),
+            BLOCKLIST_PRIORITY_DELAYED
+        );
+    }
 }

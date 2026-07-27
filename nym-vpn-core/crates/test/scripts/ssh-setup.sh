@@ -128,7 +128,27 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     exit 1
 fi
 
+# Load netfilter helpers before testrunner binds /dev/ttyS0. First use of
+# xt_connbytes (delayed_ip_block.sh) otherwise prints to the console and desyncs
+# the framed serial mux (CI: implausible length from ASCII "[  2...").
+function preload_netfilter_modules {
+    echo "Preloading netfilter modules used by censorship block scripts"
+    modprobe -q ip_tables || true
+    modprobe -q ip6_tables || true
+    modprobe -q iptable_filter || true
+    modprobe -q ip6table_filter || true
+    modprobe -q xt_conntrack || true
+    modprobe -q xt_connbytes || true
+    iptables -L OUTPUT -n >/dev/null 2>&1 || true
+    ip6tables -L OUTPUT -n >/dev/null 2>&1 || true
+    # Warm the connbytes match so module init printk is not mid-suite.
+    iptables -A OUTPUT -p tcp -d 127.0.0.1 --dport 9 -m connbytes --connbytes 0:1 --connbytes-mode bytes --connbytes-dir reply -j ACCEPT 2>/dev/null \
+        && iptables -D OUTPUT -p tcp -d 127.0.0.1 --dport 9 -m connbytes --connbytes 0:1 --connbytes-mode bytes --connbytes-dir reply -j ACCEPT 2>/dev/null \
+        || true
+}
+
 move_getty_to_another_port
+preload_netfilter_modules
 setup_systemd
 setup_systemd_nym
 
