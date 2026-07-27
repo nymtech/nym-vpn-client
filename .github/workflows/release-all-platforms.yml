@@ -394,7 +394,7 @@ jobs:
   build:
     needs: [resolve, check-release-exists, restore-build-cache]
     if: |
-        !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true'
+        !cancelled() && needs.check-release-exists.result == 'success' &&  needs.restore-build-cache.outputs.cache-hit != 'true'
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
