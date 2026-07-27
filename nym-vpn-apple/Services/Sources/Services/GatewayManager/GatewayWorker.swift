@@ -92,18 +92,22 @@ actor GatewayWorker {
         return (entry, exit, vpn)
     }
 
-    /// Recently connected gateways, read from the network data dir the tunnel extension writes them to.
-    /// Runs in the app process — no tunnel and no vpn service required.
+    /// Recently connected gateways, read from the per-network folder the tunnel extension writes
+    /// them to. Runs in the app process — no tunnel and no vpn service required.
+    ///
+    /// Core writes to `network_data_dir` = `data_dir.join(network_name)` (`vpn_service.rs`), so the
+    /// network component is required here — unlike favorites, which are ours end to end.
     func fetchRecents(
         for tunnelType: ConnectionTunnelType
     ) async throws -> (entry: [GatewayNode], exit: [GatewayNode]) {
-        guard let networkName = await configurationManager.networkEnv?.networkName() else { return ([], []) }
-        let networkDataURL = try PathManager.dataFolderURL().appendingPathComponent(networkName)
+        let networkName = await configurationManager.currentEnvString
+        let dataURL = try PathManager.dataFolderURL().appendingPathComponent(networkName)
         let recents = try await getRecentGatewaysNoService(
-            dataDir: networkDataURL.path(),
+            dataDir: dataURL.path(),
             gatewayCache: gatewayCache(),
             tunnelType: tunnelType.libValue
         )
+        logger.info("Recents in \(networkName) for \(tunnelType): \(recents.entry.count)/\(recents.exit.count)")
         return (recents.entry.map { GatewayNode(with: $0) }, recents.exit.map { GatewayNode(with: $0) })
     }
 

@@ -14,6 +14,7 @@ import UIComponents
     let gatewayManager: GatewayManager
     let type: HopType
     let minimumSearchSymbols = 2
+    let favoritesState: ServersFavoritesState
 
     @ObservedObject var appSettings: AppSettings
     @ObservedObject var connectionManager: ConnectionManager
@@ -54,6 +55,7 @@ import UIComponents
         self.connectionManager = connectionManager
         self.gatewayManager = gatewayManager
         self.featureFlagsManager = featureFlagsManager
+        self.favoritesState = ServersFavoritesState(hopType: type, gatewayManager: gatewayManager)
 
         switch type {
         case .entry:
@@ -92,6 +94,12 @@ private extension GatewaysViewModel {
     func setup() {
         updateGateways()
         setupQuicToggleObserver()
+        // View observes only this model; surface filter-tab changes from the nested state.
+        favoritesState.objectWillChange
+            .sink { [weak self] in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
 
     func setupQuicToggleObserver() {
@@ -157,6 +165,7 @@ private extension GatewaysViewModel {
             }
             shouldScroll = true
             await updateRecents()
+            await gatewayManager.updateFavorites()
         }
     }
 }
@@ -188,25 +197,58 @@ extension GatewaysViewModel {
     }
 }
 
-private extension GatewaysViewModel {
+// MARK: - Search -
+extension GatewaysViewModel {
+    /// Search is scoped to the active filter tab: favorites searches starred nodes only,
+    /// recent searches the recents list only.
+    private var searchableGateways: [GatewayNode] {
+        switch favoritesState.filter {
+        case .favorites:
+            gateways.filter { favoritesState.isFavorite(.gateway($0.id)) }
+        case .recent:
+            recentGateways
+        case .allServers:
+            gateways
+        }
+    }
+
+    /// Recents render as a flat node list, so that tab has no country rows to match against.
+    private var searchableCountries: [NymCountry] {
+        switch favoritesState.filter {
+        case .favorites:
+            countries.filter { country in
+                favoritesState.isFavorite(.country(country.code))
+                || gatewaysInCountry(with: country.code).contains {
+                    favoritesState.isFavorite(.gateway($0.id))
+                }
+            }
+        case .recent:
+            []
+        case .allServers:
+            countries
+        }
+    }
+
     func searchCountriesGateways() {
         Task { [weak self] in
             guard let self, searchText.count >= minimumSearchSymbols
             else {
                 await MainActor.run {
                     self?.foundCountries = [NymCountry]()
+                    self?.foundRegions = []
                     self?.foundGateways = [GatewayNode]()
                 }
                 return
             }
-            let newCountries = countries.filter {
+            let searchableGateways = self.searchableGateways
+            let newCountries = searchableCountries.filter {
                 $0.name.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
                 || $0.code.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
             }
 
             // TODO: city update to use new country with found regions or cities
             var seen = Set<String>()
-            let newCountryRegionPairs: [(country: NymCountry, region: String)] = gateways
+            let newCountryRegionPairs: [(country: NymCountry, region: String)] = searchableGateways
                 .compactMap { gateway -> (NymCountry, String)? in
                     guard let location = gateway.location,
                           self.gatewayManager.countriesSupportingRegions.contains(
@@ -226,7 +268,7 @@ private extension GatewaysViewModel {
                     return (country, location.region)
                 }
 
-            let newGateways = gateways.filter {
+            let newGateways = searchableGateways.filter {
                 $0.name?.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased()) ?? false
                 || $0.id.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
             }

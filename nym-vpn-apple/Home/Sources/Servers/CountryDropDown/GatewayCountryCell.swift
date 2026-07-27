@@ -11,9 +11,11 @@ public struct GatewayCountryCell: View {
     private let servers: [GatewayNode]
     private let hopType: HopType
     private let isSearching: Bool
+    private let isInitiallyExpanded: Bool
     private let cornerRadius: CGFloat = 16
 
     @EnvironmentObject private var gatewayManager: GatewayManager
+    @EnvironmentObject private var favoritesState: ServersFavoritesState
     @State private var isButtonHovered = false
     @State private var isExpanded: Bool
     @State private var isCountrySelected = false
@@ -32,12 +34,14 @@ public struct GatewayCountryCell: View {
         entryGateway: Binding<EntryGateway>,
         exitRouter: Binding<ExitRouter>,
         infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?,
-        isSearching: Bool = false
+        isSearching: Bool = false,
+        isInitiallyExpanded: Bool = false
     ) {
         self.country = country
         self.servers = servers
         self.hopType = type
         self.isSearching = isSearching
+        self.isInitiallyExpanded = isInitiallyExpanded
         self.infoButtonTapCompletion = infoButtonTapCompletion
         _path = path
         _scrollToModel = scrollToModel
@@ -51,9 +55,14 @@ public struct GatewayCountryCell: View {
             region: nil,
             server: selectedServer
         )
-        _isExpanded = State(initialValue: shouldExpand)
+        _isExpanded = State(initialValue: shouldExpand || isInitiallyExpanded)
         let shouldSelect = unwrappedScrollToModel.countryCode == country.code && unwrappedScrollToModel.isCountry
         _isCountrySelected = State(initialValue: shouldSelect)
+    }
+
+    /// A starred country with no starred nodes (favorites tab) has nothing to drop down.
+    private var isShowingChildren: Bool {
+        isExpanded && !servers.isEmpty
     }
 
     public var body: some View {
@@ -62,8 +71,8 @@ public struct GatewayCountryCell: View {
                 .overlay {
                     UnevenRoundedRectangle(
                         topLeadingRadius: cornerRadius,
-                        bottomLeadingRadius: isExpanded ? 0 : cornerRadius,
-                        bottomTrailingRadius: isExpanded ? 0 : cornerRadius,
+                        bottomLeadingRadius: isShowingChildren ? 0 : cornerRadius,
+                        bottomTrailingRadius: isShowingChildren ? 0 : cornerRadius,
                         topTrailingRadius: cornerRadius
                     )
                     .inset(by: 0.5)
@@ -72,7 +81,7 @@ public struct GatewayCountryCell: View {
                 }
                 .animation(.default, value: isCountrySelected)
                 .id(GatewayScrollToModel.country(code: country.code).scrollToIdentifier)
-            if isExpanded {
+            if isShowingChildren {
                 expandedContent()
             }
         }
@@ -93,8 +102,12 @@ private extension GatewayCountryCell {
             .frame(height: 1)
             .overlay(Color.Nym.divider)
 
-        if !country.regions.isEmpty && gatewayManager.shouldDisplayRegion(with: country.code) {
-            ForEach(Array(country.regions.enumerated()), id: \.element.self) { index, region in
+        // Regions come from the country, servers may be a subset (favorites) — drop empty ones.
+        let regions = country.regions.filter { region in
+            servers.contains { $0.location?.region == region.name }
+        }
+        if !regions.isEmpty && gatewayManager.shouldDisplayRegion(with: country.code) {
+            ForEach(Array(regions.enumerated()), id: \.element.self) { index, region in
                 if index > 0 {
                     Divider()
                         .frame(height: 1)
@@ -110,7 +123,8 @@ private extension GatewayCountryCell {
                     entryGateway: $entryGateway,
                     exitRouter: $exitRouter,
                     scrollToModel: $scrollToModel,
-                    bottomCornerRadius: index == country.regions.count - 1 ? cornerRadius : 0
+                    bottomCornerRadius: index == regions.count - 1 ? cornerRadius : 0,
+                    isInitiallyExpanded: isInitiallyExpanded
                 )
                 .id(
                     GatewayScrollToModel.region(
@@ -143,43 +157,59 @@ private extension GatewayCountryCell {
     }
 
     @ViewBuilder
+    func countryLabel() -> some View {
+        HStack(spacing: 0) {
+            FlagImage(countryCode: country.code)
+                .padding(.leading, NymSpacing.large)
+            Text(country.name)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyLarge)
+                .padding(.leading, NymSpacing.medium)
+            Spacer()
+        }
+        .frame(maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(country.name) \(servers.count) \("servers".localizedString)")
+        .accessibilityValue(isCountrySelected ? "selected".localizedString : "")
+        .accessibilityAddTraits([.isButton])
+        .onTapGesture {
+            countrySelectTapAction()
+        }
+        .accessibilityAction {
+            countrySelectTapAction()
+        }
+    }
+
+    @ViewBuilder
     func countryRow() -> some View {
         HStack(spacing: 0) {
-            HStack(spacing: 0) {
-                FlagImage(countryCode: country.code)
-                    .padding(.leading, NymSpacing.large)
-                Text(country.name)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                    .nymTextStyle(.bodyLarge)
-                    .padding(.leading, NymSpacing.medium)
-                Spacer()
-            }
-            .frame(maxHeight: .infinity)
-            .contentShape(Rectangle())
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(country.name) \(servers.count) \("servers".localizedString)")
-            .accessibilityValue(isCountrySelected ? "selected".localizedString : "")
-            .accessibilityAddTraits([.isButton])
-            .onTapGesture {
-                countrySelectTapAction()
-            }
-            .accessibilityAction {
-                countrySelectTapAction()
-            }
+            countryLabel()
 
-            chevron()
-                .padding(.trailing, NymSpacing.large)
-                .frame(maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("gatewaySelector.expandServers".localizedString)
-                .accessibilityAddTraits([.isButton])
-                .onTapGesture {
-                    expandDidTap()
-                }
-                .accessibilityAction {
-                    expandDidTap()
-                }
+            FavoriteStarButton(
+                isFavorite: favoritesState.isFavorite(.country(country.code)),
+                action: { favoritesState.toggleFavorite(.country(country.code)) }
+            )
+            .padding(.trailing, NymSpacing.small)
+
+            if !servers.isEmpty {
+                chevron()
+                    .padding(.trailing, NymSpacing.large)
+                    .frame(maxHeight: .infinity)
+                    .contentShape(Rectangle())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("gatewaySelector.expandServers".localizedString)
+                    .accessibilityAddTraits([.isButton])
+                    .onTapGesture {
+                        expandDidTap()
+                    }
+                    .accessibilityAction {
+                        expandDidTap()
+                    }
+            } else {
+                Spacer()
+                    .frame(width: NymSpacing.large)
+            }
         }
         .frame(height: 64)
         .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)

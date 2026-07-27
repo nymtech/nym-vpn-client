@@ -7470,6 +7470,7 @@ version = "2026.12.0-beta.1"
 dependencies = [
  "futures",
  "nym-common 2026.12.0-beta.1",
+ "nym-favorites",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "tokio",

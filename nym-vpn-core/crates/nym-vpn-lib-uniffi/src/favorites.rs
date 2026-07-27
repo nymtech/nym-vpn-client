@@ -61,7 +61,7 @@ impl From<FavoritesInnerError> for FavoritesError {
 
 type Result<T, E = FavoritesError> = std::result::Result<T, E>;
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 pub async fn get_recent_gateways_no_service(
     data_dir: PathBuf,
     gateway_cache: &NymGatewayCache,
@@ -133,7 +133,7 @@ impl FavoritesController {
         self.manager
             .write()
             .await
-            .add_favorite_exit(selector)
+            .remove_favorite_exit(selector)
             .await
             .map_err(FavoritesInnerError::Favorites)?;
         Ok(())
