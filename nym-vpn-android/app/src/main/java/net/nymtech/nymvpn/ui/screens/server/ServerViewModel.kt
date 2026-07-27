@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -58,6 +59,7 @@ class ServerViewModel @Inject constructor(
 	private var isQuicOnlyGatewaysFilterRequired = false
 	private var isExitScreen = false
 	private var userSelectedFilter = false
+	private var isInitialLoad = true
 	private var tunnelMode = Tunnel.Mode.FIVE_HOP_MIXNET
 
 	init {
@@ -65,24 +67,20 @@ class ServerViewModel @Inject constructor(
 			updateQuicState()
 			tunnelMode = vpnConfigRepository.getConfig().mode
 
-			launch {
-				favoritesManager.favoritesFlow.collect { selectors ->
-					favorites = selectors
-					if (!userSelectedFilter) {
-						_uiState.update { it.copy(filter = defaultFilterFor(isExitScreen)) }
-					}
-					updateFilteredData()
-				}
-			}
-
-			gatewayRepository.gatewayFlow.collect { gateways ->
+			combine(gatewayRepository.gatewayFlow, favoritesManager.favoritesFlow) { gateways, selectors ->
+				gateways to selectors
+			}.collect { (gateways, selectors) ->
 				val type = gatewayType ?: return@collect
-				val filteredGateways = when (type) {
+				allGateways = when (type) {
 					GatewayType.MIXNET_ENTRY -> gateways.entryGateways
 					GatewayType.MIXNET_EXIT -> gateways.exitGateways
 					GatewayType.WG -> gateways.wgGateways
 				}
-				allGateways = filteredGateways
+				favorites = selectors
+				if (isInitialLoad && !userSelectedFilter) {
+					_uiState.update { it.copy(filter = defaultFilterFor(isExitScreen)) }
+				}
+				isInitialLoad = false
 				updateFilteredData()
 			}
 		}

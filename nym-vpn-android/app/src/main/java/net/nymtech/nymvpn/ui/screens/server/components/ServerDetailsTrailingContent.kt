@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.FavoriteIcon
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -38,13 +36,10 @@ internal fun ServerDetailsTrailingContent(isFavorite: Boolean, onToggleFavorite:
 				.heightIn(min = 42.dp.scaledHeight())
 				.align(Alignment.CenterEnd),
 		) {
-			Icon(
-				imageVector = if (isFavorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
-				contentDescription = "Favorite",
-				tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier
-					.size(iconSize.scaledHeight())
-					.clickable { onToggleFavorite() },
+			FavoriteIcon(
+				isFavorite = isFavorite,
+				onToggleFavorite = onToggleFavorite,
+				modifier = Modifier.size(iconSize.scaledHeight()),
 			)
 			Icon(
 				imageVector = Icons.Outlined.Info,

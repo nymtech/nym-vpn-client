@@ -206,9 +206,16 @@
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">Fast mode protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
-	<!-- Hop Screen -->
+	<!-- Server Screen -->
 	<string name="gateway_best">Best server</string>
 	<string name="gateway_random">Random server</string>
+	<string name="server_entry_tab">Entry</string>
+	<string name="server_exit_tab">Exit</string>
+	<string name="server_search_text">Search location or server</string>
+	<string name="server_nodes_countries_text">%1$s countries · %2$s nodes</string>
+	<string name="server_favorites_tab">Favorites</string>
+	<string name="server_recent_tab">Recent</string>
+	<string name="server_all_tab">All servers</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world\'s most private VPN</string>

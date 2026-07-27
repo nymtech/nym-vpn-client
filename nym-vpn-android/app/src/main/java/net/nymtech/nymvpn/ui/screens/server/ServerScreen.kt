@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.server
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
@@ -33,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -44,8 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -256,7 +258,7 @@ internal fun ServerScreenContent(
 		state = pullRefreshState,
 		isRefreshing = isRefreshing,
 		onRefresh = onRefresh,
-		modifier = Modifier.fillMaxSize(),
+		modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
 	) {
 		LazyColumn(
 			state = listState,
@@ -265,7 +267,8 @@ internal fun ServerScreenContent(
 			modifier = Modifier
 				.fillMaxSize()
 				.windowInsetsPadding(WindowInsets.navigationBars)
-				.imePadding(),
+				.imePadding()
+				.padding(horizontal = 18.dp.scaledWidth()),
 		) {
 			item {
 				GatewayLocationTabs(
@@ -279,10 +282,9 @@ internal fun ServerScreenContent(
 
 			item {
 				Column(
-					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
+					verticalArrangement = Arrangement.spacedBy(14.dp.scaledHeight()),
 					modifier = Modifier
-						.padding(horizontal = 24.dp.scaledWidth())
-						.padding(top = 24.dp.scaledHeight()),
+						.padding(top = 12.dp.scaledHeight()),
 				) {
 					if (canShowQuicLabel) {
 						QuicInfoMessage(onNavigateToQuicSettings = onNavigateToCensorship)
@@ -292,17 +294,30 @@ internal fun ServerScreenContent(
 						onValueChange = onQueryChange,
 						modifier = Modifier
 							.fillMaxWidth()
-							.height(56.dp.scaledHeight())
-							.background(Color.Transparent, RoundedCornerShape(30.dp)),
-						placeholder = { Text("Search location or server", color = MaterialTheme.colorScheme.onBackground) },
+							.height(48.dp.scaledHeight())
+							.background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp)),
+						placeholder = {
+							Text(
+								stringResource(R.string.server_search_text),
+								color = MaterialTheme.colorScheme.onBackground,
+							)
+						},
 						singleLine = true,
-						leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
-						label = { Text(stringResource(R.string.search)) },
+						leading = {
+							Icon(
+								Icons.Rounded.Search,
+								contentDescription = stringResource(R.string.search),
+								modifier = Modifier
+									.size(iconSize),
+							)
+						},
+						label = {},
 						showClearIcon = true,
-						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
+						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+						containerColor = MaterialTheme.colorScheme.background,
 					)
 					Text(
-						text = "${uiState.countryCount} countries · ${uiState.nodeCount} nodes",
+						text = stringResource(R.string.server_nodes_countries_text, uiState.countryCount, uiState.nodeCount),
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)
@@ -313,7 +328,9 @@ internal fun ServerScreenContent(
 					)
 				}
 			}
-
+			item {
+				VerticalDivider(Modifier.height(12.dp))
+			}
 			if (uiState.filter == ServerListFilter.ALL_SERVERS) {
 				item {
 					val isBestSelected = showBestOption && selectedKey == null && algorithm == GatewaySelectionAlgorithm.AUTO
@@ -358,12 +375,9 @@ internal fun ServerScreenContent(
 
 					SurfaceSelectionGroupButton(
 						items = items,
-						shape = RectangleShape,
-						background = MaterialTheme.colorScheme.surface,
+						shape = RoundedCornerShape(14.dp),
+						background = MaterialTheme.colorScheme.primaryContainer,
 						anchorsPadding = 0.dp,
-						modifier = Modifier
-							.padding(top = 12.dp.scaledHeight())
-							.padding(vertical = 4.dp),
 					)
 				}
 			}
@@ -512,7 +526,7 @@ internal fun ServerScreenContent(
 									selected = selectedKey == gateway.identity,
 								),
 							),
-							shape = RectangleShape,
+							shape = RoundedCornerShape(14.dp),
 							background = MaterialTheme.colorScheme.primaryContainer,
 							divider = false,
 							anchorsPadding = 0.dp,
@@ -528,13 +542,13 @@ internal fun ServerScreenContent(
 @Composable
 private fun GatewayLocationTabs(selected: GatewayLocation, onSelect: (GatewayLocation) -> Unit, modifier: Modifier = Modifier) {
 	val selectedTabIndex = if (selected == GatewayLocation.ENTRY) 0 else 1
-	val tabs = listOf(GatewayLocation.ENTRY to "Entry", GatewayLocation.EXIT to "Exit")
+	val tabs = listOf(GatewayLocation.ENTRY to stringResource(R.string.server_entry_tab), GatewayLocation.EXIT to stringResource(R.string.server_exit_tab))
 
 	SecondaryTabRow(
 		selectedTabIndex = selectedTabIndex,
 		modifier = modifier,
 		containerColor = MaterialTheme.colorScheme.background,
-		contentColor = MaterialTheme.colorScheme.onBackground,
+		contentColor = MaterialTheme.colorScheme.background,
 		indicator = {
 			TabRowDefaults.SecondaryIndicator(
 				modifier = Modifier.tabIndicatorOffset(selectedTabIndex = selectedTabIndex, matchContentSize = false),
@@ -547,14 +561,14 @@ private fun GatewayLocationTabs(selected: GatewayLocation, onSelect: (GatewayLoc
 			Tab(
 				selected = tabSelected,
 				onClick = { onSelect(location) },
-				text = {
-					Text(
-						text = title,
-						style = MaterialTheme.typography.labelLarge,
-						color = if (tabSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-					)
-				},
-			)
+			) {
+				Text(
+					text = title,
+					style = MaterialTheme.typography.bodyLarge,
+					color = if (tabSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier.padding(top = 10.dp, bottom = 14.dp),
+				)
+			}
 		}
 	}
 }
@@ -562,26 +576,43 @@ private fun GatewayLocationTabs(selected: GatewayLocation, onSelect: (GatewayLoc
 @Composable
 private fun ServerFilterPills(selected: ServerListFilter, onSelect: (ServerListFilter) -> Unit, modifier: Modifier = Modifier) {
 	val filters = listOf(
-		ServerListFilter.FAVORITES to "Favorites",
-		ServerListFilter.RECENT to "Recent",
-		ServerListFilter.ALL_SERVERS to "All servers",
+		Triple(ServerListFilter.FAVORITES, Icons.Rounded.Star, stringResource(R.string.server_favorites_tab)),
+		Triple(ServerListFilter.RECENT, Icons.Rounded.AccessTime, stringResource(R.string.server_recent_tab)),
+		Triple(ServerListFilter.ALL_SERVERS, Icons.AutoMirrored.Rounded.List, stringResource(R.string.server_all_tab)),
 	)
 	Row(
-		horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth()),
+		horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth(), Alignment.CenterHorizontally),
 		modifier = modifier,
 	) {
-		filters.forEach { (filter, label) ->
+		filters.forEach { (filter, icon, label) ->
 			val isSelected = filter == selected
-			Text(
-				text = label,
-				style = MaterialTheme.typography.labelLarge,
-				color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-				modifier = Modifier
+			val contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
+			val pillModifier = if (isSelected) {
+				Modifier
 					.clip(RoundedCornerShape(50))
-					.background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+					.border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(50))
+			} else {
+				Modifier
+			}
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(4.dp.scaledWidth()),
+				modifier = pillModifier
 					.clickable { onSelect(filter) }
-					.padding(horizontal = 16.dp.scaledWidth(), vertical = 8.dp.scaledHeight()),
-			)
+					.padding(horizontal = 12.dp.scaledWidth(), vertical = 10.dp.scaledHeight()),
+			) {
+				Icon(
+					imageVector = icon,
+					contentDescription = null,
+					tint = contentColor,
+					modifier = Modifier.size(24.dp),
+				)
+				Text(
+					text = label,
+					style = MaterialTheme.typography.bodyMedium,
+					color = contentColor,
+				)
+			}
 		}
 	}
 }

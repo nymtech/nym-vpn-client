@@ -65,6 +65,7 @@ data class NymColors(
 	val navBarIconTint: Color = Color.Unspecified,
 	val switchBackground: Color = Color.Unspecified,
 	val warningBackground: Color = Color.Unspecified,
+	val favorite: Color = Color.Unspecified,
 )
 
 val DarkNymColors = NymColors(
@@ -83,6 +84,7 @@ val DarkNymColors = NymColors(
 	navBarIconTint = Color(0xFFAEACB1),
 	switchBackground = Color(0xFF66656A),
 	warningBackground = Color(0x1AFFCC33),
+	favorite = Color(0xFFFFB400),
 )
 
 val LightNymColors = NymColors(
@@ -101,6 +103,7 @@ val LightNymColors = NymColors(
 	navBarIconTint = Color(0xFF111111),
 	switchBackground = Color(0xFFD5D5D5),
 	warningBackground = Color(0xB3634A00),
+	favorite = Color(0xFFFFB400),
 )
 
 val LocalNymColors = staticCompositionLocalOf { DarkNymColors }

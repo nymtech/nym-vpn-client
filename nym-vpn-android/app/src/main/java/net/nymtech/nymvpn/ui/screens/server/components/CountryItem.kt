@@ -13,13 +13,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,7 +29,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -40,18 +39,28 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.server.ItemType
 import net.nymtech.nymvpn.ui.screens.server.ServerListFilter
 import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.FavoriteIcon
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
+
+private val ListRowCornerRadius = 14.dp
+
+private fun rowShape(roundTop: Boolean, roundBottom: Boolean): Shape = RoundedCornerShape(
+	topStart = if (roundTop) ListRowCornerRadius else 0.dp,
+	topEnd = if (roundTop) ListRowCornerRadius else 0.dp,
+	bottomStart = if (roundBottom) ListRowCornerRadius else 0.dp,
+	bottomEnd = if (roundBottom) ListRowCornerRadius else 0.dp,
+)
 
 @Composable
 fun CountryItem(
@@ -82,7 +91,9 @@ fun CountryItem(
 			},
 		)
 	}
-	val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+	val rotationAngle by animateFloatAsState(targetValue = if (expanded) 90f else 0f)
+	val ungrouped = if (countryItem.regions != null) countryItem.gateways.filter { it.region == null } else countryItem.gateways
+	val regionsAreLastBlock = ungrouped.isEmpty()
 
 	Column(modifier = modifier) {
 		CountryDropDown(
@@ -94,6 +105,8 @@ fun CountryItem(
 			gateways = countryItem.gateways,
 			isSelected = countryCode == selectedKey,
 			isFavorite = countryItem.isFavorite,
+			shape = rowShape(roundTop = true, roundBottom = !expanded),
+			background = MaterialTheme.colorScheme.primaryContainer,
 			onToggleFavorite = { onToggleFavorite(countryCode, countryItem.isFavorite) },
 			onDropDownClick = {
 				expanded = !expanded
@@ -118,19 +131,19 @@ fun CountryItem(
 						gatewayLocation = gatewayLocation,
 						filter = filter,
 						favoriteGatewayIds = favoriteGatewayIds,
+						isLastBlock = regionsAreLastBlock,
 						onSelectionChange = onSelectionChange,
 						onGatewayDetails = onGatewayDetails,
 						onToggleFavorite = onToggleFavorite,
 					)
 				}
-				val ungrouped = if (countryItem.regions != null) countryItem.gateways.filter { it.region == null } else countryItem.gateways
 				if (ungrouped.isNotEmpty()) {
 					GatewayCell(
 						gatewayType = gatewayType,
-						gatewayLocation = gatewayLocation,
 						selectedKey = selectedKey,
 						gateways = ungrouped,
 						favoriteGatewayIds = favoriteGatewayIds,
+						shape = rowShape(roundTop = false, roundBottom = true),
 						onSelectionChange = { onSelectionChange(it) },
 						onGatewayDetails = { onGatewayDetails(it) },
 						onToggleFavorite = onToggleFavorite,
@@ -151,6 +164,8 @@ private fun CountryDropDown(
 	isFavorite: Boolean,
 	country: Locale,
 	gateways: List<NymGateway>,
+	shape: Shape,
+	background: Color,
 	onDropDownClick: () -> Unit,
 	onSelectionChange: () -> Unit,
 	onToggleFavorite: () -> Unit,
@@ -172,40 +187,25 @@ private fun CountryDropDown(
 				},
 				trailing = {
 					Row(
-						horizontalArrangement = Arrangement.spacedBy(16.dp),
+						horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth()),
 						verticalAlignment = Alignment.CenterVertically,
 						modifier = Modifier
 							.fillMaxHeight()
 							.padding(end = 16.dp),
 					) {
-						Icon(
-							imageVector = if (isFavorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
-							contentDescription = "Favorite",
-							tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-							modifier = Modifier
-								.size(iconSize)
-								.clickable { onToggleFavorite() },
+						FavoriteIcon(
+							isFavorite = isFavorite,
+							onToggleFavorite = onToggleFavorite,
+							modifier = Modifier.size(iconSize),
 						)
-						Box(
+						Icon(
+							Icons.AutoMirrored.Filled.KeyboardArrowRight,
+							contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
 							modifier = Modifier
 								.clickable { onDropDownClick() }
-								.fillMaxHeight(),
-							contentAlignment = Alignment.Center,
-						) {
-							Row(
-								horizontalArrangement = Arrangement.spacedBy(16.dp),
-								verticalAlignment = Alignment.CenterVertically,
-							) {
-								VerticalDivider(modifier = Modifier.height(42.dp))
-								Icon(
-									Icons.Filled.ArrowDropDown,
-									contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
-									modifier = Modifier
-										.graphicsLayer(rotationZ = rotationAngle)
-										.size(iconSize),
-								)
-							}
-						}
+								.graphicsLayer(rotationZ = rotationAngle)
+								.size(iconSize),
+						)
 					}
 				},
 				title = {
@@ -225,8 +225,8 @@ private fun CountryDropDown(
 				selected = isSelected,
 			),
 		),
-		shape = RectangleShape,
-		background = MaterialTheme.colorScheme.surface,
+		shape = shape,
+		background = background,
 		anchorsPadding = 0.dp,
 	)
 }
@@ -241,16 +241,18 @@ private fun StateGroupedGatewayList(
 	gatewayLocation: GatewayLocation,
 	filter: ServerListFilter,
 	gatewaysGroupByState: List<ItemType.CountryItem.Region>,
+	isLastBlock: Boolean,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
 	onToggleFavorite: (String, Boolean) -> Unit,
 ) {
 	Column {
-		gatewaysGroupByState.forEach { regionItem ->
+		gatewaysGroupByState.forEachIndexed { index, regionItem ->
 			var isStateExpanded by rememberSaveable(key = "isStateExpanded_${gatewayLocation}_${filter}_${regionItem.region}") {
 				mutableStateOf(regionItem.gateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey })
 			}
-			val stateRotationAngle by animateFloatAsState(targetValue = if (isStateExpanded) 180f else 0f, label = "StateItemRotation")
+			val stateRotationAngle by animateFloatAsState(targetValue = if (isStateExpanded) 90f else 0f, label = "StateItemRotation")
+			val isLastRegion = isLastBlock && index == gatewaysGroupByState.lastIndex
 
 			CountryDropDown(
 				title = regionItem.region,
@@ -260,6 +262,8 @@ private fun StateGroupedGatewayList(
 				isSelected = regionItem.region.equals(selectedKey, true),
 				isFavorite = regionItem.isFavorite,
 				gateways = regionItem.gateways,
+				shape = rowShape(roundTop = false, roundBottom = isLastRegion && !isStateExpanded),
+				background = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
 				onDropDownClick = { isStateExpanded = !isStateExpanded },
 				onSelectionChange = { onSelectionChange(regionItem.region) },
 				onToggleFavorite = { onToggleFavorite(regionItem.region, regionItem.isFavorite) },
@@ -274,8 +278,8 @@ private fun StateGroupedGatewayList(
 					gateways = regionItem.gateways,
 					selectedKey = selectedKey,
 					gatewayType = gatewayType,
-					gatewayLocation = gatewayLocation,
 					favoriteGatewayIds = favoriteGatewayIds,
+					shape = rowShape(roundTop = false, roundBottom = isLastRegion),
 					onSelectionChange = onSelectionChange,
 					onGatewayDetails = onGatewayDetails,
 					onToggleFavorite = onToggleFavorite,
@@ -288,10 +292,10 @@ private fun StateGroupedGatewayList(
 @Composable
 private fun GatewayCell(
 	gatewayType: GatewayType,
-	gatewayLocation: GatewayLocation,
 	selectedKey: String?,
 	gateways: List<NymGateway>,
 	favoriteGatewayIds: Set<String>,
+	shape: Shape,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
 	onToggleFavorite: (String, Boolean) -> Unit,
@@ -339,8 +343,8 @@ private fun GatewayCell(
 				selected = selectedKey == gateway.identity,
 			)
 		},
-		shape = RectangleShape,
-		background = MaterialTheme.colorScheme.background,
+		shape = shape,
+		background = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
 		divider = false,
 		anchorsPadding = 0.dp,
 	)
