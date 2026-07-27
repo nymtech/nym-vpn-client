@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -248,14 +249,23 @@ constructor(
 			val tunnelState = backendManager.getState()
 			Timber.tag(TAG).d("AutoStartTunnelState state=%s", tunnelState)
 
-			if (tunnelState != Tunnel.State.Down) {
-				Timber.tag(TAG).d("AutoStartSkipped reason=tunnel_not_down state=%s", tunnelState)
+			if (tunnelState == Tunnel.State.Down) {
+				Timber.tag(TAG).i("AutoStartStartingTunnel")
+				backendManager.startTunnel()
+				Timber.tag(TAG).i("AutoStartStartRequested")
 				return
 			}
 
-			Timber.tag(TAG).i("AutoStartStartingTunnel")
-			backendManager.startTunnel()
-			Timber.tag(TAG).i("AutoStartStartRequested")
+			Timber.tag(TAG).d("AutoStartWatching state=%s", tunnelState)
+			val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS) {
+				backendManager.stateFlow.map { it.tunnelState }.first { it == Tunnel.State.Up }
+			}
+			if (reachedUp == null) {
+				Timber.tag(TAG).w("AutoStartStuckRetrying state=%s", backendManager.getState())
+				backendManager.startTunnel()
+			} else {
+				Timber.tag(TAG).i("AutoStartConfirmedUp")
+			}
 		}.onFailure {
 			Timber.tag(TAG).e(it, "AutoStartFailed")
 		}

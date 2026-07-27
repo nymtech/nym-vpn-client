@@ -5,10 +5,14 @@ import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
@@ -51,17 +55,36 @@ class BootReceiver : BroadcastReceiver() {
 				}
 
 				val state = backendManager.getState()
-				if (state != Tunnel.State.Down) {
-					Timber.tag(TAG).i("BootAutoStartSkipped reason=tunnel_not_down state=%s", state)
+				if (state == Tunnel.State.Down) {
+					Timber.tag(TAG).i("BootAutoStartRequested")
+					backendManager.startTunnel()
 					return@launch
 				}
 
-				Timber.tag(TAG).i("BootAutoStartRequested")
-				backendManager.startTunnel()
+				Timber.tag(TAG).i("BootAutoStartWatching state=%s", state)
+				watchAndRetryIfStuck()
 			} catch (t: Throwable) {
 				Timber.tag(TAG).e(t, "BootAutoStartFailed")
 			} finally {
 				pendingResult.finish()
+			}
+		}
+	}
+
+	private fun watchAndRetryIfStuck() {
+		applicationScope.launch {
+			runCatching {
+				val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS) {
+					backendManager.stateFlow.map { it.tunnelState }.first { it == Tunnel.State.Up }
+				}
+				if (reachedUp == null) {
+					Timber.tag(TAG).w("BootAutoStartStuckRetrying state=%s", backendManager.getState())
+					backendManager.startTunnel()
+				} else {
+					Timber.tag(TAG).i("BootAutoStartConfirmedUp")
+				}
+			}.onFailure { t ->
+				Timber.tag(TAG).e(t, "BootAutoStartRetryFailed")
 			}
 		}
 	}

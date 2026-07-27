@@ -9,6 +9,9 @@ object Constants {
 	const val SUBSCRIPTION_TIMEOUT = 5_000L
 	const val LOG_BUFFER_SIZE = 5_000L
 
+	const val AUTO_START_NETWORK_WAIT_MS = 2_000L
+	const val AUTO_START_STUCK_STATE_TIMEOUT_MS = 45_000L
+
 	const val BASE_LOG_FILE_NAME = "nym_vpn_logs"
 
 	// testing stuff
