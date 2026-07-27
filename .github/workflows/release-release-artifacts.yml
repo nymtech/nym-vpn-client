@@ -328,7 +328,7 @@ jobs:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           VERSION: ${{ needs.resolve.outputs.version }}
           CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
-          ANDROID_CHANGES: ${{ steps.a-changelog.outputs.release_notes }}
+          ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes }}
         run: |
           cat << 'EOF' > "$RELEASE_NOTES"
           Nym VPN v${{ env.VERSION }} application and core binaries.
