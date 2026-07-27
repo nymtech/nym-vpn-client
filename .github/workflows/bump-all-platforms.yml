@@ -189,11 +189,11 @@ jobs:
           if [[ -n "$PRE_RELEASE_SUFFIX" ]]; then
             CORE_VERSION="${SEMVER}-${PRE_RELEASE_SUFFIX}"
             DEB_VERSION="${SEMVER}~${PRE_RELEASE_SUFFIX}"
-            ANDROID_VERSION_NAME="v${SEMVER}-${PRE_RELEASE_SUFFIX}"
+            ANDROID_VERSION_NAME="${SEMVER}-${PRE_RELEASE_SUFFIX}"
           else
             CORE_VERSION="$SEMVER"
             DEB_VERSION="$SEMVER"
-            ANDROID_VERSION_NAME="v${SEMVER}"
+            ANDROID_VERSION_NAME="${SEMVER}"
           fi
 
           # Formula supports MINOR 0-99 and PATCH 0-99; e.g. 2026.12.0 → 20261200, 2026.99.99 → 20269999

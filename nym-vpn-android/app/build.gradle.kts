@@ -193,7 +193,7 @@ androidComponents {
 
 		variant.outputs.forEach { output ->
 			(output as? VariantOutputImpl)?.outputFileName?.set("$fullName.apk")
-			(output as? VariantOutputImpl)?.versionName?.set(fullName)
+			(output as? VariantOutputImpl)?.versionName?.set(version)
 		}
 
 		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))
