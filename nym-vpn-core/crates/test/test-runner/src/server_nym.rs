@@ -11,7 +11,6 @@ use nym_vpn_lib_types::{AccountControllerState, TunnelState, TunnelType};
 use nym_vpn_proto::rpc_client::RpcClient as NymDaemonClient;
 use std::{
     collections::{BTreeMap, HashMap},
-    future::Future,
     net::{IpAddr, SocketAddr},
     path::PathBuf,
     process::Stdio,
@@ -23,10 +22,7 @@ use test_rpc::{
     AppTrace, Service, SpawnOpts, UNPRIVILEGED_USER,
     meta::OsVersion,
     net::SockHandleId,
-    nym_daemon::{
-        ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState,
-        ObservedTunnelStateKind, ObservedTunnelType, WaitOutcome,
-    },
+    nym_daemon::{ObservedAccountState, ObservedTunnelState, ObservedTunnelType},
     package::Package,
 };
 use tokio::{
@@ -34,15 +30,8 @@ use tokio::{
     process::{ChildStdin, ChildStdout, Command},
     sync::{Mutex, broadcast::error::TryRecvError, oneshot},
     task,
-    time::{Instant, sleep},
+    time::sleep,
 };
-
-/// Cadence of the guest-local daemon poll inside a blocking state wait. Small enough to
-/// return promptly after a transition, large enough to keep local UDS load negligible.
-const OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
-/// Upper bound on a single local UDS state read so a hung daemon call cannot stall past
-/// the wait deadline (mirrors the former host-side per-poll RPC timeout).
-const OBSERVE_READ_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[cfg(target_os = "linux")]
 const NYM_SYSTEMD_SERVICE_NAME: &str = "nymvpnd.service";
@@ -173,68 +162,6 @@ impl Service for NymTestServer {
             .await
             .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
         Ok(observed_account_state(state))
-    }
-
-    async fn wait_for_observed_tunnel_state(
-        self,
-        _: context::Context,
-        targets: Vec<ObservedTunnelStateKind>,
-        timeout_ms: u64,
-    ) -> Result<WaitOutcome<ObservedTunnelState>, test_rpc::Error> {
-        if targets.is_empty() {
-            return Err(test_rpc::Error::Other(
-                "wait_for_observed_tunnel_state requires at least one target".into(),
-            ));
-        }
-        let client = NymDaemonClient::new()
-            .await
-            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
-        wait_for_observed(
-            timeout_ms,
-            || {
-                let mut client = client.clone();
-                async move {
-                    client
-                        .get_tunnel_state()
-                        .await
-                        .map(observed_tunnel_state)
-                        .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))
-                }
-            },
-            |state| targets.iter().any(|target| target.matches(state)),
-        )
-        .await
-    }
-
-    async fn wait_for_observed_account_state(
-        self,
-        _: context::Context,
-        targets: Vec<ObservedAccountStateKind>,
-        timeout_ms: u64,
-    ) -> Result<WaitOutcome<ObservedAccountState>, test_rpc::Error> {
-        if targets.is_empty() {
-            return Err(test_rpc::Error::Other(
-                "wait_for_observed_account_state requires at least one target".into(),
-            ));
-        }
-        let client = NymDaemonClient::new()
-            .await
-            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
-        wait_for_observed(
-            timeout_ms,
-            || {
-                let mut client = client.clone();
-                async move {
-                    client
-                        .get_account_state()
-                        .await
-                        .map(observed_account_state)
-                        .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))
-                }
-            },
-            |state| targets.iter().any(|target| target.matches(state)),
-        )
-        .await
     }
 
     /// Get the installed app version
@@ -811,59 +738,6 @@ impl Service for NymTestServer {
     }
 }
 
-/// Poll a guest-local daemon reader every [`OBSERVE_POLL_INTERVAL`] until `accept` matches
-/// or `timeout_ms` elapses, returning a single [`WaitOutcome`]. All polling stays on the
-/// local UDS; only the one outcome crosses the serial link. Transient read errors and
-/// per-read timeouts ([`OBSERVE_READ_TIMEOUT`]) are logged and retried until the deadline
-/// so a brief daemon blip or hung call does not stall past `timeout_ms`.
-async fn wait_for_observed<S, Fut>(
-    timeout_ms: u64,
-    mut read: impl FnMut() -> Fut,
-    accept: impl Fn(&S) -> bool,
-) -> Result<WaitOutcome<S>, test_rpc::Error>
-where
-    Fut: Future<Output = Result<S, test_rpc::Error>>,
-    S: std::fmt::Debug,
-{
-    let deadline = Instant::now() + Duration::from_millis(timeout_ms);
-    let mut last_observed = None;
-
-    loop {
-        let remaining = deadline.saturating_duration_since(Instant::now());
-        if remaining.is_zero() {
-            log::info!(
-                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
-            );
-            return Ok(WaitOutcome::TimedOut { last_observed });
-        }
-
-        let read_budget = OBSERVE_READ_TIMEOUT.min(remaining);
-        match tokio::time::timeout(read_budget, read()).await {
-            Ok(Ok(state)) => {
-                if accept(&state) {
-                    log::info!("observe-wait returning Reached: {state:?}");
-                    return Ok(WaitOutcome::Reached(state));
-                }
-                last_observed = Some(state);
-            }
-            Ok(Err(error)) => log::warn!("observed-state read failed mid-wait: {error}"),
-            Err(_) => log::warn!(
-                "observed-state read timed out after {}ms; retrying until wait deadline",
-                read_budget.as_millis()
-            ),
-        }
-
-        let remaining = deadline.saturating_duration_since(Instant::now());
-        if remaining.is_zero() {
-            log::info!(
-                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
-            );
-            return Ok(WaitOutcome::TimedOut { last_observed });
-        }
-        sleep(OBSERVE_POLL_INTERVAL.min(remaining)).await;
-    }
-}
-
 pub(crate) fn observed_tunnel_type(tunnel_type: TunnelType) -> ObservedTunnelType {
     match tunnel_type {
         TunnelType::Mixnet => ObservedTunnelType::Mixnet,
@@ -985,135 +859,5 @@ mod observed_state_tests {
             )),
             ObservedAccountState::Error(_)
         ));
-    }
-}
-
-#[cfg(test)]
-mod wait_for_observed_tests {
-    use super::wait_for_observed;
-    use std::{cell::RefCell, collections::VecDeque};
-    use test_rpc::{
-        Error,
-        nym_daemon::{
-            ObservedTunnelState, ObservedTunnelStateKind, ObservedTunnelType, WaitOutcome,
-        },
-    };
-
-    fn reader(
-        reads: impl IntoIterator<Item = Result<ObservedTunnelState, Error>>,
-    ) -> RefCell<VecDeque<Result<ObservedTunnelState, Error>>> {
-        RefCell::new(reads.into_iter().collect())
-    }
-
-    fn wants_connected(state: &ObservedTunnelState) -> bool {
-        ObservedTunnelStateKind::Connected.matches(state)
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn returns_reached_when_target_matches() {
-        let reads = reader([
-            Ok(ObservedTunnelState::Connecting),
-            Ok(ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Wireguard,
-            }),
-        ]);
-
-        let outcome = wait_for_observed(
-            60_000,
-            || {
-                let next = reads
-                    .borrow_mut()
-                    .pop_front()
-                    .unwrap_or(Ok(ObservedTunnelState::Disconnected));
-                async move { next }
-            },
-            wants_connected,
-        )
-        .await
-        .expect("wait must not error");
-
-        assert_eq!(
-            outcome,
-            WaitOutcome::Reached(ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Wireguard,
-            })
-        );
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn times_out_reporting_last_observed() {
-        let reads = reader([Ok(ObservedTunnelState::Connecting)]);
-
-        let outcome = wait_for_observed(
-            500,
-            || {
-                let next = reads
-                    .borrow_mut()
-                    .pop_front()
-                    .unwrap_or(Ok(ObservedTunnelState::Disconnected));
-                async move { next }
-            },
-            wants_connected,
-        )
-        .await
-        .expect("timeout is a successful single reply, not an error");
-
-        assert_eq!(
-            outcome,
-            WaitOutcome::TimedOut {
-                last_observed: Some(ObservedTunnelState::Connecting),
-            }
-        );
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn retries_past_a_transient_read_error() {
-        let reads = reader([
-            Err(Error::DaemonRpc("transient".into())),
-            Ok(ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Mixnet,
-            }),
-        ]);
-
-        let outcome = wait_for_observed(
-            60_000,
-            || {
-                let next = reads
-                    .borrow_mut()
-                    .pop_front()
-                    .unwrap_or(Ok(ObservedTunnelState::Disconnected));
-                async move { next }
-            },
-            wants_connected,
-        )
-        .await
-        .expect("wait must recover from a transient error");
-
-        assert_eq!(
-            outcome,
-            WaitOutcome::Reached(ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Mixnet,
-            })
-        );
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn honors_deadline_when_a_read_hangs() {
-        let started = tokio::time::Instant::now();
-        let outcome = wait_for_observed(
-            1_000,
-            std::future::pending::<Result<ObservedTunnelState, Error>>,
-            wants_connected,
-        )
-        .await
-        .expect("a hung read must time out as WaitOutcome, not an error");
-
-        assert_eq!(
-            outcome,
-            WaitOutcome::TimedOut {
-                last_observed: None
-            }
-        );
-        assert_eq!(started.elapsed(), std::time::Duration::from_millis(1_000));
     }
 }

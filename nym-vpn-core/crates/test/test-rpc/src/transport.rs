@@ -31,6 +31,9 @@ const DAEMON_CHANNEL_BUF_SIZE: usize = 16 * 1024;
 /// Unique payload that comes with the "handshake" frame
 const MULLVAD_SIGNATURE: &[u8] = b"MULLV4D;";
 
+/// Cap resync byte-skipping per decode call so pathological noise cannot spin forever.
+const MAX_RESYNC_BYTES_PER_DECODE: usize = 64 * 1024;
+
 pub enum Frame {
     Handshake,
     TestRunner(Bytes),
@@ -91,7 +94,12 @@ where
     loop {
         match framed_read.next().await {
             Some(Ok(bytes)) if bytes.is_empty() => return Ok(()),
-            Some(Ok(_)) => {}
+            Some(Ok(bytes)) => {
+                log::warn!(
+                    "session sync: discarding unexpected non-empty frame ({} bytes) before ack",
+                    bytes.len()
+                );
+            }
             Some(Err(error)) => return Err(error),
             None => return Err(io::ErrorKind::UnexpectedEof.into()),
         }
@@ -502,8 +510,7 @@ impl MultiplexCodec {
         }
     }
 
-    fn mark_desynced(&mut self, detail: impl AsRef<str>) {
-        let detail = detail.as_ref();
+    fn mark_desynced(&mut self, detail: &str) {
         if self.desynced {
             log::debug!("serial mux: {detail}");
         } else {
@@ -573,10 +580,12 @@ impl MultiplexCodec {
                     if src.is_empty() {
                         return Err(error);
                     }
-                    self.mark_desynced(format!(
-                        "oversized length after peek; skip 1 (remaining={})",
-                        src.len()
-                    ));
+                    if !self.desynced {
+                        self.mark_desynced(&format!(
+                            "oversized length after peek; skip 1 (remaining={})",
+                            src.len()
+                        ));
+                    }
                     src.advance(1);
                 }
                 Err(error) => return Err(error),
@@ -586,14 +595,24 @@ impl MultiplexCodec {
 
     /// Skip one byte at a time until length + FrameType (+ Handshake signature) look valid.
     fn resync_to_plausible_frame_header(&mut self, src: &mut BytesMut) -> bool {
+        let mut skipped = 0usize;
         while src.len() >= MULTIPLEX_LEN_DELIMITED_HEADER_SIZE {
+            if skipped >= MAX_RESYNC_BYTES_PER_DECODE {
+                if !self.desynced {
+                    self.mark_desynced("resync budget exhausted; pause until more bytes");
+                }
+                return false;
+            }
             let claimed_len = u32::from_be_bytes([src[0], src[1], src[2], src[3]]) as usize;
             if !(1..=MULTIPLEX_MAX_FRAME_LENGTH).contains(&claimed_len) {
-                self.mark_desynced(format!(
-                    "implausible length {claimed_len}; skip 1 (remaining={})",
-                    src.len()
-                ));
+                if !self.desynced {
+                    self.mark_desynced(&format!(
+                        "implausible length {claimed_len}; skip 1 (remaining={})",
+                        src.len()
+                    ));
+                }
                 src.advance(1);
+                skipped += 1;
                 continue;
             }
             if src.len() < MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + FRAME_TYPE_SIZE {
@@ -602,18 +621,26 @@ impl MultiplexCodec {
             let frame_type = match FrameType::try_from(src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE]) {
                 Ok(frame_type) => frame_type,
                 Err(()) => {
-                    self.mark_desynced(format!(
-                        "length {claimed_len} bad type {:#04x}; skip 1 (remaining={})",
-                        src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE],
-                        src.len()
-                    ));
+                    if !self.desynced {
+                        self.mark_desynced(&format!(
+                            "length {claimed_len} bad type {:#04x}; skip 1 (remaining={})",
+                            src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE],
+                            src.len()
+                        ));
+                    }
                     src.advance(1);
+                    skipped += 1;
                     continue;
                 }
             };
             if src.len() < MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + claimed_len {
+                // While desynced, keep hunting through incomplete claims in the same decode
+                // call. Waiting would stall 1-byte resync on phantom lengths assembled from
+                // misaligned noise (CI recovery). Trade-off: a real in-flight frame that
+                // arrives mid-desync can lose its first byte; the next complete frame recovers.
                 if self.desynced {
                     src.advance(1);
+                    skipped += 1;
                     continue;
                 }
                 return false;
@@ -622,11 +649,14 @@ impl MultiplexCodec {
                 let payload_start = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + FRAME_TYPE_SIZE;
                 let payload_end = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + claimed_len;
                 if &src[payload_start..payload_end] != MULLVAD_SIGNATURE {
-                    self.mark_desynced(format!(
-                        "Handshake without signature; skip 1 (remaining={})",
-                        src.len()
-                    ));
+                    if !self.desynced {
+                        self.mark_desynced(&format!(
+                            "Handshake without signature; skip 1 (remaining={})",
+                            src.len()
+                        ));
+                    }
                     src.advance(1);
+                    skipped += 1;
                     continue;
                 }
             }
@@ -1273,6 +1303,31 @@ mod tests {
             .expect("valid frame after 1-byte misalignment");
         assert_decoded_test_runner(decoded, b"aligned");
         assert!(src.is_empty(), "must consume the full valid frame");
+    }
+
+    #[test]
+    fn multiplex_codec_resync_budget_pauses_without_aborting() {
+        use super::{MAX_RESYNC_BYTES_PER_DECODE, MultiplexCodec};
+        use bytes::{BufMut, BytesMut};
+        use std::sync::{Arc, atomic::AtomicBool};
+        use tokio_util::codec::Decoder;
+
+        let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
+        let mut src = BytesMut::new();
+        // Implausible lengths forever: resync must stop after the per-decode budget.
+        for _ in 0..(MAX_RESYNC_BYTES_PER_DECODE + 32) {
+            src.put_u8(0xff);
+        }
+
+        let decoded = codec
+            .decode(&mut src)
+            .expect("budget exhaustion must not abort decode");
+        assert!(decoded.is_none());
+        assert_eq!(
+            src.len(),
+            32,
+            "must pause after the resync budget and leave unread noise"
+        );
     }
 
     #[test]

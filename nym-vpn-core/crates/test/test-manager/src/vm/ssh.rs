@@ -52,6 +52,14 @@ impl SSHSession {
         channel.send_eof()?;
         channel.wait_eof()?;
         channel.wait_close()?;
+        let exit_status = channel
+            .exit_status()
+            .context("Failed to read SSH exit status")?;
+        if exit_status != 0 {
+            anyhow::bail!(
+                "SSH command failed with exit status {exit_status}: {command}; stdout={output}"
+            );
+        }
         Ok(output)
     }
 }

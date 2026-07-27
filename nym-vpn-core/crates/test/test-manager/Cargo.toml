@@ -39,7 +39,7 @@ ssh2 = { workspace = true }
 tarpc = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true }
-tokio = { workspace = true, features = ["process", "test-util"] }
+tokio = { workspace = true, features = ["process"] }
 tokio-serde = { workspace = true }
 tokio-serial = { workspace = true }
 tonic = { workspace = true }
@@ -54,6 +54,9 @@ nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-api-client = { workspace = true }
 nym-network-defaults = { workspace = true }
 bip39 = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["process", "test-util"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tun = { workspace = true }

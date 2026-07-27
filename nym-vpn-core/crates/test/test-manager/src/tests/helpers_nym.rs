@@ -25,23 +25,20 @@ const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 const DAEMON_QUIESCE_SETTLE: Duration = Duration::from_millis(250);
 
 /// Host-side poll cadence for guest-local `get_observed_*` while DaemonRpc is dropped.
-/// Short request/response pairs; a single long-lived `wait_for_observed_*` reply can be lost
-/// after the guest reaches Connected (CI: guest stops UDS polls, host never sees the reply).
+/// Short request/response pairs; a single long-lived guest wait reply can be lost after the
+/// guest reaches the target (CI: guest stops UDS polls, host never sees the reply).
 const HOST_OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const HOST_OBSERVE_RPC_TIMEOUT: Duration = Duration::from_secs(10);
+const WAIT_FOR_ACCOUNT_STATE_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// One guest-local tunnel observe (tarpc → guest UDS). Host polls this while DaemonRpc is quiet.
 trait TunnelObserver {
     async fn observe_tunnel(&self) -> Result<ObservedTunnelState, Error>;
 }
 
-/// Waits for an account-state discriminant on the guest, returning a single reply.
-trait AccountWaiter {
-    async fn wait_account(
-        &self,
-        targets: Vec<ObservedAccountStateKind>,
-        timeout: Duration,
-    ) -> Result<WaitOutcome<ObservedAccountState>, Error>;
+/// One guest-local account observe (tarpc → guest UDS). Host polls this while DaemonRpc is quiet.
+trait AccountObserver {
+    async fn observe_account(&self) -> Result<ObservedAccountState, Error>;
 }
 
 impl TunnelObserver for NymServiceClient {
@@ -50,15 +47,9 @@ impl TunnelObserver for NymServiceClient {
     }
 }
 
-impl AccountWaiter for NymServiceClient {
-    async fn wait_account(
-        &self,
-        targets: Vec<ObservedAccountStateKind>,
-        timeout: Duration,
-    ) -> Result<WaitOutcome<ObservedAccountState>, Error> {
-        Ok(self
-            .wait_for_observed_account_state(targets, timeout)
-            .await?)
+impl AccountObserver for NymServiceClient {
+    async fn observe_account(&self) -> Result<ObservedAccountState, Error> {
+        Ok(self.get_observed_account_state().await?)
     }
 }
 
@@ -139,27 +130,32 @@ pub const THROTTLE_RETRY_DELAY: Duration = Duration::from_secs(120);
 
 pub async fn login_idempotent(
     runner: &NymServiceClient,
-    nym_client: &mut NymProxyClient,
-) -> anyhow::Result<()> {
+    mut nym_client: NymProxyClient,
+    provider: &RpcClientProvider,
+) -> anyhow::Result<NymProxyClient> {
     match runner
         .get_observed_account_state()
         .await
         .map_err(|e| anyhow::anyhow!("Failed to get account state: {e}"))?
     {
         ObservedAccountState::ReadyToConnect => {
-            return Ok(());
+            return Ok(nym_client);
         }
         ObservedAccountState::LoggedOut => {
-            store_account_idempotent(nym_client).await?;
+            store_account_idempotent(&mut nym_client).await?;
         }
         _ => {
             // for other states just wait, AC will either reach ReadyToConnect or we'll timeout.
         }
     }
-    wait_for_account_state(runner, ObservedAccountState::ReadyToConnect)
-        .await
-        .map(drop)
-        .map_err(From::from)
+    let (_state, nym_client) = wait_for_account_state(
+        runner,
+        nym_client,
+        provider,
+        ObservedAccountState::ReadyToConnect,
+    )
+    .await?;
+    Ok(nym_client)
 }
 
 async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
@@ -271,7 +267,7 @@ pub async fn wait_for_tunnel_state(
     )
     .await;
     let client = provider.new_client_nym().await.map_err(Error::Other);
-    match merge_tunnel_wait_and_client(observed, client) {
+    match merge_wait_and_client(observed, client) {
         Ok(pair) => Ok(pair),
         Err((error, client)) => {
             drop(client);
@@ -280,30 +276,15 @@ pub async fn wait_for_tunnel_state(
     }
 }
 
-/// Settle the serial mux, run observe, then always attempt client recreate.
-pub(crate) async fn quiesce_observe_and_recreate<O, R, C>(
-    observe: O,
-    recreate: R,
-) -> Result<(ObservedTunnelState, C), (Error, Option<C>)>
-where
-    O: std::future::Future<Output = Result<ObservedTunnelState, Error>>,
-    R: std::future::Future<Output = Result<C, Error>>,
-{
-    settle_daemon_rpc_quiesce().await;
-    let observed = observe.await;
-    let client = recreate.await;
-    merge_tunnel_wait_and_client(observed, client)
-}
-
 pub(crate) async fn settle_daemon_rpc_quiesce() {
     tokio::time::sleep(DAEMON_QUIESCE_SETTLE).await;
 }
 
 /// Prefer the observe outcome; still return a recreated client on wait failure when recreate Ok.
-pub(crate) fn merge_tunnel_wait_and_client<C>(
-    observed: Result<ObservedTunnelState, Error>,
+pub(crate) fn merge_wait_and_client<S, C>(
+    observed: Result<S, Error>,
     client: Result<C, Error>,
-) -> Result<(ObservedTunnelState, C), (Error, Option<C>)> {
+) -> Result<(S, C), (Error, Option<C>)> {
     match (observed, client) {
         (Ok(state), Ok(client)) => Ok((state, client)),
         (Err(wait_error), Ok(client)) => Err((wait_error, Some(client))),
@@ -456,10 +437,6 @@ fn wait_timeout_error(state_name: &str, budget: Duration, last_observed: Option<
     ))
 }
 
-fn rpc_wait_error(state_name: &str, error: Error) -> Error {
-    Error::Daemon(format!("{state_name} state wait RPC failed: {error}"))
-}
-
 async fn enforce_tunnel_wait_deadline<T>(
     timeout: Duration,
     wait: impl Future<Output = Result<T, Error>>,
@@ -474,14 +451,29 @@ async fn enforce_tunnel_wait_deadline<T>(
 
 pub async fn wait_for_account_state(
     runner: &NymServiceClient,
+    nym_client: NymProxyClient,
+    provider: &RpcClientProvider,
     expected: ObservedAccountState,
-) -> Result<ObservedAccountState, Error> {
-    let timeout = Duration::from_secs(60);
+) -> Result<(ObservedAccountState, NymProxyClient), Error> {
+    let timeout = WAIT_FOR_ACCOUNT_STATE_TIMEOUT;
     log::debug!(
         "Waiting for account state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    run_account_wait(runner, vec![account_target(&expected)], timeout).await
+    // Drop DaemonRpc before observe so HTTP/2 cannot HOL tarpc replies on the serial mux.
+    log::debug!("quiescing serial DaemonRpc before account observe wait");
+    drop(nym_client);
+    settle_daemon_rpc_quiesce().await;
+
+    let observed = run_account_wait(runner, vec![account_target(&expected)], timeout).await;
+    let client = provider.new_client_nym().await.map_err(Error::Other);
+    match merge_wait_and_client(observed, client) {
+        Ok(pair) => Ok(pair),
+        Err((error, client)) => {
+            drop(client);
+            Err(error)
+        }
+    }
 }
 
 /// Payload-insensitive discriminant selector for a given expected account state.
@@ -497,35 +489,62 @@ pub(crate) fn account_target(expected: &ObservedAccountState) -> ObservedAccount
     }
 }
 
-/// Wait for an account discriminant via a single guest tarpc call (local UDS).
-async fn run_account_wait<W>(
-    waiter: &W,
+/// Poll guest-local account state over tarpc. Caller must drop DaemonRpc for the wait duration.
+async fn run_account_wait<O>(
+    observer: &O,
     targets: Vec<ObservedAccountStateKind>,
     timeout: Duration,
 ) -> Result<ObservedAccountState, Error>
 where
-    W: AccountWaiter,
+    O: AccountObserver,
 {
+    let deadline = tokio::time::Instant::now() + timeout;
+    let mut last_observed = None;
+
     log::debug!(
-        "account wait: calling guest wait_for_observed (timeout={}s)",
+        "account wait: host polling get_observed (timeout={}s)",
         timeout.as_secs()
     );
-    match waiter.wait_account(targets, timeout).await {
-        Ok(outcome) => {
-            log::info!("account wait: guest replied with {outcome:?}");
-            match outcome {
-                WaitOutcome::Reached(state) => Ok(state),
-                WaitOutcome::TimedOut { last_observed } => Err(wait_timeout_error(
-                    "account",
-                    timeout,
-                    last_observed.as_ref().map(|state| format!("{state:?}")),
-                )),
+
+    loop {
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            return Err(wait_timeout_error(
+                "account",
+                timeout,
+                last_observed.as_ref().map(|state| format!("{state:?}")),
+            ));
+        }
+
+        let rpc_budget = HOST_OBSERVE_RPC_TIMEOUT.min(remaining);
+        match tokio::time::timeout(rpc_budget, observer.observe_account()).await {
+            Ok(Ok(state)) => {
+                if targets.iter().any(|target| target.matches(&state)) {
+                    log::info!("account wait: observed target {state:?}");
+                    return Ok(state);
+                }
+                last_observed = Some(state);
+            }
+            Ok(Err(error)) => {
+                log::warn!("account wait: observe RPC failed (will retry): {error:?}");
+            }
+            Err(_) => {
+                log::debug!(
+                    "account wait: observe RPC timed out after {}ms (will retry)",
+                    rpc_budget.as_millis()
+                );
             }
         }
-        Err(error) => {
-            log::error!("account wait: guest RPC failed: {error}");
-            Err(rpc_wait_error("account", error))
+
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            return Err(wait_timeout_error(
+                "account",
+                timeout,
+                last_observed.as_ref().map(|state| format!("{state:?}")),
+            ));
         }
+        tokio::time::sleep(HOST_OBSERVE_POLL_INTERVAL.min(remaining)).await;
     }
 }
 
@@ -570,10 +589,9 @@ pub async fn resolve_hostname_with_retry(
 #[cfg(test)]
 mod tests {
     use super::{
-        AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
-        enforce_tunnel_wait_deadline, merge_tunnel_wait_and_client, quiesce_observe_and_recreate,
-        run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
-        tunnel_wait_budget, tunnel_wait_params,
+        AccountObserver, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
+        enforce_tunnel_wait_deadline, merge_wait_and_client, run_account_wait, run_tunnel_wait,
+        settle_daemon_rpc_quiesce, tunnel_target, tunnel_wait_budget, tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
@@ -583,7 +601,7 @@ mod tests {
     use std::time::Duration;
     use test_rpc::nym_daemon::{
         ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState,
-        ObservedTunnelStateKind, ObservedTunnelType, WaitOutcome,
+        ObservedTunnelStateKind, ObservedTunnelType,
     };
 
     fn rpc_failed() -> Error {
@@ -624,18 +642,29 @@ mod tests {
         }
     }
 
-    struct FakeAccountWaiter {
-        reply: Result<WaitOutcome<ObservedAccountState>, ()>,
+    /// Scripted host-side observe polls for `run_account_wait` unit tests.
+    struct FakeAccountObserver {
+        polls: Mutex<VecDeque<Result<ObservedAccountState, ()>>>,
     }
 
-    impl AccountWaiter for FakeAccountWaiter {
-        async fn wait_account(
-            &self,
-            _targets: Vec<ObservedAccountStateKind>,
-            _timeout: Duration,
-        ) -> Result<WaitOutcome<ObservedAccountState>, Error> {
-            match &self.reply {
-                Ok(outcome) => Ok(outcome.clone()),
+    impl FakeAccountObserver {
+        fn new(polls: Vec<Result<ObservedAccountState, ()>>) -> Self {
+            Self {
+                polls: Mutex::new(polls.into()),
+            }
+        }
+    }
+
+    impl AccountObserver for FakeAccountObserver {
+        async fn observe_account(&self) -> Result<ObservedAccountState, Error> {
+            let next = self
+                .polls
+                .lock()
+                .expect("poll script lock")
+                .pop_front()
+                .unwrap_or(Ok(ObservedAccountState::Syncing));
+            match next {
+                Ok(state) => Ok(state),
                 Err(()) => Err(rpc_failed()),
             }
         }
@@ -795,14 +824,15 @@ mod tests {
         assert_eq!(disconnect.disconnects, 1);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn reached_account_state_returns_ok() {
-        let waiter = FakeAccountWaiter {
-            reply: Ok(WaitOutcome::Reached(ObservedAccountState::ReadyToConnect)),
-        };
+        let observer = FakeAccountObserver::new(vec![
+            Ok(ObservedAccountState::Syncing),
+            Ok(ObservedAccountState::ReadyToConnect),
+        ]);
 
         let state = run_account_wait(
-            &waiter,
+            &observer,
             vec![ObservedAccountStateKind::ReadyToConnect],
             Duration::from_secs(2),
         )
@@ -812,18 +842,14 @@ mod tests {
         assert!(matches!(state, ObservedAccountState::ReadyToConnect));
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn account_timeout_reports_last_observed() {
-        let waiter = FakeAccountWaiter {
-            reply: Ok(WaitOutcome::TimedOut {
-                last_observed: Some(ObservedAccountState::Syncing),
-            }),
-        };
+        let observer = FakeAccountObserver::new(vec![Ok(ObservedAccountState::Syncing)]);
 
         let error = run_account_wait(
-            &waiter,
+            &observer,
             vec![ObservedAccountStateKind::ReadyToConnect],
-            Duration::from_secs(2),
+            Duration::from_millis(200),
         )
         .await
         .expect_err("a timeout outcome must surface as an error");
@@ -853,89 +879,37 @@ mod tests {
     }
 
     #[test]
-    fn merge_tunnel_wait_returns_client_on_observe_error() {
+    fn merge_wait_returns_client_on_observe_error() {
         let observed: Result<ObservedTunnelState, Error> =
             Err(Error::Daemon("observe failed".into()));
         let client: Result<&str, Error> = Ok("recreated");
 
-        let err = merge_tunnel_wait_and_client(observed, client)
-            .expect_err("observe failure must surface");
+        let err =
+            merge_wait_and_client(observed, client).expect_err("observe failure must surface");
         assert!(err.0.to_string().contains("observe failed"));
         assert_eq!(err.1, Some("recreated"));
     }
 
     #[test]
-    fn merge_tunnel_wait_success_pairs_state_and_client() {
+    fn merge_wait_success_pairs_state_and_client() {
         let observed = Ok(ObservedTunnelState::Disconnected);
         let client: Result<&str, Error> = Ok("recreated");
 
-        let (state, got) =
-            merge_tunnel_wait_and_client(observed, client).expect("success pairs both");
+        let (state, got) = merge_wait_and_client(observed, client).expect("success pairs both");
         assert!(matches!(state, ObservedTunnelState::Disconnected));
         assert_eq!(got, "recreated");
     }
 
     #[test]
-    fn merge_tunnel_wait_prefers_observe_error_when_recreate_also_fails() {
+    fn merge_wait_prefers_observe_error_when_recreate_also_fails() {
         let observed: Result<ObservedTunnelState, Error> =
             Err(Error::Daemon("observe failed".into()));
         let client: Result<&str, Error> = Err(Error::Daemon("recreate failed".into()));
 
-        let err = merge_tunnel_wait_and_client(observed, client)
-            .expect_err("combined failure must surface");
+        let err =
+            merge_wait_and_client(observed, client).expect_err("combined failure must surface");
         assert!(err.0.to_string().contains("observe failed"));
         assert!(err.1.is_none());
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn quiesce_observe_recreates_client_after_observe_error() {
-        let started = tokio::time::Instant::now();
-        let mut recreate_calls = 0usize;
-
-        let result = quiesce_observe_and_recreate(
-            async { Err(Error::Daemon("guest timed out".into())) },
-            async {
-                recreate_calls += 1;
-                Ok("replacement-client")
-            },
-        )
-        .await;
-
-        assert_eq!(started.elapsed(), super::DAEMON_QUIESCE_SETTLE);
-        assert_eq!(recreate_calls, 1);
-        let (error, client) = result.expect_err("observe error must propagate");
-        assert!(error.to_string().contains("guest timed out"));
-        assert_eq!(client, Some("replacement-client"));
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn quiesce_observe_recreates_client_after_observe_success() {
-        let started = tokio::time::Instant::now();
-        let mut recreate_calls = 0usize;
-
-        let (state, client) = quiesce_observe_and_recreate(
-            async {
-                Ok(ObservedTunnelState::Connected {
-                    tunnel_type: ObservedTunnelType::Wireguard,
-                })
-            },
-            async {
-                recreate_calls += 1;
-                Ok("replacement-client")
-            },
-        )
-        .await
-        .expect("success path returns state and client");
-
-        assert_eq!(started.elapsed(), super::DAEMON_QUIESCE_SETTLE);
-        assert_eq!(recreate_calls, 1);
-        assert!(matches!(
-            state,
-            ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Wireguard
-            }
-        ));
-        assert_eq!(client, "replacement-client");
     }
 
     #[tokio::test(start_paused = true)]

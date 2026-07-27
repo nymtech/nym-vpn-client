@@ -127,10 +127,17 @@ pub async fn dc_and_ensure_logged_in(
     if forget_account {
         log::debug!("🔄 Resetting device identity & ticketbooks...");
         nym_proxy_client.forget_account().await?;
-        helpers_nym::wait_for_account_state(runner, ObservedAccountState::LoggedOut).await?;
+        nym_proxy_client = helpers_nym::wait_for_account_state(
+            runner,
+            nym_proxy_client,
+            provider,
+            ObservedAccountState::LoggedOut,
+        )
+        .await?
+        .1;
     }
 
-    helpers_nym::login_idempotent(runner, &mut nym_proxy_client)
+    nym_proxy_client = helpers_nym::login_idempotent(runner, nym_proxy_client, provider)
         .await
         .context("Failed to ensure logged in")?;
 

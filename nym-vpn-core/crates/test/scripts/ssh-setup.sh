@@ -64,7 +64,7 @@ WantedBy=multi-user.target
 EOF
 
     # The base VM image may ship a pre-baked, logged-in account under
-    # /var/lib/nym-vpnd. 
+    # /var/lib/nym-vpnd.
     echo "Clearing any pre-baked nym-vpnd account state"
     rm -rf /var/lib/nym-vpnd/mainnet
 
