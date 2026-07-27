@@ -1,6 +1,7 @@
 package net.nymtech.vpn.backend
 
 import nym_vpn_lib_types.ErrorStateReason
+import nym_vpn_lib_types.TunnelType
 
 /**
  * VPN tunnel interface:
@@ -26,6 +27,11 @@ interface Tunnel {
 		;
 
 		fun isTwoHop(): Boolean = this == TWO_HOP_MIXNET
+
+		fun toTunnelType(): TunnelType = when (this) {
+			FIVE_HOP_MIXNET -> TunnelType.MIXNET
+			TWO_HOP_MIXNET -> TunnelType.WIREGUARD
+		}
 	}
 
 	enum class Environment {

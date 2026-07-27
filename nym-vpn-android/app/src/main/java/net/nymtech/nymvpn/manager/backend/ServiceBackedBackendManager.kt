@@ -29,6 +29,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import net.nymtech.vpn.model.RecentGateways
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
@@ -40,6 +41,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.TentativeGateways
+import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 import java.util.Locale
@@ -220,6 +222,13 @@ class ServiceBackedBackendManager @Inject constructor(
 	override suspend fun getSystemMessages() = serviceConnectionManager.withApi { it.getSystemMessages() }
 
 	override suspend fun getGateways(gatewayType: GatewayType) = serviceConnectionManager.withApi { it.getGateways(gatewayType) }
+
+	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = runCatching {
+		serviceConnectionManager.withApi { it.getRecentGateways(tunnelType) }
+	}.getOrElse {
+		Timber.tag(TAG).w(it, "getRecentGateways failed")
+		null
+	}
 
 	override suspend fun getMnemonic(): List<String> = serviceConnectionManager.withApi { it.getStoredMnemonic().split(" ") }
 	override suspend fun createAccount() {

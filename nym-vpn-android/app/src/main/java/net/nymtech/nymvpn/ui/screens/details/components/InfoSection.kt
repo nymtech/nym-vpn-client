@@ -15,20 +15,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun InfoSection(items: List<Pair<String, @Composable () -> Unit>>, bottomContent: (@Composable () -> Unit)? = null, modifier: Modifier = Modifier) {
+fun InfoSection(titleResId: Int, items: List<Pair<String, @Composable () -> Unit>>, bottomContent: (@Composable () -> Unit)? = null, modifier: Modifier = Modifier) {
 	Column(
 		modifier = modifier
 			.fillMaxWidth()
-			.padding(top = 24.dp)
 			.background(
-				color = MaterialTheme.colorScheme.surface,
-				shape = RoundedCornerShape(size = 8.dp),
+				color = MaterialTheme.colorScheme.primaryContainer,
+				shape = RoundedCornerShape(size = 14.dp),
 			)
 			.padding(16.dp),
 	) {
+		Text(
+			text = stringResource(titleResId),
+			style = MaterialTheme.typography.labelLarge,
+			color = MaterialTheme.colorScheme.primary,
+		)
 		items.forEachIndexed { index, item ->
 			Row(
 				modifier = Modifier

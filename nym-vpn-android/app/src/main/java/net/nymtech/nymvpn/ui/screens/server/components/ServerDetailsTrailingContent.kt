@@ -1,6 +1,5 @@
-package net.nymtech.nymvpn.ui.screens.hop.components
+package net.nymtech.nymvpn.ui.screens.server.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -11,21 +10,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.FavoriteIcon
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLabel: Boolean, onInfoIconClick: () -> Unit) {
+internal fun ServerDetailsTrailingContent(isFavorite: Boolean, onToggleFavorite: () -> Unit, onInfoIconClick: () -> Unit) {
 	Box(
 		modifier = Modifier.fillMaxHeight(),
 		contentAlignment = Alignment.CenterEnd,
@@ -35,27 +33,21 @@ internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLa
 			verticalAlignment = Alignment.CenterVertically,
 			modifier = Modifier
 				.padding(end = 16.dp.scaledWidth())
-				.clickable {
-					onInfoIconClick()
-				}
 				.heightIn(min = 42.dp.scaledHeight())
 				.align(Alignment.CenterEnd),
 		) {
-			if (showStreamDisplay) {
-				Icon(
-					imageVector = ImageVector.vectorResource(R.drawable.smart_display),
-					contentDescription = stringResource(R.string.stream_display),
-					modifier = Modifier.size(iconSize.scaledHeight()),
-					tint = Color.Unspecified,
-				)
-			} else if (showQuicLabel) {
-				QuickLabel()
-			}
-			Icon(
-				imageVector = Icons.Outlined.Info,
-				contentDescription = stringResource(R.string.info),
-				modifier = Modifier.size(iconSize.scaledHeight()).align(Alignment.CenterVertically),
+			FavoriteIcon(
+				isFavorite = isFavorite,
+				onToggleFavorite = onToggleFavorite,
+				modifier = Modifier.size(iconSize.scaledHeight()),
 			)
+			IconButton(onClick = onInfoIconClick) {
+				Icon(
+					imageVector = Icons.Outlined.Info,
+					contentDescription = stringResource(R.string.info),
+					modifier = Modifier.size(iconSize.scaledHeight()),
+				)
+			}
 		}
 	}
 }

@@ -162,7 +162,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (uiState.connectionState == ConnectionState.WaitingForConnection) {
 			AlertController.show(AlertMessage(title = nodeAlertTitle))
 		} else {
-			navController.goFromRoot(Route.EntryLocation)
+			navController.goFromRoot(Route.EntryServer)
 		}
 	}
 
@@ -170,7 +170,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (uiState.connectionState == ConnectionState.WaitingForConnection) {
 			AlertController.show(AlertMessage(title = nodeAlertTitle))
 		} else {
-			navController.goFromRoot(Route.ExitLocation)
+			navController.goFromRoot(Route.ExitServer)
 		}
 	}
 

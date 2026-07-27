@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -48,6 +49,7 @@ fun CustomTextField(
 	readOnly: Boolean = false,
 	enabled: Boolean = true,
 	subtitle: @Composable (() -> Unit)? = null,
+	containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	val isFocused by interactionSource.collectIsFocusedAsState()
@@ -107,13 +109,13 @@ fun CustomTextField(
 			supportingText = supportingText,
 			colors = TextFieldDefaults.colors().copy(
 				disabledLabelColor = MaterialTheme.colorScheme.onSurface,
-				disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+				disabledContainerColor = containerColor,
 				focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
 				disabledIndicatorColor = MaterialTheme.colorScheme.outline,
 				unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
 				focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-				focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-				unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+				focusedContainerColor = containerColor,
+				unfocusedContainerColor = containerColor,
 				focusedTextColor = MaterialTheme.colorScheme.onSurface,
 				cursorColor = MaterialTheme.colorScheme.onSurface,
 			),
@@ -128,15 +130,15 @@ fun CustomTextField(
 					isError = isError,
 					interactionSource,
 					colors = TextFieldDefaults.colors().copy(
-						errorContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+						errorContainerColor = containerColor,
 						disabledLabelColor = MaterialTheme.colorScheme.onSurface,
-						disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+						disabledContainerColor = containerColor,
 						focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
 						disabledIndicatorColor = MaterialTheme.colorScheme.outline,
 						unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
 						focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-						focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-						unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+						focusedContainerColor = containerColor,
+						unfocusedContainerColor = containerColor,
 						focusedTextColor = MaterialTheme.colorScheme.onSurface,
 						cursorColor = MaterialTheme.colorScheme.onSurface,
 					),

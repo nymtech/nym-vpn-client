@@ -1,11 +1,14 @@
-package net.nymtech.nymvpn.ui.screens.hop
+package net.nymtech.nymvpn.ui.screens.server
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,14 +23,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -38,9 +47,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -62,54 +71,59 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
-import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
-import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
-import net.nymtech.nymvpn.ui.screens.hop.components.QuicInfoMessage
-import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
-import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
+import net.nymtech.nymvpn.ui.screens.server.components.CountryItem
+import net.nymtech.nymvpn.ui.screens.server.components.ExitServerDetailsModal
+import net.nymtech.nymvpn.ui.screens.server.components.QuicInfoMessage
+import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsModalBody
+import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.goFromRoot
-import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: HopViewModel = hiltViewModel()) {
+fun ServerScreen(
+	gatewayLocation: GatewayLocation,
+	appUiState: AppUiState,
+	navBarEvent: NavBarEvent?,
+	onNavBarEventConsume: () -> Unit,
+	onLocationChange: (GatewayLocation) -> Unit = {},
+	viewModel: ServerViewModel = hiltViewModel(),
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val locationSupportLink = stringResource(R.string.location_support_link)
 
 	var refreshing by remember { mutableStateOf(false) }
+	var selectedLocation by remember { mutableStateOf(gatewayLocation) }
 
 	var showLocationTooltip by remember { mutableStateOf(false) }
 	var showExitServerTooltip by remember { mutableStateOf(false) }
 
-	LaunchedEffect(navBarEvent, gatewayLocation) {
+	LaunchedEffect(selectedLocation) {
+		onLocationChange(selectedLocation)
+	}
+
+	LaunchedEffect(navBarEvent, selectedLocation) {
 		when (navBarEvent) {
-			NavBarEvent.EntryLocationInfoClicked -> {
-				if (gatewayLocation == GatewayLocation.ENTRY) {
-					showLocationTooltip = true
-					onNavBarEventConsume()
+			NavBarEvent.EntryLocationInfoClicked, NavBarEvent.ExitLocationInfoClicked -> {
+				when (selectedLocation) {
+					GatewayLocation.ENTRY -> showLocationTooltip = true
+					GatewayLocation.EXIT -> showExitServerTooltip = true
 				}
-			}
-			NavBarEvent.ExitLocationInfoClicked -> {
-				if (gatewayLocation == GatewayLocation.EXIT) {
-					showExitServerTooltip = true
-					onNavBarEventConsume()
-				}
+				onNavBarEventConsume()
 			}
 			else -> Unit
 		}
@@ -127,10 +141,10 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		onDismiss = { showExitServerTooltip = false },
 	)
 
-	val gatewayType = remember {
+	val gatewayType = remember(selectedLocation) {
 		when (appUiState.vpnConfig.mode) {
 			Tunnel.Mode.FIVE_HOP_MIXNET -> {
-				when (gatewayLocation) {
+				when (selectedLocation) {
 					GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
 					GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
 				}
@@ -139,14 +153,14 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		}
 	}
 
-	val selectedKey = remember {
-		when (gatewayLocation) {
+	val selectedKey = remember(selectedLocation) {
+		when (selectedLocation) {
 			GatewayLocation.ENTRY -> appUiState.entryPointId
 			GatewayLocation.EXIT -> appUiState.exitPointId
 		}
 	}
 
-	val initialGateways = remember {
+	val initialGateways = remember(gatewayType) {
 		when (gatewayType) {
 			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
@@ -154,63 +168,66 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		}
 	}
 
-	val canShowQuicLabel = remember {
-		gatewayLocation == GatewayLocation.ENTRY &&
+	val canShowQuicLabel = remember(selectedLocation) {
+		selectedLocation == GatewayLocation.ENTRY &&
 			appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
 			appUiState.settings.quicEnabled
 	}
 
-	// `remember(appUiState.vpnConfig.algorithm) { gatewayLocation == GatewayLocation.EXIT && appUiState.vpnConfig.algorithm != GatewaySelectionAlgorithm.EXPLICIT }` — hidden while Auto mode is disabled
 	val showBestOption = false
 
-	LaunchedEffect(gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways, gatewayLocation == GatewayLocation.EXIT)
+	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
+		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT)
 		viewModel.updateCountryCache(gatewayType)
 	}
 
 	LaunchedEffect(refreshing) {
-		if (refreshing) viewModel.updateCountryCache(gatewayType)
+		if (refreshing) viewModel.onRefresh(gatewayType)
 		refreshing = false
 	}
 
-	HopScreenContent(
+	ServerScreenContent(
 		uiState = uiState,
 		selectedKey = selectedKey,
 		gatewayType = gatewayType,
 		canShowQuicLabel = canShowQuicLabel,
 		showBestOption = showBestOption,
 		algorithm = appUiState.vpnConfig.algorithm,
-		gatewayLocation = gatewayLocation,
-		initialGatewaysEmpty = initialGateways.isEmpty(),
+		gatewayLocation = selectedLocation,
 		isRefreshing = refreshing,
 		onRefresh = { refreshing = true },
 		onQueryChange = { viewModel.onQueryChange(it) },
 		onSelect = { id ->
-			viewModel.onSelected(id, gatewayLocation)
+			viewModel.onSelected(id, selectedLocation)
 			navController.safePopBackStack()
 		},
+		onLocationSelect = { location -> selectedLocation = location },
+		onFilterSelect = { viewModel.onFilterSelected(it) },
+		onToggleFavorite = { id, isFavorite -> viewModel.onToggleFavorite(id, isFavorite) },
 		onNavigateToCensorship = { navController.navigate(Route.Censorship) },
 		onNavigateToServerDetails = { gateway ->
-			navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayLocation.name))
+			navController.goFromRoot(Route.ServerDetails(gateway.identity, selectedLocation.name))
 		},
 	)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun HopScreenContent(
-	uiState: HopUiState,
+internal fun ServerScreenContent(
+	uiState: ServerUiState,
 	selectedKey: String?,
 	gatewayType: GatewayType,
 	canShowQuicLabel: Boolean,
 	showBestOption: Boolean,
 	algorithm: GatewaySelectionAlgorithm,
 	gatewayLocation: GatewayLocation,
-	initialGatewaysEmpty: Boolean,
 	isRefreshing: Boolean,
 	onRefresh: () -> Unit,
 	onQueryChange: (String) -> Unit,
 	onSelect: (String) -> Unit,
+	onLocationSelect: (GatewayLocation) -> Unit,
+	onFilterSelect: (ServerListFilter) -> Unit,
+	onToggleFavorite: (String, Boolean) -> Unit,
 	onNavigateToCensorship: () -> Unit,
 	onNavigateToServerDetails: (NymGateway) -> Unit,
 ) {
@@ -241,7 +258,7 @@ internal fun HopScreenContent(
 		state = pullRefreshState,
 		isRefreshing = isRefreshing,
 		onRefresh = onRefresh,
-		modifier = Modifier.fillMaxSize(),
+		modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
 	) {
 		LazyColumn(
 			state = listState,
@@ -250,14 +267,24 @@ internal fun HopScreenContent(
 			modifier = Modifier
 				.fillMaxSize()
 				.windowInsetsPadding(WindowInsets.navigationBars)
-				.imePadding(),
+				.imePadding()
+				.padding(horizontal = 16.dp.scaledWidth()),
 		) {
 			item {
-				Column(
-					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
+				GatewayLocationTabs(
+					selected = gatewayLocation,
+					onSelect = onLocationSelect,
 					modifier = Modifier
-						.padding(horizontal = 24.dp.scaledWidth())
-						.padding(top = 24.dp.scaledHeight()),
+						.fillMaxWidth()
+						.padding(top = 8.dp.scaledHeight()),
+				)
+			}
+
+			item {
+				Column(
+					verticalArrangement = Arrangement.spacedBy(14.dp.scaledHeight()),
+					modifier = Modifier
+						.padding(top = 12.dp.scaledHeight()),
 				) {
 					if (canShowQuicLabel) {
 						QuicInfoMessage(onNavigateToQuicSettings = onNavigateToCensorship)
@@ -267,71 +294,99 @@ internal fun HopScreenContent(
 						onValueChange = onQueryChange,
 						modifier = Modifier
 							.fillMaxWidth()
-							.height(56.dp.scaledHeight())
-							.background(Color.Transparent, RoundedCornerShape(30.dp)),
-						placeholder = { Text(stringResource(R.string.search_country), color = MaterialTheme.colorScheme.onBackground) },
+							.height(48.dp.scaledHeight())
+							.background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp)),
+						placeholder = {
+							Text(
+								stringResource(R.string.server_search_text),
+								color = MaterialTheme.colorScheme.onBackground,
+							)
+						},
 						singleLine = true,
-						leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
-						label = { Text(stringResource(R.string.search)) },
+						leading = {
+							Icon(
+								Icons.Rounded.Search,
+								contentDescription = stringResource(R.string.search),
+								modifier = Modifier
+									.size(iconSize),
+							)
+						},
+						label = {},
 						showClearIcon = true,
-						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
+						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+						containerColor = MaterialTheme.colorScheme.background,
+					)
+					Text(
+						text = stringResource(
+							R.string.server_countries_nodes_combined_text,
+							pluralStringResource(R.plurals.server_countries_count_text, uiState.countryCount, uiState.countryCount),
+							pluralStringResource(R.plurals.server_nodes_count_text, uiState.nodeCount, uiState.nodeCount),
+						),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onBackground,
+					)
+					ServerFilterPills(
+						selected = uiState.filter,
+						onSelect = onFilterSelect,
+						modifier = Modifier.fillMaxWidth(),
 					)
 				}
 			}
-
 			item {
-				val isBestSelected = showBestOption && selectedKey == null && algorithm == GatewaySelectionAlgorithm.AUTO
-				val isRandomSelected = !showBestOption && selectedKey == null
+				VerticalDivider(Modifier.height(12.dp))
+			}
+			if (uiState.filter == ServerListFilter.ALL_SERVERS) {
+				item {
+					val isBestSelected = showBestOption && selectedKey == null && algorithm == GatewaySelectionAlgorithm.AUTO
+					val isRandomSelected = !showBestOption && selectedKey == null
 
-				val items = buildList {
-					if (showBestOption) {
+					val items = buildList {
+						if (showBestOption) {
+							add(
+								SelectionItem(
+									onClick = { onSelect("Best") },
+									leading = {
+										Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+											Icon(
+												imageVector = Icons.Rounded.Star,
+												contentDescription = null,
+												modifier = Modifier.size(iconSize),
+											)
+										}
+									},
+									title = { Text(stringResource(R.string.gateway_best), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
+									selected = isBestSelected,
+								),
+							)
+						}
 						add(
 							SelectionItem(
-								onClick = { onSelect("Best") },
+								onClick = { onSelect("Random") },
 								leading = {
 									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 										Icon(
-											imageVector = Icons.Rounded.Star,
+											imageVector = Icons.Rounded.Shuffle,
 											contentDescription = null,
 											modifier = Modifier.size(iconSize),
 										)
 									}
 								},
-								title = { Text(stringResource(R.string.gateway_best), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-								selected = isBestSelected,
+								title = { Text(stringResource(R.string.gateway_random), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
+								selected = isRandomSelected,
 							),
 						)
 					}
-					add(
-						SelectionItem(
-							onClick = { onSelect("Random") },
-							leading = {
-								Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-									Icon(
-										imageVector = Icons.Rounded.Shuffle,
-										contentDescription = null,
-										modifier = Modifier.size(iconSize),
-									)
-								}
-							},
-							title = { Text(stringResource(R.string.gateway_random), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-							selected = isRandomSelected,
-						),
+
+					SurfaceSelectionGroupButton(
+						items = items,
+						shape = RoundedCornerShape(14.dp),
+						background = MaterialTheme.colorScheme.primaryContainer,
+						anchorsPadding = 0.dp,
 					)
 				}
-
-				SurfaceSelectionGroupButton(
-					items = items,
-					shape = RectangleShape,
-					background = MaterialTheme.colorScheme.surface,
-					anchorsPadding = 0.dp,
-					modifier = Modifier
-						.padding(top = 12.dp.scaledHeight())
-						.padding(vertical = 4.dp),
-				)
 			}
 
-			if (uiState.items.isEmpty() && initialGatewaysEmpty) {
+			if (uiState.items.isEmpty() && uiState.isEmpty) {
 				item {
 					Box(
 						modifier = Modifier
@@ -340,20 +395,19 @@ internal fun HopScreenContent(
 							.padding(horizontal = 16.dp.scaledWidth()),
 						contentAlignment = Alignment.Center,
 					) {
-						if (uiState.error) {
-							Text(
-								stringResource(R.string.country_load_failure),
-								style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error),
-								textAlign = TextAlign.Center,
-							)
-						} else {
-							Text(
-								stringResource(R.string.loading),
-								style = MaterialTheme.typography.bodyMedium,
-								textAlign = TextAlign.Center,
-								color = MaterialTheme.colorScheme.onBackground,
-							)
+						val emptyStateText = when {
+							uiState.error -> stringResource(R.string.country_load_failure)
+							uiState.filter == ServerListFilter.FAVORITES -> stringResource(R.string.server_no_favorites_text)
+							uiState.filter == ServerListFilter.RECENT && !uiState.isLoading -> stringResource(R.string.server_no_recents_text)
+							else -> stringResource(R.string.loading)
 						}
+						Text(
+							emptyStateText,
+							style = MaterialTheme.typography.bodyMedium.copy(
+								color = if (uiState.error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
+							),
+							textAlign = TextAlign.Center,
+						)
 					}
 				}
 			}
@@ -424,18 +478,19 @@ internal fun HopScreenContent(
 							countryItem = item,
 							gatewayType = gatewayType,
 							gatewayLocation = gatewayLocation,
+							filter = uiState.filter,
 							selectedKey = selectedKey,
+							favoriteGatewayIds = uiState.favoriteGatewayIds,
 							onSelectionChange = onSelect,
 							onGatewayDetails = onNavigateToServerDetails,
+							onToggleFavorite = onToggleFavorite,
 							modifier = Modifier.padding(vertical = 4.dp),
-							isQuicSettingsEnabled = canShowQuicLabel,
 						)
 					}
 
 					is ItemType.GatewayItem -> {
 						val gateway = item.gateway
 						val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
-						val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
 
 						SurfaceSelectionGroupButton(
 							items = listOf(
@@ -449,11 +504,10 @@ internal fun HopScreenContent(
 									},
 									trailing = {
 										ServerDetailsTrailingContent(
-											showStreamDisplay = showStreamDisplay,
-											showQuicLabel = canShowQuicLabel && gateway.isQuicSupported(),
-										) {
-											onNavigateToServerDetails(gateway)
-										}
+											isFavorite = item.isFavorite,
+											onToggleFavorite = { onToggleFavorite(gateway.identity, item.isFavorite) },
+											onInfoIconClick = { onNavigateToServerDetails(gateway) },
+										)
 									},
 									title = {
 										Text(
@@ -476,11 +530,11 @@ internal fun HopScreenContent(
 									selected = selectedKey == gateway.identity,
 								),
 							),
-							shape = RectangleShape,
-							background = MaterialTheme.colorScheme.primaryContainer,
+							shape = RoundedCornerShape(14.dp),
+							background = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
 							divider = false,
 							anchorsPadding = 0.dp,
-							modifier = Modifier,
+							modifier = Modifier.padding(vertical = 4.dp),
 						)
 					}
 				}
@@ -489,25 +543,105 @@ internal fun HopScreenContent(
 	}
 }
 
+@Composable
+private fun GatewayLocationTabs(selected: GatewayLocation, onSelect: (GatewayLocation) -> Unit, modifier: Modifier = Modifier) {
+	val selectedTabIndex = if (selected == GatewayLocation.ENTRY) 0 else 1
+	val tabs = listOf(GatewayLocation.ENTRY to stringResource(R.string.server_entry_tab), GatewayLocation.EXIT to stringResource(R.string.server_exit_tab))
+
+	SecondaryTabRow(
+		selectedTabIndex = selectedTabIndex,
+		modifier = modifier,
+		containerColor = MaterialTheme.colorScheme.background,
+		contentColor = MaterialTheme.colorScheme.background,
+		indicator = {
+			TabRowDefaults.SecondaryIndicator(
+				modifier = Modifier.tabIndicatorOffset(selectedTabIndex = selectedTabIndex, matchContentSize = false),
+				color = MaterialTheme.colorScheme.primary,
+			)
+		},
+	) {
+		tabs.forEachIndexed { index, (location, title) ->
+			val tabSelected = index == selectedTabIndex
+			Tab(
+				selected = tabSelected,
+				onClick = { onSelect(location) },
+			) {
+				Text(
+					text = title,
+					style = MaterialTheme.typography.bodyLarge,
+					color = if (tabSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier.padding(top = 10.dp, bottom = 14.dp),
+				)
+			}
+		}
+	}
+}
+
+@Composable
+private fun ServerFilterPills(selected: ServerListFilter, onSelect: (ServerListFilter) -> Unit, modifier: Modifier = Modifier) {
+	val filters = listOf(
+		Triple(ServerListFilter.FAVORITES, Icons.Rounded.Star, stringResource(R.string.server_favorites_tab)),
+		Triple(ServerListFilter.RECENT, Icons.Rounded.AccessTime, stringResource(R.string.server_recent_tab)),
+		Triple(ServerListFilter.ALL_SERVERS, Icons.AutoMirrored.Rounded.List, stringResource(R.string.server_all_tab)),
+	)
+	Row(
+		horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth(), Alignment.CenterHorizontally),
+		modifier = modifier,
+	) {
+		filters.forEach { (filter, icon, label) ->
+			val isSelected = filter == selected
+			val contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer
+			val pillModifier = if (isSelected) {
+				Modifier
+					.clip(RoundedCornerShape(50))
+					.border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(50))
+			} else {
+				Modifier
+			}
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(4.dp.scaledWidth()),
+				modifier = pillModifier
+					.clickable { onSelect(filter) }
+					.padding(horizontal = 12.dp.scaledWidth(), vertical = 10.dp.scaledHeight()),
+			) {
+				Icon(
+					imageVector = icon,
+					contentDescription = null,
+					tint = contentColor,
+					modifier = Modifier.size(24.dp),
+				)
+				Text(
+					text = label,
+					style = MaterialTheme.typography.bodyMedium,
+					color = contentColor,
+				)
+			}
+		}
+	}
+}
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview
 @Composable
-internal fun HopScreenPreview() {
+internal fun ServerScreenPreview() {
 	NymVPNTheme(Theme.default()) {
 		Surface {
-			HopScreenContent(
-				uiState = HopUiState(),
+			ServerScreenContent(
+				uiState = ServerUiState(),
 				selectedKey = null,
 				gatewayType = GatewayType.WG,
 				canShowQuicLabel = false,
 				showBestOption = true,
 				algorithm = GatewaySelectionAlgorithm.AUTO,
 				gatewayLocation = GatewayLocation.EXIT,
-				initialGatewaysEmpty = true,
 				isRefreshing = false,
 				onRefresh = {},
 				onQueryChange = {},
 				onSelect = {},
+				onLocationSelect = {},
+				onFilterSelect = {},
+				onToggleFavorite = { _, _ -> },
 				onNavigateToCensorship = {},
 				onNavigateToServerDetails = {},
 			)

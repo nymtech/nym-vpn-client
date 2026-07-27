@@ -25,6 +25,9 @@ data class DetailsUiState(
 	val exitIpv4: String? = null,
 	val exitIpv6: String? = null,
 	val isQuickSupportedByGateway: Boolean = false,
+	val nodeFamilyName: String? = null,
+	val isPostQuantumEnabled: Boolean = false,
+	val isFavorite: Boolean = false,
 ) {
 	companion object {
 		fun from(gateway: NymGateway): DetailsUiState {
@@ -47,6 +50,8 @@ data class DetailsUiState(
 				exitIpv4 = gateway.exitIpv4s.firstOrNull(),
 				exitIpv6 = gateway.exitIpv6s.firstOrNull(),
 				isQuickSupportedByGateway = gateway.isQuicSupported(),
+				nodeFamilyName = gateway.nodeFamilyName,
+				isPostQuantumEnabled = gateway.isPostQuantumEnabled,
 			)
 		}
 	}
