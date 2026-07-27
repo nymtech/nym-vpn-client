@@ -11,6 +11,7 @@ use nym_vpn_lib_types::{AccountControllerState, TunnelState, TunnelType};
 use nym_vpn_proto::rpc_client::RpcClient as NymDaemonClient;
 use std::{
     collections::{BTreeMap, HashMap},
+    future::Future,
     net::{IpAddr, SocketAddr},
     path::PathBuf,
     process::Stdio,
@@ -22,7 +23,10 @@ use test_rpc::{
     AppTrace, Service, SpawnOpts, UNPRIVILEGED_USER,
     meta::OsVersion,
     net::SockHandleId,
-    nym_daemon::{ObservedAccountState, ObservedTunnelState, ObservedTunnelType},
+    nym_daemon::{
+        ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState, ObservedTunnelType,
+        WaitOutcome,
+    },
     package::Package,
 };
 use tokio::{
@@ -30,8 +34,14 @@ use tokio::{
     process::{ChildStdin, ChildStdout, Command},
     sync::{Mutex, broadcast::error::TryRecvError, oneshot},
     task,
-    time::sleep,
+    time::{Instant, sleep},
 };
+
+/// Cadence of the guest-local daemon poll inside a blocking account wait.
+const OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
+/// Upper bound on a single local UDS state read so a hung daemon call cannot stall past
+/// the wait deadline.
+const OBSERVE_READ_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[cfg(target_os = "linux")]
 const NYM_SYSTEMD_SERVICE_NAME: &str = "nymvpnd.service";
@@ -162,6 +172,37 @@ impl Service for NymTestServer {
             .await
             .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
         Ok(observed_account_state(state))
+    }
+
+    async fn wait_for_observed_account_state(
+        self,
+        _: context::Context,
+        targets: Vec<ObservedAccountStateKind>,
+        timeout_ms: u64,
+    ) -> Result<WaitOutcome<ObservedAccountState>, test_rpc::Error> {
+        if targets.is_empty() {
+            return Err(test_rpc::Error::Other(
+                "wait_for_observed_account_state requires at least one target".into(),
+            ));
+        }
+        let client = NymDaemonClient::new()
+            .await
+            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
+        wait_for_observed(
+            timeout_ms,
+            || {
+                let mut client = client.clone();
+                async move {
+                    client
+                        .get_account_state()
+                        .await
+                        .map(observed_account_state)
+                        .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))
+                }
+            },
+            |state| targets.iter().any(|target| target.matches(state)),
+        )
+        .await
     }
 
     /// Get the installed app version
@@ -735,6 +776,54 @@ impl Service for NymTestServer {
             }
             Ok(())
         }
+    }
+}
+
+async fn wait_for_observed<S, Fut>(
+    timeout_ms: u64,
+    mut read: impl FnMut() -> Fut,
+    accept: impl Fn(&S) -> bool,
+) -> Result<WaitOutcome<S>, test_rpc::Error>
+where
+    Fut: Future<Output = Result<S, test_rpc::Error>>,
+    S: std::fmt::Debug,
+{
+    let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+    let mut last_observed = None;
+
+    loop {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            log::info!(
+                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
+            );
+            return Ok(WaitOutcome::TimedOut { last_observed });
+        }
+
+        let read_budget = OBSERVE_READ_TIMEOUT.min(remaining);
+        match tokio::time::timeout(read_budget, read()).await {
+            Ok(Ok(state)) => {
+                if accept(&state) {
+                    log::info!("observe-wait returning Reached: {state:?}");
+                    return Ok(WaitOutcome::Reached(state));
+                }
+                last_observed = Some(state);
+            }
+            Ok(Err(error)) => log::warn!("observed-state read failed mid-wait: {error}"),
+            Err(_) => log::warn!(
+                "observed-state read timed out after {}ms; retrying until wait deadline",
+                read_budget.as_millis()
+            ),
+        }
+
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            log::info!(
+                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
+            );
+            return Ok(WaitOutcome::TimedOut { last_observed });
+        }
+        sleep(OBSERVE_POLL_INTERVAL.min(remaining)).await;
     }
 }
 

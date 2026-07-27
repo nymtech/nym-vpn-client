@@ -180,6 +180,13 @@ mod service {
         /// Account state via guest-local daemon UDS (bypasses serial gRPC forward).
         async fn get_observed_account_state() -> Result<nym_daemon::ObservedAccountState, Error>;
 
+        /// Block on the guest until the account reaches one of `targets` or `timeout_ms`
+        /// elapses. Polling stays on guest-local UDS; one outcome crosses the serial link.
+        async fn wait_for_observed_account_state(
+            targets: Vec<nym_daemon::ObservedAccountStateKind>,
+            timeout_ms: u64,
+        ) -> Result<nym_daemon::WaitOutcome<nym_daemon::ObservedAccountState>, Error>;
+
         /// Return version number of installed daemon.
         async fn nymvpn_version() -> Result<String, Error>;
 

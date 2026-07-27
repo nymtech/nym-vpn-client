@@ -24,21 +24,23 @@ const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 const DAEMON_QUIESCE_SETTLE: Duration = Duration::from_millis(250);
 
-/// Host-side poll cadence for guest-local `get_observed_*` while DaemonRpc is dropped.
-/// Short request/response pairs; a single long-lived guest wait reply can be lost after the
-/// guest reaches the target (CI: guest stops UDS polls, host never sees the reply).
+/// Host-side poll cadence for guest-local `get_observed_tunnel_state` while DaemonRpc is dropped.
+/// Used for Connected waits only: a long-lived guest wait reply can be lost after Connected.
 const HOST_OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const HOST_OBSERVE_RPC_TIMEOUT: Duration = Duration::from_secs(10);
-const WAIT_FOR_ACCOUNT_STATE_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// One guest-local tunnel observe (tarpc → guest UDS). Host polls this while DaemonRpc is quiet.
 trait TunnelObserver {
     async fn observe_tunnel(&self) -> Result<ObservedTunnelState, Error>;
 }
 
-/// One guest-local account observe (tarpc → guest UDS). Host polls this while DaemonRpc is quiet.
-trait AccountObserver {
-    async fn observe_account(&self) -> Result<ObservedAccountState, Error>;
+/// Waits for an account-state discriminant on the guest, returning a single reply.
+trait AccountWaiter {
+    async fn wait_account(
+        &self,
+        targets: Vec<ObservedAccountStateKind>,
+        timeout: Duration,
+    ) -> Result<WaitOutcome<ObservedAccountState>, Error>;
 }
 
 impl TunnelObserver for NymServiceClient {
@@ -47,9 +49,15 @@ impl TunnelObserver for NymServiceClient {
     }
 }
 
-impl AccountObserver for NymServiceClient {
-    async fn observe_account(&self) -> Result<ObservedAccountState, Error> {
-        Ok(self.get_observed_account_state().await?)
+impl AccountWaiter for NymServiceClient {
+    async fn wait_account(
+        &self,
+        targets: Vec<ObservedAccountStateKind>,
+        timeout: Duration,
+    ) -> Result<WaitOutcome<ObservedAccountState>, Error> {
+        Ok(self
+            .wait_for_observed_account_state(targets, timeout)
+            .await?)
     }
 }
 
@@ -142,20 +150,45 @@ pub async fn login_idempotent(
             return Ok(nym_client);
         }
         ObservedAccountState::LoggedOut => {
-            store_account_idempotent(&mut nym_client).await?;
+            nym_client = store_account_with_transport_retry(nym_client, provider).await?;
         }
         _ => {
             // for other states just wait, AC will either reach ReadyToConnect or we'll timeout.
         }
     }
-    let (_state, nym_client) = wait_for_account_state(
-        runner,
-        nym_client,
-        provider,
-        ObservedAccountState::ReadyToConnect,
-    )
-    .await?;
+    wait_for_account_state(runner, ObservedAccountState::ReadyToConnect)
+        .await
+        .map(drop)?;
     Ok(nym_client)
+}
+
+/// One transport-retry after a broken DaemonRpc session (seen after disconnect wait recreate).
+async fn store_account_with_transport_retry(
+    mut nym_client: NymProxyClient,
+    provider: &RpcClientProvider,
+) -> anyhow::Result<NymProxyClient> {
+    match store_account_idempotent(&mut nym_client).await {
+        Ok(()) => Ok(nym_client),
+        Err(error) if is_daemon_rpc_transport_error(&error) => {
+            log::warn!(
+                "store_account hit a dead DaemonRpc session; recreating client and retrying once: {error}"
+            );
+            drop(nym_client);
+            settle_daemon_rpc_quiesce().await;
+            let mut nym_client = provider.new_client_nym().await?;
+            store_account_idempotent(&mut nym_client).await?;
+            Ok(nym_client)
+        }
+        Err(error) => Err(error),
+    }
+}
+
+pub(crate) fn is_daemon_rpc_transport_error(error: &anyhow::Error) -> bool {
+    let message = error.to_string().to_ascii_lowercase();
+    message.contains("broken pipe")
+        || message.contains("transport error")
+        || message.contains("connection reset")
+        || message.contains("h2 protocol error")
 }
 
 async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
@@ -253,27 +286,46 @@ pub async fn wait_for_tunnel_state(
         "Waiting for tunnel state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    // Drop DaemonRpc before observe so HTTP/2 cannot HOL tarpc replies on the serial mux.
-    log::debug!("quiescing serial DaemonRpc before observe wait");
-    drop(nym_client);
-    settle_daemon_rpc_quiesce().await;
 
-    let observed = wait_for_tunnel_state_fn(
-        runner,
-        provider,
-        vec![tunnel_target(&expected)],
-        timeout,
-        disconnect_on_timeout,
-    )
-    .await;
-    let client = provider.new_client_nym().await.map_err(Error::Other);
-    match merge_wait_and_client(observed, client) {
-        Ok(pair) => Ok(pair),
-        Err((error, client)) => {
-            drop(client);
-            Err(error)
-        }
+    // Only Connected waits drop DaemonRpc. Disconnected waits keep the live session: dropping
+    // and recreating here races the next store_account (CI: broken pipe after disconnect wait).
+    let drop_daemon_rpc = matches!(expected, ExpectedTunnelState::Connected);
+    if drop_daemon_rpc {
+        log::debug!("quiescing serial DaemonRpc before Connected observe wait");
+        drop(nym_client);
+        settle_daemon_rpc_quiesce().await;
+
+        let observed = wait_for_tunnel_state_fn(
+            runner,
+            provider,
+            vec![tunnel_target(&expected)],
+            timeout,
+            disconnect_on_timeout,
+        )
+        .await;
+        let client = provider.new_client_nym().await.map_err(Error::Other);
+        return match merge_wait_and_client(observed, client) {
+            Ok(pair) => Ok(pair),
+            Err((error, client)) => {
+                drop(client);
+                Err(error)
+            }
+        };
     }
+
+    let mut disconnect_client = ProviderDisconnectClient::new(provider);
+    let observed = enforce_tunnel_wait_deadline(
+        timeout,
+        run_tunnel_wait(
+            runner,
+            &mut disconnect_client,
+            vec![tunnel_target(&expected)],
+            timeout,
+            disconnect_on_timeout,
+        ),
+    )
+    .await?;
+    Ok((observed, nym_client))
 }
 
 pub(crate) async fn settle_daemon_rpc_quiesce() {
@@ -451,29 +503,14 @@ async fn enforce_tunnel_wait_deadline<T>(
 
 pub async fn wait_for_account_state(
     runner: &NymServiceClient,
-    nym_client: NymProxyClient,
-    provider: &RpcClientProvider,
     expected: ObservedAccountState,
-) -> Result<(ObservedAccountState, NymProxyClient), Error> {
-    let timeout = WAIT_FOR_ACCOUNT_STATE_TIMEOUT;
+) -> Result<ObservedAccountState, Error> {
+    let timeout = Duration::from_secs(60);
     log::debug!(
         "Waiting for account state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    // Drop DaemonRpc before observe so HTTP/2 cannot HOL tarpc replies on the serial mux.
-    log::debug!("quiescing serial DaemonRpc before account observe wait");
-    drop(nym_client);
-    settle_daemon_rpc_quiesce().await;
-
-    let observed = run_account_wait(runner, vec![account_target(&expected)], timeout).await;
-    let client = provider.new_client_nym().await.map_err(Error::Other);
-    match merge_wait_and_client(observed, client) {
-        Ok(pair) => Ok(pair),
-        Err((error, client)) => {
-            drop(client);
-            Err(error)
-        }
-    }
+    run_account_wait(runner, vec![account_target(&expected)], timeout).await
 }
 
 /// Payload-insensitive discriminant selector for a given expected account state.
@@ -489,62 +526,37 @@ pub(crate) fn account_target(expected: &ObservedAccountState) -> ObservedAccount
     }
 }
 
-/// Poll guest-local account state over tarpc. Caller must drop DaemonRpc for the wait duration.
-async fn run_account_wait<O>(
-    observer: &O,
+/// Wait for an account discriminant via a single guest tarpc call (local UDS).
+async fn run_account_wait<W>(
+    waiter: &W,
     targets: Vec<ObservedAccountStateKind>,
     timeout: Duration,
 ) -> Result<ObservedAccountState, Error>
 where
-    O: AccountObserver,
+    W: AccountWaiter,
 {
-    let deadline = tokio::time::Instant::now() + timeout;
-    let mut last_observed = None;
-
     log::debug!(
-        "account wait: host polling get_observed (timeout={}s)",
+        "account wait: calling guest wait_for_observed (timeout={}s)",
         timeout.as_secs()
     );
-
-    loop {
-        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
-        if remaining.is_zero() {
-            return Err(wait_timeout_error(
-                "account",
-                timeout,
-                last_observed.as_ref().map(|state| format!("{state:?}")),
-            ));
-        }
-
-        let rpc_budget = HOST_OBSERVE_RPC_TIMEOUT.min(remaining);
-        match tokio::time::timeout(rpc_budget, observer.observe_account()).await {
-            Ok(Ok(state)) => {
-                if targets.iter().any(|target| target.matches(&state)) {
-                    log::info!("account wait: observed target {state:?}");
-                    return Ok(state);
-                }
-                last_observed = Some(state);
-            }
-            Ok(Err(error)) => {
-                log::warn!("account wait: observe RPC failed (will retry): {error:?}");
-            }
-            Err(_) => {
-                log::debug!(
-                    "account wait: observe RPC timed out after {}ms (will retry)",
-                    rpc_budget.as_millis()
-                );
+    match waiter.wait_account(targets, timeout).await {
+        Ok(outcome) => {
+            log::info!("account wait: guest replied with {outcome:?}");
+            match outcome {
+                WaitOutcome::Reached(state) => Ok(state),
+                WaitOutcome::TimedOut { last_observed } => Err(wait_timeout_error(
+                    "account",
+                    timeout,
+                    last_observed.as_ref().map(|state| format!("{state:?}")),
+                )),
             }
         }
-
-        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
-        if remaining.is_zero() {
-            return Err(wait_timeout_error(
-                "account",
-                timeout,
-                last_observed.as_ref().map(|state| format!("{state:?}")),
-            ));
+        Err(error) => {
+            log::error!("account wait: guest RPC failed: {error}");
+            Err(Error::Daemon(format!(
+                "account state wait RPC failed: {error}"
+            )))
         }
-        tokio::time::sleep(HOST_OBSERVE_POLL_INTERVAL.min(remaining)).await;
     }
 }
 
@@ -589,9 +601,10 @@ pub async fn resolve_hostname_with_retry(
 #[cfg(test)]
 mod tests {
     use super::{
-        AccountObserver, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
-        enforce_tunnel_wait_deadline, merge_wait_and_client, run_account_wait, run_tunnel_wait,
-        settle_daemon_rpc_quiesce, tunnel_target, tunnel_wait_budget, tunnel_wait_params,
+        AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
+        enforce_tunnel_wait_deadline, is_daemon_rpc_transport_error, merge_wait_and_client,
+        run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
+        tunnel_wait_budget, tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
@@ -601,7 +614,7 @@ mod tests {
     use std::time::Duration;
     use test_rpc::nym_daemon::{
         ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState,
-        ObservedTunnelStateKind, ObservedTunnelType,
+        ObservedTunnelStateKind, ObservedTunnelType, WaitOutcome,
     };
 
     fn rpc_failed() -> Error {
@@ -642,29 +655,18 @@ mod tests {
         }
     }
 
-    /// Scripted host-side observe polls for `run_account_wait` unit tests.
-    struct FakeAccountObserver {
-        polls: Mutex<VecDeque<Result<ObservedAccountState, ()>>>,
+    struct FakeAccountWaiter {
+        reply: Result<WaitOutcome<ObservedAccountState>, ()>,
     }
 
-    impl FakeAccountObserver {
-        fn new(polls: Vec<Result<ObservedAccountState, ()>>) -> Self {
-            Self {
-                polls: Mutex::new(polls.into()),
-            }
-        }
-    }
-
-    impl AccountObserver for FakeAccountObserver {
-        async fn observe_account(&self) -> Result<ObservedAccountState, Error> {
-            let next = self
-                .polls
-                .lock()
-                .expect("poll script lock")
-                .pop_front()
-                .unwrap_or(Ok(ObservedAccountState::Syncing));
-            match next {
-                Ok(state) => Ok(state),
+    impl AccountWaiter for FakeAccountWaiter {
+        async fn wait_account(
+            &self,
+            _targets: Vec<ObservedAccountStateKind>,
+            _timeout: Duration,
+        ) -> Result<WaitOutcome<ObservedAccountState>, Error> {
+            match &self.reply {
+                Ok(outcome) => Ok(outcome.clone()),
                 Err(()) => Err(rpc_failed()),
             }
         }
@@ -824,15 +826,14 @@ mod tests {
         assert_eq!(disconnect.disconnects, 1);
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test]
     async fn reached_account_state_returns_ok() {
-        let observer = FakeAccountObserver::new(vec![
-            Ok(ObservedAccountState::Syncing),
-            Ok(ObservedAccountState::ReadyToConnect),
-        ]);
+        let waiter = FakeAccountWaiter {
+            reply: Ok(WaitOutcome::Reached(ObservedAccountState::ReadyToConnect)),
+        };
 
         let state = run_account_wait(
-            &observer,
+            &waiter,
             vec![ObservedAccountStateKind::ReadyToConnect],
             Duration::from_secs(2),
         )
@@ -842,20 +843,49 @@ mod tests {
         assert!(matches!(state, ObservedAccountState::ReadyToConnect));
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test]
     async fn account_timeout_reports_last_observed() {
-        let observer = FakeAccountObserver::new(vec![Ok(ObservedAccountState::Syncing)]);
+        let waiter = FakeAccountWaiter {
+            reply: Ok(WaitOutcome::TimedOut {
+                last_observed: Some(ObservedAccountState::Syncing),
+            }),
+        };
 
         let error = run_account_wait(
-            &observer,
+            &waiter,
             vec![ObservedAccountStateKind::ReadyToConnect],
-            Duration::from_millis(200),
+            Duration::from_secs(2),
         )
         .await
         .expect_err("a timeout outcome must surface as an error");
 
         assert!(error.to_string().contains("account state wait timed out"));
         assert!(error.to_string().contains("last_observed=Syncing"));
+    }
+
+    #[test]
+    fn transport_error_classifier_matches_broken_daemon_rpc() {
+        assert!(is_daemon_rpc_transport_error(&anyhow::anyhow!(
+            "store_account RPC failed: transport error"
+        )));
+        assert!(is_daemon_rpc_transport_error(&anyhow::anyhow!(
+            "broken pipe"
+        )));
+        assert!(!is_daemon_rpc_transport_error(&anyhow::anyhow!(
+            "store_account error: ExistingAccount"
+        )));
+    }
+
+    #[test]
+    fn connected_wait_drops_daemon_rpc_but_disconnect_does_not() {
+        assert!(matches!(
+            tunnel_wait_params(&ExpectedTunnelState::Connected),
+            (WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, true)
+        ));
+        assert!(matches!(
+            tunnel_wait_params(&ExpectedTunnelState::Disconnected),
+            (WAIT_FOR_TUNNEL_STATE_TIMEOUT, false)
+        ));
     }
 
     #[tokio::test(start_paused = true)]
