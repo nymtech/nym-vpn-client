@@ -236,6 +236,8 @@ jobs:
 
       - name: Merge x86_64 and arm64 artifacts
         run: |
+          set -euo pipefail
+
           mkdir "${{ env.CORE_ARTIFACTS_MACOS }}"
 
           for filepath in ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}/*; do
