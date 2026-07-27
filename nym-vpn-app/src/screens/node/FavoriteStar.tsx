@@ -25,7 +25,7 @@ function FavoriteStar({ favorite, isFavorite, hop, className }: Props) {
       data-testid="favorite-star"
       data-favorite={isFavorite}
       className={clsx(
-        'flex shrink-0 cursor-default items-center justify-center rounded-full p-1 focus:outline-none',
+        'flex shrink-0 cursor-default items-center justify-center rounded-full p-1 focus:outline-none focus-visible:outline-2 focus-visible:outline-brand-primary',
         className,
       )}
     >
