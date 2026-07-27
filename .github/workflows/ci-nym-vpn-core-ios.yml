@@ -82,6 +82,6 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo run -p uniffi-bindgen generate \
-            --library target/aarch64-apple-ios/debug/libnym_vpn_lib_uniffi.a  \
+            --library target/aarch64-apple-ios/ci/libnym_vpn_lib_uniffi.a  \
             --config crates/nym-vpn-lib-uniffi/uniffi.toml \
             --language swift --out-dir build -n
