@@ -1,4 +1,6 @@
 name: build-nym-vpn-app-macos
+permissions:
+  contents: read
 on:
   # pull_request:
   #   types: [opened, synchronize, reopened]
