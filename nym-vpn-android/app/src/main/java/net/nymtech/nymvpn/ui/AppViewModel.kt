@@ -253,11 +253,11 @@ constructor(
 				Timber.tag(TAG).i("AutoStartStartingTunnel")
 				backendManager.startTunnel()
 				Timber.tag(TAG).i("AutoStartStartRequested")
-				return
+			} else {
+				Timber.tag(TAG).d("AutoStartWatching state=%s", tunnelState)
 			}
 
-			Timber.tag(TAG).d("AutoStartWatching state=%s", tunnelState)
-			val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS) {
+			val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS.milliseconds) {
 				backendManager.stateFlow.map { it.tunnelState }.first { it == Tunnel.State.Up }
 			}
 			if (reachedUp == null) {

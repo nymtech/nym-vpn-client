@@ -54,14 +54,21 @@ class BootReceiver : BroadcastReceiver() {
 					return@launch
 				}
 
+				val initializedState = withTimeoutOrNull(Constants.AUTO_START_INIT_WAIT_MS) {
+					backendManager.stateFlow.first { it.isInitialized }
+				}
+				if (initializedState == null) {
+					Timber.tag(TAG).w("BootAutoStartSkipped reason=backend_init_timeout")
+					return@launch
+				}
+
 				val state = backendManager.getState()
 				if (state == Tunnel.State.Down) {
 					Timber.tag(TAG).i("BootAutoStartRequested")
 					backendManager.startTunnel()
-					return@launch
+				} else {
+					Timber.tag(TAG).i("BootAutoStartWatching state=%s", state)
 				}
-
-				Timber.tag(TAG).i("BootAutoStartWatching state=%s", state)
 				watchAndRetryIfStuck()
 			} catch (t: Throwable) {
 				Timber.tag(TAG).e(t, "BootAutoStartFailed")
@@ -74,7 +81,7 @@ class BootReceiver : BroadcastReceiver() {
 	private fun watchAndRetryIfStuck() {
 		applicationScope.launch {
 			runCatching {
-				val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS) {
+				val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS.milliseconds) {
 					backendManager.stateFlow.map { it.tunnelState }.first { it == Tunnel.State.Up }
 				}
 				if (reachedUp == null) {
