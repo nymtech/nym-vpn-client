@@ -133,9 +133,17 @@ export type ErrorKey =
   | 'device-time-desync'
   | 'split-tunnel-app-invalid'
   | 'split-tunnel-app-duplicate'
+  | 'insufficient-funds'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query';
+
+export type Favorite =
+  | { country: { code: string } }
+  | { gateway: { id: string } }
+  | { region: string };
+
+export type Favorites = { entry: Array<Favorite>; exit: Array<Favorite> };
 
 export type FeatureFlags = {
   quic: boolean;

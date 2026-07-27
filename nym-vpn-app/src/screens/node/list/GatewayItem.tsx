@@ -2,8 +2,10 @@ import { useCallback } from 'react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { UiGateway } from '../../../types/node';
+import { nodeToFavorite } from '../../../types/favorites';
 import { useNodeListState } from '../../../store/nodeListState';
 import { ButtonIcon, MsIcon } from '../../../ui';
+import FavoriteStar from '../FavoriteStar';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
 import { countriesWithRegions } from '../../../constants';
@@ -107,6 +109,11 @@ const GatewayItem = ({
       {streamOptimized && (
         <MsIcon icon="smart_display" className="text-status-info" />
       )}
+      <FavoriteStar
+        favorite={nodeToFavorite(gateway)}
+        isFavorite={gateway.isFavorite}
+        hop={node}
+      />
       <div className="flex items-center self-stretch p-2">
         <ButtonIcon
           color="chalk"

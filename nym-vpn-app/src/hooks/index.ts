@@ -13,6 +13,7 @@ export { default as useScore } from './useScore';
 export { default as useDeepLink } from './useDeepLink';
 export { default as useLogout } from './useLogout';
 export { default as useToast } from './useToast';
+export { default as useToggleFavorite } from './useToggleFavorite';
 export { default as useDebounce } from './useDebounce';
 export { default as useConnect } from './useConnect';
 export { default as useGatewayIndependenceWatcher } from './useGatewayIndependenceWatcher';

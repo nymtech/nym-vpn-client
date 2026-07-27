@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import clsx from 'clsx';
 import { Collapsible } from '@base-ui-components/react';
 import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
+import { nodeToFavorite } from '../../../types/favorites';
 import { useNodeListState } from '../../../store/nodeListState';
+import FavoriteStar from '../FavoriteStar';
 import LocationInfo from './LocationInfo';
 import FoldButton from './FoldButton';
 
@@ -75,6 +77,11 @@ function RowHeader({
           hideFlag={node.nodeType === 'region'}
         />
       </div>
+      <FavoriteStar
+        favorite={nodeToFavorite(node)}
+        isFavorite={node.isFavorite}
+        hop={hop}
+      />
       <Collapsible.Trigger
         render={(props, state) => <FoldButton html={props} state={state} />}
       />

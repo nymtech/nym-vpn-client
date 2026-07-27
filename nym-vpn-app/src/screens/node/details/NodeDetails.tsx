@@ -7,7 +7,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { UiGateway, isSelectedNodeType } from '../../../types/node';
+import { favoriteKey, nodeToFavorite } from '../../../types/favorites';
 import { useNodeListState } from '../../../store/nodeListState';
+import { useFavorites } from '../../../store/favoritesState';
+import FavoriteStar from '../FavoriteStar';
 import {
   Button,
   ButtonIconNew,
@@ -82,6 +85,13 @@ function NodeDetails() {
   const asnValue = asn?.asn;
   const asnName = asn?.name;
   const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
+
+  const favorites = useFavorites(hop);
+  const favorite = useMemo(() => nodeToFavorite(gateway), [gateway]);
+  const isFavorite = useMemo(() => {
+    const key = favoriteKey(favorite);
+    return favorites.some((f) => favoriteKey(f) === key);
+  }, [favorites, favorite]);
   const selectedNode = isSelectedNodeType(gateway, entryNode, exitNode);
   const isSelected = selectedNode === 'exit' || selectedNode === 'entry';
   const quic = backendFlags.quic && gateway.quic;
@@ -194,7 +204,15 @@ function NodeDetails() {
                 alt={country.code}
                 className="h-6 w-6 shrink-0 rounded-full"
               />
-              <p className="text-text-primary ml-4 text-base">{gateway.name}</p>
+              <p className="text-text-primary ml-4 truncate text-base">
+                {gateway.name}
+              </p>
+              <FavoriteStar
+                favorite={favorite}
+                isFavorite={isFavorite}
+                hop={hop}
+                className="ml-auto"
+              />
             </CardNewHeader>
             <CardDivider />
             <CardNewBody className="flex-col gap-3 py-4">
