@@ -3,12 +3,14 @@ import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { UiGateway } from '../../../types/node';
 import { useNodeListState } from '../../../store/nodeListState';
+import { useToggleFavorite } from '../../../store';
 import { ButtonIcon, MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
 import { countriesWithRegions } from '../../../constants';
 import QuicTag from '../QuicTag';
 import { ScoreIndicator } from '../ScoreIndicator';
+import FavoriteStar from './FavoriteStar';
 
 type GatewayRowProps = {
   gateway: UiGateway;
@@ -30,6 +32,7 @@ const GatewayItem = ({
   inSearchResult,
 }: GatewayRowProps) => {
   const { exit: exitNodeList, entry: entryNodeList } = useNodeListState();
+  const toggleFavorite = useToggleFavorite();
   const focused =
     node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
 
@@ -107,6 +110,10 @@ const GatewayItem = ({
       {streamOptimized && (
         <MsIcon icon="smart_display" className="text-status-info" />
       )}
+      <FavoriteStar
+        isFavorite={gateway.isFavorite}
+        onToggle={() => toggleFavorite(node, 'gateway', gateway.id)}
+      />
       <div className="flex items-center self-stretch p-2">
         <ButtonIcon
           color="chalk"

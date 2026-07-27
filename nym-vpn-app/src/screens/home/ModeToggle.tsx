@@ -1,5 +1,3 @@
-import { motion } from 'motion/react';
-import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -11,6 +9,7 @@ import {
 import { dispatch, useAppStore, useFetchGateways } from '../../store';
 import { useToast } from '../../hooks';
 import { GatewaySelectionAlgorithm, VpnMode } from '../../types';
+import { SegmentedToggle, SegmentedToggleItem } from '../../ui';
 
 const MODES = [
   // { id: 'auto', Icon: GatewayModeAutoIcon },
@@ -138,34 +137,18 @@ export const ModeToggle = () => {
     }
   };
 
+  const items: SegmentedToggleItem<Mode>[] = MODES.map((mode) => ({
+    id: mode.id,
+    label: t(`mode-toggle.${mode.id}`),
+    icon: <mode.Icon className="h-4 w-auto" />,
+  }));
+
   return (
-    <div className="bg-surface-bg relative flex items-center gap-2 rounded-full p-0.5">
-      {MODES.map((mode) => {
-        const isSelected = selected === mode.id;
-        return (
-          <button
-            key={mode.id}
-            type="button"
-            onClick={() => handleSelect(mode.id)}
-            className={clsx(
-              'relative flex flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-sm font-bold transition-colors',
-              isSelected
-                ? 'text-primary'
-                : 'text-text-secondary hover:bg-surface-elev',
-            )}
-          >
-            {isSelected && (
-              <motion.div
-                layoutId="mode-toggle-pill"
-                className="bg-surface-elev absolute inset-0 rounded-full"
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-              />
-            )}
-            <mode.Icon className="z-10 h-4 w-auto" />
-            <span className="z-10">{t(`mode-toggle.${mode.id}`)}</span>
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedToggle
+      items={items}
+      value={selected}
+      onChange={handleSelect}
+      layoutId="mode-toggle-pill"
+    />
   );
 };

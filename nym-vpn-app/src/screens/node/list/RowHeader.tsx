@@ -3,8 +3,10 @@ import clsx from 'clsx';
 import { Collapsible } from '@base-ui-components/react';
 import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
 import { useNodeListState } from '../../../store/nodeListState';
+import { useToggleFavorite } from '../../../store';
 import LocationInfo from './LocationInfo';
 import FoldButton from './FoldButton';
+import FavoriteStar from './FavoriteStar';
 
 export type RowHeaderProps = {
   hop: 'entry' | 'exit';
@@ -26,6 +28,7 @@ function RowHeader({
   open,
 }: RowHeaderProps) {
   const { exit: exitNodeList, entry: entryNodeList } = useNodeListState();
+  const toggleFavorite = useToggleFavorite();
 
   const focused =
     hop === 'entry' ? entryNodeList.focused : exitNodeList.focused;
@@ -75,6 +78,12 @@ function RowHeader({
           hideFlag={node.nodeType === 'region'}
         />
       </div>
+      {node.nodeType === 'country' && (
+        <FavoriteStar
+          isFavorite={node.isFavorite}
+          onToggle={() => toggleFavorite(hop, 'country', node.code)}
+        />
+      )}
       <Collapsible.Trigger
         render={(props, state) => <FoldButton html={props} state={state} />}
       />

@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
@@ -16,10 +16,16 @@ import { Link, MsIcon, PageAnim, /* SmileyIcon, */ TextInput } from '../../ui';
 import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
-import { dispatch, useAppStore, useFetchGateways } from '../../store';
+import {
+  dispatch,
+  useAppStore,
+  useFetchGateways,
+  useLoadFavorites,
+} from '../../store';
 import { useNodeListState } from '../../store/nodeListState';
 import { LocationDetailsDialog } from './location-details-dialog';
-import { NodeList, useFilterList } from './list';
+import { NodeList, ServerTabs, useFilterList } from './list';
+import type { ServerTab } from './list';
 
 const QUICK_PICK_CLASSES =
   'bg-surface-bg hover:bg-surface-hair flex cursor-default flex-row items-center gap-3 rounded-2xl p-4 transition-all duration-100';
@@ -31,6 +37,7 @@ function Node({ node }: { node: NodeHop }) {
     node === 'entry' ? s.entryNode : s.exitNode,
   );
   const fetchGateways = useFetchGateways();
+  const loadFavorites = useLoadFavorites();
 
   const {
     loading,
@@ -62,10 +69,49 @@ function Node({ node }: { node: NodeHop }) {
   const { add } = useToast();
   const { t } = useTranslation('node-location');
 
+  const [serverTab, setServerTab] = useState<ServerTab>('all');
+
+  // Favorites view of the grouped list: a favorited country keeps all of its
+  // servers; other countries keep only their favorited servers. Countries with
+  // nothing favorited drop out entirely.
+  const favoriteNodes = useMemo(() => {
+    return rawNodes.reduce<typeof rawNodes>((acc, country) => {
+      if (country.country.isFavorite) {
+        acc.push(country);
+        return acc;
+      }
+      const gateways = country.gateways.filter((g) => g.isFavorite);
+      const regions = country.regions
+        .map((r) => ({
+          ...r,
+          gateways: r.gateways.filter((g) => g.isFavorite),
+        }))
+        .filter((r) => r.gateways.length > 0);
+      if (gateways.length > 0 || regions.length > 0) {
+        acc.push({ ...country, gateways, regions });
+      }
+      return acc;
+    }, []);
+  }, [rawNodes]);
+
+  // Flat favorited gateways, used so search within the Favorites tab only
+  // matches favorited servers.
+  const favoriteGateways = useMemo(
+    () => rawGateways.filter((g) => g.isFavorite),
+    [rawGateways],
+  );
+
+  const favoritesEmpty =
+    favoriteNodes.length === 0 && favoriteGateways.length === 0;
+
+  const baseNodes = serverTab === 'favorites' ? favoriteNodes : rawNodes;
+  const baseGateways =
+    serverTab === 'favorites' ? favoriteGateways : rawGateways;
+
   const { filter, nodes, gateways } = useFilterList(
     node,
-    rawNodes,
-    rawGateways,
+    baseNodes,
+    baseGateways,
     vpnMode,
   );
   const deferredNodes = useDeferredValue(nodes);
@@ -79,6 +125,10 @@ function Node({ node }: { node: NodeHop }) {
   const nodesCount = useMemo(() => {
     return nodes.reduce((acc, node) => acc + node.gateways.length, 0);
   }, [nodes]);
+
+  useEffect(() => {
+    loadFavorites();
+  }, [loadFavorites]);
 
   useEffect(() => {
     if (daemonStatus === 'down') return;
@@ -334,6 +384,9 @@ function Node({ node }: { node: NodeHop }) {
               nodesCount,
             })}
           </p>
+          <div className="mt-3">
+            <ServerTabs value={serverTab} onChange={setServerTab} hop={node} />
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {loading && (
@@ -349,19 +402,22 @@ function Node({ node }: { node: NodeHop }) {
           )}
           {!loading && (
             <>
-              <div className="flex w-full flex-col gap-3 px-3 pt-3">
-                <Button
-                  onClick={handleRandom}
-                  className={clsx(QUICK_PICK_CLASSES, {
-                    'border-brand-primary-active border-2': randomActive,
-                  })}
-                >
-                  <MsIcon icon="shuffle" className="text-text-primary" />
-                  <span className="text-text-primary text-base">
-                    {t('quick-pick.random')}
-                  </span>
-                </Button>
-                {/* {showBestServer && (
+              {serverTab === 'all' && (
+                <div className="flex w-full flex-col gap-3 px-3 pt-3">
+                  <Button
+                    onClick={handleRandom}
+                    className={clsx(QUICK_PICK_CLASSES, {
+                      'border-brand-primary-active border-2': randomActive,
+                    })}
+                  >
+                    <MsIcon icon="shuffle" className="text-text-primary" />
+                    <span className="text-text-primary text-base">
+                      {t('quick-pick.random')}
+                    </span>
+                  </Button>
+                </div>
+              )}
+              {/* {showBestServer && (
                   <Button
                     onClick={handleBestServer}
                     className={clsx(QUICK_PICK_CLASSES, {
@@ -374,10 +430,14 @@ function Node({ node }: { node: NodeHop }) {
                     </span>
                   </Button>
                 )} */}
-              </div>
               <NodeList
                 nodes={deferredNodes}
                 gateways={deferredGateways}
+                emptyVariant={
+                  serverTab === 'favorites' && favoritesEmpty
+                    ? 'favorites'
+                    : 'search'
+                }
                 onSelect={handleSelect}
                 onNodeDetails={handleNodeDetails}
                 hop={node}

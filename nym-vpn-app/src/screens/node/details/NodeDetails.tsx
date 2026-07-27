@@ -30,7 +30,7 @@ import {
   SupportServerLocationUrl,
 } from '../../../constants';
 import { routes } from '../../../router';
-import { dispatch, useAppStore } from '../../../store';
+import { dispatch, useAppStore, useToggleFavorite } from '../../../store';
 import { ScoreIndicator } from '../ScoreIndicator';
 import { LewesIcon } from '../../../assets/index';
 
@@ -46,6 +46,7 @@ function NodeDetails() {
     exitNode,
     quic: quicSetting,
     algoConfig,
+    favorites,
   } = useAppStore(
     useShallow((s) => ({
       backendFlags: s.backendFlags,
@@ -53,8 +54,10 @@ function NodeDetails() {
       exitNode: s.exitNode,
       quic: s.quic,
       algoConfig: s.gatewaySelectionAlgorithmConfig,
+      favorites: s.favorites,
     })),
   );
+  const toggleFavorite = useToggleFavorite();
   const location = useLocation() as H.Location<RouteState>;
   const { t } = useTranslation('node-location');
   const navigate = useNavigate();
@@ -84,6 +87,9 @@ function NodeDetails() {
   const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
   const selectedNode = isSelectedNodeType(gateway, entryNode, exitNode);
   const isSelected = selectedNode === 'exit' || selectedNode === 'entry';
+  const isFavorite = favorites[hop].some(
+    (f) => f.kind === 'gateway' && f.value === gateway.id,
+  );
   const quic = backendFlags.quic && gateway.quic;
   const overallScore =
     gateway.type === 'wg' ? gateway.wgScore : gateway.mxScore;
@@ -485,13 +491,31 @@ function NodeDetails() {
         </div>
       </div>
 
-      {!isSelected && (
-        <div className="p-4">
-          <Button onClick={handleSelect}>
-            {t('node-details.select-button')}
-          </Button>
-        </div>
-      )}
+      <div className="flex items-center gap-3 p-4">
+        {!isSelected && (
+          <div className="flex-1">
+            <Button onClick={handleSelect}>
+              {t('node-details.select-button')}
+            </Button>
+          </div>
+        )}
+        <button
+          type="button"
+          aria-label={t(isFavorite ? 'favorites.remove' : 'favorites.add')}
+          aria-pressed={isFavorite}
+          data-testid="favorite-button"
+          onClick={() => toggleFavorite(hop, 'gateway', gateway.id)}
+          className={clsx(
+            'flex h-12 w-12 shrink-0 cursor-default items-center justify-center rounded-3xl border-1 transition-colors select-none focus:outline-none',
+            isSelected && 'ml-auto',
+            isFavorite
+              ? 'border-brand-primary text-brand-primary'
+              : 'text-text-primary hover:bg-text-primary/10 border-black dark:border-white dark:hover:bg-white/10',
+          )}
+        >
+          <MsIcon icon="star" filled={isFavorite} />
+        </button>
+      </div>
     </PageAnim>
   );
 }

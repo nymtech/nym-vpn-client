@@ -22,6 +22,8 @@ import { PanelContent } from './NodeListPanelContent';
 export type NodeListProps = {
   nodes: UiGatewaysByCountry[];
   gateways: UiGateway[];
+  // Which empty state to render when the list resolves to nothing.
+  emptyVariant: 'search' | 'favorites';
   onSelect: (node: SelectedUiNode) => void;
   onNodeDetails: (node: UiGateway) => void;
   hop: NodeHop;
@@ -34,6 +36,7 @@ export type NodeListProps = {
 const NodeList = memo(function NodeList({
   nodes,
   gateways,
+  emptyVariant,
   onSelect,
   hop,
   vpnMode,
@@ -63,6 +66,18 @@ const NodeList = memo(function NodeList({
   };
 
   if (nodes.length === 0 && gateways.length === 0) {
+    if (emptyVariant === 'favorites') {
+      return (
+        <div className="space-y-4 px-6 py-4" data-testid="favorites-empty">
+          <p className="text-text-primary truncate">
+            {t('favorites.empty-title')}
+          </p>
+          <p className="text-text-secondary whitespace-pre-line">
+            {t('favorites.empty-description')}
+          </p>
+        </div>
+      );
+    }
     return (
       <div className="space-y-4 px-6 py-4">
         <p className="text-text-primary truncate">
@@ -146,6 +161,7 @@ function arePropsEqual(
   if (oldProps.hop !== newProps.hop) return false;
   if (oldProps.vpnMode !== newProps.vpnMode) return false;
   if (oldProps.quicFilter !== newProps.quicFilter) return false;
+  if (oldProps.emptyVariant !== newProps.emptyVariant) return false;
   if (oldProps.gateways.length !== newProps.gateways.length) return false;
   if (oldProps.nodes.length !== newProps.nodes.length) return false;
   if (!dequal(oldProps.expanded, newProps.expanded)) return false;

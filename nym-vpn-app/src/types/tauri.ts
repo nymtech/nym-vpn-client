@@ -133,9 +133,25 @@ export type ErrorKey =
   | 'device-time-desync'
   | 'split-tunnel-app-invalid'
   | 'split-tunnel-app-duplicate'
+  | 'insufficient-funds'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query';
+
+export type Favorite = { kind: FavoriteKind; value: string };
+
+/**
+ * The hop a favorite applies to. Favorites are independent per hop.
+ */
+export type FavoriteHop = 'entry' | 'exit';
+
+/**
+ * What a favorite points at. `value` is a gateway identity, an ISO-3166
+ * two-letter country code, or a region name depending on `kind`.
+ */
+export type FavoriteKind = 'gateway' | 'country' | 'region';
+
+export type Favorites = { entry: Array<Favorite>; exit: Array<Favorite> };
 
 export type FeatureFlags = {
   quic: boolean;

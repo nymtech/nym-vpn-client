@@ -1,7 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import { dequal } from 'dequal';
 import { StateCreator } from 'zustand';
-import { BackendError, Gateway, GatewaysByCountry } from '../../../types';
+import {
+  BackendError,
+  Favorites,
+  Gateway,
+  GatewaysByCountry,
+} from '../../../types';
 import { CCache } from '../../../cache';
 import { GatewaysCacheDuration } from '../../../constants';
 import {
@@ -11,6 +16,7 @@ import {
 import type { MainSlice } from '../createMainSlice';
 import type { Socks5Slice } from '../createSocks5Slice';
 import type { GatewaysSlice } from './types';
+import { normalizeFavoriteValue } from './utils';
 
 type BoundStore = MainSlice & GatewaysSlice & Socks5Slice;
 
@@ -48,6 +54,46 @@ export const createGatewaysSlice: StateCreator<
   mxEntryError: null,
   mxExitError: null,
   wgError: null,
+  favorites: { entry: [], exit: [] },
+
+  loadFavorites: async () => {
+    try {
+      const favorites = await invoke<Favorites>('favorites_get');
+      set({ favorites });
+    } catch (e) {
+      console.error('failed to load favorites', e);
+    }
+  },
+
+  isFavorite: (hop, kind, value) => {
+    const normValue = normalizeFavoriteValue(kind, value);
+    return get().favorites[hop].some(
+      (f) => f.kind === kind && f.value === normValue,
+    );
+  },
+
+  toggleFavorite: async (hop, kind, value) => {
+    const normValue = normalizeFavoriteValue(kind, value);
+    const present = get().isFavorite(hop, kind, normValue);
+    const favorite = { kind, value: normValue };
+    // Optimistic update so the UI reflects the toggle immediately.
+    const current = get().favorites;
+    const nextList = present
+      ? current[hop].filter((f) => !(f.kind === kind && f.value === normValue))
+      : [...current[hop], favorite];
+    set({ favorites: { ...current, [hop]: nextList } });
+    try {
+      const updated = await invoke<Favorites>(
+        present ? 'remove_favorite' : 'add_favorite',
+        { hop, favorite },
+      );
+      set({ favorites: updated });
+    } catch (e) {
+      console.error('failed to toggle favorite', e);
+      // Reconcile with the persisted state on failure.
+      get().loadFavorites();
+    }
+  },
 
   fetchGateways: async (nodeType) => {
     const {

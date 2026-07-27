@@ -7,6 +7,14 @@
     "best-server": "Best server",
     "select-error": "Failed to update server selection"
   },
+  "favorites": {
+    "tab-all": "All servers",
+    "tab-favorites": "Favorites",
+    "add": "Add to favourites",
+    "remove": "Remove from favourites",
+    "empty-title": "No favourites yet",
+    "empty-description": "Tap the star on a location or server to add it here."
+  },
   "search-country": "Search location",
   "countries-nodes": "{{countriesCount}} countries · {{nodesCount}} nodes",
   "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",

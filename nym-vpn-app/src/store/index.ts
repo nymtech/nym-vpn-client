@@ -118,11 +118,16 @@ export const useGateways = (): GatewaysState =>
       mxEntryError: s.mxEntryError,
       mxExitError: s.mxExitError,
       wgError: s.wgError,
+      favorites: s.favorites,
     })),
   );
 export const useFetchGateways = () => useAppStore((s) => s.fetchGateways);
 
 export const useLookupGw = () => useAppStore((s) => s.lookupGw);
+
+export const useLoadFavorites = () => useAppStore((s) => s.loadFavorites);
+
+export const useToggleFavorite = () => useAppStore((s) => s.toggleFavorite);
 
 // socks5 state
 export const useSocks5 = () =>

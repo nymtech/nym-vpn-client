@@ -19,15 +19,22 @@ import {
 import { useAppStore } from '../store';
 import useLang from './useLang';
 
+// Membership set of the current hop's favorites, keyed as `${kind}:${value}`.
+function favKey(kind: string, value: string) {
+  return `${kind}:${value}`;
+}
+
 function countryToUi(
   country: Country,
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
+  favSet: Set<string>,
 ): UiCountry {
   return {
     ...country,
     nodeType: 'country',
     isSelected: isSelectedNodeType(country, selectedEntry, selectedExit),
+    isFavorite: favSet.has(favKey('country', country.code.toUpperCase())),
   };
 }
 
@@ -36,6 +43,7 @@ function gatewaysToUi(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favSet: Set<string>,
 ): UiGateway[] {
   return gateways.reduce<UiGateway[]>((acc, gw) => {
     if (quicFilter && !gw.quic) return acc;
@@ -47,6 +55,7 @@ function gatewaysToUi(
         selectedEntry,
         selectedExit,
       ) as GwSelectedKind,
+      isFavorite: favSet.has(favKey('gateway', gw.id)),
     });
     return acc;
   }, []);
@@ -57,6 +66,7 @@ function regionsToUi(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favSet: Set<string>,
 ): UiRegion[] {
   return regions.reduce<UiRegion[]>((acc, region) => {
     const gateways = gatewaysToUi(
@@ -64,6 +74,7 @@ function regionsToUi(
       selectedEntry,
       selectedExit,
       quicFilter,
+      favSet,
     );
     if (gateways.length === 0) return acc;
     acc.push({
@@ -81,6 +92,7 @@ function buildNodeList(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favSet: Set<string>,
   getCountryName: (code: string) => string | null | undefined,
   compare: (a: string, b: string) => number,
 ): UiGatewaysByCountry[] {
@@ -93,6 +105,7 @@ function buildNodeList(
         selectedEntry,
         selectedExit,
         quicFilter,
+        favSet,
       );
       if (gateways.length === 0) return acc;
 
@@ -100,6 +113,7 @@ function buildNodeList(
         gwByCountry.country,
         selectedEntry,
         selectedExit,
+        favSet,
       );
 
       // Defensive check: regions structure changed in 1.18.0; cached data
@@ -110,6 +124,7 @@ function buildNodeList(
             selectedEntry,
             selectedExit,
             quicFilter,
+            favSet,
           )
         : [];
 
@@ -146,6 +161,7 @@ export function useNodeListData(hop: NodeHop) {
     mxEntryError,
     mxExitError,
     wgError,
+    favorites,
   } = useAppStore(
     useShallow((s) => ({
       vpnMode: s.vpnMode,
@@ -163,7 +179,13 @@ export function useNodeListData(hop: NodeHop) {
       mxEntryError: s.mxEntryError,
       mxExitError: s.mxExitError,
       wgError: s.wgError,
+      favorites: s.favorites,
     })),
+  );
+
+  const favSet = useMemo(
+    () => new Set(favorites[hop].map((f) => favKey(f.kind, f.value))),
+    [favorites, hop],
   );
 
   const effectiveEntry: SelectedNode =
@@ -183,6 +205,7 @@ export function useNodeListData(hop: NodeHop) {
       effectiveEntry,
       effectiveExit,
       quicFilter,
+      favSet,
       getCountryName,
       compare,
     );
@@ -195,6 +218,7 @@ export function useNodeListData(hop: NodeHop) {
     effectiveEntry,
     effectiveExit,
     quicFilter,
+    favSet,
     getCountryName,
     compare,
   ]);

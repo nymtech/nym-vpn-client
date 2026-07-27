@@ -34,6 +34,8 @@ pub enum Key {
     LastNetworkEnv,
     NetworkStatsEnabled,
     CustomSplitTunnelApps,
+    // favorites are handled by the core `nym-favorites` crate
+    // (see commands::favorites), not stored in this k/v db.
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,

@@ -1,5 +1,6 @@
 import { CKey } from '../../../cache';
 import {
+  FavoriteKind,
   GatewayType,
   GatewaysByCountry,
   SelectedNode,
@@ -7,6 +8,15 @@ import {
   isRegion,
 } from '../../../types';
 import { GatewaysState } from './types';
+
+// Location codes are normalized to uppercase; gateway ids/region names are kept
+// verbatim. Keeps favorite comparisons consistent with how the UI derives codes.
+export function normalizeFavoriteValue(
+  kind: FavoriteKind,
+  value: string,
+): string {
+  return kind === 'country' ? value.toUpperCase() : value;
+}
 
 export function gwTypeToCacheKey(type: GatewayType): CKey {
   if (type === 'wg') return 'cache-wg-gateways';

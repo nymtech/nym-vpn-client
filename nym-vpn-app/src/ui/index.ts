@@ -26,6 +26,8 @@ export { default as Toast } from './Toast';
 export { default as ConfirmationDialog } from './ConfirmationDialog';
 export { default as Spinner } from './Spinner';
 export { default as SmileyIcon } from './SmileyIcon';
+export { default as SegmentedToggle } from './SegmentedToggle';
+export * from './SegmentedToggle';
 export { default as InfoBanner } from './InfoBanner';
 export * from './ButtonIcon';
 export * from './Button';

@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use crate::cli::{Commands, db_command};
-use crate::fs::path::APP_CONFIG_DIR;
+use crate::fs::path::{APP_CONFIG_DIR, APP_DATA_DIR};
 use crate::startup_error::{ErrorKey, StartupError};
 use crate::tray::TrayManager;
 #[cfg(windows)]
@@ -23,6 +23,7 @@ use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::diagnostic as cmd_diag;
+use commands::favorites as cmd_favorites;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -34,6 +35,7 @@ use commands::tray as cmd_tray;
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
 use commands::*;
+use nym_favorites::FavoritesManager;
 use state::app::AppState;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
@@ -139,8 +141,21 @@ async fn main() -> Result<()> {
 
     let c_os = os.clone();
     info!("app version: {}", pkg_info.version);
+
+    // Build the favorites manager here (we're already in the async runtime, so
+    // no blocking); it's handed to the app as managed state below.
+    info!("Loading favorites");
+    let favorites_dir = APP_DATA_DIR
+        .clone()
+        .ok_or(anyhow!("failed to get app data dir"))?;
+    if let Err(e) = std::fs::create_dir_all(&favorites_dir) {
+        error!("failed to create app data dir for favorites: {e}");
+    }
+    let favorites_manager = FavoritesManager::new(favorites_dir).await;
+
     info!("Starting tauri app");
     tauri::Builder::default()
+        .manage(Mutex::new(favorites_manager))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
@@ -345,6 +360,9 @@ async fn main() -> Result<()> {
             cmd_db::db_del,
             cmd_db::db_flush,
             cmd_gw::get_gateways,
+            cmd_favorites::favorites_get,
+            cmd_favorites::add_favorite,
+            cmd_favorites::remove_favorite,
             cmd_window::show_main_window,
             cmd_window::set_background_color,
             commands::cli::cli_args,
