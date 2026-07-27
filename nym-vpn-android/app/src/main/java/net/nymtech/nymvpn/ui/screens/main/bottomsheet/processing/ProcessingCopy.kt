@@ -84,7 +84,7 @@ object ProcessingCopy {
 	fun processingTitleForPhase(phase: LoginProcessingUiPhase, accountState: AccountControllerState? = null): Int = processingCopyForPhase(phase, accountState).titleRes
 
 	fun processingTitleForCarouselAccountState(state: AccountControllerState?): Int = when (state) {
-		is AccountControllerState.RequestingZkNyms -> R.string.account_login_processing_loading_credentials
+		is AccountControllerState.Syncing -> R.string.account_login_processing_loading_credentials
 		else -> R.string.account_login_processing_setting_up
 	}
 

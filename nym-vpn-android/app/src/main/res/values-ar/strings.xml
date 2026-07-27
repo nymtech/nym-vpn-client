@@ -171,12 +171,12 @@
 	<string name="error_expired_subscription_description">تم رفض طريقة الدفع المتكررة</string>
 	<string name="error_expired_subscription_button">تجديد الآن</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">تهيئة NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">إعداد حسابك (2/6)</string>
-	<string name="connection_state_refreshing_gateways">تحديث قائمة الخوادم (3/6)</string>
-	<string name="connection_state_selecting_gateways">اختيار أفضل الخوادم (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">تسجيل مجهول مع الخوادم (5/6)</string>
-	<string name="connection_state_connecting_tunnel">إنشاء اتصال بالخادم (6/6)</string>
+	<string name="connection_state_resolving_addresses">تهيئة NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">إعداد حسابك (2/7)</string>
+	<string name="connection_state_refreshing_gateways">تحديث قائمة الخوادم (4/7)</string>
+	<string name="connection_state_selecting_gateways">اختيار أفضل الخوادم (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">تسجيل مجهول مع الخوادم (6/7)</string>
+	<string name="connection_state_connecting_tunnel">إنشاء اتصال بالخادم (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">استخدام أفضل خادم</string>
 	<string name="one_click_mode_fast">سريع</string>

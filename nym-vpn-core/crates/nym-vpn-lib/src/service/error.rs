@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+use nym_favorites::FavoritesError;
 use nym_vpn_api_client::error::VpnApiClientError;
-use nym_vpn_lib_types::{GatewayType, TunnelType};
+use nym_vpn_lib_types::GatewayType;
 
 use super::config::ConfigSetupError;
 
@@ -111,11 +112,8 @@ pub enum ListGatewaysError {
         source: crate::gateway_directory::Error,
     },
 
-    #[error("failed to get recent gateways ({tunnel_type:?})")]
-    GetRecentGateways {
-        tunnel_type: TunnelType,
-        source: crate::gateway_directory::Error,
-    },
+    #[error("failed to get recent gateways ({0})")]
+    GetRecentGateways(FavoritesError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

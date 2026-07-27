@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_bandwidth_controller::AvailableTicketbooks;
 use std::{sync::OnceLock, time::Duration};
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -246,6 +247,7 @@ impl TestBench {
         let tempdir = tempfile::tempdir()?;
         let account_controller_config = AccountControllerConfig {
             data_dir: tempdir.path().to_owned(),
+            storage_paths: nym_sdk::mixnet::StoragePaths::new_from_dir(tempdir.path())?,
             network_env,
         };
 
@@ -253,12 +255,40 @@ impl TestBench {
 
         let shutdown_token = CancellationToken::new();
 
+        // Stand-in bandwidth controller: drain its request channel and answer so the account
+        // controller's set/unset credential-fetcher commands resolve instead of hanging.
+        let (bw_tx, mut bw_rx) = tokio::sync::mpsc::unbounded_channel();
+        let bandwidth_command_tx =
+            nym_bandwidth_controller::requests::BandwidthControllerRequestSender::new(bw_tx);
+        tokio::task::spawn(async move {
+            use nym_bandwidth_controller::requests::BandwidthControllerRequest::*;
+            while let Some(request) = bw_rx.recv().await {
+                match request {
+                    SetCredentialFetcher(return_sender, _) => return_sender.send(Ok(())),
+                    SetPublicDataFetcher(return_sender, _) => return_sender.send(Ok(())),
+                    EcashTicket(return_sender, _) => return_sender.send(Ok(None)),
+                    UpgradeModeToken(return_sender) => return_sender.send(Ok(None)),
+                    AttemptRevertSpending(return_sender, _) => return_sender.send(Ok(false)),
+                    Reset(return_sender) => return_sender.send(Ok(())),
+                    ClearEmergencyCredentials(return_sender) => return_sender.send(Ok(())),
+                    GetAvailableTicketbooks(return_sender) => {
+                        return_sender.send(Ok(AvailableTicketbooks {
+                            ticketbooks: Vec::new(),
+                        }))
+                    }
+                    WaitForTicketbooks(return_sender, _) => return_sender.send(Ok(())),
+                    RestockTicketbooks(return_sender, _) => return_sender.send(Ok(())),
+                }
+            }
+        });
+
         let account_controller = AccountController::new(
             nym_vpn_api_client,
             nyxd_client,
             account_controller_config,
             storage,
             connectivity.clone(),
+            bandwidth_command_tx,
             shutdown_token.child_token(),
         )
         .await?;

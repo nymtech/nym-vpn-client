@@ -32,13 +32,13 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 
+use crate::adblocker;
 #[cfg(not(target_os = "android"))]
 use crate::resolver;
 #[cfg(not(target_os = "ios"))]
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
-use crate::{adblocker, recents::RecentsManager};
 
 use crate::{
     GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
@@ -49,12 +49,17 @@ use crate::{
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
-use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
+use nym_bandwidth_controller::{
+    error::BandwidthControllerError, requests::BandwidthControllerRequestSender,
+};
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
+use nym_credentials_interface::TicketType;
+use nym_favorites::RecentsManager;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::SkewManager;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use tokio::{
     sync::{mpsc, watch},
@@ -205,6 +210,22 @@ impl TunnelSettings {
             TunnelType::Wireguard
         } else {
             self.tunnel_type
+        }
+    }
+
+    pub fn ticket_types_required(&self, enabled_lp: bool) -> Vec<TicketType> {
+        match self.tunnel_type_used() {
+            TunnelType::Mixnet => {
+                vec![TicketType::V1MixnetEntry]
+            }
+            TunnelType::Wireguard => {
+                let mut types = vec![TicketType::V1WireguardEntry, TicketType::V1WireguardExit];
+                if !enabled_lp {
+                    // Mixnet registration requires a Mixnet Ticket
+                    types.push(TicketType::V1MixnetEntry);
+                }
+                types
+            }
         }
     }
 
@@ -775,6 +796,7 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     bandwidth_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     statistics_event_sender: StatisticsSender,
     #[cfg(target_os = "linux")]
     nm_connectivity_check_enabled: Option<bool>,
@@ -1106,6 +1128,7 @@ impl TunnelStateMachine {
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
         bandwidth_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         statistics_event_sender: StatisticsSender,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
@@ -1189,6 +1212,7 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             bandwidth_command_tx,
+            skew_manager,
             statistics_event_sender,
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,
@@ -1513,6 +1537,13 @@ impl tunnel::Error {
                     None
                 }
             }
+            Self::BandwidthController(BandwidthControllerError::TicketbookFetchFailed { .. }) => {
+                Some(ErrorStateReason::CredentialFetchingFailed)
+            },
+            Self::BandwidthController(BandwidthControllerError::TicketbooksUnavailable) => {
+                Some(ErrorStateReason::NoCredentialAvailable)
+            },
+
             Self::RegistrationClient(e) => match *e {
                 nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
                 nym_registration_client::RegistrationClientError::WireguardExitRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
@@ -1528,6 +1559,7 @@ impl tunnel::Error {
             Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
             | Self::BandwidthMonitor(_)
+            | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled
             | Self::Transport(_) => None,

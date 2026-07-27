@@ -199,6 +199,7 @@ impl MixnetClientRegistration {
         let auth_res = auth_client
             .register_wireguard(
                 &*wg_registration_config.bandwidth_provider,
+                None,
                 TicketType::V1WireguardEntry,
             )
             .await;

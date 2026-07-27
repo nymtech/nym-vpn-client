@@ -653,15 +653,10 @@ impl NymVpnService for CommandInterface {
 
     async fn decentralised_obtain_ticketbooks(
         &self,
-        request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let ticketbook_request =
-            nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest::from(request.into_inner());
         let result = self
-            .send_and_wait(
-                VpnServiceCommand::DecentralisedObtainTicketbooks,
-                ticketbook_request,
-            )
+            .send_and_wait(VpnServiceCommand::DecentralisedObtainTicketbooks, ())
             .await?;
 
         let response = proto::AccountCommandResponse {
@@ -900,6 +895,19 @@ impl NymVpnService for CommandInterface {
         let response = proto::AvailableTickets::from(available_tickets);
 
         Ok(tonic::Response::new(response))
+    }
+
+    async fn restock_ticketbooks(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::RestockTicketbooks, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to restock ticketbooks: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
     }
 
     async fn get_account_summary(

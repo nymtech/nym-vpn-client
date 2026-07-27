@@ -58,12 +58,6 @@ pub enum VpnError {
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
-    #[error("failed to request zk nym")]
-    RequestZkNym {
-        #[from]
-        details: nym_vpn_lib_types::RequestZkNymError,
-    },
-
     #[error("an account is already stored")]
     ExistingAccount,
 

@@ -30,17 +30,11 @@ pub enum AccountControllerState {
     /// Not logged in with a mnemonic
     LoggedOut,
 
-    /// Logged in, registered device, zk-nyms not available
-    RequestingZkNyms,
-
-    /// Logged in, registered device, available zk-nyms
+    /// Logged in, registered device
     ReadyToConnect,
 
     /// Logged in, operating independently of VPN API
     Decentralised,
-
-    /// Network is undergoing an upgrade, can't get zk-nyms, but got an alternative credential.
-    UpgradeMode,
 
     /// Logged in, subscription is pending (e.g. cash payment still processing)
     PendingSubscription,
@@ -61,17 +55,11 @@ impl fmt::Display for AccountControllerState {
             Self::LoggedOut => {
                 write!(f, "Logged Out")
             }
-            Self::RequestingZkNyms => {
-                write!(f, "Requesting zk-nyms")
-            }
             Self::ReadyToConnect => {
                 write!(f, "Ready to connect")
             }
             Self::Decentralised => {
                 write!(f, "Decentralised")
-            }
-            AccountControllerState::UpgradeMode => {
-                write!(f, "Upgrade Mode")
             }
             Self::PendingSubscription => {
                 write!(f, "Pending Subscription")

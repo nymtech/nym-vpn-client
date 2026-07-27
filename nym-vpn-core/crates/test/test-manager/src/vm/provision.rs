@@ -4,7 +4,9 @@
 
 use crate::{
     config::{OsType, Provisioner, VmConfig},
-    tests::config_nym::BOOTSTRAP_SCRIPT,
+    tests::config_nym::{
+        BOOTSTRAP_SCRIPT, DELAYED_IP_BLOCK_SCRIPT, IP_BLOCK_SCRIPT, SNI_BLOCK_SCRIPT,
+    },
 };
 use anyhow::{Context, Result, bail};
 use ssh2::{File, Session};
@@ -150,17 +152,19 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
-    // Transfer blocking scripts
+    // Transfer blocking scripts. Their contents are baked into this binary via include_bytes!,
+    // so we write them to the guest directly rather than reading them off the host filesystem.
     if matches!(os_type, OsType::Linux | OsType::Macos) {
-        let blocking_scripts_dir =
-            Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../scripts/blocking"));
-        let scripts = ["ip_block.sh", "sni_block.sh", "delayed_ip_block.sh"];
+        let scripts: [(&str, &[u8]); 3] = [
+            ("ip_block.sh", IP_BLOCK_SCRIPT),
+            ("sni_block.sh", SNI_BLOCK_SCRIPT),
+            ("delayed_ip_block.sh", DELAYED_IP_BLOCK_SCRIPT),
+        ];
 
-        for script in &scripts {
-            let source = blocking_scripts_dir.join(script);
-            log::debug!("Source: {}", source.display());
-            ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
-                .with_context(|| format!("Failed to send blocking script '{script}' to remote"))?;
+        for (name, content) in &scripts {
+            let dest = temp_dir.join(name);
+            ssh_write_with_opts(&session, &dest, *content, FileOpts { executable: true })
+                .with_context(|| format!("Failed to send blocking script '{name}' to remote"))?;
         }
     }
 

@@ -145,6 +145,7 @@ pub enum ErrorKey {
     DeviceTimeDesync,
     SplitTunnelAppInvalid,
     SplitTunnelAppDuplicate,
+    InsufficientFunds,
     // Failure when querying countries from daemon
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,

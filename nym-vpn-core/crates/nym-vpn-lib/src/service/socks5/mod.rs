@@ -14,6 +14,7 @@ mod util;
 
 use http_rpc::HttpRpc;
 use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error};
+use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::GatewayCacheHandle;
 use nym_sdk::NymNetworkDetails;
 use nym_vpn_lib_types::TunnelState;
@@ -38,6 +39,8 @@ pub struct Socks5EnableConfig {
     pub network_details: Option<NymNetworkDetails>,
     /// VPN exit gateway identity to exclude during random Network Requester selection (for privacy)
     pub vpn_exit_gateway_identity: Option<String>,
+    /// Bandwidth controller handle, used as the mixnet client's ticket provider.
+    pub bandwidth_command_tx: BandwidthControllerRequestSender,
 }
 
 /// SOCKS5 service errors
@@ -137,6 +140,7 @@ impl Socks5ServiceState {
             idle_timeout,
             network_details,
             vpn_exit_gateway_identity,
+            bandwidth_command_tx,
         } = config;
 
         // Prevent concurrent enable calls
@@ -206,6 +210,7 @@ impl Socks5ServiceState {
             gateway_cache_handle,
             network_details,
             vpn_exit_gateway_identity,
+            bandwidth_command_tx,
         };
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,

@@ -5,9 +5,9 @@ use std::pin::Pin;
 
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{AccountCommand, common_handler, handler},
     state_machine::{
-        ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
+        ACCOUNT_UPDATE_INTERVAL_ERROR, AccountControllerStateHandler, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncMode,
         SyncingNetworkState,
     },
@@ -16,7 +16,6 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
-use tracing::warn;
 
 /// PendingSubscriptionState
 /// The account has a subscription that is pending (e.g. a cash payment still processing).
@@ -36,7 +35,7 @@ impl PendingSubscriptionState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
+        let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL_ERROR));
         tracing::debug!("Account Controller entering pending subscription state");
         (
             Box::new(Self { refresh_timer }),
@@ -59,7 +58,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                     tracing::debug!("VPN API is firewalled, timed account syncing skipped");
                     return NextAccountControllerState::NewState(PendingSubscriptionState::enter());
                 } else {
-                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                 }
             },
             Some(command) = command_rx.recv() => {
@@ -75,9 +74,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                         let error = res.is_err();
                         return_sender.send(res);
                         if error {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                         } else {
-                            return NextAccountControllerState::NewState(LoggedOutState::enter());
+                            return NextAccountControllerState::NewState(LoggedOutState::enter(shared_state).await);
                         }
                     },
                     AccountCommand::LinkAccount(return_sender, privy_account) => {
@@ -89,7 +88,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                         return_sender.send(res);
                     },
                     AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         let res = handler::handle_reset_device_identity(shared_state, seed).await;
                         let error = res.is_err();
@@ -97,7 +96,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
@@ -107,33 +106,22 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                         } else {
                             if force {
                                 shared_state.mark_summary_as_stale();
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                             }
                         }
                     },
                     AccountCommand::VpnApiFirewallDown(return_sender) => {
-                        shared_state.firewall_active = false;
+                        shared_state.set_firewall_state(false);
                         return_sender.send(Ok(()));
                     },
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
-                        shared_state.firewall_active = true;
+                        shared_state.set_firewall_state(true);
                         return_sender.send(Ok(()));
                     },
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
-                    },
-                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
-                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                            return_sender.send(Ok(false))
-                        }
-                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
-                            warn!(
-                                "received unexpected command to disable upgrade mode while in 'PendingSubscriptionState' state"
-                            );
-                            return_sender.send(Ok(()))
-                        }
                     },
                 }
                 NextAccountControllerState::SameState(self)

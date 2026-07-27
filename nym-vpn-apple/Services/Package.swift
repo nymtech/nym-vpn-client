@@ -174,6 +174,8 @@ let package = Package(
                 "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
+                "PathManager",
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],

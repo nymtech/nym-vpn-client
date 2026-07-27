@@ -31,6 +31,9 @@ pub enum Error {
     #[error("bandwidth monitor error")]
     BandwidthMonitor(#[from] crate::bandwidth_monitor::Error),
 
+    #[error("bandwidth controller error")]
+    BandwidthController(#[from] nym_bandwidth_controller::error::BandwidthControllerError),
+
     #[error("registration client error")]
     RegistrationClient(#[source] Box<nym_registration_client::RegistrationClientError>),
 

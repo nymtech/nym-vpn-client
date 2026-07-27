@@ -182,6 +182,7 @@ mod android_connectivity_monitor;
 #[cfg(target_os = "ios")]
 mod deeplink;
 mod environment;
+mod favorites;
 mod gateway_cache;
 mod logging;
 mod offline_monitor;

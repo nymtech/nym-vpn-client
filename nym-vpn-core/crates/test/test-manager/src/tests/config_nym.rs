@@ -14,6 +14,21 @@ pub const BOOTSTRAP_SCRIPT: &[u8] = include_bytes!(concat!(
     "ssh-setup.sh"
 ));
 
+/// Blocking scripts executed inside the guest VM during circumvention tests. Baked into the
+/// binary so the test-manager has no filesystem dependency on the source tree at runtime.
+pub const IP_BLOCK_SCRIPT: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../scripts/blocking/ip_block.sh"
+));
+pub const SNI_BLOCK_SCRIPT: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../scripts/blocking/sni_block.sh"
+));
+pub const DELAYED_IP_BLOCK_SCRIPT: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../scripts/blocking/delayed_ip_block.sh"
+));
+
 /// Constants that are accessible from each test via `TEST_CONFIG`.
 /// The constants must be initialized before running any tests using `TEST_CONFIG.init()`.
 #[derive(Debug, Clone)]

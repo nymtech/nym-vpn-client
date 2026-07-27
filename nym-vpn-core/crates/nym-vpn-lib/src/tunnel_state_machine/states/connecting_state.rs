@@ -220,6 +220,7 @@ impl ConnectingState {
         #[cfg(target_os = "linux")]
         shared_state.disable_nm_connectivity_check();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -415,6 +416,7 @@ impl ConnectingState {
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
             shared_state.bandwidth_command_tx.clone(),
+            shared_state.skew_manager.clone(),
             shared_state.gateway_provider.clone(),
             shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,
@@ -653,6 +655,10 @@ impl TunnelStateHandler for ConnectingState {
                 match monitor_event {
                     TunnelMonitorEvent::AwaitingAccountReadiness => {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingAccountReadiness);
+                        NextTunnelState::NewState((self, new_state))
+                    }
+                    TunnelMonitorEvent::AwaitingCredentialsAvailability => {
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingCredentialsAvailability);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::RefreshingGateways => {
