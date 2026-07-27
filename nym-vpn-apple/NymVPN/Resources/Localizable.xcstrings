@@ -13714,6 +13714,83 @@
         }
       }
     },
+    "gatewaysView.favorite.add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Add to favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.favorite.remove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Remove from favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.allServers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "All servers"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.noFavorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No favorite servers yet"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.noRecents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No recently used servers yet"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.recent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Recent"
+          }
+        }
+      }
+    },
     "gatewaysView.random" : {
       "extractionState" : "manual",
       "localizations" : {
