@@ -232,12 +232,12 @@ constructor(
 			Timber.tag(TAG).d("AutoStartCheck enabled=%s", enabled)
 			if (!enabled) return
 
-			val managerState = withTimeoutOrNull(15_000.milliseconds) {
+			val managerState = withTimeoutOrNull(Constants.AUTO_START_INIT_WAIT_MS.milliseconds) {
 				backendManager.stateFlow.first { it.isInitialized }
 			}
 
 			if (managerState == null) {
-				Timber.tag(TAG).w("AutoStartSkipped reason=backend_init_timeout timeoutMs=15000")
+				Timber.tag(TAG).w("AutoStartSkipped reason=backend_init_timeout timeoutMs=%d", Constants.AUTO_START_INIT_WAIT_MS)
 				return
 			}
 
