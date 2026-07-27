@@ -1047,6 +1047,103 @@ async fn test_service_config_fallback_default() {
     run_fallback_test(broken_json_content).await;
 }
 
+// An invalid geo_exclusion section (unsupported country code, here) must not fail loading
+// the whole config - only geo_exclusion should reset to default, everything else should
+// load as persisted.
+#[tokio::test]
+async fn test_service_config_geo_exclusion_invalid_resets_only_geo_exclusion() {
+    let json_content = r#"{
+  "version": "v11",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "enable_ad_blocking": false,
+  "fronting_mode": "on_retry",
+  "netstack": false,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "enable_custom_dns": false,
+  "custom_dns": [],
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": null,
+    "average_packet_delay": null,
+    "message_sending_average_delay": null,
+    "disable_poisson_rate": false,
+    "disable_background_cover_traffic": false,
+    "min_mixnode_performance": null,
+    "min_gateway_mixnet_performance": null
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
+  },
+  "geo_exclusion": {
+    "enabled": true,
+    "listen_port": 1081,
+    "excluded_countries": [
+      "ZZ"
+    ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  },
+  "gateway_independence": {
+    "enable_notifications": true,
+    "different_node_family": true,
+    "different_asn": true,
+    "different_subnet": true
+  }
+}"#;
+
+    let temp_dir = tempdir().unwrap();
+    let config_path = temp_dir.path();
+    let network_config_path = config_path.join("tulips");
+    let _ = fs::create_dir_all(&network_config_path).await;
+    let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
+
+    fs::write(&json_path, json_content).await.unwrap();
+
+    let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+    let config = config_manager.config();
+
+    // The rest of the config should load as persisted, not fall back to default.
+    assert_eq!(
+        config.entry_point,
+        nym_vpn_lib_types::EntryPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
+                "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+            )
+            .unwrap(),
+        }
+    );
+    assert!(config.enable_two_hop);
+
+    // The invalid geo_exclusion settings should reset to default rather than failing the
+    // whole config load.
+    assert_eq!(
+        config.geo_exclusion,
+        nym_vpn_lib_types::GeoExclusionSettings::default()
+    );
+}
+
 #[tokio::test]
 async fn test_service_config_serialize_defaults() {
     let config = nym_vpn_lib_types::VpnServiceConfig::default();
