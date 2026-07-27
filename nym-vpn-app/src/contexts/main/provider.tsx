@@ -2,7 +2,11 @@ import { invoke } from '@tauri-apps/api/core';
 import React, { useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { InitState, SystemMessage } from '../../types';
-import { initFirstBatch, initSecondBatch } from '../../state/init';
+import {
+  initFavorites,
+  initFirstBatch,
+  initSecondBatch,
+} from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { useAccountSummaryOnAccountState } from '../../state/useAccountSummaryOnAccountState';
 import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
@@ -128,6 +132,10 @@ function MainStateProvider({ children, init }: Props) {
   useEffect(() => {
     initGateways();
   }, [initGateways]);
+
+  useEffect(() => {
+    initFavorites();
+  }, []);
 
   // Socks5 status polling
   useEffect(() => {

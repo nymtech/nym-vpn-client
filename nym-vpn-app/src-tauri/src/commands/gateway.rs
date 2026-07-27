@@ -11,7 +11,6 @@ use crate::error::{BackendError, ErrorKey};
 use crate::vpnd::client::VpndClient;
 use crate::vpnd::gateway::{Gateway, GatewayType};
 
-#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]

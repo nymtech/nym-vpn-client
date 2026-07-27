@@ -9,6 +9,7 @@ import { kvGet } from '../kvStore';
 import {
   AccountLinks,
   CodeDependency,
+  Favorites,
   FeatureFlags,
   NetworkCompat,
   TAccountMode,
@@ -19,6 +20,7 @@ import {
   UiTheme,
 } from '../types';
 import { dispatch } from '../store';
+import { useFavoritesStore } from '../store/favoritesState';
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
@@ -213,6 +215,27 @@ export async function initFirstBatch() {
     getAccountSummaryRq,
     getFeatureFlagsRq,
   ]);
+}
+
+/**
+ * Loads persisted favorites.
+ *
+ * Deliberately not part of `initFirstBatch` or `initSecondBatch`: both are only
+ * invoked once the daemon is reachable, and favorites are a local file owned by
+ * the app with no daemon involvement at all — there is no favorites RPC. Folding
+ * this into a gated batch would make purely local state depend on a daemon
+ * connection.
+ */
+export async function initFavorites() {
+  const getFavoritesRq: TauriReq<() => Promise<Favorites>> = {
+    name: 'getFavoritesRq',
+    request: () => invoke<Favorites>('get_favorites'),
+    onFulfilled: (favorites) => {
+      useFavoritesStore.getState().hydrate(favorites);
+    },
+  };
+
+  await fireRequests([getFavoritesRq]);
 }
 
 export async function initSecondBatch() {

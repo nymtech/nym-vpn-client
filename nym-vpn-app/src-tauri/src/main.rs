@@ -4,7 +4,8 @@
 use std::time::Duration;
 
 use crate::cli::{Commands, db_command};
-use crate::fs::path::APP_CONFIG_DIR;
+use crate::favorites::FavoritesState;
+use crate::fs::path::{APP_CONFIG_DIR, APP_DATA_DIR};
 use crate::startup_error::{ErrorKey, StartupError};
 use crate::tray::TrayManager;
 #[cfg(windows)]
@@ -23,6 +24,7 @@ use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::diagnostic as cmd_diag;
+use commands::favorites as cmd_favorites;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -34,6 +36,7 @@ use commands::tray as cmd_tray;
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
 use commands::*;
+use nym_favorites::FavoritesManager;
 use state::app::AppState;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
@@ -48,6 +51,7 @@ mod db;
 mod env;
 mod error;
 mod events;
+mod favorites;
 mod fs;
 #[cfg(windows)]
 mod icon_extractor;
@@ -137,6 +141,21 @@ async fn main() -> Result<()> {
         None
     };
 
+    // Built here rather than in `setup`: `FavoritesManager::new` is async while the
+    // setup hook is synchronous, so awaiting it on main avoids blocking on the
+    // async runtime from inside the hook, and guarantees the store is loaded
+    // before any command can read it.
+    let favorites_manager = match APP_DATA_DIR.clone() {
+        Some(dir) => {
+            info!("favorites store dir: {}", dir.display());
+            Some(FavoritesManager::new(dir).await)
+        }
+        None => {
+            error!("failed to get app data dir, favorites will be unavailable");
+            None
+        }
+    };
+
     let c_os = os.clone();
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
@@ -199,6 +218,7 @@ async fn main() -> Result<()> {
 
             app.manage(cli.clone());
             app.manage(Mutex::new(debug_logging_control));
+            app.manage(FavoritesState::new(favorites_manager));
 
             info!("Creating k/v embedded db");
             let db = match Db::new() {
@@ -345,6 +365,9 @@ async fn main() -> Result<()> {
             cmd_db::db_del,
             cmd_db::db_flush,
             cmd_gw::get_gateways,
+            cmd_favorites::get_favorites,
+            cmd_favorites::add_favorite,
+            cmd_favorites::remove_favorite,
             cmd_window::show_main_window,
             cmd_window::set_background_color,
             commands::cli::cli_args,
