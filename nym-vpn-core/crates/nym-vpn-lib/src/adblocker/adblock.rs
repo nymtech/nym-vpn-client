@@ -385,13 +385,13 @@ mod tests {
     #[tokio::test]
     #[traced_test]
     async fn test_state_transitions() {
-        let cache_dir = std::env::temp_dir();
+        let temp_dir = tempfile::tempdir().unwrap();
         let engine = MockEngine::default();
 
         let (state_tx, mut state_rx) = tokio::sync::mpsc::unbounded_channel();
 
         let adblocker = AdBlocker::create(
-            cache_dir,
+            temp_dir.path().to_path_buf(),
             ObservableState::new_with_observer(state_tx),
             Arc::new(AdBlockEngineWrap::Mock(engine)),
             FileUpdaterHandle::new_test(),
@@ -417,13 +417,13 @@ mod tests {
     #[tokio::test]
     #[traced_test]
     async fn test_reset_store_on_load_filters_failure() {
-        let cache_dir = std::env::temp_dir();
+        let temp_dir = tempfile::tempdir().unwrap();
         let (engine, promise) = MockEngine::fail_once();
 
         let (state_tx, mut state_rx) = tokio::sync::mpsc::unbounded_channel();
 
         let adblocker = AdBlocker::create(
-            cache_dir,
+            temp_dir.path().to_path_buf(),
             ObservableState::new_with_observer(state_tx),
             Arc::new(AdBlockEngineWrap::Mock(engine)),
             FileUpdaterHandle::new_test(),
