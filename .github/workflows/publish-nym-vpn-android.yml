@@ -46,7 +46,10 @@ jobs:
       - name: Create service_account.json
         id: createServiceAccount
         working-directory: nym-vpn-android
-        run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
+        env:
+          ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf '%s' "$ANDROID_SERVICE_ACCOUNT_JSON" > service_account.json
 
       - name: Install fastlane
         working-directory: nym-vpn-android
