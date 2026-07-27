@@ -338,20 +338,14 @@ impl VpnServiceConfigManager {
         &mut self,
         listen_port: u16,
     ) -> Result<(), GeoExclusionConfigError> {
-        // Port 1080 is reserved for mixnet socks5 proxy
-        const RESERVED_PORT: u16 = 1080;
+        geo_exclusion_settings::v9::validate_listen_port(listen_port)?;
 
-        if listen_port == RESERVED_PORT {
-            Err(GeoExclusionConfigError::ReservedPort(listen_port))
-        } else if listen_port == 0 {
-            Err(GeoExclusionConfigError::InvalidPort)
-        } else if self.config.geo_exclusion.listen_port != listen_port {
+        if self.config.geo_exclusion.listen_port != listen_port {
             self.config.geo_exclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
-            Ok(())
-        } else {
-            Ok(())
         }
+
+        Ok(())
     }
 
     pub async fn set_geo_exclusion_excluded_countries(

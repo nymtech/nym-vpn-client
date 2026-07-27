@@ -42,10 +42,26 @@ pub mod v9 {
         Ok(())
     }
 
+    /// Port 1080 is reserved for the mixnet socks5 proxy.
+    const RESERVED_PORT: u16 = 1080;
+
+    /// Shared validation for the geo-exclusion listen port, used both when a caller sets
+    /// a new port at runtime and when a persisted config is loaded from disk.
+    pub fn validate_listen_port(listen_port: u16) -> Result<(), GeoExclusionConfigError> {
+        if listen_port == RESERVED_PORT {
+            Err(GeoExclusionConfigError::ReservedPort(listen_port))
+        } else if listen_port == 0 {
+            Err(GeoExclusionConfigError::InvalidPort)
+        } else {
+            Ok(())
+        }
+    }
+
     impl TryFrom<GeoExclusionSettings> for nym_vpn_lib_types::GeoExclusionSettings {
         type Error = GeoExclusionConfigError;
 
         fn try_from(value: GeoExclusionSettings) -> Result<Self, Self::Error> {
+            validate_listen_port(value.listen_port)?;
             validate_excluded_countries(&value.excluded_countries)?;
             Ok(Self {
                 enabled: value.enabled,

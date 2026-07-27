@@ -1047,23 +1047,23 @@ async fn test_service_config_fallback_default() {
     run_fallback_test(broken_json_content).await;
 }
 
-// An invalid geo_exclusion section (unsupported country code, here) must not fail loading
-// the whole config - only geo_exclusion should reset to default, everything else should
-// load as persisted.
-#[tokio::test]
-async fn test_service_config_geo_exclusion_invalid_resets_only_geo_exclusion() {
-    let json_content = r#"{
+// A persisted config with an invalid geo_exclusion section must not fail loading the
+// whole config - only geo_exclusion should reset to default, everything else should load
+// as persisted.
+async fn run_geo_exclusion_fallback_test(geo_exclusion_json: &str) {
+    let json_content = format!(
+        r#"{{
   "version": "v11",
-  "entry_point": {
-    "gateway": {
+  "entry_point": {{
+    "gateway": {{
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
-    }
-  },
-  "exit_point": {
-    "address": {
+    }}
+  }},
+  "exit_point": {{
+    "address": {{
       "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
-    }
-  },
+    }}
+  }},
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
@@ -1075,7 +1075,7 @@ async fn test_service_config_geo_exclusion_invalid_resets_only_geo_exclusion() {
   "residential_exit": false,
   "enable_custom_dns": false,
   "custom_dns": [],
-  "mixnet_traffic": {
+  "mixnet_traffic": {{
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
     "message_sending_average_delay": null,
@@ -1083,33 +1083,28 @@ async fn test_service_config_geo_exclusion_invalid_resets_only_geo_exclusion() {
     "disable_background_cover_traffic": false,
     "min_mixnode_performance": null,
     "min_gateway_mixnet_performance": null
-  },
-  "network_stats": {
+  }},
+  "network_stats": {{
     "enabled": true,
     "allow_disconnected": false
-  },
-  "split_tunnel": {
+  }},
+  "split_tunnel": {{
     "enabled": false,
     "apps": []
-  },
-  "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1081,
-    "excluded_countries": [
-      "ZZ"
-    ]
-  },
-  "gateway_selection_algorithm_config": {
+  }},
+  "geo_exclusion": {geo_exclusion_json},
+  "gateway_selection_algorithm_config": {{
     "enable_geo_location": true,
     "gateway_selection_algorithm": "explicit"
-  },
-  "gateway_independence": {
+  }},
+  "gateway_independence": {{
     "enable_notifications": true,
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
-}"#;
+  }}
+}}"#
+    );
 
     let temp_dir = tempdir().unwrap();
     let config_path = temp_dir.path();
@@ -1142,6 +1137,48 @@ async fn test_service_config_geo_exclusion_invalid_resets_only_geo_exclusion() {
         config.geo_exclusion,
         nym_vpn_lib_types::GeoExclusionSettings::default()
     );
+}
+
+#[tokio::test]
+async fn test_service_config_geo_exclusion_invalid_country_resets_only_geo_exclusion() {
+    run_geo_exclusion_fallback_test(
+        r#"{
+    "enabled": true,
+    "listen_port": 1081,
+    "excluded_countries": [
+      "ZZ"
+    ]
+  }"#,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_service_config_geo_exclusion_zero_port_resets_only_geo_exclusion() {
+    run_geo_exclusion_fallback_test(
+        r#"{
+    "enabled": true,
+    "listen_port": 0,
+    "excluded_countries": [
+      "CN"
+    ]
+  }"#,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_service_config_geo_exclusion_reserved_port_resets_only_geo_exclusion() {
+    run_geo_exclusion_fallback_test(
+        r#"{
+    "enabled": true,
+    "listen_port": 1080,
+    "excluded_countries": [
+      "CN"
+    ]
+  }"#,
+    )
+    .await;
 }
 
 #[tokio::test]
