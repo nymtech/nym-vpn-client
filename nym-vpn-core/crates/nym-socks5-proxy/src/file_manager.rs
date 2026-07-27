@@ -26,6 +26,18 @@ pub(crate) static SOURCES: &[Source] = &[
         builtin_etag: include_str!("../builtin/CN-domain.txt.etag"),
         url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/CN-domain.txt.gz",
     },
+    Source {
+        file_name: "RU-ip.json.gz",
+        builtin: include_bytes!("../builtin/RU-ip.json.gz"),
+        builtin_etag: include_str!("../builtin/RU-ip.json.etag"),
+        url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/RU-ip.json.gz",
+    },
+    Source {
+        file_name: "RU-domain.txt.gz",
+        builtin: include_bytes!("../builtin/RU-domain.txt.gz"),
+        builtin_etag: include_str!("../builtin/RU-domain.txt.etag"),
+        url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/RU-domain.txt.gz",
+    },
 ];
 
 /// Seed builtin files and their ETag sidecars into `data_dir` if not already present.
