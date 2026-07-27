@@ -257,10 +257,8 @@ pub async fn wait_for_tunnel_state(
         "Waiting for tunnel state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    // Drop the live HTTP/2-over-serial session before the guest observe wait. An idle-but-open
-    // DaemonRpc channel keeps competing for the 115200 baud mux and can HOL-block the single
-    // WaitOutcome reply after Connected (Debian12 E2E).
-    log::info!("quiescing serial DaemonRpc before observe wait");
+    // Drop DaemonRpc before observe so HTTP/2 cannot HOL tarpc replies on the serial mux.
+    log::debug!("quiescing serial DaemonRpc before observe wait");
     drop(nym_client);
     settle_daemon_rpc_quiesce().await;
 
@@ -276,15 +274,13 @@ pub async fn wait_for_tunnel_state(
     match merge_tunnel_wait_and_client(observed, client) {
         Ok(pair) => Ok(pair),
         Err((error, client)) => {
-            // Recreate still ran on the observe-failure path so suite/provider cleanup can open a
-            // fresh DaemonRpc session; public Err cannot carry the client without a signature break.
             drop(client);
             Err(error)
         }
     }
 }
 
-/// Settle the serial mux, run the guest observe wait, then always attempt client recreate.
+/// Settle the serial mux, run observe, then always attempt client recreate.
 pub(crate) async fn quiesce_observe_and_recreate<O, R, C>(
     observe: O,
     recreate: R,
@@ -303,7 +299,7 @@ pub(crate) async fn settle_daemon_rpc_quiesce() {
     tokio::time::sleep(DAEMON_QUIESCE_SETTLE).await;
 }
 
-/// Prefer the observe outcome; always surface a recreated client on wait failure when recreate Ok.
+/// Prefer the observe outcome; still return a recreated client on wait failure when recreate Ok.
 pub(crate) fn merge_tunnel_wait_and_client<C>(
     observed: Result<ObservedTunnelState, Error>,
     client: Result<C, Error>,
@@ -332,9 +328,7 @@ pub(crate) fn tunnel_target(expected: &ExpectedTunnelState) -> ObservedTunnelSta
     }
 }
 
-/// Wait for a tunnel discriminant by polling guest-local `get_observed_tunnel_state` over tarpc.
-/// Each poll is a short request/response (guest does one UDS read). DaemonRpc must stay dropped
-/// for the duration (see [`wait_for_tunnel_state`]) so HTTP/2 cannot HOL those replies.
+/// Poll guest-local tunnel state over tarpc. Caller must drop DaemonRpc for the wait duration.
 pub async fn wait_for_tunnel_state_fn(
     runner: &NymServiceClient,
     provider: &RpcClientProvider,
@@ -371,7 +365,7 @@ where
     let deadline = tokio::time::Instant::now() + budget;
     let mut last_observed = None;
 
-    log::info!(
+    log::debug!(
         "tunnel wait: host polling get_observed (budget={}s, disconnect_on_timeout={disconnect_on_timeout})",
         budget.as_secs()
     );
@@ -400,7 +394,7 @@ where
                 log::warn!("tunnel wait: observe RPC failed (will retry): {error:?}");
             }
             Err(_) => {
-                log::warn!(
+                log::debug!(
                     "tunnel wait: observe RPC timed out after {}ms (will retry)",
                     rpc_budget.as_millis()
                 );
@@ -512,7 +506,7 @@ async fn run_account_wait<W>(
 where
     W: AccountWaiter,
 {
-    log::info!(
+    log::debug!(
         "account wait: calling guest wait_for_observed (timeout={}s)",
         timeout.as_secs()
     );

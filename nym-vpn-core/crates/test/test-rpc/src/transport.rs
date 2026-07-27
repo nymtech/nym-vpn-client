@@ -119,8 +119,7 @@ where
                     framed_write
                         .send(Bytes::copy_from_slice(&buffer[..num_bytes]))
                         .await?;
-                    // Guest test-runner: stream=daemon UDS, framed=serial (replies).
-                    log::info!("fwd[stream→framed] bytes={num_bytes}");
+                    log::trace!("fwd[stream→framed] bytes={num_bytes}");
                     if num_bytes == 0 {
                         return Ok(());
                     }
@@ -137,14 +136,13 @@ where
         loop {
             match framed_read.next().await {
                 Some(Ok(bytes)) if bytes.is_empty() => {
-                    log::info!("fwd[framed→stream] bytes=0");
+                    log::trace!("fwd[framed→stream] bytes=0");
                     stream_writer.shutdown().await?;
                     return Ok(());
                 }
                 Some(Ok(bytes)) => {
                     stream_writer.write_all(&bytes).await?;
-                    // Guest test-runner: framed=serial, stream=daemon UDS (requests).
-                    log::info!("fwd[framed→stream] bytes={}", bytes.len());
+                    log::trace!("fwd[framed→stream] bytes={}", bytes.len());
                 }
                 Some(Err(error)) => return Err(error),
                 None => return Ok(()),
@@ -370,7 +368,7 @@ async fn forward_messages<
         while let Some(frame) = serial_source.next().await {
             match frame.map_err(ForwardError::SerialConnection)? {
                 Frame::TestRunner(data) => {
-                    log::info!("serial[wire→runner] bytes={}", data.len());
+                    log::trace!("serial[wire→runner] bytes={}", data.len());
                     let message =
                         serde_json::from_slice(&data).map_err(ForwardError::DeserializeFailed)?;
                     runner_tx
@@ -415,12 +413,7 @@ async fn forward_messages<
         Ok(())
     };
 
-    // Prefer handshake, then tarpc (TestRunner), then daemon gRPC on the shared serial
-    // writer. A fair `select!` can starve runner replies when the daemon half stays Ready
-    // (HOL after Connected). `biased` restores control-plane priority.
-    //
-    // Daemon EOF must not tear down the mux: `NymProxyClient` drop / session sync failure can
-    // close the daemon duplex while tarpc still needs the serial link.
+    // Prefer handshake, then tarpc, then daemon gRPC. Daemon EOF must not tear down tarpc.
     let serial_writer = async move {
         let mut daemon_open = true;
         loop {
@@ -446,7 +439,7 @@ async fn forward_messages<
                     let message = message.map_err(ForwardError::TestRunnerChannel)?;
                     let serialized =
                         serde_json::to_vec(&message).map_err(ForwardError::SerializeFailed)?;
-                    log::info!("serial[runner→wire] bytes={}", serialized.len());
+                    log::trace!("serial[runner→wire] bytes={}", serialized.len());
                     serial_sink
                         .send(Frame::TestRunner(serialized.into()))
                         .await
@@ -463,7 +456,7 @@ async fn forward_messages<
                         continue;
                     };
                     let data = data.map_err(ForwardError::DaemonChannel)?;
-                    log::info!("serial[daemon→wire] bytes={}", data.len());
+                    log::trace!("serial[daemon→wire] bytes={}", data.len());
                     serial_sink
                         .send(Frame::DaemonRpc(data.into()))
                         .await
@@ -490,8 +483,7 @@ const MULTIPLEX_MAX_FRAME_LENGTH: usize = 8 * 1024 * 1024;
 pub struct MultiplexCodec {
     len_delim_codec: LengthDelimitedCodec,
     has_connected: Arc<AtomicBool>,
-    /// After an implausible header we hunt one byte at a time and only accept a candidate
-    /// when the full frame is already buffered (avoids waiting forever on a phantom length).
+    /// True after a bad length/type; cleared on the next successful frame.
     desynced: bool,
 }
 
@@ -507,6 +499,16 @@ impl MultiplexCodec {
             has_connected,
             len_delim_codec: codec_builder.new_codec(),
             desynced: false,
+        }
+    }
+
+    fn mark_desynced(&mut self, detail: impl AsRef<str>) {
+        let detail = detail.as_ref();
+        if self.desynced {
+            log::debug!("serial mux: {detail}");
+        } else {
+            self.desynced = true;
+            log::warn!("serial mux: desync; {detail}");
         }
     }
 
@@ -560,7 +562,10 @@ impl MultiplexCodec {
             match self.len_delim_codec.decode(src) {
                 Ok(Some(frame)) => {
                     let decoded = Self::decode_frame(frame)?;
-                    self.desynced = false;
+                    if self.desynced {
+                        log::info!("serial mux: re-locked after desync");
+                        self.desynced = false;
+                    }
                     return Ok(Some(decoded));
                 }
                 Ok(None) => return Ok(None),
@@ -568,11 +573,10 @@ impl MultiplexCodec {
                     if src.is_empty() {
                         return Err(error);
                     }
-                    self.desynced = true;
-                    log::warn!(
-                        "serial mux: oversized length after peek; skipping 1 byte (remaining={})",
+                    self.mark_desynced(format!(
+                        "oversized length after peek; skip 1 (remaining={})",
                         src.len()
-                    );
+                    ));
                     src.advance(1);
                 }
                 Err(error) => return Err(error),
@@ -580,15 +584,15 @@ impl MultiplexCodec {
         }
     }
 
+    /// Skip one byte at a time until length + FrameType (+ Handshake signature) look valid.
     fn resync_to_plausible_frame_header(&mut self, src: &mut BytesMut) -> bool {
         while src.len() >= MULTIPLEX_LEN_DELIMITED_HEADER_SIZE {
             let claimed_len = u32::from_be_bytes([src[0], src[1], src[2], src[3]]) as usize;
             if !(1..=MULTIPLEX_MAX_FRAME_LENGTH).contains(&claimed_len) {
-                self.desynced = true;
-                log::warn!(
-                    "serial mux: implausible length {claimed_len}; skipping 1 byte to resync (remaining={})",
+                self.mark_desynced(format!(
+                    "implausible length {claimed_len}; skip 1 (remaining={})",
                     src.len()
-                );
+                ));
                 src.advance(1);
                 continue;
             }
@@ -598,12 +602,11 @@ impl MultiplexCodec {
             let frame_type = match FrameType::try_from(src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE]) {
                 Ok(frame_type) => frame_type,
                 Err(()) => {
-                    self.desynced = true;
-                    log::warn!(
-                        "serial mux: length {claimed_len} but invalid frame type {:#04x}; skipping 1 byte (remaining={})",
+                    self.mark_desynced(format!(
+                        "length {claimed_len} bad type {:#04x}; skip 1 (remaining={})",
                         src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE],
                         src.len()
-                    );
+                    ));
                     src.advance(1);
                     continue;
                 }
@@ -619,11 +622,10 @@ impl MultiplexCodec {
                 let payload_start = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + FRAME_TYPE_SIZE;
                 let payload_end = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + claimed_len;
                 if &src[payload_start..payload_end] != MULLVAD_SIGNATURE {
-                    self.desynced = true;
-                    log::warn!(
-                        "serial mux: Handshake length without signature; skipping 1 byte (remaining={})",
+                    self.mark_desynced(format!(
+                        "Handshake without signature; skip 1 (remaining={})",
                         src.len()
-                    );
+                    ));
                     src.advance(1);
                     continue;
                 }
@@ -1251,8 +1253,7 @@ mod tests {
         assert_decoded_test_runner(decoded, b"ok");
     }
 
-    /// 4-byte header skip permanently destroys a frame that starts one byte after noise.
-    /// One-byte scan + FrameType peek must re-lock (CI 30267472749 class failure).
+    /// 4-byte header skip destroys a frame that starts one byte after noise.
     #[test]
     fn multiplex_codec_resyncs_when_misaligned_by_one_byte() {
         use super::MultiplexCodec;
