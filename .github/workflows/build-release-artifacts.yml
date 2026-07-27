@@ -234,4 +234,5 @@ jobs:
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
+      dev_mode: ${{ needs.resolve.outputs.channel == 'nightly' }}
     secrets: inherit
