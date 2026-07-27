@@ -45,22 +45,16 @@ impl DomainSet {
             return false;
         }
         let rev = reverse_labels(host);
-        // Binary search for the insertion point of `rev`.
-        let idx = self
-            .reversed
-            .partition_point(|entry| entry.as_str() <= rev.as_str());
-
-        // Check the entry just before `idx` (exact match or rev starts with entry+".")
-        if idx > 0 {
-            let prev = &self.reversed[idx - 1];
-            if is_suffix_match(&rev, prev) {
-                return true;
+        // Check each ancestor domain (and the host itself) for an exact match, from the
+        // top-level label down. A sibling subdomain can sort between an ancestor entry and
+        // `rev`, so only checking the binary search insertion point's neighbors is not enough.
+        let mut prefix = String::new();
+        for label in rev.split('.') {
+            if !prefix.is_empty() {
+                prefix.push('.');
             }
-        }
-        // Also check the entry at `idx` itself (rev might equal it exactly).
-        if idx < self.reversed.len() {
-            let at = &self.reversed[idx];
-            if is_suffix_match(&rev, at) {
+            prefix.push_str(label);
+            if self.reversed.binary_search(&prefix).is_ok() {
                 return true;
             }
         }
@@ -117,12 +111,4 @@ fn embedded_domain_gz(country_code: &str) -> Option<&'static [u8]> {
 fn reverse_labels(domain: &str) -> String {
     let labels: Vec<&str> = domain.trim_end_matches('.').split('.').collect();
     labels.into_iter().rev().collect::<Vec<_>>().join(".")
-}
-
-#[inline]
-fn is_suffix_match(rev_host: &str, rev_entry: &str) -> bool {
-    rev_host == rev_entry
-        || (rev_host.len() > rev_entry.len()
-            && rev_host.as_bytes().get(rev_entry.len()) == Some(&b'.')
-            && rev_host.starts_with(rev_entry))
 }
