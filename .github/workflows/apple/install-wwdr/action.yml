@@ -41,15 +41,12 @@ runs:
                 if [ $? -eq 0 ] && [ -f "$save_path" ]; then
                     echo "Importing certificate into $KEYCHAIN..."
 
-                    # Apply optional password flag if provided
-                    local pwd_flag=""
-                    if [ -n "${{ inputs.keychain-password }}" ]; then
-                        pwd_flag="-P ${{ inputs.keychain-password }}"
+                    if [ -n "${KEYCHAIN_PASSWORD:-}" ]; then
+                        security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
                     fi
 
                     security import "$save_path" \
                       -k "$KEYCHAIN" \
-                      $pwd_flag \
                       -T /usr/bin/codesign \
                       -T /usr/bin/security
 
