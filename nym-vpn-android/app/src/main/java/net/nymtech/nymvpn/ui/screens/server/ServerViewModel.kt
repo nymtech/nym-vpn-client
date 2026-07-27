@@ -70,13 +70,13 @@ class ServerViewModel @Inject constructor(
 			combine(gatewayRepository.gatewayFlow, favoritesManager.favoritesFlow) { gateways, selectors ->
 				gateways to selectors
 			}.collect { (gateways, selectors) ->
+				favorites = selectors
 				val type = gatewayType ?: return@collect
 				allGateways = when (type) {
 					GatewayType.MIXNET_ENTRY -> gateways.entryGateways
 					GatewayType.MIXNET_EXIT -> gateways.exitGateways
 					GatewayType.WG -> gateways.wgGateways
 				}
-				favorites = selectors
 				if (isInitialLoad && !userSelectedFilter) {
 					_uiState.update { it.copy(filter = defaultFilterFor(isExitScreen)) }
 				}
@@ -232,9 +232,9 @@ class ServerViewModel @Inject constructor(
 		_uiState.update {
 			it.copy(
 				items = resultItems,
-				countryCount = allGateways.mapNotNull { g -> g.twoLetterCountryISO }.distinct().size,
-				nodeCount = allGateways.size,
-				isEmpty = allGateways.isEmpty(),
+				countryCount = eligibleGateways.mapNotNull { g -> g.twoLetterCountryISO }.distinct().count(),
+				nodeCount = eligibleGateways.count(),
+				isEmpty = eligibleGateways.none(),
 				favoriteGatewayIds = favoriteGatewayIds(selectors),
 			)
 		}

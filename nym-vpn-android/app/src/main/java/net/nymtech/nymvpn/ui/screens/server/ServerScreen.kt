@@ -173,7 +173,6 @@ fun ServerScreen(
 			appUiState.settings.quicEnabled
 	}
 
-	// `remember(appUiState.vpnConfig.algorithm) { selectedLocation == GatewayLocation.EXIT && appUiState.vpnConfig.algorithm != GatewaySelectionAlgorithm.EXPLICIT }` — hidden while Auto mode is disabled
 	val showBestOption = false
 
 	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
@@ -393,8 +392,8 @@ internal fun ServerScreenContent(
 					) {
 						val emptyStateText = when {
 							uiState.error -> stringResource(R.string.country_load_failure)
-							uiState.filter == ServerListFilter.FAVORITES -> "No favorites yet"
-							uiState.filter == ServerListFilter.RECENT && !uiState.isLoading -> "No recent servers yet"
+							uiState.filter == ServerListFilter.FAVORITES -> stringResource(R.string.server_no_favorites_text)
+							uiState.filter == ServerListFilter.RECENT && !uiState.isLoading -> stringResource(R.string.server_no_recents_text)
 							else -> stringResource(R.string.loading)
 						}
 						Text(

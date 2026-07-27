@@ -213,9 +213,12 @@
 	<string name="server_exit_tab">Exit</string>
 	<string name="server_search_text">Search location or server</string>
 	<string name="server_nodes_countries_text">%1$s countries · %2$s nodes</string>
+	<string name="server_favorite_icon">Favorite</string>
 	<string name="server_favorites_tab">Favorites</string>
 	<string name="server_recent_tab">Recent</string>
 	<string name="server_all_tab">All servers</string>
+	<string name="server_no_favorites_text">No favorites yet</string>
+	<string name="server_no_recents_text">No recent servers yet</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world\'s most private VPN</string>

@@ -248,7 +248,7 @@ fun FavoriteIcon(isFavorite: Boolean, onToggleFavorite: () -> Unit, modifier: Mo
 	}
 	Icon(
 		imageVector = icon,
-		contentDescription = "Favorite",
+		contentDescription = stringResource(R.string.server_favorite_icon),
 		tint = tint,
 		modifier = modifier.clickable { onToggleFavorite() },
 	)

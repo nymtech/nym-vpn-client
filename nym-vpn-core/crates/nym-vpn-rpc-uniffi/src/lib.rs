@@ -538,12 +538,20 @@ impl FavoritesController {
     }
 
     pub async fn add_favorite_entry(&self, selector: FavoriteSelector) -> Result<()> {
-        self.manager.write().await.add_favorite_entry(selector).await?;
+        self.manager
+            .write()
+            .await
+            .add_favorite_entry(selector)
+            .await?;
         Ok(())
     }
 
     pub async fn add_favorite_exit(&self, selector: FavoriteSelector) -> Result<()> {
-        self.manager.write().await.add_favorite_exit(selector).await?;
+        self.manager
+            .write()
+            .await
+            .add_favorite_exit(selector)
+            .await?;
         Ok(())
     }
 
