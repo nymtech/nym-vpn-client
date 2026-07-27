@@ -17,6 +17,7 @@ runs:
       shell: bash
       env:
         KEYCHAIN: ${{ inputs.keychain-path }}
+        KEYCHAIN_PASSWORD: ${{ inputs.keychain-password }}
       run: |
         echo "Target Keychain: $KEYCHAIN"
 
@@ -41,7 +42,7 @@ runs:
                 if [ $? -eq 0 ] && [ -f "$save_path" ]; then
                     echo "Importing certificate into $KEYCHAIN..."
 
-                    if [ -n "${KEYCHAIN_PASSWORD:-}" ]; then
+                    if [ -n "${KEYCHAIN_PASSWORD}" ]; then
                         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
                     fi
 
