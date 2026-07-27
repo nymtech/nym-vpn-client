@@ -60,6 +60,9 @@ jobs:
           ref: develop
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
 
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 

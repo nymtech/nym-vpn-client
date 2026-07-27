@@ -1,0 +1,32 @@
+name: 'Add Changelog Release'
+description: 'Validates and inserts a new version header into the changelog file'
+inputs:
+  changelog:
+    description: 'The changelog file to update'
+    required: false
+    default: 'CHANGELOG.md'
+  version:
+    description: 'The new core version to release'
+    required: true
+  release_date:
+    description: 'The release date'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Update ${{ inputs.changelog }}
+      shell: bash
+      env:
+        CHANGELOG: ${{ inputs.changelog }}
+        VERSION: ${{ inputs.version }}
+        RELEASE_DATE: ${{ inputs.release_date }}
+      run: |
+        if ! grep -q '^## \[Unreleased\]' "$CHANGELOG"; then
+          echo "::error:: $CHANGELOG is missing '## [Unreleased]' section"
+          exit 1
+        fi
+
+        sed -i -E "s|^##\s*\[Unreleased\]$|## [Unreleased]\n\n## [$VERSION] - $RELEASE_DATE|" "$CHANGELOG"
+        echo "::notice:: Inserted entry for v$VERSION ($RELEASE_DATE) in $CHANGELOG"
+        head -12 "$CHANGELOG"

@@ -315,11 +315,20 @@ jobs:
           # for prereleases, extract the changelog from the [unreleased] section
           prerelease: ${{ inputs.github_release_type != 'release' }}
 
+      - name: Extract android changelog
+        id: android-changelog
+        uses: ffurrer2/extract-release-notes@v2
+        with:
+          changelog_file: nym-vpn-android/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ inputs.github_release_type != 'release' }}
+
       - name: Add release notes (General)
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           VERSION: ${{ needs.resolve.outputs.version }}
           CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
+          ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes }}
         run: |
           cat << 'EOF' > "$RELEASE_NOTES"
           Nym VPN v${{ env.VERSION }} application and core binaries.
@@ -335,6 +344,18 @@ jobs:
           ### 🛠️ Core Changes
 
           $UPDATED_CORE_CHANGES
+
+          EOF
+          fi
+
+          if [ -n "$ANDROID_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_ANDROID_CHANGES=$(sed 's/^### /#### /' <<< "$ANDROID_CHANGES")
+
+            envsubst '$UPDATED_ANDROID_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ### 🤖 Android Changes
+
+          $UPDATED_ANDROID_CHANGES
 
           EOF
           fi
