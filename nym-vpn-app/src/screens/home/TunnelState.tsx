@@ -50,11 +50,7 @@ const ERROR_CLR = 'var(--nv-status-error)';
 const RELAXED_INDEPENDENCE_ERROR_DELAY = 1000;
 
 type Phase =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'canceling'
-  | 'error';
+  'disconnected' | 'connecting' | 'connected' | 'canceling' | 'error';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
