@@ -3,11 +3,7 @@ import clsx from 'clsx';
 
 export type DataCardProps = {
   rows: (
-    | { row: React.ReactNode; key: string }
-    | undefined
-    | false
-    | null
-    | ''
+    { row: React.ReactNode; key: string } | undefined | false | null | ''
   )[];
   footer?: React.ReactNode;
 };
