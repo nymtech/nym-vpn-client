@@ -24,13 +24,7 @@ jobs:
 
     steps:
       - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+        uses: ./.github/actions/cleanup
 
       - name: Install system dependencies
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest')

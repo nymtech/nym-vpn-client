@@ -30,13 +30,8 @@ jobs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
     steps:
-      - name: Cleanup working directory
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+      - name: "Cleanup working directory"
+        uses: ./.github/actions/cleanup
 
       - name: Download driver artifacts
         uses: actions/download-artifact@v8

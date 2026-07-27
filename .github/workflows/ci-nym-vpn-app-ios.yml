@@ -17,12 +17,7 @@ jobs:
     runs-on: custom-macos-15
     steps:
       - name: "Cleanup working directory"
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+        uses: ./.github/actions/cleanup
 
       - name: Checkout repo
         uses: actions/checkout@v7

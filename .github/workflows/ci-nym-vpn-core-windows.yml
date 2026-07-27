@@ -34,12 +34,7 @@ jobs:
       [build-wireguard-go-windows, build-winfw-windows, build-st-driver-windows]
     steps:
       - name: "Cleanup working directory"
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+        uses: ./.github/actions/cleanup
 
       - name: Support longpaths on windows
         run: git config --system core.longpaths true

@@ -24,12 +24,7 @@ jobs:
       pull-requests: write
     steps:
       - name: "Cleanup working directory"
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+        uses: ./.github/actions/cleanup
 
       - name: Resolve
         id: resolve

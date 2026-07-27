@@ -1,0 +1,13 @@
+name: "Cleanup Working Directory"
+description: "Clears out all files and hidden files in the current working directory"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Cleanup working directory"
+      shell: bash
+      run: |
+        ls -la ./
+        rm -rf ./* || true
+        rm -rf ./.??* || true
+        ls -la ./

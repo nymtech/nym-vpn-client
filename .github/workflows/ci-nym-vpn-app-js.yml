@@ -17,6 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: "Cleanup working directory"
+        uses: ./.github/actions/cleanup
+
       - name: Checkout
         uses: actions/checkout@v7
         with:

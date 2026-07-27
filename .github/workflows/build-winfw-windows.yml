@@ -22,13 +22,8 @@ jobs:
     runs-on: "custom-windows-11"
 
     steps:
-      - name: Cleanup working directory
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+      - name: "Cleanup working directory"
+        uses: ./.github/actions/cleanup
 
       - name: Checkout repo
         uses: actions/checkout@v7
