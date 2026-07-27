@@ -90,14 +90,9 @@ impl ProviderDisconnectClient<'_> {
 
     async fn ensure_client(&mut self) -> Result<&mut NymProxyClient, NymClientError> {
         if self.rpc.is_none() {
-            self.rpc = Some(
-                self.provider
-                    .new_client_nym()
-                    .await
-                    .map_err(|error| {
-                        NymClientError::Rpc(tonic::Status::unavailable(error.to_string()))
-                    })?,
-            );
+            self.rpc = Some(self.provider.new_client_nym().await.map_err(|error| {
+                NymClientError::Rpc(tonic::Status::unavailable(error.to_string()))
+            })?);
         }
         match self.rpc.as_mut() {
             Some(client) => Ok(client),
@@ -402,7 +397,7 @@ where
                 last_observed = Some(state);
             }
             Ok(Err(error)) => {
-                log::warn!("tunnel wait: observe RPC failed (will retry): {error}");
+                log::warn!("tunnel wait: observe RPC failed (will retry): {error:?}");
             }
             Err(_) => {
                 log::warn!(
@@ -865,7 +860,8 @@ mod tests {
 
     #[test]
     fn merge_tunnel_wait_returns_client_on_observe_error() {
-        let observed: Result<ObservedTunnelState, Error> = Err(Error::Daemon("observe failed".into()));
+        let observed: Result<ObservedTunnelState, Error> =
+            Err(Error::Daemon("observe failed".into()));
         let client: Result<&str, Error> = Ok("recreated");
 
         let err = merge_tunnel_wait_and_client(observed, client)
@@ -887,7 +883,8 @@ mod tests {
 
     #[test]
     fn merge_tunnel_wait_prefers_observe_error_when_recreate_also_fails() {
-        let observed: Result<ObservedTunnelState, Error> = Err(Error::Daemon("observe failed".into()));
+        let observed: Result<ObservedTunnelState, Error> =
+            Err(Error::Daemon("observe failed".into()));
         let client: Result<&str, Error> = Err(Error::Daemon("recreate failed".into()));
 
         let err = merge_tunnel_wait_and_client(observed, client)
@@ -902,9 +899,7 @@ mod tests {
         let mut recreate_calls = 0usize;
 
         let result = quiesce_observe_and_recreate(
-            async {
-                Err(Error::Daemon("guest timed out".into()))
-            },
+            async { Err(Error::Daemon("guest timed out".into())) },
             async {
                 recreate_calls += 1;
                 Ok("replacement-client")
@@ -925,9 +920,11 @@ mod tests {
         let mut recreate_calls = 0usize;
 
         let (state, client) = quiesce_observe_and_recreate(
-            async { Ok(ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Wireguard,
-            }) },
+            async {
+                Ok(ObservedTunnelState::Connected {
+                    tunnel_type: ObservedTunnelType::Wireguard,
+                })
+            },
             async {
                 recreate_calls += 1;
                 Ok("replacement-client")

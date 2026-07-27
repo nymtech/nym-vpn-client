@@ -549,8 +549,26 @@ impl MultiplexCodec {
         if !self.has_connected.load(Ordering::SeqCst) {
             return Ok(None);
         }
-        let frame = self.len_delim_codec.decode(src)?;
-        frame.map(Self::decode_frame).transpose()
+        loop {
+            match self.len_delim_codec.decode(src) {
+                Ok(frame) => return frame.map(Self::decode_frame).transpose(),
+                Err(error) if is_oversized_length_field_error(&error) => {
+                    let skip = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE.min(src.len());
+                    if skip == 0 {
+                        return Err(error);
+                    }
+                    log::warn!(
+                        "serial mux: oversized length field; skipping {skip} byte header to resync (remaining={})",
+                        src.len()
+                    );
+                    src.advance(skip);
+                    if src.len() < MULTIPLEX_LEN_DELIMITED_HEADER_SIZE {
+                        return Ok(None);
+                    }
+                }
+                Err(error) => return Err(error),
+            }
+        }
     }
 
     fn skip_noise(&mut self, src: &mut BytesMut) {
@@ -624,6 +642,10 @@ fn display_chain(error: impl std::error::Error) -> String {
         error = source;
     }
     s
+}
+
+fn is_oversized_length_field_error(error: &io::Error) -> bool {
+    error.kind() == io::ErrorKind::InvalidData && error.to_string().contains("frame size too big")
 }
 
 #[cfg(test)]
@@ -1104,7 +1126,7 @@ mod tests {
 
     #[test]
     fn multiplex_codec_rejects_oversized_frame() {
-        use super::{Frame, MultiplexCodec, MULTIPLEX_MAX_FRAME_LENGTH};
+        use super::{Frame, MULTIPLEX_MAX_FRAME_LENGTH, MultiplexCodec};
         use bytes::BytesMut;
         use std::sync::{Arc, atomic::AtomicBool};
         use tokio_util::codec::Encoder;
@@ -1124,5 +1146,36 @@ mod tests {
             "unexpected error kind: {:?}",
             err.kind()
         );
+    }
+
+    #[test]
+    fn multiplex_codec_resyncs_after_oversized_length_field() {
+        use super::{Frame, MULTIPLEX_MAX_FRAME_LENGTH, MultiplexCodec};
+        use bytes::{BufMut, BytesMut};
+        use std::sync::{Arc, atomic::AtomicBool};
+        use tokio_util::codec::{Decoder, Encoder};
+
+        let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
+
+        // Bogus length > max, then a real TestRunner frame (no padding: header skip is 4 bytes).
+        let mut src = BytesMut::new();
+        src.put_u32((MULTIPLEX_MAX_FRAME_LENGTH as u32).saturating_add(1));
+
+        let mut valid = BytesMut::new();
+        codec
+            .encode(Frame::TestRunner(Bytes::from_static(b"ok")), &mut valid)
+            .expect("encode valid frame");
+        src.extend_from_slice(&valid);
+
+        let decoded = codec
+            .decode(&mut src)
+            .expect("resync must not abort decode")
+            .expect("valid frame after oversized length resync");
+
+        match decoded {
+            Frame::TestRunner(payload) => assert_eq!(&payload[..], b"ok"),
+            Frame::Handshake => panic!("expected TestRunner, got Handshake"),
+            Frame::DaemonRpc(_) => panic!("expected TestRunner, got DaemonRpc"),
+        }
     }
 }

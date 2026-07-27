@@ -74,7 +74,8 @@ pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     block_socket_addrs(&rpc, &dns_nameservers).await?;
 
     // Ensure proper login state
-    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -126,7 +127,8 @@ pub async fn test_tunnel_blocklisted_vpn_api(
     block_server_name_indicators(&rpc, &vpn_api_hosts).await?;
 
     // Ensure we're logged out first
-    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -178,7 +180,8 @@ pub async fn test_tunnel_blocklisted_nym_api(
     block_server_name_indicators(&rpc, &nym_api_hosts).await?;
 
     // Ensure we're logged out first
-    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -247,7 +250,8 @@ pub async fn test_tunnel_delayed_blocklisted_nym_api(
     block_socket_addrs_delayed(&rpc, &default_nym_api_socket_addr).await?;
 
     // Ensure we're logged out first
-    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;

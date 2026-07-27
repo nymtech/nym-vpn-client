@@ -25,13 +25,8 @@ pub async fn test_account_and_tunnel_roundtrip(
     rpc: NymServiceClient,
     nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    let mut nym_proxy_client = dc_and_ensure_logged_in(
-        &rpc,
-        nym_proxy_client,
-        &test_context.rpc_provider,
-        false,
-    )
-    .await?;
+    let mut nym_proxy_client =
+        dc_and_ensure_logged_in(&rpc, nym_proxy_client, &test_context.rpc_provider, false).await?;
 
     // Verify account identity
     let identity = nym_proxy_client
