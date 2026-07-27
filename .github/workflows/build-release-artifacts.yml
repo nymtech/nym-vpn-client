@@ -186,7 +186,7 @@ jobs:
             MACOS="${{ inputs.macos }}"
           fi
 
-          echo "release_channel=$RELEASE_CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "channel=$RELEASE_CHANNEL" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "android=$ANDROID" >> "$GITHUB_OUTPUT"
           echo "fdroid=$FDROID" >> "$GITHUB_OUTPUT"
@@ -196,7 +196,7 @@ jobs:
           echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
           echo "nightly_timestamp=$NIGHTLY_TIMESTAMP" >> "$GITHUB_OUTPUT"
 
-          echo "::notice:: release_channel=$RELEASE_CHANNEL, version=$VERSION, nightly_timestamp=$NIGHTLY_TIMESTAMP, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
+          echo "::notice:: channel=$RELEASE_CHANNEL, version=$VERSION, nightly_timestamp=$NIGHTLY_TIMESTAMP, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
 
   core:
     needs: [resolve]
