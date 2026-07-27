@@ -22,6 +22,8 @@ use test_rpc::{
 /// `disconnect_and_wait` (that would block the suite for another 40s on a dead serial).
 const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
+const DAEMON_QUIESCE_SETTLE: Duration = Duration::from_millis(250);
+
 /// Waits for a tunnel-state discriminant on the guest, returning a single reply. A trait so
 /// the wait/cleanup orchestration is unit-testable without a live serial link.
 trait TunnelWaiter {
@@ -74,20 +76,48 @@ trait DisconnectClient {
     }
 }
 
-/// Serial `disconnect_tunnel` for connect-timeout cleanup (commands stay on serial gRPC).
-struct SerialDisconnectClient<'a> {
-    rpc: &'a mut NymProxyClient,
+/// On-demand serial `disconnect_tunnel` for connect-timeout cleanup. Creates a short-lived
+/// gRPC client from the provider (the caller's client is dropped before observe waits).
+struct ProviderDisconnectClient<'a> {
     provider: &'a RpcClientProvider,
+    rpc: Option<NymProxyClient>,
     recreated: bool,
 }
 
-impl SerialDisconnectClient<'_> {
+impl ProviderDisconnectClient<'_> {
+    fn new(provider: &RpcClientProvider) -> ProviderDisconnectClient<'_> {
+        ProviderDisconnectClient {
+            provider,
+            rpc: None,
+            recreated: false,
+        }
+    }
+
+    async fn ensure_client(&mut self) -> Result<&mut NymProxyClient, NymClientError> {
+        if self.rpc.is_none() {
+            self.rpc = Some(
+                self.provider
+                    .new_client_nym()
+                    .await
+                    .map_err(|error| {
+                        NymClientError::Rpc(tonic::Status::unavailable(error.to_string()))
+                    })?,
+            );
+        }
+        match self.rpc.as_mut() {
+            Some(client) => Ok(client),
+            None => Err(NymClientError::Rpc(tonic::Status::internal(
+                "ProviderDisconnectClient insert raced to empty",
+            ))),
+        }
+    }
+
     async fn recreate_once(&mut self) -> Result<bool, Error> {
         if !may_attempt_session_recreate(self.recreated) {
             return Ok(false);
         }
         log::warn!("recreating NymProxyClient after RPC stall");
-        *self.rpc = self.provider.new_client_nym().await.map_err(Error::Other)?;
+        self.rpc = Some(self.provider.new_client_nym().await.map_err(Error::Other)?);
         self.recreated = true;
         Ok(true)
     }
@@ -98,9 +128,10 @@ pub(crate) fn may_attempt_session_recreate(already_recreated: bool) -> bool {
     !already_recreated
 }
 
-impl DisconnectClient for SerialDisconnectClient<'_> {
+impl DisconnectClient for ProviderDisconnectClient<'_> {
     async fn disconnect_tunnel(&mut self) -> Result<bool, NymClientError> {
-        NymProxyClient::disconnect_tunnel(self.rpc).await
+        let client = self.ensure_client().await?;
+        NymProxyClient::disconnect_tunnel(client).await
     }
 
     async fn recreate_after_disconnect_failure(&mut self) -> Result<bool, Error> {
@@ -168,25 +199,24 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
 
 pub async fn disconnect_and_wait(
     runner: &NymServiceClient,
-    nym_client: &mut NymProxyClient,
+    nym_client: NymProxyClient,
     provider: &RpcClientProvider,
-) -> Result<(), Error> {
+) -> Result<NymProxyClient, Error> {
     log::trace!("Disconnecting");
+    let mut nym_client = nym_client;
     nym_client.disconnect_tunnel().await?;
 
-    wait_for_tunnel_state_fn(
+    let (_, nym_client) = wait_for_tunnel_state(
         runner,
         nym_client,
         provider,
-        vec![ObservedTunnelStateKind::Disconnected],
-        WAIT_FOR_TUNNEL_STATE_TIMEOUT,
-        false,
+        ExpectedTunnelState::Disconnected,
     )
     .await?;
 
     log::trace!("Disconnected");
 
-    Ok(())
+    Ok(nym_client)
 }
 
 /// Best-effort `disconnect_tunnel` with a short deadline. Never waits for Disconnected.
@@ -228,24 +258,72 @@ where
 
 pub async fn wait_for_tunnel_state(
     runner: &NymServiceClient,
-    nym_client: &mut NymProxyClient,
+    nym_client: NymProxyClient,
     provider: &RpcClientProvider,
     expected: ExpectedTunnelState,
-) -> Result<ObservedTunnelState, Error> {
+) -> Result<(ObservedTunnelState, NymProxyClient), Error> {
     let (timeout, disconnect_on_timeout) = tunnel_wait_params(&expected);
     log::debug!(
         "Waiting for tunnel state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    wait_for_tunnel_state_fn(
+    // Drop the live HTTP/2-over-serial session before the guest observe wait. An idle-but-open
+    // DaemonRpc channel keeps competing for the 115200 baud mux and can HOL-block the single
+    // WaitOutcome reply after Connected (Debian12 E2E).
+    log::info!("quiescing serial DaemonRpc before observe wait");
+    drop(nym_client);
+    settle_daemon_rpc_quiesce().await;
+
+    let observed = wait_for_tunnel_state_fn(
         runner,
-        nym_client,
         provider,
         vec![tunnel_target(&expected)],
         timeout,
         disconnect_on_timeout,
     )
-    .await
+    .await;
+    let client = provider.new_client_nym().await.map_err(Error::Other);
+    match merge_tunnel_wait_and_client(observed, client) {
+        Ok(pair) => Ok(pair),
+        Err((error, client)) => {
+            // Recreate still ran on the observe-failure path so suite/provider cleanup can open a
+            // fresh DaemonRpc session; public Err cannot carry the client without a signature break.
+            drop(client);
+            Err(error)
+        }
+    }
+}
+
+/// Settle the serial mux, run the guest observe wait, then always attempt client recreate.
+pub(crate) async fn quiesce_observe_and_recreate<O, R, C>(
+    observe: O,
+    recreate: R,
+) -> Result<(ObservedTunnelState, C), (Error, Option<C>)>
+where
+    O: std::future::Future<Output = Result<ObservedTunnelState, Error>>,
+    R: std::future::Future<Output = Result<C, Error>>,
+{
+    settle_daemon_rpc_quiesce().await;
+    let observed = observe.await;
+    let client = recreate.await;
+    merge_tunnel_wait_and_client(observed, client)
+}
+
+pub(crate) async fn settle_daemon_rpc_quiesce() {
+    tokio::time::sleep(DAEMON_QUIESCE_SETTLE).await;
+}
+
+/// Prefer the observe outcome; always surface a recreated client on wait failure when recreate Ok.
+pub(crate) fn merge_tunnel_wait_and_client<C>(
+    observed: Result<ObservedTunnelState, Error>,
+    client: Result<C, Error>,
+) -> Result<(ObservedTunnelState, C), (Error, Option<C>)> {
+    match (observed, client) {
+        (Ok(state), Ok(client)) => Ok((state, client)),
+        (Err(wait_error), Ok(client)) => Err((wait_error, Some(client))),
+        (Ok(_state), Err(recreate_error)) => Err((recreate_error, None)),
+        (Err(wait_error), Err(_recreate_error)) => Err((wait_error, None)),
+    }
 }
 
 /// Connect waits get a longer timeout and disconnect-on-timeout; other waits do not.
@@ -267,19 +345,17 @@ pub(crate) fn tunnel_target(expected: &ExpectedTunnelState) -> ObservedTunnelSta
 /// Wait for a tunnel discriminant via a single guest tarpc call (local UDS on the VM). The
 /// guest polls its daemon locally and returns one reply, so no per-poll frame (and no large
 /// `ConnectionData` gRPC payload) crosses the serial link during the Connected wait.
+///
+/// Callers must drop any live serial `NymProxyClient` before this (see [`wait_for_tunnel_state`])
+/// so DaemonRpc HTTP/2 cannot HOL the WaitOutcome on the shared mux.
 pub async fn wait_for_tunnel_state_fn(
     runner: &NymServiceClient,
-    nym_client: &mut NymProxyClient,
     provider: &RpcClientProvider,
     targets: Vec<ObservedTunnelStateKind>,
     timeout: Duration,
     disconnect_on_timeout: bool,
 ) -> Result<ObservedTunnelState, Error> {
-    let mut disconnect_client = SerialDisconnectClient {
-        rpc: nym_client,
-        provider,
-        recreated: false,
-    };
+    let mut disconnect_client = ProviderDisconnectClient::new(provider);
     enforce_tunnel_wait_deadline(
         timeout,
         run_tunnel_wait(
@@ -479,7 +555,8 @@ pub async fn resolve_hostname_with_retry(
 mod tests {
     use super::{
         AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelWaiter, account_target,
-        enforce_tunnel_wait_deadline, run_account_wait, run_tunnel_wait, tunnel_target,
+        enforce_tunnel_wait_deadline, merge_tunnel_wait_and_client, quiesce_observe_and_recreate,
+        run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
         tunnel_wait_budget, tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
@@ -747,6 +824,97 @@ mod tests {
 
         assert_eq!(started.elapsed(), timeout);
         assert!(error.to_string().contains("total deadline of 120s"));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn daemon_quiesce_settle_advances_paused_clock() {
+        let started = tokio::time::Instant::now();
+        settle_daemon_rpc_quiesce().await;
+        assert_eq!(started.elapsed(), super::DAEMON_QUIESCE_SETTLE);
+    }
+
+    #[test]
+    fn merge_tunnel_wait_returns_client_on_observe_error() {
+        let observed: Result<ObservedTunnelState, Error> = Err(Error::Daemon("observe failed".into()));
+        let client: Result<&str, Error> = Ok("recreated");
+
+        let err = merge_tunnel_wait_and_client(observed, client)
+            .expect_err("observe failure must surface");
+        assert!(err.0.to_string().contains("observe failed"));
+        assert_eq!(err.1, Some("recreated"));
+    }
+
+    #[test]
+    fn merge_tunnel_wait_success_pairs_state_and_client() {
+        let observed = Ok(ObservedTunnelState::Disconnected);
+        let client: Result<&str, Error> = Ok("recreated");
+
+        let (state, got) =
+            merge_tunnel_wait_and_client(observed, client).expect("success pairs both");
+        assert!(matches!(state, ObservedTunnelState::Disconnected));
+        assert_eq!(got, "recreated");
+    }
+
+    #[test]
+    fn merge_tunnel_wait_prefers_observe_error_when_recreate_also_fails() {
+        let observed: Result<ObservedTunnelState, Error> = Err(Error::Daemon("observe failed".into()));
+        let client: Result<&str, Error> = Err(Error::Daemon("recreate failed".into()));
+
+        let err = merge_tunnel_wait_and_client(observed, client)
+            .expect_err("combined failure must surface");
+        assert!(err.0.to_string().contains("observe failed"));
+        assert!(err.1.is_none());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn quiesce_observe_recreates_client_after_observe_error() {
+        let started = tokio::time::Instant::now();
+        let mut recreate_calls = 0usize;
+
+        let result = quiesce_observe_and_recreate(
+            async {
+                Err(Error::Daemon("guest timed out".into()))
+            },
+            async {
+                recreate_calls += 1;
+                Ok("replacement-client")
+            },
+        )
+        .await;
+
+        assert_eq!(started.elapsed(), super::DAEMON_QUIESCE_SETTLE);
+        assert_eq!(recreate_calls, 1);
+        let (error, client) = result.expect_err("observe error must propagate");
+        assert!(error.to_string().contains("guest timed out"));
+        assert_eq!(client, Some("replacement-client"));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn quiesce_observe_recreates_client_after_observe_success() {
+        let started = tokio::time::Instant::now();
+        let mut recreate_calls = 0usize;
+
+        let (state, client) = quiesce_observe_and_recreate(
+            async { Ok(ObservedTunnelState::Connected {
+                tunnel_type: ObservedTunnelType::Wireguard,
+            }) },
+            async {
+                recreate_calls += 1;
+                Ok("replacement-client")
+            },
+        )
+        .await
+        .expect("success path returns state and client");
+
+        assert_eq!(started.elapsed(), super::DAEMON_QUIESCE_SETTLE);
+        assert_eq!(recreate_calls, 1);
+        assert!(matches!(
+            state,
+            ObservedTunnelState::Connected {
+                tunnel_type: ObservedTunnelType::Wireguard
+            }
+        ));
+        assert_eq!(client, "replacement-client");
     }
 
     #[tokio::test(start_paused = true)]

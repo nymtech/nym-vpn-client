@@ -74,9 +74,9 @@ pub async fn test_daemon_info(
 pub async fn test_list_gateways(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     let mixnet_gateways = nym_client
         .list_gateways(ListGatewaysOptions {
@@ -108,9 +108,9 @@ pub async fn test_list_gateways(
 pub async fn test_account_summary_and_usage(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // Get account summary
     let summary = nym_client
@@ -173,9 +173,9 @@ pub async fn test_account_summary_and_usage(
 pub async fn test_wireguard_connect_disconnect(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // Enable two-hop (WireGuard mode)
     nym_client.set_enable_two_hop(true).await?;
@@ -183,9 +183,9 @@ pub async fn test_wireguard_connect_disconnect(
     // Connect
     log::info!("Connecting WireGuard tunnel...");
     nym_client.connect_tunnel().await?;
-    let state = wait_for_tunnel_state(
+    let (state, mut nym_client) = wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -202,7 +202,7 @@ pub async fn test_wireguard_connect_disconnect(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -215,9 +215,9 @@ pub async fn test_wireguard_connect_disconnect(
 pub async fn test_mixnet_connect_disconnect(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // Disable two-hop (Mixnet mode)
     nym_client.set_enable_two_hop(false).await?;
@@ -225,9 +225,9 @@ pub async fn test_mixnet_connect_disconnect(
     // Connect with longer timeout for mixnet
     log::info!("Connecting Mixnet tunnel (this may take longer)...");
     nym_client.connect_tunnel().await?;
-    let state = wait_for_tunnel_state(
+    let (state, mut nym_client) = wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -244,7 +244,7 @@ pub async fn test_mixnet_connect_disconnect(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -257,9 +257,9 @@ pub async fn test_mixnet_connect_disconnect(
 pub async fn test_dns_leak(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // pre-VPN DNS servers from guest VM's resolv.conf
     let pre_vpn_nameservers = get_vm_nameservers(&rpc).await?;
@@ -273,9 +273,9 @@ pub async fn test_dns_leak(
     nym_client.set_enable_two_hop(true).await?;
     log::info!("Connecting tunnel for DNS leak test...");
     nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(
+    let (_, mut nym_client) = wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -335,7 +335,7 @@ pub async fn test_dns_leak(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -446,9 +446,9 @@ async fn check_dns_leak_bash_ws(
 pub async fn test_country_exit_node(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     const TARGET_COUNTRY: &str = "CH";
 
@@ -462,9 +462,9 @@ pub async fn test_country_exit_node(
 
     log::info!("Connecting with exit country {}...", TARGET_COUNTRY);
     nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(
+    let (_, mut nym_client) = wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -506,7 +506,7 @@ pub async fn test_country_exit_node(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -519,17 +519,17 @@ pub async fn test_country_exit_node(
 pub async fn test_reconnect_tunnel(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
     log::info!("Connecting initial tunnel...");
     nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(
+    let (_, mut nym_client) = wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -540,9 +540,9 @@ pub async fn test_reconnect_tunnel(
         .reconnect_tunnel()
         .await
         .context("reconnect_tunnel() failed")?;
-    wait_for_tunnel_state(
+    let (_, mut nym_client) = wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -558,7 +558,7 @@ pub async fn test_reconnect_tunnel(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )

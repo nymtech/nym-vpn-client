@@ -64,7 +64,7 @@ async fn verify_tunnel_connectivity(rpc: &NymServiceClient) -> anyhow::Result<()
 pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     // Common DNS nameservers to block
     let dns_nameservers = get_default_nameserver_sockaddrs();
@@ -74,7 +74,7 @@ pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     block_socket_addrs(&rpc, &dns_nameservers).await?;
 
     // Ensure proper login state
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -82,9 +82,9 @@ pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     // Connect tunnel
     log::info!("Connecting tunnel...");
     nym_client.connect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
+    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -98,7 +98,7 @@ pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     nym_client.disconnect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -116,7 +116,7 @@ pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
 pub async fn test_tunnel_blocklisted_vpn_api(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     // TODO: Determine the actual VPN API endpoints to block
     let vpn_api_hosts = ["nymvpn.com:443"];
@@ -126,7 +126,7 @@ pub async fn test_tunnel_blocklisted_vpn_api(
     block_server_name_indicators(&rpc, &vpn_api_hosts).await?;
 
     // Ensure we're logged out first
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -134,9 +134,9 @@ pub async fn test_tunnel_blocklisted_vpn_api(
     // Attempt to connect - this should either fail or bypass the blocking
     log::info!("Attempting to connect tunnel with VPN API blocked...");
     nym_client.connect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
+    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -150,7 +150,7 @@ pub async fn test_tunnel_blocklisted_vpn_api(
     nym_client.disconnect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -168,7 +168,7 @@ pub async fn test_tunnel_blocklisted_vpn_api(
 pub async fn test_tunnel_blocklisted_nym_api(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     // TODO: Determine the actual Nym API endpoints to block
     let nym_api_hosts = ["validator.nymtech.net:443"];
@@ -178,7 +178,7 @@ pub async fn test_tunnel_blocklisted_nym_api(
     block_server_name_indicators(&rpc, &nym_api_hosts).await?;
 
     // Ensure we're logged out first
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -186,9 +186,9 @@ pub async fn test_tunnel_blocklisted_nym_api(
     // Attempt to connect - this should either fail or bypass the blocking
     log::info!("Attempting to connect tunnel with Nym API blocked...");
     nym_client.connect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
+    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -202,7 +202,7 @@ pub async fn test_tunnel_blocklisted_nym_api(
     nym_client.disconnect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -228,7 +228,7 @@ pub async fn test_tunnel_blocklisted_nym_api(
 pub async fn test_tunnel_delayed_blocklisted_nym_api(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     let default_nym_api_socket_addr = ["212.71.233.232:443"];
 
@@ -247,7 +247,7 @@ pub async fn test_tunnel_delayed_blocklisted_nym_api(
     block_socket_addrs_delayed(&rpc, &default_nym_api_socket_addr).await?;
 
     // Ensure we're logged out first
-    dc_and_ensure_logged_in(&rpc, &mut nym_client, &test_context.rpc_provider, false).await?;
+    let mut nym_client = dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
@@ -255,9 +255,9 @@ pub async fn test_tunnel_delayed_blocklisted_nym_api(
     // Attempt to connect - this should either fail or bypass the blocking
     log::info!("Attempting to connect tunnel with Nym API blocked...");
     nym_client.connect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
+    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -271,7 +271,7 @@ pub async fn test_tunnel_delayed_blocklisted_nym_api(
     nym_client.disconnect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_client,
+        nym_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )

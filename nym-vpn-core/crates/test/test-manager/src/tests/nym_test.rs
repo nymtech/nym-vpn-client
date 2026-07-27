@@ -23,11 +23,11 @@ const ROUNDTRIP_DNS_TIMEOUT: Duration = Duration::from_secs(30);
 pub async fn test_account_and_tunnel_roundtrip(
     test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_proxy_client: NymProxyClient,
+    nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(
+    let mut nym_proxy_client = dc_and_ensure_logged_in(
         &rpc,
-        &mut nym_proxy_client,
+        nym_proxy_client,
         &test_context.rpc_provider,
         false,
     )
@@ -48,9 +48,9 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Connect tunnel
     log::info!("Connecting tunnel...");
     nym_proxy_client.connect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
+    let (_, mut nym_proxy_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_proxy_client,
+        nym_proxy_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Connected,
     )
@@ -70,9 +70,9 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Disconnect tunnel
     log::info!("Disconnecting tunnel...");
     nym_proxy_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
+    let (_, mut nym_proxy_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
-        &mut nym_proxy_client,
+        nym_proxy_client,
         &test_context.rpc_provider,
         ExpectedTunnelState::Disconnected,
     )
@@ -120,12 +120,12 @@ pub async fn test_account_and_tunnel_roundtrip(
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.
 pub async fn dc_and_ensure_logged_in(
     runner: &NymServiceClient,
-    nym_proxy_client: &mut NymProxyClient,
+    mut nym_proxy_client: NymProxyClient,
     provider: &RpcClientProvider,
     forget_account: bool,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<NymProxyClient> {
     log::debug!("🔄 Resetting daemon settings before test...");
-    helpers_nym::disconnect_and_wait(runner, nym_proxy_client, provider)
+    nym_proxy_client = helpers_nym::disconnect_and_wait(runner, nym_proxy_client, provider)
         .await
         .context("Failed to disconnect")?;
 
@@ -135,7 +135,7 @@ pub async fn dc_and_ensure_logged_in(
         helpers_nym::wait_for_account_state(runner, ObservedAccountState::LoggedOut).await?;
     }
 
-    helpers_nym::login_idempotent(runner, nym_proxy_client)
+    helpers_nym::login_idempotent(runner, &mut nym_proxy_client)
         .await
         .context("Failed to ensure logged in")?;
 
@@ -145,5 +145,5 @@ pub async fn dc_and_ensure_logged_in(
 
     log::debug!("🔄 Daemon successfully prepared 🔄");
 
-    Ok(())
+    Ok(nym_proxy_client)
 }
