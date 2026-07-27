@@ -24,7 +24,6 @@ jobs:
 
     steps:
       - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
         shell: bash
         run: |
           ls -la ./

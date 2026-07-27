@@ -18,7 +18,7 @@ jobs:
     runs-on: "custom-windows-11"
 
     steps:
-      - name: Cleanup working directory
+      - name: "Cleanup working directory"
         shell: bash
         run: |
           ls -la ./

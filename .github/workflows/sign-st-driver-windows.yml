@@ -30,7 +30,7 @@ jobs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
     steps:
-      - name: Cleanup working directory
+      - name: "Cleanup working directory"
         shell: bash
         run: |
           ls -la ./

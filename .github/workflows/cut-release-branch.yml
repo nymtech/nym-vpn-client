@@ -39,14 +39,6 @@ jobs:
       minor: ${{ steps.next_version.outputs.minor }}
       patch: ${{ steps.next_version.outputs.patch }}
     steps:
-      - name: "Cleanup working directory"
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
-
       - name: Validate input
         env:
           RELEASE_NAME: ${{ inputs.release_name }}
