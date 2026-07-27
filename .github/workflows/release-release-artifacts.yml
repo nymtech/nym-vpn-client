@@ -503,6 +503,8 @@ jobs:
           VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
           VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
         run: |
+          set -euo pipefail
+
           mv -v "${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}" "${ARCHIVE_LINUX_X86_64_DIR}"
           mv -v "${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}" "${ARCHIVE_LINUX_AARCH64_DIR}"
 
