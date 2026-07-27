@@ -321,7 +321,7 @@ jobs:
 
       - name: Update nym-vpn-core/CHANGELOG.md
         if: ${{ inputs.update_changelog }}
-        uses: ./.github/actions/update-changelog
+        uses: ./.github/actions/add-changelog-release
         with:
           changelog: nym-vpn-core/CHANGELOG.md
           version: ${{ steps.changelog.outputs.version }}
@@ -329,7 +329,7 @@ jobs:
 
       - name: Update nym-vpn-android/CHANGELOG.md
         if: ${{ inputs.update_changelog }}
-        uses: ./.github/actions/update-changelog
+        uses: ./.github/actions/add-changelog-release
         with:
           changelog: nym-vpn-android/CHANGELOG.md
           version: ${{ steps.changelog.outputs.version }}
