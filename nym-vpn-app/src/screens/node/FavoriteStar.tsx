@@ -33,7 +33,7 @@ function FavoriteStar({ favorite, isFavorite, hop, className }: Props) {
         icon="star"
         filled={isFavorite}
         className={clsx(
-          'text-xl! transition-colors',
+          'text-2xl! transition-colors',
           isFavorite
             ? 'text-status-warning hover:text-status-warning/80'
             : 'text-text-secondary hover:text-text-primary',
