@@ -37,7 +37,7 @@ import org.junit.Test
 class LoginProcessingViewModelTest {
 
 	@Test
-	fun credentialsCarouselTick_advancesDuringRequestingZkNyms() = runBlocking {
+	fun credentialsCarouselTick_capsAndResetsDuringSyncing() = runBlocking {
 		val viewModel = LoginProcessingViewModel(FakeBackendManager(), FakeSettingsRepository())
 
 		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing)

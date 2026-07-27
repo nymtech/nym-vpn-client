@@ -212,7 +212,15 @@
 	<string name="server_entry_tab">Entry</string>
 	<string name="server_exit_tab">Exit</string>
 	<string name="server_search_text">Search location or server</string>
-	<string name="server_nodes_countries_text">%1$s countries · %2$s nodes</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="one">%1$s country</item>
+		<item quantity="other">%1$s countries</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="one">%1$s node</item>
+		<item quantity="other">%1$s nodes</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
 	<string name="server_favorite_icon">Favorite</string>
 	<string name="server_favorites_tab">Favorites</string>
 	<string name="server_recent_tab">Recent</string>

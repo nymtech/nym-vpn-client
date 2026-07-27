@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -198,14 +198,15 @@ private fun CountryDropDown(
 							onToggleFavorite = onToggleFavorite,
 							modifier = Modifier.size(iconSize),
 						)
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
-							modifier = Modifier
-								.clickable { onDropDownClick() }
-								.graphicsLayer(rotationZ = rotationAngle)
-								.size(iconSize),
-						)
+						IconButton(onClick = onDropDownClick) {
+							Icon(
+								Icons.AutoMirrored.Filled.KeyboardArrowRight,
+								contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
+								modifier = Modifier
+									.graphicsLayer(rotationZ = rotationAngle)
+									.size(iconSize),
+							)
+						}
 					}
 				},
 				title = {

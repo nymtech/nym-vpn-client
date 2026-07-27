@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -316,7 +317,11 @@ internal fun ServerScreenContent(
 						containerColor = MaterialTheme.colorScheme.background,
 					)
 					Text(
-						text = stringResource(R.string.server_nodes_countries_text, uiState.countryCount, uiState.nodeCount),
+						text = stringResource(
+							R.string.server_countries_nodes_combined_text,
+							pluralStringResource(R.plurals.server_countries_count_text, uiState.countryCount, uiState.countryCount),
+							pluralStringResource(R.plurals.server_nodes_count_text, uiState.nodeCount, uiState.nodeCount),
+						),
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)

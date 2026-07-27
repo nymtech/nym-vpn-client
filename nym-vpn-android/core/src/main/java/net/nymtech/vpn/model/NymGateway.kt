@@ -34,8 +34,8 @@ data class NymGateway(
 	var exitIpv4s: List<Ipv4Addr>,
 	var exitIpv6s: List<Ipv6Addr>,
 	val bridgeInformation: BridgeInformation?,
-	val nodeFamilyName: String?,
-	val isPostQuantumEnabled: Boolean,
+	val nodeFamilyName: String? = null,
+	val isPostQuantumEnabled: Boolean = false,
 ) {
 	companion object {
 		fun from(gateway: Gateway): NymGateway = NymGateway(
