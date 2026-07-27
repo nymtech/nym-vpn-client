@@ -15,7 +15,8 @@ use std::future::Future;
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
 
-/// Prefer the body error; still surface cleanup failure when the body succeeded.
+/// Prefer the body error; always surface cleanup failure (chained) so leftover
+/// iptables/SNI rules are not silent when both paths fail.
 fn merge_body_and_cleanup(
     body: Result<(), anyhow::Error>,
     cleanup: Result<(), anyhow::Error>,
@@ -24,10 +25,23 @@ fn merge_body_and_cleanup(
         (Ok(()), Ok(())) => Ok(()),
         (Ok(()), Err(cleanup_err)) => Err(cleanup_err),
         (Err(body_err), Ok(())) => Err(body_err),
-        (Err(body_err), Err(cleanup_err)) => {
-            log::warn!("blocklist cleanup after failure also failed: {cleanup_err:#}");
-            Err(body_err)
-        }
+        (Err(body_err), Err(cleanup_err)) => Err(body_err.context(format!(
+            "blocklist cleanup also failed (rules may remain): {cleanup_err:#}"
+        ))),
+    }
+}
+
+/// After delayed-block setup fails, always attempt DNS unblock and chain that
+/// failure into the returned error when unblock also fails.
+fn merge_delayed_setup_failure(
+    delayed_err: anyhow::Error,
+    dns_unblock: Result<(), anyhow::Error>,
+) -> anyhow::Error {
+    match dns_unblock {
+        Ok(()) => delayed_err,
+        Err(cleanup_err) => delayed_err.context(format!(
+            "DNS unblock after delayed block setup failure also failed (rules may remain): {cleanup_err:#}"
+        )),
     }
 }
 
@@ -126,8 +140,10 @@ where
     block_socket_addrs(rpc, dns_addrs).await?;
     let delayed_block = block_socket_addrs_delayed(rpc, delayed_addrs).await;
     if let Err(e) = delayed_block {
-        let _ = unblock_socket_addrs(rpc, dns_addrs).await;
-        return Err(e);
+        let dns_unblock = unblock_socket_addrs(rpc, dns_addrs)
+            .await
+            .context("Failed to unblock DNS after delayed block setup failure");
+        return Err(merge_delayed_setup_failure(e, dns_unblock));
     }
 
     let body_result = body().await;
@@ -405,7 +421,7 @@ async fn unblock_socket_addrs_delayed<T: AsRef<str> + std::fmt::Debug>(
 
 #[cfg(test)]
 mod tests {
-    use super::merge_body_and_cleanup;
+    use super::{merge_body_and_cleanup, merge_delayed_setup_failure};
     use crate::tests::get_test_descriptions;
 
     /// Must match `#[test_function_nym(priority = …)]` on the blocklist tests (after tunnel max 25).
@@ -415,13 +431,18 @@ mod tests {
     const BLOCKLIST_PRIORITY_DELAYED: i32 = 103;
 
     #[test]
-    fn merge_prefers_body_error_when_cleanup_also_fails() {
+    fn merge_chains_cleanup_error_when_body_also_fails() {
         let err = merge_body_and_cleanup(
             Err(anyhow::anyhow!("body failed")),
             Err(anyhow::anyhow!("cleanup failed")),
         )
-        .expect_err("body error must win");
-        assert!(err.to_string().contains("body failed"));
+        .expect_err("dual failure must still err");
+        let rendered = format!("{err:#}");
+        assert!(rendered.contains("body failed"), "{rendered}");
+        assert!(
+            rendered.contains("cleanup also failed") || rendered.contains("cleanup failed"),
+            "{rendered}"
+        );
     }
 
     #[test]
@@ -434,6 +455,26 @@ mod tests {
     #[test]
     fn merge_ok_when_both_ok() {
         merge_body_and_cleanup(Ok(()), Ok(())).expect("both ok");
+    }
+
+    #[test]
+    fn delayed_setup_failure_keeps_delayed_error_when_dns_unblocks() {
+        let err = merge_delayed_setup_failure(anyhow::anyhow!("delayed failed"), Ok(()));
+        assert!(err.to_string().contains("delayed failed"));
+    }
+
+    #[test]
+    fn delayed_setup_failure_chains_dns_unblock_error() {
+        let err = merge_delayed_setup_failure(
+            anyhow::anyhow!("delayed failed"),
+            Err(anyhow::anyhow!("dns unblock failed")),
+        );
+        let rendered = format!("{err:#}");
+        assert!(rendered.contains("delayed failed"), "{rendered}");
+        assert!(
+            rendered.contains("DNS unblock") || rendered.contains("dns unblock failed"),
+            "{rendered}"
+        );
     }
 
     #[test]
