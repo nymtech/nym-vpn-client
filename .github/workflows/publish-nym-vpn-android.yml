@@ -65,7 +65,6 @@ jobs:
       - name: Distribute app to fastlane track ${{ inputs.track }} 🚀
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           ARTIFACT_FILE: ${{ inputs.play_artifact_name }}
           TRACK: ${{ inputs.track }}
           SKIP_UPLOAD_BUNDLE: ${{ !inputs.publish_bundle }}
