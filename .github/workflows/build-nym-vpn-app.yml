@@ -58,7 +58,7 @@ on:
         default: false
       dev_mode:
         description: "Enable dev mode (in-app dev menu)"
-        required: true
+        required: false
         type: boolean
         default: false
     secrets:
