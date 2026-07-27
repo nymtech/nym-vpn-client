@@ -33,6 +33,8 @@ import GRPCManager
     @Published public var entryCountries: [NymCountry]
     @Published public var exitCountries: [NymCountry]
     @Published public var vpnCountries: [NymCountry]
+    @Published public private(set) var entryFavorites: [ServerFavorite] = []
+    @Published public private(set) var exitFavorites: [ServerFavorite] = []
 
     public let countriesSupportingRegions = ["US"]
 
@@ -232,6 +234,43 @@ extension GatewayManager {
         } catch {
             logger.error("Failed to fetch recent gateways: \(error.localizedDescription)")
             return ([], [])
+        }
+    }
+}
+
+// MARK: - Favorites -
+extension GatewayManager {
+    /// Reload favorites from core. Cheap — reads one small JSON file.
+    public func updateFavorites() async {
+        do {
+            let favorites = try await worker.fetchFavorites()
+            // Assign only on change — every publish re-renders the whole gateways screen.
+            if entryFavorites != favorites.entry {
+                entryFavorites = favorites.entry
+            }
+            if exitFavorites != favorites.exit {
+                exitFavorites = favorites.exit
+            }
+        } catch {
+            logger.error("Failed to fetch favorites: \(error.localizedDescription)")
+        }
+    }
+
+    public func setEntryFavorite(_ favorite: ServerFavorite, isFavorite: Bool) async {
+        do {
+            try await worker.setEntryFavorite(favorite, isFavorite: isFavorite)
+            await updateFavorites()
+        } catch {
+            logger.error("Failed to store entry favorite: \(error.localizedDescription)")
+        }
+    }
+
+    public func setExitFavorite(_ favorite: ServerFavorite, isFavorite: Bool) async {
+        do {
+            try await worker.setExitFavorite(favorite, isFavorite: isFavorite)
+            await updateFavorites()
+        } catch {
+            logger.error("Failed to store exit favorite: \(error.localizedDescription)")
         }
     }
 }

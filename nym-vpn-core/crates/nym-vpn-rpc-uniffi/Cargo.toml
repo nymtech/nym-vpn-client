@@ -27,3 +27,4 @@ nym-vpn-lib-types = { workspace = true, features = [
     "serde",
 ] }
 nym-common.workspace = true
+nym-favorites.workspace = true
