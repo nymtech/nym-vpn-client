@@ -19,7 +19,7 @@ BASE_URL = "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com"
 
 # Country codes whose routing files should be downloaded.
 # For each code XX the script expects XX-ip.json.gz and XX-domain.txt.gz on the CDN.
-COUNTRY_CODES: list[str] = ["CN"]
+COUNTRY_CODES: list[str] = ["CN", "RU"]
 
 
 def _sources_for(country_code: str) -> list[str]:

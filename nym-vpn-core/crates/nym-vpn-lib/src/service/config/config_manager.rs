@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::HashSet,
     net::IpAddr,
     path::{Path, PathBuf},
     time::Duration,
@@ -358,17 +359,22 @@ impl VpnServiceConfigManager {
         &mut self,
         excluded_countries: Vec<String>,
     ) -> Result<(), GeoExclusionConfigError> {
+        // Countries for which we ship IP-range and domain data (see nym-socks5-proxy's
+        // builtin/download_sources.py COUNTRY_CODES, which must be kept in sync with this).
+        const SUPPORTED_COUNTRIES: &[&str] = &["CN", "RU"];
+
+        let mut seen = HashSet::with_capacity(excluded_countries.len());
         for country in &excluded_countries {
             if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
                 return Err(GeoExclusionConfigError::InvalidCountryCode(country.clone()));
-            } else if country != "CN" {
-                return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
+            } else if !SUPPORTED_COUNTRIES.contains(&country.as_str()) {
+                return Err(GeoExclusionConfigError::UnsupportedCountry(
+                    country.clone(),
+                    SUPPORTED_COUNTRIES.join(", "),
+                ));
+            } else if !seen.insert(country.as_str()) {
+                return Err(GeoExclusionConfigError::DuplicateCountry(country.clone()));
             }
-        }
-
-        // Temporary:  At the moment Geo Exclusion is only supported for China
-        if !excluded_countries.iter().any(|c| c == "CN") {
-            return Err(GeoExclusionConfigError::CnRequired);
         }
 
         if self.config.geo_exclusion.excluded_countries != excluded_countries {

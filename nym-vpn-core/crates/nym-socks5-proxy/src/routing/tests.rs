@@ -122,6 +122,32 @@ async fn embedded_cn_ipv6_parses() {
     );
 }
 
+#[tokio::test]
+async fn embedded_ru_ipv4_parses() {
+    let geo = embedded_country_data("RU").await;
+    let set = parse_ipv4_cidrs(&geo.ipv4).expect("RU IPv4 CIDRs should build");
+    assert!(
+        set.iter().count() > 1000,
+        "Expected >1000 RU IPv4 ranges, got {}",
+        set.iter().count()
+    );
+    // Known Russian IP block (Yandex, RIPE RU allocation).
+    assert!(set.contains(&"5.255.255.77/32".parse::<Ipv4Net>().unwrap()));
+    // Known non-Russian IP.
+    assert!(!set.contains(&"8.8.8.8/32".parse::<Ipv4Net>().unwrap()));
+}
+
+#[tokio::test]
+async fn embedded_ru_ipv6_parses() {
+    let geo = embedded_country_data("RU").await;
+    let set = parse_ipv6_cidrs(&geo.ipv6).expect("RU IPv6 CIDRs should build");
+    assert!(
+        set.iter().count() > 100,
+        "Expected >100 RU IPv6 ranges, got {}",
+        set.iter().count()
+    );
+}
+
 #[test]
 fn ipv6_boundary() {
     let set = make_v6_set(&["2001:db8::/32"]);
@@ -367,6 +393,51 @@ fn decide_route_dual_stack_tunnel() {
     );
 }
 
+#[test]
+fn decide_route_multiple_excluded_countries() {
+    // Both CN and RU excluded at once — each country's ranges should be routed
+    // independently, and traffic belonging to neither should still hit the tunnel.
+    let mut countries = HashMap::new();
+    countries.insert(
+        "CN".to_string(),
+        CountryIpSet {
+            v4: make_v4_set(&["1.0.1.0/24"]),
+            v6: IpRange::new(),
+        },
+    );
+    countries.insert(
+        "RU".to_string(),
+        CountryIpSet {
+            v4: make_v4_set(&["5.255.192.0/18"]),
+            v6: IpRange::new(),
+        },
+    );
+    let db = GeoIpDatabase {
+        excluded_countries: countries,
+    };
+
+    let tunnel_addrs = InterfaceAddresses {
+        v4_addr: Some("10.0.0.1".parse().unwrap()),
+        v6_addr: None,
+    };
+
+    // Chinese IP → bypass tunnel.
+    assert_eq!(
+        decide_route_for_addrs(&sa("1.0.1.1"), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+    // Russian IP → bypass tunnel.
+    assert_eq!(
+        decide_route_for_addrs(&sa("5.255.255.77"), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+    // Neither CN nor RU → use tunnel.
+    assert_eq!(
+        decide_route_for_addrs(&sa("8.8.8.8"), &tunnel_addrs, &db),
+        RoutingDecision::VpnTunnelInterface,
+    );
+}
+
 #[tokio::test]
 async fn embedded_cn_ipv6_known_addresses() {
     let geo = embedded_country_data("CN").await;
@@ -395,6 +466,37 @@ async fn embedded_cn_ipv6_known_addresses() {
     assert!(
         !set.contains(&"2001:4860:4860::8888/128".parse::<Ipv6Net>().unwrap()),
         "Google DNS should not be in CN IPv6 set"
+    );
+}
+
+#[tokio::test]
+async fn embedded_ru_ipv6_known_addresses() {
+    let geo = embedded_country_data("RU").await;
+    let set = parse_ipv6_cidrs(&geo.ipv6).expect("RU IPv6 CIDRs should build");
+
+    // 2a02:6b8::/29 — Yandex
+    assert!(
+        set.contains(&"2a02:6b8::1/128".parse::<Ipv6Net>().unwrap()),
+        "Yandex prefix should be in RU IPv6 set"
+    );
+    // 2001:640::/32 — RUNNet (Russian Institute for Public Networks)
+    assert!(
+        set.contains(&"2001:640::1/128".parse::<Ipv6Net>().unwrap()),
+        "RUNNet prefix should be in RU IPv6 set"
+    );
+    // 2a00:1148::/29 — Mail.ru Group (VK)
+    assert!(
+        set.contains(&"2a00:1148::1/128".parse::<Ipv6Net>().unwrap()),
+        "Mail.ru Group prefix should be in RU IPv6 set"
+    );
+    // Non-Russian allocations should not appear.
+    assert!(
+        !set.contains(&"2606:4700::1/128".parse::<Ipv6Net>().unwrap()),
+        "Cloudflare address should not be in RU IPv6 set"
+    );
+    assert!(
+        !set.contains(&"2001:4860:4860::8888/128".parse::<Ipv6Net>().unwrap()),
+        "Google DNS should not be in RU IPv6 set"
     );
 }
 
@@ -445,4 +547,30 @@ async fn domain_embedded_contains_ipip() {
     assert!(set.is_excluded("myip.ipip.net"));
     assert!(!set.is_excluded("google.com"));
     assert!(!set.is_excluded("cloudflare.com"));
+}
+
+#[tokio::test]
+async fn domain_embedded_contains_yandex() {
+    let set = DomainSet::load(&["RU".into()], std::path::Path::new("/nonexistent"))
+        .await
+        .unwrap();
+    assert!(set.is_excluded("yandex.ru"));
+    assert!(set.is_excluded("mail.ru"));
+    assert!(set.is_excluded("sub.yandex.ru"));
+    assert!(!set.is_excluded("google.com"));
+    assert!(!set.is_excluded("cloudflare.com"));
+}
+
+#[tokio::test]
+async fn domain_embedded_multiple_countries() {
+    // Loading CN and RU together should exclude domains from both lists.
+    let set = DomainSet::load(
+        &["CN".into(), "RU".into()],
+        std::path::Path::new("/nonexistent"),
+    )
+    .await
+    .unwrap();
+    assert!(set.is_excluded("baidu.com"));
+    assert!(set.is_excluded("yandex.ru"));
+    assert!(!set.is_excluded("google.com"));
 }
