@@ -14,10 +14,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-wireguard-go-android:
@@ -39,7 +35,8 @@ jobs:
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -75,8 +72,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard-go_aarch64-linux-android
-          path: build/lib/aarch64-linux-android
+          name: wireguard-go_linux-android
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core

@@ -1,160 +1,113 @@
 name: build-nym-vpnc-macos
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      release:
-        description: "Release to GitHub"
-        required: false
-        type: boolean
-        default: false
-  schedule:
-    - cron: "0 2 * * *"
+      version:
+        type: string
+        required: true
+      release_type:
+        type: string
+        description: |
+          Select build mode:
+          🚜 pr — Pull Request
+          🧪 qa — QA Release
+          🚢 ship — Ship Release
+        required: true
+    outputs:
+      pkg_installer_name:
+        description: "PKG installer artifact name"
+        value: ${{ jobs.build-nym-vpnc-macos.outputs.pkg_installer_name }}
+    secrets:
+      APPLE_DEVELOPER_ID_APPLICATION_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_KEY:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc
   PKG_INSTALL_LOCATION: /usr/local/bin
-  S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
-  S3_BUCKET: builds
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  CORE_ARTIFACTS_MACOS: core_artifacts_macos
+  UPLOAD_DIR_MACOS: vpnc_macos_artifacts
 
 jobs:
-  build-vpnc:
+  build-nym-vpnc-macos:
     if: github.actor != 'dependabot[bot]'
-    runs-on: AppleSilicon
-    timeout-minutes: 60
+    runs-on: custom-macos-15
+    timeout-minutes: 30
+    outputs:
+      pkg_installer_name: ${{ steps.make-pkg.outputs.pkg_name }}
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
-      - name: Dotenv Action
-        uses: xom9ikk/dotenv@v2.4.0
-
-      - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          targets: x86_64-apple-darwin aarch64-apple-darwin
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
-
-      - name: Set version for nightly builds
-        shell: bash
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo fetch
-
-      - name: Get workspace version
-        id: workspace-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: workspace.package.version --entry nym-vpn-core
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Add Homebrew to PATH
         run: |
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
 
-      - name: Ensure codemagic-cli-tools uses compatible Python
+      - name: Set Xcode directories
         run: |
-          set -euo pipefail
-          if ! keychain --version >/dev/null 2>&1; then
-            # The runner's system /usr/lib/libexpat.1.dylib is missing
-            # _XML_SetAllocTrackerActivationThreshold. Every Homebrew Python
-            # version (3.12 and 3.14) links pyexpat.so against the system
-            # libexpat, so ALL versions fail — switching Python doesn't help.
-            # Fix: remap each Homebrew Python's pyexpat.so to use Homebrew's
-            # own expat formula (which ships the required symbol), then
-            # ad-hoc re-sign the patched .so so macOS will load it.
-            brew install expat
-            HOMEBREW_EXPAT="$(brew --prefix expat)/lib/libexpat.1.dylib"
-            while IFS= read -r -d '' so; do
-              install_name_tool -change /usr/lib/libexpat.1.dylib \
-                "$HOMEBREW_EXPAT" "$so" \
-                && codesign -f -s - "$so" || true
-            done < <(find /opt/homebrew/Cellar/python@* \
-              -name 'pyexpat*.so' -not -type l -print0 2>/dev/null)
-            keychain --version
-          fi
+          echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
+          echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
 
-      - name: Configure sccache
+      - name: Install python3
         run: |
-          set -euxo pipefail
-          which sccache || brew install sccache
+          brew install python
+          python3 --version
 
-          export RUSTC_WRAPPER="$(which sccache)"
-          export SCCACHE_DIR="$HOME/.cache/sccache"
-          export SCCACHE_CACHE_SIZE="50G"
-          export SCCACHE_IDLE_TIMEOUT="0"
-          export CARGO_INCREMENTAL=0
+      - name: Cache virtual env
+        id: cache-virtual-env
+        uses: actions/cache@v6
+        with:
+          path: python-venv
+          key: ${{ runner.os }}-${{ runner.arch }}-python-venv
 
-          echo "RUSTC_WRAPPER=$RUSTC_WRAPPER" >> "$GITHUB_ENV"
-          echo "SCCACHE_DIR=$SCCACHE_DIR" >> "$GITHUB_ENV"
-          echo "SCCACHE_CACHE_SIZE=$SCCACHE_CACHE_SIZE" >> "$GITHUB_ENV"
-          echo "SCCACHE_IDLE_TIMEOUT=$SCCACHE_IDLE_TIMEOUT" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=$CARGO_INCREMENTAL" >> "$GITHUB_ENV"
+      - name: Setup virtual env
+        if: steps.cache-virtual-env.outputs.cache-hit != 'true'
+        run: python3 -m venv python-venv
 
-          mkdir -p "$SCCACHE_DIR"
-
-      - name: Build nym-vpnc (aarch64)
-        working-directory: nym-vpn-core
+      - name: Activate virtual env
         run: |
-          cargo build -p nym-vpnc --release --target aarch64-apple-darwin
+          source python-venv/bin/activate
+          echo "$GITHUB_WORKSPACE/python-venv/bin" >> $GITHUB_PATH
 
-      - name: Build nym-vpnc (x86_64)
-        working-directory: nym-vpn-core
+      - name: Install codemagic-cli-tools
         run: |
-          cargo build -p nym-vpnc --release --target x86_64-apple-darwin
+          python3 -m pip install codemagic-cli-tools
+          keychain --version
 
-      - name: Create universal binary
-        run: |
-          set -euo pipefail
-
-          AARCH64_BIN="nym-vpn-core/target/aarch64-apple-darwin/release/nym-vpnc"
-          X86_64_BIN="nym-vpn-core/target/x86_64-apple-darwin/release/nym-vpnc"
-          UNIVERSAL_BIN="nym-vpn-core/target/release/nym-vpnc"
-
-          mkdir -p "$(dirname "$UNIVERSAL_BIN")"
-          lipo -create "$AARCH64_BIN" "$X86_64_BIN" -output "$UNIVERSAL_BIN"
-
-          echo "Universal binary:"
-          file "$UNIVERSAL_BIN"
-          lipo -info "$UNIVERSAL_BIN"
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.CORE_ARTIFACTS_MACOS }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS }}
 
       - name: Prepare Keychain and import certificates
         id: setup-keychain
@@ -178,16 +131,18 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --allow-app codesign \
-            --allow-app productsign
+            --allow-all-applications # todo: restore --allow-app
+            # --allow-app codesign \
+            # --allow-app productsign
 
           echo "Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            --allow-app codesign \
-            --allow-app productsign
+            --allow-all-applications # todo: restore --allow-app
+            # --allow-app codesign \
+            # --allow-app productsign
 
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
 
@@ -197,10 +152,9 @@ jobs:
       - name: Codesign binary
         env:
           APP_SIGNING_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
         run: |
           set -euo pipefail
-
-          BINARY="nym-vpn-core/target/release/nym-vpnc"
 
           echo "Codesigning $BINARY..."
           codesign --sign "$APP_SIGNING_IDENTITY" \
@@ -212,34 +166,27 @@ jobs:
           echo "Verifying codesign..."
           codesign --verify --verbose "$BINARY"
 
-      - name: Resolve version
-        id: resolve-version
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.version.outputs.workspace_version }}"
-          if [[ -z "$VERSION" ]]; then
-            VERSION="${{ steps.workspace-version.outputs.metadata }}"
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $VERSION"
-
       - name: Create PKG
         id: make-pkg
         env:
           INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+          VERSION: ${{ inputs.version }}
+          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
         run: |
           set -euo pipefail
           which xmlstarlet || brew install xmlstarlet
 
-          VERSION="${{ steps.resolve-version.outputs.version }}"
-          BINARY="nym-vpn-core/target/release/nym-vpnc"
           STAGING_DIR="$PWD/build/pkg"
           STAGING_BIN_DIR="$STAGING_DIR/payload"
           NESTED_PKG="$STAGING_DIR/${PKG_IDENTIFIER}.pkg"
           DIST_XML="$STAGING_DIR/Distribution"
           UNSIGNED_PKG="$STAGING_DIR/nym-vpnc-${VERSION}-unsigned.pkg"
-          PKG_PATH="$STAGING_DIR/nym-vpnc-${VERSION}.pkg"
+
+          PKG_NAME="nym-vpnc-${VERSION}.pkg"
+          PKG_PATH="$STAGING_DIR/$PKG_NAME"
           KEYCHAIN_PATH="${{ steps.setup-keychain.outputs.keychain_path }}"
+
+          MARKETING_VERSION="${VERSION%%-*}"
 
           rm -rf "$STAGING_DIR" || true
           mkdir -p "$STAGING_BIN_DIR"
@@ -251,7 +198,7 @@ jobs:
           pkgbuild \
             --root "$STAGING_BIN_DIR" \
             --identifier "$PKG_IDENTIFIER" \
-            --version "$VERSION" \
+            --version "$MARKETING_VERSION" \
             --install-location "$PKG_INSTALL_LOCATION" \
             --min-os-version 14.0 \
             --compression latest \
@@ -289,8 +236,10 @@ jobs:
 
           echo "Signed PKG: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
+          echo "pkg_name=$PKG_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
+        if: ${{ inputs.release_type == 'qa' || inputs.release_type == 'ship' }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -303,6 +252,7 @@ jobs:
           echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Notarize PKG
+        if: ${{ inputs.release_type == 'qa' || inputs.release_type == 'ship' }}
         id: notarize-pkg
         env:
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
@@ -343,83 +293,40 @@ jobs:
 
           echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
 
-      - name: Generate artifact name
+      - name: Move assets for upload
+        env:
+          PKG: ${{ steps.make-pkg.outputs.pkg_path }}
         run: |
-          TIMESTAMP=$(date +"%Y%m%d-%H%M")
-          SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
-          echo "ARTIFACT_NAME=vpnc-macOS-${TIMESTAMP}-${SAFE_BRANCH}" >> "$GITHUB_ENV"
-
-      - name: Rename PKG for upload
-        working-directory: build/pkg
-        run: |
-          set -euo pipefail
-          ORIGINAL_PKG=$(basename "${{ steps.notarize-pkg.outputs.pkg_path }}")
-          NEW_NAME="${ARTIFACT_NAME}-${ORIGINAL_PKG}"
-
-          echo "Renaming: $ORIGINAL_PKG -> $NEW_NAME"
-          mv "$ORIGINAL_PKG" "$NEW_NAME"
-
-          RELATIVE_PATH="build/pkg/$NEW_NAME"
-          echo "renamed_pkg_relative_path=$RELATIVE_PATH" >> "$GITHUB_ENV"
+          mkdir -p "${{ env.UPLOAD_DIR_MACOS }}"
+          cp "$PKG" "${{ env.UPLOAD_DIR_MACOS }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.renamed_pkg_relative_path }}
+          name: ${{ env.UPLOAD_DIR_MACOS }}
+          path: ${{ env.UPLOAD_DIR_MACOS }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
 
-      - name: Publish PKG to S3
-        uses: ./.github/actions/push-to-s3
-        with:
-          source_path: ${{ env.renamed_pkg_relative_path }}
-          destination: nym-vpn-client/macOS/vpnc/
-          endpoint: ${{ env.S3_ENDPOINT }}
-          bucket: ${{ env.S3_BUCKET }}
-          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
-
-      - name: Publish GitHub Release
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
-        uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: nym-vpnc-macOS-v${{ steps.resolve-version.outputs.version }}
-          name: "nym-vpnc macOS v${{ steps.resolve-version.outputs.version }}"
-          prerelease: false
-          draft: false
-          files: ${{ env.renamed_pkg_relative_path }}
-          body: |
-            macOS build of nym-vpnc.
-            - Version: ${{ steps.resolve-version.outputs.version }}
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            - Built at: ${{ github.run_started_at }}
-
-      - name: Publish GitHub Pre-release
-        if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch' && inputs.release != true) }}
-        uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: vpnc-macos-nightly
-          name: "nym-vpnc macOS nightly"
-          prerelease: true
-          draft: false
-          files: ${{ env.renamed_pkg_relative_path }}
-          body: |
-            macOS build of nym-vpnc.
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            - Built at: ${{ github.run_started_at }}
-
-      - name: Cleanup Keychain and keys
+      - name: Cleanup Keychain
         if: always()
         run: |
           set -euo pipefail
-          echo "Cleaning up Codemagic keychain..."
+
+          echo "🧹 Cleaning up Codemagic keychain..."
           keychain delete
+
           echo "Removing ASC API key..."
-          rm -rf "$HOME/private_keys"
+          if [ -d "$HOME/private_keys" ]; then
+            rm -rf "$HOME/private_keys"
+          fi
+
+          echo "🧹 Removing downloaded certificates..."
+          if [ -d "$CERTIFICATES_DIR" ]; then
+            rm -rf "$CERTIFICATES_DIR"/*
+          fi
+
+          echo "🧹 Removing downloaded provisioning profiles..."
+          if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
+            rm -rf "$PROVISIONING_PROFILES_DIR"/*
+          fi

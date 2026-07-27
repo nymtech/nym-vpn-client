@@ -70,6 +70,10 @@ rust-version = "1.95"
 [profile.release]
 lto = true
 
+[profile.ci]
+inherits = "dev"
+debug = 1
+
 [workspace.lints.clippy]
 large_futures = "warn"
 

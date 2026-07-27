@@ -25,6 +25,14 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
@@ -68,12 +76,12 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib-uniffi --locked
+          cargo build --profile ci --target aarch64-apple-ios -p nym-vpn-lib-uniffi --locked
 
       - name: Generate uniffi
         working-directory: nym-vpn-core
         run: |
           cargo run -p uniffi-bindgen generate \
-            --library target/aarch64-apple-ios/debug/libnym_vpn_lib_uniffi.a  \
+            --library target/aarch64-apple-ios/ci/libnym_vpn_lib_uniffi.a  \
             --config crates/nym-vpn-lib-uniffi/uniffi.toml \
             --language swift --out-dir build -n

@@ -1,0 +1,31 @@
+name: nightly-release
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release-nightly:
+    runs-on: arc-linux-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish nightly release
+        uses: ./.github/workflows/release-all-platforms.yml
+        with:
+          publish_github_release: true
+          release_channel: nightly
+          android: false
+          fdroid: true
+          linux: true
+          windows: true
+          ios: true
+          macos: true
+          publish-metadata: false

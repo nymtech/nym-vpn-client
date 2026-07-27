@@ -22,18 +22,6 @@ fn main() {
 
     build_dir.push(&target);
 
-    // CI may only provide universal builds
-    if target_os == "macos" {
-        let target_dir_exists = build_dir
-            .try_exists()
-            .expect("failed to check existence of target dir");
-
-        if !target_dir_exists {
-            build_dir.pop();
-            build_dir.push("universal-apple-darwin");
-        }
-    }
-
     println!("cargo::rustc-link-search={}", build_dir.display());
 
     let lib_prefix = if target_os.as_str() == "windows" {

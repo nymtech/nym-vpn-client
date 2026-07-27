@@ -1,0 +1,145 @@
+name: build-nym-vpn-app
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-app.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Orchestrated app version to embed (empty = use src-tauri/Cargo.toml as before)"
+        type: string
+        default: ""
+      release_type:
+        type: choice
+        description: 'Release type, "stable" for public releases (signed Windows only), "rc" for release candidates (signed Windows only), "nightly" for nightly build, "dev" for any other releases'
+        options:
+          - dev
+          - nightly
+          - rc
+          - stable
+        default: dev
+        required: true
+      linux:
+        type: boolean
+        default: false
+      windows:
+        type: boolean
+        default: false
+      updater:
+        description: "Enable updater (Windows only) and bump metadata (always enabled for stable releases)"
+        required: false
+        type: boolean
+        default: false
+      dev_mode:
+        description: "Enable dev mode (in-app dev menu)"
+        required: true
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      version:
+        description: "Orchestrated app version to embed (empty = use src-tauri/Cargo.toml as before)"
+        type: string
+        default: ""
+      release_type:
+        type: string
+        default: "stable"
+      linux:
+        type: boolean
+        default: false
+      windows:
+        type: boolean
+        default: false
+      updater:
+        description: "Enable updater (Windows only) and bump metadata (always enabled for stable releases)"
+        required: false
+        type: boolean
+        default: false
+      dev_mode:
+        description: "Enable dev mode (in-app dev menu)"
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      SSL_COM_USERNAME:
+        required: true
+      SSL_COM_PASSWORD:
+        required: true
+      SSL_COM_TOTP_SECRET:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+      WINDOWS_SIGNING_PFX_BASE64:
+        required: true
+      WINDOWS_SIGNING_PFX_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  download-translations:
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install Crowdin CLI
+        run: npm install -g @crowdin/cli
+
+      - name: Verify Crowdin install
+        run: crowdin --version
+
+      - name: Download translations from Crowdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          crowdin download translations \
+            --config crowdin-configs/linux-windows.yml
+
+      - name: Upload translations artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: translations
+          path: nym-vpn-app/src/i18n
+          if-no-files-found: error
+          retention-days: 1
+
+  build-linux:
+    needs: download-translations
+    if: ${{ inputs.linux == true }}
+    uses: ./.github/workflows/build-nym-vpn-app-linux.yml
+    with:
+      dev_mode: ${{ inputs.dev_mode == true }}
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  build-windows:
+    needs: download-translations
+    if: ${{ inputs.windows == true }}
+    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+    with:
+      version: ${{ inputs.version }}
+      dev_mode: ${{ inputs.dev_mode == true  }}
+      sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
+      updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
+      updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+    secrets: inherit

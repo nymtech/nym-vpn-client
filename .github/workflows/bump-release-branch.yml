@@ -30,7 +30,7 @@ concurrency:
 jobs:
   next-release-version:
     name: Compute ${{ case(inputs.is_release_bump, 'release', 'next beta') }} version
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
     outputs:
@@ -42,6 +42,14 @@ jobs:
     env:
       GIT_BRANCH: ${{ inputs.branch || github.ref_name }}
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Validate input
         run: |
           if [ ! echo "${{ env.GIT_BRANCH }}" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then

@@ -33,17 +33,12 @@ concurrency:
 jobs:
   push-release-branch:
     name: Push release branch
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       major: ${{ steps.next_version.outputs.major }}
       minor: ${{ steps.next_version.outputs.minor }}
       patch: ${{ steps.next_version.outputs.patch }}
     steps:
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
       - name: Validate input
         env:
           RELEASE_NAME: ${{ inputs.release_name }}
@@ -64,6 +59,19 @@ jobs:
           fetch-depth: 1
           ref: develop
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
 
       - name: Compute next version for develop branch
         id: next_version

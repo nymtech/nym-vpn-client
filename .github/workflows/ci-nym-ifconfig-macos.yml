@@ -1,6 +1,7 @@
 name: ci-nym-ifconfig-macos
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/ci-nym-ifconfig-macos.yml
       - "crates/nym-ifconfig/**/*.rs"
@@ -10,8 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SCCACHE_GHA_ENABLED: true
-  RUSTC_WRAPPER: sccache
 
 jobs:
   build-macos:
@@ -21,10 +20,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
-      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -33,8 +34,8 @@ jobs:
 
       - name: Build
         working-directory: nym-vpn-core
-        run: cargo build --package nym-ifconfig --locked
+        run: cargo build --profile ci --package nym-ifconfig --locked
 
       - name: Test
         working-directory: nym-vpn-core
-        run: sudo cargo test --package nym-ifconfig
+        run: sudo -E cargo test --profile ci --package nym-ifconfig --locked

@@ -1,0 +1,858 @@
+name: release-release-artifacts
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "GitHub Release tag"
+        type: string
+        required: true
+      github_release_type:
+        description: "GitHub Release type (draft, prerelease, or release)"
+        type: string
+        required: true
+      version:
+        type: string
+        description: "Release version"
+        required: false
+        default: ""
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        required: true
+      fdroid:
+        description: "F-Droid"
+        type: boolean
+        required: true
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        required: true
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        required: true
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        required: true
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        required: true
+      pkg_installer_name:
+        description: "macOS app pkg installer name"
+        type: string
+        required: false
+      vpnc_pkg_installer_name:
+        description: "macOS vpnc pkg installer name"
+        type: string
+        required: false
+      fdroid_artifact_name:
+        description: "F-droid artifact name"
+        type: string
+        required: false
+    outputs:
+      github_release_url:
+        value: ${{ jobs.create-release.outputs.github_release_url }}
+      linux_app_deb_x64_url:
+        value: ${{ jobs.create-release.outputs.linux_app_deb_x64_url }}
+      linux_app_deb_arm64_url:
+        value: ${{ jobs.create-release.outputs.linux_app_deb_arm64_url }}
+      linux_app_appimage_x64_url:
+        value: ${{ jobs.create-release.outputs.linux_app_appimage_x64_url }}
+      linux_app_appimage_arm64_url:
+        value: ${{ jobs.create-release.outputs.linux_app_appimage_arm64_url }}
+      windows_installer_x64_url:
+        value: ${{ jobs.create-release.outputs.windows_installer_x64_url }}
+      windows_installer_arm64_url:
+        value: ${{ jobs.create-release.outputs.windows_installer_arm64_url }}
+      macos_installer_url:
+        value: ${{ jobs.create-release.outputs.macos_installer_url }}
+      vpnc_macos_installer_url:
+        value: ${{ jobs.create-release.outputs.vpnc_macos_installer_url }}
+      android_apk_url:
+        value: ${{ jobs.create-release.outputs.android_apk_url }}
+
+env:
+  APP_ARTIFACTS_LINUX_AARCH64: app_artifacts_linux_aarch64
+  APP_ARTIFACTS_LINUX_X86_64: app_artifacts_linux_x86_64
+  APP_ARTIFACTS_WINDOWS_ARM64: app_artifacts_windows_arm64
+  APP_ARTIFACTS_WINDOWS_X64: app_artifacts_windows_x64
+  APP_ARTIFACTS_ANDROID_FDROID: android_artifacts_fdroid
+  APP_ARTIFACTS_ANDROID_PLAY: android_artifacts_play
+  CORE_ARTIFACTS_LINUX_X86_64: core_artifacts_linux_x86_64
+  CORE_ARTIFACTS_LINUX_AARCH64: core_artifacts_linux_aarch64
+  CORE_ARTIFACTS_WINDOWS_X64: core_artifacts_windows_x64
+  CORE_ARTIFACTS_WINDOWS_ARM64: core_artifacts_windows_arm64
+  DEB_ARTIFACTS_X86_64: deb_artifacts_x86_64
+  DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
+  IOS_ARTIFACTS: ios_artifacts
+  MACOS_ARTIFACTS: macos_artifacts
+  VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
+  RELEASE_NOTES_ARTIFACT: release-notes
+  RELEASE_NOTES: release-notes.md
+  RELEASE_ASSETS_ARTIFACT: release-assets
+  RELEASE_ASSETS: release-assets.txt
+  RELEASE_PAYLOAD_ARTIFACT: release-payload
+  RELEASE_PAYLOAD: release-payload.json
+
+jobs:
+  resolve:
+    runs-on: arc-linux-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      github_release_type: ${{ steps.resolve.outputs.github_release_type }}
+      version: ${{ steps.resolve.outputs.version }}
+      channel: ${{ steps.resolve.outputs.channel }}
+      android: ${{ steps.resolve.outputs.android }} # unused
+      fdroid: ${{ steps.resolve.outputs.fdroid }}
+      linux: ${{ steps.resolve.outputs.linux }}
+      windows: ${{ steps.resolve.outputs.windows }}
+      ios: ${{ steps.resolve.outputs.ios }}
+      macos: ${{ steps.resolve.outputs.macos }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Resolve
+        id: resolve
+        run: |
+          TAG="${{ inputs.tag }}"
+          GITHUB_RELEASE_TYPE="${{ inputs.github_release_type }}"
+          VERSION="${{ inputs.version }}"
+          ANDROID="${{ inputs.android }}"
+          FDROID="${{ inputs.fdroid }}"
+          LINUX="${{ inputs.linux }}"
+          WINDOWS="${{ inputs.windows }}"
+          IOS="${{ inputs.ios }}"
+          MACOS="${{ inputs.macos }}"
+
+          if [[ $GITHUB_RELEASE_TYPE != 'draft' && $GITHUB_RELEASE_TYPE != 'prerelease' && $GITHUB_RELEASE_TYPE != 'release' ]]; then
+            echo "Github release type is not supported: $GITHUB_RELEASE_TYPE"
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "github_release_type=$GITHUB_RELEASE_TYPE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "android=$ANDROID" >> "$GITHUB_OUTPUT"
+          echo "fdroid=$FDROID" >> "$GITHUB_OUTPUT"
+          echo "linux=$LINUX" >> "$GITHUB_OUTPUT"
+          echo "windows=$WINDOWS" >> "$GITHUB_OUTPUT"
+          echo "ios=$IOS" >> "$GITHUB_OUTPUT"
+          echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
+
+          echo "::notice:: tag=$TAG, github_release_type=$GITHUB_RELEASE_TYPE, version=$VERSION, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
+
+  resolve-artifacts:
+    runs-on: arc-linux-latest
+    needs: [resolve]
+    outputs:
+      archive_linux_x86_64: ${{ steps.linux.outputs.archive_linux_x86_64 }}
+      archive_linux_aarch64: ${{ steps.linux.outputs.archive_linux_aarch64 }}
+      archive_linux_x86_64_dir: ${{ steps.linux.outputs.archive_linux_x86_64_dir }}
+      archive_linux_aarch64_dir: ${{ steps.linux.outputs.archive_linux_aarch64_dir }}
+      vpnc_deb_x86_64: ${{ steps.linux.outputs.vpnc_deb_x86_64 }}
+      vpnc_deb_aarch64: ${{ steps.linux.outputs.vpnc_deb_aarch64 }}
+      vpnd_deb_x86_64: ${{ steps.linux.outputs.vpnd_deb_x86_64 }}
+      vpnd_deb_aarch64: ${{ steps.linux.outputs.vpnd_deb_aarch64 }}
+      archive_windows_x64: ${{ steps.windows.outputs.archive_windows_x64 }}
+      archive_windows_arm64: ${{ steps.windows.outputs.archive_windows_arm64 }}
+      archive_windows_x64_dir: ${{ steps.windows.outputs.archive_windows_x64_dir }}
+      archive_windows_arm64_dir: ${{ steps.windows.outputs.archive_windows_arm64_dir }}
+      macos_installer_name: ${{ steps.macos.outputs.macos_installer_name }}
+      vpnc_macos_installer_name: ${{ steps.macos.outputs.vpnc_macos_installer_name }}
+      linux_install: ${{ steps.linux_app.outputs.linux_install }}
+      linux_app_x64_bin: ${{ steps.linux_app.outputs.linux_app_x64_bin }}
+      linux_app_arm64_bin: ${{ steps.linux_app.outputs.linux_app_arm64_bin }}
+      linux_app_deb_x64: ${{ steps.linux_app.outputs.linux_app_deb_x64 }}
+      linux_app_deb_arm64: ${{ steps.linux_app.outputs.linux_app_deb_arm64 }}
+      linux_app_appimage_x64: ${{ steps.linux_app.outputs.linux_app_appimage_x64 }}
+      linux_app_appimage_arm64: ${{ steps.linux_app.outputs.linux_app_appimage_arm64 }}
+      windows_app_installer_x64: ${{ steps.windows_app.outputs.windows_app_installer_x64 }}
+      windows_app_installer_arm64: ${{ steps.windows_app.outputs.windows_app_installer_arm64 }}
+      android_apk: ${{ steps.android_app.outputs.android_apk }}
+
+    steps:
+      - name: Core artifacts (Linux)
+        id: linux
+        if: ${{ needs.resolve.outputs.linux == 'true' }}
+        env:
+          ARCHIVE_BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+          RAW_VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          DEB_VERSION="${RAW_VERSION//-/\~}"
+          VPNC_DEB_BASENAME="nym-vpnc_${DEB_VERSION}"
+          VPND_DEB_BASENAME="nym-vpnd_${DEB_VERSION}"
+
+          echo "::notice:: deb_version=${DEB_VERSION}, vpnc_base=${VPNC_DEB_BASENAME}, vpnd_base=${VPND_DEB_BASENAME}"
+
+          ARCHIVE_LINUX_X86_64=${ARCHIVE_BASENAME}_linux_x86_64
+          ARCHIVE_LINUX_AARCH64=${ARCHIVE_BASENAME}_linux_aarch64
+          VPNC_DEB_X86_64="${VPNC_DEB_BASENAME}_amd64.deb"
+          VPNC_DEB_AARCH64="${VPNC_DEB_BASENAME}_arm64.deb"
+          VPND_DEB_X86_64="${VPND_DEB_BASENAME}_amd64.deb"
+          VPND_DEB_AARCH64="${VPND_DEB_BASENAME}_arm64.deb"
+
+          echo "archive_linux_x86_64_dir=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_OUTPUT
+          echo "archive_linux_aarch64_dir=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_OUTPUT
+          echo "archive_linux_x86_64=${ARCHIVE_LINUX_X86_64}.tar.gz" >> $GITHUB_OUTPUT
+          echo "archive_linux_aarch64=${ARCHIVE_LINUX_AARCH64}.tar.gz" >> $GITHUB_OUTPUT
+          echo "vpnc_deb_x86_64=${VPNC_DEB_X86_64}" >> $GITHUB_OUTPUT
+          echo "vpnc_deb_aarch64=${VPNC_DEB_AARCH64}" >> $GITHUB_OUTPUT
+          echo "vpnd_deb_x86_64=${VPND_DEB_X86_64}" >> $GITHUB_OUTPUT
+          echo "vpnd_deb_aarch64=${VPND_DEB_AARCH64}" >> $GITHUB_OUTPUT
+
+      - name: Core artifacts (Windows)
+        id: windows
+        if: ${{ needs.resolve.outputs.windows == 'true' }}
+        env:
+          ARCHIVE_BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+        run: |
+          ARCHIVE_WINDOWS_X64=${ARCHIVE_BASENAME}_windows_x86_64
+          ARCHIVE_WINDOWS_ARM64=${ARCHIVE_BASENAME}_windows_aarch64
+
+          echo "archive_windows_x64_dir=${ARCHIVE_WINDOWS_X64}" >> $GITHUB_OUTPUT
+          echo "archive_windows_arm64_dir=${ARCHIVE_WINDOWS_ARM64}" >> $GITHUB_OUTPUT
+          echo "archive_windows_x64=${ARCHIVE_WINDOWS_X64}.zip" >> $GITHUB_OUTPUT
+          echo "archive_windows_arm64=${ARCHIVE_WINDOWS_ARM64}.zip" >> $GITHUB_OUTPUT
+
+      - name: Core artifacts (macOS)
+        id: macos
+        if: ${{ needs.resolve.outputs.macos == 'true' }}
+        env:
+          MACOS_INSTALLER_NAME: ${{ inputs.pkg_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ inputs.vpnc_pkg_installer_name }}
+        run: |
+          if [ -z "$MACOS_INSTALLER_NAME" ]; then
+            echo "::error:: PKG artifact name is not set!"
+            exit 1
+          fi
+          if [ -z "$VPNC_MACOS_INSTALLER_NAME" ]; then
+            echo "::error:: VPNC PKG artifact name is not set!"
+            exit 1
+          fi
+
+          echo "macos_installer_name=$MACOS_INSTALLER_NAME" >> $GITHUB_OUTPUT
+          echo "vpnc_macos_installer_name=$VPNC_MACOS_INSTALLER_NAME" >> $GITHUB_OUTPUT
+
+      - name: App artifacts (Linux)
+        id: linux_app
+        if: ${{ needs.resolve.outputs.linux == 'true' }}
+        env:
+          BIN_BASENAME: nym-vpn_${{ needs.resolve.outputs.version }}
+          DEB_BASENAME: nym-vpn-app_${{ needs.resolve.outputs.version }}
+          APPIMAGE_BASENAME: NymVPN_${{ needs.resolve.outputs.version }}
+        run: |
+          LINUX_INSTALL="install"
+          LINUX_APP_X64_BIN="${BIN_BASENAME}_linux_x64"
+          LINUX_APP_ARM64_BIN="${BIN_BASENAME}_linux_arm64"
+          LINUX_APP_DEB_X64="${DEB_BASENAME}_amd64.deb"
+          LINUX_APP_DEB_ARM64="${DEB_BASENAME}_arm64.deb"
+          LINUX_APP_APPIMAGE_X64="${APPIMAGE_BASENAME}_amd64.AppImage"
+          LINUX_APP_APPIMAGE_ARM64="${APPIMAGE_BASENAME}_aarch64.AppImage"
+
+          echo "linux_install=$LINUX_INSTALL" >> $GITHUB_OUTPUT
+          echo "linux_app_x64_bin=$LINUX_APP_X64_BIN" >> $GITHUB_OUTPUT
+          echo "linux_app_arm64_bin=$LINUX_APP_ARM64_BIN" >> $GITHUB_OUTPUT
+          echo "linux_app_deb_x64=$LINUX_APP_DEB_X64" >> $GITHUB_OUTPUT
+          echo "linux_app_deb_arm64=$LINUX_APP_DEB_ARM64" >> $GITHUB_OUTPUT
+          echo "linux_app_appimage_x64=$LINUX_APP_APPIMAGE_X64" >> $GITHUB_OUTPUT
+          echo "linux_app_appimage_arm64=$LINUX_APP_APPIMAGE_ARM64" >> $GITHUB_OUTPUT
+
+      - name: App artifacts (Windows)
+        id: windows_app
+        if: ${{ needs.resolve.outputs.windows == 'true' }}
+        env:
+          BASENAME: NymVPN_${{ needs.resolve.outputs.version }}
+        run: |
+          WINDOWS_APP_INSTALLER_X64="${BASENAME}_x64-setup.exe"
+          WINDOWS_APP_INSTALLER_ARM64="${BASENAME}_arm64-setup.exe"
+
+          echo "windows_app_installer_x64=$WINDOWS_APP_INSTALLER_X64" >> $GITHUB_OUTPUT
+          echo "windows_app_installer_arm64=$WINDOWS_APP_INSTALLER_ARM64" >> $GITHUB_OUTPUT
+
+      - name: App artifacts (Android)
+        id: android_app
+        if: ${{ needs.resolve.outputs.fdroid == 'true' }}
+        env:
+          ANDROID_APK: ${{ inputs.fdroid_artifact_name }}
+        run: |
+          if [ -z "$ANDROID_APK" ]; then
+            echo "::error:: APK artifact name is not set!"
+            exit 1
+          fi
+
+          echo "android_apk=${ANDROID_APK}" >> $GITHUB_OUTPUT
+
+  prepare-release-notes:
+    runs-on: arc-linux-latest
+    needs: [resolve, resolve-artifacts]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Extract core changelog
+        id: core-changelog
+        uses: ffurrer2/extract-release-notes@v2
+        with:
+          changelog_file: nym-vpn-core/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ inputs.github_release_type != 'release' }}
+
+      - name: Add release notes (General)
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
+        run: |
+          cat << 'EOF' > "$RELEASE_NOTES"
+          Nym VPN v${{ env.VERSION }} application and core binaries.
+
+          EOF
+
+          if [ -n "$CORE_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_CORE_CHANGES=$(sed 's/^### /#### /' <<< "$CORE_CHANGES")
+
+            envsubst '$UPDATED_CORE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ## 🚀 What's New
+          ### 🛠️ Core Changes
+
+          $UPDATED_CORE_CHANGES
+
+          EOF
+          fi
+
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ## 📦 Core Components Overview
+
+          - `nym-vpnd`: Background daemon service managed via the UI app or CLI.
+          - `nym-vpnc`:  Command-line interface (CLI) to control the daemon (`nym-vpnd`).
+          - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
+          - `nym-diagnostic`: System information and network troubleshooting tool.
+          - `nym-setup`: macOS helper tool for system service configuration.
+
+          EOF
+
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ## 💾 Downloads & Assets
+
+          EOF
+
+      - name: Add release notes (Android)
+        if: ${{ needs.resolve.outputs.fdroid == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🤖 Android
+
+          - `${{ env.ANDROID_APK }}`: Android App (F-Droid Build)
+
+          <details>
+          <summary>How to verify the build fingerprint?</summary>
+
+          #### Signing Certificate SHA-256 Fingerprint (4096-bit):
+
+          ```text
+          3c98a016aa4f14a3ba185c764ed363415cf7ff3c3d328a87ffff2ff1b140ff06
+          ```
+
+          #### Verification Steps:
+
+          To verify the build fingerprint on your system, run:
+          ```sh
+          apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
+          ```
+
+          </details>
+
+          EOF
+
+      - name: Add release notes (Linux)
+        if: ${{ needs.resolve.outputs.linux == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
+          VPND_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+          VPNC_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
+          VPNC_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🐧 Linux
+
+          - **Desktop App**
+            - `${{ env.LINUX_APP_DEB_X64 }}`: Nym VPN app, debian package (x86_64)
+            - `${{ env.LINUX_APP_DEB_ARM64 }}`: Nym VPN app, debian package (arm64)
+            - `${{ env.LINUX_APP_APPIMAGE_X64 }}`: Nym VPN app, AppImage (x86_64)
+            - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
+          - **CLI & Daemon**
+            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN daemon, debian package (x86_64)
+            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN daemon, debian package (arm64)
+            - `${{ env.VPNC_DEB_X86_64 }}`: Nym VPN command-line tool, debian package (x86_64)
+            - `${{ env.VPNC_DEB_ARM64 }}`: Nym VPN command-line tool, debian package (arm64)
+
+          EOF
+
+      - name: Add release notes (macOS)
+        if: ${{ needs.resolve.outputs.macos == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🍎 macOS
+
+          - `${{ env.MACOS_INSTALLER_NAME }}`: Desktop App Installer
+          - `${{ env.VPNC_MACOS_INSTALLER_NAME }}`: Command-Line Tool Installer
+
+          EOF
+
+      - name: Add release notes (Windows)
+        if: ${{ needs.resolve.outputs.windows == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
+          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🪟 Windows
+
+          - `${{ env.WINDOWS_APP_INSTALLER_X64 }}`: Desktop App Installer (x64)
+          - `${{ env.WINDOWS_APP_INSTALLER_ARM64 }}`: Desktop App Installer (arm64)
+
+          EOF
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.RELEASE_NOTES_ARTIFACT }}
+          path: ${{ env.RELEASE_NOTES }}
+
+  create-release:
+    runs-on: arc-linux-latest
+    needs: [resolve, resolve-artifacts, prepare-release-notes]
+    permissions:
+      contents: write
+    outputs:
+        github_release_url: ${{ steps.extract_urls.outputs.github_release_url }}
+        linux_app_deb_x64_url: ${{ steps.extract_urls.outputs.linux_app_deb_x64_url }}
+        linux_app_deb_arm64_url: ${{ steps.extract_urls.outputs.linux_app_deb_arm64_url }}
+        linux_app_appimage_x64_url: ${{ steps.extract_urls.outputs.linux_app_appimage_x64_url }}
+        linux_app_appimage_arm64_url: ${{ steps.extract_urls.outputs.linux_app_appimage_arm64_url }}
+        windows_installer_x64_url: ${{ steps.extract_urls.outputs.windows_installer_x64_url }}
+        windows_installer_arm64_url: ${{ steps.extract_urls.outputs.windows_installer_arm64_url }}
+        macos_installer_url: ${{ steps.extract_urls.outputs.macos_installer_url }}
+        vpnc_macos_installer_url: ${{ steps.extract_urls.outputs.vpnc_macos_installer_url }}
+        android_apk_url: ${{ steps.extract_urls.outputs.android_apk_url }}
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+
+      - name: Prepare build output directory
+        shell: bash
+        env:
+          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
+          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
+          rm -rf ci-builds || true
+          mkdir -p $OUTPUT_DIR
+          echo $OUTPUT_DIR
+
+      - name: Copy artifacts (Linux)
+        if: ${{ needs.resolve.outputs.linux == 'true' }}
+        env:
+          ARCHIVE_LINUX_X86_64_DIR: ${{ needs.resolve-artifacts.outputs.archive_linux_x86_64_dir }}
+          ARCHIVE_LINUX_AARCH64_DIR: ${{ needs.resolve-artifacts.outputs.archive_linux_aarch64_dir }}
+          ARCHIVE_LINUX_X86_64: ${{ needs.resolve-artifacts.outputs.archive_linux_x86_64 }}
+          ARCHIVE_LINUX_AARCH64: ${{ needs.resolve-artifacts.outputs.archive_linux_aarch64 }}
+          VPNC_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
+          VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+          VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
+          VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+        run: |
+          set -euo pipefail
+
+          mv -v "${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}" "${ARCHIVE_LINUX_X86_64_DIR}"
+          mv -v "${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}" "${ARCHIVE_LINUX_AARCH64_DIR}"
+
+          test -d "${ARCHIVE_LINUX_X86_64_DIR}" && tar cvzf "${ARCHIVE_LINUX_X86_64}" "${ARCHIVE_LINUX_X86_64_DIR}"
+          test -d "${ARCHIVE_LINUX_AARCH64_DIR}" && tar cvzf "${ARCHIVE_LINUX_AARCH64}" "${ARCHIVE_LINUX_AARCH64_DIR}"
+
+          cp -v "${ARCHIVE_LINUX_X86_64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${ARCHIVE_LINUX_AARCH64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Copy artifacts (Windows)
+        if: ${{ needs.resolve.outputs.windows == 'true' }}
+        env:
+          ARCHIVE_WINDOWS_X64_DIR: ${{ needs.resolve-artifacts.outputs.archive_windows_x64_dir }}
+          ARCHIVE_WINDOWS_ARM64_DIR: ${{ needs.resolve-artifacts.outputs.archive_windows_arm64_dir }}
+          ARCHIVE_WINDOWS_X64: ${{ needs.resolve-artifacts.outputs.archive_windows_x64 }}
+          ARCHIVE_WINDOWS_ARM64: ${{ needs.resolve-artifacts.outputs.archive_windows_arm64 }}
+        run: |
+          mv -v "${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}" "${ARCHIVE_WINDOWS_X64_DIR}"
+          mv -v "${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}" "${ARCHIVE_WINDOWS_ARM64_DIR}"
+
+          test -d "${ARCHIVE_WINDOWS_X64_DIR}" && zip -r "${ARCHIVE_WINDOWS_X64}" "${ARCHIVE_WINDOWS_X64_DIR}"
+          test -d "${ARCHIVE_WINDOWS_ARM64_DIR}" && zip -r "${ARCHIVE_WINDOWS_ARM64}" "${ARCHIVE_WINDOWS_ARM64_DIR}"
+
+          cp -v "${ARCHIVE_WINDOWS_X64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${ARCHIVE_WINDOWS_ARM64}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Copy artifacts (macOS)
+        if: ${{ needs.resolve.outputs.macos == 'true' }}
+        env:
+          MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
+        run: |
+          cp -v "${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.VPNC_MACOS_ARTIFACTS }}/${VPNC_MACOS_INSTALLER_NAME}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Copy artifacts (Linux/App)
+        if: ${{ needs.resolve.outputs.linux == 'true' }}
+        env:
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
+          LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
+          LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
+        run: |
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL" "${{ env.OUTPUT_DIR }}"
+
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN}" "${{ env.OUTPUT_DIR }}"
+
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64}" "${{ env.OUTPUT_DIR }}"
+
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_APPIMAGE_X64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_APPIMAGE_ARM64}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Copy artifacts (Windows/App)
+        if: ${{ needs.resolve.outputs.windows == 'true' }}
+        env:
+          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
+          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+        run: |
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Copy artifacts (Android)
+        if: ${{ needs.resolve.outputs.fdroid == 'true' }}
+        env:
+          ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
+        run: |
+          cp -v "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}" "${{ env.OUTPUT_DIR }}"
+
+      - name: Generate checksums
+        run: |
+          cd "${{ env.OUTPUT_DIR }}"
+          for file in *; do
+            if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
+              echo "#️⃣ Generating SHA: $file > ${file}.sha256sum"
+              sha256sum "$file" > "${file}.sha256sum"
+            fi
+          done
+
+      - name: Generate Release Assets List
+        id: assets
+        env:
+          ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
+          ARCHIVE_LINUX_X86_64: ${{ needs.resolve-artifacts.outputs.archive_linux_x86_64 }}
+          ARCHIVE_LINUX_AARCH64: ${{ needs.resolve-artifacts.outputs.archive_linux_aarch64 }}
+          VPNC_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
+          VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+          VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
+          VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
+          LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
+          LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
+          ARCHIVE_WINDOWS_X64: ${{ needs.resolve-artifacts.outputs.archive_windows_x64 }}
+          ARCHIVE_WINDOWS_ARM64: ${{ needs.resolve-artifacts.outputs.archive_windows_arm64 }}
+          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
+          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+          MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
+        run: |
+          FILES=()
+
+          if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
+            FILES+=(
+              "${ARCHIVE_LINUX_X86_64}"
+              "${ARCHIVE_LINUX_X86_64}.sha256sum"
+              "${ARCHIVE_LINUX_AARCH64}"
+              "${ARCHIVE_LINUX_AARCH64}.sha256sum"
+              "${LINUX_INSTALL}"
+              "${LINUX_INSTALL}.sha256sum"
+              "${LINUX_APP_X64_BIN}"
+              "${LINUX_APP_X64_BIN}.sha256sum"
+              "${LINUX_APP_ARM64_BIN}"
+              "${LINUX_APP_ARM64_BIN}.sha256sum"
+              "${LINUX_APP_DEB_X64}"
+              "${LINUX_APP_DEB_X64}.sha256sum"
+              "${LINUX_APP_DEB_ARM64}"
+              "${LINUX_APP_DEB_ARM64}.sha256sum"
+              "${LINUX_APP_APPIMAGE_X64}"
+              "${LINUX_APP_APPIMAGE_X64}.sha256sum"
+              "${LINUX_APP_APPIMAGE_ARM64}"
+              "${LINUX_APP_APPIMAGE_ARM64}.sha256sum"
+              "${VPNC_DEB_X86_64}"
+              "${VPNC_DEB_X86_64}.sha256sum"
+              "${VPNC_DEB_AARCH64}"
+              "${VPNC_DEB_AARCH64}.sha256sum"
+              "${VPND_DEB_X86_64}"
+              "${VPND_DEB_X86_64}.sha256sum"
+              "${VPND_DEB_AARCH64}"
+              "${VPND_DEB_AARCH64}.sha256sum"
+            )
+          fi
+
+          if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
+            FILES+=(
+              "${ARCHIVE_WINDOWS_X64}"
+              "${ARCHIVE_WINDOWS_X64}.sha256sum"
+              "${ARCHIVE_WINDOWS_ARM64}"
+              "${ARCHIVE_WINDOWS_ARM64}.sha256sum"
+              "${WINDOWS_APP_INSTALLER_X64}"
+              "${WINDOWS_APP_INSTALLER_X64}.sha256sum"
+              "${WINDOWS_APP_INSTALLER_ARM64}"
+              "${WINDOWS_APP_INSTALLER_ARM64}.sha256sum"
+            )
+          fi
+
+          if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
+            FILES+=(
+              "${MACOS_INSTALLER_NAME}"
+              "${MACOS_INSTALLER_NAME}.sha256sum"
+              "${VPNC_MACOS_INSTALLER_NAME}"
+              "${VPNC_MACOS_INSTALLER_NAME}.sha256sum"
+            )
+          fi
+
+          if [[ "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
+            FILES+=(
+              "${ANDROID_APK}"
+              "${ANDROID_APK}.sha256sum"
+            )
+          fi
+
+          if [ ${#FILES[@]} -gt 0 ]; then
+            printf "%s\n" "${FILES[@]}" > "${{ env.RELEASE_ASSETS }}"
+          else
+            echo "::error::No files to upload"
+            exit 1
+          fi
+
+      - name: Upload release assets list
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.RELEASE_ASSETS_ARTIFACT }}
+          path: ${{ env.RELEASE_ASSETS }}
+
+      - name: Publish GitHub Release
+        working-directory: ${{ env.OUTPUT_DIR }}
+        id: gh-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
+          TAG_NAME: ${{ needs.resolve.outputs.tag }}
+          VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
+          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES_ARTIFACT }}/${{ env.RELEASE_NOTES }}
+          ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS }}"
+        run: |
+          set -euo pipefail
+
+          ASSET_FILES=()
+          if [ -f "$ASSETS_FILE" ]; then
+            mapfile -t ASSET_FILES < "$ASSETS_FILE"
+          else
+            echo "::error:: ${{ env.RELEASE_ASSETS }} not found!"
+            exit 1
+          fi
+
+          if [ ! -f "$RELEASE_NOTES" ]; then
+            echo "::error:: ${{ env.RELEASE_NOTES }} not found!"
+            exit 1
+          fi
+
+          ARGS=()
+          ARGS+=(--title "$VERSION_NAME")
+          ARGS+=(--notes-file "$RELEASE_NOTES")
+
+          if [ "$RELEASE_TYPE" = "draft" ]; then
+            ARGS+=(--draft)
+          elif [ "$RELEASE_TYPE" = "prerelease" ]; then
+            ARGS+=(--prerelease)
+          else
+            ARGS+=(--latest)
+          fi
+
+          RELEASE_URL=$(gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" "${ARGS[@]}" "${ASSET_FILES[@]}")
+          RELEASE_TAG="${RELEASE_URL##*/}"
+
+          echo "::notice:: Release URL: $RELEASE_URL"
+          echo "::notice:: Release tag: $RELEASE_TAG"
+
+          echo "release_url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+
+      - name: List asset URLs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.gh-release.outputs.release_tag }}
+        run: |
+          gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > "${{ env.RELEASE_PAYLOAD }}"
+
+      - name: Upload release payload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
+          path: ${{ env.RELEASE_PAYLOAD }}
+
+      - name: Extract asset URLs
+        id: extract_urls
+        env:
+          GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.release_url }}
+          LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
+          LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
+          LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
+          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
+          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+          MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
+          ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
+        run: |
+          set -euo pipefail
+
+          JSON_FILE="${{ env.RELEASE_PAYLOAD }}"
+
+          echo "github_release_url=$GITHUB_RELEASE_URL" >> $GITHUB_OUTPUT
+
+          if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
+            LINUX_APP_DEB_X64=$(jq --arg name "${LINUX_APP_DEB_X64}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$LINUX_APP_DEB_X64" ]; then
+              echo "::error:: URL for Linux app deb (x64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux app deb (x64): $LINUX_APP_DEB_X64"
+              echo "linux_app_deb_x64_url=$LINUX_APP_DEB_X64" >> $GITHUB_OUTPUT
+            fi
+
+            LINUX_APP_DEB_ARM64=$(jq --arg name "${LINUX_APP_DEB_ARM64}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$LINUX_APP_DEB_ARM64" ]; then
+              echo "::error:: URL for Linux app deb (arm64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux app deb (arm64): $LINUX_APP_DEB_ARM64"
+              echo "linux_app_deb_arm64_url=$LINUX_APP_DEB_ARM64" >> $GITHUB_OUTPUT
+            fi
+
+            echo "::notice:: Matching $LINUX_APP_APPIMAGE_X64"
+            LINUX_APP_APPIMAGE_X64=$(jq --arg name "${LINUX_APP_APPIMAGE_X64}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$LINUX_APP_APPIMAGE_X64" ]; then
+              echo "::error:: URL for Linux AppImage (x64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux AppImage (x64): $LINUX_APP_APPIMAGE_X64"
+              echo "linux_app_appimage_x64_url=$LINUX_APP_APPIMAGE_X64" >> $GITHUB_OUTPUT
+            fi
+
+            echo "::notice:: Matching $LINUX_APP_APPIMAGE_ARM64"
+            LINUX_APP_APPIMAGE_ARM64=$(jq --arg name "${LINUX_APP_APPIMAGE_ARM64}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$LINUX_APP_APPIMAGE_ARM64" ]; then
+              echo "::error:: URL for Linux AppImage (arm64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux AppImage (arm64): $LINUX_APP_APPIMAGE_ARM64"
+              echo "linux_app_appimage_arm64_url=$LINUX_APP_APPIMAGE_ARM64" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+          if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
+            WINDOWS_INSTALLER_X64=$(jq --arg name "${WINDOWS_APP_INSTALLER_X64}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$WINDOWS_INSTALLER_X64" ]; then
+              echo "::error:: URL for Windows installer (x64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Windows installer (x64): $WINDOWS_INSTALLER_X64"
+              echo "windows_installer_x64_url=$WINDOWS_INSTALLER_X64" >> $GITHUB_OUTPUT
+            fi
+
+            WINDOWS_INSTALLER_ARM64=$(jq --arg name "${WINDOWS_APP_INSTALLER_ARM64}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$WINDOWS_INSTALLER_ARM64" ]; then
+              echo "::error:: URL for Windows installer (arm64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Windows installer (arm64): $WINDOWS_INSTALLER_ARM64"
+              echo "windows_installer_arm64_url=$WINDOWS_INSTALLER_ARM64" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+          if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
+            MACOS_INSTALLER=$(jq --arg name "${MACOS_INSTALLER_NAME}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$MACOS_INSTALLER" ]; then
+              echo "::error:: URL for macOS installer could not be found."
+              exit 1
+            else
+              echo "::notice:: macOS installer: $MACOS_INSTALLER"
+              echo "macos_installer_url=$MACOS_INSTALLER" >> $GITHUB_OUTPUT
+            fi
+
+            VPNC_MACOS_INSTALLER=$(jq --arg name "${VPNC_MACOS_INSTALLER_NAME}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$VPNC_MACOS_INSTALLER" ]; then
+              echo "::error:: URL for vpnc macOS installer could not be found."
+              exit 1
+            else
+              echo "::notice:: vpnc macOS installer: $VPNC_MACOS_INSTALLER"
+              echo "vpnc_macos_installer_url=$VPNC_MACOS_INSTALLER" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+          if [ "${{ needs.resolve.outputs.fdroid }}" = "true" ]; then
+            ANDROID_APK=$(jq --arg name "${ANDROID_APK}" -r '.assets[] | select(.name == $name) | .url' "$JSON_FILE")
+            if [ -z "$ANDROID_APK" ]; then
+              echo "::error:: URL for Android APK could not be found."
+              exit 1
+            else
+              echo "::notice:: Android APK: $ANDROID_APK"
+              echo "android_apk_url=$ANDROID_APK" >> $GITHUB_OUTPUT
+            fi
+          fi

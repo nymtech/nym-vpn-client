@@ -13,11 +13,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-libwg:
+  build-libwg-macos:
     runs-on: custom-macos-15
     timeout-minutes: 5
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v7
         with:
@@ -31,7 +39,7 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-macos-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-macos-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-mac.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
@@ -48,6 +56,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: wireguard-go_apple_universal
-          path: build/lib/universal-apple-darwin
+          path: build/lib
           if-no-files-found: error
           retention-days: 1

@@ -1,0 +1,110 @@
+name: build-release-artifacts-apple
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-release-artifacts-apple.yml"
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: |
+          Select build mode:
+          🚜 pr — Pull Request
+          🧪 qa — QA Release
+          🚢 ship — Ship Release
+        type: choice
+        options:
+          - pr
+          - qa
+          - ship
+        default: "pr"
+      build_ios:
+        description: "📱 iOS app"
+        required: false
+        type: boolean
+        default: false
+      build_macos:
+        description: "🖥️ macOS app"
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      release_type:
+        description: "Build type: pr | qa | ship (raw or labeled)"
+        type: string
+        default: "pr"
+      version:
+        description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
+        type: string
+        default: ""
+      build_ios:
+        type: boolean
+        default: false
+      build_macos:
+        type: boolean
+        default: false
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS:
+        required: true
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+    outputs:
+      pkg_installer_name:
+        description: "Name of the PKG installer artifact"
+        value: ${{ jobs.build-macos-app.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name:
+        description: "Name of the nym-vpnc PKG installer artifact"
+        value: ${{ jobs.build-macos-vpnc.outputs.pkg_installer_name }}
+      ios_ipa_name:
+        description: "Name of the IPA artifact"
+        value: ${{ jobs.build-ios-app.outputs.ios_ipa_name }}
+      ios_build:
+        description: "Build number of the iOS app"
+        value: ${{ jobs.build-ios-app.outputs.ios_build }}
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-ios-app:
+    uses: ./.github/workflows/build-nym-vpn-app-ios.yml
+    if: ${{ inputs.build_ios == true }}
+    with:
+      release_type: ${{ inputs.release_type }}
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  build-macos-app:
+    uses: ./.github/workflows/build-nym-vpn-app-macos.yml
+    if: ${{ inputs.build_macos == true }}
+    with:
+      release_type: ${{ inputs.release_type }}
+      version: ${{ inputs.version }}
+    secrets: inherit
+
+  build-macos-vpnc:
+    uses: ./.github/workflows/build-nym-vpnc-macos.yml
+    if: ${{ inputs.build_macos == true }}
+    with:
+      release_type: ${{ inputs.release_type }}
+      version: ${{ inputs.version }}
+    secrets: inherit

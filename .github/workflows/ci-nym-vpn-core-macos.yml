@@ -25,6 +25,14 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
@@ -58,7 +66,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_apple_universal
-          path: build/lib/universal-apple-darwin
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core
@@ -73,5 +81,5 @@ jobs:
       - name: Build and test
         working-directory: nym-vpn-core
         run: |
-          cargo build --workspace --locked
-          cargo test --workspace --locked --exclude nym-ifconfig
+          cargo build --profile ci --workspace --locked
+          cargo test --profile ci --workspace --locked --exclude nym-ifconfig

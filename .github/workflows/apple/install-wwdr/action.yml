@@ -1,0 +1,70 @@
+name: 'Install Apple WWDR Certificates'
+description: 'Checks, downloads, and installs missing or expired Apple WWDR G3 and Developer ID certificates.'
+inputs:
+  keychain-path:
+    description: 'The target keychain name (e.g., login.keychain or a custom build keychain)'
+    required: false
+    default: 'login.keychain'
+  keychain-password:
+    description: 'The password used to unlock the keychain (if required)'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run WWDR Installation Script
+      shell: bash
+      env:
+        KEYCHAIN: ${{ inputs.keychain-path }}
+        KEYCHAIN_PASSWORD: ${{ inputs.keychain-password }}
+      run: |
+        echo "Target Keychain: $KEYCHAIN"
+
+        URL_G3="https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer"
+        URL_DEVELOPER_ID="https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer"
+
+        FILE_G3="AppleWWDRCAG3.cer"
+        FILE_DEVELOPER_ID="DeveloperIDG2CA.cer"
+
+        # 3. Dynamic verification and installation function
+        install_wwdr_if_needed() {
+            local cert_name="$1"
+            local download_url="$2"
+            local save_path="$3"
+
+            if security find-certificate -a -c "$cert_name" -p 2>/dev/null | openssl x509 -noout -checkend 0 > /dev/null 2>&1; then
+                echo "✅ '$cert_name' is already valid in keychain."
+            else
+                echo "❌ '$cert_name' is missing or expired. Fetching renewal..."
+                curl -s -f -o "$save_path" "$download_url"
+
+                if [ $? -eq 0 ] && [ -f "$save_path" ]; then
+                    echo "Importing certificate into $KEYCHAIN..."
+
+                    if [ -n "${KEYCHAIN_PASSWORD}" ]; then
+                        security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+                    fi
+
+                    security import "$save_path" \
+                      -k "$KEYCHAIN" \
+                      -T /usr/bin/codesign \
+                      -T /usr/bin/security
+
+                    if [ $? -eq 0 ]; then
+                        echo "🎉 Successfully installed '$cert_name'."
+                    else
+                        echo "⚠️ Error: Failed to import '$cert_name'."
+                        exit 1
+                    fi
+                    rm -f "$save_path"
+                else
+                    echo "⚠️ Error: Failed to download from Apple PKI portal."
+                    exit 1
+                fi
+            fi
+        }
+
+        # 4. Trigger validation for both G3 (signing) and G4 (services/APNs)
+        install_wwdr_if_needed "Worldwide Developer Relations Certification Authority" "$URL_G3" "$FILE_G3"
+        install_wwdr_if_needed "Developer ID Certification Authority" "$URL_DEVELOPER_ID" "$FILE_DEVELOPER_ID"

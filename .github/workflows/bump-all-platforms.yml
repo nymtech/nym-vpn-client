@@ -105,8 +105,16 @@ concurrency:
 jobs:
   bump-all:
     name: Update all software versions
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Configure git
         run: |
           git config --global user.name "${{ env.GIT_USER }}"
@@ -270,6 +278,8 @@ jobs:
       # --- apple (fastlane) ---
       - name: Update nym-vpn-apple via fastlane
         working-directory: nym-vpn-apple
+        env:
+          FASTLANE_OPT_OUT_USAGE: "YES"
         run: |
           bundle exec fastlane mac bump_version "${{ steps.version.outputs.apple_version }}"
 

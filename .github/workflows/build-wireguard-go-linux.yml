@@ -12,7 +12,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-libwg:
+  build-libwg-linux:
     strategy:
       matrix:
         include:
@@ -37,7 +37,7 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-linux.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -57,7 +57,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: wireguard_go-${{ matrix.arch }}
+          name: wireguard-go_${{ matrix.arch }}-linux-unknown
           path: build/lib
           if-no-files-found: error
           retention-days: 1

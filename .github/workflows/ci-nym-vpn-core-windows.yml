@@ -15,7 +15,6 @@ env:
   CI_TESTING: true
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Debug
   STDRIVER_PATH: build/st-driver/x64-Debug
 
@@ -84,7 +83,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
-          path: ${{ env.LIBS_PATH }}
+          path: build/lib
 
       - name: Download winfw artifacts
         uses: actions/download-artifact@v8
@@ -111,9 +110,9 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --locked
+          cargo build --profile ci --workspace --locked
 
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --locked
+          cargo test --profile ci --workspace --locked

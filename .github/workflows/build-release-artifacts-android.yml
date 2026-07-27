@@ -1,0 +1,84 @@
+name: build-release-artifacts-android
+
+on:
+  workflow_call:
+    inputs:
+      release_type:
+        description: "Release type (release, prerelease, nightly)"
+        type: string
+        required: true
+      version:
+        description: "Orchestrated app version to embed (empty = use Constants.kt as before)"
+        type: string
+        required: true
+      nightly_timestamp:
+        description: "Nightly timestamp used by Android app (nightly only)"
+        required: false
+        type: string
+        default: ""
+      play:
+        description: "Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid"
+        type: boolean
+        default: false
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASSWORD:
+        required: true
+      ANDROID_SIGNING_STORE_PASSWORD:
+        required: true
+      ANDROID_SENTRY_DSN:
+        required: true
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
+      ANDROID_KEYSTORE:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+    outputs:
+      fdroid_artifact_name:
+        description: "Name of the F-Droid artifact"
+        value: ${{ jobs.build-android-fdroid.outputs.artifact_name }}
+      play_artifact_name:
+        description: "Name of the Google Play artifact"
+        value: ${{ jobs.build-android-play.outputs.artifact_name }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-android-fdroid:
+    name: F-Droid build
+    if: ${{ inputs.fdroid }}
+    uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
+    with:
+      build_type: ${{ inputs.release_type }}
+      build_format: 'apk'
+      build_flavor: 'fdroid'
+      version: ${{ inputs.version }}
+      nightly_timestamp: ${{ inputs.nightly_timestamp }}
+
+  build-android-play:
+    name: Google Play build
+    if: ${{ inputs.play }}
+    uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
+    with:
+      build_type: ${{ inputs.release_type }}
+      build_format: 'aab'
+      build_flavor: 'play'
+      version: ${{ inputs.version }}
+      nightly_timestamp: ${{ inputs.nightly_timestamp }}
