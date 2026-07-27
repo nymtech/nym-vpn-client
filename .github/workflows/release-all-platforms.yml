@@ -1,11 +1,6 @@
 name: release-all-platforms
 
 on:
-  # Temporary for initial PR
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/release-all-platforms.yml"
   # NOTE: pick the release branch in the "Run workflow" ref selector.
   workflow_dispatch:
     inputs:
@@ -249,7 +244,7 @@ jobs:
           TAG="${{ needs.resolve.outputs.tag }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
             echo "::error:: Release $TAG already exists. Aborting"
-            #exit 1
+            exit 1
           fi
 
   # This step is only used for testing purposes when developing this workflow
