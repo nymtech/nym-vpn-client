@@ -305,10 +305,20 @@ where
     D: DisconnectClient,
 {
     let budget = tunnel_wait_budget(timeout, disconnect_on_timeout);
+    log::info!(
+        "tunnel wait: calling guest wait_for_observed (budget={}s, disconnect_on_timeout={disconnect_on_timeout})",
+        budget.as_secs()
+    );
 
     let result = match waiter.wait_tunnel(targets, budget).await {
-        Ok(outcome) => tunnel_outcome_to_result(outcome, budget),
-        Err(error) => Err(rpc_wait_error("tunnel", error)),
+        Ok(outcome) => {
+            log::info!("tunnel wait: guest replied with {outcome:?}");
+            tunnel_outcome_to_result(outcome, budget)
+        }
+        Err(error) => {
+            log::error!("tunnel wait: guest RPC failed: {error}");
+            Err(rpc_wait_error("tunnel", error))
+        }
     };
 
     if let Err(error) = &result {
@@ -404,14 +414,26 @@ async fn run_account_wait<W>(
 where
     W: AccountWaiter,
 {
+    log::info!(
+        "account wait: calling guest wait_for_observed (timeout={}s)",
+        timeout.as_secs()
+    );
     match waiter.wait_account(targets, timeout).await {
-        Ok(WaitOutcome::Reached(state)) => Ok(state),
-        Ok(WaitOutcome::TimedOut { last_observed }) => Err(wait_timeout_error(
-            "account",
-            timeout,
-            last_observed.as_ref().map(|state| format!("{state:?}")),
-        )),
-        Err(error) => Err(rpc_wait_error("account", error)),
+        Ok(outcome) => {
+            log::info!("account wait: guest replied with {outcome:?}");
+            match outcome {
+                WaitOutcome::Reached(state) => Ok(state),
+                WaitOutcome::TimedOut { last_observed } => Err(wait_timeout_error(
+                    "account",
+                    timeout,
+                    last_observed.as_ref().map(|state| format!("{state:?}")),
+                )),
+            }
+        }
+        Err(error) => {
+            log::error!("account wait: guest RPC failed: {error}");
+            Err(rpc_wait_error("account", error))
+        }
     }
 }
 

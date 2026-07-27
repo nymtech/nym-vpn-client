@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use futures::{FutureExt, SinkExt, StreamExt, channel::mpsc};
+use futures::{SinkExt, StreamExt, channel::mpsc};
 use serde::{Serialize, de::DeserializeOwned};
 use std::{
     fmt::Write,
@@ -414,10 +414,15 @@ async fn forward_messages<
         Ok(())
     };
 
+    // Prefer handshake, then tarpc (TestRunner), then daemon gRPC on the shared serial
+    // writer. A fair `select!` can starve runner replies when the daemon half stays Ready
+    // (HOL after Connected). `biased` restores control-plane priority.
     let serial_writer = async move {
         loop {
-            futures::select! {
-                handshake = handshaker.1.next().fuse() => {
+            tokio::select! {
+                biased;
+
+                handshake = handshaker.1.next() => {
                     if handshake.is_none() {
                         break Ok(());
                     }
@@ -429,25 +434,27 @@ async fn forward_messages<
                         .map_err(ForwardError::HandshakeError)?;
                 }
 
-                message = runner_source.next().fuse() => {
+                message = runner_source.next() => {
                     let Some(message) = message else {
                         break Ok(());
                     };
                     let message = message.map_err(ForwardError::TestRunnerChannel)?;
                     let serialized =
                         serde_json::to_vec(&message).map_err(ForwardError::SerializeFailed)?;
+                    log::info!("serial[runner→wire] bytes={}", serialized.len());
                     serial_sink
                         .send(Frame::TestRunner(serialized.into()))
                         .await
                         .map_err(ForwardError::SerialConnection)?;
                 }
 
-                data = daemon_source.next().fuse() => {
+                data = daemon_source.next() => {
                     let Some(data) = data else {
                         let _ = serial_sink.send(Frame::DaemonRpc(Bytes::new())).await;
                         break Ok(());
                     };
                     let data = data.map_err(ForwardError::DaemonChannel)?;
+                    log::info!("serial[daemon→wire] bytes={}", data.len());
                     serial_sink
                         .send(Frame::DaemonRpc(data.into()))
                         .await
@@ -988,6 +995,84 @@ mod tests {
             .expect("runner frame is valid");
 
         assert!(matches!(received, tarpc::ClientMessage::Request(_)));
+        flood.abort();
+        client_task.abort();
+        server_task.abort();
+    }
+
+    /// Control-plane (tarpc) replies must not be starved when the daemon half keeps the
+    /// shared serial writer Ready. Regression for post-Connected WaitOutcome delivery.
+    #[tokio::test]
+    async fn runner_reply_is_not_starved_by_ready_daemon_source() {
+        use crate::ServiceResponse;
+        use tarpc::{ClientMessage, Response};
+
+        let (client_serial, server_serial) = duplex(64 * 1024);
+        let (client_runner, _client_daemon, mut connection, client_task) =
+            create_client_transports(client_serial).expect("create client transports");
+        let (mut server_runner, server_daemon, server_task) =
+            create_server_transports(server_serial);
+        let mut server_daemon = LengthDelimitedCodec::new().framed(server_daemon);
+
+        connection
+            .wait_for_server()
+            .await
+            .expect("complete transport handshake");
+
+        let flood = tokio::spawn(async move {
+            loop {
+                if server_daemon
+                    .send(Bytes::from(vec![7; 1024]))
+                    .await
+                    .is_err()
+                {
+                    break;
+                }
+            }
+        });
+        // Let daemon_source become continuously Ready on the server serial writer.
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        let client =
+            crate::service::ServiceClient::new(tarpc::client::Config::default(), client_runner)
+                .spawn();
+        let reply = tokio::spawn(async move {
+            client
+                .get_default_interface(tarpc::context::current())
+                .await
+        });
+
+        let request = tokio::time::timeout(Duration::from_secs(1), server_runner.next())
+            .await
+            .expect("request must reach the server despite daemon flood")
+            .expect("server runner transport remains open")
+            .expect("runner request is valid");
+        let ClientMessage::Request(request) = request else {
+            panic!("expected a tarpc request");
+        };
+
+        // `Response` is `#[non_exhaustive]`; build via serde (same wire shape as production).
+        let response: Response<ServiceResponse> = serde_json::from_value(serde_json::json!({
+            "request_id": request.id,
+            "message": {
+                "Ok": { "GetDefaultInterface": { "Ok": "eth0" } }
+            }
+        }))
+        .expect("construct tarpc Response via serde");
+
+        server_runner
+            .send(response)
+            .await
+            .expect("queue runner reply while daemon source is Ready");
+
+        let interface = tokio::time::timeout(Duration::from_secs(1), reply)
+            .await
+            .expect("runner reply must not be starved by a Ready daemon source")
+            .expect("reply task joins")
+            .expect("tarpc round-trip succeeds")
+            .expect("get_default_interface Ok");
+
+        assert_eq!(interface, "eth0");
         flood.abort();
         client_task.abort();
         server_task.abort();

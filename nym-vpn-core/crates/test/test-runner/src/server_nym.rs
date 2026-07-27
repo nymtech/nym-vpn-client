@@ -39,7 +39,7 @@ use tokio::{
 
 /// Cadence of the guest-local daemon poll inside a blocking state wait. Small enough to
 /// return promptly after a transition, large enough to keep local UDS load negligible.
-const OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(250);
+const OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
 /// Upper bound on a single local UDS state read so a hung daemon call cannot stall past
 /// the wait deadline (mirrors the former host-side per-poll RPC timeout).
 const OBSERVE_READ_TIMEOUT: Duration = Duration::from_secs(30);
@@ -823,6 +823,7 @@ async fn wait_for_observed<S, Fut>(
 ) -> Result<WaitOutcome<S>, test_rpc::Error>
 where
     Fut: Future<Output = Result<S, test_rpc::Error>>,
+    S: std::fmt::Debug,
 {
     let deadline = Instant::now() + Duration::from_millis(timeout_ms);
     let mut last_observed = None;
@@ -830,6 +831,9 @@ where
     loop {
         let remaining = deadline.saturating_duration_since(Instant::now());
         if remaining.is_zero() {
+            log::info!(
+                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
+            );
             return Ok(WaitOutcome::TimedOut { last_observed });
         }
 
@@ -837,6 +841,7 @@ where
         match tokio::time::timeout(read_budget, read()).await {
             Ok(Ok(state)) => {
                 if accept(&state) {
+                    log::info!("observe-wait returning Reached: {state:?}");
                     return Ok(WaitOutcome::Reached(state));
                 }
                 last_observed = Some(state);
@@ -850,6 +855,9 @@ where
 
         let remaining = deadline.saturating_duration_since(Instant::now());
         if remaining.is_zero() {
+            log::info!(
+                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
+            );
             return Ok(WaitOutcome::TimedOut { last_observed });
         }
         sleep(OBSERVE_POLL_INTERVAL.min(remaining)).await;
@@ -1053,7 +1061,7 @@ mod wait_for_observed_tests {
         assert_eq!(
             outcome,
             WaitOutcome::TimedOut {
-                last_observed: Some(ObservedTunnelState::Disconnected),
+                last_observed: Some(ObservedTunnelState::Connecting),
             }
         );
     }
