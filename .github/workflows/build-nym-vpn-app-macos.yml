@@ -244,19 +244,6 @@ jobs:
         run: |
           sh UpdatePrebundledServers.sh
 
-      - name: Enable QA mode
-        if: env.RELEASE_TYPE == 'qa'
-        working-directory: nym-vpn-apple
-        run: |
-          if /usr/libexec/PlistBuddy -c "Print :IsCiBuild" "NymVPNDaemon/Resources/Info.plist" >/dev/null 2>&1; then
-            /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "NymVPNDaemon/Resources/Info.plist"
-          else
-            /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "NymVPNDaemon/Resources/Info.plist"
-          fi
-
-          echo "✅ Updated Info.plist contents:"
-          /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
-
       - name: Update licences
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
         run: |
@@ -390,7 +377,7 @@ jobs:
       - name: Handle santa menu
         working-directory: nym-vpn-apple
         env:
-          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
+          RELEASE: ${{ env.RELEASE_TYPE == 'ship' }}
         run: |
           DAEMON_PLIST="NymVPNDaemon/Resources/Info.plist"
           if [[ -f "${DAEMON_PLIST}" ]]; then
