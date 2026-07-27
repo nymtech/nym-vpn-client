@@ -57,7 +57,7 @@ jobs:
 
       - name: Set locale (for Fastlane)
         run: |
-          echo "LC_ALL=C.utf8"" >> $GITHUB_ENV
+          echo "LC_ALL=C.utf8" >> $GITHUB_ENV
           echo "LANG=C.utf8" >> $GITHUB_ENV
 
       - name: Download Android artifacts
