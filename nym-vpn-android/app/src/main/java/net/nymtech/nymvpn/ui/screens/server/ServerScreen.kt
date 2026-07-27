@@ -268,7 +268,7 @@ internal fun ServerScreenContent(
 				.fillMaxSize()
 				.windowInsetsPadding(WindowInsets.navigationBars)
 				.imePadding()
-				.padding(horizontal = 18.dp.scaledWidth()),
+				.padding(horizontal = 16.dp.scaledWidth()),
 		) {
 			item {
 				GatewayLocationTabs(

@@ -27,6 +27,7 @@ data class DetailsUiState(
 	val isQuickSupportedByGateway: Boolean = false,
 	val nodeFamilyName: String? = null,
 	val isPostQuantumEnabled: Boolean = false,
+	val isFavorite: Boolean = false,
 ) {
 	companion object {
 		fun from(gateway: NymGateway): DetailsUiState {

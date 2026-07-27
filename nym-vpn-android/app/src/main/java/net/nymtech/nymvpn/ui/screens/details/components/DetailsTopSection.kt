@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -16,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.FavoriteIcon
 
 @Composable
-internal fun DetailsTopSection(name: String, location: String, countryCode: String?, description: String?) {
+internal fun DetailsTopSection(name: String, location: String, countryCode: String?, description: String?, isFavorite: Boolean, onToggleFavorite: () -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -28,7 +31,9 @@ internal fun DetailsTopSection(name: String, location: String, countryCode: Stri
 			),
 	) {
 		Row(
-			modifier = Modifier.padding(16.dp),
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(16.dp),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			CountryFlag(countryCode, 26.dp)
@@ -37,6 +42,12 @@ internal fun DetailsTopSection(name: String, location: String, countryCode: Stri
 				text = name,
 				style = MaterialTheme.typography.titleMedium,
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
+				modifier = Modifier.weight(1f),
+			)
+			FavoriteIcon(
+				isFavorite = isFavorite,
+				onToggleFavorite = onToggleFavorite,
+				modifier = Modifier.size(iconSize),
 			)
 		}
 		HorizontalDivider(
