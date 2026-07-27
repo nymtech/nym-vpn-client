@@ -72,7 +72,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard-go_aarch64-linux-android
+          name: wireguard-go_linux-android
           path: build/lib
 
       - name: rustfmt check

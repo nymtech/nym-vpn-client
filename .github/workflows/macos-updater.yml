@@ -182,7 +182,7 @@ jobs:
 
           if [[ ! -x "$SPARKLE_BIN/sign_update" ]]; then
             echo "❌ sign_update not found in Sparkle distribution"
-            ls -R "$EXTRACT_DIR"
+            ls -R "$SPARKLE_BIN"
             exit 1
           fi
 

@@ -1,4 +1,4 @@
-name: nightly-release
+name: zulip-notify-release
 
 on:
   workflow_call:
@@ -202,7 +202,7 @@ jobs:
 
   zulip-notify-release-tauri:
     runs-on: arc-linux-latest
-    if: ${{ inputs.windows_installer_x64_url != '' || inputs.windows_installer_arm64_url != '' || inputs.linux_app_deb_x64_url != '' || inputs.linux_app_deb_arm64_url != '' }}
+    if: ${{ inputs.windows_installer_x64_url != '' || inputs.windows_installer_arm64_url != '' || inputs.linux_app_deb_x64_url != '' || inputs.linux_app_deb_arm64_url != '' || inputs.linux_app_appimage_x64_url != '' || inputs.linux_app_appimage_arm64_url != '' }}
     steps:
       - name: Compose Zulip message (tauri)
         id: compose-tauri-message

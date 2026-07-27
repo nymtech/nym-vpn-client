@@ -66,7 +66,6 @@ jobs:
     runs-on: custom-macos-15
     timeout-minutes: 45
     outputs:
-      UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
       pkg_installer_name: ${{ steps.make-pkg.outputs.pkg_name }}
     steps:
       - name: "Cleanup working directory"

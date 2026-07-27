@@ -243,6 +243,7 @@ function build_macos {
     export GOOS=darwin
     export GOARCH=amd64
     create_folder_and_build "x86_64-apple-darwin"
+    popd
 }
 
 function build_ios {

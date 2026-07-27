@@ -155,11 +155,15 @@ jobs:
 
       - name: Resolve
         id: resolve
+        env:
+          IN_VERSION: ${{ inputs.version }}
+          IN_NIGHTLY_TIMESTAMP: ${{ inputs.nightly_timestamp }}
+          IN_RELEASE_CHANNEL: ${{ inputs.release_channel }}
         run: |
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
             RELEASE_CHANNEL="nightly"
-            VERSION="${{ inputs.version }}"
-            NIGHTLY_TIMESTAMP="${{ inputs.nightly_timestamp }}"
+            VERSION="$IN_VERSION"
+            NIGHTLY_TIMESTAMP="$IN_NIGHTLY_TIMESTAMP"
             ANDROID=true
             FDROID=true
             LINUX=true
@@ -167,9 +171,9 @@ jobs:
             IOS=true
             MACOS=true
           else
-            RELEASE_CHANNEL="${{ inputs.release_channel }}"
-            VERSION="${{ inputs.version }}"
-            NIGHTLY_TIMESTAMP="${{ inputs.nightly_timestamp }}"
+            RELEASE_CHANNEL="$IN_RELEASE_CHANNEL"
+            VERSION="$IN_VERSION"
+            NIGHTLY_TIMESTAMP="$IN_NIGHTLY_TIMESTAMP"
             ANDROID="${{ inputs.android }}"
             FDROID="${{ inputs.fdroid }}"
             LINUX="${{ inputs.linux }}"

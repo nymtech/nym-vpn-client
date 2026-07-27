@@ -137,7 +137,7 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build --release${{ matrix.cpu_arch == 'ARM64' && ' --target aarch64-pc-windows-msvc' || '' }}
+          cargo build --locked --release${{ matrix.cpu_arch == 'ARM64' && ' --target aarch64-pc-windows-msvc' || '' }}
 
       - name: Get rust version used for build
         id: rust-version

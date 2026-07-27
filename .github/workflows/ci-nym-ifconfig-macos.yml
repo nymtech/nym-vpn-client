@@ -38,4 +38,4 @@ jobs:
 
       - name: Test
         working-directory: nym-vpn-core
-        run: sudo cargo test --profile ci --package nym-ifconfig
+        run: sudo -E cargo test --profile ci --package nym-ifconfig --locked
