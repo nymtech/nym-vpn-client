@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashSet,
     net::IpAddr,
     path::{Path, PathBuf},
     time::Duration,
@@ -21,7 +20,7 @@ use crate::{
     service::{
         config::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
-            VpnServiceConfigVersion, legacy,
+            VpnServiceConfigVersion, geo_exclusion_settings, legacy,
         },
         error::{Error, GeoExclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
@@ -359,23 +358,7 @@ impl VpnServiceConfigManager {
         &mut self,
         excluded_countries: Vec<String>,
     ) -> Result<(), GeoExclusionConfigError> {
-        // Countries for which we ship IP-range and domain data (see nym-socks5-proxy's
-        // builtin/download_sources.py COUNTRY_CODES, which must be kept in sync with this).
-        const SUPPORTED_COUNTRIES: &[&str] = &["CN", "RU"];
-
-        let mut seen = HashSet::with_capacity(excluded_countries.len());
-        for country in &excluded_countries {
-            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
-                return Err(GeoExclusionConfigError::InvalidCountryCode(country.clone()));
-            } else if !SUPPORTED_COUNTRIES.contains(&country.as_str()) {
-                return Err(GeoExclusionConfigError::UnsupportedCountry(
-                    country.clone(),
-                    SUPPORTED_COUNTRIES.join(", "),
-                ));
-            } else if !seen.insert(country.as_str()) {
-                return Err(GeoExclusionConfigError::DuplicateCountry(country.clone()));
-            }
-        }
+        geo_exclusion_settings::v9::validate_excluded_countries(&excluded_countries)?;
 
         if self.config.geo_exclusion.excluded_countries != excluded_countries {
             self.config.geo_exclusion.excluded_countries = excluded_countries;

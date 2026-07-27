@@ -67,7 +67,13 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig::from(value.mixnet_traffic);
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
-        let geo_exclusion = nym_vpn_lib_types::GeoExclusionSettings::from(value.geo_exclusion);
+        let geo_exclusion = nym_vpn_lib_types::GeoExclusionSettings::try_from(value.geo_exclusion)
+            .unwrap_or_else(|error| {
+                tracing::warn!(
+                    "Invalid persisted geo-exclusion settings, resetting to default: {error}"
+                );
+                nym_vpn_lib_types::GeoExclusionSettings::default()
+            });
         let gateway_selection_algorithm_config =
             nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
                 value.gateway_selection_algorithm_config,
