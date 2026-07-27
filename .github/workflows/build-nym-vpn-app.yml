@@ -16,6 +16,12 @@ on:
           - stable
         default: dev
         required: true
+      linux:
+        type: boolean
+        default: false
+      windows:
+        type: boolean
+        default: false
       updater:
         description: "Enable updater (Windows only) and bump metadata (always enabled for stable releases)"
         required: false
@@ -105,6 +111,7 @@ jobs:
 
   build-linux:
     needs: download-translations
+    if: ${{ inputs.linux == true }}
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
     with:
       dev_mode: ${{ contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
@@ -113,6 +120,7 @@ jobs:
 
   build-windows:
     needs: download-translations
+    if: ${{ inputs.windows == true }}
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
       version: ${{ inputs.version }}
