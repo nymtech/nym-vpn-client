@@ -28,6 +28,8 @@ FULL="$(cargo-get workspace.package.version --entry "$CARGO_ENTRY")"
 BASE="${FULL%%-*}"   # strip the first '-' and everything after → major.minor.patch
 echo "::notice:: channel=${CHANNEL} cargo_version=${FULL} base=${BASE}"
 
+NIGHTLY_TIMESTAMP=""
+
 case "$CHANNEL" in
   nightly)
     NIGHTLY_TIMESTAMP="$(date -u +%Y%m%d)"
