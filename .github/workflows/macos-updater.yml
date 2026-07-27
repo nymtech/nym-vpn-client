@@ -19,7 +19,6 @@ on:
 jobs:
   macos-updater:
     runs-on: custom-macos-15
-    continue-on-error: true
     permissions:
       contents: write
       pull-requests: write
