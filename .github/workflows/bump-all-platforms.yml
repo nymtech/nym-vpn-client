@@ -283,8 +283,11 @@ jobs:
         working-directory: nym-vpn-apple
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"
+          APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
+          LC_ALL: "C.utf8"
+          LANG: "C.utf8"
         run: |
-          bundle exec fastlane mac bump_version "${{ steps.version.outputs.apple_version }}"
+          bundle exec fastlane mac bump_version "$APPLE_VERSION"
 
       # --- Linux installer ---
       - name: Update Linux install script
@@ -342,20 +345,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH_NAME: "ci/bump-version-v${{ steps.version.outputs.core_version }}"
           BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
+          CORE_VERSION: ${{ steps.version.outputs.core_version }}
+          DEB_VERSION: ${{ steps.version.outputs.deb_version }}
+          ANDROID_VERSION_NAME: ${{ steps.version.outputs.android_version_name }}
+          ANDROID_VERSION_CODE: ${{ steps.version.outputs.android_version_code }}
+          APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
         run: |
           git checkout -b "$BRANCH_NAME"
-          git commit -a -m "ci: bump version to v${{ steps.version.outputs.core_version }} across all platforms"
+          git commit -a -m "ci: bump version to v$CORE_VERSION across all platforms"
           git push origin "$BRANCH_NAME"
           gh pr create \
               --base "$BASE_BRANCH" \
-              --title "Bump version to \`v${{ steps.version.outputs.core_version }}\` across all platforms" \
+              --title "Bump version to \`v$CORE_VERSION\` across all platforms" \
               --milestone "no-milestone" \
               --body "Unified version bump.
 
           - **core** (\`nym-vpn-core/Cargo.toml\`): \`${{ steps.version.outputs.core_version }}\`
-          - **tauri app** (\`nym-vpn-app/src-tauri/Cargo.toml\`, \`vpnd_compat.toml\`, \`tauri.conf.json\`): \`${{ steps.version.outputs.core_version }}\` (deb \`${{ steps.version.outputs.deb_version }}\`)
-          - **android** (\`Constants.kt\`): \`VERSION_NAME = \"${{ steps.version.outputs.android_version_name }}\"\`, \`VERSION_CODE = ${{ steps.version.outputs.android_version_code }}\`
-          - **apple** (\`NymVPN.xcodeproj\`): \`MARKETING_VERSION = ${{ steps.version.outputs.apple_version }}\`"
+          - **tauri app** (\`nym-vpn-app/src-tauri/Cargo.toml\`, \`vpnd_compat.toml\`, \`tauri.conf.json\`): \`${CORE_VERSION}\` (deb \`${DEB_VERSION}\`)
+          - **android** (\`Constants.kt\`): \`VERSION_NAME = \"${ANDROID_VERSION_NAME}\"\`, \`VERSION_CODE = ${ANDROID_VERSION_CODE}\`
+          - **apple** (\`NymVPN.xcodeproj\`): \`MARKETING_VERSION = $APPLE_VERSION\`"
 
       - name: Dry-run summary
         if: ${{ inputs.dry_run == true }}
