@@ -16,6 +16,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
@@ -54,7 +55,7 @@ class BootReceiver : BroadcastReceiver() {
 					return@launch
 				}
 
-				val initializedState = withTimeoutOrNull(Constants.AUTO_START_INIT_WAIT_MS) {
+				val initializedState = withTimeoutOrNull(Constants.AUTO_START_INIT_WAIT_MS.milliseconds) {
 					backendManager.stateFlow.first { it.isInitialized }
 				}
 				if (initializedState == null) {
