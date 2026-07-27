@@ -36,6 +36,25 @@ on:
       ios_build:
         description: "Build number of the iOS app"
         value: ${{ jobs.build-nym-vpn-app-ios.outputs.ios_build }}
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      IOS_DISTRIBUTION_PRIVATE_KEY:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      APPLE_SENTRY_CLI_AUTH_TOKEN:
+        required: true
+      APPLE_SENTRY_CLI_ORG:
+        required: true
+      APPLE_SENTRY_CLI_PROJECT:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always
