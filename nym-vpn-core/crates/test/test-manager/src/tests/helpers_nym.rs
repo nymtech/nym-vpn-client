@@ -184,11 +184,36 @@ async fn store_account_with_transport_retry(
 }
 
 pub(crate) fn is_daemon_rpc_transport_error(error: &anyhow::Error) -> bool {
-    let message = error.to_string().to_ascii_lowercase();
+    is_daemon_rpc_transport_message(&error.to_string())
+}
+
+pub(crate) fn is_daemon_rpc_transport_message(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
     message.contains("broken pipe")
         || message.contains("transport error")
         || message.contains("connection reset")
         || message.contains("h2 protocol error")
+}
+
+/// Classify a `disconnect_tunnel` RPC outcome for serial-session recovery.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DisconnectRpcClass {
+    Success,
+    TransportRecoverable,
+    Fatal,
+}
+
+pub(crate) fn classify_disconnect_rpc(
+    result_ok: bool,
+    error_message: Option<&str>,
+) -> DisconnectRpcClass {
+    if result_ok {
+        DisconnectRpcClass::Success
+    } else if error_message.is_some_and(is_daemon_rpc_transport_message) {
+        DisconnectRpcClass::TransportRecoverable
+    } else {
+        DisconnectRpcClass::Fatal
+    }
 }
 
 async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
@@ -222,8 +247,7 @@ pub async fn disconnect_and_wait(
     provider: &RpcClientProvider,
 ) -> Result<NymProxyClient, Error> {
     log::trace!("Disconnecting");
-    let mut nym_client = nym_client;
-    nym_client.disconnect_tunnel().await?;
+    let nym_client = disconnect_with_transport_recovery(nym_client, provider).await?;
 
     let (_, nym_client) = wait_for_tunnel_state(
         runner,
@@ -236,6 +260,50 @@ pub async fn disconnect_and_wait(
     log::trace!("Disconnected");
 
     Ok(nym_client)
+}
+
+/// One recreate+retry on a dead serial DaemonRpc. If the retry is still a transport
+/// error, return a fresh client and let the caller observe Disconnected via the runner.
+async fn disconnect_with_transport_recovery(
+    mut nym_client: NymProxyClient,
+    provider: &RpcClientProvider,
+) -> Result<NymProxyClient, Error> {
+    match nym_client.disconnect_tunnel().await {
+        Ok(_) => Ok(nym_client),
+        Err(err)
+            if matches!(
+                classify_disconnect_rpc(false, Some(&err.to_string())),
+                DisconnectRpcClass::TransportRecoverable
+            ) =>
+        {
+            // Prior Connected wait can desync the serial DaemonRpc (kernel printk on ttyS0)
+            // while the test still passes; the next test then dies on the first disconnect.
+            log::warn!(
+                "disconnect_tunnel hit a dead DaemonRpc session; recreating and retrying once: {err}"
+            );
+            drop(nym_client);
+            settle_daemon_rpc_quiesce().await;
+            nym_client = provider.new_client_nym().await.map_err(Error::Other)?;
+            match nym_client.disconnect_tunnel().await {
+                Ok(_) => Ok(nym_client),
+                Err(err2)
+                    if matches!(
+                        classify_disconnect_rpc(false, Some(&err2.to_string())),
+                        DisconnectRpcClass::TransportRecoverable
+                    ) =>
+                {
+                    log::warn!(
+                        "disconnect_tunnel still broken after recreate; fresh client for Disconnected observe: {err2}"
+                    );
+                    drop(nym_client);
+                    settle_daemon_rpc_quiesce().await;
+                    provider.new_client_nym().await.map_err(Error::Other)
+                }
+                Err(err2) => Err(Error::NymManagementInterface(err2)),
+            }
+        }
+        Err(err) => Err(Error::NymManagementInterface(err)),
+    }
 }
 
 /// Best-effort `disconnect_tunnel` with a short deadline. Never waits for Disconnected.
@@ -602,7 +670,8 @@ pub async fn resolve_hostname_with_retry(
 mod tests {
     use super::{
         AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
-        enforce_tunnel_wait_deadline, is_daemon_rpc_transport_error, merge_wait_and_client,
+        DisconnectRpcClass, classify_disconnect_rpc, enforce_tunnel_wait_deadline,
+        is_daemon_rpc_transport_error, is_daemon_rpc_transport_message, merge_wait_and_client,
         run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
         tunnel_wait_budget, tunnel_wait_params,
     };
@@ -871,9 +940,35 @@ mod tests {
         assert!(is_daemon_rpc_transport_error(&anyhow::anyhow!(
             "broken pipe"
         )));
+        assert!(is_daemon_rpc_transport_message(
+            "Failed to disconnect: transport error: stream closed because of a broken pipe"
+        ));
         assert!(!is_daemon_rpc_transport_error(&anyhow::anyhow!(
             "store_account error: ExistingAccount"
         )));
+    }
+
+    #[test]
+    fn disconnect_rpc_classifier_selects_recovery_branches() {
+        assert_eq!(
+            classify_disconnect_rpc(true, None),
+            DisconnectRpcClass::Success
+        );
+        assert_eq!(
+            classify_disconnect_rpc(
+                false,
+                Some("transport error: stream closed because of a broken pipe")
+            ),
+            DisconnectRpcClass::TransportRecoverable
+        );
+        assert_eq!(
+            classify_disconnect_rpc(false, Some("authentication required")),
+            DisconnectRpcClass::Fatal
+        );
+        assert_eq!(
+            classify_disconnect_rpc(false, None),
+            DisconnectRpcClass::Fatal
+        );
     }
 
     #[test]

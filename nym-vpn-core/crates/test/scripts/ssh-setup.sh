@@ -128,6 +128,14 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     exit 1
 fi
 
+# ttyS0 carries the framed test RPC mux. Kernel printk like "[  4.123]" is read as
+# a length-delimited frame and desyncs the session mid-suite (CI: 1528832052).
+function quiet_serial_console {
+    echo "Quieting kernel console noise on the serial RPC port"
+    dmesg -n 1 2>/dev/null || true
+    sysctl -w kernel.printk="1 4 1 7" >/dev/null 2>&1 || true
+}
+
 # Load netfilter helpers before testrunner binds /dev/ttyS0. First use of
 # xt_connbytes (delayed_ip_block.sh) otherwise prints to the console and desyncs
 # the framed serial mux (CI: implausible length from ASCII "[  2...").
@@ -148,6 +156,7 @@ function preload_netfilter_modules {
 }
 
 move_getty_to_another_port
+quiet_serial_console
 preload_netfilter_modules
 setup_systemd
 setup_systemd_nym
