@@ -527,10 +527,10 @@ internal fun ServerScreenContent(
 								),
 							),
 							shape = RoundedCornerShape(14.dp),
-							background = MaterialTheme.colorScheme.primaryContainer,
+							background = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
 							divider = false,
 							anchorsPadding = 0.dp,
-							modifier = Modifier,
+							modifier = Modifier.padding(vertical = 4.dp),
 						)
 					}
 				}
