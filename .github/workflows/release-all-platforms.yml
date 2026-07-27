@@ -510,7 +510,8 @@ jobs:
         ${{
           case(
             startsWith(github.ref_name, 'release/') && needs.resolve.outputs.channel == 'ship', 'release',
-            startsWith(github.ref_name, 'release/') && (needs.resolve.outputs.channel == 'beta' || needs.resolve.outputs.channel == 'nightly'), 'prerelease',
+            startsWith(github.ref_name, 'release/') && needs.resolve.outputs.channel == 'beta', 'prerelease',
+            github.ref_name == 'develop' && needs.resolve.outputs.channel == 'nightly', 'prerelease',
             'draft'
           )
         }}
