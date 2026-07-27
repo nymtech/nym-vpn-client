@@ -370,6 +370,7 @@ async fn forward_messages<
         while let Some(frame) = serial_source.next().await {
             match frame.map_err(ForwardError::SerialConnection)? {
                 Frame::TestRunner(data) => {
+                    log::info!("serial[wire→runner] bytes={}", data.len());
                     let message =
                         serde_json::from_slice(&data).map_err(ForwardError::DeserializeFailed)?;
                     runner_tx
@@ -417,7 +418,11 @@ async fn forward_messages<
     // Prefer handshake, then tarpc (TestRunner), then daemon gRPC on the shared serial
     // writer. A fair `select!` can starve runner replies when the daemon half stays Ready
     // (HOL after Connected). `biased` restores control-plane priority.
+    //
+    // Daemon EOF must not tear down the mux: `NymProxyClient` drop / session sync failure can
+    // close the daemon duplex while tarpc still needs the serial link.
     let serial_writer = async move {
+        let mut daemon_open = true;
         loop {
             tokio::select! {
                 biased;
@@ -448,10 +453,14 @@ async fn forward_messages<
                         .map_err(ForwardError::SerialConnection)?;
                 }
 
-                data = daemon_source.next() => {
+                data = daemon_source.next(), if daemon_open => {
                     let Some(data) = data else {
+                        log::warn!(
+                            "serial daemon source EOF; keeping mux alive for TestRunner"
+                        );
                         let _ = serial_sink.send(Frame::DaemonRpc(Bytes::new())).await;
-                        break Ok(());
+                        daemon_open = false;
+                        continue;
                     };
                     let data = data.map_err(ForwardError::DaemonChannel)?;
                     log::info!("serial[daemon→wire] bytes={}", data.len());
@@ -473,6 +482,9 @@ async fn forward_messages<
 }
 
 const MULTIPLEX_LEN_DELIMITED_HEADER_SIZE: usize = 4;
+/// Matches `LengthDelimitedCodec` default. Must fit in a 4-byte length field
+/// (`MULTIPLEX_LEN_DELIMITED_HEADER_SIZE`); do not use `usize::MAX`.
+const MULTIPLEX_MAX_FRAME_LENGTH: usize = 8 * 1024 * 1024;
 
 #[derive(Default, Debug, Clone)]
 pub struct MultiplexCodec {
@@ -486,7 +498,7 @@ impl MultiplexCodec {
 
         codec_builder
             .length_field_length(MULTIPLEX_LEN_DELIMITED_HEADER_SIZE)
-            .max_frame_length(usize::MAX);
+            .max_frame_length(MULTIPLEX_MAX_FRAME_LENGTH);
 
         Self {
             has_connected,
@@ -1076,5 +1088,41 @@ mod tests {
         flood.abort();
         client_task.abort();
         server_task.abort();
+    }
+
+    #[test]
+    fn multiplex_max_frame_fits_in_four_byte_length_header() {
+        use super::{MULTIPLEX_LEN_DELIMITED_HEADER_SIZE, MULTIPLEX_MAX_FRAME_LENGTH};
+
+        assert_eq!(MULTIPLEX_LEN_DELIMITED_HEADER_SIZE, 4);
+        assert_eq!(MULTIPLEX_MAX_FRAME_LENGTH, 8 * 1024 * 1024);
+        assert!(
+            MULTIPLEX_MAX_FRAME_LENGTH <= u32::MAX as usize,
+            "max frame must fit in a 4-byte length field; usize::MAX does not"
+        );
+    }
+
+    #[test]
+    fn multiplex_codec_rejects_oversized_frame() {
+        use super::{Frame, MultiplexCodec, MULTIPLEX_MAX_FRAME_LENGTH};
+        use bytes::BytesMut;
+        use std::sync::{Arc, atomic::AtomicBool};
+        use tokio_util::codec::Encoder;
+
+        let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
+        // Payload alone equals the max; + frame-type byte exceeds it.
+        let oversized = Bytes::from(vec![0u8; MULTIPLEX_MAX_FRAME_LENGTH]);
+        let mut dst = BytesMut::new();
+        let err = codec
+            .encode(Frame::TestRunner(oversized), &mut dst)
+            .expect_err("frame at max without room for type byte must fail");
+        assert!(
+            matches!(
+                err.kind(),
+                io::ErrorKind::InvalidData | io::ErrorKind::InvalidInput
+            ),
+            "unexpected error kind: {:?}",
+            err.kind()
+        );
     }
 }

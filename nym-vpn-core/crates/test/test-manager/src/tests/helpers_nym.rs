@@ -24,14 +24,15 @@ const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 const DAEMON_QUIESCE_SETTLE: Duration = Duration::from_millis(250);
 
-/// Waits for a tunnel-state discriminant on the guest, returning a single reply. A trait so
-/// the wait/cleanup orchestration is unit-testable without a live serial link.
-trait TunnelWaiter {
-    async fn wait_tunnel(
-        &self,
-        targets: Vec<ObservedTunnelStateKind>,
-        timeout: Duration,
-    ) -> Result<WaitOutcome<ObservedTunnelState>, Error>;
+/// Host-side poll cadence for guest-local `get_observed_*` while DaemonRpc is dropped.
+/// Short request/response pairs; a single long-lived `wait_for_observed_*` reply can be lost
+/// after the guest reaches Connected (CI: guest stops UDS polls, host never sees the reply).
+const HOST_OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
+const HOST_OBSERVE_RPC_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// One guest-local tunnel observe (tarpc → guest UDS). Host polls this while DaemonRpc is quiet.
+trait TunnelObserver {
+    async fn observe_tunnel(&self) -> Result<ObservedTunnelState, Error>;
 }
 
 /// Waits for an account-state discriminant on the guest, returning a single reply.
@@ -43,15 +44,9 @@ trait AccountWaiter {
     ) -> Result<WaitOutcome<ObservedAccountState>, Error>;
 }
 
-impl TunnelWaiter for NymServiceClient {
-    async fn wait_tunnel(
-        &self,
-        targets: Vec<ObservedTunnelStateKind>,
-        timeout: Duration,
-    ) -> Result<WaitOutcome<ObservedTunnelState>, Error> {
-        Ok(self
-            .wait_for_observed_tunnel_state(targets, timeout)
-            .await?)
+impl TunnelObserver for NymServiceClient {
+    async fn observe_tunnel(&self) -> Result<ObservedTunnelState, Error> {
+        Ok(self.get_observed_tunnel_state().await?)
     }
 }
 
@@ -342,12 +337,9 @@ pub(crate) fn tunnel_target(expected: &ExpectedTunnelState) -> ObservedTunnelSta
     }
 }
 
-/// Wait for a tunnel discriminant via a single guest tarpc call (local UDS on the VM). The
-/// guest polls its daemon locally and returns one reply, so no per-poll frame (and no large
-/// `ConnectionData` gRPC payload) crosses the serial link during the Connected wait.
-///
-/// Callers must drop any live serial `NymProxyClient` before this (see [`wait_for_tunnel_state`])
-/// so DaemonRpc HTTP/2 cannot HOL the WaitOutcome on the shared mux.
+/// Wait for a tunnel discriminant by polling guest-local `get_observed_tunnel_state` over tarpc.
+/// Each poll is a short request/response (guest does one UDS read). DaemonRpc must stay dropped
+/// for the duration (see [`wait_for_tunnel_state`]) so HTTP/2 cannot HOL those replies.
 pub async fn wait_for_tunnel_state_fn(
     runner: &NymServiceClient,
     provider: &RpcClientProvider,
@@ -369,32 +361,67 @@ pub async fn wait_for_tunnel_state_fn(
     .await
 }
 
-async fn run_tunnel_wait<W, D>(
-    waiter: &W,
+async fn run_tunnel_wait<O, D>(
+    observer: &O,
     disconnect_client: &mut D,
     targets: Vec<ObservedTunnelStateKind>,
     timeout: Duration,
     disconnect_on_timeout: bool,
 ) -> Result<ObservedTunnelState, Error>
 where
-    W: TunnelWaiter,
+    O: TunnelObserver,
     D: DisconnectClient,
 {
     let budget = tunnel_wait_budget(timeout, disconnect_on_timeout);
+    let deadline = tokio::time::Instant::now() + budget;
+    let mut last_observed = None;
+
     log::info!(
-        "tunnel wait: calling guest wait_for_observed (budget={}s, disconnect_on_timeout={disconnect_on_timeout})",
+        "tunnel wait: host polling get_observed (budget={}s, disconnect_on_timeout={disconnect_on_timeout})",
         budget.as_secs()
     );
 
-    let result = match waiter.wait_tunnel(targets, budget).await {
-        Ok(outcome) => {
-            log::info!("tunnel wait: guest replied with {outcome:?}");
-            tunnel_outcome_to_result(outcome, budget)
+    let result = loop {
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            break tunnel_outcome_to_result(
+                WaitOutcome::TimedOut {
+                    last_observed: last_observed.clone(),
+                },
+                budget,
+            );
         }
-        Err(error) => {
-            log::error!("tunnel wait: guest RPC failed: {error}");
-            Err(rpc_wait_error("tunnel", error))
+
+        let rpc_budget = HOST_OBSERVE_RPC_TIMEOUT.min(remaining);
+        match tokio::time::timeout(rpc_budget, observer.observe_tunnel()).await {
+            Ok(Ok(state)) => {
+                if targets.iter().any(|target| target.matches(&state)) {
+                    log::info!("tunnel wait: observed target {state:?}");
+                    break Ok(state);
+                }
+                last_observed = Some(state);
+            }
+            Ok(Err(error)) => {
+                log::warn!("tunnel wait: observe RPC failed (will retry): {error}");
+            }
+            Err(_) => {
+                log::warn!(
+                    "tunnel wait: observe RPC timed out after {}ms (will retry)",
+                    rpc_budget.as_millis()
+                );
+            }
         }
+
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            break tunnel_outcome_to_result(
+                WaitOutcome::TimedOut {
+                    last_observed: last_observed.clone(),
+                },
+                budget,
+            );
+        }
+        tokio::time::sleep(HOST_OBSERVE_POLL_INTERVAL.min(remaining)).await;
     };
 
     if let Err(error) = &result {
@@ -554,7 +581,7 @@ pub async fn resolve_hostname_with_retry(
 #[cfg(test)]
 mod tests {
     use super::{
-        AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelWaiter, account_target,
+        AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
         enforce_tunnel_wait_deadline, merge_tunnel_wait_and_client, quiesce_observe_and_recreate,
         run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
         tunnel_wait_budget, tunnel_wait_params,
@@ -562,6 +589,8 @@ mod tests {
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
     use nym_vpn_proto::rpc_client::Error as NymClientError;
+    use std::collections::VecDeque;
+    use std::sync::Mutex;
     use std::time::Duration;
     use test_rpc::nym_daemon::{
         ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState,
@@ -572,29 +601,36 @@ mod tests {
         Error::NymManagementInterface(NymClientError::AuthenticationRequired)
     }
 
-    /// Canned single-reply behavior for a faked guest tunnel wait.
-    enum TunnelReply {
-        Reached(ObservedTunnelState),
-        TimedOut(Option<ObservedTunnelState>),
-        RpcError,
+    fn connected_wg() -> ObservedTunnelState {
+        ObservedTunnelState::Connected {
+            tunnel_type: ObservedTunnelType::Wireguard,
+        }
     }
 
-    struct FakeTunnelWaiter {
-        reply: TunnelReply,
+    /// Scripted host-side observe polls for `run_tunnel_wait` unit tests.
+    struct FakeTunnelObserver {
+        polls: Mutex<VecDeque<Result<ObservedTunnelState, ()>>>,
     }
 
-    impl TunnelWaiter for FakeTunnelWaiter {
-        async fn wait_tunnel(
-            &self,
-            _targets: Vec<ObservedTunnelStateKind>,
-            _timeout: Duration,
-        ) -> Result<WaitOutcome<ObservedTunnelState>, Error> {
-            match &self.reply {
-                TunnelReply::Reached(state) => Ok(WaitOutcome::Reached(state.clone())),
-                TunnelReply::TimedOut(last) => Ok(WaitOutcome::TimedOut {
-                    last_observed: last.clone(),
-                }),
-                TunnelReply::RpcError => Err(rpc_failed()),
+    impl FakeTunnelObserver {
+        fn new(polls: Vec<Result<ObservedTunnelState, ()>>) -> Self {
+            Self {
+                polls: Mutex::new(polls.into()),
+            }
+        }
+    }
+
+    impl TunnelObserver for FakeTunnelObserver {
+        async fn observe_tunnel(&self) -> Result<ObservedTunnelState, Error> {
+            let next = self
+                .polls
+                .lock()
+                .expect("poll script lock")
+                .pop_front()
+                .unwrap_or(Ok(ObservedTunnelState::Connecting));
+            match next {
+                Ok(state) => Ok(state),
+                Err(()) => Err(rpc_failed()),
             }
         }
     }
@@ -685,20 +721,20 @@ mod tests {
         assert!(!super::may_attempt_session_recreate(true));
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn reached_tunnel_state_returns_without_cleanup() {
-        let waiter = FakeTunnelWaiter {
-            reply: TunnelReply::Reached(ObservedTunnelState::Connected {
-                tunnel_type: ObservedTunnelType::Wireguard,
-            }),
-        };
+        let observer = FakeTunnelObserver::new(vec![
+            Ok(ObservedTunnelState::Connecting),
+            Ok(connected_wg()),
+        ]);
         let mut disconnect = FakeDisconnectClient { disconnects: 0 };
 
+        // Total deadline must exceed BEST_EFFORT_DISCONNECT_TIMEOUT so the poll budget is non-zero.
         let state = run_tunnel_wait(
-            &waiter,
+            &observer,
             &mut disconnect,
             vec![ObservedTunnelStateKind::Connected],
-            Duration::from_secs(2),
+            Duration::from_secs(15),
             true,
         )
         .await
@@ -713,18 +749,16 @@ mod tests {
         assert_eq!(disconnect.disconnects, 0);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn tunnel_timeout_reports_last_observed_and_cleans_up() {
-        let waiter = FakeTunnelWaiter {
-            reply: TunnelReply::TimedOut(Some(ObservedTunnelState::Connecting)),
-        };
+        let observer = FakeTunnelObserver::new(vec![Ok(ObservedTunnelState::Connecting)]);
         let mut disconnect = FakeDisconnectClient { disconnects: 0 };
 
         let error = run_tunnel_wait(
-            &waiter,
+            &observer,
             &mut disconnect,
             vec![ObservedTunnelStateKind::Connected],
-            Duration::from_secs(2),
+            Duration::from_secs(11),
             true,
         )
         .await
@@ -735,18 +769,16 @@ mod tests {
         assert_eq!(disconnect.disconnects, 1);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn tunnel_timeout_without_cleanup_skips_disconnect() {
-        let waiter = FakeTunnelWaiter {
-            reply: TunnelReply::TimedOut(None),
-        };
+        let observer = FakeTunnelObserver::new(vec![Ok(ObservedTunnelState::Connecting)]);
         let mut disconnect = FakeDisconnectClient { disconnects: 0 };
 
         run_tunnel_wait(
-            &waiter,
+            &observer,
             &mut disconnect,
             vec![ObservedTunnelStateKind::Disconnected],
-            Duration::from_secs(2),
+            Duration::from_millis(200),
             false,
         )
         .await
@@ -755,24 +787,22 @@ mod tests {
         assert_eq!(disconnect.disconnects, 0);
     }
 
-    #[tokio::test]
-    async fn tunnel_rpc_error_cleans_up_on_connect_wait() {
-        let waiter = FakeTunnelWaiter {
-            reply: TunnelReply::RpcError,
-        };
+    #[tokio::test(start_paused = true)]
+    async fn tunnel_observe_errors_retry_until_timeout_then_cleanup() {
+        let observer = FakeTunnelObserver::new(vec![Err(()), Err(())]);
         let mut disconnect = FakeDisconnectClient { disconnects: 0 };
 
         let error = run_tunnel_wait(
-            &waiter,
+            &observer,
             &mut disconnect,
             vec![ObservedTunnelStateKind::Connected],
-            Duration::from_secs(2),
+            Duration::from_secs(11),
             true,
         )
         .await
-        .expect_err("rpc failure must surface as an error");
+        .expect_err("exhausted budget without a match must time out");
 
-        assert!(error.to_string().contains("tunnel state wait RPC failed"));
+        assert!(error.to_string().contains("tunnel state wait timed out"));
         assert_eq!(disconnect.disconnects, 1);
     }
 
