@@ -347,15 +347,18 @@ jobs:
       - name: Get output path
         id: output-path
         working-directory: ${{ github.workspace }}
+        env:
+          BUILD_FLAVOR: ${{ inputs.build_flavor }}
+          BUILD_FORMAT: ${{ inputs.build_format }}
         run: |
             OUT_DIR="nym-vpn-android/app/build/outputs"
 
-            case "${{ inputs.build_flavor }}-${{ inputs.build_format }}" in
+            case "${BUILD_FLAVOR}-${BUILD_FORMAT}" in
               fdroid-apk) EXT='apk' ;;
               fdroid-aab) EXT='aab' ;;
               play-aab) EXT='aab' ;;
               *)
-                echo "::error:: Unsupported build flavor/format: ${{ inputs.build_flavor }}-${{ inputs.build_format }}"
+                echo "::error:: Unsupported build flavor/format: ${BUILD_FLAVOR}-${BUILD_FORMAT}"
                 exit 1
                 ;;
             esac
