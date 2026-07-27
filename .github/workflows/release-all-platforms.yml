@@ -248,8 +248,8 @@ jobs:
         run: |
           TAG="${{ needs.resolve.outputs.tag }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
-            echo "Release $TAG already exists. Aborting"
-            exit 1
+            echo "::error:: Release $TAG already exists. Aborting"
+            #exit 1
           fi
 
   # This step is only used for testing purposes when developing this workflow
