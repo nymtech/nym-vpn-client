@@ -42,6 +42,7 @@ fun NavBar(
 	hideBackButton: Boolean = false,
 	onBackClick: (Route) -> Unit = {},
 	onNavBarEvent: (NavBarEvent) -> Unit = {},
+	serverLocationIsExit: Boolean = false,
 	logsEnabled: Boolean = false,
 	onMainThemeClick: () -> Unit = {},
 	onMainSettingsClick: () -> Unit = {},
@@ -59,7 +60,7 @@ fun NavBar(
 		is NavBarState.Empty -> MaterialTheme.colorScheme.background
 		else -> MaterialTheme.colorScheme.surface
 	}
-	LaunchedEffect(currentRoute, hideBackButton, logsEnabled) {
+	LaunchedEffect(currentRoute, hideBackButton, logsEnabled, serverLocationIsExit) {
 		keyboardController?.hide()
 		val route = currentRoute ?: return@LaunchedEffect
 
@@ -84,16 +85,13 @@ fun NavBar(
 				onClose = { navController.safePopBackStack() },
 			)
 
-			route.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.entry_location,
+			route.startsWith(Route.EntryServer::class.qualifiedName!!) ||
+				route.startsWith(Route.ExitServer::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = if (serverLocationIsExit) R.string.exit_location else R.string.entry_location,
 				onBack = { navController.safePopBackStack() },
-				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.EntryLocationInfoClicked) },
-			)
-
-			route.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.exit_location,
-				onBack = { navController.safePopBackStack() },
-				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.ExitLocationInfoClicked) },
+				trailing = NavBarState.Trailing.Info {
+					onNavBarEvent(if (serverLocationIsExit) NavBarEvent.ExitLocationInfoClicked else NavBarEvent.EntryLocationInfoClicked)
+				},
 			)
 
 			route.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState.WithBack(

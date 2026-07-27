@@ -5,6 +5,7 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.backend.controller.VpnCoreController
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.RecentGateways
 import net.nymtech.vpn.model.VpnServiceEvent
 import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
@@ -24,6 +25,7 @@ import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TentativeGateways
+import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 
@@ -89,6 +91,14 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		it.listGateways(ListGatewaysOptions(gwType = type, userAgent = null))
 			.map(NymGateway.Companion::from)
 	} ?: emptyList()
+
+	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = core.tryWithCoreSender { sender ->
+		val recent = sender.getRecentGateways(tunnelType)
+		RecentGateways(
+			entry = recent.entry.map(NymGateway.Companion::from),
+			exit = recent.exit.map(NymGateway.Companion::from),
+		)
+	}
 
 	override suspend fun getNetworkVersions(): NetworkCompatibility? = core.tryWithCoreSender { it.getNetworkCompatibility() }
 

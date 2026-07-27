@@ -107,8 +107,8 @@
 	<string name="two_hop_explanation">High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.</string>
 	<string name="two_hop_title">Fast (WireGuard)</string>
 	<string name="disabled_while_connecting">Disabled while connecting to VPN</string>
-	<string name="exit_location">Exit location</string>
-	<string name="entry_location">Entry location</string>
+	<string name="exit_location">Exit server</string>
+	<string name="entry_location">Entry server</string>
 	<string name="no_results_found">No results found.</string>
 	<string name="how_to_run_gateway">how to run a server.</string>
 	<string name="or_learn">or learn</string>

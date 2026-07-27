@@ -12,6 +12,8 @@ import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.billing.NymBillingManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.manager.environment.NymEnvironmentManager
+import net.nymtech.nymvpn.manager.favorites.FavoritesManager
+import net.nymtech.nymvpn.manager.favorites.NymFavoritesManager
 import javax.inject.Singleton
 
 @Module
@@ -33,4 +35,8 @@ abstract class ManagerModule {
 	@Binds
 	@Singleton
 	abstract fun bindNymBillingManager(billingManager: NymBillingManager): BillingManager
+
+	@Binds
+	@Singleton
+	abstract fun bindNymFavoritesManager(favoritesManager: NymFavoritesManager): FavoritesManager
 }

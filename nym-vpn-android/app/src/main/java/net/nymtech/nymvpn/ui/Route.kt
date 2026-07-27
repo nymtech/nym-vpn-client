@@ -53,10 +53,10 @@ sealed class Route {
 	data object Licenses : Route()
 
 	@Serializable
-	data object EntryLocation : Route()
+	data object EntryServer : Route()
 
 	@Serializable
-	data object ExitLocation : Route()
+	data object ExitServer : Route()
 
 	@Serializable
 	data object SelectPlan : Route()

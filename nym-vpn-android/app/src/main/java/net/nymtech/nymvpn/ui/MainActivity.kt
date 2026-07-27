@@ -57,9 +57,8 @@ import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
-import net.nymtech.nymvpn.ui.screens.hop.HopScreen
-import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
+import net.nymtech.nymvpn.ui.screens.server.ServerScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -135,6 +134,7 @@ class MainActivity : AppCompatActivity() {
 
 			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
 			var onBackClickEventFromRoute by remember { mutableStateOf<Route?>(null) }
+			var serverLocationIsExit by remember { mutableStateOf(false) }
 
 			var navBarEvent by remember { mutableStateOf<NavBarEvent?>(null) }
 
@@ -202,6 +202,7 @@ class MainActivity : AppCompatActivity() {
 									hideBackButton = hideBackButtonInNavBar,
 									onBackClick = { onBackClickEventFromRoute = it },
 									onNavBarEvent = { navBarEvent = it },
+									serverLocationIsExit = serverLocationIsExit,
 									logsEnabled = appState.settings.logsEnabled,
 									onMainThemeClick = { navController.goFromRoot(Route.Display) },
 									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
@@ -258,21 +259,23 @@ class MainActivity : AppCompatActivity() {
 									SettingsScreen(appState, appViewModel, args.showVpnSettings)
 								}
 
-								composable<Route.EntryLocation> {
-									HopScreen(
+								composable<Route.EntryServer> {
+									ServerScreen(
 										gatewayLocation = GatewayLocation.ENTRY,
 										appUiState = appState,
 										navBarEvent = navBarEvent,
 										onNavBarEventConsume = consumeNavBarEvent,
+										onLocationChange = { serverLocationIsExit = it == GatewayLocation.EXIT },
 									)
 								}
 
-								composable<Route.ExitLocation> {
-									HopScreen(
+								composable<Route.ExitServer> {
+									ServerScreen(
 										gatewayLocation = GatewayLocation.EXIT,
 										appUiState = appState,
 										navBarEvent = navBarEvent,
 										onNavBarEventConsume = consumeNavBarEvent,
+										onLocationChange = { serverLocationIsExit = it == GatewayLocation.EXIT },
 									)
 								}
 

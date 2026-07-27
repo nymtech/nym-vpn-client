@@ -15,6 +15,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.RecentGateways
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AutologinResponse
@@ -26,6 +27,7 @@ import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TentativeGateways
+import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -38,10 +40,10 @@ class LoginProcessingViewModelTest {
 	fun credentialsCarouselTick_advancesDuringRequestingZkNyms() = runBlocking {
 		val viewModel = LoginProcessingViewModel(FakeBackendManager(), FakeSettingsRepository())
 
-		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.RequestingZkNyms)
+		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing)
 		assertEquals(1, viewModel.credentialsCarouselTick.value)
 
-		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.RequestingZkNyms)
+		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing)
 		assertEquals(1, viewModel.credentialsCarouselTick.value)
 
 		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing, setupCarouselFinished = false)
@@ -156,6 +158,8 @@ private class FakeBackendManager(initialAccountState: AccountControllerState = A
 	override suspend fun getAccountLinks(): ParsedAccountLinks? = null
 	override suspend fun getSystemMessages(): List<SystemMessage> = emptyList()
 	override suspend fun getGateways(gatewayType: GatewayType): List<NymGateway> = emptyList()
+
+	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = null
 	override suspend fun createAccount() = unsupported()
 	override suspend fun registerAccount(purchaseToken: String?): String = unsupported()
 	override suspend fun getMnemonic(): List<String> = emptyList()

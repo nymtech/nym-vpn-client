@@ -33,7 +33,7 @@ import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionIdentity
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPerformance
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPrivacy
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsTopSection
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
+import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.navigateAndForget

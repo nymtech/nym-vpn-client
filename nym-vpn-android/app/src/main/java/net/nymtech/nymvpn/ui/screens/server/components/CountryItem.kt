@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.hop.components
+package net.nymtech.nymvpn.ui.screens.server.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,14 +43,13 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
-import net.nymtech.nymvpn.ui.screens.hop.ItemType
+import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
+import net.nymtech.nymvpn.ui.screens.server.ItemType
+import net.nymtech.nymvpn.ui.screens.server.ServerListFilter
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
-import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -58,14 +59,16 @@ fun CountryItem(
 	countryItem: ItemType.CountryItem,
 	gatewayType: GatewayType,
 	gatewayLocation: GatewayLocation,
+	filter: ServerListFilter,
 	selectedKey: String?,
+	favoriteGatewayIds: Set<String>,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
+	onToggleFavorite: (String, Boolean) -> Unit,
 	modifier: Modifier = Modifier,
-	isQuicSettingsEnabled: Boolean = false,
 ) {
 	val countryCode = remember(countryItem) { countryItem.locale.country.lowercase() }
-	var expanded by rememberSaveable(key = "expanded_${countryItem.locale.country}") {
+	var expanded by rememberSaveable(key = "expanded_${gatewayLocation}_${filter}_${countryItem.locale.country}") {
 		mutableStateOf(
 			countryItem.gateways.any {
 				it.identity == selectedKey ||
@@ -90,6 +93,8 @@ fun CountryItem(
 			expanded = expanded,
 			gateways = countryItem.gateways,
 			isSelected = countryCode == selectedKey,
+			isFavorite = countryItem.isFavorite,
+			onToggleFavorite = { onToggleFavorite(countryCode, countryItem.isFavorite) },
 			onDropDownClick = {
 				expanded = !expanded
 			},
@@ -102,28 +107,35 @@ fun CountryItem(
 			enter = expandVertically() + fadeIn(),
 			exit = shrinkVertically() + fadeOut(),
 		) {
-			if (countryItem.regions != null) {
-				StateGroupedGatewayList(
-					gatewaysGroupByState = countryItem.regions,
-					countryCode = countryCode,
-					selectedKey = selectedKey,
-					country = countryItem.locale,
-					gatewayType = gatewayType,
-					gatewayLocation = gatewayLocation,
-					onSelectionChange = onSelectionChange,
-					onGatewayDetails = onGatewayDetails,
-					isQuicSettingsEnabled = isQuicSettingsEnabled,
-				)
-			} else {
-				GatewayCell(
-					gatewayType = gatewayType,
-					gatewayLocation = gatewayLocation,
-					selectedKey = selectedKey,
-					gateways = countryItem.gateways,
-					onSelectionChange = { onSelectionChange(it) },
-					onGatewayDetails = { onGatewayDetails(it) },
-					isQuicSettingsEnabled = isQuicSettingsEnabled,
-				)
+			Column {
+				if (!countryItem.regions.isNullOrEmpty()) {
+					StateGroupedGatewayList(
+						gatewaysGroupByState = countryItem.regions,
+						countryCode = countryCode,
+						selectedKey = selectedKey,
+						country = countryItem.locale,
+						gatewayType = gatewayType,
+						gatewayLocation = gatewayLocation,
+						filter = filter,
+						favoriteGatewayIds = favoriteGatewayIds,
+						onSelectionChange = onSelectionChange,
+						onGatewayDetails = onGatewayDetails,
+						onToggleFavorite = onToggleFavorite,
+					)
+				}
+				val ungrouped = if (countryItem.regions != null) countryItem.gateways.filter { it.region == null } else countryItem.gateways
+				if (ungrouped.isNotEmpty()) {
+					GatewayCell(
+						gatewayType = gatewayType,
+						gatewayLocation = gatewayLocation,
+						selectedKey = selectedKey,
+						gateways = ungrouped,
+						favoriteGatewayIds = favoriteGatewayIds,
+						onSelectionChange = { onSelectionChange(it) },
+						onGatewayDetails = { onGatewayDetails(it) },
+						onToggleFavorite = onToggleFavorite,
+					)
+				}
 			}
 		}
 	}
@@ -136,10 +148,12 @@ private fun CountryDropDown(
 	rotationAngle: Float,
 	expanded: Boolean,
 	isSelected: Boolean,
+	isFavorite: Boolean,
 	country: Locale,
 	gateways: List<NymGateway>,
 	onDropDownClick: () -> Unit,
 	onSelectionChange: () -> Unit,
+	onToggleFavorite: () -> Unit,
 ) {
 	val context = LocalContext.current
 	SurfaceSelectionGroupButton(
@@ -157,25 +171,40 @@ private fun CountryDropDown(
 					}
 				},
 				trailing = {
-					Box(
+					Row(
+						horizontalArrangement = Arrangement.spacedBy(16.dp),
+						verticalAlignment = Alignment.CenterVertically,
 						modifier = Modifier
-							.clickable { onDropDownClick() }
-							.fillMaxHeight(),
-						contentAlignment = Alignment.Center,
+							.fillMaxHeight()
+							.padding(end = 16.dp),
 					) {
-						Row(
-							horizontalArrangement = Arrangement.spacedBy(16.dp),
-							verticalAlignment = Alignment.CenterVertically,
-							modifier = Modifier.padding(end = 16.dp),
+						Icon(
+							imageVector = if (isFavorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+							contentDescription = "Favorite",
+							tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+							modifier = Modifier
+								.size(iconSize)
+								.clickable { onToggleFavorite() },
+						)
+						Box(
+							modifier = Modifier
+								.clickable { onDropDownClick() }
+								.fillMaxHeight(),
+							contentAlignment = Alignment.Center,
 						) {
-							VerticalDivider(modifier = Modifier.height(42.dp))
-							Icon(
-								Icons.Filled.ArrowDropDown,
-								contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
-								modifier = Modifier
-									.graphicsLayer(rotationZ = rotationAngle)
-									.size(iconSize),
-							)
+							Row(
+								horizontalArrangement = Arrangement.spacedBy(16.dp),
+								verticalAlignment = Alignment.CenterVertically,
+							) {
+								VerticalDivider(modifier = Modifier.height(42.dp))
+								Icon(
+									Icons.Filled.ArrowDropDown,
+									contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
+									modifier = Modifier
+										.graphicsLayer(rotationZ = rotationAngle)
+										.size(iconSize),
+								)
+							}
 						}
 					}
 				},
@@ -206,30 +235,34 @@ private fun CountryDropDown(
 private fun StateGroupedGatewayList(
 	countryCode: String,
 	selectedKey: String?,
-	isQuicSettingsEnabled: Boolean,
+	favoriteGatewayIds: Set<String>,
 	country: Locale,
 	gatewayType: GatewayType,
 	gatewayLocation: GatewayLocation,
+	filter: ServerListFilter,
 	gatewaysGroupByState: List<ItemType.CountryItem.Region>,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
+	onToggleFavorite: (String, Boolean) -> Unit,
 ) {
 	Column {
-		gatewaysGroupByState.forEach { (state, stateGateways) ->
-			var isStateExpanded by rememberSaveable(key = "isStateExpanded_$state") {
-				mutableStateOf(stateGateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey })
+		gatewaysGroupByState.forEach { regionItem ->
+			var isStateExpanded by rememberSaveable(key = "isStateExpanded_${gatewayLocation}_${filter}_${regionItem.region}") {
+				mutableStateOf(regionItem.gateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey })
 			}
 			val stateRotationAngle by animateFloatAsState(targetValue = if (isStateExpanded) 180f else 0f, label = "StateItemRotation")
 
 			CountryDropDown(
-				title = state,
+				title = regionItem.region,
 				countryCode = countryCode,
 				rotationAngle = stateRotationAngle,
 				expanded = isStateExpanded,
-				isSelected = state.equals(selectedKey, true),
-				gateways = stateGateways,
+				isSelected = regionItem.region.equals(selectedKey, true),
+				isFavorite = regionItem.isFavorite,
+				gateways = regionItem.gateways,
 				onDropDownClick = { isStateExpanded = !isStateExpanded },
-				onSelectionChange = { onSelectionChange(state) },
+				onSelectionChange = { onSelectionChange(regionItem.region) },
+				onToggleFavorite = { onToggleFavorite(regionItem.region, regionItem.isFavorite) },
 				country = country,
 			)
 			AnimatedVisibility(
@@ -238,13 +271,14 @@ private fun StateGroupedGatewayList(
 				exit = shrinkVertically() + fadeOut(),
 			) {
 				GatewayCell(
-					gateways = stateGateways,
+					gateways = regionItem.gateways,
 					selectedKey = selectedKey,
 					gatewayType = gatewayType,
 					gatewayLocation = gatewayLocation,
+					favoriteGatewayIds = favoriteGatewayIds,
 					onSelectionChange = onSelectionChange,
 					onGatewayDetails = onGatewayDetails,
-					isQuicSettingsEnabled = isQuicSettingsEnabled,
+					onToggleFavorite = onToggleFavorite,
 				)
 			}
 		}
@@ -253,17 +287,18 @@ private fun StateGroupedGatewayList(
 
 @Composable
 private fun GatewayCell(
-	isQuicSettingsEnabled: Boolean,
 	gatewayType: GatewayType,
 	gatewayLocation: GatewayLocation,
 	selectedKey: String?,
 	gateways: List<NymGateway>,
+	favoriteGatewayIds: Set<String>,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
+	onToggleFavorite: (String, Boolean) -> Unit,
 ) {
 	SurfaceSelectionGroupButton(
 		gateways.map { gateway ->
-			val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
+			val isFavorite = gateway.identity in favoriteGatewayIds
 			SelectionItem(
 				onClick = { onSelectionChange(gateway.identity) },
 				leading = {
@@ -278,8 +313,8 @@ private fun GatewayCell(
 				},
 				trailing = {
 					ServerDetailsTrailingContent(
-						showStreamDisplay = showStreamDisplay,
-						showQuicLabel = isQuicSettingsEnabled && gateway.isQuicSupported(),
+						isFavorite = isFavorite,
+						onToggleFavorite = { onToggleFavorite(gateway.identity, isFavorite) },
 						onInfoIconClick = { onGatewayDetails(gateway) },
 					)
 				},
