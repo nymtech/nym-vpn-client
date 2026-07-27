@@ -79,5 +79,5 @@ jobs:
 
           bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
             --track "$TRACK" \
-            --skip-upload-aab $SKIP_UPLOAD_BUNDLE \
-            --skip-upload-metadata $SKIP_UPLOAD_METADATA
+            --skip_upload_aab $SKIP_UPLOAD_BUNDLE \
+            --skip_upload_metadata $SKIP_UPLOAD_METADATA
