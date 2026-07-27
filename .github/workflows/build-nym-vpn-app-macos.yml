@@ -86,6 +86,14 @@ jobs:
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
 
+      - name: Install system dependencies
+        run: |
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install getsentry/tools/sentry-cli
+
       - name: Normalize release_type
         run: |
           set -euo pipefail
@@ -162,9 +170,6 @@ jobs:
           RUBY_PREFIX="$(brew --prefix ruby)"
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
-
-          # Ensure xcbeautify is available for xcodebuild output formatting
-          which xcbeautify || brew install xcbeautify
 
           # Show versions for debugging
           brew --version
@@ -372,7 +377,6 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
-          brew install crowdin
           crowdin_prefix="$(brew --prefix crowdin)"
           export PATH="$crowdin_prefix/bin:$PATH"
 
@@ -548,7 +552,6 @@ jobs:
           CORE_VERSION: ${{ steps.core-version.outputs.metadata }}
         run: |
           set -euo pipefail
-          which xmlstarlet || brew install xmlstarlet
 
           KEYCHAIN_PATH="${{ steps.setup-keychain.outputs.keychain_path }}"
           APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
@@ -678,7 +681,6 @@ jobs:
           ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euxo pipefail
-          which jq || brew install jq
 
           PKG="${{ steps.make-pkg.outputs.pkg_path }}"
           test -f "$PKG" || { echo "❌ PKG not found at $PKG"; exit 1; }
