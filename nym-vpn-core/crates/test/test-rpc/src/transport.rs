@@ -486,10 +486,13 @@ const MULTIPLEX_LEN_DELIMITED_HEADER_SIZE: usize = 4;
 /// (`MULTIPLEX_LEN_DELIMITED_HEADER_SIZE`); do not use `usize::MAX`.
 const MULTIPLEX_MAX_FRAME_LENGTH: usize = 8 * 1024 * 1024;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct MultiplexCodec {
     len_delim_codec: LengthDelimitedCodec,
     has_connected: Arc<AtomicBool>,
+    /// After an implausible header we hunt one byte at a time and only accept a candidate
+    /// when the full frame is already buffered (avoids waiting forever on a phantom length).
+    desynced: bool,
 }
 
 impl MultiplexCodec {
@@ -503,6 +506,7 @@ impl MultiplexCodec {
         Self {
             has_connected,
             len_delim_codec: codec_builder.new_codec(),
+            desynced: false,
         }
     }
 
@@ -550,25 +554,83 @@ impl MultiplexCodec {
             return Ok(None);
         }
         loop {
+            if !self.resync_to_plausible_frame_header(src) {
+                return Ok(None);
+            }
             match self.len_delim_codec.decode(src) {
-                Ok(frame) => return frame.map(Self::decode_frame).transpose(),
+                Ok(Some(frame)) => {
+                    let decoded = Self::decode_frame(frame)?;
+                    self.desynced = false;
+                    return Ok(Some(decoded));
+                }
+                Ok(None) => return Ok(None),
                 Err(error) if is_oversized_length_field_error(&error) => {
-                    let skip = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE.min(src.len());
-                    if skip == 0 {
+                    if src.is_empty() {
                         return Err(error);
                     }
+                    self.desynced = true;
                     log::warn!(
-                        "serial mux: oversized length field; skipping {skip} byte header to resync (remaining={})",
+                        "serial mux: oversized length after peek; skipping 1 byte (remaining={})",
                         src.len()
                     );
-                    src.advance(skip);
-                    if src.len() < MULTIPLEX_LEN_DELIMITED_HEADER_SIZE {
-                        return Ok(None);
-                    }
+                    src.advance(1);
                 }
                 Err(error) => return Err(error),
             }
         }
+    }
+
+    fn resync_to_plausible_frame_header(&mut self, src: &mut BytesMut) -> bool {
+        while src.len() >= MULTIPLEX_LEN_DELIMITED_HEADER_SIZE {
+            let claimed_len = u32::from_be_bytes([src[0], src[1], src[2], src[3]]) as usize;
+            if !(1..=MULTIPLEX_MAX_FRAME_LENGTH).contains(&claimed_len) {
+                self.desynced = true;
+                log::warn!(
+                    "serial mux: implausible length {claimed_len}; skipping 1 byte to resync (remaining={})",
+                    src.len()
+                );
+                src.advance(1);
+                continue;
+            }
+            if src.len() < MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + FRAME_TYPE_SIZE {
+                return false;
+            }
+            let frame_type = match FrameType::try_from(src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE]) {
+                Ok(frame_type) => frame_type,
+                Err(()) => {
+                    self.desynced = true;
+                    log::warn!(
+                        "serial mux: length {claimed_len} but invalid frame type {:#04x}; skipping 1 byte (remaining={})",
+                        src[MULTIPLEX_LEN_DELIMITED_HEADER_SIZE],
+                        src.len()
+                    );
+                    src.advance(1);
+                    continue;
+                }
+            };
+            if src.len() < MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + claimed_len {
+                if self.desynced {
+                    src.advance(1);
+                    continue;
+                }
+                return false;
+            }
+            if matches!(frame_type, FrameType::Handshake) {
+                let payload_start = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + FRAME_TYPE_SIZE;
+                let payload_end = MULTIPLEX_LEN_DELIMITED_HEADER_SIZE + claimed_len;
+                if &src[payload_start..payload_end] != MULLVAD_SIGNATURE {
+                    self.desynced = true;
+                    log::warn!(
+                        "serial mux: Handshake length without signature; skipping 1 byte (remaining={})",
+                        src.len()
+                    );
+                    src.advance(1);
+                    continue;
+                }
+            }
+            return true;
+        }
+        false
     }
 
     fn skip_noise(&mut self, src: &mut BytesMut) {
@@ -1148,34 +1210,90 @@ mod tests {
         );
     }
 
-    #[test]
-    fn multiplex_codec_resyncs_after_oversized_length_field() {
-        use super::{Frame, MULTIPLEX_MAX_FRAME_LENGTH, MultiplexCodec};
-        use bytes::{BufMut, BytesMut};
+    fn encode_test_runner_frame(payload: &'static [u8]) -> bytes::BytesMut {
+        use super::{Frame, MultiplexCodec};
+        use bytes::BytesMut;
         use std::sync::{Arc, atomic::AtomicBool};
-        use tokio_util::codec::{Decoder, Encoder};
+        use tokio_util::codec::Encoder;
 
         let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
-
-        // Bogus length > max, then a real TestRunner frame (no padding: header skip is 4 bytes).
-        let mut src = BytesMut::new();
-        src.put_u32((MULTIPLEX_MAX_FRAME_LENGTH as u32).saturating_add(1));
-
         let mut valid = BytesMut::new();
         codec
-            .encode(Frame::TestRunner(Bytes::from_static(b"ok")), &mut valid)
+            .encode(Frame::TestRunner(Bytes::from_static(payload)), &mut valid)
             .expect("encode valid frame");
-        src.extend_from_slice(&valid);
+        valid
+    }
+
+    fn assert_decoded_test_runner(decoded: super::Frame, expected: &[u8]) {
+        match decoded {
+            super::Frame::TestRunner(payload) => assert_eq!(&payload[..], expected),
+            super::Frame::Handshake => panic!("expected TestRunner, got Handshake"),
+            super::Frame::DaemonRpc(_) => panic!("expected TestRunner, got DaemonRpc"),
+        }
+    }
+
+    #[test]
+    fn multiplex_codec_resyncs_after_oversized_length_field() {
+        use super::{MULTIPLEX_MAX_FRAME_LENGTH, MultiplexCodec};
+        use bytes::{BufMut, BytesMut};
+        use std::sync::{Arc, atomic::AtomicBool};
+        use tokio_util::codec::Decoder;
+
+        let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
+        let mut src = BytesMut::new();
+        src.put_u32((MULTIPLEX_MAX_FRAME_LENGTH as u32).saturating_add(1));
+        src.extend_from_slice(&encode_test_runner_frame(b"ok"));
 
         let decoded = codec
             .decode(&mut src)
             .expect("resync must not abort decode")
             .expect("valid frame after oversized length resync");
+        assert_decoded_test_runner(decoded, b"ok");
+    }
 
-        match decoded {
-            Frame::TestRunner(payload) => assert_eq!(&payload[..], b"ok"),
-            Frame::Handshake => panic!("expected TestRunner, got Handshake"),
-            Frame::DaemonRpc(_) => panic!("expected TestRunner, got DaemonRpc"),
-        }
+    /// 4-byte header skip permanently destroys a frame that starts one byte after noise.
+    /// One-byte scan + FrameType peek must re-lock (CI 30267472749 class failure).
+    #[test]
+    fn multiplex_codec_resyncs_when_misaligned_by_one_byte() {
+        use super::MultiplexCodec;
+        use bytes::BytesMut;
+        use std::sync::{Arc, atomic::AtomicBool};
+        use tokio_util::codec::Decoder;
+
+        let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
+        let mut src = BytesMut::new();
+        // Leading 0xFF makes the first u32 length look huge (almost always > 8 MiB).
+        src.extend_from_slice(&[0xff]);
+        src.extend_from_slice(&encode_test_runner_frame(b"aligned"));
+
+        let decoded = codec
+            .decode(&mut src)
+            .expect("1-byte resync must not abort")
+            .expect("valid frame after 1-byte misalignment");
+        assert_decoded_test_runner(decoded, b"aligned");
+        assert!(src.is_empty(), "must consume the full valid frame");
+    }
+
+    #[test]
+    fn multiplex_codec_resyncs_past_plausible_length_with_bad_frame_type() {
+        use super::{FRAME_TYPE_SIZE, MULTIPLEX_LEN_DELIMITED_HEADER_SIZE, MultiplexCodec};
+        use bytes::{BufMut, BytesMut};
+        use std::sync::{Arc, atomic::AtomicBool};
+        use tokio_util::codec::Decoder;
+
+        let mut codec = MultiplexCodec::new(Arc::new(AtomicBool::new(true)));
+        let mut src = BytesMut::new();
+        // Length=1 looks fine to LengthDelimitedCodec, but 0xFE is not a FrameType.
+        src.put_u32(FRAME_TYPE_SIZE as u32);
+        src.put_u8(0xfe);
+        // Padding so a 4-byte-only skip would still leave us unaligned into the real frame.
+        src.extend_from_slice(&[0x00; MULTIPLEX_LEN_DELIMITED_HEADER_SIZE]);
+        src.extend_from_slice(&encode_test_runner_frame(b"typed"));
+
+        let decoded = codec
+            .decode(&mut src)
+            .expect("bad frame-type resync must not abort")
+            .expect("valid frame after skipping fake header");
+        assert_decoded_test_runner(decoded, b"typed");
     }
 }
