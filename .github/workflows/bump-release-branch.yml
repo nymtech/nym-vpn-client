@@ -42,18 +42,26 @@ jobs:
     env:
       GIT_BRANCH: ${{ inputs.branch || github.ref_name }}
     steps:
-      - name: "Cleanup working directory"
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
 
       - name: Validate input
         run: |
-          if [ ! echo "${{ env.GIT_BRANCH }}" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then
-            echo "::error:: Branch must start with 'release/' (got: ${{ env.GIT_BRANCH }})"
+          if [ ! echo "$GIT_BRANCH" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then
+            echo "::error:: Branch must start with 'release/' (got: $GIT_BRANCH)"
             exit 1
           fi
 
