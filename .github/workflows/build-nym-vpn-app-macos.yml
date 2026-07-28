@@ -87,14 +87,6 @@ jobs:
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
 
-      - name: Install system dependencies
-        run: |
-          brew install xcbeautify
-          brew install crowdin
-          brew install xmlstarlet
-          brew install jq
-          brew install getsentry/tools/sentry-cli
-
       - name: Normalize release_type
         run: |
           set -euo pipefail
@@ -145,6 +137,16 @@ jobs:
         with:
           crate: cargo-license
 
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -155,11 +157,6 @@ jobs:
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
 
       - name: Add Homebrew, Ruby to PATH
         run: |
@@ -176,6 +173,16 @@ jobs:
           brew --version
           ruby --version
           gem --version
+
+      - name: Install system dependencies
+        run: |
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install brotli
+          brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
+          brew install getsentry/tools/sentry-cli
 
       - name: Set locale (for Fastlane)
         run: |
@@ -338,8 +345,6 @@ jobs:
         if: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
           set -euo pipefail
-
-          cargo install cargo-get
 
           # Get version from Cargo.toml workspace
           LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core/Cargo.toml)

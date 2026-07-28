@@ -48,13 +48,13 @@ runs:
             ( cd nym-vpn-core
               toml set Cargo.toml workspace.package.version "$VERSION" > Cargo-patched.toml
               mv Cargo-patched.toml Cargo.toml
-              cargo fetch --offline )
+              cargo fetch )
             ;;
           tauri)
             ( cd nym-vpn-app/src-tauri
               toml set Cargo.toml package.version "$VERSION" > Cargo-patched.toml
               mv Cargo-patched.toml Cargo.toml
-              cargo fetch --offline )
+              cargo fetch )
             ;;
           android)
             # No set-version tool: gradle builds the final apk name from
