@@ -16,6 +16,76 @@ use test_rpc::{
     nym_daemon::{ObservedTunnelState, ObservedTunnelType},
 };
 
+/// Parse `resolvectl dns` link lines, e.g. `Link 5 (tun1): 127.111.152.46`.
+fn parse_resolvectl_dns(output: &str) -> Vec<(String, Vec<String>)> {
+    output
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            let (link, servers) = line.strip_prefix("Link ")?.split_once(':')?;
+            let name = link.split_once('(')?.1.strip_suffix(')')?.to_string();
+            Some((
+                name,
+                servers
+                    .split_whitespace()
+                    .map(|server| server.to_string())
+                    .collect(),
+            ))
+        })
+        .collect()
+}
+
+/// Nameservers systemd-resolved has configured on the tunnel interfaces.
+/// Returns `None` when resolved is not managing DNS on this VM.
+async fn get_tunnel_link_nameservers(
+    rpc: &NymServiceClient,
+) -> Result<Option<Vec<String>>, anyhow::Error> {
+    let Ok(output) = rpc.exec("resolvectl", ["dns"]).await else {
+        return Ok(None);
+    };
+    if !output.success() {
+        return Ok(None);
+    }
+
+    let links = parse_resolvectl_dns(&String::from_utf8_lossy(&output.stdout));
+    Ok(Some(
+        links
+            .into_iter()
+            .filter(|(name, _)| name.starts_with("tun"))
+            .flat_map(|(_, servers)| servers)
+            .collect(),
+    ))
+}
+
+#[cfg(test)]
+mod resolvectl_tests {
+    use super::parse_resolvectl_dns;
+
+    #[test]
+    fn parses_link_nameservers_and_ignores_global_and_empty_links() {
+        let output = "Global:\nLink 2 (eth0): 172.29.1.1\nLink 4 (tun0):\nLink 5 (tun1): 127.111.152.46 10.1.0.1\n";
+        let links = parse_resolvectl_dns(output);
+
+        assert_eq!(
+            links,
+            vec![
+                ("eth0".to_string(), vec!["172.29.1.1".to_string()]),
+                ("tun0".to_string(), vec![]),
+                (
+                    "tun1".to_string(),
+                    vec!["127.111.152.46".to_string(), "10.1.0.1".to_string()]
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn returns_nothing_for_output_without_link_lines() {
+        assert!(parse_resolvectl_dns("Global: 1.1.1.1\n").is_empty());
+        assert!(parse_resolvectl_dns("").is_empty());
+    }
+}
+
 async fn get_vm_nameservers(rpc: &NymServiceClient) -> Result<Vec<String>, anyhow::Error> {
     let resolv_output = rpc
         .exec("cat", ["/etc/resolv.conf"])
@@ -301,18 +371,39 @@ pub async fn test_dns_leak(
     )
     .await?;
 
-    let post_vpn_nameservers = get_vm_nameservers(&rpc).await?;
-    log::info!("Post-VPN nameservers (in VM): {:?}", post_vpn_nameservers);
-
-    let leaked_nameservers: Vec<_> = post_vpn_nameservers
-        .iter()
-        .filter(|ns| pre_vpn_nameservers.contains(ns))
-        .collect();
-    ensure!(
-        leaked_nameservers.is_empty(),
-        "DNS LEAK: post-VPN resolv.conf still contains pre-VPN nameservers: {:?}",
-        leaked_nameservers,
-    );
+    // Under systemd-resolved the daemon sets DNS per link and never rewrites
+    // /etc/resolv.conf, so that file still lists the DHCP nameserver by design.
+    match get_tunnel_link_nameservers(&rpc).await? {
+        Some(tunnel_nameservers) => {
+            log::info!("Tunnel link nameservers (in VM): {:?}", tunnel_nameservers);
+            ensure!(
+                !tunnel_nameservers.is_empty(),
+                "tunnel interface has no nameservers configured while connected"
+            );
+            let leaked: Vec<_> = tunnel_nameservers
+                .iter()
+                .filter(|ns| pre_vpn_nameservers.contains(ns))
+                .collect();
+            ensure!(
+                leaked.is_empty(),
+                "DNS LEAK: tunnel interface still resolves via pre-VPN nameservers: {:?}",
+                leaked,
+            );
+        }
+        None => {
+            let post_vpn_nameservers = get_vm_nameservers(&rpc).await?;
+            log::info!("Post-VPN nameservers (in VM): {:?}", post_vpn_nameservers);
+            let leaked: Vec<_> = post_vpn_nameservers
+                .iter()
+                .filter(|ns| pre_vpn_nameservers.contains(ns))
+                .collect();
+            ensure!(
+                leaked.is_empty(),
+                "DNS LEAK: post-VPN resolv.conf still contains pre-VPN nameservers: {:?}",
+                leaked,
+            );
+        }
+    }
 
     let addrs = rpc
         .resolve_hostname("nym.com".to_string())

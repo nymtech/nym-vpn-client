@@ -11,7 +11,10 @@ use crate::tests::{
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::future::Future;
+use std::{
+    future::Future,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+};
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
 
@@ -74,23 +77,79 @@ fn get_default_nameserver_sockaddrs() -> Vec<String> {
         .collect()
 }
 
-/// Verify that the VPN tunnel is working by performing DNS resolution tests
-async fn verify_tunnel_connectivity(rpc: &NymServiceClient) -> anyhow::Result<()> {
-    let hostnames_to_test = ["nym.com", "google.com"];
-    for host in &hostnames_to_test {
-        log::info!("Resolving {} inside VM via VPN tunnel...", host);
-        let addrs = rpc
-            .resolve_hostname(host.to_string())
-            .await
-            .context(format!("DNS resolution failed for {} inside VM", host))?;
-        log::info!("Resolved {} to {:?}", host, addrs);
-        ensure!(
-            !addrs.is_empty(),
-            "DNS resolution returned no addresses for {} inside VM",
-            host
-        );
+/// The in-tunnel resolver forwards to the default nameservers, so a test that blocks
+/// them by IP cannot also assert that hostname resolution works.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TunnelVerification {
+    ResolveHostnames,
+    ReachIpOnly,
+}
+
+/// Google Public DNS answers on 443 and is deliberately absent from
+/// [`get_default_nameserver_sockaddrs`], so it stays reachable while those are blocked.
+const IP_PROBE_SOCKET_ADDRS: [SocketAddr; 2] = [
+    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)), 443),
+    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(8, 8, 4, 4)), 443),
+];
+
+const IP_PROBE_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+fn verification_for_blocked_addrs(blocked_socket_addrs: &[String]) -> TunnelVerification {
+    let default_nameservers = get_default_nameserver_sockaddrs();
+    if blocked_socket_addrs
+        .iter()
+        .any(|addr| default_nameservers.contains(addr))
+    {
+        TunnelVerification::ReachIpOnly
+    } else {
+        TunnelVerification::ResolveHostnames
     }
-    Ok(())
+}
+
+/// Verify that the VPN tunnel carries traffic, by hostname or by IP depending on
+/// whether the test blocked the resolvers the tunnel itself depends on.
+async fn verify_tunnel_connectivity(
+    rpc: &NymServiceClient,
+    verification: TunnelVerification,
+) -> anyhow::Result<()> {
+    match verification {
+        TunnelVerification::ResolveHostnames => {
+            for host in ["nym.com", "google.com"] {
+                log::info!("Resolving {} inside VM via VPN tunnel...", host);
+                let addrs = rpc
+                    .resolve_hostname(host.to_string())
+                    .await
+                    .context(format!("DNS resolution failed for {} inside VM", host))?;
+                log::info!("Resolved {} to {:?}", host, addrs);
+                ensure!(
+                    !addrs.is_empty(),
+                    "DNS resolution returned no addresses for {} inside VM",
+                    host
+                );
+            }
+            Ok(())
+        }
+        TunnelVerification::ReachIpOnly => {
+            let mut last_error = None;
+            for dest in IP_PROBE_SOCKET_ADDRS {
+                log::info!("Connecting to {} inside VM via VPN tunnel...", dest);
+                match rpc.send_tcp(None, IP_PROBE_BIND_ADDR, dest).await {
+                    Ok(()) => {
+                        log::info!("TCP connectivity to {} verified inside VM", dest);
+                        return Ok(());
+                    }
+                    Err(error) => {
+                        log::warn!("TCP connectivity to {dest} failed inside VM: {error}");
+                        last_error =
+                            Some(anyhow::Error::new(error).context(format!("probe {dest}")));
+                    }
+                }
+            }
+            Err(last_error
+                .unwrap_or_else(|| anyhow::anyhow!("no probe addresses configured"))
+                .context("TCP connectivity failed inside VM for every probe address"))
+        }
+    }
 }
 
 async fn with_socket_blocks<F, Fut>(
@@ -169,6 +228,7 @@ async fn connect_verify_disconnect(
     test_context: &TestContext,
     rpc: &NymServiceClient,
     nym_client: NymProxyClient,
+    verification: TunnelVerification,
 ) -> anyhow::Result<()> {
     let nym_client =
         dc_and_ensure_logged_in(rpc, nym_client, &test_context.rpc_provider, false).await?;
@@ -188,7 +248,7 @@ async fn connect_verify_disconnect(
     )
     .await?;
 
-    verify_tunnel_connectivity(rpc).await?;
+    verify_tunnel_connectivity(rpc, verification).await?;
 
     log::info!("Disconnecting tunnel...");
     helpers_nym::disconnect_and_wait(rpc, nym_client, &test_context.rpc_provider).await?;
@@ -204,9 +264,10 @@ pub async fn test_tunnel_blocklisted_dns_nameservers_by_ip(
     nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     let dns_nameservers = get_default_nameserver_sockaddrs();
+    let verification = verification_for_blocked_addrs(&dns_nameservers);
     log::debug!("Blocking DNS nameservers: {:?}", dns_nameservers);
     with_socket_blocks(&rpc, &dns_nameservers, || async {
-        connect_verify_disconnect(&test_context, &rpc, nym_client).await
+        connect_verify_disconnect(&test_context, &rpc, nym_client, verification).await
     })
     .await
 }
@@ -221,7 +282,13 @@ pub async fn test_tunnel_blocklisted_vpn_api(
     let vpn_api_hosts = ["nymvpn.com:443"];
     log::debug!("Adding blocking rule for the VPN API: {:?}", vpn_api_hosts);
     with_sni_blocks(&rpc, &vpn_api_hosts, || async {
-        connect_verify_disconnect(&test_context, &rpc, nym_client).await
+        connect_verify_disconnect(
+            &test_context,
+            &rpc,
+            nym_client,
+            TunnelVerification::ResolveHostnames,
+        )
+        .await
     })
     .await
 }
@@ -236,7 +303,13 @@ pub async fn test_tunnel_blocklisted_nym_api(
     let nym_api_hosts = ["validator.nymtech.net:443"];
     log::debug!("Adding blocking rule for the Nym API: {:?}", nym_api_hosts);
     with_sni_blocks(&rpc, &nym_api_hosts, || async {
-        connect_verify_disconnect(&test_context, &rpc, nym_client).await
+        connect_verify_disconnect(
+            &test_context,
+            &rpc,
+            nym_client,
+            TunnelVerification::ResolveHostnames,
+        )
+        .await
     })
     .await
 }
@@ -258,6 +331,7 @@ pub async fn test_tunnel_delayed_blocklisted_nym_api(
 ) -> Result<(), anyhow::Error> {
     let default_nym_api_socket_addr = ["212.71.233.232:443"];
     let dns_nameservers = get_default_nameserver_sockaddrs();
+    let verification = verification_for_blocked_addrs(&dns_nameservers);
 
     log::debug!("Blocking DNS nameservers: {:?}", dns_nameservers);
     log::debug!(
@@ -269,7 +343,7 @@ pub async fn test_tunnel_delayed_blocklisted_nym_api(
         &rpc,
         &dns_nameservers,
         &default_nym_api_socket_addr,
-        || async { connect_verify_disconnect(&test_context, &rpc, nym_client).await },
+        || async { connect_verify_disconnect(&test_context, &rpc, nym_client, verification).await },
     )
     .await
 }
@@ -417,8 +491,39 @@ async fn unblock_socket_addrs_delayed<T: AsRef<str> + std::fmt::Debug>(
 
 #[cfg(test)]
 mod tests {
-    use super::{merge_body_and_cleanup, merge_delayed_setup_failure};
+    use super::{
+        IP_PROBE_SOCKET_ADDRS, TunnelVerification, get_default_nameserver_sockaddrs,
+        merge_body_and_cleanup, merge_delayed_setup_failure, verification_for_blocked_addrs,
+    };
     use crate::tests::get_test_descriptions;
+
+    #[test]
+    fn blocking_the_resolvers_downgrades_verification_to_ip_only() {
+        assert_eq!(
+            verification_for_blocked_addrs(&get_default_nameserver_sockaddrs()),
+            TunnelVerification::ReachIpOnly,
+            "the in-tunnel resolver forwards to these, so hostnames cannot resolve"
+        );
+        assert_eq!(
+            verification_for_blocked_addrs(&["212.71.233.232:443".to_string()]),
+            TunnelVerification::ResolveHostnames
+        );
+        assert_eq!(
+            verification_for_blocked_addrs(&[]),
+            TunnelVerification::ResolveHostnames
+        );
+    }
+
+    #[test]
+    fn ip_probe_addresses_are_never_blocked_by_the_dns_blocklist() {
+        let blocked = get_default_nameserver_sockaddrs();
+        for probe in IP_PROBE_SOCKET_ADDRS {
+            assert!(
+                !blocked.contains(&probe.to_string()),
+                "probe {probe} is blocked by the very test that relies on it"
+            );
+        }
+    }
 
     /// Must match `#[test_function_nym(priority = …)]` on the blocklist tests (after tunnel max 25).
     const BLOCKLIST_PRIORITY_DNS: i32 = 100;
