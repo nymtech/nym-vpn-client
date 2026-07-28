@@ -9,10 +9,10 @@ on:
           Github release mode:
             - none = no release
             - draft = draft release
-            - auto = based on branch and release channel
-              release/*, ship -> release
-              release/*, beta -> prerelease,
-              develop, nightly -> prerelease
+            - auto = based on branch and release channel;
+              release/*, ship -> release;
+              release/*, beta -> prerelease;
+              develop, nightly -> prerelease;
               rest: draft
         type: choice
         default: 'none'
