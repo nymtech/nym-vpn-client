@@ -1,21 +1,32 @@
 {
   "welcome": {
     "title": "Welcome to NymVPN",
-    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
+    "subtitle": "Your private access to\nan <bold>internet without walls</bold>"
   },
-  "tracking": {
-    "title": "Stop being tracked online",
-    "description": "Nym’s decentralized network makes \"no-log\" promises obsolete."
+  "network": {
+    "toggle": {
+      "dvpn": "dVPN",
+      "mixnet": "Mixnet"
+    },
+    "dvpn": {
+      "title": "Your dVPN",
+      "description": "Privacy for all your web activities\n<bold>Decentralized</bold> 2-hop network\n<bold>AmneziaWG</bold> fork of WireGuard",
+      "tagline": "Can’t snitch - won’t snitch network design."
+    },
+    "mixnet": {
+      "title": "Your mixnet",
+      "description": "The most <bold>anonymous</bold> way to be online\n5-hop <bold>mixnet</bold> with <bold>noise</bold>\nCustomize your traffic patterns",
+      "tagline": "Protecting metadata fingerprints."
+    }
   },
-  "zero-knowledge": {
-    "title": "Anonymity from payment to web",
-    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
-  },
-  "speed": {
-    "title": "Speed when you need it.\nPrivacy when it matters.",
-    "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
+  "around": {
+    "title": "Nym gets you around",
+    "description": "Disguise WireGuard with <bold>AmneziaWG</bold>\nGet around firewalls with <bold>QUIC</bold>\nAvoid VPN blocking with <bold>Stealth Connect</bold>\n<bold>Post-quantum</bold> security"
   },
   "controls": {
-    "get-started": "Get Started"
+    "get-started": "Get Started",
+    "previous": "Previous",
+    "next": "Next",
+    "close": "Close"
   }
 }

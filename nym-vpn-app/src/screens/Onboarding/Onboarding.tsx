@@ -1,41 +1,42 @@
+import { useState } from 'react';
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { Button, ButtonIconNew, MsIcon } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
 import { InteractiveCard } from '../home/InteractiveCard';
-import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
+import { Around, Network, Welcome } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
+import { NetworkVariant, VariantToggle } from './VariantToggle';
 
-const slides = [Welcome, Speed, Tracking, ZeroKnowledge];
+const NETWORK_SLIDE = 1;
+const SLIDE_COUNT = 3;
 
 const ArrowButton = ({
   icon,
+  label,
   onClick,
-  disabled,
+  hidden,
 }: {
   icon: string;
+  label: string;
   onClick: () => void;
-  disabled: boolean;
+  hidden: boolean;
 }) => {
   return (
     <HuButton
       onClick={onClick}
+      aria-label={label}
       className={clsx(
-        'bg-surface-bg my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
-        !disabled && 'hover:bg-surface-hair',
+        'bg-surface-elev flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+        hidden ? 'invisible' : 'hover:bg-surface-hair',
       )}
     >
-      <MsIcon
-        icon={icon}
-        className={clsx(
-          'leading-none',
-          !disabled ? 'text-text-primary' : 'text-text-tertiary',
-        )}
-      />
+      <MsIcon icon={icon} className="text-text-primary leading-none" />
     </HuButton>
   );
 };
@@ -44,75 +45,100 @@ function Onboarding() {
   const { t } = useTranslation('onboarding');
 
   const navigate = useAnimatedNavigate();
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    duration: 20,
-  });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ duration: 20 });
 
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
 
-  const handleNavigate = (route: string) => navigate(route);
+  const [variant, setVariant] = useState<NetworkVariant>('dvpn');
+
+  const onNetworkSlide = selectedIndex === NETWORK_SLIDE;
+
+  const tagline = onNetworkSlide ? t(`network.${variant}.tagline`) : '';
 
   return (
-    <InteractiveCard className="h-full">
-      <div className="mb-12">
-        <div className="relative flex h-[27px] items-center justify-center">
-          <NymVpnTextLogo className="fill-text-primary h-[27px] w-[100px]" />
-          <ButtonIconNew
-            initialAnimation={true}
-            icon="close"
-            onClick={() => navigate(routes.root)}
-            className="text-text-tertiary hover:text-text-primary transition-noborder absolute right-0 cursor-default dark:hover:text-white"
-          />
+    <motion.div
+      initial={{ opacity: 0, x: '-1rem' }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="flex h-full flex-col"
+    >
+      <div className="flex h-10 shrink-0 justify-end">
+        <ButtonIconNew
+          initialAnimation={true}
+          icon="close"
+          aria-label={t('controls.close')}
+          onClick={() => navigate(routes.root)}
+          className="text-text-tertiary hover:text-text-primary transition-noborder cursor-default dark:hover:text-white"
+        />
+      </div>
+
+      <div className="flex min-h-0 grow flex-col">
+        <div
+          className="-mx-4 my-auto w-[calc(100%+2rem)] shrink-0 overflow-hidden"
+          ref={emblaRef}
+        >
+          <div className="flex touch-pinch-zoom">
+            <div className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center">
+              <Welcome />
+            </div>
+            <div className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center">
+              <Network variant={variant} />
+            </div>
+            <div className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center">
+              <Around />
+            </div>
+          </div>
         </div>
       </div>
-      <section className="embla flex h-full w-full flex-col justify-between">
-        <div className="flex flex-1 flex-col items-center justify-center gap-6">
-          <div className="w-full overflow-hidden" ref={emblaRef}>
-            <div className="flex touch-pinch-zoom">
-              {slides.map((Slide, index) => (
-                <div
-                  className="min-w-0 flex-none basis-full translate-3d transform pl-4"
-                  key={index}
-                >
-                  <Slide />
-                </div>
-              ))}
-            </div>
+
+      <div className="flex shrink-0 flex-col gap-6">
+        {onNetworkSlide && (
+          <VariantToggle value={variant} onChange={setVariant} />
+        )}
+
+        <div className="flex w-full flex-row items-center justify-between">
+          <ArrowButton
+            icon="arrow_left"
+            label={t('controls.previous')}
+            onClick={() => emblaApi?.scrollPrev()}
+            hidden={selectedIndex === 0}
+          />
+          <div className="bg-surface-elev flex flex-row gap-2 rounded-2xl px-3 py-2">
+            {scrollSnaps.map((_, index) => (
+              <DotButton
+                key={index}
+                onClick={() => onDotButtonClick(index)}
+                aria-label={`${index + 1}`}
+                aria-current={index === selectedIndex}
+                className={clsx(
+                  'bg-surface-hair tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
+                  index === selectedIndex ? 'bg-white' : '',
+                )}
+              />
+            ))}
           </div>
-          <div className="flex w-full flex-row items-center justify-between">
-            <ArrowButton
-              icon="arrow_left"
-              onClick={() => emblaApi?.scrollPrev()}
-              disabled={!emblaApi?.canScrollPrev()}
-            />
-            <div className="bg-surface-elev flex flex-row gap-2 rounded-2xl px-3 py-2">
-              {scrollSnaps.map((_, index) => (
-                <DotButton
-                  key={index}
-                  onClick={() => onDotButtonClick(index)}
-                  className={clsx(
-                    'bg-surface-hair tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
-                    index === selectedIndex ? 'bg-white' : '',
-                  )}
-                />
-              ))}
-            </div>
-            <ArrowButton
-              icon="arrow_right"
-              onClick={() => emblaApi?.scrollNext()}
-              disabled={!emblaApi?.canScrollNext()}
-            />
-          </div>
+          <ArrowButton
+            icon="arrow_right"
+            label={t('controls.next')}
+            onClick={() => emblaApi?.scrollNext()}
+            hidden={selectedIndex === SLIDE_COUNT - 1}
+          />
         </div>
 
-        <div className="flex w-full flex-col items-center gap-4">
-          <Button onClick={() => handleNavigate(routes.welcome)}>
-            {t('controls.get-started')}
-          </Button>
-        </div>
-      </section>
-    </InteractiveCard>
+        <InteractiveCard>
+          <div className="flex flex-col items-center gap-2.5">
+            <NymVpnTextLogo className="fill-text-primary h-[27px] w-[100px]" />
+            <p className="text-text-secondary h-5 text-center text-sm leading-5">
+              {tagline}
+            </p>
+            <Button onClick={() => navigate(routes.welcome)}>
+              {t('controls.get-started')}
+            </Button>
+          </div>
+        </InteractiveCard>
+      </div>
+    </motion.div>
   );
 }
 
