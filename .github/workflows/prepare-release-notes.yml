@@ -14,6 +14,9 @@ on:
       version:
         type: string
         required: true
+      android:
+        type: boolean
+        required: true
       fdroid:
         type: boolean
         required: true
@@ -75,6 +78,9 @@ on:
         required: true
       version:
         type: string
+        required: true
+      android:
+        type: boolean
         required: true
       fdroid:
         type: boolean
@@ -146,6 +152,7 @@ jobs:
     outputs:
       github_release_type: ${{ steps.set-params.outputs.github_release_type }}
       version: ${{ steps.set-params.outputs.version }}
+      android: ${{ steps.set-params.outputs.android }}
       fdroid: ${{ steps.set-params.outputs.fdroid }}
       linux: ${{ steps.set-params.outputs.linux }}
       windows: ${{ steps.set-params.outputs.windows }}
@@ -174,6 +181,7 @@ jobs:
             # --- PULL REQUEST TEST VALUES ---
             echo "github_release_type=draft" >> $GITHUB_OUTPUT
             echo "version=0.0.0-pr-test" >> $GITHUB_OUTPUT
+            echo "android=true" >> $GITHUB_OUTPUT
             echo "fdroid=true" >> $GITHUB_OUTPUT
             echo "linux=true" >> $GITHUB_OUTPUT
             echo "windows=true" >> $GITHUB_OUTPUT
@@ -196,6 +204,7 @@ jobs:
           else
             echo "github_release_type=${{ inputs.github_release_type }}" >> $GITHUB_OUTPUT
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "android=${{ inputs.android }}" >> $GITHUB_OUTPUT
             echo "fdroid=${{ inputs.fdroid }}" >> $GITHUB_OUTPUT
             echo "linux=${{ inputs.linux }}" >> $GITHUB_OUTPUT
             echo "windows=${{ inputs.windows }}" >> $GITHUB_OUTPUT
@@ -238,18 +247,18 @@ jobs:
 
       - name: Extract android changelog
         id: android-changelog
+        if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
         uses: ffurrer2/extract-release-notes@v2
         with:
           changelog_file: nym-vpn-android/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
           prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
 
-      - name: Add release notes (General)
+      - name: Add release notes (General + Core changes)
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           VERSION: ${{ needs.resolve.outputs.version }}
           CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
-          ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes }}
         run: |
           cat << 'EOF' > "$RELEASE_NOTES"
           Nym VPN v${{ env.VERSION }} application and core binaries.
@@ -269,6 +278,13 @@ jobs:
           EOF
           fi
 
+      - name: Add release notes (Android changes)
+        if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes || '' }}
+        run: |
           if [ -n "$ANDROID_CHANGES" ]; then
             # Increase indentation from h3 to h4 to better fit the release notes
             export UPDATED_ANDROID_CHANGES=$(sed 's/^### /#### /' <<< "$ANDROID_CHANGES")
@@ -281,6 +297,10 @@ jobs:
           EOF
           fi
 
+      - name: Add release notes (Core overview)
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+        run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
           ## 📦 Core Components Overview
 
@@ -290,14 +310,11 @@ jobs:
           - `nym-diagnostic`: System information and network troubleshooting tool.
           - `nym-setup`: macOS helper tool for system service configuration.
 
-          EOF
-
-          cat << 'EOF' >> "$RELEASE_NOTES"
           ## 💾 Downloads & Assets
 
           EOF
 
-      - name: Add release notes (Android)
+      - name: Add release notes (F-Droid)
         if: ${{ needs.resolve.outputs.fdroid == 'true' }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}

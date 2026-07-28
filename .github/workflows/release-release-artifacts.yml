@@ -105,7 +105,7 @@ jobs:
       github_release_type: ${{ steps.resolve.outputs.github_release_type }}
       version: ${{ steps.resolve.outputs.version }}
       channel: ${{ steps.resolve.outputs.channel }}
-      android: ${{ steps.resolve.outputs.android }} # unused
+      android: ${{ steps.resolve.outputs.android }}
       fdroid: ${{ steps.resolve.outputs.fdroid }}
       linux: ${{ steps.resolve.outputs.linux }}
       windows: ${{ steps.resolve.outputs.windows }}
@@ -305,6 +305,7 @@ jobs:
     with:
       github_release_type: ${{ needs.resolve.outputs.github_release_type }}
       version: ${{ needs.resolve.outputs.version }}
+      android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
