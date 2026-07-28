@@ -27,9 +27,9 @@ nym-type-conversions = [
     "dep:nym-vpn-api-client",
     "dep:nym-vpn-network-config",
 ]
-uniffi-bindings = ["dep:uniffi", "ipnetwork"]
-typescript-bindings = ["dep:ts-rs", "serde"]
-serde = ["dep:serde"]
+uniffi-bindings = ["dep:uniffi", "ipnetwork", "nym-bridges-types/uniffi-bindings"]
+typescript-bindings = ["dep:ts-rs", "serde", "nym-bridges-types/typescript-bindings"]
+serde = ["dep:serde", "nym-bridges-types/serde"]
 
 [dependencies]
 bip39 = { workspace = true }
@@ -55,6 +55,7 @@ nym-validator-client = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-vpn-network-config = { workspace = true, optional = true }
 nym-network-defaults = { workspace = true, optional = true }
+nym-bridges-types.workspace = true
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
