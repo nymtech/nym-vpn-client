@@ -5340,9 +5340,9 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges"
-version = "0.2.0-rc.1"
+version = "0.2.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e0f9e68f52989c0f3281889a911fd2c1405e1f70e418568130de00285f4a5c4"
+checksum = "fc2ceb90bfa9235d9eb145ad13e097760dfa4e94f4a072791df67a2cde6067d1"
 dependencies = [
  "anyhow",
  "base64 0.23.0",
@@ -5382,9 +5382,9 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges-types"
-version = "0.2.0-rc.1"
+version = "0.2.0-rc.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f869e0aae10b99f7820940a68b662c4c3b9b0200015a52679012557ec92c686"
+checksum = "48428925358af5c775d915bc0d0911e616f5c98b44df02dc642e2875e020d4a9"
 dependencies = [
  "serde",
  "ts-rs",

@@ -1157,3 +1157,52 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(all(feature = "serde", not(feature = "typescript-bindings")))]
+mod bridges_test {
+    use super::BridgeInformation;
+    use super::BridgeParameters;
+    const RAW_V0_CLIENT_CONFIG: &str = r#"{"version":"0","transports":[{"transport_type":"quic_plain","args":{"addresses":["139.162.33.226:4443","[2400:8901::2000:faff:fea6:87f2]:4443"],"host":"netdna.bootstrapcdn.com","id_pubkey":"9JC91ZiszhIn3n4FG+MDYE/lYwhGdpHGWQTKUqGl+sE="}}]}"#;
+
+    /// The initial version of the bridge descriptors that are provided by the gateways use a snake case
+    /// for the enum differentiator. This test validates that under normal circumstances that the descriptor
+    /// is parsed as  expected. The only situation under which the enum differentiator has a different format
+    /// is when using the `typescript-bindings` feature.
+    #[test]
+    fn ensure_bridge_v0_parsing_compatibility() -> Result<(), Box<dyn std::error::Error>> {
+        // Parse the JSON to verify structure
+        let parsed: BridgeInformation = serde_json::from_str(RAW_V0_CLIENT_CONFIG)?;
+
+        // Verify version
+        assert_eq!(parsed.version, "0");
+
+        // Verify transport type
+        let params = match &parsed.transports[0] {
+            BridgeParameters::QuicPlain(p) => p,
+            BridgeParameters::TlsPlain(_) => return Err("expected quic transport args".into()),
+        };
+
+        // Verify addresses contain our test IPs
+        let addresses = &params.addresses;
+
+        let address_strings: Vec<String> = addresses.iter().map(|v| v.to_string()).collect();
+
+        // Should contain both IPv4 and IPv6 addresses with port 4443
+        assert!(
+            address_strings
+                .iter()
+                .any(|addr| addr.contains("139.162.33.226:4443"))
+        );
+        assert!(
+            address_strings
+                .iter()
+                .any(|addr| addr.contains("[2400:8901::2000:faff:fea6:87f2]:4443"))
+        );
+
+        // Verify host field
+        assert_eq!(params.host, Some("netdna.bootstrapcdn.com".to_string()),);
+
+        Ok(())
+    }
+}
