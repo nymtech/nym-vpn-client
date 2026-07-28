@@ -30,8 +30,10 @@ function SelectRegion() {
   }, [getCountryName]);
 
   const handleChange = async (region: SupportedExcludedRegion) => {
-    await setExcludedCountry(region);
-    navigate(-1);
+    const success = await setExcludedCountry(region);
+    if (success) {
+      navigate(-1);
+    }
   };
 
   return (

@@ -58,6 +58,14 @@ export default function TopBar() {
   });
 
   const navBarData = useMemo<NavBarData>(() => {
+    const backNav = (title: NavLocation['title']): NavLocation => ({
+      title,
+      leftIcon: 'keyboard_arrow_left',
+      handleLeftNav: () => {
+        navigate(-1);
+      },
+    });
+
     return {
       '/technical-optin': {
         leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
@@ -198,13 +206,9 @@ export default function TopBar() {
           navigate(-1);
         },
       },
-      '/settings/geo-exclusion/select-region': {
-        title: t('geo-exclusion.select-region.title', { ns: 'settings' }),
-        leftIcon: 'keyboard_arrow_left',
-        handleLeftNav: () => {
-          navigate(-1);
-        },
-      },
+      '/settings/geo-exclusion/select-region': backNav(
+        t('geo-exclusion.select-region.title', { ns: 'settings' }),
+      ),
       '/settings/anti-censorship': {
         title: t('anti-censorship.title', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',
