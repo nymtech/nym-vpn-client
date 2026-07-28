@@ -91,11 +91,11 @@ pub enum GeoExclusionConfigError {
     #[error("invalid country code '{0}': must be a 2-letter uppercase ISO code")]
     InvalidCountryCode(String),
 
-    #[error("unsupported country code '{0}': only 'CN' is currently supported")]
-    UnsupportedCountry(String),
+    #[error("unsupported country code '{0}': supported countries are {1}")]
+    UnsupportedCountry(String, String),
 
-    #[error("'CN' must be included in the excluded countries list")]
-    CnRequired,
+    #[error("duplicate country code '{0}' in excluded countries list")]
+    DuplicateCountry(String),
 }
 
 #[derive(Debug, thiserror::Error)]

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [CLI] Add short option `-l` for `nym-vpnc status --listen` (https://github.com/nymtech/nym-vpn-client/pull/5839)
 - Recents manager for storing successful gateway connections (https://github.com/nymtech/nym-vpn-client/pull/5903)
 - Favorites manager for storing UI favorites (https://github.com/nymtech/nym-vpn-client/pull/5914)
+- Geo-Exclusion now supports Russia (https://github.com/nymtech/nym-vpn-client/pull/5917)
 
 ### Changed
 
