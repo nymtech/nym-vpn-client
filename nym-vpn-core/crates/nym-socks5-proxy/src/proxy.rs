@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     default_interface::DefaultInterface,
-    file_manager::{self, SOURCES},
+    file_manager,
     routing::{RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain},
 };
 
@@ -56,17 +56,17 @@ pub async fn run(
 
     tracing::info!("SOCKS5 proxy listener bound: {listen_addr}");
 
-    // Seed builtin files to disk on first run.
-    file_manager::init_files(&config.data_dir)
+    // Seed builtin files to disk on first run, for selected countries only.
+    file_manager::init_files(&config.data_dir, &config.excluded_countries)
         .await
         .context("Failed to initialise SOCKS5 routing data files")?;
 
-    // Register each source file with the updater for periodic refresh.
+    // Register each selected country's source file with the updater for periodic refresh.
     let excluded_countries = config.excluded_countries.clone();
     let mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>> =
         Vec::new();
 
-    for source in SOURCES.iter() {
+    for source in file_manager::selected_sources(&excluded_countries) {
         let url = source
             .url
             .parse::<Url>()
