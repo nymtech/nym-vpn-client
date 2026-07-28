@@ -40,17 +40,11 @@ build: $(LIBWG_BUILD_DIR)/libwg.a
 	fi
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --package $(LIB_CRATE_NAME) --target $(RUST_TRIPLET) $(RELEASE_FLAG)
 
-# Build both the device (aarch64-apple-ios) and simulator (aarch64-apple-ios-sim)
-# slices so the resulting NymVPNLibUniffi.xcframework is usable for archiving AND
-# for running on the simulator (required by the Maestro UI suite). The device
-# archive keeps using its device slice; the simulator slice is purely additive.
 swift-package: $(LIBWG_BUILD_DIR)/libwg.a
 	cd $(LIB_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --target aarch64-apple-ios --target aarch64-apple-ios-sim --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --target $(RUST_TRIPLET) --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
 
 	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
-	# The glob covers every slice in the xcframework, so this handles the
-	# simulator slice added above as well as the device one.
 	cd $(LIB_CRATE_DIR); \
 	for HEADERS_DIR in NymVPNLib/NymVPNLibUniffi.xcframework/*/Headers ; do \
 		for SUBDIR in "$${HEADERS_DIR}"/*/; do \

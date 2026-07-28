@@ -15,6 +15,7 @@ import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.RecentGateways
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.AutologinResponse
@@ -31,6 +32,7 @@ import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.Subscription
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TentativeGateways
+import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.FeatureFlags as SdkFeatureFlags
 import nym_vpn_lib_types.VpnAccountStatus
 import nym_vpn_lib_types.VpnAccountSummary
@@ -273,6 +275,13 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 	// Gateway independence is a daemon-side negotiation with no mock equivalent:
 	// report "nothing tentative" and accept the toggle without side effects.
 	override suspend fun getTentativeGateways(): TentativeGateways? = null
+
+	// The mock keeps no connection history, so every tunnel type has an empty
+	// recents list. Deliberately empty rather than null: the UI treats both the
+	// same, and a fixed empty result keeps the recents filter deterministic
+	// across test runs.
+	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? =
+		RecentGateways(entry = emptyList(), exit = emptyList())
 
 	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {
 		isGatewayIndependenceEnabled = enabled
