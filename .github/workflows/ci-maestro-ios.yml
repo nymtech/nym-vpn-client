@@ -258,6 +258,41 @@ jobs:
           echo "Installing $APP_PATH"
           xcrun simctl install "$DEVICE_ID" "$APP_PATH"
 
+      # Every flow fails in open_app looking for a button, but the reports only
+      # say which text was missing - never which screen was actually shown, and
+      # Maestro's --debug-output produced no screenshots. This launches the app
+      # once on its own and dumps the accessibility tree straight into the job
+      # log, so the screen can be identified without a Mac. Never fails the job.
+      - name: Capture launch state
+        working-directory: nym-vpn-apple
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          mkdir -p maestro-debug
+
+          echo "--- launching net.nymtech.vpn with the mock launch argument ---"
+          xcrun simctl terminate "$DEVICE_ID" net.nymtech.vpn 2>/dev/null || true
+          xcrun simctl launch "$DEVICE_ID" net.nymtech.vpn -MOCK_MODE 1 || true
+
+          # Give the UI time to settle before sampling it.
+          for _ in $(seq 1 10); do
+            sleep 1
+          done
+
+          xcrun simctl io "$DEVICE_ID" screenshot maestro-debug/launch-state.png || true
+
+          echo "--- accessibility tree as Maestro sees it ---"
+          maestro hierarchy > maestro-debug/hierarchy.txt 2>&1 || true
+
+          # Text nodes alone identify the screen; the full tree is in the artifact.
+          echo "=== visible text ==="
+          grep -oE '"(text|title|label|accessibilityText)"[[:space:]]*:[[:space:]]*"[^"]+"' \
+            maestro-debug/hierarchy.txt 2>/dev/null | sort -u | head -80 \
+            || echo "(no text nodes parsed - see the raw dump below)"
+
+          echo "=== raw hierarchy, first 150 lines ==="
+          head -150 maestro-debug/hierarchy.txt 2>/dev/null || echo "(no hierarchy captured)"
+
       # Points at the workspace root, not maestro/flows/. Maestro reads
       # config.yaml from the directory it is given, so targeting flows/ meant the
       # appId, tags and onFlowStart hooks in maestro/config.yaml were never
