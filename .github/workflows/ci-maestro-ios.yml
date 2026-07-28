@@ -102,6 +102,61 @@ jobs:
           swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
           echo "✅ Stubs added successfully."
 
+      # Runs before the build so the build destination and the device the app is
+      # installed on are guaranteed to be the same one.
+      #
+      # The device used to be hardcoded to "iPhone 16", which no longer exists on
+      # the runner - it offers iPhone 16e, 17, 17 Pro, 17 Pro Max, 17e and Air.
+      # Any fixed name is fragile here: the AppleSilicon label covers more than
+      # one machine and Xcode drops old simulators as it updates. So pick
+      # whatever iPhone is actually available, newest runtime first. Set
+      # SIMULATOR_NAME to pin an exact device if a flow ever needs one.
+      #
+      # The old substring test also matched "iPhone 16e", so the boot step could
+      # pick a device the build step had already rejected.
+      - name: Select and boot iOS simulator
+        env:
+          SIMULATOR_NAME: ""
+        run: |
+          set -euo pipefail
+          SELECTED=$(xcrun simctl list devices available -j | python3 -c "
+          import json, os, re, sys
+
+          data = json.load(sys.stdin)
+          want = os.environ.get('SIMULATOR_NAME', '').strip()
+
+          candidates = []
+          for runtime, devices in data['devices'].items():
+              if 'iOS' not in runtime:
+                  continue
+              match = re.search(r'iOS-(\d+)-(\d+)', runtime)
+              version = (int(match.group(1)), int(match.group(2))) if match else (0, 0)
+              for device in devices:
+                  if not device.get('isAvailable'):
+                      continue
+                  if not device['name'].startswith('iPhone'):
+                      continue
+                  if want and device['name'] != want:
+                      continue
+                  candidates.append((version, device['name'], device['udid']))
+
+          if not candidates:
+              sys.stderr.write('No available iPhone simulator found.\n')
+              sys.exit(1)
+
+          # Newest runtime first, then by name, so the choice is deterministic.
+          candidates.sort(reverse=True)
+          version, name, udid = candidates[0]
+          print('%s\t%s\t%d.%d' % (udid, name, version[0], version[1]))
+          ")
+          DEVICE_ID=$(printf '%s' "$SELECTED" | cut -f1)
+          DEVICE_NAME=$(printf '%s' "$SELECTED" | cut -f2)
+          DEVICE_OS=$(printf '%s' "$SELECTED" | cut -f3)
+          echo "Selected $DEVICE_NAME (iOS $DEVICE_OS) - $DEVICE_ID"
+          xcrun simctl boot "$DEVICE_ID" || true
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+          echo "DEVICE_NAME=$DEVICE_NAME" >> $GITHUB_ENV
+
       - name: Build mock app for simulator
         working-directory: nym-vpn-apple
         run: |
@@ -110,11 +165,14 @@ jobs:
           # build let the job continue and surface two steps later as an
           # unreadable CoreSimulator abort from `simctl install` with an empty
           # path. A broken build must fail in the step that ran it.
+          #
+          # Destination is the exact device booted above, addressed by id, so the
+          # build target and the install target cannot drift apart.
           build_mock_app() {
             xcodebuild build-for-testing \
               -workspace NymVPN.xcworkspace \
               -scheme NymVPN-Mock \
-              -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+              -destination "id=$DEVICE_ID" \
               -derivedDataPath build \
               CODE_SIGNING_ALLOWED=NO \
               SWIFT_ACTIVE_COMPILATION_CONDITIONS='MOCK_MODE'
@@ -125,22 +183,6 @@ jobs:
           else
             build_mock_app
           fi
-
-      - name: Boot iOS simulator
-        run: |
-          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
-          import json, sys
-          data = json.load(sys.stdin)
-          for runtime, devices in data['devices'].items():
-              if 'iOS' in runtime:
-                  for d in devices:
-                      if 'iPhone 16' in d['name'] and d['isAvailable']:
-                          print(d['udid'])
-                          sys.exit(0)
-          sys.exit(1)
-          ")
-          xcrun simctl boot "$DEVICE_ID" || true
-          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
 
       # The Maestro CLI runs on the JVM. The self-hosted Apple Silicon runners
       # have no system Java, so install it per-job rather than relying on the
