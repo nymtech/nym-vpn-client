@@ -173,20 +173,13 @@ jobs:
 
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
 
-          # Channel: scheduled runs are always nightly; a manual dispatch honours the
-          # chosen release_channel (the platform selection no longer overrides it).
-          if [ "$EVENT" = "schedule" ]; then
-            CHANNEL=nightly
-          else
-            CHANNEL="${IN_CHANNEL:-nightly}"
-          fi
+          CHANNEL="${IN_CHANNEL:-nightly}"
 
           # Platform set: a cron run, OR a dispatch with NO platform box ticked, builds
           # EVERY platform for that channel. Any box ticked builds only the ticked ones.
-          if [ "$EVENT" = "schedule" ] \
-            || { [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
-              && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
-              && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; }; then
+          if [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
+            && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
+            && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; then
             ALL=true
           else
             ALL=false
