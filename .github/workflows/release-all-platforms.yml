@@ -203,7 +203,7 @@ jobs:
           PUBLISH_METADATA="${IN_PUBLISH_METADATA:-true}"
           GH_RELEASE="${IN_GH_RELEASE:-none}"
 
-          if [[ "$GH_RELEASE" != "none" || "$GH_RELEASE" != "draft" || "$GH_RELEASE" != "auto"  ]]; then
+          if [[ "$GH_RELEASE" != "none" && "$GH_RELEASE" != "draft" && "$GH_RELEASE" != "auto"  ]]; then
             echo "::error:: Unknown GitHub release mode: $GH_RELEASE"
             exit 1
           fi
