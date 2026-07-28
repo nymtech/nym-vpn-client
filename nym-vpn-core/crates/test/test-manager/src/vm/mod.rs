@@ -11,7 +11,7 @@ mod logging;
 pub mod network;
 pub mod provision;
 mod qemu;
-mod ssh;
+pub(crate) mod ssh;
 #[cfg(target_os = "macos")]
 mod tart;
 mod update;

@@ -3,17 +3,89 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{ExpectedTunnelState, resolve_hostname_with_retry, wait_for_tunnel_state},
+    helpers_nym::{self, ExpectedTunnelState, resolve_hostname_with_retry, wait_for_tunnel_state},
     nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::{Context, bail, ensure};
-use nym_vpn_lib_types::{ExitPoint, GatewayType, ListGatewaysOptions, TunnelState, TunnelType};
+use nym_vpn_lib_types::{ExitPoint, GatewayType, ListGatewaysOptions};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::{net::SocketAddr, time::Duration};
 use test_macro::test_function_nym;
-use test_rpc::NymServiceClient;
+use test_rpc::{
+    NymServiceClient,
+    nym_daemon::{ObservedTunnelState, ObservedTunnelType},
+};
 
-/// Read nameservers from /etc/resolv.conf inside the guest VM via tarpc.
+/// Parse `resolvectl dns` link lines, e.g. `Link 5 (tun1): 127.111.152.46`.
+fn parse_resolvectl_dns(output: &str) -> Vec<(String, Vec<String>)> {
+    output
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            let (link, servers) = line.strip_prefix("Link ")?.split_once(':')?;
+            let name = link.split_once('(')?.1.strip_suffix(')')?.to_string();
+            Some((
+                name,
+                servers
+                    .split_whitespace()
+                    .map(|server| server.to_string())
+                    .collect(),
+            ))
+        })
+        .collect()
+}
+
+/// Nameservers systemd-resolved has configured on the tunnel interfaces.
+/// Returns `None` when resolved is not managing DNS on this VM.
+async fn get_tunnel_link_nameservers(
+    rpc: &NymServiceClient,
+) -> Result<Option<Vec<String>>, anyhow::Error> {
+    let Ok(output) = rpc.exec("resolvectl", ["dns"]).await else {
+        return Ok(None);
+    };
+    if !output.success() {
+        return Ok(None);
+    }
+
+    let links = parse_resolvectl_dns(&String::from_utf8_lossy(&output.stdout));
+    Ok(Some(
+        links
+            .into_iter()
+            .filter(|(name, _)| name.starts_with("tun"))
+            .flat_map(|(_, servers)| servers)
+            .collect(),
+    ))
+}
+
+#[cfg(test)]
+mod resolvectl_tests {
+    use super::parse_resolvectl_dns;
+
+    #[test]
+    fn parses_link_nameservers_and_ignores_global_and_empty_links() {
+        let output = "Global:\nLink 2 (eth0): 172.29.1.1\nLink 4 (tun0):\nLink 5 (tun1): 127.111.152.46 10.1.0.1\n";
+        let links = parse_resolvectl_dns(output);
+
+        assert_eq!(
+            links,
+            vec![
+                ("eth0".to_string(), vec!["172.29.1.1".to_string()]),
+                ("tun0".to_string(), vec![]),
+                (
+                    "tun1".to_string(),
+                    vec!["127.111.152.46".to_string(), "10.1.0.1".to_string()]
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn returns_nothing_for_output_without_link_lines() {
+        assert!(parse_resolvectl_dns("Global: 1.1.1.1\n").is_empty());
+        assert!(parse_resolvectl_dns("").is_empty());
+    }
+}
+
 async fn get_vm_nameservers(rpc: &NymServiceClient) -> Result<Vec<String>, anyhow::Error> {
     let resolv_output = rpc
         .exec("cat", ["/etc/resolv.conf"])
@@ -35,7 +107,7 @@ async fn get_vm_nameservers(rpc: &NymServiceClient) -> Result<Vec<String>, anyho
 
 #[test_function_nym(priority = 1)]
 pub async fn test_daemon_info(
-    _: TestContext,
+    _test_context: TestContext,
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
@@ -69,32 +141,49 @@ pub async fn test_daemon_info(
 
 #[test_function_nym(priority = 3)]
 pub async fn test_list_gateways(
-    _: TestContext,
-    _rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    test_context: TestContext,
+    rpc: NymServiceClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    let mixnet_gateways = nym_client
-        .list_gateways(ListGatewaysOptions {
-            gw_type: GatewayType::MixnetEntry,
-            user_agent: None,
-        })
-        .await
-        .context("list_gateways(MixnetEntry) failed")?;
+    let (mixnet_gateways, nym_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        |mut client| async move {
+            let result = client
+                .list_gateways(ListGatewaysOptions {
+                    gw_type: GatewayType::MixnetEntry,
+                    user_agent: None,
+                })
+                .await;
+            (client, result)
+        },
+    )
+    .await
+    .context("list_gateways(MixnetEntry) failed")?;
     log::info!("Mixnet entry gateways: {}", mixnet_gateways.len());
     ensure!(
         !mixnet_gateways.is_empty(),
         "Expected at least one MixnetEntry gateway"
     );
 
-    let wg_gateways = nym_client
-        .list_gateways(ListGatewaysOptions {
-            gw_type: GatewayType::Wg,
-            user_agent: None,
-        })
-        .await
-        .context("list_gateways(Wg) failed")?;
+    let (wg_gateways, _nym_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        |mut client| async move {
+            let result = client
+                .list_gateways(ListGatewaysOptions {
+                    gw_type: GatewayType::Wg,
+                    user_agent: None,
+                })
+                .await;
+            (client, result)
+        },
+    )
+    .await
+    .context("list_gateways(Wg) failed")?;
     log::info!("WireGuard gateways: {}", wg_gateways.len());
     ensure!(!wg_gateways.is_empty(), "Expected at least one Wg gateway");
 
@@ -103,17 +192,23 @@ pub async fn test_list_gateways(
 
 #[test_function_nym(priority = 7)]
 pub async fn test_account_summary_and_usage(
-    _: TestContext,
-    _rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    test_context: TestContext,
+    rpc: NymServiceClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    // Get account summary
-    let summary = nym_client
-        .get_account_summary()
-        .await
-        .context("get_account_summary() failed")?;
+    let (summary, nym_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        |mut client| async move {
+            let result = client.get_account_summary().await;
+            (client, result)
+        },
+    )
+    .await
+    .context("get_account_summary() failed")?;
     log::info!("Account summary: {:?}", summary);
     let summary = summary.context("Expected account summary to be present")?;
     ensure!(
@@ -128,11 +223,16 @@ pub async fn test_account_summary_and_usage(
         summary.traffic_limit_gb
     );
 
-    // Get usage
-    let usages = nym_client
-        .get_account_usage()
-        .await
-        .context("get_account_usage() failed")?;
+    let (usages, _nym_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        |mut client| async move {
+            let result = client.get_account_usage().await;
+            (client, result)
+        },
+    )
+    .await
+    .context("get_account_usage() failed")?;
     log::info!("Usage entries: {}", usages.len());
     ensure!(!usages.is_empty(), "Expected at least one usage entry");
     for (i, usage) in usages.iter().enumerate() {
@@ -168,91 +268,88 @@ pub async fn test_account_summary_and_usage(
 
 #[test_function_nym(priority = 10)]
 pub async fn test_wireguard_connect_disconnect(
-    _: TestContext,
-    _rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    test_context: TestContext,
+    rpc: NymServiceClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    // Enable two-hop (WireGuard mode)
-    nym_client.set_enable_two_hop(true).await?;
+    let nym_client =
+        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
 
-    // Connect
     log::info!("Connecting WireGuard tunnel...");
-    nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
-
-    // Verify tunnel type
-    let state = nym_client.get_tunnel_state().await?;
-    if let TunnelState::Connected { connection_data } = &state {
-        let tunnel_type = connection_data.tunnel.tunnel_type();
-        log::info!("Tunnel type: {:?}", tunnel_type);
-        ensure!(
-            tunnel_type == TunnelType::Wireguard,
-            "Expected Wireguard tunnel, got {:?}",
-            tunnel_type
-        );
-        log::info!("Entry gateway: {}", connection_data.entry_gateway.id);
-        log::info!("Exit gateway: {}", connection_data.exit_gateway.id);
-    } else {
-        bail!("Expected Connected state, got {:?}", state);
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (state, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
+    match state {
+        ObservedTunnelState::Connected {
+            tunnel_type: ObservedTunnelType::Wireguard,
+        } => log::info!("Tunnel type: Wireguard"),
+        other => bail!("Expected Connected Wireguard, got {other:?}"),
     }
 
-    // Disconnect
     log::info!("Disconnecting...");
-    nym_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
+    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
 
     Ok(())
 }
 
 #[test_function_nym(priority = 11)]
 pub async fn test_mixnet_connect_disconnect(
-    _: TestContext,
-    _rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    test_context: TestContext,
+    rpc: NymServiceClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    // Disable two-hop (Mixnet mode)
-    nym_client.set_enable_two_hop(false).await?;
+    let nym_client = helpers_nym::set_enable_two_hop_with_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        false,
+    )
+    .await?;
 
-    // Connect with longer timeout for mixnet
     log::info!("Connecting Mixnet tunnel (this may take longer)...");
-    nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
-
-    // Verify tunnel type
-    let state = nym_client.get_tunnel_state().await?;
-    if let TunnelState::Connected { connection_data } = &state {
-        let tunnel_type = connection_data.tunnel.tunnel_type();
-        log::info!("Tunnel type: {:?}", tunnel_type);
-        ensure!(
-            tunnel_type == TunnelType::Mixnet,
-            "Expected Mixnet tunnel, got {:?}",
-            tunnel_type
-        );
-    } else {
-        bail!("Expected Connected state, got {:?}", state);
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (state, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
+    match state {
+        ObservedTunnelState::Connected {
+            tunnel_type: ObservedTunnelType::Mixnet,
+        } => log::info!("Tunnel type: Mixnet"),
+        other => bail!("Expected Connected Mixnet, got {other:?}"),
     }
 
-    // Disconnect
     log::info!("Disconnecting...");
-    nym_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
+    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
 
     Ok(())
 }
 
 #[test_function_nym(priority = 15)]
 pub async fn test_dns_leak(
-    _: TestContext,
+    test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    // pre-VPN DNS servers from guest VM's resolv.conf
     let pre_vpn_nameservers = get_vm_nameservers(&rpc).await?;
     log::info!("Pre-VPN nameservers (in VM): {:?}", pre_vpn_nameservers);
     ensure!(
@@ -260,27 +357,54 @@ pub async fn test_dns_leak(
         "VM should have at least one nameserver"
     );
 
-    // connect
-    nym_client.set_enable_two_hop(true).await?;
+    let nym_client =
+        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
     log::info!("Connecting tunnel for DNS leak test...");
-    nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (_, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
 
-    // check resolv.conf after connecting
-    let post_vpn_nameservers = get_vm_nameservers(&rpc).await?;
-    log::info!("Post-VPN nameservers (in VM): {:?}", post_vpn_nameservers);
+    // Under systemd-resolved the daemon sets DNS per link and never rewrites
+    // /etc/resolv.conf, so that file still lists the DHCP nameserver by design.
+    match get_tunnel_link_nameservers(&rpc).await? {
+        Some(tunnel_nameservers) => {
+            log::info!("Tunnel link nameservers (in VM): {:?}", tunnel_nameservers);
+            ensure!(
+                !tunnel_nameservers.is_empty(),
+                "tunnel interface has no nameservers configured while connected"
+            );
+            let leaked: Vec<_> = tunnel_nameservers
+                .iter()
+                .filter(|ns| pre_vpn_nameservers.contains(ns))
+                .collect();
+            ensure!(
+                leaked.is_empty(),
+                "DNS LEAK: tunnel interface still resolves via pre-VPN nameservers: {:?}",
+                leaked,
+            );
+        }
+        None => {
+            let post_vpn_nameservers = get_vm_nameservers(&rpc).await?;
+            log::info!("Post-VPN nameservers (in VM): {:?}", post_vpn_nameservers);
+            let leaked: Vec<_> = post_vpn_nameservers
+                .iter()
+                .filter(|ns| pre_vpn_nameservers.contains(ns))
+                .collect();
+            ensure!(
+                leaked.is_empty(),
+                "DNS LEAK: post-VPN resolv.conf still contains pre-VPN nameservers: {:?}",
+                leaked,
+            );
+        }
+    }
 
-    let leaked_nameservers: Vec<_> = post_vpn_nameservers
-        .iter()
-        .filter(|ns| pre_vpn_nameservers.contains(ns))
-        .collect();
-    ensure!(
-        leaked_nameservers.is_empty(),
-        "DNS LEAK: post-VPN resolv.conf still contains pre-VPN nameservers: {:?}",
-        leaked_nameservers,
-    );
-
-    // DNS resolution works inside VM through the tunnel
     let addrs = rpc
         .resolve_hostname("nym.com".to_string())
         .await
@@ -291,23 +415,16 @@ pub async fn test_dns_leak(
         "DNS resolution inside VM returned no addresses while connected"
     );
 
-    // verify TCP connectivity to confirm DNS gave a real address
     let dest = SocketAddr::new(addrs[0].ip(), 443);
     rpc.send_tcp(None, "0.0.0.0:0".parse().unwrap(), dest)
         .await
         .context("TCP connectivity check failed inside VM while VPN is connected")?;
     log::info!("TCP connectivity to {} verified inside VM", dest);
 
-    // triggers DNS lookups to bashws-controlled subdomains, then queries their
-    // API to see which resolver IPs actually made the queries. If any match our
-    // pre-VPN nameservers, could indicate a DNS leak outside the tunnel
     let bash_ws_result = check_dns_leak_bash_ws(&rpc, &pre_vpn_nameservers).await;
     match bash_ws_result {
         Ok(()) => log::info!("bash.ws DNS leak check passed"),
         Err(e) => {
-            // If bash.ws detected a real leak, fail hard.
-            // If bash.ws itself is unreachable/broken, log a warning but don't
-            // fail the test since above checks alraedy passed
             let msg = format!("{e:#}");
             if msg.contains("DNS LEAK") {
                 bail!("{e}");
@@ -317,8 +434,7 @@ pub async fn test_dns_leak(
     }
 
     log::info!("Disconnecting...");
-    nym_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
+    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
 
     Ok(())
 }
@@ -423,27 +539,44 @@ async fn check_dns_leak_bash_ws(
 
 #[test_function_nym(priority = 20)]
 pub async fn test_country_exit_node(
-    _: TestContext,
+    test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
     const TARGET_COUNTRY: &str = "CH";
 
-    nym_client.set_enable_two_hop(true).await?;
-    nym_client
-        .set_exit_point(ExitPoint::Country {
-            two_letter_iso_country_code: TARGET_COUNTRY.to_string(),
-        })
-        .await
-        .context("set_exit_point failed")?;
+    let nym_client =
+        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
+    let (_, nym_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        |mut client| async move {
+            let result = client
+                .set_exit_point(ExitPoint::Country {
+                    two_letter_iso_country_code: TARGET_COUNTRY.to_string(),
+                })
+                .await;
+            (client, result)
+        },
+    )
+    .await
+    .context("set_exit_point failed")?;
 
     log::info!("Connecting with exit country {}...", TARGET_COUNTRY);
-    nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (_, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
 
-    // verify DNS works inside VM before making HTTP request
     let addrs = rpc
         .resolve_hostname("ipinfo.io".to_string())
         .await
@@ -453,7 +586,6 @@ pub async fn test_country_exit_node(
         "DNS resolution of ipinfo.io returned no addresses"
     );
 
-    // check exit country via ipinfo.io (requires curl in VM image)
     let ip_output = rpc
         .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
         .await
@@ -476,42 +608,58 @@ pub async fn test_country_exit_node(
     );
 
     log::info!("Disconnecting...");
-    nym_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
+    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
 
     Ok(())
 }
 
 #[test_function_nym(priority = 25)]
 pub async fn test_reconnect_tunnel(
-    _: TestContext,
+    test_context: TestContext,
     rpc: NymServiceClient,
-    mut nym_client: NymProxyClient,
+    nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_client, false).await?;
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    // connect with wg
-    nym_client.set_enable_two_hop(true).await?;
+    let nym_client =
+        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
     log::info!("Connecting initial tunnel...");
-    nym_client.connect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (_, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
 
     log::info!("Reconnecting tunnel...");
-    nym_client
-        .reconnect_tunnel()
-        .await
-        .context("reconnect_tunnel() failed")?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
+    let (_, nym_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_client,
+        |mut client| async move {
+            let result = client.reconnect_tunnel().await;
+            (client, result)
+        },
+    )
+    .await
+    .context("reconnect_tunnel() failed")?;
+    let (_, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
 
-    // verify connectivity
-    // retry DNS because the data plane may not be ready
-    // immediately after the tunnel state transitions to Connected
     let addrs = resolve_hostname_with_retry(&rpc, "nym.com", Duration::from_secs(30)).await?;
     log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
 
     log::info!("Disconnecting...");
-    nym_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
+    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
 
     Ok(())
 }
