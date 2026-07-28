@@ -51,7 +51,12 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION }}
-          cache-dependency-path: wireguard/libwg/go.sum
+          # No module caching. $HOME persists on this self-hosted runner, so
+          # ~/go/pkg/mod survives between jobs and the actions cache restores a
+          # copy of something that was never lost - 210 MB and ~30s per run. It
+          # also unpacks over files Go marks read-only (0444), producing hundreds
+          # of "Can't unlink already-existing object: Permission denied" lines.
+          cache: false
 
       # Build the iOS Rust core (libwg + NymVPNLibUniffi.xcframework) and stage it
       # where the Xcode packages expect it. Debug build (RELEASE=false) — no code
