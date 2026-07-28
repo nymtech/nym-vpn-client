@@ -1,6 +1,8 @@
 name: prepare-release-notes
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       github_release_type:
@@ -136,8 +138,88 @@ env:
   RELEASE_NOTES: release-notes.md
 
 jobs:
+  resolve:
+    runs-on: arc-linux-latest
+    outputs:
+      # Required Variables
+      github_release_type: ${{ steps.set-params.outputs.github_release_type }}
+      version: ${{ steps.set-params.outputs.version }}
+      fdroid: ${{ steps.set-params.outputs.fdroid }}
+      linux: ${{ steps.set-params.outputs.linux }}
+      windows: ${{ steps.set-params.outputs.windows }}
+      macos: ${{ steps.set-params.outputs.macos }}
+      ios: ${{ steps.set-params.outputs.ios }}
+      android_apk: ${{ steps.set-params.outputs.android_apk }}
+      vpnd_deb_x86_64: ${{ steps.set-params.outputs.vpnd_deb_x86_64 }}
+      vpnd_deb_aarch64: ${{ steps.set-params.outputs.vpnd_deb_aarch64 }}
+      vpnc_deb_x86_64: ${{ steps.set-params.outputs.vpnc_deb_x86_64 }}
+      vpnc_deb_aarch64: ${{ steps.set-params.outputs.vpnc_deb_aarch64 }}
+      linux_app_deb_x64: ${{ steps.set-params.outputs.linux_app_deb_x64 }}
+      linux_app_deb_arm64: ${{ steps.set-params.outputs.linux_app_deb_arm64 }}
+      linux_app_appimage_x64: ${{ steps.set-params.outputs.linux_app_appimage_x64 }}
+      linux_app_appimage_arm64: ${{ steps.set-params.outputs.linux_app_appimage_arm64 }}
+      macos_installer_name: ${{ steps.set-params.outputs.macos_installer_name }}
+      vpnc_macos_installer_name: ${{ steps.set-params.outputs.vpnc_macos_installer_name }}
+      windows_app_installer_x64: ${{ steps.set-params.outputs.windows_app_installer_x64 }}
+      windows_app_installer_arm64: ${{ steps.set-params.outputs.windows_app_installer_arm64 }}
+    steps:
+      - name: Resolve runtime parameters
+        id: set-params
+        run: |
+          IS_PR="${{ github.event_name == 'pull_request' }}"
+
+          if [ "$IS_PR" = "true" ]; then
+            # --- PULL REQUEST TEST VALUES ---
+            echo "github_release_type=draft" >> $GITHUB_OUTPUT
+            echo "version=0.0.0-pr-test" >> $GITHUB_OUTPUT
+            echo "fdroid=true" >> $GITHUB_OUTPUT
+            echo "linux=true" >> $GITHUB_OUTPUT
+            echo "windows=true" >> $GITHUB_OUTPUT
+            echo "macos=true" >> $GITHUB_OUTPUT
+            echo "ios=true" >> $GITHUB_OUTPUT
+
+            # Non-required variables prefilled with raw filenames
+            echo "android_apk=app-release.apk" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_x86_64=vpnd_amd64.deb" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_aarch64=vpnd_arm64.deb" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_x86_64=vpnc_amd64.deb" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_aarch64=vpnc_arm64.deb" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_x64=app_amd64.deb" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_arm64=app_arm64.deb" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_x64=app_x64.AppImage" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_arm64=app_arm64.AppImage" >> $GITHUB_OUTPUT
+            echo "macos_installer_name=app_installer.pkg" >> $GITHUB_OUTPUT
+            echo "vpnc_macos_installer_name=vpnc_installer.pkg" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_x64=app_x64.exe" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_arm64=app_arm64.exe" >> $GITHUB_OUTPUT
+          else
+            # --- DISPATCH / CALL RUNTIMES (Keep real values or fallback empty) ---
+            echo "github_release_type=${{ inputs.github_release_type }}" >> $GITHUB_OUTPUT
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "fdroid=${{ inputs.fdroid }}" >> $GITHUB_OUTPUT
+            echo "linux=${{ inputs.linux }}" >> $GITHUB_OUTPUT
+            echo "windows=${{ inputs.windows }}" >> $GITHUB_OUTPUT
+            echo "macos=${{ inputs.macos }}" >> $GITHUB_OUTPUT
+            echo "ios=${{ inputs.ios }}" >> $GITHUB_OUTPUT
+
+            echo "android_apk=${{ inputs.android_apk || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_x86_64=${{ inputs.vpnd_deb_x86_64 || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_aarch64=${{ inputs.vpnd_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_x86_64=${{ inputs.vpnc_deb_x86_64 || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_aarch64=${{ inputs.vpnc_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_x64=${{ inputs.linux_app_deb_x64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_arm64=${{ inputs.linux_app_deb_arm64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_x64=${{ inputs.linux_app_appimage_x64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_arm64=${{ inputs.linux_app_appimage_arm64 || '' }}" >> $GITHUB_OUTPUT
+            echo "macos_installer_name=${{ inputs.macos_installer_name || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnc_macos_installer_name=${{ inputs.vpnc_macos_installer_name || '' }}" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_x64=${{ inputs.windows_app_installer_x64 || '' }}" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_arm64=${{ inputs.windows_app_installer_arm64 || '' }}" >> $GITHUB_OUTPUT
+          fi
+
   prepare-release-notes:
     runs-on: arc-linux-latest
+    needs: [resolve]
     outputs:
       release_notes_artifact: ${{ env.RELEASE_NOTES_ARTIFACT }}
       release_notes_file: ${{ env.RELEASE_NOTES }}
@@ -152,7 +234,7 @@ jobs:
         with:
           changelog_file: nym-vpn-core/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
-          prerelease: ${{ inputs.github_release_type != 'release' }}
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
 
       - name: Extract android changelog
         id: android-changelog
@@ -160,12 +242,12 @@ jobs:
         with:
           changelog_file: nym-vpn-android/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
-          prerelease: ${{ inputs.github_release_type != 'release' }}
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
 
       - name: Add release notes (General)
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.resolve.outputs.version }}
           CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
           ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes }}
         run: |
@@ -216,10 +298,10 @@ jobs:
           EOF
 
       - name: Add release notes (Android)
-        if: ${{ inputs.fdroid == true }}
+        if: ${{ needs.resolve.outputs.fdroid == true }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          ANDROID_APK: ${{ inputs.android_apk }}
+          ANDROID_APK: ${{ needs.resolve.outputs.android_apk }}
         run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
           ### 🤖 Android
@@ -247,17 +329,17 @@ jobs:
           EOF
 
       - name: Add release notes (Linux)
-        if: ${{ inputs.linux == true }}
+        if: ${{ needs.resolve.outputs.linux == true }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          VPND_DEB_X86_64: ${{ inputs.vpnd_deb_x86_64 }}
-          VPND_DEB_ARM64: ${{ inputs.vpnd_deb_aarch64 }}
-          VPNC_DEB_X86_64: ${{ inputs.vpnc_deb_x86_64 }}
-          VPNC_DEB_ARM64: ${{ inputs.vpnc_deb_aarch64 }}
-          LINUX_APP_DEB_X64: ${{ inputs.linux_app_deb_x64 }}
-          LINUX_APP_DEB_ARM64: ${{ inputs.linux_app_deb_arm64 }}
-          LINUX_APP_APPIMAGE_X64: ${{ inputs.linux_app_appimage_x64 }}
-          LINUX_APP_APPIMAGE_ARM64: ${{ inputs.linux_app_appimage_arm64 }}
+          VPND_DEB_X86_64: ${{ needs.resolve.outputs.vpnd_deb_x86_64 }}
+          VPND_DEB_ARM64: ${{ needs.resolve.outputs.vpnd_deb_aarch64 }}
+          VPNC_DEB_X86_64: ${{ needs.resolve.outputs.vpnc_deb_x86_64 }}
+          VPNC_DEB_ARM64: ${{ needs.resolve.outputs.vpnc_deb_aarch64 }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve.outputs.linux_app_deb_arm64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve.outputs.linux_app_appimage_arm64 }}
         run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
           ### 🐧 Linux
@@ -276,11 +358,11 @@ jobs:
           EOF
 
       - name: Add release notes (macOS)
-        if: ${{ inputs.macos == true }}
+        if: ${{ needs.resolve.outputs.macos == true }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          MACOS_INSTALLER_NAME: ${{ inputs.macos_installer_name }}
-          VPNC_MACOS_INSTALLER_NAME: ${{ inputs.vpnc_macos_installer_name }}
+          MACOS_INSTALLER_NAME: ${{ needs.resolve.outputs.macos_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve.outputs.vpnc_macos_installer_name }}
         run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
           ### 🍎 macOS
@@ -291,11 +373,11 @@ jobs:
           EOF
 
       - name: Add release notes (Windows)
-        if: ${{ inputs.windows == true }}
+        if: ${{ needs.resolve.outputs.windows == true }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          WINDOWS_APP_INSTALLER_X64: ${{ inputs.windows_app_installer_x64 }}
-          WINDOWS_APP_INSTALLER_ARM64: ${{ inputs.windows_app_installer_arm64 }}
+          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve.outputs.windows_app_installer_x64 }}
+          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve.outputs.windows_app_installer_arm64 }}
         run: |
           cat << 'EOF' >> "$RELEASE_NOTES"
           ### 🪟 Windows
