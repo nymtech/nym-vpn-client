@@ -9,7 +9,11 @@ use super::{
 use crate::nym_daemon::RpcClientProvider;
 use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
-use std::{future::Future, net::SocketAddr, time::Duration};
+use std::{
+    future::Future,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    time::Duration,
+};
 use test_rpc::{
     NymServiceClient,
     nym_daemon::{
@@ -738,11 +742,84 @@ pub async fn resolve_hostname_with_retry(
     timeout: Duration,
 ) -> anyhow::Result<Vec<SocketAddr>> {
     let owned = hostname.to_owned();
-    resolve_with_retry(hostname, timeout, DNS_RETRY_POLL_INTERVAL, || {
+    let result = resolve_with_retry(hostname, timeout, DNS_RETRY_POLL_INTERVAL, || {
         let hostname = owned.clone();
         async move { rpc.resolve_hostname(hostname).await }
     })
-    .await
+    .await;
+
+    if result.is_err() {
+        log_dns_failure_diagnostics(rpc, hostname).await;
+    }
+    result
+}
+
+const DOT_UPSTREAM_PROBES: [SocketAddr; 2] = [
+    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)), 853),
+    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 853),
+];
+
+const DNS_PROBE_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
+
+/// Best effort: a diagnostic that fails must not replace the resolution error.
+async fn log_dns_failure_diagnostics(rpc: &NymServiceClient, hostname: &str) {
+    for args in [["status", "tun1"], ["query", hostname]] {
+        match rpc.exec("resolvectl", args).await {
+            Ok(output) => log::error!(
+                "resolvectl {}: {}{}",
+                args.join(" "),
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            ),
+            Err(error) => log::warn!("resolvectl {} failed in VM: {error}", args.join(" ")),
+        }
+    }
+
+    let mut probes = Vec::with_capacity(DOT_UPSTREAM_PROBES.len());
+    for dest in DOT_UPSTREAM_PROBES {
+        let failure = rpc
+            .send_tcp(None, DNS_PROBE_BIND_ADDR, dest)
+            .await
+            .err()
+            .map(|error| error.to_string());
+        probes.push((dest, failure));
+    }
+    log::error!("{}", summarize_upstream_probes(&probes));
+}
+
+fn summarize_upstream_probes(probes: &[(SocketAddr, Option<String>)]) -> String {
+    let (unreachable, reachable): (Vec<_>, Vec<_>) =
+        probes.iter().partition(|(_, failure)| failure.is_some());
+
+    let reached = |entries: &[&(SocketAddr, Option<String>)]| {
+        entries
+            .iter()
+            .map(|(addr, _)| addr.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+
+    if unreachable.is_empty() {
+        return format!(
+            "tunnel reaches every DNS upstream ({}), so the daemon's local forwarder is the likely failure point",
+            reached(&reachable)
+        );
+    }
+
+    let reasons = unreachable
+        .iter()
+        .map(|(addr, failure)| {
+            let reason = failure.as_deref().unwrap_or("unknown");
+            format!("{addr}: {reason}")
+        })
+        .collect::<Vec<_>>()
+        .join("; ");
+
+    if reachable.is_empty() {
+        format!("tunnel reaches no DNS upstream at all ({reasons})")
+    } else {
+        format!("tunnel reaches {} but not {reasons}", reached(&reachable))
+    }
 }
 
 async fn resolve_with_retry<E, F, Fut>(
@@ -797,8 +874,8 @@ mod tests {
         classify_disconnect_nym_error, classify_disconnect_rpc, enforce_tunnel_wait_deadline,
         is_daemon_rpc_transport_error, is_daemon_rpc_transport_message,
         is_nym_client_transport_error, merge_wait_and_client, resolve_with_retry, run_account_wait,
-        run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target, tunnel_wait_budget,
-        tunnel_wait_params,
+        run_tunnel_wait, settle_daemon_rpc_quiesce, summarize_upstream_probes, tunnel_target,
+        tunnel_wait_budget, tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
@@ -843,6 +920,41 @@ mod tests {
             3,
             "must stop querying once it has addresses"
         );
+    }
+
+    fn probe(addr: &str, failure: Option<&str>) -> (std::net::SocketAddr, Option<String>) {
+        (
+            addr.parse().expect("literal is a socket addr"),
+            failure.map(str::to_string),
+        )
+    }
+
+    #[test]
+    fn upstream_probe_summary_separates_a_dead_tunnel_from_a_dead_forwarder() {
+        let all_reachable =
+            summarize_upstream_probes(&[probe("9.9.9.9:853", None), probe("1.1.1.1:853", None)]);
+        assert!(all_reachable.contains("local forwarder"), "{all_reachable}");
+
+        let none_reachable = summarize_upstream_probes(&[
+            probe("9.9.9.9:853", Some("connection refused")),
+            probe("1.1.1.1:853", Some("timed out")),
+        ]);
+        assert!(
+            none_reachable.contains("no DNS upstream at all"),
+            "{none_reachable}"
+        );
+        assert!(
+            none_reachable.contains("connection refused"),
+            "{none_reachable}"
+        );
+        assert!(none_reachable.contains("timed out"), "{none_reachable}");
+
+        let mixed = summarize_upstream_probes(&[
+            probe("9.9.9.9:853", None),
+            probe("1.1.1.1:853", Some("timed out")),
+        ]);
+        assert!(mixed.contains("9.9.9.9:853"), "{mixed}");
+        assert!(mixed.contains("1.1.1.1:853: timed out"), "{mixed}");
     }
 
     #[tokio::test(start_paused = true)]
