@@ -29,6 +29,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: e2e-mainnet-test-account
+  cancel-in-progress: false
+
 env:
   CARGO_TERM_COLOR: always
   TEST_CRATE_DIR: nym-vpn-core/crates/test
@@ -259,6 +263,18 @@ jobs:
             ${{ env.TEST_CRATE_DIR }}/test-manager/test.sh \
             ${{ env.VM_USER }}@${VM_IP}:${{ env.VM_DIST_DIR }}/test.sh
 
+      - name: Purge account devices
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
+        run: |
+          # Delete all devices on the test account (account-level API auth, no
+          # daemon needed) so each run starts clean and never hits MaxDeviceReached
+          printf '%s\n' "$TEST_HARNESS_MNEMONIC" | \
+            ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP} \
+            "${{ env.VM_DIST_DIR }}/test-manager delete-devices"
+
       - name: Configure test VM
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
@@ -303,6 +319,25 @@ jobs:
           scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.txt /tmp/test-report.txt 2>/dev/null || \
             echo "No test report found"
+
+      - name: Retrieve daemon logs
+        if: always()
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          mkdir -p /tmp/daemon-logs
+          scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP}:'/tmp/daemon-log-*.log' /tmp/daemon-logs/ 2>/dev/null || \
+            echo "No daemon logs found"
+
+      - name: Upload daemon logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: daemon-logs
+          path: /tmp/daemon-logs/
+          if-no-files-found: ignore
+          retention-days: 20
 
       - name: Format test report
         if: always()
