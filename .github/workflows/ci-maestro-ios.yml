@@ -87,6 +87,21 @@ jobs:
             echo "Flattened NymVPNLib xcframework headers (Xcode $XCODE_VER)"
           fi
 
+      # NymVPNRpc is gitignored and generated. On macOS it is built from the
+      # nym-vpn-rpc-uniffi crate, but iOS never uses it - the workspace only
+      # needs the package to exist so the package graph resolves. Without this
+      # the build fails at Resolve Package Graph with "the package at
+      # .../NymVPNRpc cannot be accessed". Mirrors ci-nym-vpn-app-ios.yml.
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNRpc || true
+          mkdir NymVPNRpc || true
+          cd NymVPNRpc
+          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
+
       - name: Build mock app for simulator
         working-directory: nym-vpn-apple
         run: |
