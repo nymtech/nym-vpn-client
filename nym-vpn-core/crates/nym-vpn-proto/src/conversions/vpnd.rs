@@ -13,7 +13,7 @@ use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, GatewayType,
     LewesProtocolDetails, LewesProtocolDetailsData, ListGatewaysOptions, LogPath,
     NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions, StoreAccountRequest,
-    SystemMessage, UserAgent, VpnServiceInfo,
+    SystemMessage, TlsClientOptions, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -524,12 +524,48 @@ impl TryFrom<proto::QuicClientOptions> for QuicClientOptions {
     }
 }
 
+impl From<TlsClientOptions> for proto::TlsClientOptions {
+    fn from(value: TlsClientOptions) -> Self {
+        Self {
+            addresses: value
+                .addresses
+                .into_iter()
+                .map(proto::SocketAddr::from)
+                .collect(),
+            host: value.host,
+            id_pubkey: value.id_pubkey,
+        }
+    }
+}
+
+impl TryFrom<proto::TlsClientOptions> for TlsClientOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::TlsClientOptions) -> Result<Self, Self::Error> {
+        let addresses = value
+            .addresses
+            .into_iter()
+            .map(SocketAddr::try_from)
+            .collect::<Result<Vec<SocketAddr>, ConversionError>>()?;
+        Ok(Self {
+            host: value.host,
+            id_pubkey: value.id_pubkey,
+            addresses,
+        })
+    }
+}
+
 impl From<BridgeParameters> for proto::BridgeParameters {
     fn from(value: BridgeParameters) -> Self {
         match value {
             BridgeParameters::QuicPlain(options) => proto::BridgeParameters {
                 state: Some(proto::bridge_parameters::State::QuicPlain(
                     proto::QuicClientOptions::from(options),
+                )),
+            },
+            BridgeParameters::TlsPlain(options) => proto::BridgeParameters {
+                state: Some(proto::bridge_parameters::State::TlsPlain(
+                    proto::TlsClientOptions::from(options),
                 )),
             },
         }
@@ -546,6 +582,9 @@ impl TryFrom<proto::BridgeParameters> for BridgeParameters {
         Ok(match state {
             proto::bridge_parameters::State::QuicPlain(options) => {
                 BridgeParameters::QuicPlain(QuicClientOptions::try_from(options)?)
+            }
+            proto::bridge_parameters::State::TlsPlain(options) => {
+                BridgeParameters::TlsPlain(TlsClientOptions::try_from(options)?)
             }
         })
     }
