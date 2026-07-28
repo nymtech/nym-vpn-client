@@ -1184,7 +1184,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
 }
 
 #[cfg(test)]
-#[cfg(all(feature = "serde", not(feature = "typescript-bindings")))]
+#[cfg(feature = "serde")]
 mod bridges_test {
     use super::BridgeInformation;
     use super::BridgeParameters;
