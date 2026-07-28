@@ -24,10 +24,6 @@ const RPC_SESSION_SYNC_TIMEOUT: Duration = Duration::from_secs(30);
 const CONVERTER_BUF_SIZE: usize = 16 * 1024;
 /// Settle after aborting an in-flight DaemonRpc forward before opening a new client.
 pub(crate) const DAEMON_RPC_RECOVER_SETTLE: Duration = Duration::from_millis(250);
-/// A failed session sync must not tear down the suite-wide DaemonRpc forward loop
-/// (CI: one poison → every later test Failed to disconnect / get_info).
-const KEEP_FORWARD_LOOP_ON_SYNC_FAILURE: bool = true;
-
 #[derive(Clone)]
 pub(super) struct DummyService {
     pub(super) management_channel_provider_tx: mpsc::UnboundedSender<TokioIo<DuplexStream>>,
@@ -146,61 +142,72 @@ where
     })?
 }
 
+async fn run_forward_loop<R, W>(
+    connection_handle: ConnectionHandle,
+    mut framed_read: FramedRead<R, LengthDelimitedCodec>,
+    mut framed_write: FramedWrite<W, LengthDelimitedCodec>,
+    mut management_channel_provider_rx: mpsc::UnboundedReceiver<TokioIo<DuplexStream>>,
+) where
+    R: tokio::io::AsyncRead + Unpin,
+    W: tokio::io::AsyncWrite + Unpin,
+{
+    loop {
+        log::trace!("waiting for management interface client");
+
+        let management_channel_in: DuplexStream = match management_channel_provider_rx.next().await
+        {
+            Some(channel) => TokioIo::into_inner(channel),
+            None => {
+                log::debug!("👻 exiting management interface forward loop");
+                break;
+            }
+        };
+
+        if let Err(error) = await_session_synchronization(
+            &mut framed_read,
+            &mut framed_write,
+            RPC_SESSION_SYNC_TIMEOUT,
+        )
+        .await
+        {
+            log::warn!(
+                "Failed to synchronize daemon RPC session; retrying on next client: {error}"
+            );
+            continue;
+        }
+
+        log::debug!("👻 Entering loop...");
+        tokio::select! {
+            _ = connection_handle.notified_reset() => {
+                log::debug!("Restarting daemon RPC client");
+            }
+            result = forward_framed_bidirectional(
+                management_channel_in,
+                &mut framed_read,
+                &mut framed_write,
+            ) => {
+                match result {
+                    Ok(outcome) => log::debug!("Nym daemon session ended: {outcome:?}"),
+                    Err(error) => log::debug!("Management channel stream errored: {error}"),
+                }
+            }
+        }
+    }
+}
+
 pub fn new_rpc_client(
     connection_handle: ConnectionHandle,
     nym_daemon_transport: GrpcForwarder,
 ) -> RpcClientProvider {
-    let (mut framed_read, mut framed_write) = length_delimited_framed_halves(nym_daemon_transport);
-    let (management_channel_provider_tx, mut management_channel_provider_rx) = mpsc::unbounded();
-    let forward_loop_handle = connection_handle.clone();
+    let (framed_read, framed_write) = length_delimited_framed_halves(nym_daemon_transport);
+    let (management_channel_provider_tx, management_channel_provider_rx) = mpsc::unbounded();
 
-    tokio::spawn(async move {
-        loop {
-            log::trace!("waiting for management interface client");
-
-            let management_channel_in: DuplexStream =
-                match management_channel_provider_rx.next().await {
-                    Some(channel) => TokioIo::into_inner(channel),
-                    None => {
-                        log::debug!("👻 exiting management interface forward loop");
-                        break;
-                    }
-                };
-
-            if let Err(error) = await_session_synchronization(
-                &mut framed_read,
-                &mut framed_write,
-                RPC_SESSION_SYNC_TIMEOUT,
-            )
-            .await
-            {
-                log::warn!(
-                    "Failed to synchronize daemon RPC session; retrying on next client: {error}"
-                );
-                if KEEP_FORWARD_LOOP_ON_SYNC_FAILURE {
-                    continue;
-                }
-                break;
-            }
-
-            log::debug!("👻 Entering loop...");
-            tokio::select! {
-                _ = forward_loop_handle.notified_reset() => {
-                    log::debug!("Restarting daemon RPC client");
-                }
-                result = forward_framed_bidirectional(
-                    management_channel_in,
-                    &mut framed_read,
-                    &mut framed_write,
-                ) => {
-                    match result {
-                        Ok(outcome) => log::debug!("Nym daemon session ended: {outcome:?}"),
-                        Err(error) => log::debug!("Management channel stream errored: {error}"),
-                    }
-                }
-            }
-        }
-    });
+    tokio::spawn(run_forward_loop(
+        connection_handle.clone(),
+        framed_read,
+        framed_write,
+        management_channel_provider_rx,
+    ));
 
     let service = DummyService {
         management_channel_provider_tx,
@@ -214,24 +221,56 @@ pub fn new_rpc_client(
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        KEEP_FORWARD_LOOP_ON_SYNC_FAILURE, await_rpc_client_connection,
-        await_session_synchronization,
-    };
+    use super::{await_rpc_client_connection, await_session_synchronization, run_forward_loop};
+    use futures::{StreamExt, channel::mpsc};
+    use hyper_util::rt::TokioIo;
     use std::{future::pending, time::Duration};
-    use test_rpc::transport::length_delimited_framed_halves;
+    use test_rpc::transport::{
+        ConnectionHandle, SESSION_SYNC_PING, length_delimited_framed_halves,
+    };
 
-    #[test]
-    fn sync_failure_keeps_daemon_rpc_forward_loop_alive() {
-        assert!(
-            KEEP_FORWARD_LOOP_ON_SYNC_FAILURE,
-            "session sync failure must continue the suite forward loop (CI suite poison)"
-        );
-    }
+    /// One poisoned handshake used to fail every later test in the suite.
+    #[tokio::test(start_paused = true)]
+    async fn a_failed_handshake_retries_on_the_next_client_instead_of_ending_the_loop() {
+        let (host_side, peer_side) = tokio::io::duplex(16 * 1024);
+        let (framed_read, framed_write) = length_delimited_framed_halves(host_side);
+        // The peer never acks, so every handshake this loop attempts times out.
+        let (mut peer_read, _peer_write) = length_delimited_framed_halves(peer_side);
 
-    #[test]
-    fn recover_settle_is_short_and_named() {
-        assert_eq!(super::DAEMON_RPC_RECOVER_SETTLE, Duration::from_millis(250));
+        let (channel_tx, channel_rx) = mpsc::unbounded();
+        let loop_task = tokio::spawn(run_forward_loop(
+            ConnectionHandle::detached(),
+            framed_read,
+            framed_write,
+            channel_rx,
+        ));
+
+        for _ in 0..2 {
+            let (management_channel, _client_side) = tokio::io::duplex(1024);
+            channel_tx
+                .unbounded_send(TokioIo::new(management_channel))
+                .expect("forward loop must still accept clients");
+        }
+
+        for attempt in 1..=2 {
+            let frame = peer_read
+                .next()
+                .await
+                .unwrap_or_else(|| panic!("no handshake for client {attempt}"))
+                .expect("handshake frame must decode");
+            assert_eq!(
+                frame.as_ref(),
+                SESSION_SYNC_PING,
+                "client {attempt} must get its own handshake attempt"
+            );
+        }
+
+        drop(channel_tx);
+        // Virtual time: the loop first has to finish the last client's handshake timeout.
+        tokio::time::timeout(Duration::from_secs(300), loop_task)
+            .await
+            .expect("loop must exit once no more clients can arrive")
+            .expect("loop must not panic");
     }
 
     #[tokio::test]

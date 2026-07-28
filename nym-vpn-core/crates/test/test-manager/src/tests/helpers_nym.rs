@@ -132,6 +132,7 @@ pub enum ExpectedTunnelState {
 }
 
 pub const THROTTLE_RETRY_DELAY: Duration = Duration::from_secs(120);
+const MAX_THROTTLE_RETRIES: u32 = 5;
 
 pub async fn login_idempotent(
     runner: &NymServiceClient,
@@ -234,7 +235,12 @@ fn classify_disconnect_nym_error(result: &Result<bool, NymClientError>) -> Disco
     }
 }
 
+fn throttle_backoff(attempts_so_far: u32) -> Option<Duration> {
+    (attempts_so_far < MAX_THROTTLE_RETRIES).then_some(THROTTLE_RETRY_DELAY)
+}
+
 async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
+    let mut throttled_attempts = 0u32;
     loop {
         let request = nym_vpn_lib_types::StoreAccountRequest::Vpn {
             mnemonic: TEST_CONFIG_NYM.mnemonic.to_string(),
@@ -247,11 +253,18 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
             Err(NymClientError::Rpc(status))
                 if status.message().to_uppercase().contains("THROTTLED") =>
             {
+                throttled_attempts += 1;
+                let Some(backoff) = throttle_backoff(throttled_attempts) else {
+                    anyhow::bail!(
+                        "store_account still throttled after {throttled_attempts} attempts: {}",
+                        status.message()
+                    );
+                };
                 log::debug!(
-                    "Login failed due to throttling. Sleeping for {} seconds",
-                    THROTTLE_RETRY_DELAY.as_secs()
+                    "Login throttled (attempt {throttled_attempts}/{MAX_THROTTLE_RETRIES}). Sleeping for {}s",
+                    backoff.as_secs()
                 );
-                tokio::time::sleep(THROTTLE_RETRY_DELAY).await;
+                tokio::time::sleep(backoff).await;
             }
             Err(err) => {
                 return Err(anyhow::Error::new(err).context("store_account RPC failed"));
@@ -573,6 +586,7 @@ where
     let budget = tunnel_wait_budget(timeout, disconnect_on_timeout);
     let deadline = tokio::time::Instant::now() + budget;
     let mut last_observed = None;
+    let mut last_error = None;
 
     log::debug!(
         "tunnel wait: host polling get_observed (budget={}s, disconnect_on_timeout={disconnect_on_timeout})",
@@ -587,6 +601,7 @@ where
                     last_observed: last_observed.clone(),
                 },
                 budget,
+                last_error.clone(),
             );
         }
 
@@ -601,12 +616,14 @@ where
             }
             Ok(Err(error)) => {
                 log::warn!("tunnel wait: observe RPC failed (will retry): {error:?}");
+                last_error = Some(format!("{error}"));
             }
             Err(_) => {
                 log::debug!(
                     "tunnel wait: observe RPC timed out after {}ms (will retry)",
                     rpc_budget.as_millis()
                 );
+                last_error = Some(format!("observe RPC timed out after {rpc_budget:?}"));
             }
         }
 
@@ -617,6 +634,7 @@ where
                     last_observed: last_observed.clone(),
                 },
                 budget,
+                last_error.clone(),
             );
         }
         tokio::time::sleep(HOST_OBSERVE_POLL_INTERVAL.min(remaining)).await;
@@ -644,6 +662,7 @@ fn tunnel_wait_budget(timeout: Duration, disconnect_on_timeout: bool) -> Duratio
 fn tunnel_outcome_to_result(
     outcome: WaitOutcome<ObservedTunnelState>,
     budget: Duration,
+    last_error: Option<String>,
 ) -> Result<ObservedTunnelState, Error> {
     match outcome {
         WaitOutcome::Reached(state) => Ok(state),
@@ -651,15 +670,22 @@ fn tunnel_outcome_to_result(
             "tunnel",
             budget,
             last_observed.as_ref().map(|state| format!("{state:?}")),
+            last_error,
         )),
     }
 }
 
-fn wait_timeout_error(state_name: &str, budget: Duration, last_observed: Option<String>) -> Error {
+fn wait_timeout_error(
+    state_name: &str,
+    budget: Duration,
+    last_observed: Option<String>,
+    last_error: Option<String>,
+) -> Error {
     Error::Daemon(format!(
-        "{state_name} state wait timed out after {}s; last_observed={}",
+        "{state_name} state wait timed out after {}s; last_observed={}; last_error={}",
         budget.as_secs(),
         last_observed.unwrap_or_else(|| "<unavailable>".to_owned()),
+        last_error.unwrap_or_else(|| "<none>".to_owned()),
     ))
 }
 
@@ -720,6 +746,7 @@ where
                     "account",
                     timeout,
                     last_observed.as_ref().map(|state| format!("{state:?}")),
+                    None,
                 )),
             }
         }
@@ -1202,6 +1229,47 @@ mod tests {
 
         assert!(error.to_string().contains("tunnel state wait timed out"));
         assert_eq!(disconnect.disconnects, 1);
+    }
+
+    #[test]
+    fn throttle_retries_are_bounded() {
+        assert_eq!(
+            super::throttle_backoff(1),
+            Some(super::THROTTLE_RETRY_DELAY)
+        );
+        assert_eq!(
+            super::throttle_backoff(super::MAX_THROTTLE_RETRIES - 1),
+            Some(super::THROTTLE_RETRY_DELAY)
+        );
+        assert_eq!(
+            super::throttle_backoff(super::MAX_THROTTLE_RETRIES),
+            None,
+            "a permanently throttling account API must fail, not hang the run"
+        );
+    }
+
+    /// Without this the real cause only reached the log stream, so a CI failure read as a
+    /// bare timeout with no observed state.
+    #[tokio::test(start_paused = true)]
+    async fn tunnel_timeout_reports_the_last_observe_error() {
+        let observer = FakeTunnelObserver::new(vec![Err(()), Err(())]);
+        let mut disconnect = FakeDisconnectClient { disconnects: 0 };
+
+        let error = run_tunnel_wait(
+            &observer,
+            &mut disconnect,
+            vec![ObservedTunnelStateKind::Connected],
+            Duration::from_secs(11),
+            false,
+        )
+        .await
+        .expect_err("exhausted budget without a match must time out");
+
+        let rendered = error.to_string();
+        assert!(
+            rendered.contains(&rpc_failed().to_string()),
+            "timeout must name the failure that kept retrying: {rendered}"
+        );
     }
 
     #[tokio::test]

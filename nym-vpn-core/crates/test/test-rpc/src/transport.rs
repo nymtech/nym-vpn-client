@@ -31,6 +31,9 @@ const DAEMON_CHANNEL_BUF_SIZE: usize = 16 * 1024;
 /// Unique payload that comes with the "handshake" frame
 const MULLVAD_SIGNATURE: &[u8] = b"MULLV4D;";
 
+/// Grace period for the local stream to close after the peer signalled EOF.
+const POST_EOF_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
+
 /// Cap resync byte-skipping per decode call so pathological noise cannot spin forever.
 const MAX_RESYNC_BYTES_PER_DECODE: usize = 64 * 1024;
 
@@ -182,11 +185,26 @@ where
     tokio::select! {
         outcome = &mut framed_to_stream => match outcome? {
             ForwardOutcome::SessionRestart => Ok(ForwardOutcome::SessionRestart),
-            ForwardOutcome::Eof => (&mut stream_to_framed).await.map(|()| ForwardOutcome::Eof),
+            ForwardOutcome::Eof => drain_stream_after_eof(&mut stream_to_framed).await,
         },
         result = &mut stream_to_framed => {
             result?;
             (&mut framed_to_stream).await
+        }
+    }
+}
+
+async fn drain_stream_after_eof(
+    stream_to_framed: impl Future<Output = io::Result<()>>,
+) -> io::Result<ForwardOutcome> {
+    match tokio::time::timeout(POST_EOF_DRAIN_TIMEOUT, stream_to_framed).await {
+        Ok(result) => result.map(|()| ForwardOutcome::Eof),
+        Err(_) => {
+            log::warn!(
+                "fwd: local stream did not close within {}s after peer EOF; abandoning it",
+                POST_EOF_DRAIN_TIMEOUT.as_secs()
+            );
+            Ok(ForwardOutcome::Eof)
         }
     }
 }
@@ -212,6 +230,11 @@ impl ConnectionHandle {
                 reset_notify: Arc::new(tokio::sync::Notify::new()),
             },
         )
+    }
+
+    /// Handle with no serial peer, for driving forward-loop tests.
+    pub fn detached() -> Self {
+        Self::new().1
     }
 
     pub async fn wait_for_server(&mut self) -> Result<(), Error> {
@@ -917,6 +940,40 @@ mod tests {
             matches!(trailing, Err(_) | Ok(None)),
             "a stray EOF frame would close the session that follows the restart: {trailing:?}"
         );
+    }
+
+    /// A stream that never closes must not pin the forwarder: this side would then never
+    /// answer the next handshake, poisoning every later session on the mux.
+    #[tokio::test(start_paused = true)]
+    async fn peer_eof_abandons_a_local_stream_that_never_closes() {
+        let (bridge_stream, stream_peer) = duplex(64);
+        let (bridge_framed_io, framed_peer_io) = duplex(64);
+        let (mut bridge_framed_read, mut bridge_framed_write) =
+            length_delimited_framed_halves(bridge_framed_io);
+        let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
+
+        let bridge = tokio::spawn(async move {
+            forward_framed_bidirectional(
+                bridge_stream,
+                &mut bridge_framed_read,
+                &mut bridge_framed_write,
+            )
+            .await
+        });
+
+        framed_peer
+            .send(Bytes::new())
+            .await
+            .expect("signal EOF from the peer");
+
+        let outcome = tokio::time::timeout(super::POST_EOF_DRAIN_TIMEOUT * 2, bridge)
+            .await
+            .expect("forward must give up on the local stream after the drain grace period")
+            .expect("bridge task")
+            .expect("abandoning the drain is not an error");
+        assert_eq!(outcome, ForwardOutcome::Eof);
+
+        drop(stream_peer);
     }
 
     #[tokio::test]

@@ -574,10 +574,10 @@ mod tests {
 
     #[test]
     fn blocklist_priorities_run_after_core_suite() {
-        assert!(BLOCKLIST_PRIORITY_DNS > 25);
-        assert!(BLOCKLIST_PRIORITY_VPN_API > BLOCKLIST_PRIORITY_DNS);
-        assert!(BLOCKLIST_PRIORITY_NYM_API > BLOCKLIST_PRIORITY_VPN_API);
-        assert!(BLOCKLIST_PRIORITY_DELAYED > BLOCKLIST_PRIORITY_NYM_API);
+        const _: () = assert!(BLOCKLIST_PRIORITY_DNS > 25);
+        const _: () = assert!(BLOCKLIST_PRIORITY_VPN_API > BLOCKLIST_PRIORITY_DNS);
+        const _: () = assert!(BLOCKLIST_PRIORITY_NYM_API > BLOCKLIST_PRIORITY_VPN_API);
+        const _: () = assert!(BLOCKLIST_PRIORITY_DELAYED > BLOCKLIST_PRIORITY_NYM_API);
 
         let tests = get_test_descriptions();
         let max_non_blocklist = tests

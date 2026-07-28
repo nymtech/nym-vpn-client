@@ -36,3 +36,6 @@ tokio-rustls = { workspace = true }
 tokio-serde = { workspace = true }
 tokio-util = { workspace = true, features = ["codec"] }
 webpki-roots = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

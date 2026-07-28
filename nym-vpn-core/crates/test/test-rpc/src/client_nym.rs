@@ -519,11 +519,60 @@ impl NymServiceClient {
 }
 
 fn deadline_after(timeout: Duration) -> SystemTime {
-    SystemTime::now()
-        .checked_add(timeout.saturating_add(WAIT_RPC_DEADLINE_SLACK))
-        .unwrap_or_else(|| SystemTime::now() + WAIT_RPC_DEADLINE_SLACK)
+    deadline_from(SystemTime::now(), timeout)
+}
+
+fn deadline_from(now: SystemTime, timeout: Duration) -> SystemTime {
+    let requested = timeout.saturating_add(WAIT_RPC_DEADLINE_SLACK);
+    now.checked_add(requested).unwrap_or_else(|| {
+        // Clamping shortens the caller's deadline, so say so rather than fail silently.
+        log::warn!(
+            "Deadline of {}s overflows SystemTime; clamping to {}s",
+            requested.as_secs(),
+            WAIT_RPC_DEADLINE_SLACK.as_secs()
+        );
+        now.checked_add(WAIT_RPC_DEADLINE_SLACK).unwrap_or(now)
+    })
 }
 
 fn duration_as_millis_u64(timeout: Duration) -> u64 {
     u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{WAIT_RPC_DEADLINE_SLACK, deadline_from, duration_as_millis_u64};
+    use std::time::{Duration, SystemTime};
+
+    #[test]
+    fn deadline_adds_slack_to_the_requested_timeout() {
+        let now = SystemTime::UNIX_EPOCH;
+        let deadline = deadline_from(now, Duration::from_secs(5));
+
+        assert_eq!(
+            deadline
+                .duration_since(now)
+                .expect("deadline must be after now"),
+            Duration::from_secs(5) + WAIT_RPC_DEADLINE_SLACK
+        );
+    }
+
+    #[test]
+    fn deadline_clamps_to_slack_when_the_timeout_overflows_system_time() {
+        let now = SystemTime::UNIX_EPOCH;
+        let deadline = deadline_from(now, Duration::MAX);
+
+        assert_eq!(
+            deadline
+                .duration_since(now)
+                .expect("clamped deadline must still be after now"),
+            WAIT_RPC_DEADLINE_SLACK
+        );
+    }
+
+    #[test]
+    fn oversized_durations_saturate_instead_of_wrapping_to_millis() {
+        assert_eq!(duration_as_millis_u64(Duration::MAX), u64::MAX);
+        assert_eq!(duration_as_millis_u64(Duration::from_secs(2)), 2_000);
+    }
 }
