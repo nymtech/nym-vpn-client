@@ -5,10 +5,10 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{self},
+    helpers_nym::{self, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry},
     nym_test::dc_and_ensure_logged_in,
 };
-use anyhow::{Context, ensure};
+use anyhow::Context;
 use helpers_nym::ExpectedTunnelState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::{
@@ -116,16 +116,10 @@ async fn verify_tunnel_connectivity(
         TunnelVerification::ResolveHostnames => {
             for host in ["nym.com", "google.com"] {
                 log::info!("Resolving {} inside VM via VPN tunnel...", host);
-                let addrs = rpc
-                    .resolve_hostname(host.to_string())
+                let addrs = resolve_hostname_with_retry(rpc, host, ROUNDTRIP_DNS_TIMEOUT)
                     .await
-                    .context(format!("DNS resolution failed for {} inside VM", host))?;
+                    .context(format!("DNS resolution failed for {host} inside VM"))?;
                 log::info!("Resolved {} to {:?}", host, addrs);
-                ensure!(
-                    !addrs.is_empty(),
-                    "DNS resolution returned no addresses for {} inside VM",
-                    host
-                );
             }
             Ok(())
         }

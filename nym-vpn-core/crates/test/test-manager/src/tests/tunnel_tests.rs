@@ -3,7 +3,10 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{self, ExpectedTunnelState, resolve_hostname_with_retry, wait_for_tunnel_state},
+    helpers_nym::{
+        self, ExpectedTunnelState, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry,
+        wait_for_tunnel_state,
+    },
     nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::{Context, bail, ensure};
@@ -473,15 +476,10 @@ pub async fn test_dns_leak(
         log::info!("Pre-VPN resolvers are unreachable while connected");
     }
 
-    let addrs = rpc
-        .resolve_hostname("nym.com".to_string())
+    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT)
         .await
         .context("DNS resolution failed inside VM while VPN is connected")?;
     log::info!("Resolved nym.com inside VM: {:?}", addrs);
-    ensure!(
-        !addrs.is_empty(),
-        "DNS resolution inside VM returned no addresses while connected"
-    );
 
     let dest = SocketAddr::new(addrs[0].ip(), 443);
     rpc.send_tcp(None, "0.0.0.0:0".parse().unwrap(), dest)
@@ -645,14 +643,10 @@ pub async fn test_country_exit_node(
     )
     .await?;
 
-    let addrs = rpc
-        .resolve_hostname("ipinfo.io".to_string())
+    let addrs = resolve_hostname_with_retry(&rpc, "ipinfo.io", ROUNDTRIP_DNS_TIMEOUT)
         .await
         .context("DNS resolution of ipinfo.io failed inside VM")?;
-    ensure!(
-        !addrs.is_empty(),
-        "DNS resolution of ipinfo.io returned no addresses"
-    );
+    log::info!("Resolved ipinfo.io inside VM: {:?}", addrs);
 
     let ip_output = rpc
         .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
@@ -723,7 +717,7 @@ pub async fn test_reconnect_tunnel(
     )
     .await?;
 
-    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", Duration::from_secs(30)).await?;
+    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT).await?;
     log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
 
     log::info!("Disconnecting...");

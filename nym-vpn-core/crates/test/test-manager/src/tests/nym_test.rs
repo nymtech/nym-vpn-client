@@ -6,18 +6,14 @@ use crate::{
     nym_daemon::RpcClientProvider,
     tests::{
         TestContext,
-        helpers_nym::{self, resolve_hostname_with_retry},
+        helpers_nym::{self, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry},
     },
 };
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::time::Duration;
 use test_macro::test_function_nym;
 use test_rpc::{NymServiceClient, nym_daemon::ObservedAccountState};
-
-/// Per-hostname budget for in-VM DNS after connect (matches tunnel reconnect checks).
-const ROUNDTRIP_DNS_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[test_function_nym]
 pub async fn test_account_and_tunnel_roundtrip(

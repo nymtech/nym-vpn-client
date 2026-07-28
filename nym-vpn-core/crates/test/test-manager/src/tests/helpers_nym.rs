@@ -728,25 +728,50 @@ where
     }
 }
 
+pub const ROUNDTRIP_DNS_TIMEOUT: Duration = Duration::from_secs(30);
+
+const DNS_RETRY_POLL_INTERVAL: Duration = Duration::from_millis(500);
+
 pub async fn resolve_hostname_with_retry(
     rpc: &NymServiceClient,
     hostname: &str,
     timeout: Duration,
 ) -> anyhow::Result<Vec<SocketAddr>> {
-    let hostname = hostname.to_owned();
+    let owned = hostname.to_owned();
+    resolve_with_retry(hostname, timeout, DNS_RETRY_POLL_INTERVAL, || {
+        let hostname = owned.clone();
+        async move { rpc.resolve_hostname(hostname).await }
+    })
+    .await
+}
+
+async fn resolve_with_retry<E, F, Fut>(
+    hostname: &str,
+    timeout: Duration,
+    poll_interval: Duration,
+    mut resolve: F,
+) -> anyhow::Result<Vec<SocketAddr>>
+where
+    E: std::fmt::Display,
+    F: FnMut() -> Fut,
+    Fut: Future<Output = Result<Vec<SocketAddr>, E>>,
+{
+    let mut last_outcome = "no attempt completed".to_string();
 
     let result = tokio::time::timeout(timeout, async {
         loop {
-            match rpc.resolve_hostname(hostname.clone()).await {
+            match resolve().await {
                 Ok(addrs) if !addrs.is_empty() => break addrs,
                 Ok(_) => {
-                    log::debug!("Got empty result, retrying...");
+                    last_outcome = "resolver kept returning no addresses".to_string();
+                    log::debug!("Got empty result for {hostname}, retrying...");
                 }
-                Err(e) => {
-                    log::debug!("DNS resolution of {hostname} failed: {e}, retrying...");
+                Err(error) => {
+                    last_outcome = format!("last error: {error}");
+                    log::debug!("DNS resolution of {hostname} failed: {error}, retrying...");
                 }
             }
-            tokio::time::sleep(Duration::from_millis(500)).await;
+            tokio::time::sleep(poll_interval).await;
         }
     })
     .await;
@@ -755,7 +780,7 @@ pub async fn resolve_hostname_with_retry(
         Ok(addrs) => Ok(addrs),
         Err(_) => {
             let err = format!(
-                "DNS resolution of {hostname} timed out after {}s",
+                "DNS resolution of {hostname} timed out after {}s ({last_outcome})",
                 timeout.as_secs(),
             );
             log::error!("{err}");
@@ -771,14 +796,87 @@ mod tests {
         ExpectedTunnelState, TunnelObserver, account_target, classify_allow_lan_prep,
         classify_disconnect_nym_error, classify_disconnect_rpc, enforce_tunnel_wait_deadline,
         is_daemon_rpc_transport_error, is_daemon_rpc_transport_message,
-        is_nym_client_transport_error, merge_wait_and_client, run_account_wait, run_tunnel_wait,
-        settle_daemon_rpc_quiesce, tunnel_target, tunnel_wait_budget, tunnel_wait_params,
+        is_nym_client_transport_error, merge_wait_and_client, resolve_with_retry, run_account_wait,
+        run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target, tunnel_wait_budget,
+        tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
     use nym_vpn_proto::rpc_client::Error as NymClientError;
+    use std::cell::Cell;
     use std::collections::VecDeque;
     use std::sync::Mutex;
+
+    fn sample_addr() -> std::net::SocketAddr {
+        "93.184.216.34:443"
+            .parse()
+            .expect("literal is a socket addr")
+    }
+
+    /// The tunnel reports Connected before the exit gateway resolver answers, so the first
+    /// queries after connect can fail or come back empty on a healthy tunnel.
+    #[tokio::test(start_paused = true)]
+    async fn resolve_retries_past_transport_errors_and_empty_answers() {
+        let attempts = Cell::new(0);
+        let addrs = resolve_with_retry(
+            "nym.com",
+            Duration::from_secs(30),
+            Duration::from_millis(500),
+            || {
+                let attempt = attempts.get() + 1;
+                attempts.set(attempt);
+                async move {
+                    match attempt {
+                        1 => Err("resolver not ready"),
+                        2 => Ok(Vec::new()),
+                        _ => Ok(vec![sample_addr()]),
+                    }
+                }
+            },
+        )
+        .await
+        .expect("a resolver that eventually answers must succeed");
+
+        assert_eq!(addrs, vec![sample_addr()]);
+        assert_eq!(
+            attempts.get(),
+            3,
+            "must stop querying once it has addresses"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn resolve_gives_up_and_reports_why_when_answers_stay_empty() {
+        let error = resolve_with_retry(
+            "nym.com",
+            Duration::from_secs(5),
+            Duration::from_millis(500),
+            || async { Ok::<_, String>(Vec::new()) },
+        )
+        .await
+        .expect_err("an empty answer must never be reported as success");
+
+        let rendered = error.to_string();
+        assert!(rendered.contains("timed out after 5s"), "{rendered}");
+        assert!(rendered.contains("no addresses"), "{rendered}");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn resolve_surfaces_the_last_transport_error_on_timeout() {
+        let error = resolve_with_retry(
+            "nym.com",
+            Duration::from_secs(5),
+            Duration::from_millis(500),
+            || async { Err::<Vec<std::net::SocketAddr>, _>("connection refused") },
+        )
+        .await
+        .expect_err("a resolver that never answers must fail");
+
+        assert!(
+            error.to_string().contains("connection refused"),
+            "{error}, the CI log needs the reason, not just the timeout"
+        );
+    }
     use std::time::Duration;
     use test_rpc::nym_daemon::{
         ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState,
