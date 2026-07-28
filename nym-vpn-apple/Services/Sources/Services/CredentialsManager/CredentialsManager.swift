@@ -704,6 +704,15 @@ private extension CredentialsManager {
 
     func checkCredentialImport() {
         if isMockMode {
+            // Start the mock with an account already stored. The UI suite
+            // launches with cleared state and expects to land on the home
+            // screen - logout_to_welcome.yaml reaches the welcome sheet by
+            // logging *out* of this session. Returning without seeding the flag
+            // left isCredentialImported false, so every flow got the welcome
+            // screen instead of home and failed in its open_app subflow.
+            // Mirrors MockBackendManager on Android, which starts with
+            // isMnemonicStored = true.
+            updateIsCredentialImported(with: true)
             return
         }
         Task {
