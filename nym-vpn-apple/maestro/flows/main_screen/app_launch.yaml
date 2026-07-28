@@ -6,6 +6,7 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-- assertVisible: "Entry server"
-- assertVisible: "Exit server"
+# "Entry server"/"Exit server" are deliberately not asserted here - OneClick
+# renders those only in .nerd display mode, and a cleared launch defaults to
+# .powerUser. Covering them needs a flow that switches mode first.
 - assertVisible: "Connect"

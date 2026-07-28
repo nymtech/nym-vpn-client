@@ -23,9 +23,14 @@ appId: net.nymtech.vpn
     commands:
       - tapOn: "Continue"
 
-# Home is ready once the server hop labels render.
+# Home is ready once the connect button renders.
+#
+# Not the "Entry server"/"Exit server" labels: OneClick has two display modes
+# and those only render in .nerd, where they are also accessibilityHidden for
+# .powerUser. A cleared launch has no stored mode and falls back to .powerUser,
+# so they are never on screen here. The connect button is part of baseSection
+# and renders in every mode - the same anchor the Android open_app uses.
 - extendedWaitUntil:
     visible:
-      text: "Entry server"
+      text: "Connect"
     timeout: 20000
-- assertVisible: "Exit server"
