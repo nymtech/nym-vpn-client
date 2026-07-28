@@ -183,10 +183,6 @@ async fn store_account_with_transport_retry(
     }
 }
 
-pub(crate) fn is_daemon_rpc_transport_error(error: &anyhow::Error) -> bool {
-    is_daemon_rpc_transport_message(&error.to_string())
-}
-
 pub(crate) fn is_daemon_rpc_transport_message(message: &str) -> bool {
     let message = message.to_ascii_lowercase();
     message.contains("broken pipe")
@@ -195,24 +191,54 @@ pub(crate) fn is_daemon_rpc_transport_message(message: &str) -> bool {
         || message.contains("h2 protocol error")
 }
 
+pub(crate) fn error_chain_has_daemon_rpc_transport(
+    mut error: Option<&(dyn std::error::Error + 'static)>,
+) -> bool {
+    while let Some(err) = error {
+        if is_daemon_rpc_transport_message(&err.to_string()) {
+            return true;
+        }
+        error = err.source();
+    }
+    false
+}
+
+pub(crate) fn is_daemon_rpc_transport_error(error: &anyhow::Error) -> bool {
+    error
+        .chain()
+        .any(|cause| is_daemon_rpc_transport_message(&cause.to_string()))
+}
+
+pub(crate) fn is_nym_client_transport_error(error: &NymClientError) -> bool {
+    error_chain_has_daemon_rpc_transport(Some(error))
+}
+
 /// Classify a `disconnect_tunnel` RPC outcome for serial-session recovery.
+#[cfg(test)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum DisconnectRpcClass {
+enum DisconnectRpcClass {
     Success,
     TransportRecoverable,
     Fatal,
 }
 
-pub(crate) fn classify_disconnect_rpc(
-    result_ok: bool,
-    error_message: Option<&str>,
-) -> DisconnectRpcClass {
+#[cfg(test)]
+fn classify_disconnect_rpc(result_ok: bool, error_message: Option<&str>) -> DisconnectRpcClass {
     if result_ok {
         DisconnectRpcClass::Success
     } else if error_message.is_some_and(is_daemon_rpc_transport_message) {
         DisconnectRpcClass::TransportRecoverable
     } else {
         DisconnectRpcClass::Fatal
+    }
+}
+
+#[cfg(test)]
+fn classify_disconnect_nym_error(result: &Result<bool, NymClientError>) -> DisconnectRpcClass {
+    match result {
+        Ok(_) => DisconnectRpcClass::Success,
+        Err(err) if is_nym_client_transport_error(err) => DisconnectRpcClass::TransportRecoverable,
+        Err(_) => DisconnectRpcClass::Fatal,
     }
 }
 
@@ -235,7 +261,10 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
                 );
                 tokio::time::sleep(THROTTLE_RETRY_DELAY).await;
             }
-            Err(err) => anyhow::bail!("store_account RPC failed: {err}"),
+            // Preserve the tonic source chain. Display alone is "Rpc call returned error".
+            Err(err) => {
+                return Err(anyhow::Error::new(err).context("store_account RPC failed"));
+            }
         }
     }
     Ok(())
@@ -270,30 +299,21 @@ async fn disconnect_with_transport_recovery(
 ) -> Result<NymProxyClient, Error> {
     match nym_client.disconnect_tunnel().await {
         Ok(_) => Ok(nym_client),
-        Err(err)
-            if matches!(
-                classify_disconnect_rpc(false, Some(&err.to_string())),
-                DisconnectRpcClass::TransportRecoverable
-            ) =>
-        {
+        Err(err) if is_nym_client_transport_error(&err) => {
             // Prior Connected wait can desync the serial DaemonRpc (kernel printk on ttyS0)
             // while the test still passes; the next test then dies on the first disconnect.
+            // Match the error *chain*: Display alone is often just "Rpc call returned error".
             log::warn!(
-                "disconnect_tunnel hit a dead DaemonRpc session; recreating and retrying once: {err}"
+                "disconnect_tunnel hit a dead DaemonRpc session; recreating and retrying once: {err:#}"
             );
             drop(nym_client);
             settle_daemon_rpc_quiesce().await;
             nym_client = provider.new_client_nym().await.map_err(Error::Other)?;
             match nym_client.disconnect_tunnel().await {
                 Ok(_) => Ok(nym_client),
-                Err(err2)
-                    if matches!(
-                        classify_disconnect_rpc(false, Some(&err2.to_string())),
-                        DisconnectRpcClass::TransportRecoverable
-                    ) =>
-                {
+                Err(err2) if is_nym_client_transport_error(&err2) => {
                     log::warn!(
-                        "disconnect_tunnel still broken after recreate; fresh client for Disconnected observe: {err2}"
+                        "disconnect_tunnel still broken after recreate; fresh client for Disconnected observe: {err2:#}"
                     );
                     drop(nym_client);
                     settle_daemon_rpc_quiesce().await;
@@ -669,9 +689,10 @@ pub async fn resolve_hostname_with_retry(
 #[cfg(test)]
 mod tests {
     use super::{
-        AccountWaiter, DisconnectClient, ExpectedTunnelState, TunnelObserver, account_target,
-        DisconnectRpcClass, classify_disconnect_rpc, enforce_tunnel_wait_deadline,
-        is_daemon_rpc_transport_error, is_daemon_rpc_transport_message, merge_wait_and_client,
+        AccountWaiter, DisconnectClient, DisconnectRpcClass, ExpectedTunnelState, TunnelObserver,
+        account_target, classify_disconnect_nym_error, classify_disconnect_rpc,
+        enforce_tunnel_wait_deadline, is_daemon_rpc_transport_error,
+        is_daemon_rpc_transport_message, is_nym_client_transport_error, merge_wait_and_client,
         run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
         tunnel_wait_budget, tunnel_wait_params,
     };
@@ -949,6 +970,44 @@ mod tests {
     }
 
     #[test]
+    fn transport_classifier_walks_rpc_status_source_chain() {
+        // CI 30301269297: Display is only "Rpc call returned error"; transport is on Status.
+        let err = NymClientError::Rpc(tonic::Status::unknown(
+            "transport error: stream closed because of a broken pipe",
+        ));
+        assert_eq!(err.to_string(), "Rpc call returned error");
+        assert!(!is_daemon_rpc_transport_message(&err.to_string()));
+        assert!(is_nym_client_transport_error(&err));
+        assert_eq!(
+            classify_disconnect_nym_error(&Err(err)),
+            DisconnectRpcClass::TransportRecoverable
+        );
+
+        let chained = anyhow::Error::new(NymClientError::Rpc(tonic::Status::unknown(
+            "transport error: stream closed because of a broken pipe",
+        )))
+        .context("Failed to disconnect");
+        assert!(is_daemon_rpc_transport_error(&chained));
+
+        assert!(!is_nym_client_transport_error(
+            &NymClientError::AuthenticationRequired
+        ));
+        assert!(!is_daemon_rpc_transport_error(&anyhow::anyhow!(
+            "Rpc call returned error"
+        )));
+
+        // store_account_idempotent must wrap with .context, not bail!("{err}"), or retry misses.
+        let store_shaped = anyhow::Error::new(NymClientError::Rpc(tonic::Status::unknown(
+            "transport error: stream closed because of a broken pipe",
+        )))
+        .context("store_account RPC failed");
+        assert!(is_daemon_rpc_transport_error(&store_shaped));
+        let lost_source =
+            anyhow::anyhow!("store_account RPC failed: Rpc call returned error");
+        assert!(!is_daemon_rpc_transport_error(&lost_source));
+    }
+
+    #[test]
     fn disconnect_rpc_classifier_selects_recovery_branches() {
         assert_eq!(
             classify_disconnect_rpc(true, None),
@@ -968,6 +1027,10 @@ mod tests {
         assert_eq!(
             classify_disconnect_rpc(false, None),
             DisconnectRpcClass::Fatal
+        );
+        assert_eq!(
+            classify_disconnect_nym_error(&Ok(true)),
+            DisconnectRpcClass::Success
         );
     }
 
