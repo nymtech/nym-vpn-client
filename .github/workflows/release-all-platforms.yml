@@ -413,7 +413,7 @@ jobs:
       release_channel: ${{ needs.resolve.outputs.channel }}
       version: ${{ needs.resolve.outputs.version }}
       nightly_timestamp: ${{ needs.resolve.outputs.nightly_timestamp }}
-      android: ${{ needs.resolve.outputs.android == 'true' }}
+      android: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -524,7 +524,7 @@ jobs:
       tag: ${{ needs.resolve.outputs.tag }}
       github_release_type: ${{ needs.resolve.outputs.gh_release_type }}
       version: ${{ needs.resolve.outputs.version }}
-      android: ${{ needs.resolve.outputs.android == 'true' }}
+      android: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
