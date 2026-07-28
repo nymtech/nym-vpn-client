@@ -1,11 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    collections::HashSet,
-    fmt,
-    net::{IpAddr, SocketAddr},
-};
+use std::{collections::HashSet, fmt, net::IpAddr};
 
 use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
 use itertools::Itertools;
@@ -453,44 +449,10 @@ pub struct Authenticator {
     pub address: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct BridgeInformation {
-    pub version: String,
-    pub transports: Vec<BridgeParameters>,
-}
-
-impl BridgeInformation {
-    pub fn get_addrs(&self) -> Vec<SocketAddr> {
-        let mut addrs = Vec::new();
-        for transport in &self.transports {
-            match transport {
-                BridgeParameters::QuicPlain(params) => addrs.extend(&params.addresses),
-            }
-        }
-        addrs
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(tag = "transport_type", content = "args")]
-#[serde(rename_all = "snake_case")]
-pub enum BridgeParameters {
-    QuicPlain(QuicClientOptions),
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct QuicClientOptions {
-    /// Address describing the remote transport server. This is a vec to support multiple addresses
-    /// so as to support both IPv4 and IPv6. These addresses are meant to describe a single bridge
-    /// as the key material should not be used across multiple instances.
-    pub addresses: Vec<std::net::SocketAddr>,
-
-    /// Override hostname used for certificate verification
-    pub host: Option<String>,
-
-    /// Use identity public key to verify server self signed certificate
-    pub id_pubkey: String,
-}
+pub use nym_bridges_types::ClientConfig as BridgeParameters;
+pub use nym_bridges_types::PersistedClientConfig as BridgeInformation;
+pub use nym_bridges_types::quic::ClientOptions as QuicClientOptions;
+pub use nym_bridges_types::tls::ClientOptions as TlsClientOptions;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Role {

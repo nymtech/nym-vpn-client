@@ -1299,11 +1299,11 @@ impl TunnelMonitor {
             on_quic_socket_open,
         )
         .await?;
-        let remote_addr = bridge_conn.endpoint;
-        let (listen_addr, join_handle) = transports::UdpForwarder::launch(
+        let remote_addr = bridge_conn.endpoint();
+        let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
             bridge_conn,
             None,
-            bridge_close_tx,
+            Some(bridge_close_tx),
             self.shutdown_token.child_token(),
         )
         .await?;
