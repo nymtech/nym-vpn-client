@@ -115,6 +115,16 @@ jobs:
           xcrun simctl boot "$DEVICE_ID" || true
           echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
 
+      # The Maestro CLI runs on the JVM. The self-hosted Apple Silicon runners
+      # have no system Java, so install it per-job rather than relying on the
+      # host - the AppleSilicon label covers more than one machine and their
+      # ambient tooling differs. Same JDK as ci-maestro-android.yml.
+      - name: Set up JDK 21
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
       - name: Install Maestro
         env:
           MAESTRO_VERSION: "2.2.0"
