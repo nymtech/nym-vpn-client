@@ -4,10 +4,22 @@ on:
   # NOTE: pick the release branch in the "Run workflow" ref selector.
   workflow_dispatch:
     inputs:
-      publish_github_release:
-        description: "Publish on GitHub (leave unchecked for dry-run)"
-        type: boolean
-        default: false
+      gh_release:
+        description: |
+          Github release mode:
+            - none = no release
+            - draft = draft release
+            - auto = based on branch and release channel
+              release/*, ship -> release
+              release/*, beta -> prerelease,
+              develop, nightly -> prerelease
+              rest: draft
+        type: choice
+        default: 'none'
+        options:
+          - none
+          - draft
+          - auto
       release_channel:
         description: "Release channel"
         type: choice
@@ -46,10 +58,10 @@ on:
         default: false
   workflow_call:
     inputs:
-      publish_github_release:
-        description: "Release on GitHub? (leave unchecked for dry-run)"
-        type: boolean
-        default: false
+      gh_release:
+        description: "Github release mode (none, draft, auto)"
+        type: string
+        default: 'draft' # none, draft, public
       release_channel:
         description: "Release channel"
         type: string # nightly, beta, ship
@@ -115,7 +127,8 @@ jobs:
   resolve:
     runs-on: arc-linux-latest
     outputs:
-      publish_github_release: ${{ steps.flags.outputs.publish_github_release }}
+      gh_release: ${{ steps.flags.outputs.gh_release }}
+      gh_release_type: ${{ steps.flags.outputs.gh_release_type }}
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
       nightly_timestamp: ${{ steps.v.outputs.nightly_timestamp || '' }}
@@ -153,23 +166,9 @@ jobs:
           IN_IOS: ${{ inputs.ios }}
           IN_MACOS: ${{ inputs.macos }}
           IN_PUBLISH_METADATA: ${{ inputs.publish-metadata }}
-          IN_PUBLISH_GITHUB_RELEASE: ${{ inputs.publish_github_release }}
+          IN_GH_RELEASE: ${{ inputs.gh_release }}
         run: |
           set -euo pipefail
-
-          # Used for testing purposes when running this workflow from PR
-          if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
-            echo "::notice:: dry-run release from ref $REF_NAME (event $EVENT)"
-            echo "::notice:: nightly → all platforms (dry run)"
-            {
-              echo "publish_github_release=false"
-              echo "channel=nightly"
-              echo "android=true"; echo "fdroid=true"; echo "linux=true"
-              echo "windows=true"; echo "ios=true"; echo "macos=true"
-              echo "publish_metadata=false"
-            } >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
 
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
 
@@ -202,14 +201,38 @@ jobs:
 
           # Google Play metadata skip toggle
           PUBLISH_METADATA="${IN_PUBLISH_METADATA:-true}"
-          PUBLISH_GITHUB_RELEASE="${IN_PUBLISH_GITHUB_RELEASE:-true}"
+          GH_RELEASE="${IN_GH_RELEASE:-none}"
+
+          if [[ "$GH_RELEASE" != "none" || "$GH_RELEASE" != "draft" || "$GH_RELEASE" != "auto"  ]]; then
+            echo "::error:: Unknown GitHub release mode: $GH_RELEASE"
+            exit 1
+          fi
+
+          if [[ "$GH_RELEASE" = "none" || "$GH_RELEASE" = "draft" ]]; then
+            GH_RELEASE_TYPE="draft"
+
+          elif [[ "$REF_NAME" == release/* ]] && [ "$CHANNEL" = "ship" ]; then
+            GH_RELEASE_TYPE="release"
+
+          elif [[ "$REF_NAME" == release/* ]] && [ "$CHANNEL" = "beta" ]; then
+            GH_RELEASE_TYPE="prerelease"
+
+          elif [ "$REF_NAME" = "develop" ] && [ "$CHANNEL" = "nightly" ]; then
+            GH_RELEASE_TYPE="prerelease"
+
+          else
+            GH_RELEASE_TYPE="draft"
+          fi
+
+          echo "::notice:: Github release type: $GH_RELEASE_TYPE"
 
           {
-            echo "publish_github_release=$PUBLISH_GITHUB_RELEASE"
             echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
             echo "publish_metadata=$PUBLISH_METADATA"
+            echo "gh_release=$GH_RELEASE"
+            echo "gh_release_type=$GH_RELEASE_TYPE"
           } >> "$GITHUB_OUTPUT"
 
       - uses: baptiste0928/cargo-install@v3
@@ -233,8 +256,14 @@ jobs:
         id: check_release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_RELEASE_TYPE: ${{ needs.resolve.outputs.gh_release_type }}
         run: |
           TAG="${{ needs.resolve.outputs.tag }}"
+          if [ "$GH_RELEASE_TYPE" = "draft" ] ; then
+            echo "::warning:: Skip tag check for draft release"
+            exit 0
+          fi
+
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
             echo "::error:: Release $TAG already exists. Aborting"
             exit 1
@@ -493,21 +522,13 @@ jobs:
   release:
     needs: [resolve, build-outputs]
     if: |
-      !cancelled() && needs.build-outputs.result == 'success' && needs.resolve.outputs.publish_github_release == 'true'
+      !cancelled() && needs.build-outputs.result == 'success' && needs.resolve.outputs.gh_release != 'none'
     uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
     with:
       tag: ${{ needs.resolve.outputs.tag }}
-      github_release_type: |-
-        ${{
-          case(
-            startsWith(github.ref_name, 'release/') && needs.resolve.outputs.channel == 'ship', 'release',
-            startsWith(github.ref_name, 'release/') && needs.resolve.outputs.channel == 'beta', 'prerelease',
-            github.ref_name == 'develop' && needs.resolve.outputs.channel == 'nightly', 'prerelease',
-            'draft'
-          )
-        }}
+      github_release_type: ${{ needs.resolve.outputs.gh_release_type }}
       version: ${{ needs.resolve.outputs.version }}
       android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
@@ -524,7 +545,7 @@ jobs:
     needs: [resolve, build-outputs, release]
     # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
-      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' && needs.resolve.outputs.gh_release_type != 'draft'
     uses: ./.github/workflows/distribute-release.yml
     permissions:
       contents: read
@@ -541,7 +562,8 @@ jobs:
   zulip:
     needs: [resolve, release, build-outputs, distribute]
     if: |
-      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success'
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' &&
+      needs.resolve.outputs.gh_release_type != 'draft'
     uses: ./.github/workflows/zulip-notify-release.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
