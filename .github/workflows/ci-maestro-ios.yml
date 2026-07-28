@@ -53,12 +53,18 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      # Build the iOS Rust core (libwg + NymVPNLibUniffi.xcframework with device
-      # AND simulator slices) and stage it where the Xcode packages expect it.
-      # Debug build (RELEASE=false) — no code signing required.
+      # Build the iOS Rust core (libwg + NymVPNLibUniffi.xcframework) and stage it
+      # where the Xcode packages expect it. Debug build (RELEASE=false) — no code
+      # signing required.
+      #
+      # RUST_TRIPLET overrides iOS.mk's aarch64-apple-ios default so the
+      # xcframework carries the simulator slice instead of the device one. Maestro
+      # drives the iPhone 16 simulator, so that is the only slice needed here, and
+      # cargo-swift accepts --target once. build-wireguard-go.sh --ios already
+      # produces libwg.a for every iOS slice, so the libwg prerequisite resolves.
       - name: Build NymVPNLib (iOS core)
         working-directory: nym-vpn-core
-        run: make -f iOS.mk RELEASE=false
+        run: make -f iOS.mk RELEASE=false RUST_TRIPLET=aarch64-apple-ios-sim
 
       - name: Stage NymVPNLib into the apple project
         run: |
