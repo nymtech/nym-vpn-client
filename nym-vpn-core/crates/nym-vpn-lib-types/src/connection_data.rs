@@ -114,6 +114,9 @@ pub enum EstablishConnectionState {
     /// Awaiting for account to be ready for establishing connection
     AwaitingAccountReadiness,
 
+    /// Awaiting for credentials to be ready for establishing connection
+    AwaitingCredentialsAvailability,
+
     /// Refreshing gateways
     RefreshingGateways,
 
@@ -132,6 +135,9 @@ impl fmt::Display for EstablishConnectionState {
         f.write_str(match self {
             EstablishConnectionState::ResolvingApiAddresses => "resolving api addresses",
             EstablishConnectionState::AwaitingAccountReadiness => "awaiting account readiness",
+            EstablishConnectionState::AwaitingCredentialsAvailability => {
+                "awaiting credentials availability"
+            }
             EstablishConnectionState::RefreshingGateways => "refreshing gateways",
             EstablishConnectionState::SelectingGateways => "selecting gateways",
             EstablishConnectionState::RegisteringWithGateways => "registering with gateways",

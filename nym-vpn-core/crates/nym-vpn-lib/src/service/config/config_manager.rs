@@ -20,7 +20,7 @@ use crate::{
     service::{
         config::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
-            VpnServiceConfigVersion, legacy,
+            VpnServiceConfigVersion, geo_exclusion_settings, legacy,
         },
         error::{Error, GeoExclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
@@ -338,38 +338,21 @@ impl VpnServiceConfigManager {
         &mut self,
         listen_port: u16,
     ) -> Result<(), GeoExclusionConfigError> {
-        // Port 1080 is reserved for mixnet socks5 proxy
-        const RESERVED_PORT: u16 = 1080;
+        geo_exclusion_settings::v9::validate_listen_port(listen_port)?;
 
-        if listen_port == RESERVED_PORT {
-            Err(GeoExclusionConfigError::ReservedPort(listen_port))
-        } else if listen_port == 0 {
-            Err(GeoExclusionConfigError::InvalidPort)
-        } else if self.config.geo_exclusion.listen_port != listen_port {
+        if self.config.geo_exclusion.listen_port != listen_port {
             self.config.geo_exclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
-            Ok(())
-        } else {
-            Ok(())
         }
+
+        Ok(())
     }
 
     pub async fn set_geo_exclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
     ) -> Result<(), GeoExclusionConfigError> {
-        for country in &excluded_countries {
-            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
-                return Err(GeoExclusionConfigError::InvalidCountryCode(country.clone()));
-            } else if country != "CN" {
-                return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
-            }
-        }
-
-        // Temporary:  At the moment Geo Exclusion is only supported for China
-        if !excluded_countries.iter().any(|c| c == "CN") {
-            return Err(GeoExclusionConfigError::CnRequired);
-        }
+        geo_exclusion_settings::v9::validate_excluded_countries(&excluded_countries)?;
 
         if self.config.geo_exclusion.excluded_countries != excluded_countries {
             self.config.geo_exclusion.excluded_countries = excluded_countries;

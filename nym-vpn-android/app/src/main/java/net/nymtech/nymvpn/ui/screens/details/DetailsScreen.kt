@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,13 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,10 +37,9 @@ import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionIdentity
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPerformance
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPrivacy
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsTopSection
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
+import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.topBorder
@@ -75,10 +72,12 @@ fun DetailsScreen(appUiState: AppUiState, id: String, gatewayLocation: String, v
 	}
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	LaunchedEffect(gatewayType, initialGateways) {
-		viewModel.filterGateways(id, initialGateways)
+		viewModel.filterGateways(id, initialGateways, location)
 	}
 	DetailsScreen(
 		detailsUiState = uiState,
+		isQuicEnabledLocally = appUiState.settings.quicEnabled,
+		gatewayType = gatewayType,
 		onSelectServerClick = {
 			viewModel.onSelected(uiState.identity, location)
 			navController.navigateAndForget(Route.Main())
@@ -86,39 +85,56 @@ fun DetailsScreen(appUiState: AppUiState, id: String, gatewayLocation: String, v
 		onEnableQuicProtocolClick = {
 			navController.navigate(Route.Censorship)
 		},
+		onToggleFavorite = {
+			viewModel.onToggleFavorite()
+		},
 	)
 }
 
 @Composable
-fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit, onEnableQuicProtocolClick: () -> Unit) {
+fun DetailsScreen(
+	detailsUiState: DetailsUiState,
+	isQuicEnabledLocally: Boolean,
+	gatewayType: GatewayType,
+	onSelectServerClick: () -> Unit,
+	onEnableQuicProtocolClick: () -> Unit,
+	onToggleFavorite: () -> Unit,
+) {
+	val performanceScore = when (gatewayType) {
+		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> detailsUiState.mixnetScore
+		GatewayType.WG -> detailsUiState.score
+	}
 	Column(
-		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
-		horizontalAlignment = Alignment.Start,
 		modifier = Modifier
 			.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background),
 	) {
 		Column(
+			verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
 			modifier = Modifier
 				.fillMaxWidth()
-				.background(MaterialTheme.colorScheme.background)
 				.weight(1f)
 				.verticalScroll(rememberScrollState())
-				.padding(24.dp),
+				.padding(vertical = 20.dp, horizontal = 16.dp),
 		) {
 			DetailsTopSection(
 				name = detailsUiState.name,
 				countryCode = detailsUiState.countryCode,
 				location = detailsUiState.location,
 				description = detailsUiState.description,
+				isFavorite = detailsUiState.isFavorite,
+				onToggleFavorite = onToggleFavorite,
 			)
-			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
 			DetailsSectionPrivacy(
 				asnKind = detailsUiState.asnKind,
 				isQuicSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
+				isPostQuantumEnabled = detailsUiState.isPostQuantumEnabled,
+				nodeFamilyName = detailsUiState.nodeFamilyName,
+				isQuicEnabledLocally = isQuicEnabledLocally,
 				onEnableQuicProtocolClick = onEnableQuicProtocolClick,
 			)
-			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
+			DetailsSectionPerformance(performanceScore, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
+			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
 			DetailsSectionIdentity(detailsUiState.identity, detailsUiState.buildVersion)
 			DetailsSectionBottom(detailsUiState.identity)
 		}
@@ -138,14 +154,14 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 				content = {
 					Text(
 						stringResource(R.string.details_select_server_button),
-						style = Typography.titleMedium,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimary,
 					)
 				},
-				color = MaterialTheme.colorScheme.primary,
 				modifier = Modifier
 					.fillMaxWidth()
-					.height(42.dp.scaledHeight()),
+					.height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
 		}
 	}
@@ -174,7 +190,16 @@ internal fun PreviewPrivacyScreen() {
 			exitIpv4 = "12.34.152.125",
 			exitIpv6 = "12:ff:14::155",
 			isQuickSupportedByGateway = true,
+			isPostQuantumEnabled = true,
+			nodeFamilyName = "Nym Family",
 		)
-		DetailsScreen(detailsUiState = detailsUiState, onSelectServerClick = {}, onEnableQuicProtocolClick = {})
+		DetailsScreen(
+			detailsUiState = detailsUiState,
+			isQuicEnabledLocally = false,
+			gatewayType = GatewayType.WG,
+			onSelectServerClick = {},
+			onEnableQuicProtocolClick = {},
+			onToggleFavorite = {},
+		)
 	}
 }

@@ -14,9 +14,6 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
-    outputs:
-      RUST_VERSION:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -25,8 +22,9 @@ jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
-  build-linux:
+  build-nym-vpn-core-linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: "ubuntu-22.04"
@@ -37,8 +35,8 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
     env:
-      UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.arch }}
-      UPLOAD_DIR_DEB: deb_artifacts-${{ matrix.arch }}
+      UPLOAD_DIR_LINUX: core_artifacts_linux_${{ matrix.arch }}
+      UPLOAD_DIR_DEB: deb_artifacts_${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
@@ -99,26 +97,10 @@ jobs:
           version: ${{ inputs.version }}
           target: core
 
-      - name: Set version for nightly builds
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo fetch
-
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard_go-${{ matrix.arch }}
+          name: wireguard-go_${{ matrix.arch }}-linux-unknown
           path: build/lib
 
       - name: Build nym-vpn-core
@@ -127,7 +109,6 @@ jobs:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build --release
-          ls -la nym-vpn-core/target/release/ || true
 
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.
@@ -138,7 +119,6 @@ jobs:
         run: |
           cargo deb -p nym-vpnd --no-build
           cargo deb -p nym-vpnc --no-build
-          ls -la target/debian/ || true
 
       - name: Get rust version used for build
         id: rust-version

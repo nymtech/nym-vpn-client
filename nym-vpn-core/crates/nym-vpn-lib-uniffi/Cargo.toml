@@ -34,6 +34,7 @@ tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing.workspace = true
 serde_json.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
+nym-bandwidth-controller = { workspace = true }
 nym-sdk.workspace = true
 nym-offline-monitor.workspace = true
 nym-diagnostic.workspace = true
@@ -50,6 +51,7 @@ nym-http-api-client.workspace = true
 nym-common.workspace = true
 nym-gateway-directory.workspace = true
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
+nym-favorites.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }

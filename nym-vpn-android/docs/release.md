@@ -24,7 +24,7 @@ Release tags must follow the following patterns:
 1. Navigate to the file `buildSrc/src/main/kotlin/Constants.kt` \
    and update the version name and version code.
    ```kotlin
-   const val VERSION_NAME = "v1.2.3"
+   const val VERSION_NAME = "1.2.3"
    const val VERSION_CODE = 12300
 	```
 	* first three digits of version code should match the version name

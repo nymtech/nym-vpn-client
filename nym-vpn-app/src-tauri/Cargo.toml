@@ -2,9 +2,7 @@
 name = "nym-vpn-app"
 version = "2026.12.0-beta.1"
 description = "NymVPN desktop client"
-authors = [
-    "Nym Technologies SA <contact@nymtech.net>",
-]
+authors = ["Nym Technologies SA <contact@nymtech.net>"]
 license = "GPL-3.0-only"
 documentation = "https://nymtech.net"
 repository = "https://github.com/nymtech/nym-vpn-client"
@@ -16,7 +14,11 @@ build-info-build = "0.0.42"
 toml = "0.9.5"
 
 [dependencies]
-tauri = { version = "2.11.0", features = ["protocol-asset", "tray-icon", "image-png"] }
+tauri = { version = "2.11.0", features = [
+    "protocol-asset",
+    "tray-icon",
+    "image-png",
+] }
 tokio = { version = "1.52.1", features = [
     "rt",
     "sync",
@@ -58,10 +60,13 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
+nym-favorites = { path = "../../nym-vpn-core/crates/nym-favorites" }
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto", features = [
     "rpc_client",
 ] }
-nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types", features = ["serde"] }
+nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types", features = [
+    "serde",
+] }
 
 # tauri deps
 tauri-plugin-os = "2.3.1"

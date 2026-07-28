@@ -1,0 +1,776 @@
+name: build-nym-vpn-app-macos
+permissions:
+  contents: read
+on:
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  #   paths:
+  #     - ".github/workflows/build-nym-vpn-app-macos.yml"
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: |
+          Select build mode:
+          🚜 pr — Pull Request
+          🧪 qa — QA Release
+          🚢 ship — Ship Release
+        type: choice
+        options:
+          - pr
+          - qa
+          - ship
+        default: "pr"
+  workflow_call:
+    inputs:
+      release_type:
+        description: "Build type: pr | qa | ship (raw or labeled)"
+        type: string
+        default: "pr"
+      version:
+        description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
+        type: string
+        default: ""
+    outputs:
+      pkg_installer_name:
+        description: "PKG installer artifact name"
+        value: ${{ jobs.build-nym-vpn-app-macos.outputs.pkg_installer_name }}
+    secrets:
+      APPLE_DEVELOPER_ID_APPLICATION_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS:
+        required: true
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_MACOS: macos_artifacts
+  RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+
+jobs:
+  build-nym-vpn-app-macos:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
+    timeout-minutes: 45
+    outputs:
+      pkg_installer_name: ${{ steps.make-pkg.outputs.pkg_name }}
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Normalize release_type
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Normalizing release type and platform flags..."
+          echo "--------------------------------------------------"
+
+          sel="${{ env.RAW_RELEASE_TYPE }}"
+
+          # Determine normalized mode (pr / qa / ship)
+          case "$sel" in
+            pr|PR)     mode=pr ;;
+            qa|QA)     mode=qa ;;
+            ship|SHIP) mode=ship ;;
+            *)         mode=pr ;;
+          esac
+
+          echo "🧩 Selected mode (raw): $sel"
+          echo "🧩 Normalized mode: $mode"
+
+          # Santa's-menu QA code is gated behind `#if SANTA`. Compile it in for
+          # `qa` only; left OUT of `pr` and `ship` so it is physically absent
+          # from App Store binaries.
+          if [[ "$mode" == "qa" ]]; then santa=1; else santa=0; fi
+
+          # Export environment variables for later steps
+          echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
+          echo "NYM_SANTA=$santa" >> "$GITHUB_ENV"
+
+          echo "✅ Environment successfully configured:"
+          echo "   RELEASE_TYPE=$mode"
+          echo "   NYM_SANTA=$santa"
+          echo "--------------------------------------------------"
+
+      - name: Show selected release type
+        run: echo "RELEASE_TYPE=${{ env.RELEASE_TYPE }}"
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: x86_64-apple-darwin aarch64-apple-darwin
+
+      - name: Install cargo-license
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-license
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache-dependency-path: wireguard/libwg/go.sum
+
+      - name: Add Homebrew, Ruby to PATH
+        run: |
+          set -euxo pipefail
+
+          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
+          RUBY_PREFIX="$(brew --prefix ruby)"
+          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
+          export PATH="${RUBY_PREFIX}/bin:$PATH"
+
+          # Show versions for debugging
+          brew --version
+          ruby --version
+          gem --version
+
+      - name: Install system dependencies
+        run: |
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install brotli
+          brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
+          brew install getsentry/tools/sentry-cli
+
+      - name: Set locale (for Fastlane)
+        run: |
+          echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
+          echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
+
+      - name: Set Xcode directories
+        run: |
+          echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
+          echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
+
+      - name: Install fastlane
+        working-directory: nym-vpn-apple
+        run: |
+          bundle install
+          fastlane --version
+
+      - name: Install python3
+        run: |
+          brew install python
+          python3 --version
+
+      - name: Cache virtual env
+        id: cache-virtual-env
+        uses: actions/cache@v6
+        with:
+          path: python-venv
+          key: ${{ runner.os }}-${{ runner.arch }}-python-venv
+
+      - name: Setup virtual env
+        if: steps.cache-virtual-env.outputs.cache-hit != 'true'
+        run: python3 -m venv python-venv
+
+      - name: Activate virtual env
+        run: |
+          source python-venv/bin/activate
+          echo "$GITHUB_WORKSPACE/python-venv/bin" >> $GITHUB_PATH
+
+      - name: Install codemagic-cli-tools
+        run: |
+          python3 -m pip install codemagic-cli-tools
+          keychain --version
+
+      - name: Apply orchestrated version (apple)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: apple
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
+      - name: Get package version
+        id: core-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core/Cargo.toml
+
+      - name: Update prebundled servers
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        working-directory: nym-vpn-apple/scripts
+        run: |
+          sh UpdatePrebundledServers.sh
+
+      - name: Update licences
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        run: |
+          cargo license -j \
+            --avoid-dev-deps \
+            --current-dir ./nym-vpn-core \
+            --filter-platform x86_64-apple-darwin \
+            --avoid-build-deps \
+            > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
+
+      - name: Prepare Keychain and import Developer ID certificate
+        working-directory: nym-vpn-apple
+        id: setup-keychain
+        env:
+          DEVELOPER_ID_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+          DEVELOPER_ID_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+          DEVELOPER_ID_INSTALLER_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS }}
+        run: |
+          set -euo pipefail
+
+          KEYCHAIN_PASSPHRASE=$(echo $(date +%s%N) | sha256sum | head -c 10)
+          KEYCHAIN_NAME="$(date +%d-%m-%y)_$(echo $(date +%s%N) | sha256sum | head -c 10).keychain-db"
+          KEYCHAIN_PATH="$HOME/Library/codemagic-cli-tools/keychains/$KEYCHAIN_NAME"
+
+          echo "🔐 Initializing Codemagic keychain..."
+          keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
+          keychain show-info
+
+          echo "📥 Importing Developer ID certificate..."
+          echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
+          keychain add-certificates \
+            --certificate developer_id.p12 \
+            --certificate-password "$DEVELOPER_ID_CERT_PASS" \
+            --allow-all-applications # todo: restore --allow-app
+            #--allow-app productbuild \
+            #--allow-app codesign \
+            #--allow-app productsign
+
+          echo "📥 Importing Developer ID Installer certificate..."
+          echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
+          keychain add-certificates \
+            --certificate developer_id_installer.p12 \
+            --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
+            --allow-all-applications # todo: restore --allow-app
+            #--allow-app productbuild \
+            #--allow-app codesign \
+            #--allow-app productsign
+          echo "✅ Keychain and certificates imported successfully."
+
+          echo "Set key partition list..."
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
+          echo "✅ Shared key partition with apple tools."
+
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and import signing files
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          echo "📦 Downloading macOS provisioning profiles..."
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN macOS + Daemon" \
+            --save
+
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN daemon" \
+            --save
+
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN macOS Widget" \
+            --save
+
+          echo "✅ Signing files successfully fetched and imported."
+
+      - name: Install Apple WWDR Intermediates
+        uses: ./.github/workflows/apple/install-wwdr
+        with:
+          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
+
+      - name: Update core version in app
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        run: |
+          set -euo pipefail
+
+          # Get version from Cargo.toml workspace
+          LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core/Cargo.toml)
+          echo "📦 Core library version: ${LIB_VERSION}"
+
+          # Path to Swift source file
+          app_version_file="nym-vpn-apple/ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
+
+          # Validate and update
+          if [[ -f "$app_version_file" ]]; then
+            # macOS/BSD sed syntax: -i ''
+            sed -i '' -E 's|(public static let libVersion = ")[^"]*(")|\1'"$LIB_VERSION"'\2|' "$app_version_file"
+            echo "✅ libVersion updated to ${LIB_VERSION} in ${app_version_file}."
+          else
+            echo "❌ Error: AppVersionProvider.swift file not found at ${app_version_file}"
+            exit 1
+          fi
+
+      - name: Update localizations Crowdin
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          crowdin_prefix="$(brew --prefix crowdin)"
+          export PATH="$crowdin_prefix/bin:$PATH"
+
+          crowdin download translations \
+            --config crowdin-configs/macos-ios.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
+
+      - name: Handle santa menu
+        working-directory: nym-vpn-apple
+        env:
+          RELEASE: ${{ env.RELEASE_TYPE == 'ship' }}
+        run: |
+          DAEMON_PLIST="NymVPNDaemon/Resources/Info.plist"
+          if [[ -f "${DAEMON_PLIST}" ]]; then
+            if [[ "${RELEASE}" == "false" ]]; then
+              # String, not bool: isRunningOnCI reads this via `as? String` (a bool cast
+              # fails → Santa silently off). Tracked plist + CI Set both keep it a string.
+              /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "${DAEMON_PLIST}" 2>/dev/null \
+                || /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "${DAEMON_PLIST}"
+              echo "[BuildCore] 🎅 Santa's menu enabled (IsCiBuild=true)"
+            else
+              /usr/libexec/PlistBuddy -c 'Set :IsCiBuild $(IS_CI_BUILD)' "${DAEMON_PLIST}" 2>/dev/null || true
+              echo "[BuildCore] Santa's menu plist flag restored to \$(IS_CI_BUILD)"
+            fi
+          else
+            echo "[BuildCore] ⚠️ ${DAEMON_PLIST} not found, skipping Santa plist flag"
+          fi
+
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNLib || true
+          mkdir NymVPNLib || true
+          cd NymVPNLib
+          swift package init --type library --name NymVPNLib --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: core_artifacts_macos
+          path: core_artifacts_macos
+
+      - name: Move core artifacts
+        run: |
+          VPND_DEST_DIR="nym-vpn-apple/NymVPND"
+
+          for f in nym-vpnd nym-socks5-proxy nym-setup; do
+            mv "core_artifacts_macos/${f}" "${VPND_DEST_DIR}/${f}"
+            chmod +x "${VPND_DEST_DIR}/${f}"
+          done
+
+          mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
+
+      - name: Archive macOS
+        id: archive-macos
+        working-directory: nym-vpn-apple
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 14.0
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+        run: |
+          set -euo pipefail
+
+          ARCHIVE_PATH="$PWD/build/NymVPN.xcarchive"
+          EXPORT_PATH="$PWD/builds"
+          EXPORT_PLIST="$PWD/export_options.plist"
+
+          mkdir -p "$EXPORT_PATH"
+
+          # Create export options plist with explicit profile-to-bundle-ID mapping
+          cat > "$EXPORT_PLIST" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>developer-id</string>
+            <key>teamID</key><string>${DEVELOPMENT_TEAM}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Developer ID Application</string>
+            <key>stripSwiftSymbols</key><true/>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>net.nymtech.vpn</key>
+              <string>NymVPN macOS + Daemon</string>
+              <key>net.nymtech.vpn.daemon</key>
+              <string>NymVPN daemon</string>
+              <key>net.nymtech.vpn.macOSwidget</key>
+              <string>NymVPN macOS Widget</string>
+            </dict>
+          </dict>
+          </plist>
+          PLIST
+
+          echo "Debug: Checking workspace and scheme..."
+          ls -la NymVPN.xcworkspace
+          ls -la NymVPN.xcodeproj/xcshareddata/xcschemes/
+
+          echo "Debug: Code signing identity: ${DEVELOPER_ID_APP_IDENTITY}"
+          echo "Debug: Development team: ${DEVELOPMENT_TEAM}"
+
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning
+
+          echo "🔐 Resolving macOS provisioning profile specifiers..."
+          DAEMON_PROFILE_SPEC=""
+          WIDGET_PROFILE_SPEC=""
+
+          for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
+            [[ -f "$profile" ]] || continue
+            name=$(security cms -D -i "$profile" | plutil -extract Name raw -o - -- -)
+            case "$name" in
+              "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
+              "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
+            esac
+          done
+
+          if [[ -z "$DAEMON_PROFILE_SPEC" || -z "$WIDGET_PROFILE_SPEC" ]]; then
+            echo "❌ Could not resolve macOS profile specifiers"
+            echo "   Daemon: '${DAEMON_PROFILE_SPEC:-NOT FOUND}'"
+            echo "   Widget: '${WIDGET_PROFILE_SPEC:-NOT FOUND}'"
+            exit 1
+          fi
+
+          echo "✅ Daemon profile: $DAEMON_PROFILE_SPEC"
+          echo "✅ Widget profile: $WIDGET_PROFILE_SPEC"
+
+          echo "Archiving macOS app..."
+          xcodebuild archive \
+            -workspace "NymVPN.xcworkspace" \
+            -scheme "NymVPNDaemon" \
+            -configuration "Release" \
+            -archivePath "$ARCHIVE_PATH" \
+            -destination "generic/platform=macOS" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
+            MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
+            MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp" | xcbeautify --renderer github-actions
+
+          # Verify archive was created
+          if [[ ! -d "$ARCHIVE_PATH" ]]; then
+            echo "Archive not created at $ARCHIVE_PATH"
+            exit 1
+          fi
+
+          echo "Exporting macOS app..."
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_PLIST"
+
+          # Find the exported app
+          APP_PATH="$(find "$EXPORT_PATH" -maxdepth 1 -type d -name 'NymVPN*.app' -print -quit)"
+          if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
+            echo "❌ Could not find exported app in $EXPORT_PATH"
+            ls -la "$EXPORT_PATH"
+            exit 1
+          fi
+
+          echo "✅ App exported to: $APP_PATH"
+          echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Create PKG
+        id: make-pkg
+        working-directory: nym-vpn-apple
+        env:
+          INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+          CORE_VERSION: ${{ steps.core-version.outputs.metadata }}
+        run: |
+          set -euo pipefail
+
+          KEYCHAIN_PATH="${{ steps.setup-keychain.outputs.keychain_path }}"
+          APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
+          APP_PLIST_PATH="$APP_PATH/Contents/Info.plist"
+          PRODUCT_NAME="$(plutil -extract CFBundleName raw $APP_PLIST_PATH)"
+          PRODUCT_BUNDLE_IDENTIFIER="$(plutil -extract CFBundleIdentifier raw $APP_PLIST_PATH)"
+          MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
+          MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
+
+          STAGING_DIRECTORY="$PWD/build/pkg"
+          PKG_NAME="NymVPN-${CORE_VERSION}.pkg"
+          PKG_PATH="$STAGING_DIRECTORY/$PKG_NAME"
+          STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
+
+          COMPONENT_PLIST_FILE="$STAGING_DIRECTORY/component.plist"
+          DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
+          UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-${CORE_VERSION}-unsigned.pkg"
+          NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
+
+          # Directory with pkg scripts
+          SCRIPTS_DIR="$PWD/Installer/Scripts"
+          # Directory with pkg resources (images)
+          RESOURCES_DIR="$PWD/Installer/Resources"
+
+          # Ensure that staging directory is empty and exists
+          rm -rf "$STAGING_DIRECTORY" || true
+          mkdir -p "$STAGING_DIRECTORY"
+
+          # Copy NymVPN.app into staging directory for the app
+          echo "Copying $APP_PATH to $STAGING_APP_DIR"
+          mkdir "$STAGING_APP_DIR"
+          cp -R "$APP_PATH" "$STAGING_APP_DIR"
+          ls -la "$STAGING_APP_DIR"
+
+          # Generate the component property list.
+          pkgbuild --analyze --root "$STAGING_APP_DIR" "$COMPONENT_PLIST_FILE"
+
+          # Force the installation package (.pkg) to not be relocatable.
+          # This ensures the package components install in /Applications
+          plutil -replace "0.BundleIsRelocatable" -bool NO "$COMPONENT_PLIST_FILE"
+
+          # Allow downgrades
+          plutil -replace "0.BundleIsVersionChecked" -bool NO "$COMPONENT_PLIST_FILE"
+
+          # Build a temporary package using the component property list.
+          pkgbuild --root "$STAGING_APP_DIR" \
+              --identifier "$PRODUCT_BUNDLE_IDENTIFIER" \
+              --version "$MARKETING_VERSION" \
+              --install-location "/Applications" \
+              --scripts "$SCRIPTS_DIR" \
+              --min-os-version "$MIN_OS_VERSION" \
+              --compression latest \
+              --component-plist "$COMPONENT_PLIST_FILE" \
+              "$NESTED_PKG_PATH"
+
+          # Synthesize the distribution for the temporary package.
+          productbuild --synthesize --package "$NESTED_PKG_PATH" "$DIST_XML_FILE"
+
+          # Customize installer:
+          # - enable_anywhere=false - restrict installation to system volume only, i.e no installs on external drives
+          # - enable_currentUserHome=false - prevent installation into home dir
+          # - enable_localSystem=true - enable installation into root
+          # Reference: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
+          xmlstarlet edit --inplace \
+              --subnode '//installer-gui-script' --type elem -n 'domains' \
+              --append '//installer-gui-script/domains' --type attr -n 'enable_anywhere' --value 'false' \
+              --append '//installer-gui-script/domains' --type attr -n 'enable_currentUserHome' --value 'false' \
+              --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
+              "$DIST_XML_FILE"
+
+          # Add element to prompt user to close the app before installation
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "pkg-ref" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'id' --value 'net.nymtech.vpn' \
+            --subnode '$new_node' --type elem -n 'must-close' \
+            --var new_node '$prev' \
+            --subnode '$new_node' --type elem -n 'app' \
+            --append '$prev' --type attr -n 'id' --value 'net.nymtech.vpn' \
+            "$DIST_XML_FILE"
+
+          # Add title which acts as an app name
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "title" --value "$PRODUCT_NAME" \
+            "$DIST_XML_FILE"
+
+          echo "✅ Distribution XML:"
+          cat "$DIST_XML_FILE"
+
+          # Synthesize the final package from the distribution.
+          productbuild --distribution "$DIST_XML_FILE" --resources "$RESOURCES_DIR" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
+          echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
+
+          # Sign separately since productbuild gets stuck on keychain password prompt when signing
+          productsign --timestamp \
+              --keychain "$KEYCHAIN_PATH" \
+              --sign "$INSTALLER_SIGNING_IDENTITY" \
+              "$UNSIGNED_PKG_PATH" "$PKG_PATH"
+
+          echo "✅ Signed PKG is written to: $PKG_PATH"
+          echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
+          echo "pkg_name=$PKG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Write App Store Connect API key
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        id: asc-key
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          KEY_DIR="$HOME/private_keys"
+          mkdir -p "$KEY_DIR"
+          KEY_PATH="$KEY_DIR/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8"
+          echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
+          echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+          echo "✅ ASC API key written to $KEY_PATH"
+
+      - name: Notarize PKG (Developer Installer ID)
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        id: notarize-pkg
+        working-directory: nym-vpn-apple
+        env:
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
+        run: |
+          set -euxo pipefail
+
+          PKG="${{ steps.make-pkg.outputs.pkg_path }}"
+          test -f "$PKG" || { echo "❌ PKG not found at $PKG"; exit 1; }
+          test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
+
+          OUT_JSON="$PWD/build/pkg/notarytool-log.json"
+          echo "📤 Submitting $PKG for notarization…"
+
+          xcrun notarytool submit "$PKG" \
+            --key "$ASC_KEY_PATH" \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
+            --wait \
+            --output-format json | tee "$OUT_JSON"
+
+          STATUS=$(jq -r .status "$OUT_JSON")
+          REQUEST_ID=$(jq -r .id "$OUT_JSON")
+
+          if [[ "$STATUS" != "Accepted" ]]; then
+            echo "❌ Notarization failed ($STATUS)"
+            echo "🪵 Fetching detailed log for Request ID: $REQUEST_ID"
+
+            LOG_PATH="$PWD/build/pkg/notarytool-log-detailed.json"
+            xcrun notarytool log "$REQUEST_ID" \
+              --key "$ASC_KEY_PATH" \
+              --key-id "$ASC_KEY_ID" \
+              --issuer "$ASC_ISSUER_ID" \
+              --output-format json | tee "$LOG_PATH"
+
+            echo "📋 Detailed log saved at: $LOG_PATH"
+            cat "$LOG_PATH"
+            exit 1
+          fi
+
+          echo "✅ Notarization status: Accepted"
+          echo "📎 Stapling PKG…"
+          xcrun stapler staple "$PKG"
+          xcrun stapler validate "$PKG"
+
+      - name: Move assets for upload
+        env:
+          PKG: ${{ steps.make-pkg.outputs.pkg_path }}
+        run: |
+          mkdir -p "${{ env.UPLOAD_DIR_MACOS }}"
+          cp "$PKG" "${{ env.UPLOAD_DIR_MACOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.UPLOAD_DIR_MACOS }}
+          path: ${{ env.UPLOAD_DIR_MACOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload macOS dSYMs to Sentry (nightly)
+        if: ${{ env.RELEASE_TYPE == 'qa' }}
+        working-directory: nym-vpn-apple
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
+          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          DSYMS_DIR="$PWD/build/NymVPN.xcarchive/dSYMs"
+          if [[ ! -d "$DSYMS_DIR" ]]; then
+            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
+            ls -la "$PWD/build" || true
+            exit 0
+          fi
+
+          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
+            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
+            exit 0
+          fi
+
+          echo "📤 Uploading macOS debug files from: $DSYMS_DIR"
+          sentry-cli debug-files upload  \
+            --auth-token "$SENTRY_AUTH_TOKEN" \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --include-sources "$DSYMS_DIR"
+
+      - name: Cleanup Keychain
+        if: always()
+        run: |
+          set -euo pipefail
+
+          echo "🧹 Cleaning up Codemagic keychain..."
+          keychain delete
+
+          echo "🧹 Removing downloaded certificates..."
+          if [ -d "$CERTIFICATES_DIR" ]; then
+            rm -rf "$CERTIFICATES_DIR"/*
+          fi
+
+          echo "🧹 Removing downloaded provisioning profiles..."
+          if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
+            rm -rf "$PROVISIONING_PROFILES_DIR"/*
+          fi

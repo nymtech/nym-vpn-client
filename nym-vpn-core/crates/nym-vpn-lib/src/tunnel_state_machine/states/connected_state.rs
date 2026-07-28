@@ -132,8 +132,14 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(target_os = "android")]
-        let _ = shared_state; // Avoid unused variable warning
+        shared_state
+            .recents_manager
+            .add_recent(
+                connection_data.tunnel.tunnel_type(),
+                connection_data.entry_gateway.id.clone(),
+                connection_data.exit_gateway.id.clone(),
+            )
+            .await;
 
         // Statistics reports must be sent through a socket bound to the tunnel interface,
         // since the packet tunnel provider's traffic is otherwise excluded from the tunnel.
@@ -161,6 +167,7 @@ impl ConnectedState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -289,6 +296,7 @@ impl ConnectedState {
 
         // Revert the internal resolver to use the configured nameserver group
         HickoryDnsResolver::shared().use_configured_resolver();
+        nym_http_api_client::network_reconfigured();
 
         #[cfg(not(target_os = "android"))]
         Self::reset_dns(shared_state).await;

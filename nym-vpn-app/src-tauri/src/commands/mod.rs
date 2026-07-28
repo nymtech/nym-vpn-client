@@ -3,6 +3,7 @@ pub mod cli;
 pub mod daemon;
 pub mod db;
 pub mod diagnostic;
+pub mod favorites;
 pub mod fs;
 pub mod gateway;
 pub mod gateway_independence;

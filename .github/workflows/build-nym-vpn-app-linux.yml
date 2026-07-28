@@ -30,12 +30,14 @@ on:
         required: true
       DESKTOP_JS_SENTRY_DSN:
         required: true
+
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  build-nym-vpn-app-linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: "ubuntu-22.04"
@@ -50,8 +52,7 @@ jobs:
             bin_arch: "arm64"
     runs-on: ${{ matrix.os }}
     env:
-      UPDATER_BUNDLE_NAME: updater_linux_${{ matrix.arch }}.AppImage.tar.gz
-      UPLOAD_DIR_LINUX: linux_artifacts_${{ matrix.arch }}
+      UPLOAD_DIR_LINUX: app_artifacts_linux_${{ matrix.arch }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
@@ -107,11 +108,6 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-app/src-tauri
-
-      - name: Get rust version used for build
-        id: rust-version
-        run: |
-          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
 
       - name: Install JS dependencies
         working-directory: nym-vpn-app
@@ -171,9 +167,6 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           echo "Copy AppImage"
           cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_APPIMAGE }}
-          #echo "Copy updater bundle and signature"
-          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}
-          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
           echo "Copy debian pkg"
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR_LINUX }}
           echo "Copy plain binary"

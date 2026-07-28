@@ -17,6 +17,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout
         uses: actions/checkout@v7
         with:

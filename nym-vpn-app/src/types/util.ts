@@ -182,8 +182,7 @@ export type AccountStateError = {
 
 // Flattened derived state from `TAccountState`
 export type AccountState =
-  | Exclude<TAccountState, 'syncing' | AccountStateError>
-  | 'error';
+  Exclude<TAccountState, 'syncing' | AccountStateError> | 'error';
 
 export function isAccountError(
   state: TAccountState,

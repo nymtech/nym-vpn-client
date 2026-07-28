@@ -18,8 +18,15 @@ import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
 import { dispatch, useAppStore, useFetchGateways } from '../../store';
 import { useNodeListState } from '../../store/nodeListState';
+import { useFavorites } from '../../store/favoritesState';
 import { LocationDetailsDialog } from './location-details-dialog';
-import { NodeList, useFilterList } from './list';
+import {
+  FavoritesEmpty,
+  NodeList,
+  ViewToggle,
+  filterToFavorites,
+  useFilterList,
+} from './list';
 
 const QUICK_PICK_CLASSES =
   'bg-surface-bg hover:bg-surface-hair flex cursor-default flex-row items-center gap-3 rounded-2xl p-4 transition-all duration-100';
@@ -49,6 +56,7 @@ function Node({ node }: { node: NodeHop }) {
     reset: resetSaved,
     addToExpanded,
     setSearch,
+    setView,
   } = useNodeListState();
 
   const expanded =
@@ -56,16 +64,32 @@ function Node({ node }: { node: NodeHop }) {
   const focused =
     node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
   const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
+  const view = node === 'entry' ? entryNodeList.view : exitNodeList.view;
+  const favorites = useFavorites(node);
 
   const { tE } = useI18nError();
   const navigate = useNavigate();
   const { add } = useToast();
   const { t } = useTranslation('node-location');
 
+  const viewNodes = useMemo(
+    () => (view === 'favorites' ? filterToFavorites(rawNodes) : rawNodes),
+    [view, rawNodes],
+  );
+  const viewGateways = useMemo(() => {
+    if (view !== 'favorites') return rawGateways;
+    const flat: UiGateway[] = [];
+    for (const country of viewNodes) flat.push(...country.gateways);
+    const visible = new Set(flat.map((gw) => gw.id));
+    return rawGateways.filter((gw) => visible.has(gw.id));
+  }, [view, rawGateways, viewNodes]);
+
+  const favoritesEmpty = viewNodes.length === 0 && viewGateways.length === 0;
+
   const { filter, nodes, gateways } = useFilterList(
     node,
-    rawNodes,
-    rawGateways,
+    viewNodes,
+    viewGateways,
     vpnMode,
   );
   const deferredNodes = useDeferredValue(nodes);
@@ -334,6 +358,9 @@ function Node({ node }: { node: NodeHop }) {
               nodesCount,
             })}
           </p>
+          <div className="mt-3">
+            <ViewToggle view={view} onChange={(v) => setView(node, v)} />
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {loading && (
@@ -347,34 +374,39 @@ function Node({ node }: { node: NodeHop }) {
               {t('loading')}
             </motion.div>
           )}
-          {!loading && (
+          {!loading && view === 'favorites' && favoritesEmpty && (
+            <FavoritesEmpty hasFavorites={favorites.length > 0} />
+          )}
+          {!loading && !(view === 'favorites' && favoritesEmpty) && (
             <>
-              <div className="flex w-full flex-col gap-3 px-3 pt-3">
-                <Button
-                  onClick={handleRandom}
-                  className={clsx(QUICK_PICK_CLASSES, {
-                    'border-brand-primary-active border-2': randomActive,
-                  })}
-                >
-                  <MsIcon icon="shuffle" className="text-text-primary" />
-                  <span className="text-text-primary text-base">
-                    {t('quick-pick.random')}
-                  </span>
-                </Button>
-                {/* {showBestServer && (
+              {view === 'all' && (
+                <div className="flex w-full flex-col gap-3 px-3 pt-3">
                   <Button
-                    onClick={handleBestServer}
+                    onClick={handleRandom}
                     className={clsx(QUICK_PICK_CLASSES, {
-                      'border-brand-primary-active border-2': bestServerActive,
+                      'border-brand-primary-active border-2': randomActive,
                     })}
                   >
-                    <SmileyIcon className="h-6 w-6" />
+                    <MsIcon icon="shuffle" className="text-text-primary" />
                     <span className="text-text-primary text-base">
-                      {t('quick-pick.best-server')}
+                      {t('quick-pick.random')}
                     </span>
                   </Button>
-                )} */}
-              </div>
+                  {/* {showBestServer && (
+                    <Button
+                      onClick={handleBestServer}
+                      className={clsx(QUICK_PICK_CLASSES, {
+                        'border-brand-primary-active border-2': bestServerActive,
+                      })}
+                    >
+                      <SmileyIcon className="h-6 w-6" />
+                      <span className="text-text-primary text-base">
+                        {t('quick-pick.best-server')}
+                      </span>
+                    </Button>
+                  )} */}
+                </div>
+              )}
               <NodeList
                 nodes={deferredNodes}
                 gateways={deferredGateways}

@@ -3,10 +3,13 @@
 
 use std::sync::Arc;
 
+use nym_favorites::RecentGatewayCache;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-use nym_gateway_directory::{GatewayCache, GatewayCacheHandle, GatewayClient};
+use nym_gateway_directory::{
+    Error as GatewayDirectoryError, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayList,
+};
 use nym_vpn_lib_types::{Gateway, GatewayType, UserAgent};
 
 use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
@@ -16,6 +19,16 @@ pub struct NymGatewayCache {
     gateway_cache_handle: GatewayCacheHandle,
     join_handle: Arc<Mutex<Option<JoinHandle<()>>>>,
     shutdown_drop_guard: Arc<Mutex<Option<DropGuard>>>,
+}
+
+#[async_trait::async_trait]
+impl RecentGatewayCache for &NymGatewayCache {
+    async fn lookup_gateways(
+        &self,
+        gw_type: nym_gateway_directory::GatewayType,
+    ) -> Result<GatewayList, GatewayDirectoryError> {
+        self.inner_get_gateways(gw_type).await
+    }
 }
 
 #[uniffi::export(async_runtime = "tokio")]
@@ -71,8 +84,7 @@ impl NymGatewayCache {
     }
 
     pub async fn get_gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
-        self.inner()
-            .lookup_gateways(gw_type.into())
+        self.inner_get_gateways(gw_type.into())
             .await
             .map(|gateways| {
                 gateways
@@ -90,5 +102,12 @@ impl NymGatewayCache {
 impl NymGatewayCache {
     pub fn inner(&self) -> GatewayCacheHandle {
         self.gateway_cache_handle.clone()
+    }
+
+    async fn inner_get_gateways(
+        &self,
+        gw_type: nym_gateway_directory::GatewayType,
+    ) -> Result<GatewayList, GatewayDirectoryError> {
+        self.inner().lookup_gateways(gw_type).await
     }
 }

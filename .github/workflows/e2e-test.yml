@@ -51,6 +51,15 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.13.0
+
+      - name: Install cargo-zigbuild
+        run: cargo install --locked cargo-zigbuild
 
       - name: Install system dependencies
         run: |
@@ -95,13 +104,21 @@ jobs:
       - name: Build wireguard-go
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Build nym-vpnc and nym-vpnd
-        run: cargo build --release -p nym-vpnc -p nym-vpnd
+      - name: Build nym-vpnc, nym-vpnd and nym-socks5-proxy
+        env:
+          CFLAGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          BINDGEN_EXTRA_CLANG_ARGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -L /usr/lib/x86_64-linux-gnu
+        run: cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 -p nym-vpnc -p nym-vpnd -p nym-socks5-proxy
         working-directory: nym-vpn-core
 
       - name: Build test-manager, test-runner
+        env:
+          CFLAGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          BINDGEN_EXTRA_CLANG_ARGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -L /usr/lib/x86_64-linux-gnu
         run: |
-          cargo build --release \
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 \
             -p test-manager -p test-runner
         working-directory: ${{ env.TEST_CRATE_DIR }}
 
@@ -135,10 +152,11 @@ jobs:
       - name: Collect binaries
         run: |
           mkdir -p /tmp/dist
-          cp nym-vpn-core/target/release/nym-vpnc /tmp/dist/
-          cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
-          cp nym-vpn-core/target/release/test-manager /tmp/dist/
-          cp nym-vpn-core/target/release/test-runner /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-vpnc /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-vpnd /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-socks5-proxy /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-manager /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner /tmp/dist/
 
       - name: Upload binaries
         uses: actions/upload-artifact@v7

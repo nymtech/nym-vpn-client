@@ -41,7 +41,7 @@ use crate::socks5_proxy::Socks5ProxyManager;
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
@@ -49,12 +49,17 @@ use crate::{
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
-use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
+use nym_bandwidth_controller::{
+    error::BandwidthControllerError, requests::BandwidthControllerRequestSender,
+};
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
+use nym_credentials_interface::TicketType;
+use nym_favorites::RecentsManager;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::SkewManager;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use tokio::{
     sync::{mpsc, watch},
@@ -205,6 +210,22 @@ impl TunnelSettings {
             TunnelType::Wireguard
         } else {
             self.tunnel_type
+        }
+    }
+
+    pub fn ticket_types_required(&self, enabled_lp: bool) -> Vec<TicketType> {
+        match self.tunnel_type_used() {
+            TunnelType::Mixnet => {
+                vec![TicketType::V1MixnetEntry]
+            }
+            TunnelType::Wireguard => {
+                let mut types = vec![TicketType::V1WireguardEntry, TicketType::V1WireguardExit];
+                if !enabled_lp {
+                    // Mixnet registration requires a Mixnet Ticket
+                    types.push(TicketType::V1MixnetEntry);
+                }
+                types
+            }
         }
     }
 
@@ -775,11 +796,13 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     bandwidth_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     statistics_event_sender: StatisticsSender,
     #[cfg(target_os = "linux")]
     nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     topology_service: VpnTopologyServiceHandle,
+    recents_manager: RecentsManager<GatewayCacheHandle>,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
     /// API endpoints resolved in connecting state and used for configuring a bypass in error state.
@@ -1105,6 +1128,7 @@ impl TunnelStateMachine {
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
         bandwidth_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         statistics_event_sender: StatisticsSender,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
@@ -1112,6 +1136,7 @@ impl TunnelStateMachine {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         split_tunnel: nym_split_tunnel::SplitTunnelHandle,
         gateway_provider: GatewayProvider<GatewayCacheHandle>,
+        recents_manager: RecentsManager<GatewayCacheHandle>,
         #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
@@ -1187,11 +1212,13 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             bandwidth_command_tx,
+            skew_manager,
             statistics_event_sender,
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,
             gateway_provider,
             topology_service,
+            recents_manager,
             discovery_refresher_command_tx,
             user_agent,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1496,20 +1523,27 @@ impl tunnel::Error {
                 }
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
+            Self::BandwidthMonitor(BandwidthMonitorError::EntryGateway(error)) => {
                 if error.is_no_retry() {
                     Some(ErrorStateReason::CredentialWastedOnEntryGateway)
                 } else {
                     None
                 }
             }
-            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
+            Self::BandwidthMonitor(BandwidthMonitorError::ExitGateway(error)) => {
                 if error.is_no_retry() {
                     Some(ErrorStateReason::CredentialWastedOnExitGateway)
                 } else {
                     None
                 }
             }
+            Self::BandwidthController(BandwidthControllerError::TicketbookFetchFailed { .. }) => {
+                Some(ErrorStateReason::CredentialFetchingFailed)
+            },
+            Self::BandwidthController(BandwidthControllerError::TicketbooksUnavailable) => {
+                Some(ErrorStateReason::NoCredentialAvailable)
+            },
+
             Self::RegistrationClient(e) => match *e {
                 nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
                 nym_registration_client::RegistrationClientError::WireguardExitRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
@@ -1524,6 +1558,7 @@ impl tunnel::Error {
             )),
             Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
+            | Self::BandwidthMonitor(_)
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled

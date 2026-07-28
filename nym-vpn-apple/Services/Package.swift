@@ -49,6 +49,7 @@ let package = Package(
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
         .package(name: "NymVPNLib", path: "../NymVPNLib"),
+        .package(path: "../NymVPNRpc"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
         .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.46.0")
@@ -174,11 +175,19 @@ let package = Package(
                 "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
+                "PathManager",
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources/Services/GatewayManager",
-            swiftSettings: santaSwiftSettings
+            swiftSettings: santaSwiftSettings,
+            linkerSettings: [
+                // NymVPNRpcUniffi static lib references SystemConfiguration/Network symbols
+                .linkedFramework("SystemConfiguration", .when(platforms: [.macOS])),
+                .linkedFramework("Network", .when(platforms: [.macOS]))
+            ]
         ),
         .target(
             name: "ImpactGenerator",

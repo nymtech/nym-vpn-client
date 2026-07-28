@@ -132,22 +132,12 @@ impl From<AccountControllerState> for proto::AccountControllerState {
             AccountControllerState::Syncing => proto::account_controller_state::State::Syncing(
                 proto::account_controller_state::Syncing {},
             ),
-            AccountControllerState::RequestingZkNyms => {
-                proto::account_controller_state::State::RequestingZkNyms(
-                    proto::account_controller_state::RequestingZkNyms {},
-                )
-            }
             AccountControllerState::Offline => proto::account_controller_state::State::Offline(
                 proto::account_controller_state::Offline {},
             ),
             AccountControllerState::Decentralised => {
                 proto::account_controller_state::State::Decentralised(
                     proto::account_controller_state::Decentralised {},
-                )
-            }
-            AccountControllerState::UpgradeMode => {
-                proto::account_controller_state::State::UpgradeMode(
-                    proto::account_controller_state::UpgradeMode {},
                 )
             }
             AccountControllerState::PendingSubscription => {
@@ -181,9 +171,6 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::ReadyToConnect(
                 proto::account_controller_state::ReadyToConnect {},
             ) => Self::ReadyToConnect,
-            proto::account_controller_state::State::RequestingZkNyms(
-                proto::account_controller_state::RequestingZkNyms {},
-            ) => Self::RequestingZkNyms,
             proto::account_controller_state::State::Syncing(
                 proto::account_controller_state::Syncing {},
             ) => Self::Syncing,
@@ -196,9 +183,6 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::Decentralised(
                 proto::account_controller_state::Decentralised {},
             ) => Self::Decentralised,
-            proto::account_controller_state::State::UpgradeMode(
-                proto::account_controller_state::UpgradeMode {},
-            ) => Self::UpgradeMode,
             proto::account_controller_state::State::PendingSubscription(
                 proto::account_controller_state::PendingSubscription {},
             ) => Self::PendingSubscription,

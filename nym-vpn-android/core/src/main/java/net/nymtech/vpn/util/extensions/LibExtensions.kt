@@ -7,6 +7,7 @@ import net.nymtech.vpn.util.Base58
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.FavoriteSelector
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
@@ -51,6 +52,12 @@ fun String.asExitPoint(): ExitPoint = when {
 	else -> throw IllegalArgumentException("Invalid exit id $this")
 }
 
+fun String.asFavoriteSelector(): FavoriteSelector = when {
+	length == 2 -> FavoriteSelector.Country(this.uppercase())
+	Base58.isValidBase58(this, 32) -> FavoriteSelector.Gateway(this)
+	else -> FavoriteSelector.Region(this)
+}
+
 fun String.asAlgorithm(): GatewaySelectionAlgorithm = when {
 	this == "AUTO" -> GatewaySelectionAlgorithm.AUTO
 	this == "EXPLICIT" -> GatewaySelectionAlgorithm.EXPLICIT
@@ -60,32 +67,35 @@ fun String.asAlgorithm(): GatewaySelectionAlgorithm = when {
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
 
+private val ERROR_STATE_REASON_STRING_RES: Map<ErrorStateReason, Int> = mapOf(
+	ErrorStateReason.SetFirewallPolicy to R.string.error_reason_set_firewall_policy,
+	ErrorStateReason.SetRouting to R.string.error_reason_set_routing,
+	ErrorStateReason.SetDns to R.string.error_reason_set_dns,
+	ErrorStateReason.TunDevice to R.string.error_reason_tun_device,
+	ErrorStateReason.TunnelProvider to R.string.error_reason_tunnel_provider,
+	ErrorStateReason.Ipv6Unavailable to R.string.error_reason_ipv6_unavailable,
+	ErrorStateReason.SameEntryAndExitGateway to R.string.error_reason_same_entry_and_exit_gateway,
+	ErrorStateReason.PerformantEntryGatewayUnavailable to R.string.error_reason_performant_entry_gateway_unavailable,
+	ErrorStateReason.PerformantExitGatewayUnavailable to R.string.error_reason_performant_exit_gateway_unavailable,
+	ErrorStateReason.InvalidEntryGatewayIdentity to R.string.error_reason_invalid_entry_gateway_identity,
+	ErrorStateReason.InvalidExitGatewayIdentity to R.string.error_reason_invalid_exit_gateway_identity,
+	ErrorStateReason.InvalidEntryGatewayCountry to R.string.error_reason_invalid_entry_gateway_country,
+	ErrorStateReason.InvalidExitGatewayCountry to R.string.error_reason_invalid_exit_gateway_country,
+	ErrorStateReason.CredentialWastedOnEntryGateway to R.string.error_reason_credential_wasted_on_entry_gateway,
+	ErrorStateReason.CredentialWastedOnExitGateway to R.string.error_reason_credential_wasted_on_exit_gateway,
+	ErrorStateReason.BandwidthExceeded to R.string.error_reason_bandwidth_exceeded,
+	ErrorStateReason.InactiveAccount to R.string.error_reason_inactive_account,
+	ErrorStateReason.InactiveSubscription to R.string.error_reason_inactive_subscription,
+	ErrorStateReason.MaxDevicesReached to R.string.error_reason_max_devices_reached,
+	ErrorStateReason.DeviceTimeOutOfSync to R.string.error_reason_device_time_out_of_sync,
+	ErrorStateReason.DeviceLoggedOut to R.string.error_reason_device_logged_out,
+	ErrorStateReason.CredentialFetchingFailed to R.string.error_reason_credential_fetching_failed,
+	ErrorStateReason.NoCredentialAvailable to R.string.error_reason_no_credential_available,
+)
+
 fun ErrorStateReason.toHumanReadableString(context: Context): String = when (this) {
-	ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_reason_set_firewall_policy)
-	ErrorStateReason.SetRouting -> context.getString(R.string.error_reason_set_routing)
-	ErrorStateReason.SetDns -> context.getString(R.string.error_reason_set_dns)
-	ErrorStateReason.TunDevice -> context.getString(R.string.error_reason_tun_device)
-	ErrorStateReason.TunnelProvider -> context.getString(R.string.error_reason_tunnel_provider)
-	ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_reason_ipv6_unavailable)
-	ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_reason_same_entry_and_exit_gateway)
-	ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_reason_performant_entry_gateway_unavailable)
-	ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_reason_performant_exit_gateway_unavailable)
-	ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_reason_invalid_entry_gateway_identity)
-	ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_reason_invalid_exit_gateway_identity)
-	ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.error_reason_invalid_entry_gateway_country)
-	ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.error_reason_invalid_exit_gateway_country)
-	ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_reason_credential_wasted_on_entry_gateway)
-	ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_reason_credential_wasted_on_exit_gateway)
-	ErrorStateReason.BandwidthExceeded -> context.getString(R.string.error_reason_bandwidth_exceeded)
-	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_reason_inactive_account)
-	ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_reason_inactive_subscription)
-	ErrorStateReason.MaxDevicesReached -> context.getString(R.string.error_reason_max_devices_reached)
-	ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.error_reason_device_time_out_of_sync)
-	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_reason_device_logged_out)
-
-	// unused on Android
-	ErrorStateReason.NeedFullDiskPermissions, ErrorStateReason.SplitTunnel -> ""
-
 	is ErrorStateReason.Internal -> context.getString(R.string.error_reason_internal, this.v1)
-	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> ""
+	// unused on Android
+	ErrorStateReason.NeedFullDiskPermissions, ErrorStateReason.SplitTunnel, ErrorStateReason.NeedsRelaxedIndependenceCriteria -> ""
+	else -> ERROR_STATE_REASON_STRING_RES[this]?.let { context.getString(it) } ?: ""
 }

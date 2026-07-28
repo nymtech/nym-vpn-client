@@ -11,6 +11,7 @@ pub mod gateway_selection_algorithm;
 pub mod network_config;
 pub mod network_stats;
 pub mod prost;
+pub mod recents;
 pub mod service;
 pub mod socket_addr;
 pub mod socks5;

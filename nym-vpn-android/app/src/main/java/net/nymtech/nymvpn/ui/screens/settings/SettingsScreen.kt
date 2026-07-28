@@ -236,7 +236,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				.verticalScroll(rememberScrollState())
 				.fillMaxSize()
 				.padding(top = 24.dp)
-				.padding(horizontal = 24.dp.scaledWidth())
+				.padding(horizontal = 16.dp.scaledWidth())
 				.navigationBarsPadding(),
 		) {
 			LoginSection(

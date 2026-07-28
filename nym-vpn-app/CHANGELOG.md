@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Allow marking specific server, country or region as favorite
+
 ## [2026.11.0] - 2026-07-10
 
 ### Added

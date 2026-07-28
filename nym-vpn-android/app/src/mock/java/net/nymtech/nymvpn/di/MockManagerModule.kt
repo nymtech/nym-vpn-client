@@ -12,6 +12,8 @@ import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.billing.NymBillingManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.manager.environment.NymEnvironmentManager
+import net.nymtech.nymvpn.manager.favorites.FavoritesManager
+import net.nymtech.nymvpn.manager.favorites.NymFavoritesManager
 import javax.inject.Singleton
 
 @Module
@@ -33,4 +35,11 @@ abstract class ManagerModule {
 	@Binds
 	@Singleton
 	abstract fun bindNymBillingManager(billingManager: NymBillingManager): BillingManager
+
+	// Favorites is local persistence with no backend dependency, so the mock
+	// variant binds the real implementation — same as the environment and
+	// billing managers above. Only BackendManager is faked.
+	@Binds
+	@Singleton
+	abstract fun bindNymFavoritesManager(favoritesManager: NymFavoritesManager): FavoritesManager
 }

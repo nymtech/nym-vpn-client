@@ -6,6 +6,7 @@ include reproducible_builds.mk
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 
 RELEASE ?= true
+VPNLIB_SENTRY_DSN ?=
 
 RELEASE_FLAG :=
 TARGET_DIR := debug
@@ -15,7 +16,7 @@ RELEASE_FLAG := --release
 TARGET_DIR := release
 endif
 
-RUST_TRIPLET := aarch64-apple-ios
+RUST_TRIPLET ?= aarch64-apple-ios
 
 LIB_CRATE_NAME := nym-vpn-lib-uniffi
 LIB_CRATE_DIR := $(CURDIR)/crates/$(LIB_CRATE_NAME)
@@ -32,6 +33,11 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(LIBWG_BUILD_DIR)/libwg.a swift-package
 
 build: $(LIBWG_BUILD_DIR)/libwg.a
+	@if [ -z "$(VPNLIB_SENTRY_DSN)" ]; then \
+		echo "Sentry DSN not set!" ; \
+	else \
+		echo "Sentry DSN is set!" ; \
+	fi
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --package $(LIB_CRATE_NAME) --target $(RUST_TRIPLET) $(RELEASE_FLAG)
 
 # Build both the device (aarch64-apple-ios) and simulator (aarch64-apple-ios-sim)
@@ -41,6 +47,18 @@ build: $(LIBWG_BUILD_DIR)/libwg.a
 swift-package: $(LIBWG_BUILD_DIR)/libwg.a
 	cd $(LIB_CRATE_DIR); \
 	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --target aarch64-apple-ios --target aarch64-apple-ios-sim --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
+
+	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
+	# The glob covers every slice in the xcframework, so this handles the
+	# simulator slice added above as well as the device one.
+	cd $(LIB_CRATE_DIR); \
+	for HEADERS_DIR in NymVPNLib/NymVPNLibUniffi.xcframework/*/Headers ; do \
+		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
+			[[ -d "$${SUBDIR}" ]] || continue; \
+			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
+			rm -rf "$${SUBDIR}"; \
+		done \
+	done
 
 libwg: $(LIBWG_BUILD_DIR)/libwg.a
 

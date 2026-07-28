@@ -1,0 +1,28 @@
+[package]
+name = "nym-favorites"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait.workspace = true
+itertools.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "fs", "sync"] }
+tracing.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+
+nym-gateway-directory.workspace = true
+nym-vpn-lib-types = { workspace = true, features = [
+    "serde",
+    "uniffi-bindings",
+    "nym-type-conversions",
+] }

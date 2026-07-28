@@ -19,6 +19,8 @@ use nym_crypto::asymmetric::{
     x25519,
 };
 
+use crate::TunnelType;
+
 // Types that duplicate what nym-sdk already offers without pulling the whole nym-sdk into types crate
 pub type ClientEncryptionKey = x25519::PublicKey;
 pub type ClientIdentity = ed25519::PublicKey;
@@ -412,6 +414,54 @@ impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum FavoriteSelector {
+    // A favorite gateway identity.
+    Gateway {
+        #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        identity: NodeIdentity,
+    },
+    // A favorite country.
+    Country {
+        two_letter_iso_country_code: String,
+    },
+    // A favorite region.
+    Region {
+        region: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct FavoriteSelectors {
+    pub entry: Vec<FavoriteSelector>,
+    pub exit: Vec<FavoriteSelector>,
+}
+
+impl std::fmt::Display for FavoriteSelectors {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "entry: {:?}", self.entry)?;
+        write!(f, "exit: {:?}", self.exit)
+    }
+}
+
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
@@ -556,6 +606,35 @@ pub enum TentativeGateways {
     },
     NeedsRelaxedIndependenceCriteria,
     NoGatewaysAvailable,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct GetRecentGatewaysParams {
+    pub tunnel_type: TunnelType,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct RecentGateways {
+    pub entry: Vec<Gateway>,
+    pub exit: Vec<Gateway>,
 }
 
 #[derive(Debug, Clone)]

@@ -1,10 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    AvailableTicketbooks,
-    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
-};
+use crate::deeplink::{CreateDeeplinkParams, DeeplinkMnemonic};
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
@@ -43,8 +40,8 @@ pub enum AccountCommand {
     /// Retrieve current, on-chain, balance of the account. Only applicable for decentralised accounts
     AccountBalance(ReturnSender<Vec<Coin>, AccountCommandError>),
 
-    /// Attempt to obtain specified amount of ticketbooks (per type) for the decentralised account
-    ObtainTicketbooks(ReturnSender<(), AccountCommandError>, u64),
+    /// Attempt to obtain one ticketbook (per type) for the decentralised account
+    ObtainTicketbooks(ReturnSender<(), AccountCommandError>),
 
     /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
@@ -57,9 +54,6 @@ pub enum AccountCommand {
 
     /// Tells the AC free to go ahead
     VpnApiFirewallDown(ReturnSender<(), AccountCommandError>),
-
-    /// Upgrade mode-related commands
-    UpgradeMode(UpgradeModeCommand),
 
     /// Read-only commands
     Common(CommonCommand),
@@ -75,7 +69,7 @@ impl AccountCommand {
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
-            AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RefreshAccountState(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
@@ -91,21 +85,12 @@ impl AccountCommand {
                 CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
-                CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetAutologinDeeplink(return_sender, _) => {
                     return_sender.send(Err(error))
                 }
                 CommonCommand::DeriveDeeplinkMnemonic(return_sender, _) => {
-                    return_sender.send(Err(error))
-                }
-            },
-            AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
-                UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                    return_sender.send(Err(error))
-                }
-                UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
                     return_sender.send(Err(error))
                 }
             },
@@ -140,9 +125,6 @@ pub enum CommonCommand {
     /// Get the list of active devices registered to that account
     GetActiveDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
 
-    /// Returns a list of tickets available in storage
-    GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
-
     /// Returns the VPN account summary if the account is logged-in
     GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, AccountCommandError>),
 
@@ -160,18 +142,6 @@ pub enum CommonCommand {
 
     /// Derive the mnemonic from the deeplink callback URL
     DeriveDeeplinkMnemonic(ReturnSender<DeeplinkMnemonic, AccountCommandError>, String),
-}
-
-/// Commands relating to the upgrade mode
-#[derive(Debug, strum::Display)]
-pub enum UpgradeModeCommand {
-    /// Returns flag indicating whether the VPN API has informed us about the upgrade mode.
-    /// this is known implicitly via the [AccountController](crate::controller::AccountController) being in the [UpgradeModeState](crate::state_machine::upgrade_mode_state::UpgradeModeState)
-    GetUpgradeModeEnabled(ReturnSender<bool, AccountCommandError>),
-
-    /// Inform the [AccountController](crate::controller::AccountController) about the upgrade mode being over
-    /// to allow it to attempt to resume zk-nym acquisition.
-    DisableUpgradeMode(ReturnSender<(), AccountCommandError>),
 }
 
 #[derive(Debug)]

@@ -1,0 +1,308 @@
+name: macos-updater
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        type: string
+        required: true
+  workflow_call:
+    inputs:
+      version_tag:
+        type: string
+        required: true
+    secrets:
+      APPLE_SPARKLE_PRIVATE_KEY:
+        required: true
+      WEB_REPO_TOKEN_FOR_APPCAST:
+        required: true
+
+jobs:
+  macos-updater:
+    runs-on: custom-macos-15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Resolve
+        id: resolve
+        env:
+          VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        run: |
+          brew install jq
+          brew install gh
+          brew install xmlstarlet
+
+      - name: Download release PKG
+        env:
+          RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "*.pkg"
+
+      - name: Find PKG file
+        id: find_pkg
+        run: |
+          set -euo pipefail
+
+          PKG_FILE=$(find "${{ github.workspace }}" -name '*.pkg' -type f | head -1)
+          if [ -z "$PKG_FILE" ]; then
+            echo "::error:: Failed to locate pkg"
+            exit 1
+          fi
+          echo "pkg_file=$PKG_FILE" >> $GITHUB_OUTPUT
+          echo "::notice:: Found PKG for upload: $PKG_FILE"
+
+      - name: Find PKG download URL
+        id: find_pkg_url
+        env:
+          RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
+          PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          PKG_NAME=$(basename "$PKG_FILE")
+          PKG_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" --json assets | \
+            jq -r '.assets[] | select(.name == $name) | .url' --arg name "$PKG_NAME")
+          if [ -z "$PKG_URL" ]; then
+            echo "::error:: Failed to locate pkg download URL"
+            exit 1
+          fi
+          echo "pkg_url=$PKG_URL" >> $GITHUB_OUTPUT
+          echo "::notice:: Found pkg download URL: $PKG_URL"
+
+      - name: Find publish date
+        id: find_publish_date
+        env:
+          RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          PUBLISHED_AT=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.publishedAt' --json publishedAt)
+          if [ -z "$PUBLISHED_AT" ]; then
+            echo "::error:: Failed to fetch publishedAt!"
+            exit 1
+          fi
+
+          PUBLISH_DATE=$(date -u -jf "%Y-%m-%dT%H:%M:%SZ" "$PUBLISHED_AT" "+%a, %d %b %Y %H:%M:%S %z")
+          if [ -z "$PUBLISH_DATE" ]; then
+            echo "::error:: Failed to parse publishedAt: $PUBLISHED_AT"
+            exit 1
+          fi
+
+          echo "publish_date=$PUBLISH_DATE" >> $GITHUB_OUTPUT
+          echo "::notice:: Found publish date: $PUBLISH_DATE"
+
+      - name: Extract PKG metadata
+        id: pkg_metadata
+        env:
+          PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
+        run: |
+          set -euo pipefail
+
+          OUT_DIR="pkg_output"
+          pkgutil --expand "$PKG_FILE" "$OUT_DIR"
+          DIST_FILE="$OUT_DIR/Distribution"
+          BUILD=$(xmlstarlet sel -t -v "//bundle[@id='net.nymtech.vpn']/@CFBundleVersion" -n "$DIST_FILE")
+          SHORT_VERSION=$(xmlstarlet sel -t -v "//bundle[@id='net.nymtech.vpn']/@CFBundleShortVersionString" -n "$DIST_FILE")
+          MIN_OS_VERSION=$(xmlstarlet sel -t -v "//allowed-os-versions/os-version/@min" -n "$DIST_FILE")
+
+          echo "::notice:: Extracted PKG metadata: build=$BUILD, short_version=$SHORT_VERSION, min_os=$MIN_OS_VERSION"
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
+          echo "short_version=$SHORT_VERSION" >> $GITHUB_OUTPUT
+          echo "min_os=$MIN_OS_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download Sparkle tools
+        id: download_sparkle
+        env:
+          WORKDIR: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+
+          SPARKLE_DIR="$WORKDIR/sparkle"
+          mkdir -p "$SPARKLE_DIR"
+
+          echo "📥 Fetching latest Sparkle release metadata…"
+          curl -fsSL "https://api.github.com/repos/sparkle-project/Sparkle/releases/latest" \
+            -o "$SPARKLE_DIR/release.json"
+
+          ASSET_URL=$(jq -r '.assets[] | select(.name | endswith(".tar.xz")) | .browser_download_url' \
+            "$SPARKLE_DIR/release.json" | head -n 1)
+
+          if [[ -z "$ASSET_URL" || "$ASSET_URL" == "null" ]]; then
+            echo "❌ Could not find Sparkle .tar.xz asset in latest release"
+            jq '.' "$SPARKLE_DIR/release.json" || true
+            exit 1
+          fi
+
+          echo "⬇️ Downloading Sparkle from: $ASSET_URL"
+          SPARKLE_TAR="$SPARKLE_DIR/Sparkle.tar.xz"
+          curl -fsSL "$ASSET_URL" -o "$SPARKLE_TAR"
+
+          EXTRACT_DIR="$SPARKLE_DIR/extracted"
+          mkdir -p "$EXTRACT_DIR"
+          tar -xf "$SPARKLE_TAR" -C "$EXTRACT_DIR" --strip-components=1
+
+          echo "📦 Sparkle extracted to: $EXTRACT_DIR"
+          echo "sparkle_dir=$SPARKLE_DIR" >> $GITHUB_OUTPUT
+          echo "sparkle_bin=$EXTRACT_DIR/bin" >> $GITHUB_OUTPUT
+
+      - name: Generate Sparkle appcast (sign_update)
+        id: sign_update
+        env:
+          WORKDIR: ${{ github.workspace }}
+          APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
+          PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
+          SPARKLE_DIR: ${{ steps.download_sparkle.outputs.sparkle_dir }}
+          SPARKLE_BIN: ${{ steps.download_sparkle.outputs.sparkle_bin }}
+          BUILD: ${{ steps.pkg_metadata.outputs.build }}
+          HOST_LINK: "https://nymvpn.com"
+          SHORT_VERSION: ${{ steps.pkg_metadata.outputs.short_version }}
+          MIN_OS_VERSION: ${{ steps.pkg_metadata.outputs.min_os }}
+          PUBLISH_DATE: ${{ steps.find_publish_date.outputs.publish_date }}
+          DOWNLOAD_URL: ${{ steps.find_pkg_url.outputs.pkg_url }}
+        run: |
+          echo "📦 Using signed + notarized + stapled PKG for Sparkle signing: $PKG_FILE"
+
+          if [[ ! -x "$SPARKLE_BIN/sign_update" ]]; then
+            echo "❌ sign_update not found in Sparkle distribution"
+            ls -R "$SPARKLE_BIN"
+            exit 1
+          fi
+
+          if [[ -z "${APPLE_SPARKLE_PRIVATE_KEY:-}" ]]; then
+            echo "❌ APPLE_SPARKLE_PRIVATE_KEY secret is empty"
+            exit 1
+          fi
+
+          # 🔑 Write EdDSA private key to a file and ensure it's removed afterwards
+          KEY_FILE="$SPARKLE_DIR/sparkle_private_key_file"
+          printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          trap "rm -f '$KEY_FILE'" EXIT
+
+          echo "📝 Signing PKG with Sparkle EdDSA key…"
+          # sign_update prints something like:
+          #   sparkle:edSignature="…" length="123456"
+          SPARKLE_ATTRS=$("$SPARKLE_BIN/sign_update" --ed-key-file "$KEY_FILE" "$PKG_FILE")
+
+          if [[ -z "${SPARKLE_ATTRS:-}" ]]; then
+            echo "❌ Failed to obtain Sparkle signature attributes from sign_update"
+            exit 1
+          fi
+
+          echo "✅ Sparkle attributes: $SPARKLE_ATTRS"
+
+
+          echo "🧾 Creating appcast.xml…"
+          {
+            echo '<?xml version="1.0" standalone="yes"?>'
+            echo '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">'
+            echo '    <channel>'
+            echo '        <title>NymVPN</title>'
+            echo "        <link>${HOST_LINK}</link>"
+            echo '        <item>'
+            echo "            <title>${SHORT_VERSION}</title>"
+            echo "            <pubDate>${PUBLISH_DATE}</pubDate>"
+            echo "            <sparkle:version>${BUILD}</sparkle:version>"
+            echo "            <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
+            echo "            <sparkle:minimumSystemVersion>${MIN_OS_VERSION}</sparkle:minimumSystemVersion>"
+            echo '            <enclosure'
+            echo "                url=\"${DOWNLOAD_URL}\""
+            echo '                sparkle:os="macos" sparkle:installationType="package"'
+            echo '                type="application/octet-stream"'
+            printf '                %s />\n' "${SPARKLE_ATTRS}"
+            echo '        </item>'
+            echo '    </channel>'
+            echo '</rss>'
+          } > appcast.xml
+
+          echo "✅ Generated appcast.xml:"
+          cat appcast.xml
+
+          APP_CAST_ITEM="$WORKDIR/appcast-item.xml"
+
+          echo "🧩 Extracting <item> block for nym-websites…"
+          awk '
+            BEGIN { p=0 }
+            /<item>/{ p=1 }
+            p { print }
+            /<\/item>/{ p=0 }
+          ' appcast.xml > $APP_CAST_ITEM
+
+          echo "✅ appcast-item.xml:"
+          cat $APP_CAST_ITEM
+          echo "appcast_item=$APP_CAST_ITEM" >> $GITHUB_OUTPUT
+
+      - name: Checkout nym-websites
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          repository: nymtech/nym-websites
+          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
+          path: nym-websites
+
+      - name: Insert new Sparkle <item> into nym-websites appcast.xml
+        working-directory: nym-websites
+        env:
+          ITEM_FILE: ${{ steps.sign_update.outputs.appcast_item }}
+          SHORT_VERSION: ${{ steps.pkg_me.outputs.short_version }}
+        run: |
+          set -euo pipefail
+
+          TARGET="websites/nym/www/public/.wellknown/macos-vpn/appcast.xml"
+
+          test -f "$ITEM_FILE" || { echo "❌ Missing ITEM_FILE: $ITEM_FILE"; exit 1; }
+          test -f "$TARGET" || { echo "❌ Missing TARGET: $TARGET"; exit 1; }
+
+          tmp="$(mktemp)"
+          {
+            head -n 4 "$TARGET"
+            cat "$ITEM_FILE"
+            tail -n +5 "$TARGET"
+          } > "$tmp"
+          mv "$tmp" "$TARGET"
+
+          echo "✅ Updated $TARGET (inserted after line 4)"
+          sed -n '1,40p' "$TARGET" || true
+
+          git diff
+
+      - name: Create PR in nym-websites
+        uses: peter-evans/create-pull-request@v8
+        id: pr
+        with:
+          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
+          path: nym-websites
+          commit-message: Update Appcast.xml with v${{ steps.pkg_metadata.outputs.short_version }}
+          title: Update Appcast.xml with v${{ steps.pkg_metadata.outputs.short_version }}
+          draft: false
+          body: |
+            Automated Sparkle appcast update for macOS v${{ steps.pkg_metadata.outputs.short_version }}.
+            Source: nym-vpn-client macos-updater
+          branch: automation/update-macos-appcast-v${{ steps.pkg_metadata.outputs.short_version }}-3
+          base: main
+          delete-branch: true
+          reviewers: |
+            pronebird
+
+      - name: Check outputs
+        run: |
+          echo "::notice:: Pull Request Number - ${{ steps.pr.outputs.pull-request-number }}"
+          echo "::notice:: Pull Request URL - ${{ steps.pr.outputs.pull-request-url }}"

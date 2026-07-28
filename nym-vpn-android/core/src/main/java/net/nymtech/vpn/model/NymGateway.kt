@@ -34,6 +34,8 @@ data class NymGateway(
 	var exitIpv4s: List<Ipv4Addr>,
 	var exitIpv6s: List<Ipv6Addr>,
 	val bridgeInformation: BridgeInformation?,
+	val nodeFamilyName: String? = null,
+	val isPostQuantumEnabled: Boolean = false,
 ) {
 	companion object {
 		fun from(gateway: Gateway): NymGateway = NymGateway(
@@ -55,6 +57,8 @@ data class NymGateway(
 			exitIpv4s = gateway.exitIpv4s,
 			exitIpv6s = gateway.exitIpv6s,
 			bridgeInformation = gateway.bridgeParams?.toBridgeInformation(),
+			nodeFamilyName = gateway.nodeFamilyName,
+			isPostQuantumEnabled = gateway.lewesProtocolDetails?.content?.enabled == true,
 		)
 
 		fun from(string: String?): NymGateway? = string?.let { Json.decodeFromString<NymGateway>(string) }

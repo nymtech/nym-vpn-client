@@ -6,13 +6,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.colorLoad
 import net.nymtech.nymvpn.util.extensions.colorPerformance
@@ -24,11 +28,11 @@ import nym_vpn_lib_types.Score
 @Composable
 fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastUpdated: String?) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
-		score?.let { s ->
-			add(
-				stringResource(R.string.details_overall_performance) to {
-					Row(verticalAlignment = Alignment.CenterVertically) {
-						val scoreIcon = getScoreIcon(s)
+		add(
+			stringResource(R.string.details_overall_performance) to {
+				Row(verticalAlignment = Alignment.CenterVertically) {
+					if (score != null) {
+						val scoreIcon = getScoreIcon(score)
 						Image(
 							scoreIcon.first,
 							contentDescription = scoreIcon.second,
@@ -36,28 +40,32 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 						)
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(
-							text = s.displayText(),
+							text = score.displayText(),
 							style = Typography.bodyMedium,
-							color = s.colorPerformance(),
+							color = score.colorPerformance(),
 						)
-					}
-				},
-			)
-		}
-
-		load?.let { l ->
-			add(
-				stringResource(R.string.details_server_load) to {
-					Row(verticalAlignment = Alignment.CenterVertically) {
+					} else {
 						Text(
-							text = l.displayText(),
+							text = stringResource(R.string.not_applicable),
 							style = Typography.bodyMedium,
-							color = l.colorLoad(),
+							color = MaterialTheme.colorScheme.onBackground,
 						)
 					}
-				},
-			)
-		}
+				}
+			},
+		)
+
+		add(
+			stringResource(R.string.details_server_load) to {
+				Row(verticalAlignment = Alignment.CenterVertically) {
+					Text(
+						text = load?.displayText() ?: stringResource(R.string.not_applicable),
+						style = Typography.bodyMedium,
+						color = load?.colorLoad() ?: MaterialTheme.colorScheme.onBackground,
+					)
+				}
+			},
+		)
 
 		add(
 			stringResource(R.string.details_uptime) to {
@@ -71,19 +79,33 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 	}
 
 	InfoSection(
+		titleResId = R.string.details_performance_title,
 		items = items,
-		bottomContent = lastUpdated?.let {
-			{
-				val relativeTimeSpan = relativeTimeSpan(it)
-				Text(
-					text = stringResource(
-						R.string.details_performance_calculated,
-						relativeTimeSpan,
-					),
-					style = Typography.labelSmall,
-					color = MaterialTheme.colorScheme.onBackground,
-				)
-			}
+		bottomContent = {
+			val relativeTimeSpan = lastUpdated?.let { relativeTimeSpan(it) } ?: stringResource(R.string.not_applicable)
+			Text(
+				text = stringResource(
+					R.string.details_performance_calculated,
+					relativeTimeSpan,
+				),
+				style = Typography.labelSmall,
+				color = MaterialTheme.colorScheme.onBackground,
+			)
 		},
 	)
+}
+
+@Composable
+@PreviewLightDark
+private fun PreviewDetailsSectionPerformance() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			DetailsSectionPerformance(
+				score = Score.HIGH,
+				load = Score.HIGH,
+				uptime = 89f,
+				lastUpdated = "September 11, 2025 at 13:31",
+			)
+		}
+	}
 }

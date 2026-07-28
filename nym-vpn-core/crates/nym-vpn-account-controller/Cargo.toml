@@ -12,41 +12,32 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-si-scale = { workspace = true, features = ["lossy-conversions"] }
+#si-scale = { workspace = true, features = ["lossy-conversions"] }
 aes-gcm.workspace = true
 async-trait.workspace = true
-bincode.workspace = true
+#bincode.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
 pbkdf2.workspace = true
 futures.workspace = true
 hkdf.workspace = true
 nym-common.workspace = true
-nym-credential-proxy-requests.workspace = true
-nym-credential-storage.workspace = true
-nym-credentials-interface.workspace = true
-nym-credentials.workspace = true
-nym-credential-utils.workspace = true
+nym-bandwidth-controller.workspace = true
+nym-bandwidth-fetcher.workspace = true
 nym-crypto = { workspace = true, features = ["asymmetric", "rand"] }
-nym-ecash-time.workspace = true
 nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-sdk.workspace = true
-nym-sqlx-pool-guard.workspace = true
 nym-upgrade-mode-check.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client.workspace = true
+nym-vpn-credential-fetcher.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 rand.workspace = true
 serde.workspace = true
 sha2.workspace = true
-sqlx = { workspace = true, features = [
-    "runtime-tokio-rustls",
-    "sqlite",
-    "time",
-] }
 strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 time.workspace = true
@@ -54,17 +45,17 @@ tokio-util.workspace = true
 tokio-stream.workspace = true
 tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
-zeroize.workspace = true
+#zeroize.workspace = true
 url.workspace = true
-
-[build-dependencies]
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dev-dependencies]
 anyhow.workspace = true
 rand.workspace = true
 nym-compact-ecash.workspace = true
+nym-credential-proxy-requests.workspace = true
+nym-credentials.workspace = true
+nym-credentials-interface.workspace = true
+nym-ecash-time.workspace = true
 nym-http-api-client.workspace = true
 tempfile.workspace = true
 wiremock.workspace = true

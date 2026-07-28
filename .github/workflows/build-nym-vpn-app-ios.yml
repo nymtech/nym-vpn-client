@@ -1,0 +1,533 @@
+name: build-nym-vpn-app-ios
+
+permissions:
+  contents: read
+
+on:
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  #   paths:
+  #     - ".github/workflows/build-nym-vpn-app-ios.yml"
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: |
+          Select build mode:
+          🚜 pr — Pull Request
+          🧪 qa — QA Release
+          🚢 ship — Ship Release
+        type: choice
+        options:
+          - pr
+          - qa
+          - ship
+        default: "pr"
+  workflow_call:
+    inputs:
+      release_type:
+        description: "Build type: pr | qa | ship (raw or labeled)"
+        type: string
+        default: "pr"
+      version:
+        description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
+        type: string
+        default: ""
+    outputs:
+      ios_ipa_name:
+        description: "Name of the IPA file"
+        value: ${{ jobs.build-nym-vpn-app-ios.outputs.ios_ipa_name }}
+      ios_build:
+        description: "Build number of the iOS app"
+        value: ${{ jobs.build-nym-vpn-app-ios.outputs.ios_build }}
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      IOS_DISTRIBUTION_PRIVATE_KEY:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      APPLE_SENTRY_CLI_AUTH_TOKEN:
+        required: true
+      APPLE_SENTRY_CLI_ORG:
+        required: true
+      APPLE_SENTRY_CLI_PROJECT:
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+  RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  IPA_DIR: ${{ github.workspace }}/nym-vpn-apple/build/ios/ipa
+
+jobs:
+  build-nym-vpn-app-ios:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
+    timeout-minutes: 45
+    outputs:
+      UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      ios_ipa_name: ${{ steps.find_ipa.outputs.ios_ipa_name }}
+      ios_build: ${{ steps.ios_build_number.outputs.ios_build }}
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Normalize release_type
+        run: |
+          set -euo pipefail
+
+          echo "🔍 Normalizing release type and platform flags..."
+          echo "--------------------------------------------------"
+
+          sel="${{ env.RAW_RELEASE_TYPE }}"
+
+          # Determine normalized mode (pr / qa / ship)
+          case "$sel" in
+            pr|PR)     mode=pr ;;
+            qa|QA)     mode=qa ;;
+            ship|SHIP) mode=ship ;;
+            *)         mode=pr ;;
+          esac
+
+          echo "🧩 Selected mode (raw): $sel"
+          echo "🧩 Normalized mode: $mode"
+
+          # Export environment variables for later steps
+          echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
+
+          echo "✅ Environment successfully configured:"
+          echo "   RELEASE_TYPE=$mode"
+          echo "--------------------------------------------------"
+
+      - name: Show selected release type
+        run: echo "RELEASE_TYPE=${{ env.RELEASE_TYPE }}"
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: aarch64-apple-ios aarch64-apple-ios-sim
+
+      - name: Install cargo-license
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-license
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache-dependency-path: wireguard/libwg/go.sum
+
+      - name: Add Homebrew, Ruby to PATH
+        run: |
+          set -euxo pipefail
+
+          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
+          RUBY_PREFIX="$(brew --prefix ruby)"
+          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
+          export PATH="${RUBY_PREFIX}/bin:$PATH"
+
+          # Show versions for debugging
+          brew --version
+          ruby --version
+          gem --version
+
+      - name: Install system dependencies
+        run: |
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install brotli
+          brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
+          brew install getsentry/tools/sentry-cli
+
+      - name: Set locale (for Fastlane)
+        run: |
+          echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
+          echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
+
+      - name: Set Xcode directories
+        run: |
+          echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
+          echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
+
+      - name: Install fastlane
+        working-directory: nym-vpn-apple
+        run: |
+          bundle install
+          fastlane --version
+
+      - name: Install python3
+        run: |
+          brew install python
+          python3 --version
+
+      - name: Cache virtual env
+        id: cache-virtual-env
+        uses: actions/cache@v6
+        with:
+          path: python-venv
+          key: ${{ runner.os }}-${{ runner.arch }}-python-venv
+
+      - name: Setup virtual env
+        if: steps.cache-virtual-env.outputs.cache-hit != 'true'
+        run: python3 -m venv python-venv
+
+      - name: Activate virtual env
+        run: |
+          source python-venv/bin/activate
+          echo "$GITHUB_WORKSPACE/python-venv/bin" >> $GITHUB_PATH
+
+      - name: Install codemagic-cli-tools
+        run: |
+          python3 -m pip install codemagic-cli-tools
+          keychain --version
+
+      - name: Apply orchestrated version (apple)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: apple
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
+      - name: Update prebundled servers
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        working-directory: nym-vpn-apple/scripts
+        run: |
+          sh UpdatePrebundledServers.sh
+
+      - name: Enable QA mode
+        if: env.RELEASE_TYPE == 'qa'
+        working-directory: nym-vpn-apple
+        run: |
+          if /usr/libexec/PlistBuddy -c "Print :IsCiBuild" "NymVPNDaemon/Resources/Info.plist" >/dev/null 2>&1; then
+            /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "NymVPNDaemon/Resources/Info.plist"
+          else
+            /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "NymVPNDaemon/Resources/Info.plist"
+          fi
+
+          echo "✅ Updated Info.plist contents:"
+          /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
+
+      - name: Update licences
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        run: |
+          cargo license -j \
+            --avoid-dev-deps \
+            --current-dir ./nym-vpn-core \
+            --filter-platform x86_64-apple-darwin \
+            --avoid-build-deps \
+            > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
+
+      - name: Prepare Keychain
+        working-directory: nym-vpn-apple
+        id: setup-keychain
+        run: |
+          set -euo pipefail
+
+          KEYCHAIN_PASSPHRASE=$(echo $(date +%s%N) | sha256sum | head -c 10)
+          KEYCHAIN_NAME="$(date +%d-%m-%y)_$(echo $(date +%s%N) | sha256sum | head -c 10).keychain-db"
+          KEYCHAIN_PATH="$HOME/Library/codemagic-cli-tools/keychains/$KEYCHAIN_NAME"
+
+          echo "🔐 Initializing Codemagic keychain..."
+          keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
+          keychain show-info
+
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and import signing files
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          echo "📦 Fetching iOS signing files from App Store Connect..."
+          app-store-connect fetch-signing-files net.nymtech.vpn \
+            --type IOS_APP_ADHOC \
+            --create \
+            --delete-stale-profiles \
+            --platform IOS
+
+          keychain add-certificates
+          echo "✅ Signing files successfully fetched and imported."
+
+      - name: Install Apple WWDR Intermediates
+        uses: ./.github/workflows/apple/install-wwdr
+        with:
+          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
+
+      - name: Update core version in app
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        run: |
+          set -euo pipefail
+
+          # Get version from Cargo.toml workspace
+          LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core/Cargo.toml)
+          echo "📦 Core library version: ${LIB_VERSION}"
+
+          # Path to Swift source file
+          app_version_file="nym-vpn-apple/ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
+
+          # Validate and update
+          if [[ -f "$app_version_file" ]]; then
+            # macOS/BSD sed syntax: -i ''
+            sed -i '' -E 's|(public static let libVersion = ")[^"]*(")|\1'"$LIB_VERSION"'\2|' "$app_version_file"
+            echo "✅ libVersion updated to ${LIB_VERSION} in ${app_version_file}."
+          else
+            echo "❌ Error: AppVersionProvider.swift file not found at ${app_version_file}"
+            exit 1
+          fi
+
+      - name: Update localizations Crowdin
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          crowdin_prefix="$(brew --prefix crowdin)"
+          export PATH="$crowdin_prefix/bin:$PATH"
+
+          crowdin download translations \
+            --config crowdin-configs/macos-ios.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
+
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNRpc || true
+          mkdir NymVPNRpc || true
+          cd NymVPNRpc
+          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: core_artifacts_ios
+          path: core_artifacts_ios
+
+      - name: Move core artifacts
+        run: |
+          mv core_artifacts_ios/NymVPNLib nym-vpn-apple/NymVPNLib
+
+      - name: Resolve iOS build number (qa/ship only)
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          PROJECT="$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
+          )"
+
+          echo "🚜 Resolve build number (max across all TestFlight versions)"
+          LATEST="$(
+            app-store-connect builds list \
+              --app-id 6471254143 \
+              --platform IOS \
+              --silent \
+              --no-color \
+              --json 2>/dev/null \
+            | jq '[.[].attributes.version | tonumber] | max // 0'
+          )"
+          REQUIRED=$((LATEST + 1))
+          TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
+
+          if (( TARGET != PROJECT )); then
+            echo "🚜 Bump build: $PROJECT → $TARGET (TestFlight latest=$LATEST)"
+            fastlane mac bump_build build:"$TARGET"
+          else
+            echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
+          fi
+
+          # Export for downstream steps (build, Zulip)
+          echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
+          echo "IOS_TESTFLIGHT_LATEST=$LATEST" >> "$GITHUB_ENV"
+
+      - name: Resolve iOS build number (PR only)
+        if: ${{ env.RELEASE_TYPE == 'pr' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          IOS_BUILD_NUMBER=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
+          )
+          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
+
+      - name: Output iOS build number
+        id: ios_build_number
+        run: echo "ios_build=$IOS_BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Build iOS (Release, signed)
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          echo "🚜 Update signing (iOS only)"
+          xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
+
+          echo "🚀 Building signed iOS Release with Codemagic CLI..."
+          xcode-project build-ipa \
+            --workspace "NymVPN.xcworkspace" \
+            --scheme "NymVPN" \
+            --config "Release" \
+            --clean \
+            --no-color \
+            --log-stream stdout \
+            2>&1 | xcbeautify --renderer github-actions
+
+          echo "✅ Signed archive + .ipa exported"
+          echo "🔢 Build used: $IOS_BUILD_NUMBER (TestFlight latest=${IOS_TESTFLIGHT_LATEST:-n/a})"
+
+      - name: Find IPA file
+        id: find_ipa
+        run: |
+          IPA_FILE=$(find "$IPA_DIR" -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA_FILE" ]; then
+            echo "::error:: No IPA file found"
+            exit 1
+          fi
+
+          IPA_NAME=$(basename "$IPA_FILE")
+          echo "ios_ipa_name=$IPA_NAME" >> $GITHUB_OUTPUT
+          echo "::notice:: Found IPA file: $IPA_FILE"
+
+      - name: Move assets for upload
+        run: |
+          cp -R "$IPA_DIR" "${{ env.UPLOAD_DIR_IOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.UPLOAD_DIR_IOS }}
+          path: ${{ env.UPLOAD_DIR_IOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload iOS dSYMs to Sentry (nightly)
+        if: ${{ env.RELEASE_TYPE == 'qa' }}
+        working-directory: nym-vpn-apple
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
+          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          BASE="$PWD/build/ios/xcarchive"
+          echo "🔎 Locating iOS xcarchive under: $BASE"
+
+          IOS_XCARCHIVE="$(find "$BASE" -maxdepth 1 -type d -name "*.xcarchive" -print -quit 2>/dev/null || true)"
+
+          if [[ -z "${IOS_XCARCHIVE:-}" || ! -d "$IOS_XCARCHIVE" ]]; then
+            echo "❌ No iOS .xcarchive found in $BASE"
+            ls -la "$BASE" || true
+            exit 1
+          fi
+
+          DSYMS_DIR="$IOS_XCARCHIVE/dSYMs"
+          if [[ ! -d "$DSYMS_DIR" ]]; then
+            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
+            exit 0
+          fi
+
+          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
+            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
+            exit 0
+          fi
+
+          echo "📤 Uploading iOS debug files from: $DSYMS_DIR"
+          sentry-cli debug-files upload  \
+            --auth-token "$SENTRY_AUTH_TOKEN" \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --include-sources "$DSYMS_DIR"
+
+      - name: Cleanup Keychain
+        if: always()
+        run: |
+          set -euo pipefail
+
+          echo "🧹 Cleaning up Codemagic keychain..."
+          keychain delete
+
+          echo "🧹 Removing downloaded certificates..."
+          if [ -d "$CERTIFICATES_DIR" ]; then
+            rm -rf "$CERTIFICATES_DIR"/*
+          fi
+
+          echo "🧹 Removing downloaded provisioning profiles..."
+          if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
+            rm -rf "$PROVISIONING_PROFILES_DIR"/*
+          fi

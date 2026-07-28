@@ -42,7 +42,6 @@ jobs:
   aur-publish:
     name: Publish package in AUR
     runs-on: arc-linux-latest-dind
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:

@@ -1,0 +1,279 @@
+name: zulip-notify-release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      release_channel:
+        type: string
+        required: true
+      github_branch:
+        type: string
+        required: true
+      github_release_url:
+        type: string
+      linux_app_deb_x64_url:
+        type: string
+      linux_app_deb_arm64_url:
+        type: string
+      linux_app_appimage_x64_url:
+        type: string
+      linux_app_appimage_arm64_url:
+        type: string
+      windows_installer_x64_url:
+        type: string
+      windows_installer_arm64_url:
+        type: string
+      macos_installer_url:
+        type: string
+      vpnc_macos_installer_url:
+        type: string
+      android_apk_url:
+        type: string
+      ios_build:
+        type: string
+    secrets:
+      ZULIP_BOT_ANDROID_API_KEY:
+        required: true
+      ZULIP_BOT_ANDROID_EMAIL:
+        required: true
+      ZULIP_ORG_URL:
+        required: true
+      ZULIP_BOT_APPLE_CHANNEL:
+        required: true
+      ZULIP_BOT_ANDROID_TOPIC:
+        required: true
+      ZULIP_BOT_APPLE_API_KEY:
+        required: true
+      ZULIP_BOT_APPLE_EMAIL:
+        required: true
+      ZULIP_BOT_APPLE_TOPIC_IOS:
+        required: true
+      ZULIP_BOT_APPLE_TOPIC_MACOS:
+        required: true
+      ZULIP_APE_BOT_API_KEY:
+        required: true
+      ZULIP_APE_BOT_EMAIL:
+        required: true
+      ZULIP_EXTERNALS_ORG_URL:
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  zulip-notify-release-android:
+    runs-on: arc-linux-latest
+    if: ${{ (inputs.release_channel == 'nightly' || inputs.release_channel == 'beta' || inputs.release_channel == 'ship') && inputs.android_apk_url != '' }}
+    steps:
+      - name: Compose Zulip message (Android)
+        id: compose-android-message
+        env:
+          APP_VERSION: ${{ inputs.version }}
+          APK_URL: ${{ inputs.android_apk_url }}
+          RELEASE_URL: ${{ inputs.github_release_url }}
+          BRANCH: ${{ inputs.github_branch }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+        run: |
+          set -euo pipefail
+
+          case "${RELEASE_CHANNEL}" in
+            beta) MODE="beta" ;;
+            ship) MODE="release" ;;
+            nightly) MODE="nightly" ;;
+            *) MODE="${RELEASE_CHANNEL}" ;;
+          esac
+
+          {
+            echo "zulip_message<<EOF"
+            echo "🤖 Android ${MODE} build"
+            echo "• Version: \`${APP_VERSION}\`"
+            echo "• Branch: \`${BRANCH}\`"
+            echo "• Release: ${RELEASE_URL}"
+            echo "• APK: [${APK_URL##*/}](${APK_URL})"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip message (Android)
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_BOT_ANDROID_API_KEY }}
+          email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          type: "stream"
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          topic: ${{ secrets.ZULIP_BOT_ANDROID_TOPIC }}
+          content: ${{ steps.compose-android-message.outputs.zulip_message }}
+
+  zulip-notify-release-ios:
+    runs-on: arc-linux-latest
+    if: ${{ (inputs.release_channel == 'nightly' || inputs.release_channel == 'beta' || inputs.release_channel == 'ship') && inputs.ios_build != '' }}
+    steps:
+      - name: Compose Zulip message (iOS)
+        id: compose-ios-message
+        env:
+          APP_VERSION: ${{ inputs.version }}
+          IOS_BUILD_NUMBER: ${{ inputs.ios_build }}
+          BRANCH: ${{ inputs.github_branch }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+        run: |
+          set -euo pipefail
+
+          case "${RELEASE_CHANNEL}" in
+            beta) MODE="beta" ;;
+            ship) MODE="release" ;;
+            nightly) MODE="nightly" ;;
+            *) MODE="${RELEASE_CHANNEL}" ;;
+          esac
+
+          {
+            echo "zulip_message<<EOF"
+            echo "📱 iOS ${MODE} build"
+            echo "• Version: \`${APP_VERSION}\`"
+            echo "• Build: \`${IOS_BUILD_NUMBER}\`"
+            echo "• Branch: \`${BRANCH}\`"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip message (iOS)
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
+          email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_IOS }}
+          content: ${{ steps.compose-ios-message.outputs.zulip_message }}
+
+  zulip-notify-release-macos:
+    runs-on: arc-linux-latest
+    if: ${{ (inputs.release_channel == 'nightly' || inputs.release_channel == 'beta' || inputs.release_channel == 'ship') && inputs.macos_installer_url != '' }}
+    steps:
+      - name: Compose Zulip message (macOS)
+        id: compose-macos-message
+        env:
+          APP_VERSION: ${{ inputs.version }}
+          PKG_URL: ${{ inputs.macos_installer_url }}
+          VPNC_PKG_URL: ${{ inputs.vpnc_macos_installer_url }}
+          BRANCH: ${{ inputs.github_branch }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+          RELEASE_URL: ${{ inputs.github_release_url }}
+        run: |
+          set -euo pipefail
+
+          case "${RELEASE_CHANNEL}" in
+            beta) MODE="beta" ;;
+            ship) MODE="release" ;;
+            nightly) MODE="nightly" ;;
+            *) MODE="${RELEASE_CHANNEL}" ;;
+          esac
+
+          TAB="&nbsp;&nbsp;&nbsp;&nbsp;"
+
+          {
+            echo "zulip_message<<EOF"
+            echo "🖥️ macOS ${MODE} build"
+            echo "• Version: \`${APP_VERSION}\`"
+            echo "• Branch: \`${BRANCH}\`"
+            echo "• Release: ${RELEASE_URL}"
+            echo "• Download:"
+            echo "${TAB}• macOS app: [${PKG_URL##*/}](${PKG_URL})"
+            echo "${TAB}• macOS cli: [${VPNC_PKG_URL##*/}](${VPNC_PKG_URL})"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip message (macOS)
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
+          email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_MACOS }}
+          content: ${{ steps.compose-macos-message.outputs.zulip_message }}
+
+  zulip-notify-release-tauri:
+    runs-on: arc-linux-latest
+    if: ${{ inputs.windows_installer_x64_url != '' || inputs.windows_installer_arm64_url != '' || inputs.linux_app_deb_x64_url != '' || inputs.linux_app_deb_arm64_url != '' || inputs.linux_app_appimage_x64_url != '' || inputs.linux_app_appimage_arm64_url != '' }}
+    steps:
+      - name: Compose Zulip message (tauri)
+        id: compose-tauri-message
+        env:
+          APP_VERSION: ${{ inputs.version }}
+          VERSION: ${{ inputs.version }}
+          BRANCH: ${{ inputs.github_branch }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+          WIN_X64_INSTALLER: ${{ inputs.windows_installer_x64_url }}
+          WIN_ARM64_INSTALLER: ${{ inputs.windows_installer_arm64_url }}
+          LINUX_APP_DEB_X64: ${{ inputs.linux_app_deb_x64_url }}
+          LINUX_APP_DEB_ARM64: ${{ inputs.linux_app_deb_arm64_url }}
+          LINUX_APP_APPIMAGE_X64: ${{ inputs.linux_app_appimage_x64_url }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ inputs.linux_app_appimage_arm64_url }}
+          RELEASE_URL: ${{ inputs.github_release_url }}
+        run: |
+          set -euo pipefail
+
+          topic=${{ inputs.release_channel == 'ship' && 'tauri-release' || 'tauri-dev' }}
+          echo $topic
+          echo "zulip_topic=$topic" >> "$GITHUB_OUTPUT"
+
+          case "${RELEASE_CHANNEL}" in
+            beta) MODE="beta" ;;
+            ship) MODE="release" ;;
+            nightly) MODE="nightly" ;;
+            *) MODE="${RELEASE_CHANNEL}" ;;
+          esac
+
+          TAB="&nbsp;&nbsp;&nbsp;&nbsp;"
+
+          {
+            echo "zulip_message<<EOF"
+            echo "🖥️ Tauri ${MODE} build"
+            echo "• Version: \`${APP_VERSION}\`"
+            echo "• Branch: \`${BRANCH}\`"
+            echo "• Release: ${RELEASE_URL}"
+            if [[ -n "$WIN_X64_INSTALLER" || -n "$WIN_ARM64_INSTALLER" ]]; then
+              echo "• Windows:"
+              if [ -n "$WIN_X64_INSTALLER" ]; then
+                echo "${TAB}• x64: [${WIN_X64_INSTALLER##*/}](${WIN_X64_INSTALLER})"
+              fi
+              if [ -n "$WIN_ARM64_INSTALLER" ]; then
+                echo "${TAB}• arm64: [${WIN_ARM64_INSTALLER##*/}](${WIN_ARM64_INSTALLER})"
+              fi
+            fi
+            if [[ -n "$LINUX_APP_DEB_X64" || -n "$LINUX_APP_DEB_ARM64" || -n "$LINUX_APP_APPIMAGE_X64" || -n "$LINUX_APP_APPIMAGE_ARM64" ]]; then
+              echo "• Linux:"
+              if [ -n "$LINUX_APP_DEB_X64" ]; then
+                echo "${TAB}• deb (x64): [${LINUX_APP_DEB_X64##*/}](${LINUX_APP_DEB_X64})"
+              fi
+              if [ -n "$LINUX_APP_DEB_ARM64" ]; then
+                echo "${TAB}• deb (arm64): [${LINUX_APP_DEB_ARM64##*/}](${LINUX_APP_DEB_ARM64})"
+              fi
+              if [ -n "$LINUX_APP_APPIMAGE_X64" ]; then
+                echo "${TAB}• AppImage (x64): [${LINUX_APP_APPIMAGE_X64##*/}](${LINUX_APP_APPIMAGE_X64})"
+              fi
+              if [ -n "$LINUX_APP_APPIMAGE_ARM64" ]; then
+                echo "${TAB}• AppImage (arm64): [${LINUX_APP_APPIMAGE_ARM64##*/}](${LINUX_APP_APPIMAGE_ARM64})"
+              fi
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip message
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_APE_BOT_API_KEY }}
+          email: ${{ secrets.ZULIP_APE_BOT_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_EXTERNALS_ORG_URL }}
+          to: "24"
+          type: "stream"
+          topic: ${{ steps.compose-tauri-message.outputs.zulip_topic }}
+          content: ${{ steps.compose-tauri-message.outputs.zulip_message }}

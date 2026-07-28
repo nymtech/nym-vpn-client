@@ -5,25 +5,29 @@
 
 uniffi::setup_scaffolding!();
 
-use std::{net::IpAddr, sync::Arc};
+use std::{net::IpAddr, path::PathBuf, sync::Arc};
 
 use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
+use tokio::sync::RwLock;
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
+use nym_favorites::{FavoritesError, FavoritesManager};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
-    FeatureFlags, FrontingMode, Gateway, GatewaySelectionAlgorithm, GatewayType, GetDeeplinkParams,
-    HttpRpcSettings, LogPath, MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
+    FavoriteSelector, FavoriteSelectors, FeatureFlags, FrontingMode, Gateway,
+    GatewaySelectionAlgorithm, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
+    MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    PrivyDerivationMessage, RecentGateways, Socks5Settings, Socks5Status, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
+uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -274,6 +278,11 @@ impl RpcClient {
         Ok(gateways)
     }
 
+    pub async fn get_recent_gateways(&self, tunnel_type: TunnelType) -> Result<RecentGateways> {
+        let params = nym_vpn_lib_types::GetRecentGatewaysParams { tunnel_type };
+        Ok(self.inner.clone().get_recent_gateways(params).await?)
+    }
+
     pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {
         let response = self.inner.clone().store_account(request).await?;
 
@@ -509,10 +518,71 @@ impl RpcClient {
     }
 }
 
+/// Favorite entry/exit selectors, stored as `favorites.json` in `data_dir`.
+///
+/// Favorites are a client-side file, not daemon state — the daemon neither reads
+/// nor writes them — so this wraps `FavoritesManager` directly, the same way
+/// `nym-vpnc` does, rather than going through the RPC client.
+#[derive(uniffi::Object)]
+pub struct FavoritesController {
+    manager: Arc<RwLock<FavoritesManager>>,
+}
+
+#[uniffi::export(async_runtime = "tokio")]
+impl FavoritesController {
+    #[uniffi::constructor]
+    pub async fn open(data_dir: PathBuf) -> Self {
+        Self {
+            manager: Arc::new(RwLock::new(FavoritesManager::new(data_dir).await)),
+        }
+    }
+
+    pub async fn add_favorite_entry(&self, selector: FavoriteSelector) -> Result<()> {
+        self.manager
+            .write()
+            .await
+            .add_favorite_entry(selector)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn add_favorite_exit(&self, selector: FavoriteSelector) -> Result<()> {
+        self.manager
+            .write()
+            .await
+            .add_favorite_exit(selector)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn remove_favorite_entry(&self, selector: FavoriteSelector) -> Result<()> {
+        self.manager
+            .write()
+            .await
+            .remove_favorite_entry(selector)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn remove_favorite_exit(&self, selector: FavoriteSelector) -> Result<()> {
+        self.manager
+            .write()
+            .await
+            .remove_favorite_exit(selector)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn get_favorites(&self) -> FavoriteSelectors {
+        self.manager.read().await.get_favorites()
+    }
+}
+
 #[derive(Debug)]
 pub enum InnerRpcError {
     RpcError(DaemonRpcError),
     AccountCommand(Arc<AccountCommandError>),
+    Favorites(FavoritesError),
 }
 
 impl std::fmt::Display for InnerRpcError {
@@ -520,6 +590,7 @@ impl std::fmt::Display for InnerRpcError {
         match self {
             InnerRpcError::RpcError(err) => write!(f, "{err}"),
             InnerRpcError::AccountCommand(err) => write!(f, "{err}"),
+            InnerRpcError::Favorites(err) => write!(f, "{err}"),
         }
     }
 }
@@ -551,6 +622,7 @@ impl RpcError {
         match &self.inner {
             InnerRpcError::AccountCommand(err) => err.display_chain(),
             InnerRpcError::RpcError(err) => err.display_chain(),
+            InnerRpcError::Favorites(err) => err.to_string(),
         }
     }
 }
@@ -558,6 +630,14 @@ impl RpcError {
 impl std::fmt::Display for RpcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.inner)
+    }
+}
+
+impl From<FavoritesError> for RpcError {
+    fn from(err: FavoritesError) -> Self {
+        RpcError {
+            inner: InnerRpcError::Favorites(err),
+        }
     }
 }
 

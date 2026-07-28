@@ -7,10 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v2026.12.0]
+### Added
+- Recents support (https://github.com/nymtech/nym-vpn-client/pull/5922)
+- Favorites support (https://github.com/nymtech/nym-vpn-client/pull/5922)
+
+### Changed
+- Changed UI for Server Details screen (https://github.com/nymtech/nym-vpn-client/pull/5922)
+- Changed UI for Server List screen (https://github.com/nymtech/nym-vpn-client/pull/5922)
+
+## [v2026.11.3]
+
+### Added
+- Add 32-bit arch support (https://github.com/nymtech/nym-vpn-client/pull/5881)
+
+### Fixed
+- Fixes for old Android versions (https://github.com/nymtech/nym-vpn-client/pull/5884)
+
+## [v2026.11.1]
 
 ### Added
 - Add Icon Switcher to Appearance settings. With camouflage options (https://github.com/nymtech/nym-vpn-client/pull/5837)
+
+### Changed
+- Update Colors for light theme (https://github.com/nymtech/nym-vpn-client/pull/5843)
+
+### Fixed
+- Fix for the issue with bottom sheet dialogs overlapping (https://github.com/nymtech/nym-vpn-client/pull/5843)
 
 ## [v2026.11.0] - 10.07.2026
 

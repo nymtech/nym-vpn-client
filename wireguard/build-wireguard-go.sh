@@ -227,7 +227,7 @@ function build_go {
     (set -x; go build -ldflags="-buildid=" -trimpath -buildvcs=false $@)
 }
 
-function build_macos_universal {
+function build_macos {
     patch_go_runtime
 
     export CGO_ENABLED=1
@@ -243,11 +243,6 @@ function build_macos_universal {
     export GOOS=darwin
     export GOARCH=amd64
     create_folder_and_build "x86_64-apple-darwin"
-
-    echo "🍎 Creating universal framework"
-        mkdir -p "../../build/lib/universal-apple-darwin/"
-        lipo -create -output "../../build/lib/universal-apple-darwin/libwg.a"  "../../build/lib/x86_64-apple-darwin/libwg.a" "../../build/lib/aarch64-apple-darwin/libwg.a"
-        cp "../../build/lib/aarch64-apple-darwin/libwg.h" "../../build/lib/universal-apple-darwin/libwg.h"
     popd
 }
 
@@ -281,10 +276,18 @@ function build_ios {
     export CGO_LDFLAGS="-isysroot $SDKROOT -arch $GOARCH"
     create_folder_and_build "aarch64-apple-ios-sim"
 
-    echo "🍎 Creating universal ios-sim binary"
-    mkdir -p "../../build/lib/universal-apple-ios-sim/"
-    cp "../../build/lib/aarch64-apple-ios-sim/libwg.a" "../../build/lib/universal-apple-ios-sim/libwg.a"
-    cp "../../build/lib/aarch64-apple-ios/libwg.h" "../../build/lib/universal-apple-ios-sim/libwg.h"
+    echo "🍎 Building for ios-sim/x86_64"
+    export ARCH=x86_64
+    export GOOS=ios
+    export GOARCH=amd64
+    export SDKROOT=$(xcrun --show-sdk-path --sdk iphonesimulator)
+    export CC="$(xcrun -sdk $SDKROOT --find clang) -arch $ARCH -isysroot $SDKROOT"
+    export CFLAGS="-isysroot $SDKROOT -arch $ARCH -I$SDKROOT/usr/include"
+    export LD_LIBRARY_PATH="$SDKROOT/usr/lib"
+    export CGO_CFLAGS="-isysroot $SDKROOT -arch $ARCH"
+    export CGO_LDFLAGS="-isysroot $SDKROOT -arch $ARCH"
+    create_folder_and_build "x86_64-apple-ios"
+    unset ARCH
 
     popd
 }
@@ -336,7 +339,7 @@ function build_wireguard_go {
 
     local platform="$(uname -s)";
     case  "$platform" in
-        Darwin*) build_macos_universal;;
+        Darwin*) build_macos;;
         Linux*) build_unix ${1:-$(unix_target_triple)};;
         MINGW*|MSYS_NT*) build_windows;;
     esac

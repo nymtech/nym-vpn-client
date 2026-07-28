@@ -1,0 +1,6 @@
+self-hosted-runner:
+  labels:
+    - arc-linux-latest
+    - arc-linux-latest-dind
+    - custom-macos-15
+    - custom-windows-11

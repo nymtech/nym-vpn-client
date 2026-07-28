@@ -1,20 +1,33 @@
 name: release-all-platforms
 
 on:
-  # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
-  # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
-  # branch — there is no separate branch input (it could not redirect the callees).
-  # Scheduled (nightly) runs use the repository default branch (develop).
+  # NOTE: pick the release branch in the "Run workflow" ref selector.
   workflow_dispatch:
     inputs:
+      gh_release:
+        description: |
+          Github release mode:
+            - none = no release
+            - draft = draft release
+            - auto = based on branch and release channel;
+              release/*, ship -> release;
+              release/*, beta -> prerelease;
+              develop, nightly -> prerelease;
+              rest: draft
+        type: choice
+        default: 'none'
+        options:
+          - none
+          - draft
+          - auto
       release_channel:
         description: "Release channel"
         type: choice
         default: nightly
         options:
-          - nightly   # mutable, auto-published prerelease; app version <base>-nightly
-          - beta      # release candidate; core version MUST contain -beta; prerelease draft
-          - ship      # stable release; core version MUST NOT contain -beta; draft
+          - nightly   # daily prerelease
+          - beta      # release candidate
+          - ship      # stable release
       android:
         description: "Android → Google Play"
         type: boolean
@@ -40,30 +53,86 @@ on:
         type: boolean
         default: false
       publish-metadata:
-        description: "Skip Google Play metadata"
+        description: "Publish Google Play metadata"
         type: boolean
-        default: true
-  schedule:
-    - cron: "0 4 * * *"
+        default: false
+  workflow_call:
+    inputs:
+      gh_release:
+        description: "Github release mode (none, draft, auto)"
+        type: string
+        default: 'draft' # none, draft, public
+      release_channel:
+        description: "Release channel"
+        type: string # nightly, beta, ship
+        default: nightly
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid (ship only)"
+        type: boolean
+        default: false
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        default: false
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        default: false
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        default: false
+      publish-metadata:
+        description: "Publish Google Play metadata"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 # Ship/beta runs key off the ref so different release branches/versions run in parallel.
 # Nightly runs (cron + the no-platform-selected fallback) all share ONE group:
-# ensure-release.sh deletes ALL prior nightly releases, so two concurrent nightlies would
-# clobber each other's release state regardless of ref.
 concurrency:
-  group: ${{ github.workflow }}-${{ (github.event_name == 'schedule' || (inputs.release_channel != 'ship' && inputs.release_channel != 'beta')) && 'nightly' || github.ref }}
+  group: ${{ github.workflow }}-${{ inputs.release_channel }}
   cancel-in-progress: false
+
+env:
+  APP_ARTIFACTS_LINUX_AARCH64: app_artifacts_linux_aarch64
+  APP_ARTIFACTS_LINUX_X86_64: app_artifacts_linux_x86_64
+  APP_ARTIFACTS_WINDOWS_ARM64: app_artifacts_windows_arm64
+  APP_ARTIFACTS_WINDOWS_X64: app_artifacts_windows_x64
+  APP_ARTIFACTS_ANDROID_FDROID: android_artifacts_fdroid
+  APP_ARTIFACTS_ANDROID_PLAY: android_artifacts_play
+  CORE_ARTIFACTS_LINUX_X86_64: core_artifacts_linux_x86_64
+  CORE_ARTIFACTS_LINUX_AARCH64: core_artifacts_linux_aarch64
+  CORE_ARTIFACTS_WINDOWS_X64: core_artifacts_windows_x64
+  CORE_ARTIFACTS_WINDOWS_ARM64: core_artifacts_windows_arm64
+  DEB_ARTIFACTS_X86_64: deb_artifacts_x86_64
+  DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
+  IOS_ARTIFACTS: ios_artifacts
+  MACOS_ARTIFACTS: macos_artifacts
+  VPNC_MACOS_ARTIFACTS: vpnc_macos_artifacts
+  # Only used for testing purposes and must not be used in production
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v10 # used when testing workflow
 
 jobs:
   resolve:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
+      gh_release: ${{ steps.flags.outputs.gh_release }}
+      gh_release_type: ${{ steps.flags.outputs.gh_release_type }}
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
-      channel: ${{ steps.flags.outputs.channel }}
+      nightly_timestamp: ${{ steps.v.outputs.nightly_timestamp || '' }}
+      channel: ${{ steps.v.outputs.channel }}
       android: ${{ steps.flags.outputs.android }}
       fdroid: ${{ steps.flags.outputs.fdroid }}
       linux: ${{ steps.flags.outputs.linux }}
@@ -72,6 +141,18 @@ jobs:
       macos: ${{ steps.flags.outputs.macos }}
       publish_metadata: ${{ steps.flags.outputs.publish_metadata }}
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
       - name: Resolve channel + platform flags
         id: flags
         env:
@@ -85,57 +166,68 @@ jobs:
           IN_IOS: ${{ inputs.ios }}
           IN_MACOS: ${{ inputs.macos }}
           IN_PUBLISH_METADATA: ${{ inputs.publish-metadata }}
+          IN_GH_RELEASE: ${{ inputs.gh_release }}
         run: |
           set -euo pipefail
+
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
 
-          # Channel: scheduled runs are always nightly; a manual dispatch honours the
-          # chosen release_channel (the platform selection no longer overrides it).
-          if [ "$EVENT" = "schedule" ]; then
-            CHANNEL=nightly
-          else
-            CHANNEL="${IN_CHANNEL:-nightly}"
-          fi
+          CHANNEL="${IN_CHANNEL:-nightly}"
 
           # Platform set: a cron run, OR a dispatch with NO platform box ticked, builds
           # EVERY platform for that channel. Any box ticked builds only the ticked ones.
-          if [ "$EVENT" = "schedule" ] \
-            || { [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
-              && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
-              && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; }; then
+          if [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
+            && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
+            && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; then
             ALL=true
           else
             ALL=false
           fi
 
           if [ "$ALL" = "true" ]; then
-            ANDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true
-            # The F-Droid APK is built + attached by the Android job regardless of this
-            # flag; `fdroid` only DISPATCHES the F-Droid repo (a store) = ship-only.
-            if [ "$CHANNEL" = "ship" ]; then FDROID=true; else FDROID=false; fi
-            echo "::notice:: $CHANNEL → all platforms (F-Droid submission: $FDROID)"
+            ANDROID=true; FDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true
+            echo "::notice:: $CHANNEL → all platforms"
           else
-            ANDROID="${IN_ANDROID:-false}"; LINUX="${IN_LINUX:-false}"
+            ANDROID="${IN_ANDROID:-false}"; FDROID="${IN_FDROID:-false}"; LINUX="${IN_LINUX:-false}"
             WINDOWS="${IN_WINDOWS:-false}"; IOS="${IN_IOS:-false}"; MACOS="${IN_MACOS:-false}"
-            # F-Droid repo dispatch is ship-only; on nightly/beta the box is a no-op
-            # (the F-Droid APK still builds + attaches via the Android job).
-            if [ "$CHANNEL" = "ship" ] && [ "$IN_FDROID" = "true" ]; then FDROID=true; else FDROID=false; fi
             echo "::notice:: $CHANNEL → selected platforms"
           fi
 
-          # Google Play metadata skip toggle (schedule/cron defaults to true = skip).
+          # Google Play metadata skip toggle
           PUBLISH_METADATA="${IN_PUBLISH_METADATA:-true}"
+          GH_RELEASE="${IN_GH_RELEASE:-none}"
+
+          if [[ "$GH_RELEASE" != "none" && "$GH_RELEASE" != "draft" && "$GH_RELEASE" != "auto"  ]]; then
+            echo "::error:: Unknown GitHub release mode: $GH_RELEASE"
+            exit 1
+          fi
+
+          if [[ "$GH_RELEASE" = "none" || "$GH_RELEASE" = "draft" ]]; then
+            GH_RELEASE_TYPE="draft"
+
+          elif [[ "$REF_NAME" == release/* ]] && [ "$CHANNEL" = "ship" ]; then
+            GH_RELEASE_TYPE="release"
+
+          elif [[ "$REF_NAME" == release/* ]] && [ "$CHANNEL" = "beta" ]; then
+            GH_RELEASE_TYPE="prerelease"
+
+          elif [ "$REF_NAME" = "develop" ] && [ "$CHANNEL" = "nightly" ]; then
+            GH_RELEASE_TYPE="prerelease"
+
+          else
+            GH_RELEASE_TYPE="draft"
+          fi
+
+          echo "::notice:: Github release type: $GH_RELEASE_TYPE"
 
           {
             echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
             echo "publish_metadata=$PUBLISH_METADATA"
+            echo "gh_release=$GH_RELEASE"
+            echo "gh_release_type=$GH_RELEASE_TYPE"
           } >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
 
       - uses: baptiste0928/cargo-install@v3
         with:
@@ -149,107 +241,337 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
 
-  prepare-release:
-    needs: resolve
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+  check-release-exists:
+    name: Check release exists
+    runs-on: arc-linux-latest
+    needs: [resolve]
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-      - name: Ensure unified release object
+      - name: Check if release exists
+        id: check_release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHANNEL: ${{ needs.resolve.outputs.channel }}
-          TAG: ${{ needs.resolve.outputs.tag }}
-          TARGET_SHA: ${{ github.sha }}
-          NOTES: "Unified release ${{ needs.resolve.outputs.tag }} assembled by release-all-platforms."
-        run: bash .github/scripts/release/ensure-release.sh
+          GH_TOKEN: ${{ github.token }}
+          GH_RELEASE_TYPE: ${{ needs.resolve.outputs.gh_release_type }}
+        run: |
+          TAG="${{ needs.resolve.outputs.tag }}"
+          if [ "$GH_RELEASE_TYPE" = "draft" ] ; then
+            echo "::warning:: Skip tag check for draft release"
+            exit 0
+          fi
 
-  core:
-    needs: [resolve, prepare-release]
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
+            echo "::error:: Release $TAG already exists. Aborting"
+            exit 1
+          fi
+
+  # This step is only used for testing purposes when developing this workflow
+  # restore-build-cache:
+  #   needs: [resolve, check-release-exists]
+  #   runs-on: arc-linux-latest
+  #   outputs:
+  #     cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
+  #     pkg_installer_name: ${{ steps.restore-build-outputs.outputs.pkg_installer_name }}
+  #     vpnc_pkg_installer_name: ${{ steps.restore-build-outputs.outputs.vpnc_pkg_installer_name }}
+  #     ios_ipa_name: ${{ steps.restore-build-outputs.outputs.ios_ipa_name }}
+  #     ios_build: ${{ steps.restore-build-outputs.outputs.ios_build }}
+  #     fdroid_artifact_name: ${{ steps.restore-build-outputs.outputs.fdroid_artifact_name }}
+  #     play_artifact_name: ${{ steps.restore-build-outputs.outputs.play_artifact_name }}
+  #   steps:
+  #     - uses: actions/cache/restore@v6
+  #       id: cache
+  #       with:
+  #         path: |
+  #           build-outputs.json
+  #           ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+  #           ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+  #           ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+  #           ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+  #           ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+  #           ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+  #           ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+  #           ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+  #           ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+  #           ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+  #           ${{ env.DEB_ARTIFACTS_X86_64 }}
+  #           ${{ env.DEB_ARTIFACTS_AARCH64 }}
+  #           ${{ env.IOS_ARTIFACTS }}
+  #           ${{ env.MACOS_ARTIFACTS }}
+  #           ${{ env.VPNC_MACOS_ARTIFACTS }}
+  #         key: ${{ env.DANGER_BUILD_CACHE_KEY }}
+
+  #     - name: Restore build outputs
+  #       id: restore-build-outputs
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       run: |
+  #         cat build-outputs.json
+  #         jq -r 'to_entries[] | "\(.key)=\(.value)"' build-outputs.json >> $GITHUB_OUTPUT
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+  #         path: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+  #         path: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+  #         path: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+  #         path: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+  #         path: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+  #         path: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+  #         path: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+  #         path: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+  #         path: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+  #         path: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.DEB_ARTIFACTS_X86_64 }}
+  #         path: ${{ env.DEB_ARTIFACTS_X86_64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.DEB_ARTIFACTS_AARCH64 }}
+  #         path: ${{ env.DEB_ARTIFACTS_AARCH64 }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.IOS_ARTIFACTS }}
+  #         path: ${{ env.IOS_ARTIFACTS }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.MACOS_ARTIFACTS }}
+  #         path: ${{ env.MACOS_ARTIFACTS }}
+
+  #     - uses: actions/upload-artifact@v7
+  #       if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+  #       with:
+  #         name: ${{ env.VPNC_MACOS_ARTIFACTS }}
+  #         path: ${{ env.VPNC_MACOS_ARTIFACTS }}
+
+  restore-build-cache:
+    name: Restore build cache (noop)
+    runs-on: arc-linux-latest
+    needs: [resolve, check-release-exists]
+    steps:
+      - run: exit 0
+
+  build:
+    needs: [resolve, check-release-exists, restore-build-cache]
+    if: |
+        !cancelled() && needs.check-release-exists.result == 'success' &&  needs.restore-build-cache.outputs.cache-hit != 'true'
     permissions:
       contents: write
-    uses: ./.github/workflows/publish-nym-vpn-core.yml
+    uses: ./.github/workflows/build-release-artifacts.yml
     with:
+      release_channel: ${{ needs.resolve.outputs.channel }}
       version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
-    secrets: inherit
-
-  apple:
-    needs: [resolve, prepare-release]
-    if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
-    permissions:
-      contents: write
-    uses: ./.github/workflows/build-nym-vpn-apple.yml
-    with:
-      # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
-      build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
-      build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
-    secrets: inherit
-
-  android:
-    needs: [resolve, prepare-release]
-    if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
-    permissions:
-      contents: write
-    uses: ./.github/workflows/publish-nym-vpn-android.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
+      nightly_timestamp: ${{ needs.resolve.outputs.nightly_timestamp }}
+      android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
-      # Play push is ship-only (beta builds the same as nightly = no store). Requires the
-      # Android platform actually selected, not just an F-Droid-only dispatch.
-      track: ${{ (needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship') && 'production' || 'none' }}
-      publish-metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
-    secrets: inherit
-
-  # Linux + Windows desktop app. publish-nym-vpn-app.yml builds each OS as its own
-  # internal job (build-linux on ubuntu, build-windows-* on windows) and aggregates in
-  # one Linux publish job, so a single invocation covers both. Core is built INLINE here
-  # (no core_release_tag): consuming core from the unified release can't work because it
-  # is a DRAFT at build time and /releases/tags/<tag> doesn't return drafts. The `linux`/
-  # `windows` flags only gate which built artifacts get appended to the release.
-  app:
-    needs: [resolve, prepare-release]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
-    permissions: write-all
-    uses: ./.github/workflows/publish-nym-vpn-app.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
-  # Nightly + beta: assets can't be added after publish, so platforms assemble into a
-  # prerelease draft and this job publishes it once they finish. Only ship is published
-  # manually (its draft gates the store/AUR propagation in on-release-publish.yml).
-  finalize-nightly:
-    needs: [resolve, prepare-release, core, apple, android, app]
-    if: ${{ always() && (needs.resolve.outputs.channel == 'nightly' || needs.resolve.outputs.channel == 'beta') }}
-    runs-on: ubuntu-latest
+  # This step is only used for testing purposes when developing this workflow
+  # save-build-cache:
+  #   runs-on: arc-linux-latest
+  #   needs: [resolve, build, restore-build-cache]
+  #   if: |
+  #     !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true' && needs.build.result == 'success'
+  #   steps:
+  #     - uses: actions/download-artifact@v8
+
+  #     - name: Save build outputs
+  #       env:
+  #         PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+  #         VPNC_PKG_INSTALLER_NAME: ${{ needs.build.outputs.vpnc_pkg_installer_name }}
+  #         IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name }}
+  #         IOS_BUILD: ${{ needs.build.outputs.ios_build }}
+  #         FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
+  #         PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name }}
+  #       run: |
+  #         jq -n \
+  #           --arg pkg "$PKG_INSTALLER_NAME" \
+  #           --arg vpnc_pkg "$VPNC_PKG_INSTALLER_NAME" \
+  #           --arg ipa "$IOS_IPA_NAME" \
+  #           --arg ios_build "$IOS_BUILD" \
+  #           --arg fdroid "$FDROID_ARTIFACT_NAME" \
+  #           --arg play "$PLAY_ARTIFACT_NAME" \
+  #           '{
+  #             pkg_installer_name: $pkg,
+  #             vpnc_pkg_installer_name: $vpnc_pkg,
+  #             ios_ipa_name: $ipa,
+  #             ios_build: $ios_build,
+  #             fdroid_artifact_name: $fdroid,
+  #             play_artifact_name: $play
+  #           }' > build-outputs.json
+
+  #         echo "✅ Generated build-outputs.json:"
+  #         cat build-outputs.json
+
+  #     - uses: actions/cache/save@v6
+  #       id: cache
+  #       with:
+  #         path: |
+  #           build-outputs.json
+  #           ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+  #           ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+  #           ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+  #           ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+  #           ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+  #           ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+  #           ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+  #           ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+  #           ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+  #           ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+  #           ${{ env.DEB_ARTIFACTS_X86_64 }}
+  #           ${{ env.DEB_ARTIFACTS_AARCH64 }}
+  #           ${{ env.IOS_ARTIFACTS }}
+  #           ${{ env.MACOS_ARTIFACTS }}
+  #           ${{ env.VPNC_MACOS_ARTIFACTS }}
+  #         key: ${{ env.DANGER_BUILD_CACHE_KEY }}
+
+  build-outputs:
+    runs-on: arc-linux-latest
+    needs: [build, restore-build-cache]
+    if: |
+      !cancelled() && (
+        needs.restore-build-cache.outputs.cache-hit == 'true' ||
+        needs.build.result == 'success'
+      )
+    outputs:
+      pkg_installer_name: ${{ steps.set-outputs.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name: ${{ steps.set-outputs.outputs.vpnc_pkg_installer_name }}
+      fdroid_artifact_name: ${{ steps.set-outputs.outputs.fdroid_artifact_name }}
+      play_artifact_name: ${{ steps.set-outputs.outputs.play_artifact_name }}
+      ios_ipa_name: ${{ steps.set-outputs.outputs.ios_ipa_name }}
+      ios_build: ${{ steps.set-outputs.outputs.ios_build }}
+    steps:
+      - name: Resolve build outputs
+        id: set-outputs
+        env:
+          PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name || needs.restore-build-cache.outputs.pkg_installer_name }}
+          VPNC_PKG_INSTALLER_NAME: ${{ needs.build.outputs.vpnc_pkg_installer_name || needs.restore-build-cache.outputs.vpnc_pkg_installer_name }}
+          FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name || needs.restore-build-cache.outputs.fdroid_artifact_name }}
+          PLAY_ARTIFACT_NAME: ${{ needs.build.outputs.play_artifact_name || needs.restore-build-cache.outputs.play_artifact_name }}
+          IOS_IPA_NAME: ${{ needs.build.outputs.ios_ipa_name || needs.restore-build-cache.outputs.ios_ipa_name }}
+          IOS_BUILD: ${{ needs.build.outputs.ios_build || needs.restore-build-cache.outputs.ios_build }}
+        run: |
+          echo "pkg_installer_name=$PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
+          echo "vpnc_pkg_installer_name=$VPNC_PKG_INSTALLER_NAME" >> $GITHUB_OUTPUT
+          echo "fdroid_artifact_name=$FDROID_ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "play_artifact_name=$PLAY_ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "ios_ipa_name=$IOS_IPA_NAME" >> $GITHUB_OUTPUT
+          echo "ios_build=$IOS_BUILD" >> $GITHUB_OUTPUT
+
+  release:
+    needs: [resolve, build-outputs]
+    if: |
+      !cancelled() && needs.build-outputs.result == 'success' && needs.resolve.outputs.gh_release != 'none'
+    uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
-    steps:
-      - name: Publish the draft (only if it has assets)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.resolve.outputs.tag }}
-          CHANNEL: ${{ needs.resolve.outputs.channel }}
-        run: |
-          set -euo pipefail
-          count=$(gh release view "$TAG" --json assets -q '.assets | length' 2>/dev/null || echo 0)
-          if [ "${count:-0}" -gt 0 ]; then
-            gh release edit "$TAG" --draft=false
-            echo "::notice:: published $CHANNEL $TAG ($count assets)"
-          else
-            echo "::warning:: $CHANNEL $TAG has no assets — leaving as draft"
-          fi
+    with:
+      tag: ${{ needs.resolve.outputs.tag }}
+      github_release_type: ${{ needs.resolve.outputs.gh_release_type }}
+      version: ${{ needs.resolve.outputs.version }}
+      android: ${{ needs.resolve.outputs.android == 'true' }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
+      pkg_installer_name: ${{ needs.build-outputs.outputs.pkg_installer_name }}
+      vpnc_pkg_installer_name: ${{ needs.build-outputs.outputs.vpnc_pkg_installer_name }}
+      fdroid_artifact_name: ${{ needs.build-outputs.outputs.fdroid_artifact_name }}
+    secrets: inherit
+
+  distribute:
+    needs: [resolve, build-outputs, release]
+    # condition is needed because 'release' may be skipped due to dependence on cache actions
+    if: |
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' && needs.resolve.outputs.gh_release_type != 'draft'
+    uses: ./.github/workflows/distribute-release.yml
+    permissions:
+      contents: read
+    with:
+      publish_play: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
+      publish_play_metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
+      # only publish nightly builds to avoid downgrades
+      publish_testflight: ${{ needs.resolve.outputs.ios == 'true' && needs.resolve.outputs.channel == 'nightly' }}
+      ios_ipa_name: ${{ needs.build-outputs.outputs.ios_ipa_name }}
+      publish_to_public_testflight: true
+      play_artifact_name: ${{ needs.build-outputs.outputs.play_artifact_name }}
+    secrets: inherit
+
+  zulip:
+    needs: [resolve, release, build-outputs, distribute]
+    if: |
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' &&
+      needs.resolve.outputs.gh_release_type != 'draft'
+    uses: ./.github/workflows/zulip-notify-release.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+      release_channel: ${{ needs.resolve.outputs.channel }}
+      github_branch: ${{ github.ref_name }}
+      github_release_url: ${{ needs.release.outputs.github_release_url }}
+      linux_app_deb_x64_url: ${{ needs.release.outputs.linux_app_deb_x64_url }}
+      linux_app_deb_arm64_url: ${{ needs.release.outputs.linux_app_deb_arm64_url }}
+      linux_app_appimage_x64_url: ${{ needs.release.outputs.linux_app_appimage_x64_url }}
+      linux_app_appimage_arm64_url: ${{ needs.release.outputs.linux_app_appimage_arm64_url }}
+      windows_installer_x64_url: ${{ needs.release.outputs.windows_installer_x64_url }}
+      windows_installer_arm64_url: ${{ needs.release.outputs.windows_installer_arm64_url }}
+      macos_installer_url: ${{ needs.release.outputs.macos_installer_url }}
+      vpnc_macos_installer_url: ${{ needs.release.outputs.vpnc_macos_installer_url }}
+      android_apk_url: ${{ needs.release.outputs.android_apk_url }}
+      ios_build: ${{ needs.build-outputs.outputs.ios_build }}
+    secrets: inherit

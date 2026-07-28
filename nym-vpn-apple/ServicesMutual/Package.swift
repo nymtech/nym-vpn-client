@@ -50,7 +50,12 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/ConnectionTypes",
-            swiftSettings: santaSwiftSettings
+            swiftSettings: santaSwiftSettings,
+            linkerSettings: [
+                // NymVPNRpcUniffi static lib references SystemConfiguration/Network symbols
+                .linkedFramework("SystemConfiguration", .when(platforms: [.macOS])),
+                .linkedFramework("Network", .when(platforms: [.macOS]))
+            ]
         ),
         .target(
             name: "Constants",

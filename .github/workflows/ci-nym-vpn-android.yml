@@ -3,14 +3,12 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
+      - ".github/workflows/ci-nym-vpn-android.yml"
       - "nym-vpn-core/crates/**"
       - "nym-vpn-core/Cargo.toml"
       - "nym-vpn-core/Cargo.lock"
       - "nym-vpn-core/Android.mk"
       - "nym-vpn-android/**"
-      - ".github/workflows/ci-nym-vpn-android.yml"
-      - ".github/workflows/build-nym-vpn-android.yml"
-      - ".github/workflows/publish-nym-vpn-android.yml"
   workflow_dispatch:
 
 env:
@@ -89,6 +87,5 @@ jobs:
     with:
       build_type: "debug"
       build_format: "apk"
-    secrets:
-      SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
-      SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+      build_flavor: "fdroid"
+    secrets: inherit

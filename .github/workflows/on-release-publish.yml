@@ -39,7 +39,7 @@ jobs:
     # (nym-vpn-core-v*, nym-vpn-app-v*) and nightly (nym-vpn-nightly-*) tags --
     # none of those share the 'nym-vpn-v' prefix.
     if: ${{ startsWith(github.event.release.tag_name, 'nym-vpn-v') }}
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
@@ -65,7 +65,7 @@ jobs:
   # --prerelease, and 'released' never fires for prereleases.
   delete-betas:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
     steps:
@@ -137,7 +137,7 @@ jobs:
   # (NymVPN_<ver>_x64-setup.exe.sig) — parse it rather than assume tag==app version.
   win-sigs:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       enabled: ${{ steps.sig.outputs.enabled }}
       app_version: ${{ steps.sig.outputs.app_version }}
@@ -189,6 +189,27 @@ jobs:
       signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
+  macos-updater:
+    needs: [setup, win-sigs]
+    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    uses: ./.github/workflows/macos-updater.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      version_tag: ${{ needs.setup.outputs.tag }}
+
+  update-nym-fdroid:
+    runs-on: arc-linux-latest
+    needs: setup
+    steps:
+      - name: Dispatch update for fdroid repo
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ secrets.ANDROID_PAT }}
+          repository: nymtech/fdroid
+          event-type: fdroid-update
+
   # Bust the nym.com (Next.js) release cache tag so the public download page picks
   # up the freshly published version. Only fires here, gated on `setup`, so it runs
   # exactly when a ship (non-prerelease) release with the nym-vpn-v* tag goes public
@@ -196,7 +217,7 @@ jobs:
   # HMAC-SHA256 the endpoint verifies via the X-Hub-Signature-256 header.
   revalidate-website:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
       - name: Invalidate release cache
         env:

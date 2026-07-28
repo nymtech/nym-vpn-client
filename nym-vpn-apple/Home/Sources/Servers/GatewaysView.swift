@@ -2,14 +2,44 @@ import SwiftUI
 import Constants
 import ConnectionTypes
 import ExternalLinkManager
+import GatewayManager
 import Routes
 import Settings
 import Theme
 import UIComponents
 
 public struct GatewaysView: View {
-    @ObservedObject private var viewModel: GatewaysViewModel
+    @StateObject private var viewModel: GatewaysViewModel
+    // Favorites live in GatewayManager; observing it here keeps the filtered lists in sync.
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @FocusState private var isSearchFocused: Bool
+
+    private var favoritesState: ServersFavoritesState {
+        viewModel.favoritesState
+    }
+
+    private var displayedCountries: [NymCountry] {
+        switch favoritesState.filter {
+        case .favorites:
+            viewModel.countries.filter {
+                favoritesState.isFavorite(.country($0.code)) || !servers(in: $0).isEmpty
+            }
+        case .recent:
+            // Recents are a flat, core-ordered node list — see recentGatewaysList().
+            []
+        case .allServers:
+            viewModel.countries
+        }
+    }
+
+    /// Nodes listed under a country cell. The favorites tab lists only starred nodes — a
+    /// starred country is itself the favorite and renders as a childless row, so the tab
+    /// never shows an unstarred entry.
+    private func servers(in country: NymCountry) -> [GatewayNode] {
+        let servers = viewModel.gatewaysInCountry(with: country.code)
+        guard favoritesState.filter == .favorites else { return servers }
+        return servers.filter { favoritesState.isFavorite(.gateway($0.id)) }
+    }
 
     private var entryGatewayBinding: Binding<EntryGateway> {
         Binding(
@@ -25,28 +55,24 @@ public struct GatewaysView: View {
         )
     }
 
-    public init(viewModel: GatewaysViewModel) {
-        self.viewModel = viewModel
+    /// Autoclosure keeps the model alive across parent re-renders: the expression only
+    /// runs when this navigation destination's `@StateObject` is first created, so the
+    /// model's init side effects (gateway load, scroll, favorites fetch) fire once.
+    public init(viewModel: @autoclosure @escaping () -> GatewaysViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel())
     }
 
     public var body: some View {
         VStack(spacing: 0) {
             navbar()
             optionalQuicMessage()
-            Spacer()
-                .frame(height: 24)
-            searchView()
-                .frame(maxWidth: MagicNumbers.maxWidth)
-            Spacer()
-                .frame(height: 16)
-            countSummaryHeader()
-                .frame(maxWidth: MagicNumbers.maxWidth)
-            Spacer()
-                .frame(height: 12)
+            searchAndFilterHeader()
 
             ScrollViewReader { proxy in
                 ScrollView {
                     randomRow()
+                    recentGatewaysList()
+                    favoriteGatewaysList()
                     countriesGatewaysList()
                     noSearchResultsView()
                     foundCountriesList()
@@ -70,6 +96,7 @@ public struct GatewaysView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .environmentObject(favoritesState)
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
@@ -83,6 +110,18 @@ public struct GatewaysView: View {
         }
         .onTapGesture {
             isSearchFocused = false
+        }
+        .onChange(of: favoritesState.filter) { _, newFilter in
+            switch newFilter {
+            case .recent:
+                Task { await viewModel.updateRecents() }
+            case .favorites:
+                Task { await viewModel.gatewayManager.updateFavorites() }
+            case .allServers:
+                break
+            }
+            // Results are scoped to the tab, so an active search has to be re-run against the new one.
+            viewModel.searchCountriesGateways()
         }
         .task {
             try? await Task.sleep(nanoseconds: 350_000_000)
@@ -151,6 +190,35 @@ private extension GatewaysView {
             .padding(.horizontal, 16)
     }
 
+    func serverFilterSelector() -> some View {
+        ServerFilterSelector(
+            selection: Binding(
+                get: { favoritesState.filter },
+                set: { favoritesState.filter = $0 }
+            )
+        )
+        .padding(.horizontal, 16)
+    }
+
+    func searchAndFilterHeader() -> some View {
+        VStack(spacing: 0) {
+            Spacer()
+                .frame(height: 24)
+            searchView()
+                .frame(maxWidth: MagicNumbers.maxWidth)
+            Spacer()
+                .frame(height: 16)
+            countSummaryHeader()
+                .frame(maxWidth: MagicNumbers.maxWidth)
+            Spacer()
+                .frame(height: 12)
+            serverFilterSelector()
+                .frame(maxWidth: MagicNumbers.maxWidth)
+            Spacer()
+                .frame(height: 12)
+        }
+    }
+
     @ViewBuilder
     func countSummaryHeader() -> some View {
         let countriesCount = viewModel.countries.count
@@ -168,7 +236,7 @@ private extension GatewaysView {
 
     @ViewBuilder
     func randomRow() -> some View {
-        if viewModel.searchText.count < viewModel.minimumSearchSymbols {
+        if viewModel.searchText.count < viewModel.minimumSearchSymbols, favoritesState.filter == .allServers {
             switch viewModel.type {
             case .entry:
                 GatewayRandomCell(
@@ -192,9 +260,10 @@ private extension GatewaysView {
     @ViewBuilder
     func countriesGatewaysList() -> some View {
         if viewModel.searchText.count < viewModel.minimumSearchSymbols {
-            ForEach(viewModel.countries, id: \.name) { country in
-                let servers = viewModel.gatewaysInCountry(with: country.code)
-                if !servers.isEmpty {
+            ForEach(displayedCountries, id: \.name) { country in
+                let servers = servers(in: country)
+                // A starred country with no starred nodes is still a favorite — keep its row.
+                if !servers.isEmpty || favoritesState.filter == .favorites {
                     GatewayCountryCell(
                         country: country,
                         servers: servers,
@@ -205,10 +274,56 @@ private extension GatewaysView {
                         exitRouter: exitRouterBinding,
                         infoButtonTapCompletion: { gateway in
                             viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
+                        },
+                        // Favorites tab opens expanded, else the starred nodes stay hidden behind a chevron.
+                        isInitiallyExpanded: favoritesState.filter == .favorites
+                    )
+                    // Cell expansion is @State seeded at init; switching tabs must re-seed it.
+                    .id(favoritesState.filter)
+                }
+            }
+        }
+    }
+
+    /// Nodes core recorded as recently connected, newest first.
+    @ViewBuilder
+    func recentGatewaysList() -> some View {
+        if favoritesState.filter == .recent, viewModel.searchText.count < viewModel.minimumSearchSymbols {
+            if viewModel.recentGateways.isEmpty {
+                Text("gatewaysView.filter.noRecents".localizedString)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodyLarge)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+            } else {
+                ForEach(viewModel.recentGateways, id: \.id) { server in
+                    GatewayCell(
+                        server: server,
+                        type: viewModel.type,
+                        path: $viewModel.path,
+                        scrollToModel: .constant(.empty),
+                        isSearching: true,
+                        infoButtonTapCompletion: { gateway in
+                            viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                         }
                     )
                 }
             }
+        }
+    }
+
+    /// Starred nodes and countries render through `countriesGatewaysList()`; only the
+    /// empty state is left here.
+    @ViewBuilder
+    func favoriteGatewaysList() -> some View {
+        if favoritesState.filter == .favorites,
+           viewModel.searchText.count < viewModel.minimumSearchSymbols,
+           displayedCountries.isEmpty {
+            Text("gatewaysView.filter.noFavorites".localizedString)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyLarge)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
         }
     }
 
@@ -277,7 +392,9 @@ private extension GatewaysView {
     @ViewBuilder
     func foundCountriesList() -> some View {
         ForEach(viewModel.foundCountries, id: \.name) { country in
-            let servers = viewModel.gatewaysInCountry(with: country.code)
+            // Same tab scoping as the unsearched list — a matched country on the favorites tab
+            // must not unfold into its unstarred nodes.
+            let servers = servers(in: country)
             if !servers.isEmpty {
                 GatewayCountryCell(
                     country: country,
@@ -318,6 +435,8 @@ private extension GatewaysView {
         ForEach(viewModel.foundRegions, id: \.region) { (country: NymCountry, region: String) in
             let servers = viewModel.gateways.filter { $0.location?.region == region }
             if !servers.isEmpty {
+                // Region cells are built to sit inside a country card, so a standalone search
+                // result has to bring its own.
                 GatewayRegionCell(
                     hopType: viewModel.type,
                     country: country,
@@ -327,8 +446,16 @@ private extension GatewaysView {
                     path: $viewModel.path,
                     entryGateway: entryGatewayBinding,
                     exitRouter: exitRouterBinding,
-                    scrollToModel: .constant(.empty)
+                    scrollToModel: .constant(.empty),
+                    bottomCornerRadius: 16
                 )
+                .background {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.Nym.surface)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
             }
         }
     }

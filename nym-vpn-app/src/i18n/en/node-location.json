@@ -79,7 +79,20 @@
       "description": "Something went wrong. Please try different server."
     }
   },
-  "search-other-nodes": "Other search results",
+  "favorites": {
+    "tab-favorites": "Favorites",
+    "tab-all": "All servers",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "error": "Failed to update favorites",
+    "empty": {
+      "none": "No favorites yet.",
+      "none-description": "Tap the star next to a location or server to add it here.",
+      "unavailable": "None of your favorites are available here.",
+      "unavailable-description": "Your favorites aren't in this mode's server list. Switch mode or pick another server."
+    }
+  },
+  "search-other-nodes": "Servers",
   "no-results-found": {
     "title": "No results found.",
     "description": "Try another location or check the server name.\n<1>Contact us for help</1> or learn <2>how to run a server</2>."

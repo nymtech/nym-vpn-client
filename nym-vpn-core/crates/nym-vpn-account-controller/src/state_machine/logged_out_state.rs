@@ -3,9 +3,7 @@
 
 use crate::{
     SharedAccountState,
-    commands::{
-        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler, handler,
-    },
+    commands::{AccountCommand, CommonCommand, ReturnSender, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
         PrivateAccountControllerState, SyncMode, SyncingNetworkState,
@@ -15,7 +13,6 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
-use tracing::warn;
 
 /// LoggedOut state
 /// We are logged out
@@ -33,10 +30,15 @@ use tracing::warn;
 pub struct LoggedOutState;
 
 impl LoggedOutState {
-    pub fn enter<C: ConnectivityMonitor>() -> (
+    pub async fn enter<C: ConnectivityMonitor>(
+        shared_state: &mut SharedAccountState<C>,
+    ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
+        // No account: nothing for a credential fetcher to do.
+        let _ = shared_state.clear_credential_fetcher().await;
+
         (Box::new(Self), PrivateAccountControllerState::LoggedOut)
     }
 }
@@ -55,7 +57,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
-                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
                         return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
@@ -63,25 +65,25 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
-                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory))
+                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::LinkAccount(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::RotateKeys(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
-                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_account(return_sender),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_no_account(return_sender),
                     // We don't even have an identity at this point, so we might as well not do anything
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
 
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
-                        shared_state.firewall_active = false;
+                        shared_state.set_firewall_state(false);
                         return_sender.send(Ok(()));
                     },
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
-                        shared_state.firewall_active = true;
+                        shared_state.set_firewall_state(true);
                         return_sender.send(Ok(()));
                     },
 
@@ -96,22 +98,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             CommonCommand::GetUsage(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_no_account(return_sender),
-                            CommonCommand::GetAvailableTickets(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Ok(None)),
                             CommonCommand::GetDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_deeplink(shared_state, params).await),
                             CommonCommand::GetAutologinDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_autologin_deeplink(shared_state, params).await),
                             CommonCommand::DeriveDeeplinkMnemonic(return_sender, deeplink_callback_url) => return_sender.send(common_handler::handle_derive_deeplink_mnemonic(shared_state, deeplink_callback_url).await),
-                        }
-                    },
-                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
-                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                            return_sender.send(Ok(false))
-                        }
-                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
-                            warn!(
-                                "received unexpected command to disable upgrade mode while in 'LoggedOutState' state"
-                            );
-                            return_sender.send(Ok(()))
                         }
                     },
                 }

@@ -396,6 +396,11 @@ message GatewayResponse {
   optional string node_family_name = 14;
 }
 
+message RecentGateways {
+  repeated GatewayResponse entry = 1;
+  repeated GatewayResponse exit = 2;
+}
+
 message KemKeyDigests {
   map<string, string> digests = 1;
 }
@@ -472,6 +477,7 @@ enum TunnelType {
 enum EstablishConnectionState {
   RESOLVING_API_ADDRESSES = 0;
   AWAITING_ACCOUNT_READINESS = 1;
+  AWAITING_CREDENTIALS_AVAILABILITY = 6;
   REFRESHING_GATEWAYS = 2;
   SELECTING_GATEWAYS = 3;
   REGISTERING_WITH_GATEWAYS = 4;
@@ -558,6 +564,8 @@ message TunnelState {
     NEED_FULL_DISK_PERMISSIONS = 22;
     SPLIT_TUNNEL = 23;
     NEEDS_RELAXED_INDEPENDENCE_CRITERIA = 24;
+    CREDENTIAL_FETCHING_FAILED = 25;
+    NO_CREDENTIAL_AVAILABLE = 26;
     INTERNAL = 17;
   }
 
@@ -737,7 +745,6 @@ message AccountControllerState {
 
   message LoggedOut {}
   message ReadyToConnect {}
-  message RequestingZkNyms {}
   message Syncing {}
   message Error {
     ErrorStateReason reason = 1;
@@ -747,18 +754,15 @@ message AccountControllerState {
   }
   message Offline {}
   message Decentralised {}
-  message UpgradeMode {}
   message PendingSubscription {}
 
   oneof state {
     LoggedOut logged_out = 1;
     Syncing syncing = 2;
-    RequestingZkNyms requesting_zk_nyms = 7;
     ReadyToConnect ready_to_connect = 3;
     Error error = 4;
     Offline offline = 5;
     Decentralised decentralised = 6;
-    UpgradeMode upgrade_mode = 8;
     PendingSubscription pending_subscription = 9;
   }
 }
@@ -805,10 +809,6 @@ message DecentralisedAccountStoreRequest {
 
 message PrivyAccountStoreRequest {
   string mnemonic = 1;
-}
-
-message DecentralisedObtainTicketbooksRequest {
-  uint64 amount = 1;
 }
 
 message RefreshAccountStateRequest {
@@ -1137,6 +1137,10 @@ message SplitTunnelExcludedProcessList {
   repeated SplitTunnelExcludedProcess processes = 1;
 }
 
+message GetRecentGatewaysParams {
+  TunnelType tunnel_type = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1209,7 +1213,7 @@ service NymVpnService {
   rpc AccountBalance(google.protobuf.Empty) returns (AccountBalanceResponse) {}
 
   // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
-  rpc DecentralisedObtainTicketbooks(DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
+  rpc DecentralisedObtainTicketbooks(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
@@ -1258,6 +1262,11 @@ service NymVpnService {
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets(google.protobuf.Empty) returns (AvailableTickets) {}
+
+  // Manually trigger a restock of every ticketbook type running low or about
+  // to expire, via the bandwidth controller. A manual safety valve; the
+  // automatic triggers already keep every type stocked.
+  rpc RestockTicketbooks(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the account summary
   rpc GetAccountSummary(google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
@@ -1341,4 +1350,7 @@ service NymVpnService {
   // Split-tunnel (macOS only)
   // Check whether the app needs TCC approval for split tunneling (macOS)
   rpc NeedFullDiskPermissions(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Get recent gateways
+  rpc GetRecentGateways(GetRecentGatewaysParams) returns (RecentGateways) {}
 }

@@ -25,7 +25,7 @@ import Testing
 /// `AccountReportTests.viewButtonTitleKeys`; Foundation ships no YAML parser and the
 /// assertions don't need full structure.)
 struct WorkflowReportTests {
-    private static let workflowRelativePath = ".github/workflows/build-nym-vpn-apple.yml"
+    private static let workflowRelativePath = ".github/workflows/ci-nym-vpn-app-macos.yml"
     private static let actionRelativePath = ".github/workflows/apple/tests/action.yml"
     /// The composite action's input the workflow passes the report path through.
     private static let reportInputKey = "account-report-path"

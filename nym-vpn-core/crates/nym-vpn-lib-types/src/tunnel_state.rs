@@ -280,6 +280,12 @@ pub enum ErrorStateReason {
     /// Bandwidth Exceeded
     BandwidthExceeded,
 
+    /// Failed to fetch a credential from the credential source.
+    CredentialFetchingFailed,
+
+    /// No credential is available and none is being fetched.
+    NoCredentialAvailable,
+
     /// Account status is not "Active"
     InactiveAccount,
 
@@ -331,6 +337,8 @@ impl std::fmt::Display for ErrorStateReason {
             Self::CredentialWastedOnEntryGateway => f.write_str("CredentialWastedOnEntryGateway"),
             Self::CredentialWastedOnExitGateway => f.write_str("CredentialWastedOnExitGateway"),
             Self::BandwidthExceeded => f.write_str("BandwidthExceeded"),
+            Self::CredentialFetchingFailed => f.write_str("CredentialFetchingFailed"),
+            Self::NoCredentialAvailable => f.write_str("NoCredentialAvailable"),
             Self::InactiveAccount => f.write_str("InactiveAccount"),
             Self::InactiveSubscription => f.write_str("InactiveSubscription"),
             Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),

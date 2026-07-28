@@ -3,6 +3,12 @@ package net.nymtech.nymvpn.util.extensions
 import android.annotation.SuppressLint
 import android.content.Context
 import android.text.format.DateUtils
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -137,6 +143,9 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
 	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
 
+	ErrorStateReason.CredentialFetchingFailed -> context.getString(R.string.error_credential_fetching_failed)
+	ErrorStateReason.NoCredentialAvailable -> context.getString(R.string.error_no_credential_available)
+
 	ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
 	ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
 	ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
@@ -228,6 +237,21 @@ fun Score.displayText(): String = when (this) {
 	Score.MEDIUM -> stringResource(R.string.score_text_medium)
 	Score.LOW -> stringResource(R.string.score_text_low)
 	Score.OFFLINE -> stringResource(R.string.score_text_offline)
+}
+
+@Composable
+fun FavoriteIcon(isFavorite: Boolean, onToggleFavorite: () -> Unit, modifier: Modifier = Modifier) {
+	val (icon, tint) = if (isFavorite) {
+		Icons.Rounded.Star to LocalNymColors.current.favorite
+	} else {
+		Icons.Rounded.StarBorder to MaterialTheme.colorScheme.onBackground
+	}
+	Icon(
+		imageVector = icon,
+		contentDescription = stringResource(R.string.server_favorite_icon),
+		tint = tint,
+		modifier = modifier.clickable { onToggleFavorite() },
+	)
 }
 
 @Composable
