@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed UI for Server Details screen (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Changed UI for Server List screen (https://github.com/nymtech/nym-vpn-client/pull/5922)
 
+### Fixed
+- Fix auto-connect getting stuck after boot (https://github.com/nymtech/nym-vpn-client/pull/5924)
+
 ## [v2026.11.3]
 
 ### Added

@@ -21,8 +21,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import net.nymtech.connectivity.NetworkService
+import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
@@ -30,6 +34,7 @@ import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
@@ -88,6 +93,9 @@ class NymVpn : Application() {
 	lateinit var backendManager: BackendManager
 
 	@Inject
+	lateinit var networkService: NetworkService
+
+	@Inject
 	lateinit var logReader: LogReader
 
 	@Volatile
@@ -130,6 +138,7 @@ class NymVpn : Application() {
 
 		applicationScope.launch(ioDispatcher) {
 			runCatching {
+				awaitValidatedNetworkIfAutoStarting()
 				backendManager.initialize()
 				Timber.tag(TAG).i("BackendManagerInitializeRequested")
 			}.onFailure { t ->
@@ -166,6 +175,14 @@ class NymVpn : Application() {
 				Timber.tag(TAG).e(t, "SentryInitFailed")
 			}
 		}
+	}
+
+	private suspend fun awaitValidatedNetworkIfAutoStarting() {
+		if (!settingsRepository.isAutoStartEnabled()) return
+		val connected = withTimeoutOrNull(Constants.AUTO_START_NETWORK_WAIT_MS) {
+			networkService.networkStatus.first { it == NetworkStatus.Connected }
+		}
+		Timber.tag(TAG).i("AutoStartNetworkAwait connected=%s", connected != null)
 	}
 
 	private fun applyLoggingConfig(enabled: Boolean, debugEnabled: Boolean) {
