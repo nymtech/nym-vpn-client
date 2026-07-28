@@ -53,9 +53,6 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
       # Build the iOS Rust core (libwg + NymVPNLibUniffi.xcframework with device
       # AND simulator slices) and stage it where the Xcode packages expect it.
       # Debug build (RELEASE=false) — no code signing required.
