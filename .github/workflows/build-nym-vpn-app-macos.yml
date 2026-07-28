@@ -2,10 +2,10 @@ name: build-nym-vpn-app-macos
 permissions:
   contents: read
 on:
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
-  #   paths:
-  #     - ".github/workflows/build-nym-vpn-app-macos.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-app-macos.yml"
   workflow_dispatch:
     inputs:
       release_type:
@@ -414,6 +414,8 @@ jobs:
         with:
           name: core_artifacts_macos
           path: core_artifacts_macos
+          run-id: 30353694485
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move core artifacts
         run: |
@@ -425,6 +427,13 @@ jobs:
           done
 
           mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
+
+      - name: Purge caches
+        working-directory: nym-vpn-apple
+        run: |
+          # purge cache to rebuild with new NYM_SANTA env variable.
+          rm -rf "~/Library/Caches/org.swift.swiftpm/" || true
+          rm -rf "~/Library/Developer/Xcode/DerivedData/" || true
 
       - name: Archive macOS
         id: archive-macos
