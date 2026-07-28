@@ -58,7 +58,10 @@ pub(crate) fn selected_sources<'a>(
 
 /// Seed builtin files and their ETag sidecars into `data_dir` if not already present, for the
 /// given selected countries only.
-pub(crate) async fn init_files(data_dir: &Path, excluded_countries: &[String]) -> anyhow::Result<()> {
+pub(crate) async fn init_files(
+    data_dir: &Path,
+    excluded_countries: &[String],
+) -> anyhow::Result<()> {
     fs::create_dir_all(data_dir)
         .await
         .with_context(|| format!("Failed to create directory '{}'", data_dir.display()))?;
