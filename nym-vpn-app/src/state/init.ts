@@ -9,6 +9,7 @@ import { kvGet } from '../kvStore';
 import {
   AccountLinks,
   CodeDependency,
+  Favorites,
   FeatureFlags,
   NetworkCompat,
   TAccountMode,
@@ -19,6 +20,7 @@ import {
   UiTheme,
 } from '../types';
 import { dispatch } from '../store';
+import { useFavoritesStore } from '../store/favoritesState';
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
@@ -250,10 +252,19 @@ export async function initSecondBatch() {
     },
   };
 
+  const getFavoritesRq: TauriReq<() => Promise<Favorites>> = {
+    name: 'getFavoritesRq',
+    request: () => invoke<Favorites>('get_favorites'),
+    onFulfilled: (favorites) => {
+      useFavoritesStore.getState().hydrate(favorites);
+    },
+  };
+
   await fireRequests([
     getAutostart,
     getDefaultDnsRq,
     getAccountLinksRq,
     getNetworkCompatRq,
+    getFavoritesRq,
   ]);
 }

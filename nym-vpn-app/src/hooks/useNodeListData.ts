@@ -16,18 +16,25 @@ import {
   UiRegion,
   isSelectedNodeType,
 } from '../types/node';
+import { favoriteKey, isNodeFavorite } from '../types/favorites';
 import { useAppStore } from '../store';
+import { useFavorites } from '../store/favoritesState';
 import useLang from './useLang';
 
 function countryToUi(
   country: Country,
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
+  favoriteKeys: ReadonlySet<string>,
 ): UiCountry {
   return {
     ...country,
     nodeType: 'country',
     isSelected: isSelectedNodeType(country, selectedEntry, selectedExit),
+    isFavorite: isNodeFavorite(
+      { nodeType: 'country', code: country.code },
+      favoriteKeys,
+    ),
   };
 }
 
@@ -36,6 +43,7 @@ function gatewaysToUi(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favoriteKeys: ReadonlySet<string>,
 ): UiGateway[] {
   return gateways.reduce<UiGateway[]>((acc, gw) => {
     if (quicFilter && !gw.quic) return acc;
@@ -47,6 +55,10 @@ function gatewaysToUi(
         selectedEntry,
         selectedExit,
       ) as GwSelectedKind,
+      isFavorite: isNodeFavorite(
+        { nodeType: 'gateway', id: gw.id },
+        favoriteKeys,
+      ),
     });
     return acc;
   }, []);
@@ -57,6 +69,7 @@ function regionsToUi(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favoriteKeys: ReadonlySet<string>,
 ): UiRegion[] {
   return regions.reduce<UiRegion[]>((acc, region) => {
     const gateways = gatewaysToUi(
@@ -64,6 +77,7 @@ function regionsToUi(
       selectedEntry,
       selectedExit,
       quicFilter,
+      favoriteKeys,
     );
     if (gateways.length === 0) return acc;
     acc.push({
@@ -71,6 +85,10 @@ function regionsToUi(
       nodeType: 'region',
       gateways,
       isSelected: isSelectedNodeType(region, selectedEntry, selectedExit),
+      isFavorite: isNodeFavorite(
+        { nodeType: 'region', name: region.name },
+        favoriteKeys,
+      ),
     });
     return acc;
   }, []);
@@ -83,6 +101,7 @@ function buildNodeList(
   quicFilter: boolean,
   getCountryName: (code: string) => string | null | undefined,
   compare: (a: string, b: string) => number,
+  favoriteKeys: ReadonlySet<string>,
 ): UiGatewaysByCountry[] {
   return list
     .reduce<UiGatewaysByCountry[]>((acc, gwByCountry) => {
@@ -93,6 +112,7 @@ function buildNodeList(
         selectedEntry,
         selectedExit,
         quicFilter,
+        favoriteKeys,
       );
       if (gateways.length === 0) return acc;
 
@@ -100,6 +120,7 @@ function buildNodeList(
         gwByCountry.country,
         selectedEntry,
         selectedExit,
+        favoriteKeys,
       );
 
       // Defensive check: regions structure changed in 1.18.0; cached data
@@ -110,6 +131,7 @@ function buildNodeList(
             selectedEntry,
             selectedExit,
             quicFilter,
+            favoriteKeys,
           )
         : [];
 
@@ -129,6 +151,11 @@ function buildNodeList(
 
 export function useNodeListData(hop: NodeHop) {
   const { compare, getCountryName } = useLang();
+  const favorites = useFavorites(hop);
+  const favoriteKeys = useMemo(
+    () => new Set(favorites.map(favoriteKey)),
+    [favorites],
+  );
 
   const {
     vpnMode,
@@ -185,6 +212,7 @@ export function useNodeListData(hop: NodeHop) {
       quicFilter,
       getCountryName,
       compare,
+      favoriteKeys,
     );
   }, [
     vpnMode,
@@ -197,6 +225,7 @@ export function useNodeListData(hop: NodeHop) {
     quicFilter,
     getCountryName,
     compare,
+    favoriteKeys,
   ]);
 
   const gateways = useMemo(() => {

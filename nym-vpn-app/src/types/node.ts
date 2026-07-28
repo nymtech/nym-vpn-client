@@ -25,17 +25,20 @@ export type SelectedUiNode =
 export type UiCountry = Country & {
   nodeType: 'country';
   isSelected: SelectedKind;
+  isFavorite: boolean;
 };
 
 export type UiGateway = Gateway & {
   nodeType: 'gateway';
   isSelected: GwSelectedKind;
+  isFavorite: boolean;
 };
 
 export type UiRegion = Omit<Region, 'gateways'> & {
   nodeType: 'region';
   gateways: UiGateway[];
   isSelected: SelectedKind;
+  isFavorite: boolean;
 };
 
 export type UiGatewaysByCountry = Omit<
