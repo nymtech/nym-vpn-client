@@ -176,6 +176,7 @@ jobs:
           brew install xmlstarlet
           brew install jq
           brew install brotli
+          brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
           brew install getsentry/tools/sentry-cli
 
       - name: Set locale (for Fastlane)
