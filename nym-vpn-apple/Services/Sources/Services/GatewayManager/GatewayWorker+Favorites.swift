@@ -40,7 +40,7 @@ extension GatewayWorker {
     /// Data dir is the group data folder, matching `nym-vpnc`'s `app_data_dir()` — favorites
     /// are not network-scoped.
     private func controller() async throws -> FavoritesController {
-        let dataDir = try PathManager.dataFolderURL().path()
+        let dataDir = try PathManager.dataFolderURL().path(percentEncoded: false)
         return await FavoritesController(dataDir: dataDir)
     }
 }

@@ -182,7 +182,12 @@ let package = Package(
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources/Services/GatewayManager",
-            swiftSettings: santaSwiftSettings
+            swiftSettings: santaSwiftSettings,
+            linkerSettings: [
+                // NymVPNRpcUniffi static lib references SystemConfiguration/Network symbols
+                .linkedFramework("SystemConfiguration", .when(platforms: [.macOS])),
+                .linkedFramework("Network", .when(platforms: [.macOS]))
+            ]
         ),
         .target(
             name: "ImpactGenerator",
