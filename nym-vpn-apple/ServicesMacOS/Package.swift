@@ -41,7 +41,12 @@ let package = Package(
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
-            path: "Sources/GRPCManager"
+            path: "Sources/GRPCManager",
+            linkerSettings: [
+                // NymVPNRpcUniffi static lib references SystemConfiguration/Network symbols
+                .linkedFramework("SystemConfiguration"),
+                .linkedFramework("Network")
+            ]
         ),
         .testTarget(
             name: "AppDiscoveryServiceTests",
