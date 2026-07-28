@@ -426,6 +426,13 @@ jobs:
 
           mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
 
+      - name: Purge caches
+        working-directory: nym-vpn-apple
+        run: |
+          # purge cache to rebuild with new NYM_SANTA env variable.
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/" || true
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData/" || true
+
       - name: Archive macOS
         id: archive-macos
         working-directory: nym-vpn-apple
