@@ -239,7 +239,7 @@ jobs:
 
       - name: Extract core changelog
         id: core-changelog
-        uses: ffurrer2/extract-release-notes@v2
+        uses: ffurrer2/extract-release-notes@v3
         with:
           changelog_file: nym-vpn-core/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
@@ -248,7 +248,7 @@ jobs:
       - name: Extract android changelog
         id: android-changelog
         if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
-        uses: ffurrer2/extract-release-notes@v2
+        uses: ffurrer2/extract-release-notes@v3
         with:
           changelog_file: nym-vpn-android/CHANGELOG.md
           # for prereleases, extract the changelog from the [unreleased] section
