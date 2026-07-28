@@ -2,10 +2,10 @@ name: build-nym-vpn-app-macos
 permissions:
   contents: read
 on:
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
-  #   paths:
-  #     - ".github/workflows/build-nym-vpn-app-macos.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-app-macos.yml"
   workflow_dispatch:
     inputs:
       release_type:
@@ -414,6 +414,8 @@ jobs:
         with:
           name: core_artifacts_macos
           path: core_artifacts_macos
+          run-id: 30353694485
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move core artifacts
         run: |
@@ -512,7 +514,8 @@ jobs:
             MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
             MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
             ENABLE_HARDENED_RUNTIME=YES \
-            OTHER_CODE_SIGN_FLAGS="--timestamp" | xcbeautify --renderer github-actions
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            NYM_SANTA="${{ env.NYM_SANTA }}" | xcbeautify --renderer github-actions
 
           # Verify archive was created
           if [[ ! -d "$ARCHIVE_PATH" ]]; then
