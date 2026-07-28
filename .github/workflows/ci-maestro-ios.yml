@@ -90,14 +90,26 @@ jobs:
       - name: Build mock app for simulator
         working-directory: nym-vpn-apple
         run: |
-          xcodebuild build-for-testing \
-            -workspace NymVPN.xcworkspace \
-            -scheme NymVPN-Mock \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO \
-            SWIFT_ACTIVE_COMPILATION_CONDITIONS='MOCK_MODE' \
-            | xcpretty || true
+          set -euo pipefail
+          # No `|| true` here. It used to swallow the exit code, so a failed
+          # build let the job continue and surface two steps later as an
+          # unreadable CoreSimulator abort from `simctl install` with an empty
+          # path. A broken build must fail in the step that ran it.
+          build_mock_app() {
+            xcodebuild build-for-testing \
+              -workspace NymVPN.xcworkspace \
+              -scheme NymVPN-Mock \
+              -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+              -derivedDataPath build \
+              CODE_SIGNING_ALLOWED=NO \
+              SWIFT_ACTIVE_COMPILATION_CONDITIONS='MOCK_MODE'
+          }
+          # xcpretty only prettifies; never let its absence decide the outcome.
+          if command -v xcpretty >/dev/null 2>&1; then
+            build_mock_app | xcpretty
+          else
+            build_mock_app
+          fi
 
       - name: Boot iOS simulator
         run: |
@@ -161,7 +173,18 @@ jobs:
       - name: Install app on simulator
         working-directory: nym-vpn-apple
         run: |
+          set -euo pipefail
           APP_PATH=$(find build -name "NymVPN.app" -path "*/Debug-iphonesimulator/*" | head -1)
+          # Without this guard an empty APP_PATH reaches simctl as a null URL and
+          # aborts with 'Invalid parameter not satisfying: installURL' plus a
+          # CoreSimulator stack trace, which says nothing about the real cause.
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::NymVPN.app not found under nym-vpn-apple/build - the mock app build did not produce it"
+            echo "--- .app bundles present ---"
+            find build -name "*.app" -maxdepth 8 || echo "(none)"
+            exit 1
+          fi
+          echo "Installing $APP_PATH"
           xcrun simctl install "$DEVICE_ID" "$APP_PATH"
 
       - name: Run Maestro UI tests
