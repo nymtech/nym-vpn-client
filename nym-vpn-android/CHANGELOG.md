@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.0] - TBD
+
 ### Added
 - Recents support (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Favorites support (https://github.com/nymtech/nym-vpn-client/pull/5922)
