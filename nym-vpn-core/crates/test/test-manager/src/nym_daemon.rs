@@ -194,7 +194,7 @@ pub fn new_rpc_client(
                     &mut framed_write,
                 ) => {
                     match result {
-                        Ok(()) => log::debug!("Nym daemon connection EOF (not an error)"),
+                        Ok(outcome) => log::debug!("Nym daemon session ended: {outcome:?}"),
                         Err(error) => log::debug!("Management channel stream errored: {error}"),
                     }
                 }

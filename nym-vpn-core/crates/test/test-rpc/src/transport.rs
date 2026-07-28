@@ -81,6 +81,15 @@ where
     )
 }
 
+pub const SESSION_SYNC_PING: &[u8] = b"NYMSESSIONSYNC;PING";
+pub const SESSION_SYNC_ACK: &[u8] = b"NYMSESSIONSYNC;ACK";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ForwardOutcome {
+    Eof,
+    SessionRestart,
+}
+
 pub async fn synchronize_framed_session<R, W>(
     framed_read: &mut FramedRead<R, LengthDelimitedCodec>,
     framed_write: &mut FramedWrite<W, LengthDelimitedCodec>,
@@ -89,14 +98,16 @@ where
     R: AsyncRead + Unpin,
     W: AsyncWrite + Unpin,
 {
-    framed_write.send(Bytes::new()).await?;
+    framed_write
+        .send(Bytes::from_static(SESSION_SYNC_PING))
+        .await?;
 
     loop {
         match framed_read.next().await {
-            Some(Ok(bytes)) if bytes.is_empty() => return Ok(()),
+            Some(Ok(bytes)) if bytes == SESSION_SYNC_ACK => return Ok(()),
             Some(Ok(bytes)) => {
                 log::warn!(
-                    "session sync: discarding unexpected non-empty frame ({} bytes) before ack",
+                    "session sync: discarding unexpected frame ({} bytes) before ack",
                     bytes.len()
                 );
             }
@@ -110,7 +121,7 @@ pub async fn forward_framed_bidirectional<S, R, W>(
     stream: S,
     framed_read: &mut FramedRead<R, LengthDelimitedCodec>,
     framed_write: &mut FramedWrite<W, LengthDelimitedCodec>,
-) -> io::Result<()>
+) -> io::Result<ForwardOutcome>
 where
     S: AsyncRead + AsyncWrite + Unpin,
     R: AsyncRead + Unpin,
@@ -118,7 +129,7 @@ where
 {
     let (mut stream_reader, mut stream_writer) = tokio::io::split(stream);
 
-    let stream_to_framed = async {
+    let mut stream_to_framed = std::pin::pin!(async {
         let mut buffer = vec![0u8; DAEMON_CHANNEL_BUF_SIZE];
         loop {
             let read = stream_reader.read(&mut buffer).await;
@@ -138,27 +149,46 @@ where
                 }
             }
         }
-    };
+    });
 
-    let framed_to_stream = async {
+    let mut framed_to_stream = std::pin::pin!(async {
         loop {
             match framed_read.next().await {
+                Some(Ok(bytes)) if bytes == SESSION_SYNC_PING => {
+                    log::debug!("fwd[framed→stream] peer requested a new session");
+                    let _ = stream_writer.shutdown().await;
+                    return Ok(ForwardOutcome::SessionRestart);
+                }
+                Some(Ok(bytes)) if bytes == SESSION_SYNC_ACK => {
+                    log::warn!("fwd[framed→stream] discarding stale session sync ack");
+                }
                 Some(Ok(bytes)) if bytes.is_empty() => {
                     log::trace!("fwd[framed→stream] bytes=0");
                     stream_writer.shutdown().await?;
-                    return Ok(());
+                    return Ok(ForwardOutcome::Eof);
                 }
                 Some(Ok(bytes)) => {
                     stream_writer.write_all(&bytes).await?;
                     log::trace!("fwd[framed→stream] bytes={}", bytes.len());
                 }
                 Some(Err(error)) => return Err(error),
-                None => return Ok(()),
+                None => return Ok(ForwardOutcome::Eof),
             }
         }
-    };
+    });
 
-    tokio::try_join!(stream_to_framed, framed_to_stream).map(|_| ())
+    // A restart abandons the stream half rather than waiting for its EOF: the peer
+    // owns the session now, and a hung stream must not stall the next session.
+    tokio::select! {
+        outcome = &mut framed_to_stream => match outcome? {
+            ForwardOutcome::SessionRestart => Ok(ForwardOutcome::SessionRestart),
+            ForwardOutcome::Eof => (&mut stream_to_framed).await.map(|()| ForwardOutcome::Eof),
+        },
+        result = &mut stream_to_framed => {
+            result?;
+            (&mut framed_to_stream).await
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -755,8 +785,9 @@ fn is_oversized_length_field_error(error: &io::Error) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{
-        DAEMON_CHANNEL_BUF_SIZE, create_client_transports, create_server_transports,
-        forward_framed_bidirectional, length_delimited_framed_halves, synchronize_framed_session,
+        DAEMON_CHANNEL_BUF_SIZE, ForwardOutcome, SESSION_SYNC_ACK, SESSION_SYNC_PING,
+        create_client_transports, create_server_transports, forward_framed_bidirectional,
+        length_delimited_framed_halves, synchronize_framed_session,
     };
     use bytes::Bytes;
     use futures::{SinkExt, StreamExt};
@@ -847,6 +878,86 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn session_restart_returns_without_waiting_for_stream_eof() {
+        let (bridge_stream, stream_peer) = duplex(64);
+        let (mut stream_peer_reader, _stream_peer_writer) = tokio::io::split(stream_peer);
+        let (bridge_framed_io, framed_peer_io) = duplex(64);
+        let (mut bridge_framed_read, mut bridge_framed_write) =
+            length_delimited_framed_halves(bridge_framed_io);
+        let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
+
+        let bridge = tokio::spawn(async move {
+            forward_framed_bidirectional(
+                bridge_stream,
+                &mut bridge_framed_read,
+                &mut bridge_framed_write,
+            )
+            .await
+        });
+
+        framed_peer
+            .send(Bytes::from_static(SESSION_SYNC_PING))
+            .await
+            .expect("request a new session mid-forward");
+
+        assert_eq!(
+            stream_peer_reader.read_u8().await.unwrap_err().kind(),
+            io::ErrorKind::UnexpectedEof
+        );
+        assert_eq!(
+            tokio::time::timeout(Duration::from_secs(1), bridge)
+                .await
+                .expect("restart must not wait for the stream peer to close")
+                .expect("bridge task")
+                .expect("clean restart"),
+            ForwardOutcome::SessionRestart
+        );
+        let trailing = tokio::time::timeout(Duration::from_millis(50), framed_peer.next()).await;
+        assert!(
+            matches!(trailing, Err(_) | Ok(None)),
+            "a stray EOF frame would close the session that follows the restart: {trailing:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn session_sync_completes_while_the_previous_session_is_still_streaming() {
+        let (guest_io, host_io) = duplex(64);
+        let (mut guest_read, mut guest_write) = length_delimited_framed_halves(guest_io);
+        let (mut host_read, mut host_write) = length_delimited_framed_halves(host_io);
+        let (guest_stream, stream_peer) = duplex(64);
+        let (_stream_peer_reader, mut stream_peer_writer) = tokio::io::split(stream_peer);
+
+        let flood = tokio::spawn(async move {
+            let _ = stream_peer_writer.write_all(&vec![3u8; 32 * 1024]).await;
+            stream_peer_writer
+        });
+
+        let guest = tokio::spawn(async move {
+            let outcome =
+                forward_framed_bidirectional(guest_stream, &mut guest_read, &mut guest_write)
+                    .await
+                    .expect("guest forward");
+            assert_eq!(outcome, ForwardOutcome::SessionRestart);
+            guest_write
+                .send(Bytes::from_static(SESSION_SYNC_ACK))
+                .await
+                .expect("acknowledge session restart");
+        });
+
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        tokio::time::timeout(
+            Duration::from_secs(5),
+            synchronize_framed_session(&mut host_read, &mut host_write),
+        )
+        .await
+        .expect("in-flight responses must not stall the next session")
+        .expect("session synchronized");
+
+        flood.abort();
+        guest.await.expect("guest task");
+    }
+
+    #[tokio::test]
     async fn session_sync_discards_delayed_frames_before_acknowledgement() {
         let (bridge_io, peer_io) = duplex(64);
         let (mut bridge_read, mut bridge_write) = length_delimited_framed_halves(bridge_io);
@@ -869,17 +980,20 @@ mod tests {
                 .expect("valid frame"),
             Bytes::from_static(b"stale request")
         );
-        assert!(
+        assert_eq!(
             peer.next()
                 .await
                 .expect("sync marker")
-                .expect("valid frame")
-                .is_empty()
+                .expect("valid frame"),
+            Bytes::from_static(SESSION_SYNC_PING)
         );
         peer.send(Bytes::from_static(b"stale response"))
             .await
             .expect("send delayed stale response");
         peer.send(Bytes::new())
+            .await
+            .expect("send stale EOF from the torn-down session");
+        peer.send(Bytes::from_static(SESSION_SYNC_ACK))
             .await
             .expect("acknowledge synchronization");
 
@@ -916,14 +1030,14 @@ mod tests {
                 .expect("valid frame"),
             stale_request
         );
-        assert!(
+        assert_eq!(
             peer.next()
                 .await
                 .expect("sync marker")
-                .expect("valid frame")
-                .is_empty()
+                .expect("valid frame"),
+            Bytes::from_static(SESSION_SYNC_PING)
         );
-        peer.send(Bytes::new())
+        peer.send(Bytes::from_static(SESSION_SYNC_ACK))
             .await
             .expect("acknowledge synchronization");
 

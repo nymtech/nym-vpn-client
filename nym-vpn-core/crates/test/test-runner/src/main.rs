@@ -10,7 +10,10 @@ use tarpc::server::Channel;
 use test_rpc::{
     Service,
     nym_daemon::{NYMVPN_SOCKET_PATH, ServiceStatus},
-    transport::{GrpcForwarder, forward_framed_bidirectional, length_delimited_framed_halves},
+    transport::{
+        ForwardOutcome, GrpcForwarder, SESSION_SYNC_ACK, SESSION_SYNC_PING,
+        forward_framed_bidirectional, length_delimited_framed_halves,
+    },
 };
 use tokio::io::AsyncWriteExt;
 
@@ -89,7 +92,13 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
         let first_message = match proxy_read.next().await {
             Some(Ok(bytes)) => {
                 if bytes.is_empty() {
-                    if let Err(error) = proxy_write.send(bytes::Bytes::new()).await {
+                    continue;
+                }
+                if bytes == SESSION_SYNC_PING {
+                    if let Err(error) = proxy_write
+                        .send(bytes::Bytes::from_static(SESSION_SYNC_ACK))
+                        .await
+                    {
                         log::error!(
                             "failed to acknowledge daemon session synchronization: {error}"
                         );
@@ -129,13 +138,25 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
         }
 
         log::info!("nym daemon: bidirectional forward starting (stream=daemon UDS, framed=serial)");
-        if let Err(error) =
-            forward_framed_bidirectional(daemon_socket_endpoint, &mut proxy_read, &mut proxy_write)
-                .await
+        match forward_framed_bidirectional(
+            daemon_socket_endpoint,
+            &mut proxy_read,
+            &mut proxy_write,
+        )
+        .await
         {
-            log::error!("nym daemon forwarding failed: {error}");
-        } else {
-            log::debug!("nym daemon forwarding reached EOF");
+            Ok(ForwardOutcome::SessionRestart) => {
+                log::info!("nym daemon: session restart requested by test manager");
+                if let Err(error) = proxy_write
+                    .send(bytes::Bytes::from_static(SESSION_SYNC_ACK))
+                    .await
+                {
+                    log::error!("failed to acknowledge daemon session restart: {error}");
+                    break;
+                }
+            }
+            Ok(ForwardOutcome::Eof) => log::debug!("nym daemon forwarding reached EOF"),
+            Err(error) => log::error!("nym daemon forwarding failed: {error}"),
         }
 
         log::info!("🌚 nym daemon: disconnected");
@@ -144,9 +165,10 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
 
 #[cfg(test)]
 mod daemon_forwarding_tests {
-    use super::forward_to_nym_daemon_interface;
+    use super::{SESSION_SYNC_ACK, SESSION_SYNC_PING, forward_to_nym_daemon_interface};
     use bytes::Bytes;
     use futures::{SinkExt, StreamExt};
+    use std::time::Duration;
     use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 
     #[tokio::test]
@@ -155,14 +177,43 @@ mod daemon_forwarding_tests {
         let task = tokio::spawn(forward_to_nym_daemon_interface(forwarder));
         let mut peer = LengthDelimitedCodec::new().framed(peer);
 
-        peer.send(Bytes::new()).await.expect("send sync marker");
+        peer.send(Bytes::from_static(SESSION_SYNC_PING))
+            .await
+            .expect("send sync marker");
         let acknowledgement = peer
             .next()
             .await
             .expect("forwarder remains open")
             .expect("sync acknowledgement is valid");
 
-        assert!(acknowledgement.is_empty());
+        assert_eq!(acknowledgement, Bytes::from_static(SESSION_SYNC_ACK));
+        task.abort();
+    }
+
+    #[tokio::test]
+    async fn idle_daemon_forwarder_ignores_a_stray_eof_frame() {
+        let (forwarder, peer) = tokio::io::duplex(64);
+        let task = tokio::spawn(forward_to_nym_daemon_interface(forwarder));
+        let mut peer = LengthDelimitedCodec::new().framed(peer);
+
+        peer.send(Bytes::new()).await.expect("send stray EOF");
+        assert!(
+            tokio::time::timeout(Duration::from_millis(50), peer.next())
+                .await
+                .is_err(),
+            "a stray EOF must not produce a frame the next session would read as an ack"
+        );
+
+        peer.send(Bytes::from_static(SESSION_SYNC_PING))
+            .await
+            .expect("send sync marker");
+        assert_eq!(
+            peer.next()
+                .await
+                .expect("forwarder remains open")
+                .expect("valid frame"),
+            Bytes::from_static(SESSION_SYNC_ACK)
+        );
         task.abort();
     }
 }
