@@ -87,14 +87,6 @@ jobs:
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
 
-      - name: Install system dependencies
-        run: |
-          brew install xcbeautify
-          brew install crowdin
-          brew install xmlstarlet
-          brew install jq
-          brew install getsentry/tools/sentry-cli
-
       - name: Normalize release_type
         run: |
           set -euo pipefail
@@ -176,6 +168,15 @@ jobs:
           brew --version
           ruby --version
           gem --version
+
+      - name: Install system dependencies
+        run: |
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install brotli
+          brew install getsentry/tools/sentry-cli
 
       - name: Set locale (for Fastlane)
         run: |

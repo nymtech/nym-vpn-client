@@ -164,13 +164,19 @@ jobs:
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
 
-          # Ensure xcbeautify is available for xcodebuild output formatting
-          which xcbeautify || brew install xcbeautify
-
           # Show versions for debugging
           brew --version
           ruby --version
           gem --version
+
+      - name: Install system dependencies
+        run: |
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install brotli
+          brew install getsentry/tools/sentry-cli
 
       - name: Set locale (for Fastlane)
         run: |
@@ -327,7 +333,6 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
-          brew install crowdin
           crowdin_prefix="$(brew --prefix crowdin)"
           export PATH="$crowdin_prefix/bin:$PATH"
 
@@ -465,12 +470,6 @@ jobs:
           path: ${{ env.UPLOAD_DIR_IOS }}
           if-no-files-found: error
           retention-days: 1
-
-      - name: Install Sentry (nightly)
-        if: ${{ env.RELEASE_TYPE == 'qa' }}
-        run: |
-          brew install sentry-cli || brew upgrade sentry-cli || true
-          sentry-cli --version
 
       - name: Upload iOS dSYMs to Sentry (nightly)
         if: ${{ env.RELEASE_TYPE == 'qa' }}
