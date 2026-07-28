@@ -14,7 +14,7 @@ runs:
       run: |
         echo "RUSTC_WRAPPER=$SCCACHE_PATH" >> "$GITHUB_ENV"
         echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
-        echo "SCCACHE_CACHE_SIZE=15G" >> "$GITHUB_ENV"
+        echo "SCCACHE_CACHE_SIZE=10G" >> "$GITHUB_ENV" # keep it lower for unix runners (macos is a bottleneck!)
         echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
         echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
 
