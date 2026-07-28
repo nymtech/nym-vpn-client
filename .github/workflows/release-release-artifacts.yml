@@ -300,177 +300,29 @@ jobs:
           echo "android_apk=${ANDROID_APK}" >> $GITHUB_OUTPUT
 
   prepare-release-notes:
-    runs-on: arc-linux-latest
     needs: [resolve, resolve-artifacts]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-
-      - name: Extract core changelog
-        id: core-changelog
-        uses: ffurrer2/extract-release-notes@v2
-        with:
-          changelog_file: nym-vpn-core/CHANGELOG.md
-          # for prereleases, extract the changelog from the [unreleased] section
-          prerelease: ${{ inputs.github_release_type != 'release' }}
-
-      - name: Extract android changelog
-        id: android-changelog
-        uses: ffurrer2/extract-release-notes@v2
-        with:
-          changelog_file: nym-vpn-android/CHANGELOG.md
-          # for prereleases, extract the changelog from the [unreleased] section
-          prerelease: ${{ inputs.github_release_type != 'release' }}
-
-      - name: Add release notes (General)
-        env:
-          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          VERSION: ${{ needs.resolve.outputs.version }}
-          CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
-          ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes }}
-        run: |
-          cat << 'EOF' > "$RELEASE_NOTES"
-          Nym VPN v${{ env.VERSION }} application and core binaries.
-
-          EOF
-
-          if [ -n "$CORE_CHANGES" ]; then
-            # Increase indentation from h3 to h4 to better fit the release notes
-            export UPDATED_CORE_CHANGES=$(sed 's/^### /#### /' <<< "$CORE_CHANGES")
-
-            envsubst '$UPDATED_CORE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
-          ## 🚀 What's New
-          ### 🛠️ Core Changes
-
-          $UPDATED_CORE_CHANGES
-
-          EOF
-          fi
-
-          if [ -n "$ANDROID_CHANGES" ]; then
-            # Increase indentation from h3 to h4 to better fit the release notes
-            export UPDATED_ANDROID_CHANGES=$(sed 's/^### /#### /' <<< "$ANDROID_CHANGES")
-
-            envsubst '$UPDATED_ANDROID_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
-          ### 🤖 Android Changes
-
-          $UPDATED_ANDROID_CHANGES
-
-          EOF
-          fi
-
-          cat << 'EOF' >> "$RELEASE_NOTES"
-          ## 📦 Core Components Overview
-
-          - `nym-vpnd`: Background daemon service managed via the UI app or CLI.
-          - `nym-vpnc`:  Command-line interface (CLI) to control the daemon (`nym-vpnd`).
-          - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
-          - `nym-diagnostic`: System information and network troubleshooting tool.
-          - `nym-setup`: macOS helper tool for system service configuration.
-
-          EOF
-
-          cat << 'EOF' >> "$RELEASE_NOTES"
-          ## 💾 Downloads & Assets
-
-          EOF
-
-      - name: Add release notes (Android)
-        if: ${{ needs.resolve.outputs.fdroid == 'true' }}
-        env:
-          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
-        run: |
-          cat << 'EOF' >> "$RELEASE_NOTES"
-          ### 🤖 Android
-
-          - `${{ env.ANDROID_APK }}`: Android App (F-Droid Build)
-
-          <details>
-          <summary>How to verify the build fingerprint?</summary>
-
-          #### Signing Certificate SHA-256 Fingerprint (4096-bit):
-
-          ```text
-          3c98a016aa4f14a3ba185c764ed363415cf7ff3c3d328a87ffff2ff1b140ff06
-          ```
-
-          #### Verification Steps:
-
-          To verify the build fingerprint on your system, run:
-          ```sh
-          apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
-          ```
-
-          </details>
-
-          EOF
-
-      - name: Add release notes (Linux)
-        if: ${{ needs.resolve.outputs.linux == 'true' }}
-        env:
-          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
-          VPND_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
-          VPNC_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
-          VPNC_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
-          LINUX_APP_DEB_X64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
-          LINUX_APP_DEB_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
-          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
-          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
-        run: |
-          cat << 'EOF' >> "$RELEASE_NOTES"
-          ### 🐧 Linux
-
-          - **Desktop App**
-            - `${{ env.LINUX_APP_DEB_X64 }}`: Nym VPN app, debian package (x86_64)
-            - `${{ env.LINUX_APP_DEB_ARM64 }}`: Nym VPN app, debian package (arm64)
-            - `${{ env.LINUX_APP_APPIMAGE_X64 }}`: Nym VPN app, AppImage (x86_64)
-            - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
-          - **CLI & Daemon**
-            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN daemon, debian package (x86_64)
-            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN daemon, debian package (arm64)
-            - `${{ env.VPNC_DEB_X86_64 }}`: Nym VPN command-line tool, debian package (x86_64)
-            - `${{ env.VPNC_DEB_ARM64 }}`: Nym VPN command-line tool, debian package (arm64)
-
-          EOF
-
-      - name: Add release notes (macOS)
-        if: ${{ needs.resolve.outputs.macos == 'true' }}
-        env:
-          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
-          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
-        run: |
-          cat << 'EOF' >> "$RELEASE_NOTES"
-          ### 🍎 macOS
-
-          - `${{ env.MACOS_INSTALLER_NAME }}`: Desktop App Installer
-          - `${{ env.VPNC_MACOS_INSTALLER_NAME }}`: Command-Line Tool Installer
-
-          EOF
-
-      - name: Add release notes (Windows)
-        if: ${{ needs.resolve.outputs.windows == 'true' }}
-        env:
-          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
-          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
-          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
-        run: |
-          cat << 'EOF' >> "$RELEASE_NOTES"
-          ### 🪟 Windows
-
-          - `${{ env.WINDOWS_APP_INSTALLER_X64 }}`: Desktop App Installer (x64)
-          - `${{ env.WINDOWS_APP_INSTALLER_ARM64 }}`: Desktop App Installer (arm64)
-
-          EOF
-
-      - name: Upload release notes
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ env.RELEASE_NOTES_ARTIFACT }}
-          path: ${{ env.RELEASE_NOTES }}
+    uses: ./.github/workflows/prepare-release-notes.yml
+    with:
+      github_release_type: ${{ needs.resolve.outputs.github_release_type }}
+      version: ${{ needs.resolve.outputs.version }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      android_apk: ${{ needs.resolve-artifacts.outputs.android_apk }}
+      vpnd_deb_x86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
+      vpnd_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+      vpnc_deb_x86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
+      vpnc_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+      linux_app_deb_x64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
+      linux_app_deb_aarch64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
+      linux_app_appimage_x64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
+      linux_app_appimage_aarch64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
+      macos_installer_name: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
+      vpnc_macos_installer_name: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
+      windows_app_installer_x64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
+      windows_app_installer_arm64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
 
   create-release:
     runs-on: arc-linux-latest
@@ -712,7 +564,7 @@ jobs:
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
           TAG_NAME: ${{ needs.resolve.outputs.tag }}
           VERSION_NAME: "v${{ needs.resolve.outputs.version }}"
-          RELEASE_NOTES: ${{ github.workspace }}/${{ env.RELEASE_NOTES_ARTIFACT }}/${{ env.RELEASE_NOTES }}
+          RELEASE_NOTES: ${{ github.workspace }}/${{ needs.prepare-release-notes.outputs.release_notes_artifact }}/${{ needs.prepare-release-notes.outputs.release_notes_file }}
           ASSETS_FILE: "${{ github.workspace }}/${{ env.RELEASE_ASSETS }}"
         run: |
           set -euo pipefail
