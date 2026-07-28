@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     default_interface::DefaultInterface,
-    file_manager::{self, SOURCES},
+    file_manager,
     routing::{RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain},
 };
 
@@ -45,6 +45,7 @@ pub async fn run(
     config: ProxyConfig,
     default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
+    excluded_countries_rx: watch::Receiver<Vec<String>>,
     shutdown_token: CancellationToken,
     file_updater_handle: FileUpdaterHandle,
     #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
@@ -56,48 +57,24 @@ pub async fn run(
 
     tracing::info!("SOCKS5 proxy listener bound: {listen_addr}");
 
-    // Seed builtin files to disk on first run.
-    file_manager::init_files(&config.data_dir)
+    // Seed builtin files to disk on first run, for selected countries only.
+    file_manager::init_files(&config.data_dir, &config.excluded_countries)
         .await
         .context("Failed to initialise SOCKS5 routing data files")?;
 
-    // Register each source file with the updater for periodic refresh.
+    // Register each selected country's source file with the updater for periodic refresh.
     let excluded_countries = config.excluded_countries.clone();
-    let mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>> =
-        Vec::new();
-
-    for source in SOURCES.iter() {
-        let url = source
-            .url
-            .parse::<Url>()
-            .with_context(|| format!("Invalid SOCKS5 source URL: {}", source.url))?;
-        let dest = config.data_dir.join(source.file_name);
-        match file_updater_handle
-            .register(
-                url,
-                dest,
-                SOCKS5_INITIAL_UPDATE_DELAY,
-                SOCKS5_UPDATE_INTERVAL,
-            )
-            .await
-        {
-            Ok(rx) => receivers.push(rx),
-            Err(err) => {
-                tracing::error!(
-                    "Failed to register SOCKS5 source {} with updater: {err}",
-                    source.file_name
-                );
-            }
-        }
-    }
+    let receivers =
+        register_country_sources(&config.data_dir, &excluded_countries, &file_updater_handle).await;
 
     // Load the initial routing database.
-    let db = RoutingDatabase::load(&config.excluded_countries, &config.data_dir)
+    let db = RoutingDatabase::load(&excluded_countries, &config.data_dir)
         .await
         .context("Failed to build routing database")?;
     let (db_tx, db_rx) = watch::channel(Arc::new(db));
 
-    // Background task: reload the routing database whenever a source file is updated.
+    // Background task: reload the routing database whenever a source file is updated, or
+    // whenever the daemon reports a change to the excluded countries list.
     // The file_updater_handle is moved here to keep the updater loop alive for the lifetime
     // of this task — dropping it earlier would cause the updater to exit.
     tokio::spawn(handle_db_updates(
@@ -105,6 +82,7 @@ pub async fn run(
         config.data_dir.clone(),
         db_tx,
         receivers,
+        excluded_countries_rx,
         file_updater_handle,
         shutdown_token.child_token(),
     ));
@@ -122,54 +100,164 @@ pub async fn run(
     Ok(())
 }
 
-/// Listen for update notifications and reload the routing database when files change.
+/// Register each of the given countries' source files with the updater for periodic refresh.
+/// Failures to register an individual source are logged and otherwise ignored.
+async fn register_country_sources(
+    data_dir: &std::path::Path,
+    countries: &[String],
+    file_updater_handle: &FileUpdaterHandle,
+) -> Vec<(
+    String,
+    mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>,
+)> {
+    let mut receivers = Vec::new();
+
+    for source in file_manager::selected_sources(countries) {
+        let url = match source.url.parse::<Url>() {
+            Ok(url) => url,
+            Err(err) => {
+                tracing::error!("Invalid SOCKS5 source URL {}: {err}", source.url);
+                continue;
+            }
+        };
+        let dest = data_dir.join(source.file_name);
+        match file_updater_handle
+            .register(
+                url,
+                dest,
+                SOCKS5_INITIAL_UPDATE_DELAY,
+                SOCKS5_UPDATE_INTERVAL,
+            )
+            .await
+        {
+            Ok(rx) => receivers.push((source.country.to_string(), rx)),
+            Err(err) => {
+                tracing::error!(
+                    "Failed to register SOCKS5 source {} with updater: {err}",
+                    source.file_name
+                );
+            }
+        }
+    }
+
+    receivers
+}
+
+/// Listen for update notifications and reload the routing database when files change, and
+/// react to the daemon changing the excluded countries list at runtime.
 async fn handle_db_updates(
-    excluded_countries: Vec<String>,
+    mut excluded_countries: Vec<String>,
     data_dir: PathBuf,
     db_tx: watch::Sender<Arc<RoutingDatabase>>,
-    mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>>,
-    _file_updater_handle: FileUpdaterHandle,
+    mut receivers: Vec<(
+        String,
+        mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>,
+    )>,
+    mut excluded_countries_rx: watch::Receiver<Vec<String>>,
+    file_updater_handle: FileUpdaterHandle,
     cancel_token: CancellationToken,
 ) {
     loop {
-        match recv_any_update(&mut receivers, &cancel_token).await {
-            Some(Ok(UpdateOutcome::Updated)) => {
-                // Drain any other notifications from the same update cycle.
-                for rx in &mut receivers {
-                    while rx.try_recv().is_ok() {}
-                }
-                match RoutingDatabase::load(&excluded_countries, &data_dir).await {
-                    Ok(db) => {
-                        tracing::info!("SOCKS5 routing database reloaded");
-                        let _ = db_tx.send(Arc::new(db));
+        tokio::select! {
+            update = recv_any_update(&mut receivers, &cancel_token) => {
+                match update {
+                    Some(Ok(UpdateOutcome::Updated)) => {
+                        // Drain any other notifications from the same update cycle.
+                        for (_, rx) in &mut receivers {
+                            while rx.try_recv().is_ok() {}
+                        }
+                        reload_routing_database(&excluded_countries, &data_dir, &db_tx, "after file update").await;
                     }
-                    Err(err) => {
-                        tracing::error!("Failed to reload SOCKS5 routing database: {err:#}");
+                    Some(Ok(UpdateOutcome::NotModified)) => {}
+                    Some(Err(err)) => {
+                        tracing::error!("SOCKS5 updater error: {err}");
+                    }
+                    None => {
+                        tracing::debug!("SOCKS5 updater shutting down");
+                        return;
                     }
                 }
             }
-            Some(Ok(UpdateOutcome::NotModified)) => {}
-            Some(Err(err)) => {
-                tracing::error!("SOCKS5 updater error: {err}");
-            }
-            None => {
-                tracing::debug!("SOCKS5 updater receivers closed");
-                return;
+            changed = excluded_countries_rx.changed() => {
+                if changed.is_err() {
+                    tracing::debug!("Excluded countries channel closed");
+                    return;
+                }
+                let new_countries = excluded_countries_rx.borrow_and_update().clone();
+                if new_countries == excluded_countries {
+                    continue;
+                }
+                tracing::info!(countries = ?new_countries, "Geo-exclusion excluded countries changed");
+
+                let newly_selected: Vec<String> = new_countries
+                    .iter()
+                    .filter(|c| !excluded_countries.iter().any(|e| e.eq_ignore_ascii_case(c)))
+                    .cloned()
+                    .collect();
+
+                if !newly_selected.is_empty() {
+                    if let Err(err) = file_manager::init_files(&data_dir, &newly_selected).await {
+                        tracing::error!(
+                            "Failed to seed data files for newly selected countries {newly_selected:?}: {err:#}"
+                        );
+                    }
+                    receivers.extend(
+                        register_country_sources(&data_dir, &newly_selected, &file_updater_handle).await,
+                    );
+                }
+
+                // Countries no longer selected: dropping their receivers automatically
+                // unregisters them from periodic refresh.
+                receivers.retain(|(country, _)| {
+                    new_countries.iter().any(|c| c.eq_ignore_ascii_case(country))
+                });
+
+                excluded_countries = new_countries;
+                reload_routing_database(&excluded_countries, &data_dir, &db_tx, "after country list change").await;
             }
         }
     }
 }
 
-/// Poll all receivers concurrently; return the first message that arrives or None on cancellation.
+async fn reload_routing_database(
+    excluded_countries: &[String],
+    data_dir: &std::path::Path,
+    db_tx: &watch::Sender<Arc<RoutingDatabase>>,
+    reason: &str,
+) {
+    match RoutingDatabase::load(excluded_countries, data_dir).await {
+        Ok(db) => {
+            tracing::info!("SOCKS5 routing database reloaded {reason}");
+            let _ = db_tx.send(Arc::new(db));
+        }
+        Err(err) => {
+            tracing::error!("Failed to reload SOCKS5 routing database {reason}: {err:#}");
+        }
+    }
+}
+
+/// Poll all receivers concurrently; return the first message that arrives, or None on
+/// cancellation. Blocks indefinitely (without returning `None`) while `receivers` is empty,
+/// so the caller's other event sources keep being serviced.
 async fn recv_any_update(
-    receivers: &mut Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>>,
+    receivers: &mut Vec<(
+        String,
+        mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>,
+    )>,
     cancel_token: &CancellationToken,
 ) -> Option<Result<UpdateOutcome, FileUpdaterError>> {
     loop {
         if receivers.is_empty() {
+            // No sources registered (yet). Wait for cancellation rather than returning
+            // None, so the caller's other event sources (e.g. excluded-countries changes)
+            // keep being serviced instead of the whole task exiting.
+            cancel_token.cancelled().await;
             return None;
         }
-        let futs: Vec<_> = receivers.iter_mut().map(|rx| Box::pin(rx.recv())).collect();
+        let futs: Vec<_> = receivers
+            .iter_mut()
+            .map(|(_, rx)| Box::pin(rx.recv()))
+            .collect();
         // Destructure inside select! so _rest is dropped before the match below.
         let result = tokio::select! {
             _ = cancel_token.cancelled() => return None,
@@ -178,7 +266,7 @@ async fn recv_any_update(
         match result {
             Some(msg) => return Some(msg),
             None => {
-                receivers.retain_mut(|rx| !rx.is_closed());
+                receivers.retain_mut(|(_, rx)| !rx.is_closed());
             }
         }
     }

@@ -138,6 +138,27 @@ impl Socks5ProxyManager {
         }
     }
 
+    /// Notify the running proxy of an updated excluded-countries list. A no-op if the proxy
+    /// isn't currently running — a fresh start already picks up the latest list via
+    /// `ProxyConfig`.
+    pub fn set_excluded_countries(&self, excluded_countries: Vec<String>) {
+        #[cfg(not(target_os = "android"))]
+        if let Socks5ProxyState::RunningProcess(running) = &self.state {
+            tracing::debug!(
+                "Notifying nym-socks5-proxy of updated excluded countries: {excluded_countries:?}",
+            );
+            running.set_excluded_countries(excluded_countries);
+        }
+
+        #[cfg(target_os = "android")]
+        if let Socks5ProxyState::RunningTask(running) = &self.state {
+            tracing::debug!(
+                "Notifying nym-socks5-proxy of updated excluded countries: {excluded_countries:?}",
+            );
+            running.set_excluded_countries(excluded_countries);
+        }
+    }
+
     pub fn set_tunnel_addrs(&mut self, v4_addr: Option<Ipv4Addr>, v6_addr: Option<Ipv6Addr>) {
         self.tunnel_addrs.v4_addr = v4_addr;
         self.tunnel_addrs.v6_addr = v6_addr;

@@ -13,7 +13,7 @@ use std::{
 
 use anyhow::{Context, Result, bail};
 use nym_socks5_proxy_ipc::{
-    DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
+    DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage, validate_country_codes,
 };
 use tokio::{
     io::{AsyncBufReadExt, BufReader, stdin},
@@ -51,6 +51,10 @@ async fn main() -> Result<()> {
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
 
+    // Shared geo-exclusion excluded countries list, updatable at runtime without a restart.
+    let (excluded_countries_tx, excluded_countries_rx) =
+        watch::channel(config.excluded_countries.clone());
+
     if let Err(err) = init_tracing(&config.log_dir, &config.log_level) {
         send_error_message(&format!("{err:#}"));
         return Err(err);
@@ -74,6 +78,7 @@ async fn main() -> Result<()> {
         config,
         default_interface_rx,
         tunnel_addrs_rx,
+        excluded_countries_rx,
         shutdown_token.clone(),
         file_updater_handle,
         #[cfg(target_os = "android")]
@@ -97,7 +102,7 @@ async fn main() -> Result<()> {
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(&line, &tunnel_addrs_tx, &shutdown_token);
+                        handle_daemon_message(&line, &tunnel_addrs_tx, &excluded_countries_tx, &shutdown_token);
                     }
                     Ok(Some(_)) => {} // blank line — ignore
                     Ok(None) => {
@@ -154,6 +159,7 @@ async fn read_initial_config(
 fn handle_daemon_message(
     line: &str,
     tunnel_addrs_tx: &watch::Sender<InterfaceAddresses>,
+    excluded_countries_tx: &watch::Sender<Vec<String>>,
     shutdown_token: &CancellationToken,
 ) {
     match line.parse::<DaemonMessage>() {
@@ -164,6 +170,16 @@ fn handle_daemon_message(
         Ok(DaemonMessage::SetTunnelAddresses(tunnel_addrs)) => {
             tracing::info!("VPN tunnel addresses changed: {tunnel_addrs:?}");
             let _ = tunnel_addrs_tx.send(tunnel_addrs);
+            send_message(&ProxyMessage::Ack);
+        }
+        Ok(DaemonMessage::SetExcludedCountries(countries)) => {
+            if let Err(err) = validate_country_codes(&countries) {
+                tracing::warn!("Rejected SetExcludedCountries: {err}");
+                send_error_message(&format!("Invalid excluded countries: {err}"));
+                return;
+            }
+            tracing::info!("Geo-exclusion excluded countries changed: {countries:?}");
+            let _ = excluded_countries_tx.send(countries);
             send_message(&ProxyMessage::Ack);
         }
         Ok(DaemonMessage::Terminate) => {

@@ -37,5 +37,28 @@ export const useGeoExclusion = () => {
     }
   };
 
-  return { enabled, listenPort, excludedCountries, setEnabled, setPort };
+  const setExcludedCountry = async (country: string) => {
+    try {
+      const countries = [country];
+      await invoke('set_geo_exclusion_excluded_countries', { countries });
+      dispatch({ type: 'set-geo-exclusion-excluded-countries', countries });
+      return true;
+    } catch (error) {
+      console.error('Failed to set geo exclusion excluded countries', error);
+      addToast({
+        title: t('geo-exclusion.errors.failed-to-set-region'),
+        type: 'error',
+      });
+      return false;
+    }
+  };
+
+  return {
+    enabled,
+    listenPort,
+    excludedCountries,
+    setEnabled,
+    setPort,
+    setExcludedCountry,
+  };
 };

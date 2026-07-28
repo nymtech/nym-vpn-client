@@ -1,8 +1,16 @@
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@base-ui/react';
-import { CardDivider, CardNew, MsIcon } from '../../../../ui';
+import { useNavigate } from 'react-router';
+import {
+  CardDivider,
+  CardNew,
+  FlagIcon,
+  MsIcon,
+  countryCode,
+} from '../../../../ui';
 import { useLang } from '../../../../hooks';
+import { routes } from '../../../../router';
 
 type ExcludedRegionsProps = {
   countries: string[];
@@ -10,6 +18,7 @@ type ExcludedRegionsProps = {
 
 function ExcludedRegions({ countries }: ExcludedRegionsProps) {
   const { t } = useTranslation('settings');
+  const navigate = useNavigate();
   const { getCountryName } = useLang();
 
   return (
@@ -21,7 +30,8 @@ function ExcludedRegions({ countries }: ExcludedRegionsProps) {
         {countries.map((code, index) => (
           <Fragment key={code}>
             {index > 0 && <CardDivider />}
-            <div className="flex min-h-16 items-center px-4 py-3">
+            <div className="flex min-h-16 items-center gap-3 px-4 py-3">
+              <FlagIcon code={code.toLowerCase() as countryCode} alt={code} />
               <p className="text-text-primary">
                 {getCountryName(code) ?? code}
               </p>
@@ -29,14 +39,13 @@ function ExcludedRegions({ countries }: ExcludedRegionsProps) {
           </Fragment>
         ))}
         <CardDivider />
-        {/* "Add region" is intentionally disabled for the MVP (China only). */}
         <Button
-          disabled
-          className="flex min-h-12 w-full items-center gap-2 px-4 py-3 text-left opacity-50"
+          onClick={() => navigate(routes.geoExclusionSelectRegion)}
+          className="flex min-h-12 w-full items-center gap-2 px-4 py-3 text-left"
         >
-          <MsIcon icon="add" className="text-text-secondary" />
+          <MsIcon icon="edit" className="text-text-secondary" />
           <span className="text-text-secondary">
-            {t('geo-exclusion.excluded-regions.add-region')}
+            {t('geo-exclusion.excluded-regions.select-region')}
           </span>
         </Button>
       </CardNew>

@@ -344,7 +344,7 @@
     "beta": "Beta",
     "enable": "Enable Geo Exclusion",
     "description": "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.",
-    "beta-note": "Beta version: China only for now. More regions coming.",
+    "beta-note": "Beta version: China and Russia only for now. More regions coming.",
     "warning": "Traffic to excluded regions bypasses the VPN.",
     "port": {
       "socks5-port": "SOCKS5 port",
@@ -354,7 +354,11 @@
     },
     "excluded-regions": {
       "title": "Excluded regions",
-      "add-region": "Add region"
+      "select-region": "Select region"
+    },
+    "select-region": {
+      "title": "Select region",
+      "beta-note": "Beta version: only one region can be excluded at a time."
     },
     "setup-instructions": {
       "title": "Setup instructions",
@@ -428,7 +432,8 @@
     },
     "errors": {
       "failed-to-start": "Geo Exclusion couldn't start. Reconnect and try again.",
-      "failed-to-set-port": "Couldn't update the SOCKS5 port. Please try again."
+      "failed-to-set-port": "Couldn't update the SOCKS5 port. Please try again.",
+      "failed-to-set-region": "Couldn't update the excluded region. Please try again."
     }
   }
 }
