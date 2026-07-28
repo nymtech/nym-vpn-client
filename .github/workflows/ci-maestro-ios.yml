@@ -268,7 +268,10 @@ jobs:
         continue-on-error: true
         run: |
           set -uo pipefail
-          mkdir -p maestro-debug
+          # Separate directory: the test run below writes --debug-output to
+          # maestro-debug and would clobber anything captured here.
+          OUT="$PWD/launch-diagnostics"
+          mkdir -p "$OUT"
 
           echo "--- launching net.nymtech.vpn with the mock launch argument ---"
           xcrun simctl terminate "$DEVICE_ID" net.nymtech.vpn 2>/dev/null || true
@@ -279,19 +282,32 @@ jobs:
             sleep 1
           done
 
-          xcrun simctl io "$DEVICE_ID" screenshot maestro-debug/launch-state.png || true
+          # Absolute path required: simctl resolves a relative one against its own
+          # working directory, failing with "The folder ... doesn't exist".
+          xcrun simctl io "$DEVICE_ID" screenshot "$OUT/launch-state.png" || true
+          ls -la "$OUT" || true
 
-          echo "--- accessibility tree as Maestro sees it ---"
-          maestro hierarchy > maestro-debug/hierarchy.txt 2>&1 || true
+          echo "=== accessibility tree (maestro hierarchy) ==="
+          # Hard cap: maestro has to start its iOS driver here, outside a test
+          # run, and a stall must not hold the job for the full 90m timeout.
+          maestro hierarchy > "$OUT/hierarchy.txt" 2>&1 &
+          HIER_PID=$!
+          ( sleep 120; kill "$HIER_PID" 2>/dev/null ) &
+          WATCHDOG_PID=$!
+          wait "$HIER_PID" 2>/dev/null || true
+          kill "$WATCHDOG_PID" 2>/dev/null || true
 
-          # Text nodes alone identify the screen; the full tree is in the artifact.
-          echo "=== visible text ==="
-          grep -oE '"(text|title|label|accessibilityText)"[[:space:]]*:[[:space:]]*"[^"]+"' \
-            maestro-debug/hierarchy.txt 2>/dev/null | sort -u | head -80 \
-            || echo "(no text nodes parsed - see the raw dump below)"
-
-          echo "=== raw hierarchy, first 150 lines ==="
-          head -150 maestro-debug/hierarchy.txt 2>/dev/null || echo "(no hierarchy captured)"
+          if [ -s "$OUT/hierarchy.txt" ]; then
+            echo "--- visible text ---"
+            grep -oE '"(text|title|label|accessibilityText)"[[:space:]]*:[[:space:]]*"[^"]+"' \
+              "$OUT/hierarchy.txt" | sort -u | head -80 || echo "(no text nodes matched)"
+            echo "--- raw, first 200 lines ---"
+            head -200 "$OUT/hierarchy.txt"
+          else
+            echo "(hierarchy.txt empty - maestro could not read the tree)"
+            echo "The screenshot in the launch-diagnostics artifact is then the"
+            echo "only record of what was on screen."
+          fi
 
       # Points at the workspace root, not maestro/flows/. Maestro reads
       # config.yaml from the directory it is given, so targeting flows/ meant the
@@ -321,6 +337,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: maestro-ios-debug
-          path: nym-vpn-apple/maestro-debug
+          path: |
+            nym-vpn-apple/maestro-debug
+            nym-vpn-apple/launch-diagnostics
           retention-days: 14
           if-no-files-found: warn
