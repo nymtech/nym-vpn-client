@@ -173,6 +173,15 @@ jobs:
           #
           # Destination is the exact device booted above, addressed by id, so the
           # build target and the install target cannot drift apart.
+          #
+          # SWIFT_ACTIVE_COMPILATION_CONDITIONS must append, not replace. Passing
+          # bare MOCK_MODE overwrote the Debug config's value and dropped DEBUG,
+          # which disabled the mock entirely: MockMode.isEnabled falls back to a
+          # launch-argument check "in DEBUG builds only" precisely because
+          # MOCK_MODE does not reliably reach SPM package targets - and the mocks
+          # live in the Services package. With DEBUG gone both branches failed
+          # and isEnabled returned false, so the app ran against the real backend
+          # and never reached the home screen.
           build_mock_app() {
             xcodebuild build-for-testing \
               -workspace NymVPN.xcworkspace \
@@ -180,7 +189,7 @@ jobs:
               -destination "id=$DEVICE_ID" \
               -derivedDataPath build \
               CODE_SIGNING_ALLOWED=NO \
-              SWIFT_ACTIVE_COMPILATION_CONDITIONS='MOCK_MODE'
+              SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) DEBUG MOCK_MODE'
           }
           # xcpretty only prettifies; never let its absence decide the outcome.
           if command -v xcpretty >/dev/null 2>&1; then
