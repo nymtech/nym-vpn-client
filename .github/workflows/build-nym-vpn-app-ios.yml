@@ -114,11 +114,15 @@ jobs:
           echo "🧩 Selected mode (raw): $sel"
           echo "🧩 Normalized mode: $mode"
 
+          if [[ "$mode" == "qa" ]]; then santa=1; else santa=0; fi
+
           # Export environment variables for later steps
           echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
+          echo "NYM_SANTA=$santa" >> "$GITHUB_ENV"
 
           echo "✅ Environment successfully configured:"
           echo "   RELEASE_TYPE=$mode"
+          echo "   NYM_SANTA=$santa"
           echo "--------------------------------------------------"
 
       - name: Show selected release type
