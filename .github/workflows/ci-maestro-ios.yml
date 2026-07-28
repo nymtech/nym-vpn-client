@@ -162,6 +162,14 @@ jobs:
           echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
           echo "DEVICE_NAME=$DEVICE_NAME" >> $GITHUB_ENV
 
+          # Simulators stay booted between jobs on this runner, so there are
+          # usually several. Not shutting the others down - a concurrent Apple
+          # job on this Mac may be using one - but every maestro call passes
+          # --device, so the extras are harmless. Logged because an unexpected
+          # set here explains a lot of otherwise baffling behaviour.
+          echo "--- all currently booted simulators ---"
+          xcrun simctl list devices booted || true
+
       - name: Build mock app for simulator
         working-directory: nym-vpn-apple
         run: |
@@ -290,7 +298,7 @@ jobs:
           echo "=== accessibility tree (maestro hierarchy) ==="
           # Hard cap: maestro has to start its iOS driver here, outside a test
           # run, and a stall must not hold the job for the full 90m timeout.
-          maestro hierarchy > "$OUT/hierarchy.txt" 2>&1 &
+          maestro --device "$DEVICE_ID" hierarchy > "$OUT/hierarchy.txt" 2>&1 &
           HIER_PID=$!
           ( sleep 120; kill "$HIER_PID" 2>/dev/null ) &
           WATCHDOG_PID=$!
@@ -317,7 +325,12 @@ jobs:
       - name: Run Maestro UI tests
         working-directory: nym-vpn-apple
         run: |
-          maestro test maestro \
+          # --device is mandatory here. The runner keeps simulators booted between
+          # jobs, so more than one is usually running, and without it Maestro
+          # prompts "Multiple running devices detected. Choose a device to run
+          # on." - which with no TTY it can never resolve. It also guarantees the
+          # flows drive the same simulator the app was installed on.
+          maestro --device "$DEVICE_ID" test maestro \
             --format junit \
             --output maestro-ios-report.xml \
             --debug-output maestro-debug
