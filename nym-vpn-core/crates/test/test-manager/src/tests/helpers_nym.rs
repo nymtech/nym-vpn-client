@@ -89,7 +89,7 @@ impl ProviderDisconnectClient<'_> {
 
     async fn ensure_client(&mut self) -> Result<&mut NymProxyClient, NymClientError> {
         if self.rpc.is_none() {
-            self.rpc = Some(self.provider.new_client_nym().await.map_err(|error| {
+            self.rpc = Some(self.provider.recover_client_nym().await.map_err(|error| {
                 NymClientError::Rpc(tonic::Status::unavailable(error.to_string()))
             })?);
         }
@@ -106,7 +106,12 @@ impl ProviderDisconnectClient<'_> {
             return Ok(false);
         }
         log::warn!("recreating NymProxyClient after RPC stall");
-        self.rpc = Some(self.provider.new_client_nym().await.map_err(Error::Other)?);
+        self.rpc = Some(
+            self.provider
+                .recover_client_nym()
+                .await
+                .map_err(Error::Other)?,
+        );
         self.recreated = true;
         Ok(true)
     }
@@ -174,8 +179,7 @@ async fn store_account_with_transport_retry(
                 "store_account hit a dead DaemonRpc session; recreating client and retrying once: {error}"
             );
             drop(nym_client);
-            settle_daemon_rpc_quiesce().await;
-            let mut nym_client = provider.new_client_nym().await?;
+            let mut nym_client = provider.recover_client_nym().await?;
             store_account_idempotent(&mut nym_client).await?;
             Ok(nym_client)
         }
@@ -270,6 +274,36 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
     Ok(())
 }
 
+/// Run a unary DaemonRpc once; on transport/broken-pipe, recover the serial session and retry.
+///
+/// `op` takes ownership of the client and must return it alongside the RPC result so a
+/// transport failure can drop the dead session and retry with a recovered client.
+pub async fn call_nym_with_transport_recovery<T, F, Fut>(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+    op: F,
+) -> Result<(T, NymProxyClient), Error>
+where
+    F: Fn(NymProxyClient) -> Fut,
+    Fut: Future<Output = (NymProxyClient, Result<T, NymClientError>)>,
+{
+    let (client, result) = op(client).await;
+    match result {
+        Ok(value) => Ok((value, client)),
+        Err(err) if is_nym_client_transport_error(&err) => {
+            log::warn!("DaemonRpc transport error on RPC; recovering once: {err:#}");
+            drop(client);
+            let client = provider.recover_client_nym().await.map_err(Error::Other)?;
+            let (client, result) = op(client).await;
+            match result {
+                Ok(value) => Ok((value, client)),
+                Err(err) => Err(Error::NymManagementInterface(err)),
+            }
+        }
+        Err(err) => Err(Error::NymManagementInterface(err)),
+    }
+}
+
 pub async fn disconnect_and_wait(
     runner: &NymServiceClient,
     nym_client: NymProxyClient,
@@ -307,8 +341,7 @@ async fn disconnect_with_transport_recovery(
                 "disconnect_tunnel hit a dead DaemonRpc session; recreating and retrying once: {err:#}"
             );
             drop(nym_client);
-            settle_daemon_rpc_quiesce().await;
-            nym_client = provider.new_client_nym().await.map_err(Error::Other)?;
+            nym_client = provider.recover_client_nym().await.map_err(Error::Other)?;
             match nym_client.disconnect_tunnel().await {
                 Ok(_) => Ok(nym_client),
                 Err(err2) if is_nym_client_transport_error(&err2) => {
@@ -316,8 +349,7 @@ async fn disconnect_with_transport_recovery(
                         "disconnect_tunnel still broken after recreate; fresh client for Disconnected observe: {err2:#}"
                     );
                     drop(nym_client);
-                    settle_daemon_rpc_quiesce().await;
-                    provider.new_client_nym().await.map_err(Error::Other)
+                    provider.recover_client_nym().await.map_err(Error::Other)
                 }
                 Err(err2) => Err(Error::NymManagementInterface(err2)),
             }
@@ -391,7 +423,8 @@ pub async fn wait_for_tunnel_state(
             disconnect_on_timeout,
         )
         .await;
-        let client = provider.new_client_nym().await.map_err(Error::Other);
+        // Abort any stale forward before opening a post-Connected session.
+        let client = provider.recover_client_nym().await.map_err(Error::Other);
         return match merge_wait_and_client(observed, client) {
             Ok(pair) => Ok(pair),
             Err((error, client)) => {
@@ -1002,8 +1035,7 @@ mod tests {
         )))
         .context("store_account RPC failed");
         assert!(is_daemon_rpc_transport_error(&store_shaped));
-        let lost_source =
-            anyhow::anyhow!("store_account RPC failed: Rpc call returned error");
+        let lost_source = anyhow::anyhow!("store_account RPC failed: Rpc call returned error");
         assert!(!is_daemon_rpc_transport_error(&lost_source));
     }
 
@@ -1098,6 +1130,17 @@ mod tests {
             merge_wait_and_client(observed, client).expect_err("combined failure must surface");
         assert!(err.0.to_string().contains("observe failed"));
         assert!(err.1.is_none());
+    }
+
+    #[tokio::test]
+    async fn provider_dangling_recover_requests_a_new_duplex() {
+        let (provider, mut rx) = crate::nym_daemon::RpcClientProvider::dangling_for_tests();
+        let create = tokio::spawn(async move { provider.recover_client_nym().await });
+        let _duplex = tokio::time::timeout(Duration::from_secs(2), rx.next())
+            .await
+            .expect("recover_client_nym must request a duplex after settle")
+            .expect("channel closed");
+        create.abort();
     }
 
     #[tokio::test(start_paused = true)]

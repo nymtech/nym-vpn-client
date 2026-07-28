@@ -22,6 +22,11 @@ const GRPC_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 const RPC_CLIENT_CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 const RPC_SESSION_SYNC_TIMEOUT: Duration = Duration::from_secs(30);
 const CONVERTER_BUF_SIZE: usize = 16 * 1024;
+/// Settle after aborting an in-flight DaemonRpc forward before opening a new client.
+pub(crate) const DAEMON_RPC_RECOVER_SETTLE: Duration = Duration::from_millis(250);
+/// A failed session sync must not tear down the suite-wide DaemonRpc forward loop
+/// (CI: one poison → every later test Failed to disconnect / get_info).
+const KEEP_FORWARD_LOOP_ON_SYNC_FAILURE: bool = true;
 
 #[derive(Clone)]
 pub(super) struct DummyService {
@@ -58,6 +63,7 @@ impl<Request> Service<Request> for DummyService {
 #[derive(Clone)]
 pub struct RpcClientProvider {
     pub(super) service: DummyService,
+    connection_handle: Option<ConnectionHandle>,
 }
 
 impl RpcClientProvider {
@@ -71,6 +77,7 @@ impl RpcClientProvider {
                 service: DummyService {
                     management_channel_provider_tx,
                 },
+                connection_handle: None,
             },
             management_channel_provider_rx,
         )
@@ -87,6 +94,16 @@ impl RpcClientProvider {
             RPC_CLIENT_CONNECT_TIMEOUT,
         )
         .await
+    }
+
+    /// Abort any in-flight DaemonRpc forward, settle, then open a fresh gRPC client.
+    /// Does not clear mux handshake state (unlike reboot's `reset_connected_state`).
+    pub async fn recover_client_nym(&self) -> anyhow::Result<NymProxyClient> {
+        if let Some(handle) = &self.connection_handle {
+            handle.abort_active_forward();
+        }
+        tokio::time::sleep(DAEMON_RPC_RECOVER_SETTLE).await;
+        self.new_client_nym().await
     }
 }
 
@@ -135,6 +152,7 @@ pub fn new_rpc_client(
 ) -> RpcClientProvider {
     let (mut framed_read, mut framed_write) = length_delimited_framed_halves(nym_daemon_transport);
     let (management_channel_provider_tx, mut management_channel_provider_rx) = mpsc::unbounded();
+    let forward_loop_handle = connection_handle.clone();
 
     tokio::spawn(async move {
         loop {
@@ -156,13 +174,18 @@ pub fn new_rpc_client(
             )
             .await
             {
-                log::debug!("Failed to synchronize daemon RPC session: {error}");
+                log::warn!(
+                    "Failed to synchronize daemon RPC session; retrying on next client: {error}"
+                );
+                if KEEP_FORWARD_LOOP_ON_SYNC_FAILURE {
+                    continue;
+                }
                 break;
             }
 
             log::debug!("👻 Entering loop...");
             tokio::select! {
-                _ = connection_handle.notified_reset() => {
+                _ = forward_loop_handle.notified_reset() => {
                     log::debug!("Restarting daemon RPC client");
                 }
                 result = forward_framed_bidirectional(
@@ -183,14 +206,33 @@ pub fn new_rpc_client(
         management_channel_provider_tx,
     };
 
-    RpcClientProvider { service }
+    RpcClientProvider {
+        service,
+        connection_handle: Some(connection_handle),
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{await_rpc_client_connection, await_session_synchronization};
+    use super::{
+        KEEP_FORWARD_LOOP_ON_SYNC_FAILURE, await_rpc_client_connection,
+        await_session_synchronization,
+    };
     use std::{future::pending, time::Duration};
     use test_rpc::transport::length_delimited_framed_halves;
+
+    #[test]
+    fn sync_failure_keeps_daemon_rpc_forward_loop_alive() {
+        assert!(
+            KEEP_FORWARD_LOOP_ON_SYNC_FAILURE,
+            "session sync failure must continue the suite forward loop (CI suite poison)"
+        );
+    }
+
+    #[test]
+    fn recover_settle_is_short_and_named() {
+        assert_eq!(super::DAEMON_RPC_RECOVER_SETTLE, Duration::from_millis(250));
+    }
 
     #[tokio::test]
     async fn serial_rpc_client_connection_is_bounded() {

@@ -43,7 +43,7 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Connect tunnel
     log::info!("Connecting tunnel...");
     nym_proxy_client.connect_tunnel().await?;
-    let (_, mut nym_proxy_client) = helpers_nym::wait_for_tunnel_state(
+    let (_, nym_proxy_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
         nym_proxy_client,
         &test_context.rpc_provider,
@@ -62,22 +62,24 @@ pub async fn test_account_and_tunnel_roundtrip(
         log::info!("Resolved {} to {:?}", host, addrs);
     }
 
-    // Disconnect tunnel
+    // Disconnect tunnel (recover DaemonRpc if Connected wait poisoned the serial session)
     log::info!("Disconnecting tunnel...");
-    nym_proxy_client.disconnect_tunnel().await?;
-    let (_, mut nym_proxy_client) = helpers_nym::wait_for_tunnel_state(
-        &rpc,
-        nym_proxy_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Disconnected,
-    )
-    .await?;
+    let nym_proxy_client =
+        helpers_nym::disconnect_and_wait(&rpc, nym_proxy_client, &test_context.rpc_provider)
+            .await
+            .context("Failed to disconnect after Connected")?;
 
-    // Verify devices
-    let devices = nym_proxy_client
-        .get_active_devices()
-        .await
-        .context("get_active_devices failed")?;
+    // Verify devices / usage (recover if post-Connected DaemonRpc is still poisoned)
+    let (devices, nym_proxy_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_proxy_client,
+        |mut client| async move {
+            let result = client.get_active_devices().await;
+            (client, result)
+        },
+    )
+    .await
+    .context("get_active_devices failed")?;
     ensure!(!devices.is_empty(), "Expected at least one active device");
     for device in &devices {
         ensure!(
@@ -92,11 +94,16 @@ pub async fn test_account_and_tunnel_roundtrip(
         );
     }
 
-    // Verify usage
-    let usages = nym_proxy_client
-        .get_account_usage()
-        .await
-        .context("get_account_usage failed")?;
+    let (usages, _nym_proxy_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_proxy_client,
+        |mut client| async move {
+            let result = client.get_account_usage().await;
+            (client, result)
+        },
+    )
+    .await
+    .context("get_account_usage failed")?;
     ensure!(!usages.is_empty(), "Expected at least one usage entry");
     for (i, usage) in usages.iter().enumerate() {
         log::info!(

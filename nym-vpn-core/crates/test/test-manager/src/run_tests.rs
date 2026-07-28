@@ -356,7 +356,8 @@ pub async fn run(
     };
 
     for test in tests {
-        let nym_client = rpc_provider.new_client_nym().await?;
+        // Abort any stale DaemonRpc forward left by the previous test before connecting.
+        let nym_client = rpc_provider.recover_client_nym().await?;
 
         test_handler
             .run_test(test.func, test.name, Some(nym_client))
@@ -380,7 +381,7 @@ pub async fn run(
 
 async fn deregister_account(rpc_provider: &RpcClientProvider) {
     log::info!("Cleaning up: forget_account to deregister device...");
-    match rpc_provider.new_client_nym().await {
+    match rpc_provider.recover_client_nym().await {
         Ok(mut nym_client) => {
             if let Err(e) = nym_client.forget_account().await {
                 log::warn!("Failed to forget account during cleanup: {e}");

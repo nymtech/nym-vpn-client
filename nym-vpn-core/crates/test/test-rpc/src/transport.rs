@@ -202,12 +202,22 @@ impl ConnectionHandle {
     }
 
     /// Resets `Self::is_connected`.
+    ///
+    /// Only safe around reboot: while `is_connected` is false the serial mux
+    /// stops decoding frames (including tarpc). Prefer [`Self::abort_active_forward`]
+    /// for mid-suite DaemonRpc recovery.
     pub async fn reset_connected_state(&self) {
         let mut handshake_fwd = self.handshake_fwd_rx.lock().await;
         // empty stream
         while handshake_fwd.try_recv().is_ok() {}
 
         self.is_connected.store(false, Ordering::SeqCst);
+        self.reset_notify.notify_waiters();
+    }
+
+    /// Abort the host DaemonRpc forward loop's current session without clearing
+    /// mux handshake state (so tarpc keeps decoding).
+    pub fn abort_active_forward(&self) {
         self.reset_notify.notify_waiters();
     }
 
@@ -1216,6 +1226,42 @@ mod tests {
             MULTIPLEX_MAX_FRAME_LENGTH <= u32::MAX as usize,
             "max frame must fit in a 4-byte length field; usize::MAX does not"
         );
+    }
+
+    #[test]
+    fn multiplex_codec_ignores_frames_until_handshake_connected() {
+        use super::{Frame, MultiplexCodec};
+        use bytes::{BufMut, BytesMut};
+        use std::sync::{
+            Arc,
+            atomic::{AtomicBool, Ordering},
+        };
+        use tokio_util::codec::{Decoder, Encoder};
+
+        let connected = Arc::new(AtomicBool::new(false));
+        let mut codec = MultiplexCodec::new(connected.clone());
+        let mut encoded = BytesMut::new();
+        codec
+            .encode(Frame::TestRunner(Bytes::from_static(b"ping")), &mut encoded)
+            .expect("encode");
+        let mut src = encoded;
+        assert!(
+            codec.decode(&mut src).expect("decode").is_none(),
+            "mid-suite reset_connected_state(false) would freeze tarpc; use abort_active_forward"
+        );
+        connected.store(true, Ordering::SeqCst);
+        let mut src2 = BytesMut::new();
+        src2.put_slice(&{
+            let mut again = BytesMut::new();
+            codec
+                .encode(Frame::TestRunner(Bytes::from_static(b"ping")), &mut again)
+                .expect("encode");
+            again
+        });
+        assert!(matches!(
+            codec.decode(&mut src2).expect("decode"),
+            Some(Frame::TestRunner(_))
+        ));
     }
 
     #[test]
