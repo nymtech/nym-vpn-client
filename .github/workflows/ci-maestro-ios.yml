@@ -249,12 +249,18 @@ jobs:
           echo "Installing $APP_PATH"
           xcrun simctl install "$DEVICE_ID" "$APP_PATH"
 
+      # Points at the workspace root, not maestro/flows/. Maestro reads
+      # config.yaml from the directory it is given, so targeting flows/ meant the
+      # appId, tags and onFlowStart hooks in maestro/config.yaml were never
+      # applied - and with no inclusion pattern it found no flows at all, since
+      # every one lives in a subdirectory. Matches ci-maestro-android.yml.
       - name: Run Maestro UI tests
         working-directory: nym-vpn-apple
         run: |
-          maestro test maestro/flows/ \
+          maestro test maestro \
             --format junit \
-            --output maestro-ios-report.xml
+            --output maestro-ios-report.xml \
+            --debug-output maestro-debug
 
       - name: Upload Maestro report
         if: always()
@@ -262,3 +268,15 @@ jobs:
         with:
           name: maestro-ios-report
           path: nym-vpn-apple/maestro-ios-report.xml
+          retention-days: 14
+
+      # Screenshots and per-command logs for failed flows. These flows have never
+      # run in CI, so this is the only way to see why one failed without a Mac.
+      - name: Upload Maestro debug artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maestro-ios-debug
+          path: nym-vpn-apple/maestro-debug
+          retention-days: 14
+          if-no-files-found: warn
