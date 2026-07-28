@@ -19,6 +19,7 @@ const REBOOT_TIMEOUT: Duration = Duration::from_secs(60);
 const POST_REBOOT_GRACE_PERIOD: Duration = Duration::from_secs(5);
 const LOG_LEVEL_TIMEOUT: Duration = Duration::from_secs(60);
 const DAEMON_RESTART_TIMEOUT: Duration = Duration::from_secs(60);
+const WAIT_RPC_DEADLINE_SLACK: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Clone)]
 pub struct NymServiceClient {
@@ -150,6 +151,39 @@ impl NymServiceClient {
             .nymvpn_daemon_get_status(tarpc::context::current())
             .await
             .map_err(Error::Tarpc)
+    }
+
+    /// Tunnel discriminant from guest-local daemon UDS (not serial-forwarded gRPC).
+    pub async fn get_observed_tunnel_state(
+        &self,
+    ) -> Result<nym_daemon::ObservedTunnelState, Error> {
+        self.client
+            .get_observed_tunnel_state(tarpc::context::current())
+            .await
+            .map_err(Error::Tarpc)?
+    }
+
+    /// Account discriminant from guest-local daemon UDS (not serial-forwarded gRPC).
+    pub async fn get_observed_account_state(
+        &self,
+    ) -> Result<nym_daemon::ObservedAccountState, Error> {
+        self.client
+            .get_observed_account_state(tarpc::context::current())
+            .await
+            .map_err(Error::Tarpc)?
+    }
+
+    pub async fn wait_for_observed_account_state(
+        &self,
+        targets: Vec<nym_daemon::ObservedAccountStateKind>,
+        timeout: Duration,
+    ) -> Result<nym_daemon::WaitOutcome<nym_daemon::ObservedAccountState>, Error> {
+        let mut ctx = tarpc::context::current();
+        ctx.deadline = deadline_after(timeout);
+        self.client
+            .wait_for_observed_account_state(ctx, targets, duration_as_millis_u64(timeout))
+            .await
+            .map_err(Error::Tarpc)?
     }
 
     /// Return the version string as reported by `mullvad --version`.
@@ -482,4 +516,14 @@ impl NymServiceClient {
             .ifconfig_alias_remove(tarpc::context::current(), interface.into(), alias.into())
             .await?
     }
+}
+
+fn deadline_after(timeout: Duration) -> SystemTime {
+    SystemTime::now()
+        .checked_add(timeout.saturating_add(WAIT_RPC_DEADLINE_SLACK))
+        .unwrap_or_else(|| SystemTime::now() + WAIT_RPC_DEADLINE_SLACK)
+}
+
+fn duration_as_millis_u64(timeout: Duration) -> u64 {
+    u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX)
 }
