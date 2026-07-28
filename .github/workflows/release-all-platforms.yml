@@ -413,7 +413,7 @@ jobs:
       release_channel: ${{ needs.resolve.outputs.channel }}
       version: ${{ needs.resolve.outputs.version }}
       nightly_timestamp: ${{ needs.resolve.outputs.nightly_timestamp }}
-      android: ${{ needs.resolve.outputs.android == 'true' }}
+      android: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -524,7 +524,7 @@ jobs:
       tag: ${{ needs.resolve.outputs.tag }}
       github_release_type: ${{ needs.resolve.outputs.gh_release_type }}
       version: ${{ needs.resolve.outputs.version }}
-      android: ${{ needs.resolve.outputs.android == 'true' }}
+      android: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -547,7 +547,7 @@ jobs:
       publish_play: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       publish_play_metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
       # only publish nightly builds to avoid downgrades
-      publish_testflight: ${{ needs.resolve.outputs.ios == 'true' && needs.resolve.outputs.channel == 'nightly' }}
+      publish_testflight: ${{ needs.resolve.outputs.ios == 'true' }}
       ios_ipa_name: ${{ needs.build-outputs.outputs.ios_ipa_name }}
       publish_to_public_testflight: true
       play_artifact_name: ${{ needs.build-outputs.outputs.play_artifact_name }}

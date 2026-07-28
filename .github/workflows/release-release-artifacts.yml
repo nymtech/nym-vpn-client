@@ -595,7 +595,7 @@ jobs:
             ARGS+=(--latest)
           fi
 
-          RELEASE_URL=$(gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" "${ARGS[@]}" "${ASSET_FILES[@]}")
+          RELEASE_URL=$(gh release create "$TAG_NAME" --target "$GITHUB_SHA" --repo "$GITHUB_REPOSITORY" "${ARGS[@]}" "${ASSET_FILES[@]}")
           RELEASE_TAG="${RELEASE_URL##*/}"
 
           echo "::notice:: Release URL: $RELEASE_URL"
