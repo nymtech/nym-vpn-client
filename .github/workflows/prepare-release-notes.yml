@@ -144,7 +144,6 @@ jobs:
   resolve:
     runs-on: arc-linux-latest
     outputs:
-      # Required Variables
       github_release_type: ${{ steps.set-params.outputs.github_release_type }}
       version: ${{ steps.set-params.outputs.version }}
       fdroid: ${{ steps.set-params.outputs.fdroid }}
