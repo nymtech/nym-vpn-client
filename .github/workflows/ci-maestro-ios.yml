@@ -125,16 +125,27 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      # Installs into RUNNER_TEMP, not $HOME. ci-maestro-android.yml unpacks to
+      # $HOME/.maestro, which is safe on ubuntu-latest because each job gets a
+      # fresh home - but this runner is self-hosted and $HOME persists, so the
+      # move failed with "Directory not empty" against the previous run's
+      # install. RUNNER_TEMP is emptied per job, which also keeps concurrent
+      # jobs on this shared Mac from fighting over one install directory.
       - name: Install Maestro
         env:
           MAESTRO_VERSION: "2.2.0"
         run: |
+          set -euo pipefail
           curl -fsSL -o maestro.zip "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
           curl -fsSL -o checksums_sha256.txt "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/checksums_sha256.txt"
           shasum -a 256 --check --ignore-missing checksums_sha256.txt
+          rm -rf maestro "$RUNNER_TEMP/maestro"
           unzip -q maestro.zip
-          mv maestro "$HOME/.maestro"
-          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+          mv maestro "$RUNNER_TEMP/maestro"
+          rm -f maestro.zip checksums_sha256.txt
+          echo "$RUNNER_TEMP/maestro/bin" >> $GITHUB_PATH
+          # Fail here rather than in a later step if the CLI cannot start.
+          "$RUNNER_TEMP/maestro/bin/maestro" --version
 
       - name: Log tool versions
         run: |
@@ -143,7 +154,7 @@ jobs:
           echo "--- Rust ---"
           rustc --version
           echo "--- Maestro ---"
-          $HOME/.maestro/bin/maestro --version
+          maestro --version
           echo "--- Simulator ---"
           xcrun simctl list devices available | head -20
 
