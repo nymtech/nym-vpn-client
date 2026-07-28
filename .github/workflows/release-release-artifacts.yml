@@ -316,9 +316,9 @@ jobs:
       vpnc_deb_x86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
       vpnc_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
       linux_app_deb_x64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
-      linux_app_deb_aarch64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
+      linux_app_deb_arm64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
       linux_app_appimage_x64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
-      linux_app_appimage_aarch64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
+      linux_app_appimage_arm64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
       macos_installer_name: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
       vpnc_macos_installer_name: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
       windows_app_installer_x64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
