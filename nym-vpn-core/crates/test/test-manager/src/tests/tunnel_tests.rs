@@ -9,7 +9,10 @@ use crate::tests::{
 use anyhow::{Context, bail, ensure};
 use nym_vpn_lib_types::{ExitPoint, GatewayType, ListGatewaysOptions};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::{net::SocketAddr, time::Duration};
+use std::{
+    net::{IpAddr, SocketAddr},
+    time::Duration,
+};
 use test_macro::test_function_nym;
 use test_rpc::{
     NymServiceClient,
@@ -57,9 +60,49 @@ async fn get_tunnel_link_nameservers(
     ))
 }
 
+const DNS_PORT: u16 = 53;
+const RESOLVER_PROBE_BIND_ADDR: SocketAddr =
+    SocketAddr::new(IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED), 0);
+
+fn resolver_probe_addr(nameserver: &str) -> Option<SocketAddr> {
+    nameserver
+        .parse::<IpAddr>()
+        .ok()
+        .map(|ip| SocketAddr::new(ip, DNS_PORT))
+}
+
+async fn reachable_resolvers(rpc: &NymServiceClient, nameservers: &[String]) -> Vec<SocketAddr> {
+    let mut reachable = Vec::new();
+    for nameserver in nameservers {
+        let Some(dest) = resolver_probe_addr(nameserver) else {
+            log::warn!("Skipping unparseable nameserver {nameserver}");
+            continue;
+        };
+        match rpc.send_tcp(None, RESOLVER_PROBE_BIND_ADDR, dest).await {
+            Ok(()) => reachable.push(dest),
+            Err(error) => log::info!("Resolver {dest} not reachable on TCP: {error}"),
+        }
+    }
+    reachable
+}
+
 #[cfg(test)]
 mod resolvectl_tests {
-    use super::parse_resolvectl_dns;
+    use super::{DNS_PORT, parse_resolvectl_dns, resolver_probe_addr};
+
+    #[test]
+    fn resolver_probe_addr_covers_both_families_and_rejects_hostnames() {
+        assert_eq!(
+            resolver_probe_addr("172.29.1.1").map(|addr| (addr.to_string(), addr.port())),
+            Some(("172.29.1.1:53".to_string(), DNS_PORT))
+        );
+        assert_eq!(
+            resolver_probe_addr("2620:fe::fe").map(|addr| addr.to_string()),
+            Some("[2620:fe::fe]:53".to_string())
+        );
+        assert_eq!(resolver_probe_addr("dns.example.com"), None);
+        assert_eq!(resolver_probe_addr(""), None);
+    }
 
     #[test]
     fn parses_link_nameservers_and_ignores_global_and_empty_links() {
@@ -357,6 +400,9 @@ pub async fn test_dns_leak(
         "VM should have at least one nameserver"
     );
 
+    let reachable_before = reachable_resolvers(&rpc, &pre_vpn_nameservers).await;
+    log::info!("Pre-VPN resolvers reachable on TCP: {:?}", reachable_before);
+
     let nym_client =
         helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
             .await?;
@@ -403,6 +449,28 @@ pub async fn test_dns_leak(
                 leaked,
             );
         }
+    }
+
+    if reachable_before.is_empty() {
+        log::warn!(
+            "No pre-VPN resolver answered on TCP/53, so reachability while connected proves nothing"
+        );
+    } else {
+        let still_reachable = reachable_resolvers(
+            &rpc,
+            &reachable_before
+                .iter()
+                .map(|addr| addr.ip().to_string())
+                .collect::<Vec<_>>(),
+        )
+        .await;
+        ensure!(
+            still_reachable.is_empty(),
+            "DNS LEAK: pre-VPN resolvers still reachable while connected: {:?}. \
+             The harness enables allow_lan, which may be exposing the LAN resolver",
+            still_reachable,
+        );
+        log::info!("Pre-VPN resolvers are unreachable while connected");
     }
 
     let addrs = rpc
