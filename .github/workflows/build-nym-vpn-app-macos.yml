@@ -2,10 +2,10 @@ name: build-nym-vpn-app-macos
 permissions:
   contents: read
 on:
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
-  #   paths:
-  #     - ".github/workflows/build-nym-vpn-app-macos.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-app-macos.yml"
   workflow_dispatch:
     inputs:
       release_type:
@@ -110,7 +110,8 @@ jobs:
           # Santa's-menu QA code is gated behind `#if SANTA`. Compile it in for
           # `qa` only; left OUT of `pr` and `ship` so it is physically absent
           # from App Store binaries.
-          if [[ "$mode" == "qa" ]]; then santa=1; else santa=0; fi
+          # if [[ "$mode" == "qa" ]]; then santa=1; else santa=0; fi
+          santa=1
 
           # Export environment variables for later steps
           echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
@@ -414,6 +415,8 @@ jobs:
         with:
           name: core_artifacts_macos
           path: core_artifacts_macos
+          run-id: 30353694485
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move core artifacts
         run: |
@@ -512,7 +515,8 @@ jobs:
             MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
             MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
             ENABLE_HARDENED_RUNTIME=YES \
-            OTHER_CODE_SIGN_FLAGS="--timestamp" | xcbeautify --renderer github-actions
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            NYM_SANTA="${{ env.NYM_SANTA }}" | xcbeautify --renderer github-actions
 
           # Verify archive was created
           if [[ ! -d "$ARCHIVE_PATH" ]]; then
