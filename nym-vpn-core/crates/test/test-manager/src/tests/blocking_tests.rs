@@ -170,14 +170,17 @@ async fn connect_verify_disconnect(
     rpc: &NymServiceClient,
     nym_client: NymProxyClient,
 ) -> anyhow::Result<()> {
-    let mut nym_client =
+    let nym_client =
         dc_and_ensure_logged_in(rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    nym_client.set_enable_two_hop(true).await?;
+    let nym_client =
+        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
 
     log::info!("Connecting tunnel...");
-    nym_client.connect_tunnel().await?;
-    let (_, mut nym_client) = helpers_nym::wait_for_tunnel_state(
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (_, nym_client) = helpers_nym::wait_for_tunnel_state(
         rpc,
         nym_client,
         &test_context.rpc_provider,
@@ -188,14 +191,7 @@ async fn connect_verify_disconnect(
     verify_tunnel_connectivity(rpc).await?;
 
     log::info!("Disconnecting tunnel...");
-    nym_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(
-        rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Disconnected,
-    )
-    .await?;
+    helpers_nym::disconnect_and_wait(rpc, nym_client, &test_context.rpc_provider).await?;
 
     Ok(())
 }

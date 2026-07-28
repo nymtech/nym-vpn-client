@@ -25,14 +25,19 @@ pub async fn test_account_and_tunnel_roundtrip(
     rpc: NymServiceClient,
     nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    let mut nym_proxy_client =
+    let nym_proxy_client =
         dc_and_ensure_logged_in(&rpc, nym_proxy_client, &test_context.rpc_provider, false).await?;
 
-    // Verify account identity
-    let identity = nym_proxy_client
-        .get_account_identity()
-        .await
-        .context("get_account_identity failed")?;
+    let (identity, nym_proxy_client) = helpers_nym::call_nym_with_transport_recovery(
+        &test_context.rpc_provider,
+        nym_proxy_client,
+        |mut client| async move {
+            let result = client.get_account_identity().await;
+            (client, result)
+        },
+    )
+    .await
+    .context("get_account_identity failed")?;
     let identity = identity.context("Expected account identity to be set")?;
     ensure!(!identity.is_empty(), "Account identity should not be empty");
     log::info!(
@@ -40,9 +45,10 @@ pub async fn test_account_and_tunnel_roundtrip(
         &identity[..5.min(identity.len())]
     );
 
-    // Connect tunnel
     log::info!("Connecting tunnel...");
-    nym_proxy_client.connect_tunnel().await?;
+    let nym_proxy_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_proxy_client)
+            .await?;
     let (_, nym_proxy_client) = helpers_nym::wait_for_tunnel_state(
         &rpc,
         nym_proxy_client,
@@ -51,8 +57,6 @@ pub async fn test_account_and_tunnel_roundtrip(
     )
     .await?;
 
-    // DNS resolution while connected (runs inside VM via tarpc). Bounded so a
-    // stalled resolver cannot wedge the suite until outer SSH keepalives kill CI.
     let hostnames_to_test = ["nym.com", "google.com"];
     for host in &hostnames_to_test {
         log::info!("Resolving {} inside VM...", host);
@@ -62,14 +66,12 @@ pub async fn test_account_and_tunnel_roundtrip(
         log::info!("Resolved {} to {:?}", host, addrs);
     }
 
-    // Disconnect tunnel (recover DaemonRpc if Connected wait poisoned the serial session)
     log::info!("Disconnecting tunnel...");
     let nym_proxy_client =
         helpers_nym::disconnect_and_wait(&rpc, nym_proxy_client, &test_context.rpc_provider)
             .await
             .context("Failed to disconnect after Connected")?;
 
-    // Verify devices / usage (recover if post-Connected DaemonRpc is still poisoned)
     let (devices, nym_proxy_client) = helpers_nym::call_nym_with_transport_recovery(
         &test_context.rpc_provider,
         nym_proxy_client,
@@ -119,21 +121,35 @@ pub async fn test_account_and_tunnel_roundtrip(
     Ok(())
 }
 
-/// Make sure the daemon is installed and logged in and restore settings to the defaults.
 pub async fn dc_and_ensure_logged_in(
     runner: &NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
     provider: &RpcClientProvider,
     forget_account: bool,
 ) -> anyhow::Result<NymProxyClient> {
-    log::debug!("🔄 Resetting daemon settings before test...");
+    log::debug!("Resetting daemon settings before test...");
     nym_proxy_client = helpers_nym::disconnect_and_wait(runner, nym_proxy_client, provider)
         .await
         .context("Failed to disconnect")?;
 
+    nym_proxy_client =
+        helpers_nym::replace_client_after_disconnect_prep(provider, nym_proxy_client)
+            .await
+            .context("Failed to recover DaemonRpc after disconnect prep")?;
+
     if forget_account {
-        log::debug!("🔄 Resetting device identity & ticketbooks...");
-        nym_proxy_client.forget_account().await?;
+        log::debug!("Resetting device identity & ticketbooks...");
+        let (_, client) = helpers_nym::call_nym_with_transport_recovery(
+            provider,
+            nym_proxy_client,
+            |mut client| async move {
+                let result = client.forget_account().await;
+                (client, result)
+            },
+        )
+        .await
+        .context("forget_account failed")?;
+        nym_proxy_client = client;
         helpers_nym::wait_for_account_state(runner, ObservedAccountState::LoggedOut).await?;
     }
 
@@ -141,11 +157,11 @@ pub async fn dc_and_ensure_logged_in(
         .await
         .context("Failed to ensure logged in")?;
 
-    if let Err(err) = nym_proxy_client.set_allow_lan(true).await {
-        log::warn!("Failed to enable allow_lan for diagnostics: {err}");
-    }
+    nym_proxy_client = helpers_nym::finish_prep_with_allow_lan(provider, nym_proxy_client)
+        .await
+        .context("DaemonRpc unresponsive after login prep")?;
 
-    log::debug!("🔄 Daemon successfully prepared 🔄");
+    log::debug!("Daemon successfully prepared");
 
     Ok(nym_proxy_client)
 }

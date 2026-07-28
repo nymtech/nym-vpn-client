@@ -18,23 +18,15 @@ use test_rpc::{
     },
 };
 
-/// Bounded best-effort disconnect after a tunnel wait timeout. Must not nest a full
-/// `disconnect_and_wait` (that would block the suite for another 40s on a dead serial).
 const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
-
 const DAEMON_QUIESCE_SETTLE: Duration = Duration::from_millis(250);
-
-/// Host-side poll cadence for guest-local `get_observed_tunnel_state` while DaemonRpc is dropped.
-/// Used for Connected waits only: a long-lived guest wait reply can be lost after Connected.
 const HOST_OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const HOST_OBSERVE_RPC_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// One guest-local tunnel observe (tarpc → guest UDS). Host polls this while DaemonRpc is quiet.
 trait TunnelObserver {
     async fn observe_tunnel(&self) -> Result<ObservedTunnelState, Error>;
 }
 
-/// Waits for an account-state discriminant on the guest, returning a single reply.
 trait AccountWaiter {
     async fn wait_account(
         &self,
@@ -64,14 +56,11 @@ impl AccountWaiter for NymServiceClient {
 trait DisconnectClient {
     async fn disconnect_tunnel(&mut self) -> Result<bool, NymClientError>;
 
-    /// One-shot serial session recreate used only by connect-timeout cleanup.
     async fn recreate_after_disconnect_failure(&mut self) -> Result<bool, Error> {
         Ok(false)
     }
 }
 
-/// On-demand serial `disconnect_tunnel` for connect-timeout cleanup. Creates a short-lived
-/// gRPC client from the provider (the caller's client is dropped before observe waits).
 struct ProviderDisconnectClient<'a> {
     provider: &'a RpcClientProvider,
     rpc: Option<NymProxyClient>,
@@ -117,7 +106,6 @@ impl ProviderDisconnectClient<'_> {
     }
 }
 
-/// One-shot gate for serial session recreate (testable without a live gRPC client).
 pub(crate) fn may_attempt_session_recreate(already_recreated: bool) -> bool {
     !already_recreated
 }
@@ -157,9 +145,7 @@ pub async fn login_idempotent(
         ObservedAccountState::LoggedOut => {
             nym_client = store_account_with_transport_retry(nym_client, provider).await?;
         }
-        _ => {
-            // for other states just wait, AC will either reach ReadyToConnect or we'll timeout.
-        }
+        _ => {}
     }
     wait_for_account_state(runner, ObservedAccountState::ReadyToConnect)
         .await
@@ -167,7 +153,6 @@ pub async fn login_idempotent(
     Ok(nym_client)
 }
 
-/// One transport-retry after a broken DaemonRpc session (seen after disconnect wait recreate).
 async fn store_account_with_transport_retry(
     mut nym_client: NymProxyClient,
     provider: &RpcClientProvider,
@@ -217,7 +202,6 @@ pub(crate) fn is_nym_client_transport_error(error: &NymClientError) -> bool {
     error_chain_has_daemon_rpc_transport(Some(error))
 }
 
-/// Classify a `disconnect_tunnel` RPC outcome for serial-session recovery.
 #[cfg(test)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum DisconnectRpcClass {
@@ -265,7 +249,6 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
                 );
                 tokio::time::sleep(THROTTLE_RETRY_DELAY).await;
             }
-            // Preserve the tonic source chain. Display alone is "Rpc call returned error".
             Err(err) => {
                 return Err(anyhow::Error::new(err).context("store_account RPC failed"));
             }
@@ -274,10 +257,6 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
     Ok(())
 }
 
-/// Run a unary DaemonRpc once; on transport/broken-pipe, recover the serial session and retry.
-///
-/// `op` takes ownership of the client and must return it alongside the RPC result so a
-/// transport failure can drop the dead session and retry with a recovered client.
 pub async fn call_nym_with_transport_recovery<T, F, Fut>(
     provider: &RpcClientProvider,
     client: NymProxyClient,
@@ -304,6 +283,91 @@ where
     }
 }
 
+pub async fn ensure_daemon_rpc_responsive(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+) -> Result<NymProxyClient, Error> {
+    let (_, client) = call_nym_with_transport_recovery(provider, client, |mut client| async move {
+        let result = client.get_info().await.map(|_| ());
+        (client, result)
+    })
+    .await?;
+    Ok(client)
+}
+
+pub async fn replace_client_after_disconnect_prep(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+) -> Result<NymProxyClient, Error> {
+    drop(client);
+    provider.recover_client_nym().await.map_err(Error::Other)
+}
+
+pub async fn finish_prep_with_allow_lan(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+) -> Result<NymProxyClient, Error> {
+    let allow_lan_result =
+        call_nym_with_transport_recovery(provider, client, |mut client| async move {
+            let result = client.set_allow_lan(true).await;
+            (client, result)
+        })
+        .await;
+
+    let prep_class = classify_allow_lan_prep(&allow_lan_result.as_ref().map(|_| ()));
+    let client = match (prep_class, allow_lan_result) {
+        (AllowLanPrepClass::ProbeOnly, Ok((_, client))) => client,
+        (AllowLanPrepClass::RecoverThenProbe, Err(err)) => {
+            log::warn!("Failed to enable allow_lan for diagnostics: {err:#}");
+            provider.recover_client_nym().await.map_err(Error::Other)?
+        }
+        (AllowLanPrepClass::ProbeOnly, Err(_)) | (AllowLanPrepClass::RecoverThenProbe, Ok(_)) => {
+            unreachable!("classify_allow_lan_prep disagrees with Result discriminant")
+        }
+    };
+
+    ensure_daemon_rpc_responsive(provider, client).await
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AllowLanPrepClass {
+    ProbeOnly,
+    RecoverThenProbe,
+}
+
+fn classify_allow_lan_prep<T, E>(result: &Result<T, E>) -> AllowLanPrepClass {
+    match result {
+        Ok(_) => AllowLanPrepClass::ProbeOnly,
+        Err(_) => AllowLanPrepClass::RecoverThenProbe,
+    }
+}
+
+pub async fn set_enable_two_hop_with_recovery(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+    enable_two_hop: bool,
+) -> Result<NymProxyClient, Error> {
+    let (_, client) =
+        call_nym_with_transport_recovery(provider, client, move |mut client| async move {
+            let result = client.set_enable_two_hop(enable_two_hop).await;
+            (client, result)
+        })
+        .await?;
+    Ok(client)
+}
+
+pub async fn connect_tunnel_with_recovery(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+) -> Result<NymProxyClient, Error> {
+    let (_, client) = call_nym_with_transport_recovery(provider, client, |mut client| async move {
+        let result = client.connect_tunnel().await;
+        (client, result)
+    })
+    .await?;
+    Ok(client)
+}
+
 pub async fn disconnect_and_wait(
     runner: &NymServiceClient,
     nym_client: NymProxyClient,
@@ -325,8 +389,6 @@ pub async fn disconnect_and_wait(
     Ok(nym_client)
 }
 
-/// One recreate+retry on a dead serial DaemonRpc. If the retry is still a transport
-/// error, return a fresh client and let the caller observe Disconnected via the runner.
 async fn disconnect_with_transport_recovery(
     mut nym_client: NymProxyClient,
     provider: &RpcClientProvider,
@@ -334,9 +396,6 @@ async fn disconnect_with_transport_recovery(
     match nym_client.disconnect_tunnel().await {
         Ok(_) => Ok(nym_client),
         Err(err) if is_nym_client_transport_error(&err) => {
-            // Prior Connected wait can desync the serial DaemonRpc (kernel printk on ttyS0)
-            // while the test still passes; the next test then dies on the first disconnect.
-            // Match the error *chain*: Display alone is often just "Rpc call returned error".
             log::warn!(
                 "disconnect_tunnel hit a dead DaemonRpc session; recreating and retrying once: {err:#}"
             );
@@ -358,7 +417,6 @@ async fn disconnect_with_transport_recovery(
     }
 }
 
-/// Best-effort `disconnect_tunnel` with a short deadline. Never waits for Disconnected.
 async fn best_effort_disconnect<C>(client: &mut C)
 where
     C: DisconnectClient,
@@ -407,8 +465,6 @@ pub async fn wait_for_tunnel_state(
         timeout.as_secs()
     );
 
-    // Only Connected waits drop DaemonRpc. Disconnected waits keep the live session: dropping
-    // and recreating here races the next store_account (CI: broken pipe after disconnect wait).
     let drop_daemon_rpc = matches!(expected, ExpectedTunnelState::Connected);
     if drop_daemon_rpc {
         log::debug!("quiescing serial DaemonRpc before Connected observe wait");
@@ -423,7 +479,6 @@ pub async fn wait_for_tunnel_state(
             disconnect_on_timeout,
         )
         .await;
-        // Abort any stale forward before opening a post-Connected session.
         let client = provider.recover_client_nym().await.map_err(Error::Other);
         return match merge_wait_and_client(observed, client) {
             Ok(pair) => Ok(pair),
@@ -453,7 +508,6 @@ pub(crate) async fn settle_daemon_rpc_quiesce() {
     tokio::time::sleep(DAEMON_QUIESCE_SETTLE).await;
 }
 
-/// Prefer the observe outcome; still return a recreated client on wait failure when recreate Ok.
 pub(crate) fn merge_wait_and_client<S, C>(
     observed: Result<S, Error>,
     client: Result<C, Error>,
@@ -466,7 +520,6 @@ pub(crate) fn merge_wait_and_client<S, C>(
     }
 }
 
-/// Connect waits get a longer timeout and disconnect-on-timeout; other waits do not.
 pub(crate) fn tunnel_wait_params(expected: &ExpectedTunnelState) -> (Duration, bool) {
     match expected {
         ExpectedTunnelState::Connected => (WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, true),
@@ -474,7 +527,6 @@ pub(crate) fn tunnel_wait_params(expected: &ExpectedTunnelState) -> (Duration, b
     }
 }
 
-/// Payload-insensitive discriminant selector for a given expected tunnel state.
 pub(crate) fn tunnel_target(expected: &ExpectedTunnelState) -> ObservedTunnelStateKind {
     match expected {
         ExpectedTunnelState::Connected => ObservedTunnelStateKind::Connected,
@@ -482,7 +534,6 @@ pub(crate) fn tunnel_target(expected: &ExpectedTunnelState) -> ObservedTunnelSta
     }
 }
 
-/// Poll guest-local tunnel state over tarpc. Caller must drop DaemonRpc for the wait duration.
 pub async fn wait_for_tunnel_state_fn(
     runner: &NymServiceClient,
     provider: &RpcClientProvider,
@@ -577,8 +628,6 @@ where
     result
 }
 
-/// Reserve a cleanup window inside the total deadline for connect waits, so a best-effort
-/// disconnect still fits before the outer deadline fires.
 fn tunnel_wait_budget(timeout: Duration, disconnect_on_timeout: bool) -> Duration {
     let cleanup_budget = if disconnect_on_timeout {
         BEST_EFFORT_DISCONNECT_TIMEOUT.min(timeout)
@@ -634,7 +683,6 @@ pub async fn wait_for_account_state(
     run_account_wait(runner, vec![account_target(&expected)], timeout).await
 }
 
-/// Payload-insensitive discriminant selector for a given expected account state.
 pub(crate) fn account_target(expected: &ObservedAccountState) -> ObservedAccountStateKind {
     match expected {
         ObservedAccountState::Offline => ObservedAccountStateKind::Offline,
@@ -647,7 +695,6 @@ pub(crate) fn account_target(expected: &ObservedAccountState) -> ObservedAccount
     }
 }
 
-/// Wait for an account discriminant via a single guest tarpc call (local UDS).
 async fn run_account_wait<W>(
     waiter: &W,
     targets: Vec<ObservedAccountStateKind>,
@@ -681,8 +728,6 @@ where
     }
 }
 
-/// useful after tunnel connect/reconnect where the data plane may not be ready
-/// immediately after the tunnel state transitions to Connected.
 pub async fn resolve_hostname_with_retry(
     rpc: &NymServiceClient,
     hostname: &str,
@@ -722,12 +767,12 @@ pub async fn resolve_hostname_with_retry(
 #[cfg(test)]
 mod tests {
     use super::{
-        AccountWaiter, DisconnectClient, DisconnectRpcClass, ExpectedTunnelState, TunnelObserver,
-        account_target, classify_disconnect_nym_error, classify_disconnect_rpc,
-        enforce_tunnel_wait_deadline, is_daemon_rpc_transport_error,
-        is_daemon_rpc_transport_message, is_nym_client_transport_error, merge_wait_and_client,
-        run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce, tunnel_target,
-        tunnel_wait_budget, tunnel_wait_params,
+        AccountWaiter, AllowLanPrepClass, DisconnectClient, DisconnectRpcClass,
+        ExpectedTunnelState, TunnelObserver, account_target, classify_allow_lan_prep,
+        classify_disconnect_nym_error, classify_disconnect_rpc, enforce_tunnel_wait_deadline,
+        is_daemon_rpc_transport_error, is_daemon_rpc_transport_message,
+        is_nym_client_transport_error, merge_wait_and_client, run_account_wait, run_tunnel_wait,
+        settle_daemon_rpc_quiesce, tunnel_target, tunnel_wait_budget, tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
@@ -1003,8 +1048,27 @@ mod tests {
     }
 
     #[test]
+    fn allow_lan_prep_classifies_ok_vs_recover_then_probe() {
+        assert_eq!(
+            classify_allow_lan_prep(&Ok::<(), &str>(())),
+            AllowLanPrepClass::ProbeOnly
+        );
+        assert_eq!(
+            classify_allow_lan_prep(&Err::<(), _>("Rpc call returned error")),
+            AllowLanPrepClass::RecoverThenProbe
+        );
+        let transport = NymClientError::Rpc(tonic::Status::unknown(
+            "transport error: connection error: broken pipe",
+        ));
+        assert!(is_nym_client_transport_error(&transport));
+        assert_eq!(
+            classify_allow_lan_prep(&Err::<(), _>(transport)),
+            AllowLanPrepClass::RecoverThenProbe
+        );
+    }
+
+    #[test]
     fn transport_classifier_walks_rpc_status_source_chain() {
-        // CI 30301269297: Display is only "Rpc call returned error"; transport is on Status.
         let err = NymClientError::Rpc(tonic::Status::unknown(
             "transport error: stream closed because of a broken pipe",
         ));
@@ -1015,6 +1079,11 @@ mod tests {
             classify_disconnect_nym_error(&Err(err)),
             DisconnectRpcClass::TransportRecoverable
         );
+
+        let allow_lan_shaped = NymClientError::Rpc(tonic::Status::unknown(
+            "transport error: connection error: broken pipe",
+        ));
+        assert!(is_nym_client_transport_error(&allow_lan_shaped));
 
         let chained = anyhow::Error::new(NymClientError::Rpc(tonic::Status::unknown(
             "transport error: stream closed because of a broken pipe",
@@ -1029,7 +1098,6 @@ mod tests {
             "Rpc call returned error"
         )));
 
-        // store_account_idempotent must wrap with .context, not bail!("{err}"), or retry misses.
         let store_shaped = anyhow::Error::new(NymClientError::Rpc(tonic::Status::unknown(
             "transport error: stream closed because of a broken pipe",
         )))
