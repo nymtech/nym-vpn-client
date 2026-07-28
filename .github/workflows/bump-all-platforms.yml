@@ -130,7 +130,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
 
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
