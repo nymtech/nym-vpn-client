@@ -231,7 +231,7 @@ jobs:
           toml set Cargo.toml workspace.package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
           # update Cargo.lock with new workspace version (no other changes)
-          cargo fetch --offline
+          cargo fetch
 
       # --- tauri app (Linux + Windows) ---
       - name: Update nym-vpn-app/src-tauri/Cargo.toml
@@ -239,7 +239,7 @@ jobs:
         run: |
           toml set Cargo.toml package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo fetch --offline
+          cargo fetch
 
       - name: Update nym-vpn-app/vpnd_compat.toml
         working-directory: nym-vpn-app
