@@ -1006,6 +1006,16 @@ impl SharedState {
     }
 
     #[cfg(not(target_os = "ios"))]
+    fn set_socks5_proxy_excluded_countries(&self) {
+        self.socks5_proxy_manager.set_excluded_countries(
+            self.tunnel_settings
+                .geo_exclusion_settings
+                .excluded_countries
+                .clone(),
+        );
+    }
+
+    #[cfg(not(target_os = "ios"))]
     fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
         let listen_port = self.tunnel_settings.geo_exclusion_settings.listen_port;
 

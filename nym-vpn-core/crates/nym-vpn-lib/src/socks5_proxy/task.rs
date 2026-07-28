@@ -29,6 +29,13 @@ impl RunningTask {
         }
     }
 
+    pub fn set_excluded_countries(&self, excluded_countries: Vec<String>) {
+        let msg = DaemonMessage::SetExcludedCountries(excluded_countries);
+        if self.msg_tx.send(msg).is_err() {
+            tracing::warn!("could not send SetExcludedCountries to proxy task: channel closed");
+        }
+    }
+
     pub fn shutdown(&self) {
         self.shutdown_token.cancel();
     }
@@ -93,6 +100,8 @@ async fn supervisor(
     }
 
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
+    let (excluded_countries_tx, excluded_countries_rx) =
+        watch::channel(config.excluded_countries.clone());
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
     let file_updater_handle = match FileUpdater::new() {
@@ -112,6 +121,7 @@ async fn supervisor(
         config,
         default_interface_rx,
         tunnel_addrs_rx,
+        excluded_countries_rx,
         shutdown_token.clone(),
         file_updater_handle,
         #[cfg(target_os = "android")]
@@ -140,6 +150,10 @@ async fn supervisor(
                     Some(DaemonMessage::SetTunnelAddresses(addrs)) => {
                         tracing::debug!("SOCKS5 proxy task: updating tunnel addresses");
                         let _ = tunnel_addrs_tx.send(addrs);
+                    }
+                    Some(DaemonMessage::SetExcludedCountries(countries)) => {
+                        tracing::debug!("SOCKS5 proxy task: updating excluded countries");
+                        let _ = excluded_countries_tx.send(countries);
                     }
                     Some(DaemonMessage::Terminate) | None => {
                         tracing::debug!("SOCKS5 proxy task: shutting down");

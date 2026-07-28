@@ -164,6 +164,8 @@ impl TunnelStateHandler for OfflineState {
                             shared_state
                                 .start_or_stop_socks5_proxy()
                                 .await;
+                        } else if diff.geo_exclusion_excluded_countries_changed() {
+                            shared_state.set_socks5_proxy_excluded_countries();
                         }
 
                         if diff.enable_ad_blocking_changed() {
