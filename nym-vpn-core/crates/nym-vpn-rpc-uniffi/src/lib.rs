@@ -531,7 +531,7 @@ pub struct FavoritesController {
 #[uniffi::export(async_runtime = "tokio")]
 impl FavoritesController {
     #[uniffi::constructor]
-    pub async fn new(data_dir: PathBuf) -> Self {
+    pub async fn open(data_dir: PathBuf) -> Self {
         Self {
             manager: Arc::new(RwLock::new(FavoritesManager::new(data_dir).await)),
         }
