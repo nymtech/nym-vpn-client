@@ -185,17 +185,11 @@ jobs:
           fi
 
           if [ "$ALL" = "true" ]; then
-            ANDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true
-            # The F-Droid APK is built + attached by the Android job regardless of this
-            # flag; `fdroid` only DISPATCHES the F-Droid repo (a store) = ship-only.
-            if [ "$CHANNEL" = "ship" ]; then FDROID=true; else FDROID=false; fi
-            echo "::notice:: $CHANNEL → all platforms (F-Droid submission: $FDROID)"
+            ANDROID=true; FDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true
+            echo "::notice:: $CHANNEL → all platforms"
           else
-            ANDROID="${IN_ANDROID:-false}"; LINUX="${IN_LINUX:-false}"
+            ANDROID="${IN_ANDROID:-false}"; FDROID="${IN_FDROID:-false}"; LINUX="${IN_LINUX:-false}"
             WINDOWS="${IN_WINDOWS:-false}"; IOS="${IN_IOS:-false}"; MACOS="${IN_MACOS:-false}"
-            # F-Droid repo dispatch is ship-only; on nightly/beta the box is a no-op
-            # (the F-Droid APK still builds + attaches via the Android job).
-            if [ "$CHANNEL" = "ship" ] && [ "$IN_FDROID" = "true" ]; then FDROID=true; else FDROID=false; fi
             echo "::notice:: $CHANNEL → selected platforms"
           fi
 
