@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 - Use "Auto" for entry and exit selectors independently (https://github.com/nymtech/nym-vpn-client/pull/5962)
+- Shift bridge logic back to `nym-bridges` crate and add dependency without changing underlying interface or model. (https://github.com/nymtech/nym-vpn-client/pull/5928)
 
 ### Fixed
 
