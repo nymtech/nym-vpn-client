@@ -1,9 +1,27 @@
+import Foundation
 import SwiftUI
 import Constants
 import ConnectionTypes
 
 @MainActor public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
+
+    /// Mirrors `MockMode.isEnabled` in the ConnectionManager target. Duplicated
+    /// rather than shared because AppSettings sits below ConnectionManager in the
+    /// dependency graph - ConnectionManager reaches AppSettings through
+    /// CredentialsManager, so importing it here would be a cycle. Keep the two in
+    /// step: compile-time flag first, launch argument only in DEBUG builds, and
+    /// release builds always false regardless of arguments.
+    static var isMockMode: Bool {
+        #if MOCK_MODE
+        return true
+        #elseif DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+            || ProcessInfo.processInfo.arguments.contains("MOCK_MODE")
+        #else
+        return false
+        #endif
+    }
 
 #if os(iOS)
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
@@ -196,6 +214,27 @@ import ConnectionTypes
         isAdBlockerEnabledPublisher = false
         isPassphraseStoredPublisher = false
         serverFamilyRemindersEnabledPublisher = true
+
+        // Seed a signed-in session for the UI test suite. Every Maestro flow
+        // starts from open_app.yaml, which expects the home screen, and
+        // logout_to_welcome.yaml reaches the welcome sheet by logging *out* of
+        // this session. All three flags are required by AppFeature:
+        //
+        //   isCredentialImported == false -> .welcome
+        //   welcomeScreenDidDisplay == false -> .technicalOptIns
+        //   onboardingDidDisplay == false -> the onboarding overlay
+        //
+        // Seeded here rather than in CredentialsManager because AppSettings.shared
+        // is built before the app's view models, and initialDrawerContent() reads
+        // these synchronously. CredentialsManager.setup() runs inside a Task
+        // behind an await, which is already too late - the welcome sheet is on
+        // screen by then. Maestro clears app state before each flow, so this
+        // re-seeds on every launch.
+        if Self.isMockMode {
+            isCredentialImported = true
+            welcomeScreenDidDisplay = true
+            onboardingDidDisplay = true
+        }
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
