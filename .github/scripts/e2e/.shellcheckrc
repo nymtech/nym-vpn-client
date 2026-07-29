@@ -1,0 +1,2 @@
+# Keep CI + local lint aligned with resolve job: shellcheck -S warning
+severity=warning

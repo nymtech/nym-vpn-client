@@ -76,9 +76,15 @@ jobs:
         run: |
           chmod +x "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
             "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
-          if ! command -v jq >/dev/null; then
-            sudo apt-get update && sudo apt-get install -y jq
+          pkgs=()
+          command -v jq >/dev/null || pkgs+=(jq)
+          command -v shellcheck >/dev/null || pkgs+=(shellcheck)
+          if [ "${#pkgs[@]}" -gt 0 ]; then
+            sudo apt-get update && sudo apt-get install -y "${pkgs[@]}"
           fi
+          shellcheck -S warning \
+            "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
           "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
 
       - name: Pick release tag / zigbuild mode
@@ -105,13 +111,10 @@ jobs:
           fi
 
           if [ -n "$TAG" ]; then
-            case "$TAG" in
-              nym-vpn-v*) ;;
-              *)
-                echo "::error::release_tag must start with nym-vpn-v (got: ${TAG})"
-                exit 1
-                ;;
-            esac
+            if ! "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" validate-tag "$TAG"; then
+              echo "::error::release_tag must match nym-vpn-vMAJOR.MINOR.PATCH[-beta.N|-nightly.DATE] (got: ${TAG})"
+              exit 1
+            fi
             {
               echo "release_tag=${TAG}"
               echo "binary_source=release"
@@ -510,12 +513,13 @@ jobs:
   notify-zulip:
     name: Zulip E2E status
     needs: [resolve, build, e2e-test]
-    if: always() && needs.resolve.result == 'success'
+    if: always()
     runs-on: arc-linux-latest
     steps:
       - name: Compose message
         id: msg
         env:
+          RESOLVE_RESULT: ${{ needs.resolve.result }}
           BINARY_SOURCE: ${{ needs.resolve.outputs.binary_source }}
           RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
           CHECKOUT_REF: ${{ needs.resolve.outputs.checkout_ref }}
@@ -525,7 +529,10 @@ jobs:
           SCHEDULE_CRON: ${{ github.event.schedule }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ "$BUILD_RESULT" != "success" ]; then
+          if [ "$RESOLVE_RESULT" != "success" ]; then
+            STATUS="resolve ${RESOLVE_RESULT}"
+            SOURCE_LINE="(resolve did not complete)"
+          elif [ "$BUILD_RESULT" != "success" ]; then
             STATUS="build ${BUILD_RESULT}"
           elif [ "$E2E_RESULT" = "success" ]; then
             STATUS="passed"
@@ -535,10 +542,12 @@ jobs:
             STATUS="e2e ${E2E_RESULT}"
           fi
 
-          if [ "$BINARY_SOURCE" = "release" ] && [ -n "$RELEASE_TAG" ]; then
-            SOURCE_LINE="release tag \`${RELEASE_TAG}\` (published core tarball)"
-          else
-            SOURCE_LINE="zigbuild from \`${CHECKOUT_REF}\`"
+          if [ "$RESOLVE_RESULT" = "success" ]; then
+            if [ "$BINARY_SOURCE" = "release" ] && [ -n "$RELEASE_TAG" ]; then
+              SOURCE_LINE="release tag \`${RELEASE_TAG}\` (published core tarball)"
+            else
+              SOURCE_LINE="zigbuild from \`${CHECKOUT_REF}\`"
+            fi
           fi
 
           {

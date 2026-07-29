@@ -1,25 +1,37 @@
 #!/usr/bin/env bash
 # E2E helpers for published nym-vpn-v* linux_x86_64 core archives.
 #   release-core.sh archive-name <tag>
+#   release-core.sh validate-tag <tag>
 #   release-core.sh latest-beta
 #   release-core.sh pick-beta   # stdin: gh release list JSON
 #   release-core.sh fetch <tag> <dest_dir>
 set -euo pipefail
 
+# Ship: nym-vpn-vMAJOR.MINOR.PATCH
+# Pre:  ...-beta.N | ...-nightly.YYYYMMDD (or similar alnum suffix)
+RELEASE_TAG_RE='^nym-vpn-v[0-9]+[.][0-9]+[.][0-9]+(-(beta|nightly)[.][0-9A-Za-z._-]+)?$'
 BETA_TAG_RE='^nym-vpn-v[0-9]+[.][0-9]+[.][0-9]+-beta[.][0-9]+$'
 
 usage() {
-  echo "usage: $0 archive-name <tag> | latest-beta | pick-beta | fetch <tag> <dest_dir>" >&2
+  echo "usage: $0 archive-name <tag> | validate-tag <tag> | latest-beta | pick-beta | fetch <tag> <dest_dir>" >&2
   exit 2
+}
+
+validate_tag() {
+  local tag="${1:-}"
+  [[ -n "$tag" ]] || {
+    echo "error: empty tag" >&2
+    exit 1
+  }
+  if [[ ! "$tag" =~ $RELEASE_TAG_RE ]]; then
+    echo "error: tag must match nym-vpn-vMAJOR.MINOR.PATCH[-beta.N|-nightly.DATE] (got: ${tag})" >&2
+    exit 1
+  fi
 }
 
 archive_name() {
   local tag="${1:-}"
-  [[ -n "$tag" ]] || usage
-  [[ "$tag" == nym-vpn-v* ]] || {
-    echo "error: tag must start with nym-vpn-v (got: ${tag})" >&2
-    exit 1
-  }
+  validate_tag "$tag"
   local version="${tag#nym-vpn-v}"
   [[ -n "$version" && "$version" != "$tag" ]] || {
     echo "error: could not strip nym-vpn-v prefix from tag: ${tag}" >&2
@@ -35,7 +47,10 @@ pick_beta() {
   jq -r --arg re "$BETA_TAG_RE" '
     [
       .[]
-      | select(.tagName | test($re))
+      | select(
+          (.tagName | type == "string")
+          and (.tagName | test($re))
+        )
     ]
     | sort_by(.publishedAt)
     | reverse
@@ -75,14 +90,25 @@ fetch() {
   local tag="${1:-}" dest="${2:-}"
   [[ -n "$tag" && -n "$dest" ]] || usage
 
-  local version archive archive_dir work src bin
+  local version archive archive_dir work src bin checksum
   load_archive_vars "$tag"
+  checksum="${archive}.sha256sum"
 
   mkdir -p "$dest"
   work="$(mktemp -d)"
 
-  echo "Downloading ${archive} from release ${tag}"
-  gh release download "$tag" --pattern "$archive" --dir "$work" --clobber
+  echo "Downloading ${archive} and ${checksum} from release ${tag}"
+  gh release download "$tag" --pattern "$archive" --pattern "$checksum" --dir "$work" --clobber
+  [[ -f "${work}/${checksum}" ]] || {
+    rm -rf "$work"
+    echo "error: missing ${checksum} for ${tag}" >&2
+    exit 1
+  }
+  (
+    cd "$work"
+    sha256sum -c "$checksum"
+  )
+
   tar -xzf "${work}/${archive}" -C "$work"
 
   src="${work}/${archive_dir}"
@@ -103,6 +129,7 @@ cmd="${1:-}"
 shift || true
 case "$cmd" in
   archive-name) archive_name "${1:-}" ;;
+  validate-tag) validate_tag "${1:-}" ;;
   pick-beta) pick_beta ;;
   latest-beta) latest_beta ;;
   fetch) fetch "${1:-}" "${2:-}" ;;
