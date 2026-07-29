@@ -18,6 +18,7 @@ export function NoiseLine() {
           }
           autoplay
           loop
+          aria-hidden="true"
         />
       </div>
     </div>

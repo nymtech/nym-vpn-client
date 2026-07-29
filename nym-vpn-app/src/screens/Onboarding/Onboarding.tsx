@@ -13,9 +13,6 @@ import { Around, Network, Welcome } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 import { NetworkVariant, VariantToggle } from './VariantToggle';
 
-const NETWORK_SLIDE = 1;
-const SLIDE_COUNT = 3;
-
 const ArrowButton = ({
   icon,
   label,
@@ -52,7 +49,13 @@ function Onboarding() {
 
   const [variant, setVariant] = useState<NetworkVariant>('dvpn');
 
-  const onNetworkSlide = selectedIndex === NETWORK_SLIDE;
+  const slides = [
+    { id: 'welcome', content: <Welcome /> },
+    { id: 'network', content: <Network variant={variant} /> },
+    { id: 'around', content: <Around /> },
+  ];
+
+  const onNetworkSlide = slides[selectedIndex]?.id === 'network';
 
   const tagline = onNetworkSlide ? t(`network.${variant}.tagline`) : '';
 
@@ -79,15 +82,14 @@ function Onboarding() {
           ref={emblaRef}
         >
           <div className="flex touch-pinch-zoom">
-            <div className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center">
-              <Welcome />
-            </div>
-            <div className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center">
-              <Network variant={variant} />
-            </div>
-            <div className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center">
-              <Around />
-            </div>
+            {slides.map((slide) => (
+              <div
+                key={slide.id}
+                className="flex min-w-0 flex-none basis-full translate-3d transform flex-col justify-center"
+              >
+                {slide.content}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -122,7 +124,7 @@ function Onboarding() {
             icon="arrow_right"
             label={t('controls.next')}
             onClick={() => emblaApi?.scrollNext()}
-            hidden={selectedIndex === SLIDE_COUNT - 1}
+            hidden={selectedIndex === slides.length - 1}
           />
         </div>
 
