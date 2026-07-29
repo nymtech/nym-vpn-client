@@ -9,6 +9,7 @@ IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=false
 IS_WIN_ARM64=false
+IS_LINUX_ARM64=false
 IS_WIN_CROSS_BUILD=false
 
 function parseArgs {
@@ -29,6 +30,7 @@ function parseArgs {
             shift ;;
         "--arm64" )
             IS_WIN_ARM64=true;
+            IS_LINUX_ARM64=true;
             shift ;;
         # if we receive "--" consider everything after to be inner arguments
         -- ) shift; break ;;
@@ -340,7 +342,14 @@ function build_wireguard_go {
     local platform="$(uname -s)";
     case  "$platform" in
         Darwin*) build_macos;;
-        Linux*) build_unix ${1:-$(unix_target_triple)};;
+        Linux*)
+           if [ $IS_LINUX_ARM64 ]; then
+               target='aarch64-unknown-linux-gnu'
+           else
+               target="$(unix_target_triple)"
+           fi
+           build_unix $target
+        ;;
         MINGW*|MSYS_NT*) build_windows;;
     esac
 }

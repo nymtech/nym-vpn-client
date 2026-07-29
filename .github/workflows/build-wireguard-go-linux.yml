@@ -18,7 +18,7 @@ jobs:
         include:
           - os: "arc-ubuntu-22.04"
             arch: "x86_64"
-          - os: "ubuntu-22.04-arm"
+          - os: "arc-ubuntu-22.04"
             arch: "aarch64"
 
     runs-on: ${{ matrix.os }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Build wireguard
         if: steps.cache.outputs.cache-hit != 'true'
-        run: ./wireguard/build-wireguard-go.sh
+        run: ./wireguard/build-wireguard-go.sh ${{ matrix.arch == 'aarch64' && '--arm64' || '' }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
