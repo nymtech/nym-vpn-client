@@ -112,7 +112,7 @@
   },
   "mixnet-tuning": {
     "title": "Mixnet tuning",
-    "desc": "Customize traffic patterns of Anonymous mode",
+    "desc": "Customize traffic patterns of Mixnet mode",
     "top-description": "Customize your <strong>mixnet</strong> traffic patterns.",
     "learn-more": "Learn more about mixnet parameters",
     "save-custom-settings": "Save custom settings",
