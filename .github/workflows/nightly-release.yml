@@ -25,3 +25,4 @@ jobs:
       ios: true
       macos: true
       publish-metadata: false
+    secrets: inherit
