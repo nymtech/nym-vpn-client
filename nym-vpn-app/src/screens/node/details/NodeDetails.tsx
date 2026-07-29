@@ -6,7 +6,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
-import { UiGateway, isSelectedNodeType } from '../../../types/node';
+import { isSelectedNodeType } from '../../../types/node';
+import { Gateway } from '../../../types/tauri';
 import { favoriteKey, nodeToFavorite } from '../../../types/favorites';
 import { useNodeListState } from '../../../store/nodeListState';
 import { useFavorites } from '../../../store/favoritesState';
@@ -38,7 +39,7 @@ import { ScoreIndicator } from '../ScoreIndicator';
 import { LewesIcon } from '../../../assets/index';
 
 type RouteState = {
-  gateway: UiGateway;
+  gateway: Gateway;
   hop: 'entry' | 'exit';
 };
 
@@ -87,7 +88,10 @@ function NodeDetails() {
   const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
 
   const favorites = useFavorites(hop);
-  const favorite = useMemo(() => nodeToFavorite(gateway), [gateway]);
+  const favorite = useMemo(
+    () => nodeToFavorite({ nodeType: 'gateway', id: gateway.id }),
+    [gateway.id],
+  );
   const isFavorite = useMemo(() => {
     const key = favoriteKey(favorite);
     return favorites.some((f) => favoriteKey(f) === key);
