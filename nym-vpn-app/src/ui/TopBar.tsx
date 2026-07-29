@@ -322,7 +322,6 @@ export default function TopBar() {
         },
       },
       '/account/select-a-plan': {
-        title: <TopNymLogo uiTheme={uiTheme} />,
         leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);

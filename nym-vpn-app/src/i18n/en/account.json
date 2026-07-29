@@ -1,11 +1,9 @@
 {
   "select-a-plan": {
-    "title": "Choose your subscription plan",
-    "features": {
-      "all-included": "All features included",
-      "no-ads": "No ads",
-      "cancel-anytime": "Cancel anytime"
-    },
+    "title": "What plan works for you?",
+    "favorite": "Nym community favorite",
+    "yearly": "1-year plan & <green>save 65%</green>\n+ 7-day free trial *\nStarting at <green>$2.91 / month</green>",
+    "monthly": "Or try for <bold>1 month</bold>, no commitment",
     "button": "Choose plan"
   },
   "account-status": {
