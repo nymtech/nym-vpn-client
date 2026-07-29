@@ -3,7 +3,7 @@ name: nightly-release
 on:
   schedule:
     - cron: "0 4 * * *"
-  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
