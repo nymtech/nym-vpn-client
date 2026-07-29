@@ -16,7 +16,7 @@ function Network({ variant }: { variant: NetworkVariant }) {
       <h1 className="text-text-primary text-center text-2xl uppercase">
         {t(`network.${variant}.title`)}
       </h1>
-      <Ring className="h-full max-h-44 w-auto max-w-full shrink-0" />
+      <Ring className="text-brand-primary h-full max-h-44 w-auto max-w-full shrink-0" />
       <p className="text-text-secondary text-center text-sm whitespace-pre-line">
         <Trans
           i18nKey={`network.${variant}.description`}
