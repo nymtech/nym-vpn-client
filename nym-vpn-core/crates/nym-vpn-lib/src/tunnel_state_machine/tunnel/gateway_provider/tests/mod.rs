@@ -349,7 +349,7 @@ async fn mainnet_syntethic_node_families() {
         names.sort();
         let mut groups: Vec<Vec<String>> = Vec::new();
         for name in names {
-            let joins = groups.last().map_or(false, |g| {
+            let joins = groups.last().is_some_and(|g| {
                 !name.is_empty() && !g[0].is_empty() && lcp_len(&g[0], &name) >= min_prefix
             });
             if joins {
