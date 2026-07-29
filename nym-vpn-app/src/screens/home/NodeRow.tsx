@@ -445,9 +445,7 @@ export function NodeRow({ type }: NodeRowProps) {
                     e.preventDefault();
                     e.stopPropagation();
                     navigate(routes.nodeDetails, {
-                      state: {
-                        gateway: gateway,
-                      },
+                      state: { gateway, hop: type, resetScroll: true },
                     });
                   }}
                 />
