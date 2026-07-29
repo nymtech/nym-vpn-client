@@ -39,7 +39,7 @@ function parseArgs {
       esac
     done
 
-    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD windows-cross:$IS_WIN_CROSS_BUILD win_arm64:$IS_WIN_ARM64"
+    echo "android:$IS_ANDROID_BUILD ios:$IS_IOS_BUILD docker:$IS_DOCKER_BUILD windows-cross:$IS_WIN_CROSS_BUILD win_arm64:$IS_WIN_ARM64 linux_arm64:$IS_LINUX_ARM64"
 }
 
 function win_gather_export_symbols {
@@ -343,7 +343,7 @@ function build_wireguard_go {
     case  "$platform" in
         Darwin*) build_macos;;
         Linux*)
-           if [ $IS_LINUX_ARM64 ]; then
+           if [ $IS_LINUX_ARM64 == true ]; then
                target='aarch64-unknown-linux-gnu'
            else
                target="$(unix_target_triple)"
