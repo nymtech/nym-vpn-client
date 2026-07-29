@@ -7,8 +7,11 @@ use crate::{
     util, util::OnDrop,
 };
 use futures::{FutureExt, select, select_biased};
+use nym_vpn_lib_types::{AccountControllerState, TunnelState, TunnelType};
+use nym_vpn_proto::rpc_client::RpcClient as NymDaemonClient;
 use std::{
     collections::{BTreeMap, HashMap},
+    future::Future,
     net::{IpAddr, SocketAddr},
     path::PathBuf,
     process::Stdio,
@@ -17,7 +20,13 @@ use std::{
 };
 use tarpc::context;
 use test_rpc::{
-    AppTrace, Service, SpawnOpts, UNPRIVILEGED_USER, meta::OsVersion, net::SockHandleId,
+    AppTrace, Service, SpawnOpts, UNPRIVILEGED_USER,
+    meta::OsVersion,
+    net::SockHandleId,
+    nym_daemon::{
+        ObservedAccountState, ObservedAccountStateKind, ObservedTunnelState, ObservedTunnelType,
+        WaitOutcome,
+    },
     package::Package,
 };
 use tokio::{
@@ -25,8 +34,14 @@ use tokio::{
     process::{ChildStdin, ChildStdout, Command},
     sync::{Mutex, broadcast::error::TryRecvError, oneshot},
     task,
-    time::sleep,
+    time::{Instant, sleep},
 };
+
+/// Cadence of the guest-local daemon poll inside a blocking account wait.
+const OBSERVE_POLL_INTERVAL: Duration = Duration::from_millis(500);
+/// Upper bound on a single local UDS state read so a hung daemon call cannot stall past
+/// the wait deadline.
+const OBSERVE_READ_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[cfg(target_os = "linux")]
 const NYM_SYSTEMD_SERVICE_NAME: &str = "nymvpnd.service";
@@ -129,6 +144,65 @@ impl Service for NymTestServer {
         _: context::Context,
     ) -> test_rpc::nym_daemon::ServiceStatus {
         get_nymvpn_pipe_status()
+    }
+
+    async fn get_observed_tunnel_state(
+        self,
+        _: context::Context,
+    ) -> Result<ObservedTunnelState, test_rpc::Error> {
+        let mut client = NymDaemonClient::new()
+            .await
+            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
+        let state = client
+            .get_tunnel_state()
+            .await
+            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
+        Ok(observed_tunnel_state(state))
+    }
+
+    async fn get_observed_account_state(
+        self,
+        _: context::Context,
+    ) -> Result<ObservedAccountState, test_rpc::Error> {
+        let mut client = NymDaemonClient::new()
+            .await
+            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
+        let state = client
+            .get_account_state()
+            .await
+            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
+        Ok(observed_account_state(state))
+    }
+
+    async fn wait_for_observed_account_state(
+        self,
+        _: context::Context,
+        targets: Vec<ObservedAccountStateKind>,
+        timeout_ms: u64,
+    ) -> Result<WaitOutcome<ObservedAccountState>, test_rpc::Error> {
+        if targets.is_empty() {
+            return Err(test_rpc::Error::Other(
+                "wait_for_observed_account_state requires at least one target".into(),
+            ));
+        }
+        let client = NymDaemonClient::new()
+            .await
+            .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))?;
+        wait_for_observed(
+            timeout_ms,
+            || {
+                let mut client = client.clone();
+                async move {
+                    client
+                        .get_account_state()
+                        .await
+                        .map(observed_account_state)
+                        .map_err(|error| test_rpc::Error::DaemonRpc(error.to_string()))
+                }
+            },
+            |state| targets.iter().any(|target| target.matches(state)),
+        )
+        .await
     }
 
     /// Get the installed app version
@@ -702,5 +776,177 @@ impl Service for NymTestServer {
             }
             Ok(())
         }
+    }
+}
+
+async fn wait_for_observed<S, Fut>(
+    timeout_ms: u64,
+    mut read: impl FnMut() -> Fut,
+    accept: impl Fn(&S) -> bool,
+) -> Result<WaitOutcome<S>, test_rpc::Error>
+where
+    Fut: Future<Output = Result<S, test_rpc::Error>>,
+    S: std::fmt::Debug,
+{
+    let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+    let mut last_observed = None;
+
+    loop {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            log::info!(
+                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
+            );
+            return Ok(WaitOutcome::TimedOut { last_observed });
+        }
+
+        let read_budget = OBSERVE_READ_TIMEOUT.min(remaining);
+        match tokio::time::timeout(read_budget, read()).await {
+            Ok(Ok(state)) => {
+                if accept(&state) {
+                    log::info!("observe-wait returning Reached: {state:?}");
+                    return Ok(WaitOutcome::Reached(state));
+                }
+                last_observed = Some(state);
+            }
+            Ok(Err(error)) => log::warn!("observed-state read failed mid-wait: {error}"),
+            Err(_) => log::warn!(
+                "observed-state read timed out after {}ms; retrying until wait deadline",
+                read_budget.as_millis()
+            ),
+        }
+
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            log::info!(
+                "observe-wait returning TimedOut after {timeout_ms}ms last_observed={last_observed:?}"
+            );
+            return Ok(WaitOutcome::TimedOut { last_observed });
+        }
+        sleep(OBSERVE_POLL_INTERVAL.min(remaining)).await;
+    }
+}
+
+pub(crate) fn observed_tunnel_type(tunnel_type: TunnelType) -> ObservedTunnelType {
+    match tunnel_type {
+        TunnelType::Mixnet => ObservedTunnelType::Mixnet,
+        TunnelType::Wireguard => ObservedTunnelType::Wireguard,
+    }
+}
+
+pub(crate) fn observed_tunnel_state(state: TunnelState) -> ObservedTunnelState {
+    match state {
+        TunnelState::Connected { connection_data } => ObservedTunnelState::Connected {
+            tunnel_type: observed_tunnel_type(connection_data.tunnel.tunnel_type()),
+        },
+        TunnelState::Disconnected => ObservedTunnelState::Disconnected,
+        TunnelState::Connecting { .. } => ObservedTunnelState::Connecting,
+        TunnelState::Disconnecting { .. } => ObservedTunnelState::Disconnecting,
+        TunnelState::Offline { .. } => ObservedTunnelState::Offline,
+        TunnelState::Error(reason) => ObservedTunnelState::Error(reason.to_string()),
+    }
+}
+
+pub(crate) fn observed_account_state(state: AccountControllerState) -> ObservedAccountState {
+    match state {
+        AccountControllerState::Offline => ObservedAccountState::Offline,
+        AccountControllerState::Syncing => ObservedAccountState::Syncing,
+        AccountControllerState::LoggedOut => ObservedAccountState::LoggedOut,
+        AccountControllerState::ReadyToConnect => ObservedAccountState::ReadyToConnect,
+        AccountControllerState::Decentralised => ObservedAccountState::Decentralised,
+        AccountControllerState::PendingSubscription => ObservedAccountState::PendingSubscription,
+        AccountControllerState::Error(reason) => ObservedAccountState::Error(reason.to_string()),
+    }
+}
+
+#[cfg(test)]
+mod observed_state_tests {
+    use super::{observed_account_state, observed_tunnel_state, observed_tunnel_type};
+    use nym_vpn_lib_types::{
+        AccountControllerErrorStateReason, AccountControllerState, ActionAfterDisconnect,
+        ErrorStateReason, EstablishConnectionState, TunnelState, TunnelType,
+    };
+    use test_rpc::nym_daemon::{ObservedAccountState, ObservedTunnelState, ObservedTunnelType};
+
+    #[test]
+    fn maps_tunnel_types() {
+        assert_eq!(
+            observed_tunnel_type(TunnelType::Mixnet),
+            ObservedTunnelType::Mixnet
+        );
+        assert_eq!(
+            observed_tunnel_type(TunnelType::Wireguard),
+            ObservedTunnelType::Wireguard
+        );
+    }
+
+    #[test]
+    fn maps_non_connected_tunnel_discriminants() {
+        assert_eq!(
+            observed_tunnel_state(TunnelState::Disconnected),
+            ObservedTunnelState::Disconnected
+        );
+        assert_eq!(
+            observed_tunnel_state(TunnelState::Connecting {
+                retry_attempt: 0,
+                state: EstablishConnectionState::ResolvingApiAddresses,
+                tunnel_type: TunnelType::Mixnet,
+                connection_data: None,
+            }),
+            ObservedTunnelState::Connecting
+        );
+        assert_eq!(
+            observed_tunnel_state(TunnelState::Disconnecting {
+                after_disconnect: ActionAfterDisconnect::Nothing,
+            }),
+            ObservedTunnelState::Disconnecting
+        );
+        assert_eq!(
+            observed_tunnel_state(TunnelState::Offline { reconnect: false }),
+            ObservedTunnelState::Offline
+        );
+        assert!(matches!(
+            observed_tunnel_state(TunnelState::Error(ErrorStateReason::SetFirewallPolicy)),
+            ObservedTunnelState::Error(_)
+        ));
+    }
+
+    #[test]
+    fn maps_all_account_discriminants() {
+        let cases = [
+            (
+                AccountControllerState::Offline,
+                ObservedAccountState::Offline,
+            ),
+            (
+                AccountControllerState::Syncing,
+                ObservedAccountState::Syncing,
+            ),
+            (
+                AccountControllerState::LoggedOut,
+                ObservedAccountState::LoggedOut,
+            ),
+            (
+                AccountControllerState::ReadyToConnect,
+                ObservedAccountState::ReadyToConnect,
+            ),
+            (
+                AccountControllerState::Decentralised,
+                ObservedAccountState::Decentralised,
+            ),
+            (
+                AccountControllerState::PendingSubscription,
+                ObservedAccountState::PendingSubscription,
+            ),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(observed_account_state(input), expected);
+        }
+        assert!(matches!(
+            observed_account_state(AccountControllerState::Error(
+                AccountControllerErrorStateReason::InactiveSubscription
+            )),
+            ObservedAccountState::Error(_)
+        ));
     }
 }

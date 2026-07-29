@@ -31,8 +31,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 tarpc = { workspace = true, features = ["tokio1", "serde-transport", "serde1"] }
 thiserror = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["io-util", "macros", "rt"] }
 tokio-rustls = { workspace = true }
 tokio-serde = { workspace = true }
 tokio-util = { workspace = true, features = ["codec"] }
 webpki-roots = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
