@@ -1,11 +1,22 @@
+# Debian12 E2E:
+#   - nightly cron: zigbuild HEAD
+#   - weekday cron: latest published nym-vpn-v*-beta.N core tarball
+#   - release.published (nym-vpn-v*): that release's core tarball
+#   - dispatch: release_tag set → that tarball; empty → zigbuild HEAD
 name: e2e-test
 
 on:
   schedule:
-    # Every weekday (Mon–Fri) at 02:00 UTC
-    - cron: "0 2 * * 1-5"
+    # Nightly zigbuild of the default branch (HEAD).
+    - cron: "0 2 * * *"
+    # Weekday smoke against the newest published beta core archive.
+    - cron: "0 4 * * 1-5"
   workflow_dispatch:
     inputs:
+      release_tag:
+        description: "Optional nym-vpn-v* tag (core tarball). Empty = zigbuild HEAD."
+        required: false
+        type: string
       test_filters:
         description: "Only execute these (space-separated) tests. Can be used in
           conjunction with skip_tests"
@@ -25,6 +36,8 @@ on:
         options:
           - standard.medium
           - standard.large
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -37,16 +50,93 @@ env:
   CARGO_TERM_COLOR: always
   TEST_CRATE_DIR: nym-vpn-core/crates/test
   DEFAULT_INSTANCE_TYPE: standard.medium
+  E2E_SCRIPTS_DIR: .github/scripts/e2e
+  # Must match the schedule: entries above (github.event.schedule).
+  CRON_NIGHTLY_ZIGBUILD: "0 2 * * *"
+  CRON_WEEKDAY_LATEST_BETA: "0 4 * * 1-5"
 
 jobs:
+  resolve:
+    name: Resolve binary source
+    if: >-
+      github.event_name != 'release' ||
+      startsWith(github.event.release.tag_name, 'nym-vpn-v')
+    runs-on: arc-linux-latest
+    outputs:
+      release_tag: ${{ steps.pick.outputs.release_tag }}
+      binary_source: ${{ steps.pick.outputs.binary_source }}
+      checkout_ref: ${{ steps.pick.outputs.checkout_ref }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Script unit tests
+        run: |
+          chmod +x "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
+          if ! command -v jq >/dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+          "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
+
+      - name: Pick release tag / zigbuild mode
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+          RELEASE_EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+          WORKFLOW_SHA: ${{ github.sha }}
+          CRON_WEEKDAY_LATEST_BETA: ${{ env.CRON_WEEKDAY_LATEST_BETA }}
+        run: |
+          TAG=""
+          if [ "$EVENT_NAME" = "release" ]; then
+            TAG="$RELEASE_EVENT_TAG"
+          elif [ -n "$INPUT_RELEASE_TAG" ]; then
+            TAG="$INPUT_RELEASE_TAG"
+          elif [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE_CRON" = "$CRON_WEEKDAY_LATEST_BETA" ]; then
+            TAG="$("${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" latest-beta)"
+            echo "schedule: latest beta is ${TAG}"
+          elif [ "$EVENT_NAME" = "schedule" ]; then
+            echo "schedule: nightly zigbuild HEAD"
+          fi
+
+          if [ -n "$TAG" ]; then
+            case "$TAG" in
+              nym-vpn-v*) ;;
+              *)
+                echo "::error::release_tag must start with nym-vpn-v (got: ${TAG})"
+                exit 1
+                ;;
+            esac
+            {
+              echo "release_tag=${TAG}"
+              echo "binary_source=release"
+              echo "checkout_ref=${TAG}"
+            } >> "$GITHUB_OUTPUT"
+            echo "mode=release tag=${TAG}"
+          else
+            {
+              echo "release_tag="
+              echo "binary_source=zigbuild"
+              echo "checkout_ref=${WORKFLOW_SHA}"
+            } >> "$GITHUB_OUTPUT"
+            echo "mode=zigbuild ref=${WORKFLOW_SHA}"
+          fi
+
   build:
     name: Build test binaries
+    needs: resolve
     runs-on: arc-linux-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
+          ref: ${{ needs.resolve.outputs.checkout_ref }}
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
@@ -100,15 +190,18 @@ jobs:
             ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-
 
       - name: Install Go
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION}}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Build wireguard-go
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Build nym-vpnc, nym-vpnd and nym-socks5-proxy
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
         env:
           CFLAGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
           BINDGEN_EXTRA_CLANG_ARGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
@@ -145,7 +238,7 @@ jobs:
           key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
 
       - name: Save Go modules cache
-        if: always()
+        if: always() && needs.resolve.outputs.binary_source == 'zigbuild'
         uses: actions/cache/save@v6
         with:
           path: |
@@ -153,12 +246,36 @@ jobs:
             ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
-      - name: Collect binaries
+      - name: Collect zigbuild binaries
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
         run: |
           mkdir -p /tmp/dist
           cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-vpnc /tmp/dist/
           cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-vpnd /tmp/dist/
           cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-socks5-proxy /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-manager /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner /tmp/dist/
+
+      - name: Checkout workflow scripts
+        if: needs.resolve.outputs.binary_source == 'release'
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          ref: ${{ github.sha }}
+          sparse-checkout: |
+            .github/scripts/e2e
+          path: workflow-scripts
+
+      - name: Fetch release core binaries
+        if: needs.resolve.outputs.binary_source == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
+        run: |
+          mkdir -p /tmp/dist
+          SCRIPT="workflow-scripts/${{ env.E2E_SCRIPTS_DIR }}/release-core.sh"
+          chmod +x "$SCRIPT"
+          "$SCRIPT" fetch "$RELEASE_TAG" /tmp/dist
           cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-manager /tmp/dist/
           cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner /tmp/dist/
 
@@ -171,7 +288,7 @@ jobs:
 
   e2e-test:
     name: Run E2E tests
-    needs: build
+    needs: [resolve, build]
     runs-on: arc-linux-latest
     env:
       SSH_KEY_PATH: /tmp/exoscale_key
@@ -191,6 +308,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
+          ref: ${{ needs.resolve.outputs.checkout_ref }}
 
       - name: Download binaries
         uses: actions/download-artifact@v8
@@ -243,7 +361,7 @@ jobs:
               echo "SSH is ready"
               exit 0
             fi
-            echo "Attempt $i/30 — waiting 10s..."
+            echo "Attempt $i/30 - waiting 10s..."
             sleep 10
           done
           echo "ERROR: SSH never became available after 30 attempts"
@@ -388,3 +506,62 @@ jobs:
       - name: Cleanup SSH key
         if: always()
         run: rm -f ${{ env.SSH_KEY_PATH }}
+
+  notify-zulip:
+    name: Zulip E2E status
+    needs: [resolve, build, e2e-test]
+    if: always() && needs.resolve.result == 'success'
+    runs-on: arc-linux-latest
+    steps:
+      - name: Compose message
+        id: msg
+        env:
+          BINARY_SOURCE: ${{ needs.resolve.outputs.binary_source }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
+          CHECKOUT_REF: ${{ needs.resolve.outputs.checkout_ref }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          E2E_RESULT: ${{ needs.e2e-test.result }}
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$BUILD_RESULT" != "success" ]; then
+            STATUS="build ${BUILD_RESULT}"
+          elif [ "$E2E_RESULT" = "success" ]; then
+            STATUS="passed"
+          elif [ "$E2E_RESULT" = "skipped" ]; then
+            STATUS="e2e skipped"
+          else
+            STATUS="e2e ${E2E_RESULT}"
+          fi
+
+          if [ "$BINARY_SOURCE" = "release" ] && [ -n "$RELEASE_TAG" ]; then
+            SOURCE_LINE="release tag \`${RELEASE_TAG}\` (published core tarball)"
+          else
+            SOURCE_LINE="zigbuild from \`${CHECKOUT_REF}\`"
+          fi
+
+          {
+            echo "content<<MSG_EOF"
+            echo "**E2E** ${STATUS}"
+            echo ""
+            echo "- source: ${SOURCE_LINE}"
+            echo "- event: \`${EVENT_NAME}\`"
+            if [ "$EVENT_NAME" = "schedule" ] && [ -n "$SCHEDULE_CRON" ]; then
+              echo "- cron: \`${SCHEDULE_CRON}\`"
+            fi
+            echo "- run: ${RUN_URL}"
+            echo "MSG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip notification
+        continue-on-error: true
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
+          email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.TEST_HARNESS_ZULIP_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.TEST_HARNESS_ZULIP_TOPIC }}
+          content: ${{ steps.msg.outputs.content }}
