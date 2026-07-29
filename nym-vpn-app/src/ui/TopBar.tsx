@@ -100,11 +100,6 @@ export default function TopBar() {
         },
         noBackground: true,
       },
-      '/hideout/onboarding': {
-        rightIcon: 'close',
-        handleRightNav: () => navigate(routes.root),
-        noBackground: true,
-      },
       '/settings': {
         title: t('settings'),
         leftIcon: 'keyboard_arrow_left',
@@ -342,6 +337,7 @@ export default function TopBar() {
       },
       // these screens do not use the TopBar
       '/hideout': {},
+      '/hideout/onboarding': {},
       // TODO
       '/account': {},
     };

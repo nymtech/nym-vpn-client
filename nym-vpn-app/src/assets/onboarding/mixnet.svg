@@ -1,0 +1,32 @@
+<svg width="164" height="164" viewBox="0 0 164 164" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Onboarding screens NOT READY YET">
+<g id="Group 48098963">
+<g id="onboarding screen example">
+<g id="Frame 48098543">
+<g id="Mixnet-transparent 1" clip-path="url(#clip0_4440_20151)">
+<path id="Vector" d="M161.772 81.424C161.772 37.0486 125.798 1.0752 81.423 1.0752C37.0476 1.0752 1.07422 37.0486 1.07422 81.424C1.07422 125.799 37.0476 161.773 81.423 161.773C125.798 161.773 161.772 125.799 161.772 81.424Z" stroke="currentColor" stroke-width="2.15039"/>
+<path id="Vector_2" d="M130.61 130.734L81.4124 32.3359L32.2148 130.734L130.61 32.3359L81.4124 130.734L32.2148 32.3359L130.61 130.734Z" stroke="var(--color-text-primary)" stroke-width="0.512" stroke-miterlimit="10" stroke-linejoin="round"/>
+<path id="Vector_3" d="M81.4096 32.3379L32.2148 81.5342L81.4096 130.73L130.605 81.5342L81.4096 32.3379Z" stroke="currentColor" stroke-width="1.024" stroke-miterlimit="10" stroke-linejoin="round"/>
+<path id="Vector_4" d="M32.2148 81.4102H130.61" stroke="currentColor" stroke-width="1.024" stroke-miterlimit="10" stroke-linejoin="round"/>
+<path id="Vector_5" d="M130.61 32.708H32.2148" stroke="var(--color-text-primary)" stroke-width="0.512" stroke-miterlimit="10" stroke-linejoin="round"/>
+<path id="Vector_6" d="M130.61 130.104H32.2148" stroke="var(--color-text-primary)" stroke-width="0.512" stroke-miterlimit="10" stroke-linejoin="round"/>
+<path id="Vector_7" d="M37.5242 32.7084C37.5242 30.0481 35.3676 27.8916 32.7074 27.8916C30.0472 27.8916 27.8906 30.0481 27.8906 32.7084C27.8906 35.3686 30.0472 37.5251 32.7074 37.5251C35.3676 37.5251 37.5242 35.3686 37.5242 32.7084Z" fill="var(--color-surface-elev)" stroke="var(--color-text-primary)" stroke-width="0.512"/>
+<path id="Vector_8" d="M37.5242 130.105C37.5242 127.445 35.3676 125.288 32.7074 125.288C30.0472 125.288 27.8906 127.445 27.8906 130.105C27.8906 132.765 30.0472 134.922 32.7074 134.922C35.3676 134.922 37.5242 132.765 37.5242 130.105Z" fill="var(--color-surface-elev)" stroke="var(--color-text-primary)" stroke-width="0.512"/>
+<path id="Vector_9" d="M134.923 32.7084C134.923 30.0481 132.766 27.8916 130.106 27.8916C127.446 27.8916 125.289 30.0481 125.289 32.7084C125.289 35.3686 127.446 37.5251 130.106 37.5251C132.766 37.5251 134.923 35.3686 134.923 32.7084Z" fill="var(--color-surface-elev)" stroke="var(--color-text-primary)" stroke-width="0.512"/>
+<path id="Vector_10" d="M134.923 130.105C134.923 127.445 132.766 125.288 130.106 125.288C127.446 125.288 125.289 127.445 125.289 130.105C125.289 132.765 127.446 134.922 130.106 134.922C132.766 134.922 134.923 132.765 134.923 130.105Z" fill="var(--color-surface-elev)" stroke="var(--color-text-primary)" stroke-width="0.512"/>
+<path id="Vector_11" d="M87.7522 75.1924H75.0703V87.8743H87.7522V75.1924Z" fill="currentColor"/>
+<path id="Vector_12" d="M39.0491 75.0684H26.3672V87.7503H39.0491V75.0684Z" fill="currentColor"/>
+<path id="Vector_13" d="M136.448 75.0684H123.766V87.7503H136.448V75.0684Z" fill="currentColor"/>
+<path id="Vector_14" d="M87.7444 26.3682H75.0625V39.0501H87.7444V26.3682Z" fill="currentColor"/>
+<path id="Vector_15" d="M87.7444 123.765H75.0625V136.447H87.7444V123.765Z" fill="currentColor"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_4440_20151">
+<rect width="163.072" height="163.072" fill="white"/>
+</clipPath>
+</defs>
+</svg>
