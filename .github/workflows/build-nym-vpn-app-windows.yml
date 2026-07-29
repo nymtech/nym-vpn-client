@@ -165,6 +165,11 @@ jobs:
           name: core_artifacts_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
           path: nym-vpn-app/src-tauri
 
+      - name: Download Visual C++ Redistributable
+        run: |
+          $url = "${{ matrix.cpu_arch == 'ARM64' && 'https://aka.ms/vs/17/release/vc_redist.arm64.exe' || 'https://aka.ms/vs/17/release/vc_redist.x64.exe' }}"
+          Invoke-WebRequest -Uri $url -OutFile nym-vpn-app/src-tauri/vc_redist.exe
+
       - name: Install JS dependencies
         working-directory: nym-vpn-app
         shell: bash

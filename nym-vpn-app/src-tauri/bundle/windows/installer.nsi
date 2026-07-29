@@ -80,6 +80,17 @@ Var VpndVersionMinor
   !define DISPLAYNAME "${PRODUCTNAME}"
 !endif
 
+; ARM64 builds place the NSIS script one directory level deeper than x64
+; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
+; so the relative path to src-tauri/ differs by one level.
+!if "${ARCH}" == "arm64"
+  !define RESPREFIX "..\..\..\..\..\"
+  !define VCREDISTARCH "Arm64"
+!else
+  !define RESPREFIX "..\..\..\.."
+  !define VCREDISTARCH "X64"
+!endif
+
 Name "${DISPLAYNAME}"
 BrandingText "${COPYRIGHT}"
 OutFile "${OUTFILE}"
@@ -691,6 +702,30 @@ Section WebView2
   ${EndIf}
 SectionEnd
 
+Section VCRedist
+  ; Skip if updating, the redistributable is already installed from the first install
+  ${If} $UpdateMode <> 1
+    ; This registry key is written by the redistributable installer for both x64 and
+    ; Arm64, and is intentionally not subject to WOW64 registry redirection, so a
+    ; 32-bit installer process can read it directly regardless of host architecture.
+    ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
+    ${If} $4 <> 1
+      DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
+      Delete "$TEMP\vc_redist.exe"
+      File "/oname=$TEMP\vc_redist.exe" "${RESPREFIX}\vc_redist.exe"
+      ExecWait '"$TEMP\vc_redist.exe" /install /quiet /norestart' $5
+      ${If} $5 = 0
+      ${OrIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
+        DetailPrint "Visual C++ Redistributable installed successfully"
+      ${Else}
+        DetailPrint "vc_redist.exe install failed: $5"
+        Abort "Failed to install the Visual C++ Redistributable [$5]"
+      ${EndIf}
+      Delete "$TEMP\vc_redist.exe"
+    ${EndIf}
+  ${EndIf}
+SectionEnd
+
 Section Install
   SetOutPath $INSTDIR
 
@@ -702,15 +737,6 @@ Section Install
 
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
-
-  ; ARM64 builds place the NSIS script one directory level deeper than x64
-  ; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
-  ; so the relative path to src-tauri/ differs by one level.
-  !if "${ARCH}" == "arm64"
-    !define RESPREFIX "..\..\..\..\..\"
-  !else
-    !define RESPREFIX "..\..\..\.."
-  !endif
 
   ; Copy vpnd, socks5-proxy and libs
   File "${RESPREFIX}\nym-vpnd.exe"
