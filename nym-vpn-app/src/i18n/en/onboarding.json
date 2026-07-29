@@ -5,6 +5,7 @@
   },
   "network": {
     "toggle": {
+      "label": "Network",
       "dvpn": "dVPN",
       "mixnet": "Mixnet"
     },
