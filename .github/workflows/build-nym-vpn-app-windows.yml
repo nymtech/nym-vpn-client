@@ -168,7 +168,20 @@ jobs:
       - name: Download Visual C++ Redistributable
         run: |
           $url = "${{ matrix.cpu_arch == 'ARM64' && 'https://aka.ms/vs/17/release/vc_redist.arm64.exe' || 'https://aka.ms/vs/17/release/vc_redist.x64.exe' }}"
-          Invoke-WebRequest -Uri $url -OutFile nym-vpn-app/src-tauri/vc_redist.exe
+          $out = "nym-vpn-app/src-tauri/vc_redist.exe"
+          Invoke-WebRequest -Uri $url -OutFile $out
+
+          # The aka.ms link always points at the latest release, so its hash changes
+          # over time; verify it's a validly Microsoft-signed binary instead of
+          # pinning a digest.
+          $sig = Get-AuthenticodeSignature -FilePath $out
+          if ($sig.Status -ne "Valid") {
+            throw "vc_redist.exe Authenticode signature is not valid: $($sig.Status) - $($sig.StatusMessage)"
+          }
+          if ($sig.SignerCertificate.Subject -notmatch "O=Microsoft Corporation") {
+            throw "vc_redist.exe is not signed by Microsoft Corporation: $($sig.SignerCertificate.Subject)"
+          }
+          Write-Host "vc_redist.exe signature verified: $($sig.SignerCertificate.Subject)"
 
       - name: Install JS dependencies
         working-directory: nym-vpn-app

@@ -703,26 +703,28 @@ Section WebView2
 SectionEnd
 
 Section VCRedist
-  ; Skip if updating, the redistributable is already installed from the first install
-  ${If} $UpdateMode <> 1
-    ; This registry key is written by the redistributable installer for both x64 and
-    ; Arm64, and is intentionally not subject to WOW64 registry redirection, so a
-    ; 32-bit installer process can read it directly regardless of host architecture.
-    ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
-    ${If} $4 <> 1
-      DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
-      Delete "$TEMP\vc_redist.exe"
-      File "/oname=$TEMP\vc_redist.exe" "${RESPREFIX}\vc_redist.exe"
-      ExecWait '"$TEMP\vc_redist.exe" /install /quiet /norestart' $5
-      ${If} $5 = 0
-      ${OrIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
-        DetailPrint "Visual C++ Redistributable installed successfully"
-      ${Else}
-        DetailPrint "vc_redist.exe install failed: $5"
-        Abort "Failed to install the Visual C++ Redistributable [$5]"
-      ${EndIf}
-      Delete "$TEMP\vc_redist.exe"
+  ; This registry key is written by the redistributable installer for both x64 and
+  ; Arm64, and is intentionally not subject to WOW64 registry redirection, so a
+  ; 32-bit installer process can read it directly regardless of host architecture.
+  ;
+  ; Note: this check also runs when updating, since a user upgrading from a
+  ; pre-VC-redist version of the app can still be missing the runtime.
+  ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
+  ${If} $4 <> 1
+    DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
+    Delete "$TEMP\vc_redist.exe"
+    File "/oname=$TEMP\vc_redist.exe" "${RESPREFIX}\vc_redist.exe"
+    ExecWait '"$TEMP\vc_redist.exe" /install /quiet /norestart' $5
+    ${If} $5 = 0
+      DetailPrint "Visual C++ Redistributable installed successfully"
+    ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
+      DetailPrint "Visual C++ Redistributable installed successfully, a reboot is required"
+      SetRebootFlag true
+    ${Else}
+      DetailPrint "vc_redist.exe install failed: $5"
+      Abort "Failed to install the Visual C++ Redistributable [$5]"
     ${EndIf}
+    Delete "$TEMP\vc_redist.exe"
   ${EndIf}
 SectionEnd
 
