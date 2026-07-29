@@ -37,6 +37,11 @@ tokio-util = { workspace = true, features = ["codec"] }
 
 test-rpc = { workspace = true }
 nym-ipc = { workspace = true }
+nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
+nym-vpn-lib-types = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util", "macros"] }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["user", "net"] }

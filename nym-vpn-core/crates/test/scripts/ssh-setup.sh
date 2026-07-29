@@ -63,6 +63,11 @@ Environment="RUST_LOG=debug"
 WantedBy=multi-user.target
 EOF
 
+    # The base VM image may ship a pre-baked, logged-in account under
+    # /var/lib/nym-vpnd.
+    echo "Clearing any pre-baked nym-vpnd account state"
+    rm -rf /var/lib/nym-vpnd/mainnet
+
     echo "Starting Nym VPNd service"
 
     semanage fcontext -a -t bin_t "$RUNNER_DIR/.*" &> /dev/null || true
@@ -123,7 +128,36 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     exit 1
 fi
 
+# ttyS0 carries the framed test RPC mux. Kernel printk like "[  4.123]" is read as
+# a length-delimited frame and desyncs the session mid-suite (CI: 1528832052).
+function quiet_serial_console {
+    echo "Quieting kernel console noise on the serial RPC port"
+    dmesg -n 1 2>/dev/null || true
+    sysctl -w kernel.printk="1 4 1 7" >/dev/null 2>&1 || true
+}
+
+# Load netfilter helpers before testrunner binds /dev/ttyS0. First use of
+# xt_connbytes (delayed_ip_block.sh) otherwise prints to the console and desyncs
+# the framed serial mux (CI: implausible length from ASCII "[  2...").
+function preload_netfilter_modules {
+    echo "Preloading netfilter modules used by censorship block scripts"
+    modprobe -q ip_tables || true
+    modprobe -q ip6_tables || true
+    modprobe -q iptable_filter || true
+    modprobe -q ip6table_filter || true
+    modprobe -q xt_conntrack || true
+    modprobe -q xt_connbytes || true
+    iptables -L OUTPUT -n >/dev/null 2>&1 || true
+    ip6tables -L OUTPUT -n >/dev/null 2>&1 || true
+    # Warm the connbytes match so module init printk is not mid-suite.
+    iptables -A OUTPUT -p tcp -d 127.0.0.1 --dport 9 -m connbytes --connbytes 0:1 --connbytes-mode bytes --connbytes-dir reply -j ACCEPT 2>/dev/null \
+        && iptables -D OUTPUT -p tcp -d 127.0.0.1 --dport 9 -m connbytes --connbytes 0:1 --connbytes-mode bytes --connbytes-dir reply -j ACCEPT 2>/dev/null \
+        || true
+}
+
 move_getty_to_another_port
+quiet_serial_console
+preload_netfilter_modules
 setup_systemd
 setup_systemd_nym
 

@@ -5,6 +5,7 @@
 mod config;
 #[cfg(target_os = "linux")]
 mod container;
+mod device_cleanup;
 mod logging;
 mod nym_daemon;
 mod run_tests;
@@ -100,6 +101,9 @@ enum Commands {
         /// One or more test reports output by 'test-manager run-tests --test-report'
         reports: Vec<PathBuf>,
     },
+
+    /// Delete all devices registered on the test account (mnemonic is read from stdin)
+    DeleteDevices,
 
     /// Update the system image
     ///
@@ -216,6 +220,14 @@ async fn main() -> Result<()> {
             summary::print_summary_table(&reports).await;
             Ok(())
         }
+        Commands::DeleteDevices => {
+            let nym_mnemonic =
+                read_mnemonic(std::io::stdin()).context("Failed to read mnemonic from stdin")?;
+            device_cleanup::delete_all_devices(&nym_mnemonic)
+                .await
+                .context("Failed to delete account devices")?;
+            Ok(())
+        }
         Commands::RunVm {
             vm,
             vnc,
@@ -325,9 +337,20 @@ async fn main() -> Result<()> {
                 None => None,
             };
 
-            let result = run_tests::run(&*instance, tests, skip_wait, !verbose, summary_logger)
-                .await
-                .context("Tests failed");
+            // SSH creds for out-of-band daemon log capture on test failure.
+            let ssh_options = vm_config
+                .get_ssh_options()
+                .map(|(user, password)| (user.to_string(), password.to_string()));
+            let result = run_tests::run(
+                &*instance,
+                tests,
+                skip_wait,
+                !verbose,
+                summary_logger,
+                ssh_options,
+            )
+            .await
+            .context("Tests failed");
 
             if display {
                 instance.wait().await;
@@ -351,5 +374,31 @@ async fn main() -> Result<()> {
             log::info!("Note: updates have not been persisted to the image");
             Ok(())
         }
+    }
+}
+
+fn read_mnemonic(mut reader: impl std::io::Read) -> Result<String> {
+    let mut mnemonic = String::new();
+    reader.read_to_string(&mut mnemonic)?;
+    let mnemonic = mnemonic.trim().to_owned();
+    anyhow::ensure!(!mnemonic.is_empty(), "mnemonic input is empty");
+    Ok(mnemonic)
+}
+
+#[cfg(test)]
+mod mnemonic_input_tests {
+    use super::read_mnemonic;
+
+    #[test]
+    fn mnemonic_is_trimmed_from_stdin() {
+        assert_eq!(
+            read_mnemonic("word one two\n".as_bytes()).expect("mnemonic"),
+            "word one two"
+        );
+    }
+
+    #[test]
+    fn empty_mnemonic_is_rejected() {
+        assert!(read_mnemonic(" \n".as_bytes()).is_err());
     }
 }

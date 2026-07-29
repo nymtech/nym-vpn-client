@@ -2,6 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::vm::ssh::SSHSession;
 use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
@@ -12,8 +13,188 @@ use crate::{
 use anyhow::{Context, Result};
 use futures::FutureExt;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::{panic, time::Duration};
+use std::{future::Future, io::Write, net::IpAddr, panic, time::Duration};
 use test_rpc::{client_nym::NymServiceClient, logging::Output};
+
+const GUEST_DAEMON_LOG_PATH: &str = "/var/log/nym-vpnd/nym-vpnd.log";
+
+const DAEMON_LOG_TAIL_LINES: usize = 4000;
+const DAEMON_LOG_CAPTURE_TIMEOUT: Duration = Duration::from_secs(30);
+
+const GUEST_LOAD_COMMAND: &str = "cat /proc/loadavg; echo ---; nproc";
+const GUEST_LOAD_CAPTURE_TIMEOUT: Duration = Duration::from_secs(15);
+
+#[derive(Clone)]
+struct GuestSshAccess {
+    user: String,
+    password: String,
+    ip: IpAddr,
+}
+
+/// Fetch the daemon log over SSH, retrying briefly since the guest may be
+/// firewalled off by the kill-switch during a connect attempt.
+async fn fetch_guest_daemon_log(access: GuestSshAccess) -> Result<String> {
+    await_daemon_log_capture(
+        async move {
+            tokio::task::spawn_blocking(move || {
+                let mut last_err = None;
+                for attempt in 1..=5 {
+                    match SSHSession::connect(access.user.clone(), access.password.clone(), access.ip)
+                        .and_then(|session| {
+                            session.exec_blocking(&format!("sudo cat {GUEST_DAEMON_LOG_PATH}"))
+                        }) {
+                        Ok(contents) if !contents.trim().is_empty() => return Ok(contents),
+                        Ok(_) => {
+                            log::debug!(
+                                "daemon log capture attempt {attempt}/5: empty output (missing/unreadable file?)"
+                            );
+                            last_err = Some(anyhow::anyhow!("empty daemon log output"));
+                            std::thread::sleep(Duration::from_secs(3));
+                        }
+                        Err(err) => {
+                            log::debug!("daemon log capture attempt {attempt}/5 failed: {err:#}");
+                            last_err = Some(err);
+                            std::thread::sleep(Duration::from_secs(3));
+                        }
+                    }
+                }
+                Err(last_err.unwrap_or_else(|| anyhow::anyhow!("no attempts made")))
+            })
+            .await
+            .context("daemon log capture task panicked")?
+        },
+        DAEMON_LOG_CAPTURE_TIMEOUT,
+    )
+    .await
+}
+
+async fn await_daemon_log_capture<T>(
+    capture: impl Future<Output = Result<T>>,
+    timeout: Duration,
+) -> Result<T> {
+    tokio::time::timeout(timeout, capture)
+        .await
+        .map_err(|_| anyhow::anyhow!("daemon log capture timed out after {}s", timeout.as_secs()))?
+}
+
+/// Best-effort: write the full daemon log to a host file and echo the tail into
+/// the CI output. Never fails the run.
+///
+/// The guest file is cumulative across the suite (one daemon process, one log).
+/// Named artifacts are snapshots of that file at failure time, not per-test sessions.
+async fn capture_daemon_log_on_failure(access: &GuestSshAccess, test_name: &str) {
+    let contents = match fetch_guest_daemon_log(access.clone()).await {
+        Ok(contents) => contents,
+        Err(err) => {
+            log::warn!("Could not capture daemon log for '{test_name}' over SSH: {err:#}");
+            return;
+        }
+    };
+
+    let first_ts = contents
+        .lines()
+        .find(|line| !line.trim().is_empty())
+        .and_then(daemon_log_line_timestamp)
+        .unwrap_or("unknown");
+    let last_ts = contents
+        .lines()
+        .rev()
+        .find(|line| !line.trim().is_empty())
+        .and_then(daemon_log_line_timestamp)
+        .unwrap_or("unknown");
+    let line_count = contents.lines().count();
+
+    let preamble = format!(
+        "# cumulative guest log ({GUEST_DAEMON_LOG_PATH}); not a per-test session\n\
+         # captured_for_test={test_name}\n\
+         # first_ts={first_ts} last_ts={last_ts} lines={line_count}\n"
+    );
+
+    // Write to /tmp so CI can collect it (same place as the test report), rather
+    // than the ephemeral working dir.
+    let file_name = format!("/tmp/daemon-log-{test_name}.log");
+    let write_result = (|| -> std::io::Result<()> {
+        let mut f = std::fs::File::create(&file_name)?;
+        f.write_all(preamble.as_bytes())?;
+        f.write_all(contents.as_bytes())?;
+        Ok(())
+    })();
+    match write_result {
+        Ok(()) => log::info!(
+            "Wrote full daemon log for '{test_name}' to {file_name} (cumulative; first_ts={first_ts} last_ts={last_ts} lines={line_count})"
+        ),
+        Err(err) => log::warn!("Failed to write daemon log file {file_name}: {err}"),
+    }
+
+    let lines: Vec<&str> = contents.lines().collect();
+    let tail = lines
+        .iter()
+        .skip(lines.len().saturating_sub(DAEMON_LOG_TAIL_LINES))
+        .copied()
+        .collect::<Vec<_>>()
+        .join("\n");
+    log::info!(
+        "===== nym-vpnd log tail ({} of {} lines) for {test_name} =====\n\
+         (cumulative guest log; first_ts={first_ts} last_ts={last_ts})\n\
+         {tail}\n===== end nym-vpnd log for {test_name} =====",
+        DAEMON_LOG_TAIL_LINES.min(lines.len()),
+        lines.len(),
+    );
+}
+
+fn daemon_log_line_timestamp(line: &str) -> Option<&str> {
+    // Typical format: 2026-07-23T06:07:11.835343Z  INFO ...
+    let ts = line.split_whitespace().next()?;
+    if ts.len() >= 20 && ts.contains('T') {
+        Some(ts)
+    } else {
+        None
+    }
+}
+
+async fn capture_guest_load_on_failure(access: &GuestSshAccess, test_name: &str) {
+    let output = await_daemon_log_capture(
+        {
+            let access = access.clone();
+            async move {
+                tokio::task::spawn_blocking(move || {
+                    SSHSession::connect(access.user.clone(), access.password.clone(), access.ip)
+                        .and_then(|session| session.exec_blocking(GUEST_LOAD_COMMAND))
+                })
+                .await
+                .context("guest load capture task panicked")?
+            }
+        },
+        GUEST_LOAD_CAPTURE_TIMEOUT,
+    )
+    .await;
+
+    match output {
+        Ok(output) => log::info!("{}", format_guest_load_report(test_name, &output)),
+        Err(err) => log::warn!("Could not capture guest load average for '{test_name}': {err:#}"),
+    }
+}
+
+/// Pure formatting for the guest load-average report, split out from [`capture_guest_load_on_failure`]
+/// so the parsing/formatting logic is unit-testable without an SSH connection.
+fn format_guest_load_report(test_name: &str, raw_output: &str) -> String {
+    let (loadavg, nproc) = raw_output
+        .split_once("---")
+        .map(|(loadavg, nproc)| (loadavg.trim(), nproc.trim()))
+        .unwrap_or((raw_output.trim(), "unknown"));
+    let loadavg = if loadavg.is_empty() {
+        "unavailable"
+    } else {
+        loadavg
+    };
+    let nproc = if nproc.is_empty() { "unknown" } else { nproc };
+
+    format!(
+        "===== guest load snapshot for {test_name} =====\n\
+         loadavg (1m 5m 15m runnable/total last_pid)={loadavg} nproc={nproc}\n\
+         ===== end guest load snapshot for {test_name} ====="
+    )
+}
 
 /// The baud rate of the serial connection between the test manager and the test runner.
 /// There is a known issue with setting a baud rate at all or macOS, and the workaround
@@ -30,6 +211,8 @@ struct TestHandler<'a> {
     summary_logger: Option<SummaryLogger>,
     print_failed_tests_only: bool,
     logger: Logger,
+    /// SSH access for out-of-band daemon log capture on failure.
+    guest_ssh_access: Option<GuestSshAccess>,
 }
 
 impl TestHandler<'_> {
@@ -52,7 +235,7 @@ impl TestHandler<'_> {
             test,
             test_name,
             TestContext {
-                _rpc_provider: self.rpc_provider.clone(),
+                rpc_provider: self.rpc_provider.clone(),
             },
         )
         .await;
@@ -67,7 +250,15 @@ impl TestHandler<'_> {
             self.logger.store_records(false);
         }
 
+        // Print before fail-path side effects so a wedged serial mux cannot hide the error.
         test_output.print();
+
+        if test_output.result.failure()
+            && let Some(access) = &self.guest_ssh_access
+        {
+            capture_guest_load_on_failure(access, test_name).await;
+            capture_daemon_log_on_failure(access, test_name).await;
+        }
 
         register_test_result(
             test_output.result,
@@ -106,7 +297,13 @@ pub async fn run(
     skip_wait: bool,
     print_failed_tests_only: bool,
     summary_logger: Option<SummaryLogger>,
+    ssh_options: Option<(String, String)>,
 ) -> Result<TestResult> {
+    let guest_ssh_access = ssh_options.map(|(user, password)| GuestSshAccess {
+        user,
+        password,
+        ip: *instance.get_ip(),
+    });
     log::trace!("Setting test constants");
 
     let pty_path = instance.get_pty();
@@ -155,10 +352,12 @@ pub async fn run(
         summary_logger,
         print_failed_tests_only,
         logger: Logger::get_or_init(),
+        guest_ssh_access,
     };
 
     for test in tests {
-        let nym_client = rpc_provider.new_client_nym().await?;
+        // Abort any stale DaemonRpc forward left by the previous test before connecting.
+        let nym_client = rpc_provider.recover_client_nym().await?;
 
         test_handler
             .run_test(test.func, test.name, Some(nym_client))
@@ -182,7 +381,7 @@ pub async fn run(
 
 async fn deregister_account(rpc_provider: &RpcClientProvider) {
     log::info!("Cleaning up: forget_account to deregister device...");
-    match rpc_provider.new_client_nym().await {
+    match rpc_provider.recover_client_nym().await {
         Ok(mut nym_client) => {
             if let Err(e) = nym_client.forget_account().await {
                 log::warn!("Failed to forget account during cleanup: {e}");
@@ -259,5 +458,66 @@ pub async fn run_test_function(
         test_name,
         error_messages: output,
         result,
+    }
+}
+
+#[cfg(test)]
+mod daemon_log_tests {
+    use super::{await_daemon_log_capture, daemon_log_line_timestamp, format_guest_load_report};
+    use std::{future::pending, time::Duration};
+
+    #[test]
+    fn parses_tracing_timestamp() {
+        let line = "2026-07-23T06:07:11.835343Z  INFO nym_vpnd: Connected";
+        assert_eq!(
+            daemon_log_line_timestamp(line),
+            Some("2026-07-23T06:07:11.835343Z")
+        );
+    }
+
+    #[test]
+    fn rejects_non_timestamp_lines() {
+        assert_eq!(daemon_log_line_timestamp("# cumulative guest log"), None);
+        assert_eq!(daemon_log_line_timestamp(""), None);
+        assert_eq!(daemon_log_line_timestamp("INFO only"), None);
+    }
+
+    #[tokio::test]
+    async fn daemon_log_capture_is_bounded() {
+        let error =
+            await_daemon_log_capture(pending::<anyhow::Result<()>>(), Duration::from_millis(1))
+                .await
+                .expect_err("pending capture must time out");
+
+        assert!(error.to_string().contains("daemon log capture timed out"));
+    }
+
+    #[test]
+    fn formats_guest_load_report_with_separator() {
+        let raw = "0.52 1.14 1.30 3/210 2481\n---\n2\n";
+        let report = format_guest_load_report("test_account_and_tunnel_roundtrip", raw);
+        assert!(
+            report
+                .contains("loadavg (1m 5m 15m runnable/total last_pid)=0.52 1.14 1.30 3/210 2481")
+        );
+        assert!(report.contains("nproc=2"));
+        assert!(report.contains("guest load snapshot for test_account_and_tunnel_roundtrip"));
+    }
+
+    #[test]
+    fn formats_guest_load_report_missing_separator_falls_back() {
+        // e.g. `nproc` failed but `loadavg` printed before the `---` marker was reached.
+        let report = format_guest_load_report("t", "0.10 0.20 0.30 1/100 999\n");
+        assert!(
+            report.contains("loadavg (1m 5m 15m runnable/total last_pid)=0.10 0.20 0.30 1/100 999")
+        );
+        assert!(report.contains("nproc=unknown"));
+    }
+
+    #[test]
+    fn formats_guest_load_report_empty_output() {
+        let report = format_guest_load_report("t", "");
+        assert!(report.contains("loadavg (1m 5m 15m runnable/total last_pid)=unavailable"));
+        assert!(report.contains("nproc=unknown"));
     }
 }
