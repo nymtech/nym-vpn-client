@@ -6,6 +6,8 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/prepare-release-notes.yml"
   workflow_dispatch:
     inputs:
       github_release_type:
