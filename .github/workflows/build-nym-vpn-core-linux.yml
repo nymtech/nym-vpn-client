@@ -56,6 +56,7 @@ jobs:
       - name: Install system dependencies
         run: |
           if [ "${{ matrix.arch }}" = "aarch64" ]; then
+            sudo add-apt-repository --remove "deb http://archive.ubuntu.com/ubuntu jammy main restricted"
             sudo dpkg --add-architecture arm64
             sudo apt-get update
             sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libdbus-1-dev:arm64 libmnl-dev:arm64 libnftnl-dev:arm64 protobuf-compiler
