@@ -14,6 +14,7 @@ env:
 jobs:
   build-libwg-linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: "arc-ubuntu-22.04"
