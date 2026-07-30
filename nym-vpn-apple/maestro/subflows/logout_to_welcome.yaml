@@ -31,14 +31,19 @@ appId: net.nymtech.vpn
 - tapOn:
     text: "Log out ?"
 
-# Confirm the logout if a confirmation prompt is shown (its Yes button reuses the
-# same "Log out" label).
-- runFlow:
-    when:
-      visible: "Log out ?"
-    commands:
-      - tapOn:
-          text: "Log out ?"
+# Tapping Log out opens a "Log out of this device?" confirmation dialog whose Yes
+# button ALSO reads "Log out". With the list button still behind it, a plain
+# tapOn "Log out" is ambiguous and previously hit the wrong one (cancelling the
+# dialog). Wait for the dialog title, then tap the dialog's Log out - it is the
+# second match (index 1): the dialog is a SwiftUI overlay, so it comes after the
+# list button in the tree.
+- extendedWaitUntil:
+    visible:
+      text: "Log out of this device?"
+    timeout: 10000
+- tapOn:
+    text: "Log out ?"
+    index: 1
 
 - extendedWaitUntil:
     visible:

@@ -44,12 +44,13 @@ appId: net.nymtech.vpn
     timeout: 20000
 - tapOn:
     text: "Log out ?"
-- runFlow:
-    when:
-      visible: "Log out ?"
-    commands:
-      - tapOn:
-          text: "Log out ?"
+- extendedWaitUntil:
+    visible:
+      text: "Log out of this device?"
+    timeout: 10000
+- tapOn:
+    text: "Log out ?"
+    index: 1
 
 # Let the post-logout screen settle; assert nothing so the flow always succeeds.
 - waitForAnimationToEnd:
