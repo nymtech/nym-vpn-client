@@ -74,7 +74,11 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
     }
 
     pub async fn run(mut self, mut latest_tunnel_settings: SelectAndSend) {
-        let mut latest_location = None;
+        let mut latest_location = self
+            .shutdown_token
+            .run_until_cancelled(self.geo_ip_provider.new_location())
+            .await
+            .flatten();
         loop {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {

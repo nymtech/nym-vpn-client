@@ -289,6 +289,12 @@ pub enum EntryPoint {
     },
     // Select an entry gateway at random.
     Random,
+
+    // Automatically select an entry point as close as possible to user
+    // The user's own country could be excluded or not.
+    Auto {
+        exclude_user_country: bool,
+    },
 }
 
 impl EntryPoint {
@@ -311,24 +317,6 @@ impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
             },
             nym_gateway_directory::EntryPoint::Region { region } => EntryPoint::Region { region },
             nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
-        }
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
-    fn from(value: EntryPoint) -> Self {
-        match value {
-            EntryPoint::Gateway { identity } => nym_gateway_directory::EntryPoint::Gateway {
-                identity: *identity.inner(),
-            },
-            EntryPoint::Country {
-                two_letter_iso_country_code,
-            } => nym_gateway_directory::EntryPoint::Country {
-                two_letter_iso_country_code,
-            },
-            EntryPoint::Region { region } => nym_gateway_directory::EntryPoint::Region { region },
-            EntryPoint::Random => nym_gateway_directory::EntryPoint::Random,
         }
     }
 }
@@ -370,27 +358,14 @@ pub enum ExitPoint {
 
     // Select an exit gateway at random.
     Random,
-}
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
-    fn from(value: ExitPoint) -> Self {
-        match value {
-            ExitPoint::Address { address } => nym_gateway_directory::ExitPoint::Address {
-                address: Box::new(nym_gateway_directory::Recipient::from(*address)),
-            },
-            ExitPoint::Gateway { identity } => nym_gateway_directory::ExitPoint::Gateway {
-                identity: *identity.inner(),
-            },
-            ExitPoint::Country {
-                two_letter_iso_country_code,
-            } => nym_gateway_directory::ExitPoint::Country {
-                two_letter_iso_country_code,
-            },
-            ExitPoint::Region { region } => nym_gateway_directory::ExitPoint::Region { region },
-            ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
-        }
-    }
+    // Automatically select an exit point as close as possible to the selected entry point.
+    // The entry point's country could be excluded or not
+    // The user's own country could be excluded or not
+    Auto {
+        exclude_entry_point_country: bool,
+        exclude_user_country: bool,
+    },
 }
 
 #[cfg(feature = "nym-type-conversions")]
