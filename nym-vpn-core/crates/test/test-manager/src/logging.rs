@@ -152,12 +152,14 @@ pub struct TestOutput {
     pub log_output: Option<LogOutput>,
 }
 
-/// Inventory / environment gaps should use `bail!("SKIP: …")` so CI stays green
-/// without a silent pass.
+/// Prefix for inventory / environment gaps. Prefer `bail!("{SKIP_PREFIX} …")` so CI
+/// stays green without a silent pass; mapped to [`TestResult::Skip`].
+pub const SKIP_PREFIX: &str = "SKIP:";
+
 pub fn is_skip_error(error: &Error) -> bool {
     error
         .chain()
-        .any(|cause| cause.to_string().starts_with("SKIP:"))
+        .any(|cause| cause.to_string().starts_with(SKIP_PREFIX))
 }
 
 // Convert this unwieldy return type to a workable `TestResult`.
@@ -321,7 +323,7 @@ mod tests {
 
     #[test]
     fn skip_prefix_maps_to_skip_not_failure() {
-        let err = anyhow::anyhow!("SKIP: no inventory");
+        let err = anyhow::anyhow!("{} no inventory", super::SKIP_PREFIX);
         assert!(is_skip_error(&err));
         let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
         assert!(matches!(result, TestResult::Skip(_)));
@@ -333,7 +335,7 @@ mod tests {
     #[test]
     fn nested_skip_via_context_still_maps() {
         // Inherent Error::context (not the Result Context trait).
-        let err = anyhow::anyhow!("SKIP: gap").context("outer wrapper");
+        let err = anyhow::anyhow!("{} gap", super::SKIP_PREFIX).context("outer wrapper");
         assert!(is_skip_error(&err));
         let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
         assert!(matches!(result, TestResult::Skip(_)));
