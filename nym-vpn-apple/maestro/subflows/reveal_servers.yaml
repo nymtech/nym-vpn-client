@@ -1,0 +1,12 @@
+# Expands OneClick from the default powerUser mode into nerd mode, where the
+# Entry/Exit server hop rows are visible and tappable. In powerUser mode those
+# rows are accessibilityHidden, so any flow that selects a server must expand
+# first. Assumes the home screen is showing.
+appId: net.nymtech.vpn
+---
+- tapOn: "Expand"
+- extendedWaitUntil:
+    visible:
+      text: "Exit server"
+    timeout: 10000
+- assertVisible: "Entry server"

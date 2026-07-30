@@ -483,6 +483,11 @@ import PathManager
 
     /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
+        // Mock mode has no account summary to fetch, so the home screen would
+        // read `.noSubscription` and render the "Get started" paywall button
+        // instead of "Connect". Treat the seeded mock session as an active
+        // account, mirroring `isAccountValid()` above.
+        if isMockMode { return true }
         if let accountSummary {
             if accountSummary.isActive { return true }
             if let validUntilDate = accountSummary.validUntilDate,

@@ -5,6 +5,9 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
+# Entry/Exit server rows are only visible in nerd mode.
+- runFlow: ../../subflows/reveal_servers.yaml
+
 - tapOn: "Exit server"
 - extendedWaitUntil:
     visible:
