@@ -373,6 +373,20 @@ pub async fn set_enable_two_hop_with_recovery(
     Ok(client)
 }
 
+pub async fn set_enable_bridges_with_recovery(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+    enable_bridges: bool,
+) -> Result<NymProxyClient, Error> {
+    let (_, client) =
+        call_nym_with_transport_recovery(provider, client, move |mut client| async move {
+            let result = client.set_enable_bridges(enable_bridges).await;
+            (client, result)
+        })
+        .await?;
+    Ok(client)
+}
+
 pub async fn connect_tunnel_with_recovery(
     provider: &RpcClientProvider,
     client: NymProxyClient,

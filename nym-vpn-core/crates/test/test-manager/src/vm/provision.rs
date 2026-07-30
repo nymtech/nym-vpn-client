@@ -6,6 +6,7 @@ use crate::{
     config::{OsType, Provisioner, VmConfig},
     tests::config_nym::{
         BOOTSTRAP_SCRIPT, DELAYED_IP_BLOCK_SCRIPT, IP_BLOCK_SCRIPT, SNI_BLOCK_SCRIPT,
+        UDP_BLOCK_SCRIPT,
     },
 };
 use anyhow::{Context, Result, bail};
@@ -155,10 +156,11 @@ fn blocking_ssh(
     // Transfer blocking scripts. Their contents are baked into this binary via include_bytes!,
     // so we write them to the guest directly rather than reading them off the host filesystem.
     if matches!(os_type, OsType::Linux | OsType::Macos) {
-        let scripts: [(&str, &[u8]); 3] = [
+        let scripts: [(&str, &[u8]); 4] = [
             ("ip_block.sh", IP_BLOCK_SCRIPT),
             ("sni_block.sh", SNI_BLOCK_SCRIPT),
             ("delayed_ip_block.sh", DELAYED_IP_BLOCK_SCRIPT),
+            ("udp_block.sh", UDP_BLOCK_SCRIPT),
         ];
 
         for (name, content) in &scripts {

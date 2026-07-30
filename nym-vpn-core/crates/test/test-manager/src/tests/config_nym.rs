@@ -28,6 +28,10 @@ pub const DELAYED_IP_BLOCK_SCRIPT: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../scripts/blocking/delayed_ip_block.sh"
 ));
+pub const UDP_BLOCK_SCRIPT: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../scripts/blocking/udp_block.sh"
+));
 
 /// Constants that are accessible from each test via `TEST_CONFIG`.
 /// The constants must be initialized before running any tests using `TEST_CONFIG.init()`.
