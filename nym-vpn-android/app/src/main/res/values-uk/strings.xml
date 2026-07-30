@@ -495,9 +495,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Безперервний трафік вимкнено. Ваші пакети будуть надсилатися по мірі їхньої доступності. Це може розкрити схеми трафіку.</string>
 	<string name="mixnet_tuning_traffic_on_description">Трафік покриття завжди надсилається для забезпечення однорідності структури. Налаштуйте швидкість надсилання пакетів.</string>
 	<string name="mixnet_tuning_traffic_off_description">Ми все одно будемо надсилати додатковий трафік незалежно від вашого реального трафіку.  Виберіть, скільки додаткового трафіку вам потрібно. </string>
-	<string name="mixnet_tuning_traffic_min">Використовувати менше заряду батареї &amp; </string>
-	<string name="mixnet_tuning_traffic_on_max">Найшвидший</string>
-	<string name="mixnet_tuning_traffic_on_low">Низький\n0.7 Мбіт/с</string>
+    <string name="mixnet_tuning_traffic_on_low">Низький\n0.7 Мбіт/с</string>
 	<string name="mixnet_tuning_traffic_on_high">Високий\n2 Мбіт/с</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Збалансований\n1 Мбіт/с</string>
 	<string name="mixnet_tuning_traffic_off_low">Основи</string>
@@ -507,13 +505,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Якщо встановити затримку на 0, змішування буде вимкнено, що знизить рівень анонімності</string>
 	<string name="mixnet_tuning_delays_title">Затримки змішування</string>
 	<string name="mixnet_tuning_delays_description">Налаштуйте затримки синхронізації, щоб змінити якість змішування пакетів.</string>
-	<string name="mixnet_tuning_delays_min">Більша швидкість</string>
-	<string name="mixnet_tuning_delays_low">Низький\n0м</string>
+    <string name="mixnet_tuning_delays_low">Низький\n0м</string>
 	<string name="mixnet_tuning_delays_high">Високий\n200 мс</string>
 	<string name="mixnet_tuning_delays_default">За замовчуванням\n15 мс</string>
 	<string name="mixnet_tuning_delays_current">Поточний\n%1$s</string>
-	<string name="mixnet_tuning_max">Максимальна анонімність</string>
-	<string name="mixnet_tuning_link_text">Дізнайтеся більше про параметри мікснету</string>
+    <string name="mixnet_tuning_link_text">Дізнайтеся більше про параметри мікснету</string>
 	<string name="mixnet_tuning_save_button">Зберегти власні налаштування</string>
 	<string name="mixnet_tuning_restore_button">Відновіть налаштування за замовчуванням</string>
 	<!-- Diagnostic screen -->
@@ -571,7 +567,6 @@
 	<string name="setup_instructions_browser_step_1">Налаштування → увімкнути SOCKS-проксі — Хост</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">, Порт</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">Гаманець Web3</string>
 	<string name="setup_instructions_wallet_step_1">Встановіть URL-адресу RPC на</string>
