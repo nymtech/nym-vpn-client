@@ -23,8 +23,7 @@ use test_rpc::{
     nym_daemon::{ObservedTunnelState, ObservedTunnelType},
 };
 
-const PUBLIC_TCP_PROBE: SocketAddr =
-    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 443);
+const PUBLIC_TCP_PROBE: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)), 443);
 const PROBE_BIND: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 const OFFLINE_WAIT: Duration = Duration::from_secs(45);
 const DAEMON_READY_WAIT: Duration = Duration::from_secs(60);
