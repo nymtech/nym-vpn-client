@@ -11,18 +11,17 @@ appId: net.nymtech.vpn
 
 - tapOn: "Account and devices"
 
-# Confirm we actually landed on the account screen before scrolling. This device
-# blurb is rendered unconditionally on the account screen (unlike "Account ID",
-# which only appears when a real account identifier exists - never in the mock),
-# and it shares the content stack with the Log out button below it. If THIS step
-# fails, navigation - not the scroll - is the problem.
+# The account screen loads asynchronously (its .task polls the account summary).
+# Wait for "Account status" - a header near the top that is on screen without
+# scrolling - so the screen is populated before we scroll. Scrolling too early
+# (the original bug) moves an empty screen and finds nothing. The Log out button
+# and most of the content sit below the fold, so they are reached by scrolling,
+# not asserted visible on entry.
 - extendedWaitUntil:
     visible:
-      text: "Use this to link"
-    timeout: 10000
+      text: "Account status"
+    timeout: 15000
 
-# The Log out button sits at the bottom of the account screen, below the fold -
-# scroll to it rather than waiting for it to be visible on entry.
 - scrollUntilVisible:
     element:
       text: "Log out"
