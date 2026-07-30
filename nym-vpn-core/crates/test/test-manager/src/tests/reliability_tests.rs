@@ -2,13 +2,17 @@
 //!
 //! Priorities sit after core tunnel tests and before censorship blocklist cases.
 
-use crate::tests::{
-    TestContext,
-    helpers_nym::{
-        self, ExpectedTunnelState, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry,
-        wait_for_tunnel_state,
+use crate::{
+    logging::SKIP_PREFIX,
+    nym_daemon::RpcClientProvider,
+    tests::{
+        TestContext,
+        helpers_nym::{
+            self, ExpectedTunnelState, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry,
+            wait_for_tunnel_state,
+        },
+        nym_test::dc_and_ensure_logged_in,
     },
-    nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::{Context, bail, ensure};
 use nym_vpn_lib_types::ExitPoint;
@@ -40,6 +44,33 @@ fn merge_body_and_cleanup(
             "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
         ))),
     }
+}
+
+async fn disconnect_cleanup(
+    rpc: &NymServiceClient,
+    nym_client: NymProxyClient,
+    provider: &RpcClientProvider,
+) -> Result<(), anyhow::Error> {
+    helpers_nym::disconnect_and_wait(rpc, nym_client, provider)
+        .await
+        .map(|_| ())
+        .map_err(|e| anyhow::anyhow!(e))
+}
+
+async fn connect_and_wait_connected(
+    rpc: &NymServiceClient,
+    provider: &RpcClientProvider,
+    nym_client: NymProxyClient,
+) -> anyhow::Result<(ObservedTunnelState, NymProxyClient)> {
+    let nym_client = helpers_nym::connect_tunnel_with_recovery(provider, nym_client).await?;
+    wait_for_tunnel_state(
+        rpc,
+        nym_client,
+        provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await
+    .map_err(Into::into)
 }
 
 /// LAN / link-local ranges that `allow_lan=false` is expected to fence off.
@@ -197,8 +228,8 @@ pub async fn test_allow_lan_off_blocks_prior_resolver_tcp(
     let lan_nameservers = get_vm_lan_nameservers(&rpc).await?;
     if lan_nameservers.is_empty() {
         bail!(
-            "SKIP: VM has no LAN/private resolvectl nameservers to probe under allow_lan=false \
-             (public resolvers are not a LAN-policy oracle)"
+            "{SKIP_PREFIX} VM has no LAN/private resolvectl nameservers to probe under \
+             allow_lan=false (public resolvers are not a LAN-policy oracle)"
         );
     }
 
@@ -208,33 +239,28 @@ pub async fn test_allow_lan_off_blocks_prior_resolver_tcp(
     let nym_client =
         helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
             .await?;
+    let (_, nym_client) =
+        connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
 
-    let nym_client =
-        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
-    let (_, nym_client) = wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
-
-    let mut still_open = Vec::new();
-    for ip in &lan_nameservers {
-        let dest = SocketAddr::new(*ip, 53);
-        if tcp_reachable(&rpc, dest).await {
-            still_open.push(dest);
+    let body = async {
+        let mut still_open = Vec::new();
+        for ip in &lan_nameservers {
+            let dest = SocketAddr::new(*ip, 53);
+            if tcp_reachable(&rpc, dest).await {
+                still_open.push(dest);
+            }
         }
+        ensure!(
+            still_open.is_empty(),
+            "allow_lan=false but LAN resolvers still reachable on TCP/53: {still_open:?}"
+        );
+        assert_tunnel_dns_and_tcp(&rpc).await?;
+        Ok(())
     }
-    ensure!(
-        still_open.is_empty(),
-        "allow_lan=false but LAN resolvers still reachable on TCP/53: {still_open:?}"
-    );
+    .await;
 
-    assert_tunnel_dns_and_tcp(&rpc).await?;
-
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
-    Ok(())
+    let cleanup = disconnect_cleanup(&rpc, nym_client, &test_context.rpc_provider).await;
+    merge_body_and_cleanup(body, cleanup)
 }
 
 /// Taking the default uplink down must surface ObservedTunnelState::Offline (daemon detection).
@@ -290,16 +316,8 @@ pub async fn test_daemon_restart_then_reconnect(
     let nym_client =
         helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
             .await?;
-
-    let nym_client =
-        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
-    let (_, nym_client) = wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
+    let (_, nym_client) =
+        connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
 
     drop(nym_client);
     log::info!("Restarting nym-vpnd via systemd...");
@@ -319,20 +337,12 @@ pub async fn test_daemon_restart_then_reconnect(
     nym_client =
         helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
             .await?;
+    let (_, nym_client) =
+        connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
 
-    nym_client =
-        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
-    let (_, nym_client) = wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
-    assert_tunnel_dns_and_tcp(&rpc).await?;
-
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
-    Ok(())
+    let body = assert_tunnel_dns_and_tcp(&rpc).await;
+    let cleanup = disconnect_cleanup(&rpc, nym_client, &test_context.rpc_provider).await;
+    merge_body_and_cleanup(body, cleanup)
 }
 
 /// Fast ↔ Mixnet toggle must select the matching observed tunnel type across reconnects.
@@ -356,16 +366,8 @@ pub async fn test_two_hop_toggle_survives_reconnect(
             two_hop,
         )
         .await?;
-        nym_client =
-            helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client)
-                .await?;
-        let (state, client) = wait_for_tunnel_state(
-            &rpc,
-            nym_client,
-            &test_context.rpc_provider,
-            ExpectedTunnelState::Connected,
-        )
-        .await?;
+        let (state, client) =
+            connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
         nym_client = client;
         match state {
             ObservedTunnelState::Connected { tunnel_type } if tunnel_type == expected => {
@@ -409,15 +411,8 @@ pub async fn test_exit_country_persists_across_reconnect(
     .await
     .context("set_exit_point failed")?;
 
-    let nym_client =
-        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
-    let (_, nym_client) = wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
+    let (_, nym_client) =
+        connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
 
     let (_, nym_client) = helpers_nym::call_nym_with_transport_recovery(
         &test_context.rpc_provider,
@@ -429,32 +424,39 @@ pub async fn test_exit_country_persists_across_reconnect(
     )
     .await
     .context("reconnect_tunnel failed")?;
-    let (_, nym_client) = wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
+    let nym_client = {
+        let (_, client) = wait_for_tunnel_state(
+            &rpc,
+            nym_client,
+            &test_context.rpc_provider,
+            ExpectedTunnelState::Connected,
+        )
+        .await?;
+        client
+    };
 
-    let _ = resolve_hostname_with_retry(&rpc, "ipinfo.io", ROUNDTRIP_DNS_TIMEOUT).await?;
-    let ip_output = rpc
-        .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
-        .await
-        .context("curl ipinfo.io failed")?;
-    let ip_info: serde_json::Value =
-        serde_json::from_slice(&ip_output.stdout).context("parse ipinfo.io JSON")?;
-    let country = ip_info
-        .get("country")
-        .and_then(|v| v.as_str())
-        .context("ipinfo.io missing country")?;
-    ensure!(
-        country == TARGET_COUNTRY,
-        "after reconnect expected country {TARGET_COUNTRY}, got {country}"
-    );
+    let body = async {
+        let _ = resolve_hostname_with_retry(&rpc, "ipinfo.io", ROUNDTRIP_DNS_TIMEOUT).await?;
+        let ip_output = rpc
+            .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
+            .await
+            .context("curl ipinfo.io failed")?;
+        let ip_info: serde_json::Value =
+            serde_json::from_slice(&ip_output.stdout).context("parse ipinfo.io JSON")?;
+        let country = ip_info
+            .get("country")
+            .and_then(|v| v.as_str())
+            .context("ipinfo.io missing country")?;
+        ensure!(
+            country == TARGET_COUNTRY,
+            "after reconnect expected country {TARGET_COUNTRY}, got {country}"
+        );
+        Ok(())
+    }
+    .await;
 
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
-    Ok(())
+    let cleanup = disconnect_cleanup(&rpc, nym_client, &test_context.rpc_provider).await;
+    merge_body_and_cleanup(body, cleanup)
 }
 
 #[cfg(test)]
