@@ -373,6 +373,20 @@ pub async fn set_enable_two_hop_with_recovery(
     Ok(client)
 }
 
+pub async fn set_allow_lan_with_recovery(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+    allow_lan: bool,
+) -> Result<NymProxyClient, Error> {
+    let (_, client) =
+        call_nym_with_transport_recovery(provider, client, move |mut client| async move {
+            let result = client.set_allow_lan(allow_lan).await;
+            (client, result)
+        })
+        .await?;
+    Ok(client)
+}
+
 pub async fn connect_tunnel_with_recovery(
     provider: &RpcClientProvider,
     client: NymProxyClient,
