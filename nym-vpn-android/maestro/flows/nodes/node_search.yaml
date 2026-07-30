@@ -14,7 +14,7 @@ appId: net.nymtech.nymvpn.mock.debug
 
 - assertNotVisible: "Mock-Entry-DE-01"
 
-- tapOn: "Search country"
+- tapOn: "Search location or server"
 - inputText: "Entry-DE-01"
 
 - assertVisible: "Mock-Entry-DE-01"

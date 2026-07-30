@@ -12,9 +12,12 @@ tags:
     text: "Random"
     below: "Exit server"
 
+# The picker title is now "Exit server" too (was "Exit location"), so it clashes
+# with the home hop label. Anchor on the search field, which is unique to the
+# picker, and on "Connect", which is unique to home.
 - extendedWaitUntil:
     visible:
-      text: "Exit location"
+      text: "Search location or server"
     timeout: 10000
 - assertVisible: "Random server"
 
@@ -22,7 +25,7 @@ tags:
 
 - extendedWaitUntil:
     visible:
-      text: "Exit server"
+      text: "Connect"
     timeout: 10000
 - assertVisible: "Germany"
 
@@ -32,14 +35,14 @@ tags:
 
 - extendedWaitUntil:
     visible:
-      text: "Entry location"
+      text: "Search location or server"
     timeout: 10000
 
 - tapOn: "United States"
 
 - extendedWaitUntil:
     visible:
-      text: "Entry server"
+      text: "Connect"
     timeout: 10000
 - assertVisible: "United States"
 

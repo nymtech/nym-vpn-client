@@ -9,9 +9,11 @@ tags:
     text: "Random"
     below: "Exit server"
 
+# Picker title is now "Exit server" (clashes with the home hop label); anchor on
+# the picker-unique search field instead of the old "Exit location".
 - extendedWaitUntil:
     visible:
-      text: "Exit location"
+      text: "Search location or server"
     timeout: 10000
 
 - tapOn: "Info"
@@ -21,7 +23,7 @@ tags:
 - tapOn: "OK"
 - assertNotVisible: "Choosing exit locations"
 
-- tapOn: "Search country"
+- tapOn: "Search location or server"
 - inputText: "Mock-Entry-DE-01"
 - extendedWaitUntil:
     visible:
@@ -78,7 +80,7 @@ tags:
 - assertVisible: "5mZ8G2XrYF8nW7AqH2kP3DsV9uQ4JrL1tC6bN0eMfYw"
 - assertVisible: "Why is there missing or incorrect info"
 
-- tapOn: "Select server"
+- tapOn: "Select node"
 - extendedWaitUntil:
     visible:
       text: "Connect"

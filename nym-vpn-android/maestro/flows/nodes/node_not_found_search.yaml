@@ -15,7 +15,7 @@ appId: net.nymtech.nymvpn.mock.debug
 - assertNotVisible: "No results found."
 - assertVisible: "Germany"
 
-- tapOn: "Search country"
+- tapOn: "Search location or server"
 - inputText: "Random non existing country"
 
 - assertVisible: "No results found."
