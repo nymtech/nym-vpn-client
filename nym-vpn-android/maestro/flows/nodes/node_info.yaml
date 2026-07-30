@@ -41,6 +41,12 @@ tags:
 - assertVisible: "Mock-Entry-DE-01"
 - assertVisible: "Berlin, Berlin, Germany"
 
+# The Connection details section sits below the fold on the redesigned details
+# screen - scroll to it before asserting, like the sections further down.
+- scrollUntilVisible:
+    element:
+      text: "Exit IPv4"
+    direction: DOWN
 - assertVisible: "Exit IPv4"
 - assertVisible: "91.198.174.192"
 - assertVisible: "Exit IPv6"
