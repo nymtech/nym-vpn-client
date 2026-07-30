@@ -41,8 +41,36 @@ tags:
 - assertVisible: "Mock-Entry-DE-01"
 - assertVisible: "Berlin, Berlin, Germany"
 
-# The Connection details section sits below the fold on the redesigned details
-# screen - scroll to it before asserting, like the sections further down.
+# Assert the detail sections in their on-screen order (DetailsScreen.kt):
+# Privacy -> Performance -> IP -> Identity -> Bottom. Scroll to each section's
+# FIRST item; the redesigned rows are tall enough that a section can exceed one
+# viewport, so scrolling to a later item would push earlier ones off the top.
+
+# Privacy
+- scrollUntilVisible:
+    element:
+      text: "Advanced privacy"
+    direction: DOWN
+- assertVisible: "Advanced privacy"
+- assertVisible: "With mixnet (5-hop)"
+- assertVisible: "Streaming & content"
+- assertVisible: "Datacenter IP"
+- assertVisible: "Anti-censorship"
+- assertVisible: "Standard protocol"
+
+# Performance
+- scrollUntilVisible:
+    element:
+      text: "Overall performance"
+    direction: DOWN
+- assertVisible: "Overall performance"
+- assertVisible: "High"
+- assertVisible: "Server load"
+- assertVisible: "Medium"
+- assertVisible: "Uptime"
+- assertVisible: "9570%"
+
+# Connection details (IP)
 - scrollUntilVisible:
     element:
       text: "Exit IPv4"
@@ -56,37 +84,19 @@ tags:
 - assertVisible: "ASN name"
 - assertVisible: "Deutsche Telekom AG"
 
-# Scroll to each section's FIRST item, not its last: the redesigned rows are
-# tall enough that a section can exceed one viewport, so scrolling to the last
-# item pushes the first off the top of the screen.
-- scrollUntilVisible:
-    element:
-      text: "Advanced privacy"
-    direction: DOWN
-- assertVisible: "Advanced privacy"
-- assertVisible: "With mixnet (5-hop)"
-- assertVisible: "Streaming & content"
-- assertVisible: "Datacenter IP"
-- assertVisible: "Anti-censorship"
-- assertVisible: "Standard protocol"
-
-- scrollUntilVisible:
-    element:
-      text: "Overall performance"
-    direction: DOWN
-- assertVisible: "Overall performance"
-- assertVisible: "High"
-- assertVisible: "Server load"
-- assertVisible: "Medium"
-- assertVisible: "Uptime"
-- assertVisible: "9570%"
-
+# Identity / build
 - scrollUntilVisible:
     element:
       text: "Nym build version"
     direction: DOWN
 - assertVisible: "Nym build version"
 - assertVisible: "5mZ8G2XrYF8nW7AqH2kP3DsV9uQ4JrL1tC6bN0eMfYw"
+
+# Bottom
+- scrollUntilVisible:
+    element:
+      text: "Why is there missing or incorrect info"
+    direction: DOWN
 - assertVisible: "Why is there missing or incorrect info"
 
 - tapOn: "Select node"
