@@ -364,7 +364,7 @@
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है…</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
-	<string name="account_payment_retrieving">आपके गुमनाम अकाउंट की प्रमाणीकरण 
+	<string name="account_payment_retrieving">आपके गुमनाम अकाउंट की प्रमाणीकरण
 जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
 	<string name="account_payment_credentials">ये ज़ीरो-नॉलेज क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
 	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं…</string>
@@ -496,9 +496,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ निरंतर ट्रैफ़िक बंद कर दिया गया है। आपके पैकेट उपलब्ध होते ही भेज दिए जाएँगे। इससे ट्रैफ़िक पैटर्न का पता चल सकता है।</string>
 	<string name="mixnet_tuning_traffic_on_description">पैटर्न को एकसमान बनाए रखने के लिए कवर ट्रैफ़िक हमेशा भेजा जाता है। अपने पैकेट भेजने की दर को समायोजित करें।</string>
 	<string name="mixnet_tuning_traffic_off_description">हम आपके वास्तविक ट्रैफ़िक से अलग, कवर ट्रैफ़िक भेजते रहेंगे। आपको जितनी कवर ट्रैफ़िक की आवश्यकता है, उसे चुनें। </string>
-	<string name="mixnet_tuning_traffic_min">कम बैटरी &amp; डेटा का उपयोग करें</string>
-	<string name="mixnet_tuning_traffic_on_max">सबसे तेज़</string>
-	<string name="mixnet_tuning_traffic_on_low">कम\n0.7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">कम\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">उच्च\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">संतुलित\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">बेस</string>
@@ -508,13 +506,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">मिक्सिंग में देरी</string>
 	<string name="mixnet_tuning_delays_description">पैकेटों के मिश्रण की गुणवत्ता को बदलने के लिए समय विलंब को समायोजित करें।</string>
-	<string name="mixnet_tuning_delays_min">तेज़ गति</string>
-	<string name="mixnet_tuning_delays_low">कम\n0m</string>
+    <string name="mixnet_tuning_delays_low">कम\n0m</string>
 	<string name="mixnet_tuning_delays_high">उच्च\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">डिफ़ॉल्ट\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">वर्तमान\n%1$s</string>
-	<string name="mixnet_tuning_max">अधिकतम गुमनामी</string>
-	<string name="mixnet_tuning_link_text">मिक्सनेट पैरामीटर के बारे में और जानें</string>
+    <string name="mixnet_tuning_link_text">मिक्सनेट पैरामीटर के बारे में और जानें</string>
 	<string name="mixnet_tuning_save_button">कस्टम सेटिंग्स सेव करें</string>
 	<string name="mixnet_tuning_restore_button">डिफाल्ट सेटिंग रिस्टोर करो</string>
 	<!-- Diagnostic screen -->

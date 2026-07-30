@@ -497,9 +497,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Kontinuierlicher Datenverkehr ist ausgeschaltet. Deine Pakete werden gesendet, sobald sie verfügbar sind. Dadurch können Verkehrsmuster aufgedeckt werden.</string>
 	<string name="mixnet_tuning_traffic_on_description">Es wird kontinuierlich Tarnverkehr gesendet, um ein gleichmäßiges Datenmuster zu wahren. Passe hier die Sende-Rate deiner Pakete an.</string>
 	<string name="mixnet_tuning_traffic_off_description">Wir senden weiterhin Cover-Traffic, unabhängig von deinem echten Traffic. Wähle aus, wie viel Deckung du benötigst.</string>
-	<string name="mixnet_tuning_traffic_min">Weniger Akku &amp; Daten verbrauchen</string>
-	<string name="mixnet_tuning_traffic_on_max">Am schnellsten</string>
-	<string name="mixnet_tuning_traffic_on_low">Niedrig\n0,7 Mbit/s</string>
+    <string name="mixnet_tuning_traffic_on_low">Niedrig\n0,7 Mbit/s</string>
 	<string name="mixnet_tuning_traffic_on_high">Hoch\n2 Mbit/s</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Ausgewogen\n1 Mbit/s</string>
 	<string name="mixnet_tuning_traffic_off_low">Basis</string>
@@ -509,13 +507,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">Verzögerungszeit beim Mixing</string>
 	<string name="mixnet_tuning_delays_description">Passe die Zeitverzögerung an, um zu bestimmen, wie gut deine Pakete gemixed werden.</string>
-	<string name="mixnet_tuning_delays_min">Schnellere Geschwindigkeit</string>
-	<string name="mixnet_tuning_delays_low">Niedrig\n0m</string>
+    <string name="mixnet_tuning_delays_low">Niedrig\n0m</string>
 	<string name="mixnet_tuning_delays_high">Hoch\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Standard\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Aktuelle\n%1$s</string>
-	<string name="mixnet_tuning_max">Max. Anonymität</string>
-	<string name="mixnet_tuning_link_text">Erfahre mehr über die Mixnet-Parameter</string>
+    <string name="mixnet_tuning_link_text">Erfahre mehr über die Mixnet-Parameter</string>
 	<string name="mixnet_tuning_save_button">Benutzerdefinierte Einstellungen speichern</string>
 	<string name="mixnet_tuning_restore_button">Standardeinstellungen wiederherstellen</string>
 	<!-- Diagnostic screen -->

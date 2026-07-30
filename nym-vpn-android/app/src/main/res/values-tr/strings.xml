@@ -497,9 +497,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_traffic_warning">⚠️ Kesintisiz trafik devre dışı. Paketleriniz hazır olduğunda gönderilecek, bu da trafik desenlerinin ortaya çıkmasına neden olabilir.</string>
 	<string name="mixnet_tuning_traffic_on_description">Trafik desenini korumak için sahte paketler sürekli gönderilir. Paketlerinizin gönderim hızını ayarlayabilirsiniz.</string>
 	<string name="mixnet_tuning_traffic_off_description">Gerçek internet trafiğinizden bağımsız olarak ek gizleme trafiği göndermeye devam edeceğiz. İhtiyacınız olan gizleme düzeyini seçin. </string>
-	<string name="mixnet_tuning_traffic_min">Daha az pil &amp; veri kullanımı</string>
-	<string name="mixnet_tuning_traffic_on_max">En hızlı</string>
-	<string name="mixnet_tuning_traffic_on_low">Düşük\n0.7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">Düşük\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Yüksek\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Dengeli\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Temel</string>
@@ -509,13 +507,11 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_delays_warning">⚠️ Gecikmeyi 0\'a ayarlamak mixing özelliğini kaldırır ve anonimlik seviyesini düşürür</string>
 	<string name="mixnet_tuning_delays_title">Paket karıştırma gecikmeleri</string>
 	<string name="mixnet_tuning_delays_description">Paketlerinizin karışma düzeyini değiştirmek için zamanlama gecikmelerini ayarlayabilirsiniz.</string>
-	<string name="mixnet_tuning_delays_min">Daha yüksek hız</string>
-	<string name="mixnet_tuning_delays_low">Düşük\n0m</string>
+    <string name="mixnet_tuning_delays_low">Düşük\n0m</string>
 	<string name="mixnet_tuning_delays_high">Yüksek\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Varsayılan\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Mevcut\n%1$s</string>
-	<string name="mixnet_tuning_max">Maksimum anonimlik</string>
-	<string name="mixnet_tuning_link_text">Mixnet parametreleri hakkında daha fazla bilgi edinin</string>
+    <string name="mixnet_tuning_link_text">Mixnet parametreleri hakkında daha fazla bilgi edinin</string>
 	<string name="mixnet_tuning_save_button">Özel ayarları kaydedin</string>
 	<string name="mixnet_tuning_restore_button">Varsayılan ayarları geri yükle</string>
 	<!-- Diagnostic screen -->

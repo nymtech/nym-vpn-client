@@ -502,9 +502,7 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ Tráfego contínuo desativado. Seus pacotes serão enviados assim que estiverem disponíveis. Isso pode revelar padrões de tráfego.</string>
 	<string name="mixnet_tuning_traffic_on_description">Tráfego de cobertura é sempre enviado para manter o padrão uniforme. Ajuste a taxa de envio dos seus pacotes.</string>
 	<string name="mixnet_tuning_traffic_off_description">Continuaremos enviando tráfego de cobertura independente do seu tráfego real. Escolha o nível de cobertura que você precisa.</string>
-	<string name="mixnet_tuning_traffic_min">Usar menos bateria &amp; dados</string>
-	<string name="mixnet_tuning_traffic_on_max">Mais rápido</string>
-	<string name="mixnet_tuning_traffic_on_low">Baixo\n0.7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">Baixo\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Alto\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Balanceado\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Base</string>
@@ -514,15 +512,13 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Configurar o atraso para 0 remove a mixagem, reduzindo o anonimato</string>
 	<string name="mixnet_tuning_delays_title">Atrasos de mixagem</string>
 	<string name="mixnet_tuning_delays_description">Ajuste os atrasos para melhorar a forma como seus pacotes são misturados.</string>
-	<string name="mixnet_tuning_delays_min">Mais rápido</string>
-	<string name="mixnet_tuning_delays_low">Baixo\n0m</string>
+    <string name="mixnet_tuning_delays_low">Baixo\n0m</string>
 	<string name="mixnet_tuning_delays_high">Alto\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Padrão
 15 ms</string>
 	<string name="mixnet_tuning_delays_current">Atual
 %1$s</string>
-	<string name="mixnet_tuning_max">Anonimato máximo</string>
-	<string name="mixnet_tuning_link_text">Saiba mais sobre parâmetros mixnet</string>
+    <string name="mixnet_tuning_link_text">Saiba mais sobre parâmetros mixnet</string>
 	<string name="mixnet_tuning_save_button">Salvar configurações personalizadas</string>
 	<string name="mixnet_tuning_restore_button">Restaurar configurações padrão</string>
 	<!-- Diagnostic screen -->

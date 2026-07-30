@@ -497,9 +497,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ تم إيقاف حركة المرور المستمرة. سيتم إرسال الحزم الخاصة بك عندما تصبح متاحة. قد يكشف هذا عن أنماط حركة المرور.</string>
 	<string name="mixnet_tuning_traffic_on_description">يتم إرسال حركة مرور الغلاف دائماً للحفاظ على النمط الموحد. قم بتعديل معدل إرسال الحزم الخاصة بك.</string>
 	<string name="mixnet_tuning_traffic_off_description">سنظل نرسل غلاف حركة المرور بشكل مستقل عن حركة المرور الحقيقية. اختر مقدار الغطاء الذي تحتاجه. </string>
-	<string name="mixnet_tuning_traffic_min">استخدام قدر أقل من البطارية &amp;</string>
-	<string name="mixnet_tuning_traffic_on_max">الأسرع</string>
-	<string name="mixnet_tuning_traffic_on_low">منخفض\n0.7 ميغابايت</string>
+    <string name="mixnet_tuning_traffic_on_low">منخفض\n0.7 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_on_high">عالي\n2 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_on_balanced">متوازنة\n1 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_off_low">قاعدة</string>
@@ -509,13 +507,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">خلط التأخيرات</string>
 	<string name="mixnet_tuning_delays_description">ضبط تأخير التوقيت لتغيير مدى خلط الحزم الخاصة بك.</string>
-	<string name="mixnet_tuning_delays_min">سرعة أسرع</string>
-	<string name="mixnet_tuning_delays_low">منخفض\n0 دقيقة</string>
+    <string name="mixnet_tuning_delays_low">منخفض\n0 دقيقة</string>
 	<string name="mixnet_tuning_delays_high">عالي\n200 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_default">إفتراضي\n15 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_current">\n%1$s الحالي</string>
-	<string name="mixnet_tuning_max">Max. anonymity</string>
-	<string name="mixnet_tuning_link_text">تعلم المزيد عن معلمات المزيج</string>
+    <string name="mixnet_tuning_link_text">تعلم المزيد عن معلمات المزيج</string>
 	<string name="mixnet_tuning_save_button">حفظ الإعدادات المخصصة</string>
 	<string name="mixnet_tuning_restore_button">استعادة الإعدادات الافتراضية</string>
 	<!-- Diagnostic screen -->

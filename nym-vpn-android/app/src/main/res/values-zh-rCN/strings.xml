@@ -497,9 +497,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ 连续流量发送机制已关闭。您的数据包将会立即发送。这可能会暴露流量模式。</string>
 	<string name="mixnet_tuning_traffic_on_description">掩护流量会一直发送以确保流量特征的一致性。调整数据包的发送速率。</string>
 	<string name="mixnet_tuning_traffic_off_description">我们仍然会发送独立于您的真实流量的掩护流量。选择您需要多少掩护流量。 </string>
-	<string name="mixnet_tuning_traffic_min">使用较少的电量和流量</string>
-	<string name="mixnet_tuning_traffic_on_max">最快</string>
-	<string name="mixnet_tuning_traffic_on_low">低\n0.7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">低\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">高\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">平衡\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">基准</string>
@@ -509,13 +507,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">数据包延迟</string>
 	<string name="mixnet_tuning_delays_description">调整时间延迟以改变您的数据包混合的程度。</string>
-	<string name="mixnet_tuning_delays_min">速度更快</string>
-	<string name="mixnet_tuning_delays_low">低\n0m</string>
+    <string name="mixnet_tuning_delays_low">低\n0m</string>
 	<string name="mixnet_tuning_delays_high">高\n200 毫秒</string>
 	<string name="mixnet_tuning_delays_default">默认\n15 毫秒</string>
 	<string name="mixnet_tuning_delays_current">当前\n%1$s</string>
-	<string name="mixnet_tuning_max">最大程度的匿名</string>
-	<string name="mixnet_tuning_link_text">了解更多关于混合网络的参数</string>
+    <string name="mixnet_tuning_link_text">了解更多关于混合网络的参数</string>
 	<string name="mixnet_tuning_save_button">保存自定义设置</string>
 	<string name="mixnet_tuning_restore_button">恢复默认设置</string>
 	<!-- Diagnostic screen -->

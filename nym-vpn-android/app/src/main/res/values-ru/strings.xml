@@ -497,9 +497,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Непрерывная отправка трафика отключена. Ваши пакеты будут отправляться по мере их поступления. Это может раскрыть паттерны трафика.</string>
 	<string name="mixnet_tuning_traffic_on_description">Покрывающий трафик отправляется постоянно для поддержания единообразия паттерна. Настройте скорость отправки ваших пакетов.</string>
 	<string name="mixnet_tuning_traffic_off_description">Мы будем отправлять покрывающий трафик независимо от вашего реального трафика. Выберите необходимый уровень прикрытия. </string>
-	<string name="mixnet_tuning_traffic_min">Экономить заряд батареи &amp; трафик данных</string>
-	<string name="mixnet_tuning_traffic_on_max">Быстрейший</string>
-	<string name="mixnet_tuning_traffic_on_low">Низкий\n0,7 Мбит/с</string>
+    <string name="mixnet_tuning_traffic_on_low">Низкий\n0,7 Мбит/с</string>
 	<string name="mixnet_tuning_traffic_on_high">Высокий\n2 Мбит/с</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Сбалансированный\n1 Мбит/с</string>
 	<string name="mixnet_tuning_traffic_off_low">Базовый</string>
@@ -509,13 +507,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Установка задержки на 0 отключает перемешивание, что снижает анонимность</string>
 	<string name="mixnet_tuning_delays_title">Задержки микширования</string>
 	<string name="mixnet_tuning_delays_description">Настройте временные задержки, определяющие степень перемешивания ваших пакетов.</string>
-	<string name="mixnet_tuning_delays_min">Более высокая скорость</string>
-	<string name="mixnet_tuning_delays_low">Низкая\n0 мс</string>
+    <string name="mixnet_tuning_delays_low">Низкая\n0 мс</string>
 	<string name="mixnet_tuning_delays_high">Высокая\n200 мс</string>
 	<string name="mixnet_tuning_delays_default">По умолчанию\n15 мс</string>
 	<string name="mixnet_tuning_delays_current">Текущая\n%1$s</string>
-	<string name="mixnet_tuning_max">Макс. анонимность</string>
-	<string name="mixnet_tuning_link_text">Узнайте больше о параметрах микснета</string>
+    <string name="mixnet_tuning_link_text">Узнайте больше о параметрах микснета</string>
 	<string name="mixnet_tuning_save_button">Сохранить пользовательские настройки</string>
 	<string name="mixnet_tuning_restore_button">Восстановить настройки по умолчанию</string>
 	<!-- Diagnostic screen -->
