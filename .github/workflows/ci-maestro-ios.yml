@@ -317,38 +317,6 @@ jobs:
             echo "only record of what was on screen."
           fi
 
-      # The login flows fail on the Account and devices screen looking for
-      # content the app code says must render. This navigates there on its own
-      # and dumps that screen's tree, so it can be identified without a Mac.
-      # Uses a flow outside maestro/ so the suite run below never executes it.
-      - name: Capture account screen
-        working-directory: nym-vpn-apple
-        continue-on-error: true
-        run: |
-          set -uo pipefail
-          OUT="$PWD/account-diagnostics"
-          mkdir -p "$OUT"
-
-          maestro --device "$DEVICE_ID" test maestro-diagnostics/account_nav.yaml || true
-
-          xcrun simctl io "$DEVICE_ID" screenshot "$OUT/account-state.png" || true
-
-          echo "=== account screen accessibility tree ==="
-          maestro --device "$DEVICE_ID" hierarchy > "$OUT/account-hierarchy.txt" 2>&1 &
-          HIER_PID=$!
-          ( sleep 120; kill "$HIER_PID" 2>/dev/null ) &
-          WATCHDOG_PID=$!
-          wait "$HIER_PID" 2>/dev/null || true
-          kill "$WATCHDOG_PID" 2>/dev/null || true
-
-          if [ -s "$OUT/account-hierarchy.txt" ]; then
-            echo "--- visible text ---"
-            grep -oE '"(text|title|label|accessibilityText)"[[:space:]]*:[[:space:]]*"[^"]+"' \
-              "$OUT/account-hierarchy.txt" | sort -u | head -80 || echo "(no text nodes matched)"
-          else
-            echo "(account-hierarchy.txt empty)"
-          fi
-
       # Points at the workspace root, not maestro/flows/. Maestro reads
       # config.yaml from the directory it is given, so targeting flows/ meant the
       # appId, tags and onFlowStart hooks in maestro/config.yaml were never
@@ -385,6 +353,5 @@ jobs:
           path: |
             nym-vpn-apple/maestro-debug
             nym-vpn-apple/launch-diagnostics
-            nym-vpn-apple/account-diagnostics
           retention-days: 14
           if-no-files-found: warn
