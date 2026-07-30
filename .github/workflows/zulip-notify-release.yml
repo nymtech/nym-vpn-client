@@ -63,10 +63,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 jobs:
   zulip-notify-release-android:
     runs-on: arc-linux-latest
