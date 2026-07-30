@@ -52,8 +52,8 @@ tags:
       text: "Advanced privacy"
     direction: DOWN
 - assertVisible: "Advanced privacy"
-- assertVisible: "With mixnet (5-hop)"
-- assertVisible: "Streaming & content"
+- assertVisible: "Mixnet"
+- assertVisible: "Streaming & IP"
 - assertVisible: "Datacenter IP"
 - assertVisible: "Anti-censorship"
 - assertVisible: "Standard protocol"
