@@ -252,7 +252,7 @@
 	<string name="settings_reset_app_title">Reset app data</string>
 	<string name="settings_system_status_title">System status</string>
 	<string name="settings_mixnet_tuning_title">Mixnet tuning</string>
-	<string name="settings_mixnet_tuning_description">Customize traffic patterns of Anonymous mode</string>
+	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
 	<string name="settings_quit_title">Quit NymVPN</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon version: %1$s</string>

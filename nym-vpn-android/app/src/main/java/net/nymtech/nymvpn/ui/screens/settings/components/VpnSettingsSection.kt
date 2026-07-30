@@ -193,8 +193,8 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 				SelectionItem(
 					leading = {
 						SettingsIcon(
-							Icons.Outlined.VisibilityOff,
-							stringResource(R.string.settings_mixnet_tuning_title),
+							ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
+							stringResource(R.string.settings_split_tunneling_title),
 						)
 					},
 					trailing = {
