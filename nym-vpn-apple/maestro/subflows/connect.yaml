@@ -1,5 +1,9 @@
 # Taps Connect and clears any VPN permission dialog, leaving the tunnel
 # transitioning toward the connected state. Assumes the home screen is showing.
+#
+# Does not assert the transient "Connecting" label: the mock advances
+# connecting -> connected on its own timer and the window is easy to miss, so
+# callers wait for the stable "Disconnect" (connected) state instead.
 appId: net.nymtech.vpn
 ---
 - tapOn: "Connect"
@@ -10,8 +14,3 @@ appId: net.nymtech.vpn
       visible: "Allow"
     commands:
       - tapOn: "Allow"
-
-- extendedWaitUntil:
-    visible:
-      text: "Connecting"
-    timeout: 10000

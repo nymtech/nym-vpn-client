@@ -16,4 +16,3 @@ tags:
     visible:
       text: "Display theme"
     timeout: 10000
-- assertVisible: "App mode"

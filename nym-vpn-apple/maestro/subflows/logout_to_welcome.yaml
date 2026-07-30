@@ -10,15 +10,14 @@ appId: net.nymtech.vpn
     timeout: 10000
 
 - tapOn: "Account and devices"
-- extendedWaitUntil:
-    visible:
-      text: "Log out"
-    timeout: 10000
 
+# The Log out button sits at the bottom of the account screen, below the fold -
+# scroll to it rather than waiting for it to be visible on entry.
 - scrollUntilVisible:
     element:
       text: "Log out"
     direction: DOWN
+    timeout: 15000
 - tapOn: "Log out"
 
 # Confirm the logout if a confirmation prompt is shown.

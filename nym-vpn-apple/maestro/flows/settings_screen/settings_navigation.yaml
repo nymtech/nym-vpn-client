@@ -12,7 +12,8 @@ tags:
       text: "Account and devices"
     timeout: 10000
 
+# Entries visible without scrolling. "Customize DNS" is below the fold (see
+# customize_dns.yaml) and "Split tunneling" is macOS-only, so neither is asserted
+# here.
 - assertVisible: "Appearance"
 - assertVisible: "Anti-censorship"
-- assertVisible: "Customize DNS"
-- assertVisible: "Split tunneling"

@@ -1,10 +1,17 @@
-# Expands OneClick from the default powerUser mode into nerd mode, where the
-# Entry/Exit server hop rows are visible and tappable. In powerUser mode those
-# rows are accessibilityHidden, so any flow that selects a server must expand
-# first. Assumes the home screen is showing.
+# Ensures the Entry/Exit server hop rows are visible. They are accessibilityHidden
+# in the default powerUser mode; tapping "Expand" switches to nerd mode where they
+# render. The display mode persists across Maestro flows (it is a stored app
+# setting, not reset by clearState), so a prior flow may already have left the app
+# in nerd mode - in which case "Expand" is gone and the rows are already visible.
+# Only expand when the rows are not already on screen. Assumes the home screen.
 appId: net.nymtech.vpn
 ---
-- tapOn: "Expand"
+- runFlow:
+    when:
+      notVisible: "Exit server"
+    commands:
+      - tapOn: "Expand"
+
 - extendedWaitUntil:
     visible:
       text: "Exit server"
