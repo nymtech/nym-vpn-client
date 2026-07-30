@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
+import nym_vpn_lib_types.BackgroundCoverTrafficRate
+import nym_vpn_lib_types.ContinuousTrafficSendingRate
 import nym_vpn_lib_types.MixnetTrafficConfig
+import nym_vpn_lib_types.MixnetTrafficDefaults
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -23,32 +26,48 @@ class MixnetTuningViewModel @Inject constructor(private val settingsRepository: 
 
 	init {
 		viewModelScope.launch {
+			val mixingDelay = MixnetTrafficDefaults().use { it.defaultMixingDelay() }
 			val config = settingsRepository.getMixnetTrafficConfig()
 			savedConfig = config
 			_uiState.update {
-				it.fromConfig(config)
+				it.copy(
+					mixingDelayRange = mixingDelay.minValue.toFloat()..mixingDelay.maxValue.toFloat(),
+					mixingDelayDefault = mixingDelay.defaultValue.toFloat(),
+				)
+					.fromConfig(config)
 					.recalculateMetrics()
 					.checkState(savedConfig)
 			}
 		}
 	}
 
-	fun onTrafficEnable(enabled: Boolean) {
+	fun onContinuousTrafficEnable(enabled: Boolean) {
 		_uiState.update { currentState ->
-			val newTrafficValue = if (enabled) {
-				DEFAULT_MESSAGE_STREAM_MBPS
-			} else {
-				Settings.MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream!!.toFloat()
-			}
-			currentState.copy(trafficEnabled = enabled, currentTrafficValue = newTrafficValue)
+			currentState.copy(continuousTrafficEnabled = enabled)
 				.recalculateMetrics()
 				.checkState(savedConfig)
 		}
 	}
 
-	fun onTrafficValueChange(value: Float) {
+	fun onContinuousTrafficRateChange(rate: ContinuousTrafficSendingRate) {
 		_uiState.update { currentState ->
-			currentState.copy(currentTrafficValue = value)
+			currentState.copy(continuousTrafficRate = rate)
+				.recalculateMetrics()
+				.checkState(savedConfig)
+		}
+	}
+
+	fun onBackgroundCoverEnable(enabled: Boolean) {
+		_uiState.update { currentState ->
+			currentState.copy(backgroundCoverEnabled = enabled)
+				.recalculateMetrics()
+				.checkState(savedConfig)
+		}
+	}
+
+	fun onBackgroundCoverRateChange(rate: BackgroundCoverTrafficRate) {
+		_uiState.update { currentState ->
+			currentState.copy(backgroundCoverRate = rate)
 				.recalculateMetrics()
 				.checkState(savedConfig)
 		}
@@ -102,7 +121,7 @@ class MixnetTuningViewModel @Inject constructor(private val settingsRepository: 
 
 	private fun MixnetTuningUiState.recalculateMetrics(): MixnetTuningUiState {
 		val latencyResult = this.toConfig(original = Settings.MIXNET_CONFIG_DEFAULT).calculateTrafficLatency()
-		val mbps = if (this.trafficEnabled) this.currentTrafficValue else 0f
+		val mbps = if (this.continuousTrafficEnabled) continuousMbpsFor(this.continuousTrafficRate) else 0f
 
 		return this.copy(
 			calculatedLatencyMs = latencyResult,
@@ -111,6 +130,10 @@ class MixnetTuningViewModel @Inject constructor(private val settingsRepository: 
 	}
 
 	companion object {
-		private const val DEFAULT_MESSAGE_STREAM_MBPS = 1f
+		private fun continuousMbpsFor(rate: ContinuousTrafficSendingRate): Float = when (rate) {
+			ContinuousTrafficSendingRate.MS30 -> 0.7f
+			ContinuousTrafficSendingRate.MS20 -> 1f
+			ContinuousTrafficSendingRate.MS10 -> 2f
+		}
 	}
 }

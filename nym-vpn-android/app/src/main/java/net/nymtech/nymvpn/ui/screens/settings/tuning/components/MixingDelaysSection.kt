@@ -21,17 +21,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import kotlin.math.roundToInt
 
 @Composable
-fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) {
+fun MixingDelaysSection(delayValue: Float, valueRange: ClosedFloatingPointRange<Float>, defaultValue: Float, onDelayValueChange: (Float) -> Unit) {
 	val interactionSource = remember { MutableInteractionSource() }
 
-	val defaultDelay = Settings.MIXNET_CONFIG_DEFAULT.averagePacketDelay?.toInt()
 	val currentInt = delayValue.roundToInt()
-	val isDefault = currentInt == defaultDelay
+	val isDefault = currentInt == defaultValue.roundToInt()
 
 	Card(
 		shape = RoundedCornerShape(8.dp),
@@ -67,28 +65,14 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 				)
 			}
 
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.SpaceBetween,
-			) {
-				Text(
-					text = stringResource(R.string.mixnet_tuning_delays_min),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onBackground,
-				)
-				Text(
-					text = stringResource(R.string.mixnet_tuning_max),
-					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onBackground,
-				)
-			}
+			SliderRangeLabels()
 
 			TuningSlider(
 				value = delayValue,
 				onValueChange = { newValue ->
 					onDelayValueChange(newValue.roundToInt().toFloat())
 				},
-				valueRange = 0f..200f,
+				valueRange = valueRange,
 				interactionSource = interactionSource,
 			)
 
@@ -111,7 +95,7 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 						stringResource(R.string.mixnet_tuning_delays_current, currentInt.toString())
 					},
 					style = MaterialTheme.typography.bodyMedium,
-					color = if (isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
+					color = if (isDefault) MaterialTheme.colorScheme.primary else LocalNymColors.current.currentValueIndicator,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Center,
 				)
