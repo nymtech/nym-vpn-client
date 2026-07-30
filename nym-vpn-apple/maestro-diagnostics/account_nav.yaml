@@ -45,12 +45,13 @@ appId: net.nymtech.vpn
 - tapOn:
     text: "Log out ?"
 
-# Stop with the confirmation dialog OPEN so the CI dump shows its structure - how
-# many "Log out" nodes exist and in what order - so the confirm tap can target
-# the right one. Do not confirm.
+# Confirm via the dialog's exact "Log out" (no trailing space), then dump the
+# post-logout screen so we can confirm it reaches Welcome.
 - extendedWaitUntil:
     visible:
       text: "Log out of this device?"
     timeout: 10000
+- tapOn:
+    text: "Log out"
 - waitForAnimationToEnd:
-    timeout: 5000
+    timeout: 8000
