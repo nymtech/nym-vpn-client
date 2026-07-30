@@ -88,10 +88,8 @@ async fn count_bridge_capable_wg_entries(
     provider: &crate::nym_daemon::RpcClientProvider,
     client: NymProxyClient,
 ) -> anyhow::Result<(usize, NymProxyClient)> {
-    let (gateways, client) = helpers_nym::call_nym_with_transport_recovery(
-        provider,
-        client,
-        |mut client| async move {
+    let (gateways, client) =
+        helpers_nym::call_nym_with_transport_recovery(provider, client, |mut client| async move {
             let result = client
                 .list_gateways(ListGatewaysOptions {
                     gw_type: GatewayType::Wg,
@@ -99,10 +97,9 @@ async fn count_bridge_capable_wg_entries(
                 })
                 .await;
             (client, result)
-        },
-    )
-    .await
-    .context("list_gateways(Wg) failed")?;
+        })
+        .await
+        .context("list_gateways(Wg) failed")?;
 
     let with_bridges = gateways
         .iter()
@@ -149,12 +146,9 @@ async fn connect_wg_with_bridges(
     let nym_client =
         helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
             .await?;
-    let nym_client = helpers_nym::set_enable_bridges_with_recovery(
-        &test_context.rpc_provider,
-        nym_client,
-        true,
-    )
-    .await?;
+    let nym_client =
+        helpers_nym::set_enable_bridges_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
 
     let config = {
         let (cfg, client) = helpers_nym::call_nym_with_transport_recovery(
@@ -298,15 +292,7 @@ pub async fn test_amnezia_entry_config_surface(
         let journal = rpc
             .exec(
                 "journalctl",
-                [
-                    "-u",
-                    "nym-vpnd",
-                    "--no-pager",
-                    "-n",
-                    "400",
-                    "-o",
-                    "cat",
-                ],
+                ["-u", "nym-vpnd", "--no-pager", "-n", "400", "-o", "cat"],
             )
             .await
             .context("journalctl nym-vpnd failed")?;
@@ -363,8 +349,8 @@ mod unit_tests {
 
     #[test]
     fn merge_body_err_cleanup_ok() {
-        let err = merge_body_and_cleanup(Err(anyhow::anyhow!("body")), Ok(()))
-            .expect_err("body-only");
+        let err =
+            merge_body_and_cleanup(Err(anyhow::anyhow!("body")), Ok(())).expect_err("body-only");
         assert!(err.to_string().contains("body"), "{err}");
         assert!(!format!("{err:#}").contains("cleanup"), "{err:#}");
     }
