@@ -280,8 +280,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 	// recents list. Deliberately empty rather than null: the UI treats both the
 	// same, and a fixed empty result keeps the recents filter deterministic
 	// across test runs.
-	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? =
-		RecentGateways(entry = emptyList(), exit = emptyList())
+	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = RecentGateways(entry = emptyList(), exit = emptyList())
 
 	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {
 		isGatewayIndependenceEnabled = enabled
