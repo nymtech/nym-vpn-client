@@ -498,9 +498,7 @@
 	<string name="mixnet_tuning_traffic_warning">ترافیک مداوم غیرفعال است. بسته‌ها به‌محض آماده شدن ارسال می‌شوند که ممکن است الگوهای ترافیکی را آشکار کند.</string>
 	<string name="mixnet_tuning_traffic_on_description">برای یکنواخت نگه‌داشتن الگو، ترافیک پوششی همواره ارسال می‌شود. میزان ارسال بسته‌ها را تنظیم کنید.</string>
 	<string name="mixnet_tuning_traffic_off_description">ما همچنان مستقل از ترافیک واقعی شما، ترافیک پوششی ارسال می‌کنیم. میزان ترافیک پوششی را تعیین کنید. </string>
-	<string name="mixnet_tuning_traffic_min">بهینه برای مصرف باتری &amp; و داده</string>
-	<string name="mixnet_tuning_traffic_on_max">سریع‌ترین</string>
-	<string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">زیاد\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">بالانس\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">پایه</string>
@@ -510,13 +508,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">تأخیرهای اختلاط</string>
 	<string name="mixnet_tuning_delays_description">با تنظیم تأخیر زمانی، میزان اختلاط بسته‌های خود را تغییر دهید.</string>
-	<string name="mixnet_tuning_delays_min">سرعت بیشتر</string>
-	<string name="mixnet_tuning_delays_low">پایین\n0m</string>
+    <string name="mixnet_tuning_delays_low">پایین\n0m</string>
 	<string name="mixnet_tuning_delays_high">زیاد\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">فعلی\n%1$s</string>
-	<string name="mixnet_tuning_max">حداکثر ناشناسی</string>
-	<string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
+    <string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>
 	<string name="mixnet_tuning_restore_button">بازگردانی تنظیمات پیش‌فرض</string>
 	<!-- Diagnostic screen -->
@@ -574,7 +570,6 @@
 	<string name="setup_instructions_browser_step_1">تنظیمات → فعال‌سازی SOCKS proxy – میزبان</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">پورت</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">کیف پول Web3</string>
 	<string name="setup_instructions_wallet_step_1">تنظیم URL RPC به</string>

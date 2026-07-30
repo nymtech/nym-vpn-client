@@ -266,6 +266,13 @@ class ServerViewModel @Inject constructor(
 			pruneToFavorites(full, code in favoriteCountries, favoriteRegions, favoriteGatewayIds)
 		}.filter { it.gateways.isNotEmpty() || !it.regions.isNullOrEmpty() }
 
+		val allNodeIds = mutableSetOf<String>()
+		allFavoriteItems.forEach { item ->
+			val grouped = item.regions?.flatMap { it.gateways }.orEmpty()
+			val ungrouped = if (item.regions != null) item.gateways.filter { it.region == null } else item.gateways
+			allNodeIds += (grouped + ungrouped).map { it.identity }
+		}
+
 		val countryItems = allFavoriteItems
 			.filter { item ->
 				query.isBlank() ||
@@ -281,7 +288,7 @@ class ServerViewModel @Inject constructor(
 
 		if (query.isNotBlank()) {
 			val gatewayItems = eligibleGateways
-				.filter { it.identity in favoriteGatewayIds }
+				.filter { it.identity in allNodeIds }
 				.filter {
 					it.identity.lowercase().contains(lowercaseQuery) ||
 						it.name.lowercase().contains(lowercaseQuery)
@@ -291,13 +298,6 @@ class ServerViewModel @Inject constructor(
 				.scoreSorted(tunnelMode)
 				.map { ItemType.GatewayItem(it, true) }
 			resultItems.addAll(gatewayItems)
-		}
-
-		val allNodeIds = mutableSetOf<String>()
-		allFavoriteItems.forEach { item ->
-			val grouped = item.regions?.flatMap { it.gateways }.orEmpty()
-			val ungrouped = if (item.regions != null) item.gateways.filter { it.region == null } else item.gateways
-			allNodeIds += (grouped + ungrouped).map { it.identity }
 		}
 
 		_uiState.update {

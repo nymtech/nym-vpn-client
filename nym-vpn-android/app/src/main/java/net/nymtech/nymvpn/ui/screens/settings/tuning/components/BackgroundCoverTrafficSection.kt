@@ -23,15 +23,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import nym_vpn_lib_types.ContinuousTrafficSendingRate
+import nym_vpn_lib_types.BackgroundCoverTrafficRate
 
-private val RATES = ContinuousTrafficSendingRate.entries
+private val RATES = BackgroundCoverTrafficRate.entries
 
 @Composable
-fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boolean) -> Unit, trafficRate: ContinuousTrafficSendingRate, onTrafficRateChange: (ContinuousTrafficSendingRate) -> Unit) {
+fun BackgroundCoverTrafficSection(enabled: Boolean, onEnable: (enabled: Boolean) -> Unit, rate: BackgroundCoverTrafficRate, onRateChange: (BackgroundCoverTrafficRate) -> Unit) {
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
@@ -50,7 +49,7 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				verticalAlignment = Alignment.CenterVertically,
 			) {
 				Text(
-					text = stringResource(R.string.mixnet_tuning_traffic_title),
+					text = stringResource(R.string.mixnet_tuning_traffic_off_title),
 					style = MaterialTheme.typography.titleMedium,
 					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					maxLines = 2,
@@ -59,34 +58,35 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				)
 				Spacer(modifier = Modifier.width(8.dp))
 				ScaledSwitch(
-					checked = trafficEnabled,
-					onClick = { onTrafficEnable(it) },
+					checked = enabled,
+					onClick = { onEnable(it) },
 				)
 			}
 
 			Text(
-				text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_traffic_on_description else R.string.mixnet_tuning_traffic_warning),
+				text = stringResource(R.string.mixnet_tuning_traffic_off_description),
 				style = MaterialTheme.typography.bodySmall,
-				color = if (trafficEnabled) MaterialTheme.colorScheme.onBackground else LocalNymColors.current.warning,
+				color = MaterialTheme.colorScheme.onBackground,
 			)
 
 			Column(modifier = Modifier.fillMaxWidth()) {
 				SliderRangeLabels()
 				DiscreteTuningSlider(
 					items = RATES,
-					selected = trafficRate,
-					onSelectedChange = onTrafficRateChange,
+					selected = rate,
+					onSelectedChange = onRateChange,
 					interactionSource = interactionSource,
 				)
 			}
 
 			DiscreteRateLabels(
 				labels = listOf(
-					stringResource(R.string.mixnet_tuning_traffic_on_low),
-					stringResource(R.string.mixnet_tuning_traffic_on_balanced),
-					stringResource(R.string.mixnet_tuning_traffic_on_high),
+					stringResource(R.string.mixnet_tuning_traffic_off_low),
+					stringResource(R.string.mixnet_tuning_traffic_off_balanced),
+					stringResource(R.string.mixnet_tuning_traffic_off_medium),
+					stringResource(R.string.mixnet_tuning_traffic_off_high),
 				),
-				selectedIndex = RATES.indexOf(trafficRate),
+				selectedIndex = RATES.indexOf(rate),
 			)
 		}
 	}
@@ -94,13 +94,13 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 
 @Composable
 @Preview
-internal fun PreviewMSendTrafficSection() {
+internal fun PreviewBackgroundCoverTrafficSection() {
 	NymVPNTheme(Theme.default()) {
-		SendTrafficSection(
-			trafficEnabled = true,
-			onTrafficEnable = {},
-			trafficRate = ContinuousTrafficSendingRate.MS20,
-			onTrafficRateChange = {},
+		BackgroundCoverTrafficSection(
+			enabled = false,
+			onEnable = {},
+			rate = BackgroundCoverTrafficRate.MS40,
+			onRateChange = {},
 		)
 	}
 }
