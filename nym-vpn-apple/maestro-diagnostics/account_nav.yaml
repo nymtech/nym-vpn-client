@@ -29,7 +29,28 @@ appId: net.nymtech.vpn
 
 - tapOn: "Account and devices"
 
-# Let the destination settle; do not assert anything so the flow always succeeds
-# and leaves the app on whatever screen the tap produced.
+- extendedWaitUntil:
+    visible:
+      text: "Account status"
+    timeout: 15000
+
+# Perform the full logout so the CI dump shows the POST-logout screen - the
+# login flows now get this far but never see "Welcome!", so capture what does
+# appear instead.
+- scrollUntilVisible:
+    element:
+      text: "Log out ?"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    text: "Log out ?"
+- runFlow:
+    when:
+      visible: "Log out ?"
+    commands:
+      - tapOn:
+          text: "Log out ?"
+
+# Let the post-logout screen settle; assert nothing so the flow always succeeds.
 - waitForAnimationToEnd:
-    timeout: 5000
+    timeout: 8000
