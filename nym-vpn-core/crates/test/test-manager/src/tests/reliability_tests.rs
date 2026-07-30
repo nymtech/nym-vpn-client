@@ -63,14 +63,9 @@ async fn connect_and_wait_connected(
     nym_client: NymProxyClient,
 ) -> anyhow::Result<(ObservedTunnelState, NymProxyClient)> {
     let nym_client = helpers_nym::connect_tunnel_with_recovery(provider, nym_client).await?;
-    wait_for_tunnel_state(
-        rpc,
-        nym_client,
-        provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await
-    .map_err(Into::into)
+    wait_for_tunnel_state(rpc, nym_client, provider, ExpectedTunnelState::Connected)
+        .await
+        .map_err(Into::into)
 }
 
 /// LAN / link-local ranges that `allow_lan=false` is expected to fence off.
