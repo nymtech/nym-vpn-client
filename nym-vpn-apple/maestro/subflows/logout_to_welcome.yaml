@@ -12,29 +12,33 @@ appId: net.nymtech.vpn
 - tapOn: "Account and devices"
 
 # The account screen loads asynchronously (its .task polls the account summary).
-# Wait for "Account status" - a header near the top that is on screen without
-# scrolling - so the screen is populated before we scroll. Scrolling too early
-# (the original bug) moves an empty screen and finds nothing. The Log out button
-# and most of the content sit below the fold, so they are reached by scrolling,
-# not asserted visible on entry.
+# Wait for "Account status" - a header near the top - so the screen is populated
+# before interacting.
 - extendedWaitUntil:
     visible:
       text: "Account status"
     timeout: 15000
 
+# The button renders as "Log out " WITH A TRAILING SPACE. Maestro anchors its
+# text regex to the whole string, so a bare "Log out" never matches - the button
+# is on screen the whole time but reported "not found". Match the trailing space.
+# scrollUntilVisible still handles smaller screens where it sits below the fold.
 - scrollUntilVisible:
     element:
-      text: "Log out"
+      text: "Log out ?"
     direction: DOWN
     timeout: 20000
-- tapOn: "Log out"
+- tapOn:
+    text: "Log out ?"
 
-# Confirm the logout if a confirmation prompt is shown.
+# Confirm the logout if a confirmation prompt is shown (its Yes button reuses the
+# same "Log out" label).
 - runFlow:
     when:
-      visible: "Log out"
+      visible: "Log out ?"
     commands:
-      - tapOn: "Log out"
+      - tapOn:
+          text: "Log out ?"
 
 - extendedWaitUntil:
     visible:
