@@ -569,7 +569,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="setup_instructions_browser_step_1">Ayarlar → SOCKS proxy\'yi etkinleştir — Sunucu adresi</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">, Bağlantı Noktası</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">Web3 wallet</string>
 	<string name="setup_instructions_wallet_step_1">RPC URL\'sini</string>

@@ -569,7 +569,6 @@
 	<string name="setup_instructions_browser_step_1">Настройки → включить SOCKS-прокси — хост</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">, Порт</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">Web3 кошелек</string>
 	<string name="setup_instructions_wallet_step_1">Установите RPC URL как</string>
