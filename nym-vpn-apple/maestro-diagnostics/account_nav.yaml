@@ -44,14 +44,13 @@ appId: net.nymtech.vpn
     timeout: 20000
 - tapOn:
     text: "Log out ?"
+
+# Stop with the confirmation dialog OPEN so the CI dump shows its structure - how
+# many "Log out" nodes exist and in what order - so the confirm tap can target
+# the right one. Do not confirm.
 - extendedWaitUntil:
     visible:
       text: "Log out of this device?"
     timeout: 10000
-- tapOn:
-    text: "Log out ?"
-    index: 1
-
-# Let the post-logout screen settle; assert nothing so the flow always succeeds.
 - waitForAnimationToEnd:
-    timeout: 8000
+    timeout: 5000
