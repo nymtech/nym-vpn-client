@@ -52,11 +52,11 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             ))?;
 
         let gateway_selection_algorithm_config = value
-            .gateway_selection_algorithm
-            .map(nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::try_from)
+            .gateway_selection_algorithm_config
+            .map(nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from)
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.gateway_selection_algorithm",
-            ))??;
+            ))?;
         let fronting_mode = proto::FrontingModes::try_from(value.fronting_mode)
             .map_err(|e| ConversionError::Decode("fronting_mode", e))?
             .into();
@@ -101,7 +101,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
         let geo_exclusion = Some(proto::GeoExclusionSettings::from(value.geo_exclusion));
-        let gateway_selection_algorithm =
+        let gateway_selection_algorithm_config =
             proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config)
                 .into();
         let gateway_independence =
@@ -125,7 +125,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             network_stats,
             split_tunnel,
             geo_exclusion,
-            gateway_selection_algorithm,
+            gateway_selection_algorithm_config,
             gateway_independence,
         }
     }

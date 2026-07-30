@@ -218,20 +218,6 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_gateway_selection_algorithm(
-        &mut self,
-        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) -> Result<()> {
-        let request = proto::GatewaySelectionAlgorithm::from(gateway_selection_algorithm);
-
-        self.0
-            .set_gateway_selection_algorithm(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
     pub async fn set_enable_geo_location(&mut self, enable_geo_location: bool) -> Result<()> {
         self.0
             .set_enable_geo_location(enable_geo_location)

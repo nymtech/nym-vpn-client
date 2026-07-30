@@ -82,6 +82,11 @@ pub struct SetArgs {
     #[arg(long, action = clap::ArgAction::SetTrue, group = "entry")]
     pub entry_random: bool,
 
+    /// Auto-select entry. If argument is "on", the device's jurisdiction will be excluded from seleciton.
+    /// Otherwise, if the argument is "off", that jurisdiction will not be excluded.
+    #[arg(long, group = "entry")]
+    pub entry_auto_exclude_jurisdiction: Option<BooleanOption>,
+
     /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
     /// useful when connecting to standalone IPRs.
     #[arg(long, group = "exit", hide = true)]
@@ -102,6 +107,11 @@ pub struct SetArgs {
     /// Auto-select exit gateway randomly.
     #[arg(long, action = clap::ArgAction::SetTrue, group = "exit")]
     pub exit_random: bool,
+
+    /// Auto-select entry. If argument is "on", the device's jurisdiction and the entry gateway's jurisdiction will be excluded from seleciton.
+    /// Otherwise, if the argument is "off", those jurisdictions will not be excluded.
+    #[arg(long, group = "exit")]
+    pub exit_auto_exclude_jurisdiction: Option<BooleanOption>,
 
     /// Only select residential exit nodes.
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
@@ -340,6 +350,10 @@ impl SetArgs {
             }))
         } else if self.entry_random {
             Ok(Some(EntryPoint::Random))
+        } else if let Some(exclude_user_country) = self.entry_auto_exclude_jurisdiction {
+            Ok(Some(EntryPoint::Auto {
+                exclude_user_country: *exclude_user_country,
+            }))
         } else {
             Ok(None)
         }
@@ -368,6 +382,11 @@ impl SetArgs {
             }))
         } else if self.exit_random {
             Ok(Some(ExitPoint::Random))
+        } else if let Some(exclude_jurisdictions) = self.exit_auto_exclude_jurisdiction {
+            Ok(Some(ExitPoint::Auto {
+                exclude_entry_point_country: *exclude_jurisdictions,
+                exclude_user_country: *exclude_jurisdictions,
+            }))
         } else {
             Ok(None)
         }
