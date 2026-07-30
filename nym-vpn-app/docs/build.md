@@ -33,10 +33,6 @@ The required files are:
 
 - the daemon binary `nym-vpnd.exe` and socks5 proxy `nym-socks5-proxy.exe`.
 - its dlls `libwg.dll`, `winfw.dll`, `wintun.dll`
-- the Visual C++ Redistributable installer, renamed to `vc_redist.exe`, matching
-  the architecture being built (download from
-  `https://aka.ms/vs/17/release/vc_redist.x64.exe` or
-  `https://aka.ms/vs/17/release/vc_redist.arm64.exe`)
 
 Depending on which version of vpnd you are targeting,\
 refer to the vpn-core [readme](nym-vpn-client/nym-vpn-core/README.md#windows)

@@ -68,6 +68,7 @@ ${UnStrTok}
 Var PassiveMode
 Var UpdateMode
 Var NoShortcutMode
+Var ForceVCRedistMode
 Var WixMode
 Var OldMainBinaryName
 Var VpndVersion
@@ -86,9 +87,11 @@ Var VpndVersionMinor
 !if "${ARCH}" == "arm64"
   !define RESPREFIX "..\..\..\..\..\"
   !define VCREDISTARCH "Arm64"
+  !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.arm64.exe"
 !else
   !define RESPREFIX "..\..\..\.."
   !define VCREDISTARCH "X64"
+  !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 !endif
 
 Name "${DISPLAYNAME}"
@@ -557,6 +560,13 @@ Function .onInit
     StrCpy $UpdateMode 1
   ${EndIf}
 
+  ; Force (re)download and (re)install of the VC++ Redistributable, even if
+  ; already present. Intended for testing the VCRedist section in isolation.
+  ${GetOptions} $CMDLINE "/FORCEVCREDIST" $ForceVCRedistMode
+  ${IfNot} ${Errors}
+    StrCpy $ForceVCRedistMode 1
+  ${EndIf}
+
   !if "${DISPLAYLANGUAGESELECTOR}" == "true"
     !insertmacro MUI_LANGDLL_DISPLAY
   !endif
@@ -711,9 +721,19 @@ Section VCRedist
   ; pre-VC-redist version of the app can still be missing the runtime.
   ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
   ${If} $4 <> 1
-    DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
+  ${OrIf} $ForceVCRedistMode = 1
     Delete "$TEMP\vc_redist.exe"
-    File "/oname=$TEMP\vc_redist.exe" "${RESPREFIX}\vc_redist.exe"
+    DetailPrint "Downloading Visual C++ Redistributable (${VCREDISTARCH})"
+    NSISdl::download "${VCREDISTURL}" "$TEMP\vc_redist.exe"
+    Pop $5
+    ${If} $5 == "success"
+      DetailPrint "Visual C++ Redistributable downloaded successfully"
+    ${Else}
+      DetailPrint "vc_redist.exe download failed: $5"
+      Abort "Failed to download the Visual C++ Redistributable [$5]"
+    ${EndIf}
+
+    DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
     ExecWait '"$TEMP\vc_redist.exe" /install /quiet /norestart' $5
     ${If} $5 = 0
       DetailPrint "Visual C++ Redistributable installed successfully"
