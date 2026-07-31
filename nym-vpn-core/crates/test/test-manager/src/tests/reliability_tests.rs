@@ -7,10 +7,7 @@ use crate::{
     nym_daemon::RpcClientProvider,
     tests::{
         TestContext,
-        helpers_nym::{
-            self, ExpectedTunnelState, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry,
-            wait_for_tunnel_state,
-        },
+        helpers_nym::{self, ExpectedTunnelState, wait_for_tunnel_state},
         nym_test::dc_and_ensure_logged_in,
     },
 };
@@ -44,17 +41,6 @@ fn merge_body_and_cleanup(
             "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
         ))),
     }
-}
-
-async fn disconnect_cleanup(
-    rpc: &NymServiceClient,
-    nym_client: NymProxyClient,
-    provider: &RpcClientProvider,
-) -> Result<(), anyhow::Error> {
-    helpers_nym::disconnect_and_wait(rpc, nym_client, provider)
-        .await
-        .map(|_| ())
-        .map_err(|e| anyhow::anyhow!(e))
 }
 
 async fn connect_and_wait_connected(
@@ -483,8 +469,19 @@ pub async fn test_exit_country_persists_across_reconnect(
         client
     };
 
+    let helpers_nym::InTunnelDnsOutcome {
+        resolve,
+        client: nym_client,
+    } = helpers_nym::ensure_in_tunnel_hostname_resolves(
+        &rpc,
+        &test_context.rpc_provider,
+        nym_client,
+        "ipinfo.io",
+    )
+    .await;
+
     let body = async {
-        let _ = resolve_hostname_with_retry(&rpc, "ipinfo.io", ROUNDTRIP_DNS_TIMEOUT).await?;
+        let _ = resolve.context("in-tunnel DNS for ipinfo.io failed after reconnect")?;
         let ip_output = rpc
             .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
             .await
@@ -503,7 +500,9 @@ pub async fn test_exit_country_persists_across_reconnect(
     }
     .await;
 
-    let cleanup = disconnect_cleanup(&rpc, nym_client, &test_context.rpc_provider).await;
+    let cleanup =
+        helpers_nym::disconnect_after_in_tunnel_dns(&rpc, &test_context.rpc_provider, nym_client)
+            .await;
     merge_body_and_cleanup(body, cleanup)
 }
 

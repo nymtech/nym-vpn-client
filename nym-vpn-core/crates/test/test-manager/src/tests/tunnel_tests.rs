@@ -738,11 +738,33 @@ pub async fn test_reconnect_tunnel(
     )
     .await?;
 
-    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT).await?;
-    log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
+    let helpers_nym::InTunnelDnsOutcome {
+        resolve,
+        client: nym_client,
+    } = helpers_nym::ensure_in_tunnel_hostname_resolves(
+        &rpc,
+        &test_context.rpc_provider,
+        nym_client,
+        "nym.com",
+    )
+    .await;
+
+    let body = async {
+        let addrs = resolve.context("DNS resolution after reconnect failed inside VM")?;
+        log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
+        Ok(())
+    }
+    .await;
 
     log::info!("Disconnecting...");
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
-
-    Ok(())
+    let cleanup =
+        disconnect_after_in_tunnel_dns(&rpc, &test_context.rpc_provider, nym_client).await;
+    match (body, cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Ok(()), Err(cleanup_err)) => Err(cleanup_err),
+        (Err(body_err), Ok(())) => Err(body_err),
+        (Err(body_err), Err(cleanup_err)) => Err(body_err.context(format!(
+            "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
+        ))),
+    }
 }
