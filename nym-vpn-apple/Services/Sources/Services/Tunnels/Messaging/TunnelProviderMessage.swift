@@ -10,7 +10,6 @@ public enum TunnelProviderMessage: Codable {
     case setEnableBridges(Bool)
     case setEntryPoint(EntryGateway)
     case setExitPoint(ExitRouter)
-    case setGatewaySelectionAlgorithm(NymGatewaySelectionAlgorithm)
     case setFrontingModeEnabled(Bool)
     case setDisableIpv6(Bool)
     case setMixnetTrafficConfig(MixnetTuningConfig)
