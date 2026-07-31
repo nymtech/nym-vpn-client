@@ -74,7 +74,9 @@ jobs:
       - name: Script unit tests
         run: |
           chmod +x "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
-            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
+            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/compose_zulip_e2e_message.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_compose_zulip_e2e_message.sh"
           pkgs=()
           command -v jq >/dev/null || pkgs+=(jq)
           command -v shellcheck >/dev/null || pkgs+=(shellcheck)
@@ -83,8 +85,11 @@ jobs:
           fi
           shellcheck -S warning \
             "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
-            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
+            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/compose_zulip_e2e_message.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_compose_zulip_e2e_message.sh"
           "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
+          "${{ env.E2E_SCRIPTS_DIR }}/test_compose_zulip_e2e_message.sh"
 
       - name: Pick release tag / zigbuild mode
         id: pick
@@ -300,6 +305,11 @@ jobs:
     runs-on: arc-linux-latest
     permissions:
       contents: read
+    outputs:
+      has_report: ${{ steps.export-report.outputs.has_report }}
+      report: ${{ steps.export-report.outputs.report }}
+      test_report_url: ${{ steps.upload-report.outputs.artifact-url }}
+      daemon_logs_url: ${{ steps.upload-logs.outputs.artifact-url }}
     env:
       SSH_KEY_PATH: /tmp/exoscale_key
       SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
@@ -448,6 +458,21 @@ jobs:
             ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.txt /tmp/test-report.txt 2>/dev/null || \
             echo "No test report found"
 
+      - name: Export test report for Zulip
+        if: always()
+        id: export-report
+        run: |
+          if [ -f /tmp/test-report.txt ]; then
+            {
+              echo "has_report=true"
+              echo "report<<REPORT_EOF"
+              cat /tmp/test-report.txt
+              echo "REPORT_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has_report=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Retrieve daemon logs
         if: always()
         env:
@@ -460,6 +485,7 @@ jobs:
 
       - name: Upload daemon logs
         if: always()
+        id: upload-logs
         uses: actions/upload-artifact@v7
         with:
           name: daemon-logs
@@ -479,6 +505,7 @@ jobs:
 
       - name: Upload test report
         if: always()
+        id: upload-report
         uses: actions/upload-artifact@v7
         with:
           name: test-report
@@ -522,8 +549,16 @@ jobs:
     needs: [resolve, build, e2e-test]
     if: always()
     runs-on: arc-linux-latest
-    permissions: {}
+    permissions:
+      contents: read
     steps:
+      - name: Checkout notify scripts
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/e2e
+
       - name: Compose message
         id: msg
         env:
@@ -536,6 +571,13 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           SCHEDULE_CRON: ${{ github.event.schedule }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          HAS_REPORT: ${{ needs.e2e-test.outputs.has_report }}
+          REPORT: ${{ needs.e2e-test.outputs.report }}
+          TEST_REPORT_URL: ${{ needs.e2e-test.outputs.test_report_url }}
+          DAEMON_LOGS_URL: ${{ needs.e2e-test.outputs.daemon_logs_url }}
+          E2E_SCRIPTS_DIR: ${{ env.E2E_SCRIPTS_DIR }}
         run: |
           if [ "$RESOLVE_RESULT" != "success" ]; then
             STATUS="resolve ${RESOLVE_RESULT}"
@@ -558,16 +600,25 @@ jobs:
             fi
           fi
 
+          REPORT_ARGS=()
+          if [ "$HAS_REPORT" = "true" ] && [ -n "$REPORT" ]; then
+            printf '%s\n' "$REPORT" > /tmp/test-report.txt
+            REPORT_ARGS=(--report /tmp/test-report.txt)
+          fi
+
+          chmod +x "${E2E_SCRIPTS_DIR}/compose_zulip_e2e_message.sh"
           {
             echo "content<<MSG_EOF"
-            echo "**E2E** ${STATUS}"
-            echo ""
-            echo "- source: ${SOURCE_LINE}"
-            echo "- event: \`${EVENT_NAME}\`"
-            if [ "$EVENT_NAME" = "schedule" ] && [ -n "$SCHEDULE_CRON" ]; then
-              echo "- cron: \`${SCHEDULE_CRON}\`"
-            fi
-            echo "- run: ${RUN_URL}"
+            E2E_STATUS="$STATUS" \
+              E2E_BRANCH="$BRANCH" \
+              E2E_SHA="$SHA" \
+              E2E_SOURCE_LINE="$SOURCE_LINE" \
+              E2E_EVENT_NAME="$EVENT_NAME" \
+              E2E_SCHEDULE_CRON="$SCHEDULE_CRON" \
+              E2E_RUN_URL="$RUN_URL" \
+              E2E_TEST_REPORT_URL="$TEST_REPORT_URL" \
+              E2E_DAEMON_LOGS_URL="$DAEMON_LOGS_URL" \
+              "${E2E_SCRIPTS_DIR}/compose_zulip_e2e_message.sh" "${REPORT_ARGS[@]}"
             echo "MSG_EOF"
           } >> "$GITHUB_OUTPUT"
 
