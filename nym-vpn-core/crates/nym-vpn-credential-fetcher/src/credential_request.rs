@@ -24,7 +24,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use time::{Date, OffsetDateTime};
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{
     VpnApiFetcherError,
@@ -156,6 +156,11 @@ impl CredentialRequestTask {
             }
             NymVpnZkNymStatus::Active => {
                 let credential = self.build_credential(poll_result, pending_request).await?;
+                // Once we successfully manage retreive the zk-nym ticketbook,
+                // we tell the vpn-api that we have downloaded it.
+                if let Err(e) = self.confirm_zk_nym_downloaded(&pending_request_id).await {
+                    warn!("Non-fatal error trying to confirm zk_nym download : {e}");
+                };
                 NymCredential::Ticketbook(Box::new(credential))
             }
             NymVpnZkNymStatus::UpgradeMode => {
@@ -163,12 +168,7 @@ impl CredentialRequestTask {
             }
         };
 
-        // Once we successfully manage to import the zk-nym ticketbook,
-        // or upgrade mode attestation, we tell the vpn-api that we
-        // have downloaded it.
-        self.confirm_zk_nym_downloaded(&pending_request_id).await?;
-
-        // Remove the pending request from the storage. We no longer need it.$
+        // Remove the pending request from the storage. We no longer need it.
         tracing::debug!("Removing pending zk-nym request");
         self.pending_storage
             .remove_pending_request(&pending_request_id)
