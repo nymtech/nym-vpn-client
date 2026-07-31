@@ -10,6 +10,7 @@ use crate::tests::{
     nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::{Context, bail, ensure};
+use helpers_nym::disconnect_after_in_tunnel_dns;
 use nym_vpn_lib_types::{ExitPoint, GatewayType, ListGatewaysOptions};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::{
@@ -643,36 +644,56 @@ pub async fn test_country_exit_node(
     )
     .await?;
 
-    let addrs = resolve_hostname_with_retry(&rpc, "ipinfo.io", ROUNDTRIP_DNS_TIMEOUT)
-        .await
-        .context("DNS resolution of ipinfo.io failed inside VM")?;
-    log::info!("Resolved ipinfo.io inside VM: {:?}", addrs);
+    let helpers_nym::InTunnelDnsOutcome {
+        resolve,
+        client: nym_client,
+    } = helpers_nym::ensure_in_tunnel_hostname_resolves(
+        &rpc,
+        &test_context.rpc_provider,
+        nym_client,
+        "ipinfo.io",
+    )
+    .await;
 
-    let ip_output = rpc
-        .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
-        .await
-        .context("Failed to curl ipinfo.io from VM")?;
-    let ip_str = String::from_utf8_lossy(&ip_output.stdout);
-    log::info!("ipinfo.io response: {}", ip_str);
+    let body = async {
+        let addrs = resolve.context("DNS resolution of ipinfo.io failed inside VM")?;
+        log::info!("Resolved ipinfo.io inside VM: {:?}", addrs);
 
-    let ip_info: serde_json::Value =
-        serde_json::from_str(&ip_str).context("Failed to parse ipinfo.io response as JSON")?;
-    let country = ip_info
-        .get("country")
-        .and_then(|v| v.as_str())
-        .context("ipinfo.io response missing 'country' field")?;
-    log::info!("Detected exit country: {}", country);
-    ensure!(
-        country == TARGET_COUNTRY,
-        "Expected exit country {}, got {}",
-        TARGET_COUNTRY,
-        country,
-    );
+        let ip_output = rpc
+            .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
+            .await
+            .context("Failed to curl ipinfo.io from VM")?;
+        let ip_str = String::from_utf8_lossy(&ip_output.stdout);
+        log::info!("ipinfo.io response: {}", ip_str);
+
+        let ip_info: serde_json::Value =
+            serde_json::from_str(&ip_str).context("Failed to parse ipinfo.io response as JSON")?;
+        let country = ip_info
+            .get("country")
+            .and_then(|v| v.as_str())
+            .context("ipinfo.io response missing 'country' field")?;
+        log::info!("Detected exit country: {}", country);
+        ensure!(
+            country == TARGET_COUNTRY,
+            "Expected exit country {}, got {}",
+            TARGET_COUNTRY,
+            country,
+        );
+        Ok(())
+    }
+    .await;
 
     log::info!("Disconnecting...");
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
-
-    Ok(())
+    let cleanup =
+        disconnect_after_in_tunnel_dns(&rpc, &test_context.rpc_provider, nym_client).await;
+    match (body, cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Ok(()), Err(cleanup_err)) => Err(cleanup_err),
+        (Err(body_err), Ok(())) => Err(body_err),
+        (Err(body_err), Err(cleanup_err)) => Err(body_err.context(format!(
+            "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
+        ))),
+    }
 }
 
 #[test_function_nym(priority = 25)]
@@ -717,11 +738,33 @@ pub async fn test_reconnect_tunnel(
     )
     .await?;
 
-    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT).await?;
-    log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
+    let helpers_nym::InTunnelDnsOutcome {
+        resolve,
+        client: nym_client,
+    } = helpers_nym::ensure_in_tunnel_hostname_resolves(
+        &rpc,
+        &test_context.rpc_provider,
+        nym_client,
+        "nym.com",
+    )
+    .await;
+
+    let body = async {
+        let addrs = resolve.context("DNS resolution after reconnect failed inside VM")?;
+        log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
+        Ok(())
+    }
+    .await;
 
     log::info!("Disconnecting...");
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
-
-    Ok(())
+    let cleanup =
+        disconnect_after_in_tunnel_dns(&rpc, &test_context.rpc_provider, nym_client).await;
+    match (body, cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Ok(()), Err(cleanup_err)) => Err(cleanup_err),
+        (Err(body_err), Ok(())) => Err(body_err),
+        (Err(body_err), Err(cleanup_err)) => Err(body_err.context(format!(
+            "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
+        ))),
+    }
 }

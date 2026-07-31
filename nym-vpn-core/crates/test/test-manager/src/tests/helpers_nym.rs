@@ -373,6 +373,20 @@ pub async fn set_enable_two_hop_with_recovery(
     Ok(client)
 }
 
+pub async fn set_allow_lan_with_recovery(
+    provider: &RpcClientProvider,
+    client: NymProxyClient,
+    allow_lan: bool,
+) -> Result<NymProxyClient, Error> {
+    let (_, client) =
+        call_nym_with_transport_recovery(provider, client, move |mut client| async move {
+            let result = client.set_allow_lan(allow_lan).await;
+            (client, result)
+        })
+        .await?;
+    Ok(client)
+}
+
 pub async fn connect_tunnel_with_recovery(
     provider: &RpcClientProvider,
     client: NymProxyClient,
@@ -775,10 +789,14 @@ pub async fn resolve_hostname_with_retry(
     })
     .await;
 
-    if result.is_err() {
-        log_dns_failure_diagnostics(rpc, hostname).await;
+    match result {
+        Ok(addrs) => Ok(addrs),
+        Err(error) => {
+            let reachability = probe_dns_upstreams(rpc).await;
+            log_dns_failure_diagnostics(rpc, hostname, &reachability).await;
+            Err(error.context(reachability.summary()))
+        }
     }
-    result
 }
 
 const DOT_UPSTREAM_PROBES: [SocketAddr; 2] = [
@@ -788,33 +806,46 @@ const DOT_UPSTREAM_PROBES: [SocketAddr; 2] = [
 
 const DNS_PROBE_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0);
 
-/// Best effort: a diagnostic that fails must not replace the resolution error.
-async fn log_dns_failure_diagnostics(rpc: &NymServiceClient, hostname: &str) {
-    for args in [["status", "tun1"], ["query", hostname]] {
-        match rpc.exec("resolvectl", args).await {
-            Ok(output) => log::error!(
-                "resolvectl {}: {}{}",
-                args.join(" "),
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr)
+/// Classification of raw TCP reachability to public DoT upstreams through the tunnel.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DnsUpstreamReachability {
+    /// DoT TCP to every probe succeeded - DoT/query or local forwarder may still be failing.
+    AllReachable { reached: String },
+    /// No DoT TCP probe succeeded - exit-hop public egress is likely dead.
+    NoneReachable { reasons: String },
+    /// Mixed - treat like a degraded exit for retry purposes.
+    Partial { reached: String, missed: String },
+}
+
+impl DnsUpstreamReachability {
+    pub fn summary(&self) -> String {
+        match self {
+            Self::AllReachable { reached } => format!(
+                "tunnel TCP-reaches every DNS upstream ({reached}); DoT/query may still fail \
+                 (exit DoT path or daemon local forwarder)"
             ),
-            Err(error) => log::warn!("resolvectl {} failed in VM: {error}", args.join(" ")),
+            Self::NoneReachable { reasons } => {
+                format!("tunnel reaches no DNS upstream at all ({reasons})")
+            }
+            Self::Partial { reached, missed } => {
+                format!("tunnel reaches {reached} but not {missed}")
+            }
         }
     }
 
-    let mut probes = Vec::with_capacity(DOT_UPSTREAM_PROBES.len());
-    for dest in DOT_UPSTREAM_PROBES {
-        let failure = rpc
-            .send_tcp(None, DNS_PROBE_BIND_ADDR, dest)
-            .await
-            .err()
-            .map(|error| error.to_string());
-        probes.push((dest, failure));
+    /// One reconnect is always warranted after in-tunnel DNS failure.
+    ///
+    /// TCP reachability to :853 is only a coarse oracle: exits can accept the handshake while
+    /// DoT/TLS queries still time out. Retrying once may select a healthier exit without hiding a
+    /// persistent forwarder bug (second failure still embeds this summary).
+    pub const fn should_retry_with_new_exit(&self) -> bool {
+        true
     }
-    log::error!("{}", summarize_upstream_probes(&probes));
 }
 
-fn summarize_upstream_probes(probes: &[(SocketAddr, Option<String>)]) -> String {
+pub fn classify_upstream_probes(
+    probes: &[(SocketAddr, Option<String>)],
+) -> DnsUpstreamReachability {
     let (unreachable, reachable): (Vec<_>, Vec<_>) =
         probes.iter().partition(|(_, failure)| failure.is_some());
 
@@ -827,10 +858,9 @@ fn summarize_upstream_probes(probes: &[(SocketAddr, Option<String>)]) -> String 
     };
 
     if unreachable.is_empty() {
-        return format!(
-            "tunnel reaches every DNS upstream ({}), so the daemon's local forwarder is the likely failure point",
-            reached(&reachable)
-        );
+        return DnsUpstreamReachability::AllReachable {
+            reached: reached(&reachable),
+        };
     }
 
     let reasons = unreachable
@@ -843,9 +873,189 @@ fn summarize_upstream_probes(probes: &[(SocketAddr, Option<String>)]) -> String 
         .join("; ");
 
     if reachable.is_empty() {
-        format!("tunnel reaches no DNS upstream at all ({reasons})")
+        DnsUpstreamReachability::NoneReachable { reasons }
     } else {
-        format!("tunnel reaches {} but not {reasons}", reached(&reachable))
+        DnsUpstreamReachability::Partial {
+            reached: reached(&reachable),
+            missed: reasons,
+        }
+    }
+}
+
+#[cfg(test)]
+fn summarize_upstream_probes(probes: &[(SocketAddr, Option<String>)]) -> String {
+    classify_upstream_probes(probes).summary()
+}
+
+pub async fn probe_dns_upstreams(rpc: &NymServiceClient) -> DnsUpstreamReachability {
+    let mut probes = Vec::with_capacity(DOT_UPSTREAM_PROBES.len());
+    for dest in DOT_UPSTREAM_PROBES {
+        let failure = rpc
+            .send_tcp(None, DNS_PROBE_BIND_ADDR, dest)
+            .await
+            .err()
+            .map(|error| error.to_string());
+        probes.push((dest, failure));
+    }
+    classify_upstream_probes(&probes)
+}
+
+/// Best effort: a diagnostic that fails must not replace the resolution error.
+async fn log_dns_failure_diagnostics(
+    rpc: &NymServiceClient,
+    hostname: &str,
+    reachability: &DnsUpstreamReachability,
+) {
+    for args in [["status", "tun1"], ["query", hostname]] {
+        match rpc.exec("resolvectl", args).await {
+            Ok(output) => log::error!(
+                "resolvectl {}: {}{}",
+                args.join(" "),
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            ),
+            Err(error) => log::warn!("resolvectl {} failed in VM: {error}", args.join(" ")),
+        }
+    }
+    log::error!("{}", reachability.summary());
+}
+
+async fn recover_client_for_cleanup(provider: &RpcClientProvider) -> Option<NymProxyClient> {
+    match provider.recover_client_nym().await {
+        Ok(client) => Some(client),
+        Err(_) => provider.new_client_nym().await.ok(),
+    }
+}
+
+/// Prefer the live client; if missing, use a recovered one. Err when both are absent.
+pub fn resolve_dns_cleanup_client<T>(
+    existing: Option<T>,
+    recovered: Option<T>,
+) -> anyhow::Result<T> {
+    match existing {
+        Some(client) => Ok(client),
+        None => recovered.ok_or_else(|| {
+            anyhow::anyhow!(
+                "lost nym client after in-tunnel DNS exit retry; tunnel may remain connected"
+            )
+        }),
+    }
+}
+
+/// Disconnect after in-tunnel DNS work. Recovers a client when the ensure path lost it.
+pub async fn disconnect_after_in_tunnel_dns(
+    rpc: &NymServiceClient,
+    provider: &RpcClientProvider,
+    client: Option<NymProxyClient>,
+) -> anyhow::Result<()> {
+    let recovered = if client.is_none() {
+        recover_client_for_cleanup(provider).await
+    } else {
+        None
+    };
+    let client = resolve_dns_cleanup_client(client, recovered)?;
+    disconnect_and_wait(rpc, client, provider)
+        .await
+        .map(|_| ())
+        .map_err(|error| anyhow::anyhow!(error))
+}
+
+/// Result of [`ensure_in_tunnel_hostname_resolves`]: DNS outcome plus optional cleanup client.
+pub struct InTunnelDnsOutcome {
+    pub resolve: anyhow::Result<Vec<SocketAddr>>,
+    pub client: Option<NymProxyClient>,
+}
+
+pub async fn ensure_in_tunnel_hostname_resolves(
+    rpc: &NymServiceClient,
+    provider: &RpcClientProvider,
+    mut nym_client: NymProxyClient,
+    hostname: &str,
+) -> InTunnelDnsOutcome {
+    let first_error = match resolve_hostname_with_retry(rpc, hostname, ROUNDTRIP_DNS_TIMEOUT).await
+    {
+        Ok(addrs) => {
+            return InTunnelDnsOutcome {
+                resolve: Ok(addrs),
+                client: Some(nym_client),
+            };
+        }
+        Err(error) => error,
+    };
+
+    // Probe for diagnostics + retry decision. Always retry once: TCP :853 success does not prove
+    // DoT works (CI: metadata OK + DNS request timed out with AllReachable classification).
+    let reachability = probe_dns_upstreams(rpc).await;
+    debug_assert!(reachability.should_retry_with_new_exit());
+
+    log::warn!(
+        "in-tunnel DNS for {hostname} failed ({}); disconnecting and reconnecting once \
+         (TCP :853 probe is coarse - may be dead exit DoT or local forwarder flake)",
+        reachability.summary()
+    );
+
+    nym_client = match disconnect_and_wait(rpc, nym_client, provider).await {
+        Ok(client) => client,
+        Err(error) => {
+            return InTunnelDnsOutcome {
+                resolve: Err(first_error.context(format!(
+                    "exit retry aborted: disconnect failed ({error:#}); {}",
+                    reachability.summary()
+                ))),
+                client: recover_client_for_cleanup(provider).await,
+            };
+        }
+    };
+
+    nym_client = match connect_tunnel_with_recovery(provider, nym_client).await {
+        Ok(client) => client,
+        Err(error) => {
+            return InTunnelDnsOutcome {
+                resolve: Err(anyhow::anyhow!(
+                    "exit retry aborted: reconnect failed ({error:#}); first DNS failure: \
+                     {first_error:#}; {}",
+                    reachability.summary()
+                )),
+                client: recover_client_for_cleanup(provider).await,
+            };
+        }
+    };
+
+    nym_client = match wait_for_tunnel_state(
+        rpc,
+        nym_client,
+        provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await
+    {
+        Ok((_, client)) => client,
+        Err(error) => {
+            return InTunnelDnsOutcome {
+                resolve: Err(anyhow::anyhow!(
+                    "exit retry aborted: wait Connected failed ({error:#}); first DNS failure: \
+                     {first_error:#}; {}",
+                    reachability.summary()
+                )),
+                client: recover_client_for_cleanup(provider).await,
+            };
+        }
+    };
+
+    match resolve_hostname_with_retry(rpc, hostname, ROUNDTRIP_DNS_TIMEOUT).await {
+        Ok(addrs) => {
+            log::info!("in-tunnel DNS for {hostname} succeeded after one exit retry");
+            InTunnelDnsOutcome {
+                resolve: Ok(addrs),
+                client: Some(nym_client),
+            }
+        }
+        Err(second_error) => InTunnelDnsOutcome {
+            resolve: Err(second_error.context(format!(
+                "in-tunnel DNS still failing after one exit retry; first failure was: {first_error:#}"
+            ))),
+            client: Some(nym_client),
+        },
     }
 }
 
@@ -897,12 +1107,13 @@ where
 mod tests {
     use super::{
         AccountWaiter, AllowLanPrepClass, DisconnectClient, DisconnectRpcClass,
-        ExpectedTunnelState, TunnelObserver, account_target, classify_allow_lan_prep,
-        classify_disconnect_nym_error, classify_disconnect_rpc, enforce_tunnel_wait_deadline,
-        is_daemon_rpc_transport_error, is_daemon_rpc_transport_message,
-        is_nym_client_transport_error, merge_wait_and_client, resolve_with_retry, run_account_wait,
-        run_tunnel_wait, settle_daemon_rpc_quiesce, summarize_upstream_probes, tunnel_target,
-        tunnel_wait_budget, tunnel_wait_params,
+        DnsUpstreamReachability, ExpectedTunnelState, TunnelObserver, account_target,
+        classify_allow_lan_prep, classify_disconnect_nym_error, classify_disconnect_rpc,
+        classify_upstream_probes, enforce_tunnel_wait_deadline, is_daemon_rpc_transport_error,
+        is_daemon_rpc_transport_message, is_nym_client_transport_error, merge_wait_and_client,
+        resolve_dns_cleanup_client, resolve_with_retry, run_account_wait, run_tunnel_wait,
+        settle_daemon_rpc_quiesce, summarize_upstream_probes, tunnel_target, tunnel_wait_budget,
+        tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
@@ -960,7 +1171,10 @@ mod tests {
     fn upstream_probe_summary_separates_a_dead_tunnel_from_a_dead_forwarder() {
         let all_reachable =
             summarize_upstream_probes(&[probe("9.9.9.9:853", None), probe("1.1.1.1:853", None)]);
-        assert!(all_reachable.contains("local forwarder"), "{all_reachable}");
+        assert!(
+            all_reachable.contains("DoT/query may still fail"),
+            "{all_reachable}"
+        );
 
         let none_reachable = summarize_upstream_probes(&[
             probe("9.9.9.9:853", Some("connection refused")),
@@ -982,6 +1196,67 @@ mod tests {
         ]);
         assert!(mixed.contains("9.9.9.9:853"), "{mixed}");
         assert!(mixed.contains("1.1.1.1:853: timed out"), "{mixed}");
+    }
+
+    #[test]
+    fn exit_retry_on_any_upstream_classification_after_dns_failure() {
+        let all =
+            classify_upstream_probes(&[probe("9.9.9.9:853", None), probe("1.1.1.1:853", None)]);
+        assert!(matches!(all, DnsUpstreamReachability::AllReachable { .. }));
+        assert!(all.should_retry_with_new_exit());
+        assert!(
+            all.summary().contains("DoT/query may still fail"),
+            "{}",
+            all.summary()
+        );
+
+        let none = classify_upstream_probes(&[
+            probe("9.9.9.9:853", Some("timed out")),
+            probe("1.1.1.1:853", Some("timed out")),
+        ]);
+        assert!(matches!(
+            none,
+            DnsUpstreamReachability::NoneReachable { .. }
+        ));
+        assert!(none.should_retry_with_new_exit());
+
+        let partial = classify_upstream_probes(&[
+            probe("9.9.9.9:853", None),
+            probe("1.1.1.1:853", Some("timed out")),
+        ]);
+        assert!(matches!(partial, DnsUpstreamReachability::Partial { .. }));
+        assert!(partial.should_retry_with_new_exit());
+    }
+
+    #[test]
+    fn dns_failure_context_embeds_upstream_probe_summary() {
+        let summary = classify_upstream_probes(&[
+            probe("9.9.9.9:853", Some("timed out")),
+            probe("1.1.1.1:853", Some("connection refused")),
+        ])
+        .summary();
+        let err = anyhow::anyhow!("resolve timed out").context(summary);
+        let rendered = format!("{err:#}");
+        assert!(rendered.contains("no DNS upstream at all"), "{rendered}");
+        assert!(rendered.contains("timed out"), "{rendered}");
+    }
+
+    #[test]
+    fn dns_cleanup_recovers_missing_client_or_errors_explicitly() {
+        assert_eq!(
+            resolve_dns_cleanup_client(Some(7), None).expect("existing client"),
+            7
+        );
+        assert_eq!(
+            resolve_dns_cleanup_client(None, Some(9)).expect("recovered client"),
+            9
+        );
+        let err = resolve_dns_cleanup_client::<i32>(None, None).expect_err("both missing");
+        let rendered = format!("{err}");
+        assert!(
+            rendered.contains("tunnel may remain connected"),
+            "{rendered}"
+        );
     }
 
     #[tokio::test(start_paused = true)]
