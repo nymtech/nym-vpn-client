@@ -23,14 +23,14 @@ class OnboardingViewModel
 @Inject
 constructor(private val settingsRepository: SettingsRepository, private val billingManager: BillingManager) : ViewModel() {
 
-	val isPlanPageEnabled: Boolean = billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
+	val isBillingAvailable: Boolean = billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
 
 	val planPricing: StateFlow<OnboardingPlanPricing?> = billingManager.products
 		.map { OnboardingPlanPricing.from(it) }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
 	init {
-		if (isPlanPageEnabled) {
+		if (isBillingAvailable) {
 			billingManager.initialize()
 			viewModelScope.launch {
 				billingManager.uiState

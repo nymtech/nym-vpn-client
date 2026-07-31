@@ -9,6 +9,8 @@ import java.util.Currency
 
 data class OnboardingPlanPricing(val monthlyEquivalentPrice: String, val savingsPercent: String?, val freeTrialDays: Int?) {
 	companion object {
+		val FALLBACK = OnboardingPlanPricing(monthlyEquivalentPrice = "$8.26", savingsPercent = "65%", freeTrialDays = 7)
+
 		fun from(products: List<ProductData>): OnboardingPlanPricing? {
 			val yearly = products.firstOrNull { it.id == ProductId.Yearly.value } ?: return null
 			val yearlyMicros = yearly.priceAmountMicros ?: return null
