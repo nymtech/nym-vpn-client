@@ -160,7 +160,7 @@ private fun PlanPage(pricing: OnboardingPlanPricing?, modifier: Modifier = Modif
 					.fillMaxWidth(0.5f),
 			)
 		}
-		Spacer(modifier = Modifier.height(40.dp))
+		Spacer(modifier = Modifier.height(16.dp))
 		OnboardingTitle(stringResource(R.string.onboarding_plan_title))
 		OnboardingDescription(planSubtitle(pricing))
 	}
