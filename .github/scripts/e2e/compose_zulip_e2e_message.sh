@@ -110,21 +110,21 @@ emit_body() {
 
   echo "**E2E** ${E2E_STATUS}"
   echo ""
-  echo "- branch: \`${E2E_BRANCH}\` @ \`${E2E_SHA}\`"
-  echo "- source: ${E2E_SOURCE_LINE}"
-  echo "- event: \`${E2E_EVENT_NAME}\`"
+  echo "- Branch: \`${E2E_BRANCH}\` @ \`${E2E_SHA}\`"
+  echo "- Source: ${E2E_SOURCE_LINE}"
+  echo "- Event: \`${E2E_EVENT_NAME}\`"
   if [[ "${E2E_EVENT_NAME}" == "schedule" && -n "${E2E_SCHEDULE_CRON:-}" ]]; then
     echo "- cron: \`${E2E_SCHEDULE_CRON}\`"
   fi
 
   if [[ "$has_report" == "true" ]]; then
     platform="${config_name:-unknown}"
-    echo "- results: ${passed} passed, ${failed} failed, ${skipped} skipped (\`${platform}\`)"
+    echo "- Results: ${passed} passed, ${failed} failed, ${skipped} skipped (\`${platform}\`)"
     if [[ "$unknown" -gt 0 ]]; then
       echo "- unknown results: ${unknown}"
     fi
     if [[ "${#failed_names[@]}" -gt 0 ]]; then
-      echo "- failed:"
+      echo "- Failed:"
       for name in "${failed_names[@]}"; do
         if [[ "$max_failed" -ge 0 && "$shown" -ge "$max_failed" ]]; then
           omitted=$((omitted + 1))
@@ -139,7 +139,7 @@ emit_body() {
       fi
     fi
     if [[ "$include_skips" == "true" && "${#skipped_names[@]}" -gt 0 ]]; then
-      echo "- skipped:"
+      echo "- Skipped:"
       for name in "${skipped_names[@]}"; do
         echo "  - \`${name}\`"
       done
