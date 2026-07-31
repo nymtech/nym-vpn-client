@@ -46,7 +46,7 @@ public struct ConnectionConfig: Codable {
         mixnetTuningConfig: MixnetTuningConfig,
         splitTunnelConfig: SplitTunnelConfig,
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
-        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .explicit)
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
     ) {
         self.entry = entry
         self.exit = exit
@@ -82,8 +82,7 @@ public struct ConnectionConfig: Codable {
         self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
         self.geoExclusionConfig = GeoExclusionConfig(from: config.geoExclusion)
         self.gatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
-            enableGeoLocation: true,
-            algorithm: .explicit
+            enableGeoLocation: true
         )
     }
 #endif
@@ -196,7 +195,7 @@ extension ConnectionConfig {
         self.gatewaySelectionAlgorithmConfig = try container.decodeIfPresent(
             NymGatewaySelectionAlgorithmConfig.self,
             forKey: .gatewaySelectionAlgorithmConfig
-        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .explicit)
+        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
     }
 }
 
