@@ -809,7 +809,7 @@ const DNS_PROBE_BIND_ADDR: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNS
 /// Classification of raw TCP reachability to public DoT upstreams through the tunnel.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DnsUpstreamReachability {
-    /// DoT TCP to every probe succeeded - daemon local forwarder is the likely failure point.
+    /// DoT TCP to every probe succeeded - DoT/query or local forwarder may still be failing.
     AllReachable { reached: String },
     /// No DoT TCP probe succeeded - exit-hop public egress is likely dead.
     NoneReachable { reasons: String },
@@ -821,8 +821,8 @@ impl DnsUpstreamReachability {
     pub fn summary(&self) -> String {
         match self {
             Self::AllReachable { reached } => format!(
-                "tunnel reaches every DNS upstream ({reached}), so the daemon's local forwarder \
-                 is the likely failure point"
+                "tunnel TCP-reaches every DNS upstream ({reached}); DoT/query may still fail \
+                 (exit DoT path or daemon local forwarder)"
             ),
             Self::NoneReachable { reasons } => {
                 format!("tunnel reaches no DNS upstream at all ({reasons})")
@@ -833,9 +833,13 @@ impl DnsUpstreamReachability {
         }
     }
 
-    /// Dead or degraded exit egress - one reconnect with a fresh exit is warranted.
+    /// One reconnect is always warranted after in-tunnel DNS failure.
+    ///
+    /// TCP reachability to :853 is only a coarse oracle: exits can accept the handshake while
+    /// DoT/TLS queries still time out. Retrying once may select a healthier exit without hiding a
+    /// persistent forwarder bug (second failure still embeds this summary).
     pub const fn should_retry_with_new_exit(&self) -> bool {
-        matches!(self, Self::NoneReachable { .. } | Self::Partial { .. })
+        true
     }
 }
 
@@ -978,17 +982,14 @@ pub async fn ensure_in_tunnel_hostname_resolves(
         Err(error) => error,
     };
 
+    // Probe for diagnostics + retry decision. Always retry once: TCP :853 success does not prove
+    // DoT works (CI: metadata OK + DNS request timed out with AllReachable classification).
     let reachability = probe_dns_upstreams(rpc).await;
-    if !reachability.should_retry_with_new_exit() {
-        return InTunnelDnsOutcome {
-            resolve: Err(first_error),
-            client: Some(nym_client),
-        };
-    }
+    debug_assert!(reachability.should_retry_with_new_exit());
 
     log::warn!(
-        "in-tunnel DNS for {hostname} failed with likely dead exit egress ({}); \
-         disconnecting and reconnecting once",
+        "in-tunnel DNS for {hostname} failed ({}); disconnecting and reconnecting once \
+         (TCP :853 probe is coarse - may be dead exit DoT or local forwarder flake)",
         reachability.summary()
     );
 
@@ -1169,7 +1170,10 @@ mod tests {
     fn upstream_probe_summary_separates_a_dead_tunnel_from_a_dead_forwarder() {
         let all_reachable =
             summarize_upstream_probes(&[probe("9.9.9.9:853", None), probe("1.1.1.1:853", None)]);
-        assert!(all_reachable.contains("local forwarder"), "{all_reachable}");
+        assert!(
+            all_reachable.contains("DoT/query may still fail"),
+            "{all_reachable}"
+        );
 
         let none_reachable = summarize_upstream_probes(&[
             probe("9.9.9.9:853", Some("connection refused")),
@@ -1194,11 +1198,16 @@ mod tests {
     }
 
     #[test]
-    fn exit_retry_only_when_upstream_tcp_is_dead_or_partial() {
+    fn exit_retry_on_any_upstream_classification_after_dns_failure() {
         let all =
             classify_upstream_probes(&[probe("9.9.9.9:853", None), probe("1.1.1.1:853", None)]);
         assert!(matches!(all, DnsUpstreamReachability::AllReachable { .. }));
-        assert!(!all.should_retry_with_new_exit());
+        assert!(all.should_retry_with_new_exit());
+        assert!(
+            all.summary().contains("DoT/query may still fail"),
+            "{}",
+            all.summary()
+        );
 
         let none = classify_upstream_probes(&[
             probe("9.9.9.9:853", Some("timed out")),
