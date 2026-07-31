@@ -100,6 +100,10 @@ private extension ConnectionConfig {
             return .region(countryCode: "", region: region)
         case .random:
             return .random
+        case .auto:
+            // TODO: no dedicated UI representation yet — coerce to .random until
+            // the auto entry/exit selection feature is implemented.
+            return .random
         }
     }
 
@@ -115,6 +119,10 @@ private extension ConnectionConfig {
         case let .region(region):
             return ExitRouter.region(countryCode: "", region: region)
         case .random:
+            return ExitRouter.random
+        case .auto:
+            // TODO: no dedicated UI representation yet — coerce to .random until
+            // the auto entry/exit selection feature is implemented.
             return ExitRouter.random
         }
     }
