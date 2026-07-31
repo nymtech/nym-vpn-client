@@ -11,11 +11,6 @@ on:
         required: true
         type: boolean
         default: false
-      core_artifact_url:
-        description: "nym-vpn-core: Zip file artifact URL (empty = fetch core_artifacts_windows_<arch> from this run)"
-        required: false
-        type: string
-        default: ""
       sign:
         description: "Sign using SSL.com. Signing is billed per signature so be 100% sure you want a signed release"
         required: false
@@ -41,11 +36,6 @@ on:
         required: true
         type: boolean
         default: false
-      core_artifact_url:
-        description: "nym-vpn-core: Zip file artifact URL (empty = fetch core_artifacts_windows_<arch> from this run)"
-        required: false
-        type: string
-        default: ""
       sign:
         required: false
         type: boolean
@@ -170,23 +160,10 @@ jobs:
           echo "metadata=$metadata" >> "$GITHUB_OUTPUT"
 
       - name: Download nym-vpn-core
-        if: ${{ inputs.core_artifact_url == '' }}
         uses: actions/download-artifact@v8
         with:
           name: core_artifacts_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
           path: nym-vpn-app/src-tauri
-
-      - name: Download nym-vpn-core artifact from URL
-        if: ${{ inputs.core_artifact_url != '' }}
-        run: |
-          curl.exe -fLo nym-vpn-core.zip '${{ inputs.core_artifact_url }}'
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          [System.IO.Compression.ZipFile]::ExtractToDirectory('nym-vpn-core.zip', 'nym-vpn-core-bin')
-          $destination = 'nym-vpn-core-bin'
-          $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-          $sourcePath = Join-Path -Path $destination -ChildPath $subdirectory.Name
-          $targetPath = 'nym-vpn-app/src-tauri'
-          Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
 
       - name: Install JS dependencies
         working-directory: nym-vpn-app
