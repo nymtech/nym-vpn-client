@@ -57,6 +57,7 @@ import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
+import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
 import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.server.ServerScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -224,6 +225,11 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut(tween(150)) },
 									popEnterTransition = { fadeIn(tween(200)) },
 								) { SplashScreen(appViewModel, appState, topOffset = padding.calculateTopPadding()) }
+
+								composable<Route.Onboarding>(
+									enterTransition = { fadeIn(tween(200)) },
+									exitTransition = { fadeOut(tween(150)) },
+								) { OnboardingScreen() }
 
 								composable<Route.Main>(
 									enterTransition = { fadeIn() },

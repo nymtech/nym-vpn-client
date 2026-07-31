@@ -20,6 +20,7 @@ data class Settings(
 	val mixnetTrafficConfig: MixnetTrafficConfig = MIXNET_CONFIG_DEFAULT,
 	val isWelcomeShown: Boolean = DEFAULT_WELCOME_SHOWN,
 	val panelCollapsed: Boolean = DEFAULT_PANEL_COLLAPSED,
+	val isOnboardingCompleted: Boolean = DEFAULT_ONBOARDING_COMPLETED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -34,6 +35,7 @@ data class Settings(
 		const val DEFAULT_LOGS_ENABLED = false
 		const val DEFAULT_WELCOME_SHOWN = false
 		const val DEFAULT_PANEL_COLLAPSED = false
+		const val DEFAULT_ONBOARDING_COMPLETED = false
 
 		val MIXNET_CONFIG_DEFAULT = MixnetTrafficConfig(
 			poissonParameterForLoopCoverStream = 200u,

@@ -65,7 +65,8 @@ fun NavBar(
 		val route = currentRoute ?: return@LaunchedEffect
 
 		navBarState = when {
-			route.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState.Empty
+			route.startsWith(Route.Splash::class.qualifiedName!!) ||
+				route.startsWith(Route.Onboarding::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||
 				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
