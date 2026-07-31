@@ -206,11 +206,15 @@ jobs:
 
       - name: Build nym-vpnc, nym-vpnd and nym-socks5-proxy
         if: needs.resolve.outputs.binary_source == 'zigbuild'
+        timeout-minutes: 25
         env:
           CFLAGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
           BINDGEN_EXTRA_CLANG_ARGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -L /usr/lib/x86_64-linux-gnu
-        run: cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 -p nym-vpnc -p nym-vpnd -p nym-socks5-proxy
+          CARGO_BUILD_JOBS: "4"
+        run: |
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 -p nym-vpnc -p nym-socks5-proxy
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 -p nym-vpnd
         working-directory: nym-vpn-core
 
       - name: Build test-manager, test-runner

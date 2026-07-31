@@ -5,7 +5,7 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{self, ROUNDTRIP_DNS_TIMEOUT, resolve_hostname_with_retry},
+    helpers_nym::{self},
     nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::Context;
@@ -106,44 +106,61 @@ fn verification_for_blocked_addrs(blocked_socket_addrs: &[String]) -> TunnelVeri
     }
 }
 
-/// Verify that the VPN tunnel carries traffic, by hostname or by IP depending on
-/// whether the test blocked the resolvers the tunnel itself depends on.
-async fn verify_tunnel_connectivity(
-    rpc: &NymServiceClient,
-    verification: TunnelVerification,
-) -> anyhow::Result<()> {
-    match verification {
-        TunnelVerification::ResolveHostnames => {
-            for host in ["nym.com", "google.com"] {
-                log::info!("Resolving {} inside VM via VPN tunnel...", host);
-                let addrs = resolve_hostname_with_retry(rpc, host, ROUNDTRIP_DNS_TIMEOUT)
-                    .await
-                    .context(format!("DNS resolution failed for {host} inside VM"))?;
-                log::info!("Resolved {} to {:?}", host, addrs);
+/// Verify IP-only tunnel reachability (used when DNS resolvers themselves are blocked).
+async fn verify_tunnel_ip_connectivity(rpc: &NymServiceClient) -> anyhow::Result<()> {
+    let mut last_error = None;
+    for dest in IP_PROBE_SOCKET_ADDRS {
+        log::info!("Connecting to {} inside VM via VPN tunnel...", dest);
+        match rpc.send_tcp(None, IP_PROBE_BIND_ADDR, dest).await {
+            Ok(()) => {
+                log::info!("TCP connectivity to {} verified inside VM", dest);
+                return Ok(());
             }
-            Ok(())
+            Err(error) => {
+                log::warn!("TCP connectivity to {dest} failed inside VM: {error}");
+                last_error = Some(anyhow::Error::new(error).context(format!("probe {dest}")));
+            }
         }
-        TunnelVerification::ReachIpOnly => {
-            let mut last_error = None;
-            for dest in IP_PROBE_SOCKET_ADDRS {
-                log::info!("Connecting to {} inside VM via VPN tunnel...", dest);
-                match rpc.send_tcp(None, IP_PROBE_BIND_ADDR, dest).await {
-                    Ok(()) => {
-                        log::info!("TCP connectivity to {} verified inside VM", dest);
-                        return Ok(());
-                    }
-                    Err(error) => {
-                        log::warn!("TCP connectivity to {dest} failed inside VM: {error}");
-                        last_error =
-                            Some(anyhow::Error::new(error).context(format!("probe {dest}")));
+    }
+    Err(last_error
+        .unwrap_or_else(|| anyhow::anyhow!("no probe addresses configured"))
+        .context("TCP connectivity failed inside VM for every probe address"))
+}
+
+/// Resolve hostnames in-tunnel with one exit retry on dead/partial DoT upstream TCP.
+async fn verify_tunnel_dns_with_exit_retry(
+    rpc: &NymServiceClient,
+    provider: &crate::nym_daemon::RpcClientProvider,
+    mut nym_client: NymProxyClient,
+) -> (anyhow::Result<()>, Option<NymProxyClient>) {
+    for host in ["nym.com", "google.com"] {
+        log::info!("Resolving {} inside VM via VPN tunnel...", host);
+        let outcome =
+            helpers_nym::ensure_in_tunnel_hostname_resolves(rpc, provider, nym_client, host).await;
+        match outcome.resolve {
+            Ok(addrs) => {
+                log::info!("Resolved {} to {:?}", host, addrs);
+                match outcome.client {
+                    Some(client) => nym_client = client,
+                    None => {
+                        return (
+                            Err(anyhow::anyhow!(
+                                "DNS ok for {host} but cleanup client was lost"
+                            )),
+                            None,
+                        );
                     }
                 }
             }
-            Err(last_error
-                .unwrap_or_else(|| anyhow::anyhow!("no probe addresses configured"))
-                .context("TCP connectivity failed inside VM for every probe address"))
+            Err(error) => {
+                return (
+                    Err(error.context(format!("DNS resolution failed for {host} inside VM"))),
+                    outcome.client,
+                );
+            }
         }
     }
+    (Ok(()), Some(nym_client))
 }
 
 async fn with_socket_blocks<F, Fut>(
@@ -242,12 +259,20 @@ async fn connect_verify_disconnect(
     )
     .await?;
 
-    verify_tunnel_connectivity(rpc, verification).await?;
+    let (body, nym_client) = match verification {
+        TunnelVerification::ResolveHostnames => {
+            verify_tunnel_dns_with_exit_retry(rpc, &test_context.rpc_provider, nym_client).await
+        }
+        TunnelVerification::ReachIpOnly => {
+            (verify_tunnel_ip_connectivity(rpc).await, Some(nym_client))
+        }
+    };
 
     log::info!("Disconnecting tunnel...");
-    helpers_nym::disconnect_and_wait(rpc, nym_client, &test_context.rpc_provider).await?;
-
-    Ok(())
+    let cleanup =
+        helpers_nym::disconnect_after_in_tunnel_dns(rpc, &test_context.rpc_provider, nym_client)
+            .await;
+    merge_body_and_cleanup(body, cleanup)
 }
 
 /// Ensure connection with default DNS Nameservers blocklisted

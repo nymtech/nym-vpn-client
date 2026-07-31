@@ -110,14 +110,21 @@ async fn tcp_reachable(rpc: &NymServiceClient, dest: SocketAddr) -> bool {
     rpc.send_tcp(None, PROBE_BIND, dest).await.is_ok()
 }
 
-async fn assert_tunnel_dns_and_tcp(rpc: &NymServiceClient) -> anyhow::Result<()> {
-    let addrs = resolve_hostname_with_retry(rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT)
-        .await
-        .context("in-tunnel DNS failed")?;
-    let dest = SocketAddr::new(addrs[0].ip(), 443);
-    rpc.send_tcp(None, PROBE_BIND, dest)
-        .await
-        .context("in-tunnel TCP failed")?;
+async fn assert_lan_resolvers_blocked(
+    rpc: &NymServiceClient,
+    lan_nameservers: &[IpAddr],
+) -> anyhow::Result<()> {
+    let mut still_open = Vec::new();
+    for ip in lan_nameservers {
+        let dest = SocketAddr::new(*ip, 53);
+        if tcp_reachable(rpc, dest).await {
+            still_open.push(dest);
+        }
+    }
+    ensure!(
+        still_open.is_empty(),
+        "allow_lan=false but LAN resolvers still reachable on TCP/53: {still_open:?}"
+    );
     Ok(())
 }
 
@@ -237,24 +244,49 @@ pub async fn test_allow_lan_off_blocks_prior_resolver_tcp(
     let (_, nym_client) =
         connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
 
-    let body = async {
-        let mut still_open = Vec::new();
-        for ip in &lan_nameservers {
-            let dest = SocketAddr::new(*ip, 53);
-            if tcp_reachable(&rpc, dest).await {
-                still_open.push(dest);
+    let body_lan = assert_lan_resolvers_blocked(&rpc, &lan_nameservers).await;
+    let (body, nym_client) = match body_lan {
+        Err(error) => (Err(error), Some(nym_client)),
+        Ok(()) => {
+            let outcome = helpers_nym::ensure_in_tunnel_hostname_resolves(
+                &rpc,
+                &test_context.rpc_provider,
+                nym_client,
+                "nym.com",
+            )
+            .await;
+            match outcome.resolve {
+                Ok(addrs) => match addrs.first() {
+                    None => (
+                        Err(anyhow::anyhow!("in-tunnel DNS returned no addresses")),
+                        outcome.client,
+                    ),
+                    Some(first) => {
+                        let dest = SocketAddr::new(first.ip(), 443);
+                        let tcp = rpc
+                            .send_tcp(None, PROBE_BIND, dest)
+                            .await
+                            .context("in-tunnel TCP failed");
+                        // Re-check LAN after a possible exit reconnect (allow_lan must persist).
+                        let lan = assert_lan_resolvers_blocked(&rpc, &lan_nameservers).await;
+                        let combined = match (tcp, lan) {
+                            (Ok(()), Ok(())) => Ok(()),
+                            (Err(e), Ok(())) | (Ok(()), Err(e)) => Err(e),
+                            (Err(e), Err(lan_err)) => Err(e.context(format!(
+                                "LAN re-check also failed after DNS retry: {lan_err:#}"
+                            ))),
+                        };
+                        (combined, outcome.client)
+                    }
+                },
+                Err(error) => (Err(error.context("in-tunnel DNS failed")), outcome.client),
             }
         }
-        ensure!(
-            still_open.is_empty(),
-            "allow_lan=false but LAN resolvers still reachable on TCP/53: {still_open:?}"
-        );
-        assert_tunnel_dns_and_tcp(&rpc).await?;
-        Ok(())
-    }
-    .await;
+    };
 
-    let cleanup = disconnect_cleanup(&rpc, nym_client, &test_context.rpc_provider).await;
+    let cleanup =
+        helpers_nym::disconnect_after_in_tunnel_dns(&rpc, &test_context.rpc_provider, nym_client)
+            .await;
     merge_body_and_cleanup(body, cleanup)
 }
 
@@ -335,8 +367,29 @@ pub async fn test_daemon_restart_then_reconnect(
     let (_, nym_client) =
         connect_and_wait_connected(&rpc, &test_context.rpc_provider, nym_client).await?;
 
-    let body = assert_tunnel_dns_and_tcp(&rpc).await;
-    let cleanup = disconnect_cleanup(&rpc, nym_client, &test_context.rpc_provider).await;
+    let outcome = helpers_nym::ensure_in_tunnel_hostname_resolves(
+        &rpc,
+        &test_context.rpc_provider,
+        nym_client,
+        "nym.com",
+    )
+    .await;
+    let body = match outcome.resolve {
+        Ok(addrs) => match addrs.first() {
+            Some(first) => rpc
+                .send_tcp(None, PROBE_BIND, SocketAddr::new(first.ip(), 443))
+                .await
+                .context("in-tunnel TCP failed"),
+            None => Err(anyhow::anyhow!("in-tunnel DNS returned no addresses")),
+        },
+        Err(error) => Err(error.context("in-tunnel DNS failed")),
+    };
+    let cleanup = helpers_nym::disconnect_after_in_tunnel_dns(
+        &rpc,
+        &test_context.rpc_provider,
+        outcome.client,
+    )
+    .await;
     merge_body_and_cleanup(body, cleanup)
 }
 
