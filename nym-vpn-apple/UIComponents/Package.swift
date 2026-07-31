@@ -41,7 +41,8 @@ let package = Package(
             path: "Sources",
             sources: ["UIComponents"],
             resources: [
-                .process("Resources/Assets.xcassets")
+                .process("Resources/Assets.xcassets"),
+                .process("Resources/Animations")
             ]
         ),
         .testTarget(
