@@ -87,8 +87,8 @@ pub use gateway::{
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
 pub use network::{
-    ApiUrl, ChainDetails, DenomDetailsOwned, DnsFallback, FeatureFlags, FlagValue, Network,
-    NetworkCompatibility, NetworkingSpecifics, NymContracts, NymNetworkDetails, NymVpnNetwork,
+    ApiUrl, ChainDetails, DenomDetailsOwned, DnsFallback, FeatureFlags, FlagValue,
+    NetworkCompatibility, NymContracts, NymNetworkDetails, NymNetworkingSpecifics, NymVpnNetwork,
     ParsedAccountLinks, SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};

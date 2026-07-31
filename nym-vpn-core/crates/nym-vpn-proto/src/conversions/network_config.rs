@@ -87,7 +87,7 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
         let networking = details
             .networking
             .clone()
-            .map(nym_vpn_lib_types::NetworkingSpecifics::from)
+            .map(nym_vpn_lib_types::NymNetworkingSpecifics::from)
             .ok_or_else(|| ConversionError::Generic("missing network specifics".to_string()))?;
 
         Ok(Self {
@@ -100,12 +100,12 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
     }
 }
 
-impl From<proto::NetworkingSpecifics> for nym_vpn_lib_types::NetworkingSpecifics {
+impl From<proto::NetworkingSpecifics> for nym_vpn_lib_types::NymNetworkingSpecifics {
     fn from(value: proto::NetworkingSpecifics) -> Self {
         let nym_api_urls = value.nym_api_urls.into_iter().map(Into::into).collect();
         let nym_vpn_api_urls = value.nym_vpn_api_urls.into_iter().map(Into::into).collect();
         let dns_fallbacks = value.dns_fallbacks.into_iter().map(Into::into).collect();
-        nym_vpn_lib_types::NetworkingSpecifics {
+        nym_vpn_lib_types::NymNetworkingSpecifics {
             nym_api_urls,
             nym_vpn_api_urls,
             dns_fallbacks,
@@ -232,8 +232,8 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
     }
 }
 
-impl From<nym_vpn_lib_types::NetworkingSpecifics> for proto::NetworkingSpecifics {
-    fn from(value: nym_vpn_lib_types::NetworkingSpecifics) -> Self {
+impl From<nym_vpn_lib_types::NymNetworkingSpecifics> for proto::NetworkingSpecifics {
+    fn from(value: nym_vpn_lib_types::NymNetworkingSpecifics) -> Self {
         let nym_api_urls = value.nym_api_urls.into_iter().map(Into::into).collect();
         let nym_vpn_api_urls = value.nym_vpn_api_urls.into_iter().map(Into::into).collect();
         let dns_fallbacks = value.dns_fallbacks.into_iter().map(Into::into).collect();

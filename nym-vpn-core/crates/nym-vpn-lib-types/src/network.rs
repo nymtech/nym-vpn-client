@@ -3,7 +3,6 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-pub use nym_network_defaults::{DnsFallback, NetworkingSpecifics};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -25,26 +24,49 @@ pub struct NymNetworkDetails {
     pub chain_details: ChainDetails,
     pub endpoints: Vec<ValidatorDetails>,
     pub contracts: NymContracts,
-    pub networking: NetworkingSpecifics,
+    pub networking: NymNetworkingSpecifics,
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct NymNetworkingSpecifics {
+    pub nym_api_urls: Vec<ApiUrl>,
+    pub nym_vpn_api_urls: Vec<ApiUrl>,
+    pub dns_fallbacks: Vec<DnsFallback>,
+    // pub internal_nameservers: std::any::Any,
+    // pub covert channels: std::any::Any,
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct DnsFallback {
+    pub url: String,
+    pub addresses: Vec<String>,
 }
 
 impl NymNetworkDetails {
     pub fn nym_vpn_api_urls(&self) -> Vec<ApiUrl> {
-        self.networking
-            .nym_vpn_api_urls
-            .clone()
-            .iter()
-            .map(Into::into)
-            .collect()
+        self.networking.nym_vpn_api_urls.clone()
     }
 
     pub fn nym_api_urls(&self) -> Vec<ApiUrl> {
-        self.networking
-            .nym_api_urls
-            .clone()
-            .iter()
-            .map(Into::into)
-            .collect()
+        self.networking.nym_api_urls.clone()
     }
 }
 
@@ -427,7 +449,17 @@ impl From<nym_vpn_network_config::NymNetworkDetails> for NymNetworkDetails {
                 .map(ValidatorDetails::from)
                 .collect(),
             contracts: NymContracts::from(value.contracts),
-            networking: value.networking,
+            networking: value.networking.into(),
+        }
+    }
+}
+
+impl From<nym_network_defaults::NetworkingSpecifics> for NymNetworkingSpecifics {
+    fn from(value: nym_network_defaults::NetworkingSpecifics) -> Self {
+        Self {
+            nym_api_urls: value.nym_api_urls.iter().map(Into::into).collect(),
+            nym_vpn_api_urls: value.nym_vpn_api_urls.iter().map(Into::into).collect(),
+            dns_fallbacks: value.dns_fallbacks.iter().map(Into::into).collect(),
         }
     }
 }
@@ -483,6 +515,24 @@ impl From<&nym_network_defaults::ApiUrl> for ApiUrl {
         Self {
             url: value.url.clone(),
             front_hosts: value.front_hosts.clone(),
+        }
+    }
+}
+
+impl From<nym_network_defaults::DnsFallback> for DnsFallback {
+    fn from(value: nym_network_defaults::DnsFallback) -> Self {
+        Self {
+            url: value.url,
+            addresses: value.addresses,
+        }
+    }
+}
+
+impl From<&nym_network_defaults::DnsFallback> for DnsFallback {
+    fn from(value: &nym_network_defaults::DnsFallback) -> Self {
+        Self {
+            url: value.url.clone(),
+            addresses: value.addresses.clone(),
         }
     }
 }
