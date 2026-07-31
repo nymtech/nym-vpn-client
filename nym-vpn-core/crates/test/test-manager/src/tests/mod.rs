@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod blocking_tests;
+mod bridge_tests;
 pub mod config_nym;
 mod envs;
 pub(crate) mod helpers_nym;

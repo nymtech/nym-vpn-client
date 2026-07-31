@@ -6,6 +6,7 @@ use crate::{
     config::{OsType, Provisioner, VmConfig},
     tests::config_nym::{
         BOOTSTRAP_SCRIPT, DELAYED_IP_BLOCK_SCRIPT, IP_BLOCK_SCRIPT, SNI_BLOCK_SCRIPT,
+        UDP_BLOCK_SCRIPT,
     },
 };
 use anyhow::{Context, Result, bail};
@@ -154,6 +155,8 @@ fn blocking_ssh(
 
     // Transfer blocking scripts. Their contents are baked into this binary via include_bytes!,
     // so we write them to the guest directly rather than reading them off the host filesystem.
+    // ip/sni/delayed helpers historically ship to macOS too (same iptables assumption as before).
+    // udp_block.sh is Linux/iptables-only and must not pretend to work on macOS (pf).
     if matches!(os_type, OsType::Linux | OsType::Macos) {
         let scripts: [(&str, &[u8]); 3] = [
             ("ip_block.sh", IP_BLOCK_SCRIPT),
@@ -166,6 +169,16 @@ fn blocking_ssh(
             ssh_write_with_opts(&session, &dest, *content, FileOpts { executable: true })
                 .with_context(|| format!("Failed to send blocking script '{name}' to remote"))?;
         }
+    }
+    if matches!(os_type, OsType::Linux) {
+        let dest = temp_dir.join("udp_block.sh");
+        ssh_write_with_opts(
+            &session,
+            &dest,
+            UDP_BLOCK_SCRIPT,
+            FileOpts { executable: true },
+        )
+        .context("Failed to send blocking script 'udp_block.sh' to remote")?;
     }
 
     // Transfer setup script
