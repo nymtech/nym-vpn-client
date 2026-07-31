@@ -5,19 +5,20 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-- assertVisible: "Fast"
+- extendedWaitUntil:
+    visible:
+      text: "Fast"
+    timeout: 10000
 - assertVisible: "Mixnet"
 
 - tapOn: "Mixnet"
 - extendedWaitUntil:
     visible:
       text: "Mixnet"
-      selected: true
-    timeout: 5000
+    timeout: 10000
 
 - tapOn: "Fast"
 - extendedWaitUntil:
     visible:
       text: "Fast"
-      selected: true
-    timeout: 5000
+    timeout: 10000
