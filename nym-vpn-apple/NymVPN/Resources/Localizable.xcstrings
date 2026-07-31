@@ -1,46 +1,68 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "onboarding26.card.tagline" : {
+    "onboarding26.censorship.amneziaBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To the world’s most private VPN"
+            "value" : "AmneziaWG"
           }
         }
       }
     },
-    "onboarding26.censorship.amnesia" : {
+    "onboarding26.censorship.blocking" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : " to protect against Deep Packet Inspection (DPI)"
+            "value" : "Avoid VPN blocking with "
           }
         }
       }
     },
-    "onboarding26.censorship.amnesiaBold" : {
+    "onboarding26.censorship.disguise" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AmnesiaWG"
+            "value" : "Disguise WireGuard with "
           }
         }
       }
     },
-    "onboarding26.censorship.quic" : {
+    "onboarding26.censorship.firewalls" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : " servers for extra protection against firewalls"
+            "value" : "Get around firewalls with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.postQuantum" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " security"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.postQuantumBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Post-quantum"
           }
         }
       }
@@ -56,24 +78,13 @@
         }
       }
     },
-    "onboarding26.censorship.stealth" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " connect protects against filtering"
-          }
-        }
-      }
-    },
     "onboarding26.censorship.stealthBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "stealth api"
+            "value" : "Stealth Connect"
           }
         }
       }
@@ -84,7 +95,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Packing heavy censorship resistance tech"
+            "value" : "Nym gets you around"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.amnezia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " fork of WireGuard"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.amneziaBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AmneziaWG"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.decentralized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 2-hop network"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.decentralizedBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decentralized"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy for all your web activities"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t snitch - won’t snitch network design."
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your dVPN"
           }
         }
       }
@@ -100,46 +188,222 @@
         }
       }
     },
-    "onboarding26.modes.subtitleAnonymous" : {
+    "onboarding26.mixnet.anonymous" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Go anonymous with mixnet mode"
+            "value" : "The most "
           }
         }
       }
     },
-    "onboarding26.modes.subtitleFast" : {
+    "onboarding26.mixnet.anonymousBold" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "250+ Mbps)"
+            "value" : "anonymous"
           }
         }
       }
     },
-    "onboarding26.modes.subtitleFastBold" : {
+    "onboarding26.mixnet.anonymousSuffix" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stream anything in fast mode ("
+            "value" : " way to be online"
           }
         }
       }
     },
-    "onboarding26.modes.title" : {
+    "onboarding26.mixnet.hops" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One app, two modes"
+            "value" : "5-hop "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.mixnetBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mixnet"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.noise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " with "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.noiseBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "noise"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.patterns" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customize your traffic patterns"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protecting metadata fingerprints."
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your mixnet"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.communityFavorite" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NYM COMMUNITY FAVORITE"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.freeTrial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ %@ free trial"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.oneMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 month"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.price" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ / month"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "save %@"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.startingAt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting at "
+          }
+        }
+      }
+    },
+    "onboarding26.plan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What plan works for you?"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.try" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Or try for "
+          }
+        }
+      }
+    },
+    "onboarding26.plan.trySuffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", no commitment."
+          }
+        }
+      }
+    },
+    "onboarding26.plan.yearPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-year plan & "
           }
         }
       }
@@ -150,7 +414,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your access to private, unrestricted "
+            "value" : "Your private access to\nan "
           }
         }
       }
@@ -161,7 +425,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "internet."
+            "value" : "internet without walls"
           }
         }
       }
@@ -172,7 +436,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to Nym VPN!"
+            "value" : "Welcome to NymVPN"
           }
         }
       }
@@ -389,7 +653,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast (WireGuard)"
+            "value" : "dVPN (WireGuard)"
           }
         },
         "es" : {
@@ -2551,7 +2815,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Fast mode protection"
+            "value" : "dVPN mode protection"
           }
         }
       }
@@ -13530,7 +13794,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+            "value" : "Only showing dVPN mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
           }
         },
         "es" : {
@@ -17996,7 +18260,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the Fast mode reliability in restrictive networks by"
+            "value" : "Improves the dVPN mode reliability in restrictive networks by"
           }
         }
       }
@@ -21078,7 +21342,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast"
+            "value" : "dVPN"
           }
         }
       }

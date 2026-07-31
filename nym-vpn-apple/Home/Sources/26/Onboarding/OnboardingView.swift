@@ -52,9 +52,27 @@ private extension OnboardingView {
     var pager: some View {
         PagerView(pageCount: OnboardingStep.allCases.count, currentIndex: $selection) { index in
             OnboardingStepView(step: OnboardingStep.allCases[index])
-                .padding(.horizontal, NymSpacing.section)
         }
         .frame(maxWidth: NymSpacing.drawerMaxWidth)
+    }
+
+    /// Steps without a tagline keep a blank line so the card does not resize between pages.
+    @ViewBuilder
+    var tagline: some View {
+        let taglineKey = OnboardingStep.allCases[selection].taglineKey
+        Group {
+            if let taglineKey {
+                Text(taglineKey.localizedString)
+            } else {
+                Text(verbatim: " ")
+                    .accessibilityHidden(true)
+            }
+        }
+        .nymTextStyle(.bodyDefault)
+        .foregroundStyle(Color.Nym.textSecondary)
+        .multilineTextAlignment(.center)
+        .lineLimit(1, reservesSpace: true)
+        .minimumScaleFactor(Constants.taglineMinimumScale)
     }
 
     var bottomCard: some View {
@@ -62,10 +80,7 @@ private extension OnboardingView {
             GenericImage(imageName: "logoText")
                 .frame(width: Constants.logoWidth, height: Constants.logoHeight)
                 .accessibilityHidden(true)
-            Text("onboarding26.card.tagline".localizedString)
-                .nymTextStyle(.bodyDefault)
-                .foregroundStyle(Color.Nym.textSecondary)
-                .multilineTextAlignment(.center)
+            tagline
             NymButton("onboarding26.getStarted".localizedString, style: .primary) {
                 impactGenerator.softImpact()
                 onGetStarted()
@@ -86,6 +101,7 @@ private extension OnboardingView {
         static let logoHeight: CGFloat = 27
         static let cardCornerRadius: CGFloat = 16
         static let closeIconSize: CGFloat = 24
+        static let taglineMinimumScale: CGFloat = 0.8
     }
 }
 
