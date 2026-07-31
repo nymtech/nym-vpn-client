@@ -98,6 +98,8 @@
 	<string name="credential_modal_description">To add this device, go to your account\'s \'Devices\' page, remove one of the existing devices, and then log in on this device with your recovery passphrase.</string>
 	<string name="manage_devices">Manage your devices</string>
 	<string name="close">Close</string>
+	<string name="previous">Previous</string>
+	<string name="next">Next</string>
 	<string name="enter_access_code">Enter or paste your passphrase: 24 words separated by spaces</string>
 	<string name="support_and_feedback" translatable="false"><![CDATA[Support & feedback]]></string>
 	<string name="get_in_touch">Contact support</string>
@@ -317,6 +319,26 @@
 	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_welcome_title">Welcome to NymVPN</string>
+	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
+	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
+	<string name="onboarding_modes_description_dvpn">Privacy for all your web activities \n**Decentralized** 2-hop network \n**AmneziaWG** fork of WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
+	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
+	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
+	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
+	<string name="onboarding_around_title">Nym gets you around</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_plan_title">What plan works for you?</string>
+	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
+	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
+	<string name="onboarding_plan_save_percent">save %1$s</string>
+	<string name="onboarding_plan_free_trial">+ %1$d-day free trial</string>
+	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
+	<string name="onboarding_plan_price_per_month">%1$s / month</string>
+	<string name="onboarding_plan_try_prefix">Or try for </string>
+	<string name="onboarding_plan_one_month">1 month</string>
+	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nsubscription plan</string>
 	<string name="select_plan_line_0">7-day free trial</string>
