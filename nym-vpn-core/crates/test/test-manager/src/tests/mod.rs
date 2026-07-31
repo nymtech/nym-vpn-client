@@ -7,6 +7,7 @@ pub mod config_nym;
 mod envs;
 pub(crate) mod helpers_nym;
 pub mod nym_test;
+mod reliability_tests;
 mod test_metadata;
 mod tunnel_tests;
 

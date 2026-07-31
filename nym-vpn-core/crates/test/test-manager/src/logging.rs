@@ -152,12 +152,23 @@ pub struct TestOutput {
     pub log_output: Option<LogOutput>,
 }
 
+/// Prefix for inventory / environment gaps. Prefer `bail!("{SKIP_PREFIX} …")` so CI
+/// stays green without a silent pass; mapped to [`TestResult::Skip`].
+pub const SKIP_PREFIX: &str = "SKIP:";
+
+pub fn is_skip_error(error: &Error) -> bool {
+    error
+        .chain()
+        .any(|cause| cause.to_string().starts_with(SKIP_PREFIX))
+}
+
 // Convert this unwieldy return type to a workable `TestResult`.
 // What we are converting from is the acutal return type of the test execution.
 impl From<Result<Result<(), Error>, Panic>> for TestResult {
     fn from(value: Result<Result<(), Error>, Panic>) -> Self {
         match value {
             Ok(Ok(())) => TestResult::Pass,
+            Ok(Err(e)) if is_skip_error(&e) => TestResult::Skip(e),
             Ok(Err(e)) => TestResult::Fail(e),
             Err(e) => TestResult::Panic(e),
         }
@@ -169,6 +180,8 @@ impl From<Result<Result<(), Error>, Panic>> for TestResult {
 pub enum TestResult {
     /// Test passed.
     Pass,
+    /// Environment/inventory unavailable; treated as non-failure for suite pass/fail.
+    Skip(Error),
     /// Test failed during execution. Contains the source error which caused the test to fail.
     Fail(Error),
     /// Test panicked during execution. Contains the caught unwound panic.
@@ -186,15 +199,16 @@ impl TestResult {
     pub const fn summary(&self) -> summary::TestResult {
         match self {
             TestResult::Pass => summary::TestResult::Pass,
+            TestResult::Skip(_) => summary::TestResult::Skip,
             TestResult::Fail(_) | TestResult::Panic(_) => summary::TestResult::Fail,
         }
     }
 
-    /// Consume `self` and convert into a [`Result`] where [`TestResult::Pass`] is mapped to [`Ok`]
-    /// while [`TestResult::Fail`] & [`TestResult::Panic`] is mapped to [`Err`].
+    /// Consume `self` and convert into a [`Result`] where [`TestResult::Pass`] / [`Skip`] map to
+    /// [`Ok`] while [`TestResult::Fail`] & [`TestResult::Panic`] map to [`Err`].
     pub fn anyhow(self) -> anyhow::Result<()> {
         match self {
-            TestResult::Pass => Ok(()),
+            TestResult::Pass | TestResult::Skip(_) => Ok(()),
             TestResult::Fail(error) => anyhow::bail!(error),
             TestResult::Panic(error) => anyhow::bail!(error.to_string()),
         }
@@ -218,6 +232,18 @@ impl TestOutput {
                 println_with_time!(
                     "{}",
                     format!("[TEST] {} SUCCEEDED! ✅", self.test_name).green()
+                );
+                return;
+            }
+            TestResult::Skip(e) => {
+                println_with_time!(
+                    "{}",
+                    format!(
+                        "[TEST] {} SKIPPED ↪️: {}",
+                        self.test_name,
+                        format!("{e:#}").bold()
+                    )
+                    .yellow()
                 );
                 return;
             }
@@ -287,5 +313,40 @@ impl TestOutput {
         }
 
         println_with_time!("{}", format!("TEST {} END OF OUTPUT", self.test_name).red());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Panic, TestResult, is_skip_error};
+    use crate::summary;
+
+    #[test]
+    fn skip_prefix_maps_to_skip_not_failure() {
+        let err = anyhow::anyhow!("{} no inventory", super::SKIP_PREFIX);
+        assert!(is_skip_error(&err));
+        let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
+        assert!(matches!(result, TestResult::Skip(_)));
+        assert!(!result.failure());
+        assert!(matches!(result.summary(), summary::TestResult::Skip));
+        assert!(result.anyhow().is_ok());
+    }
+
+    #[test]
+    fn nested_skip_via_context_still_maps() {
+        // Inherent Error::context (not the Result Context trait).
+        let err = anyhow::anyhow!("{} gap", super::SKIP_PREFIX).context("outer wrapper");
+        assert!(is_skip_error(&err));
+        let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
+        assert!(matches!(result, TestResult::Skip(_)));
+    }
+
+    #[test]
+    fn non_skip_error_is_fail() {
+        let err = anyhow::anyhow!("real failure");
+        assert!(!is_skip_error(&err));
+        let result = TestResult::from(Ok::<Result<(), anyhow::Error>, Panic>(Err(err)));
+        assert!(matches!(result, TestResult::Fail(_)));
+        assert!(result.failure());
     }
 }
