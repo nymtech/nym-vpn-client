@@ -495,9 +495,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Chế độ lưu lượng truy cập liên tục đã bị tắt. Gói dữ liệu của bạn sẽ được gửi đi khi khả dụng. Điều này có thể tiết lộ các mô hình lưu lượng truy cập.</string>
 	<string name="mixnet_tuning_traffic_on_description">Lưu lượng truy cập bao phủ luôn được gửi đi để duy trì mô hình đồng nhất. Điều chỉnh tốc độ gửi gói tin của bạn.</string>
 	<string name="mixnet_tuning_traffic_off_description">Chúng tôi vẫn sẽ gửi lưu lượng truy cập che phủ độc lập với lưu lượng truy cập thực của bạn. Hãy chọn mức độ che phủ mà bạn cần. </string>
-	<string name="mixnet_tuning_traffic_min">Sử dụng ít pin &amp; dữ liệu hơn</string>
-	<string name="mixnet_tuning_traffic_on_max">Nhanh nhất</string>
-	<string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Cao\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Cân bằng\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Cơ bản</string>
@@ -507,13 +505,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Đặt độ trễ về 0 sẽ loại bỏ quá trình trộn, làm giảm tính ẩn danh</string>
 	<string name="mixnet_tuning_delays_title">Độ trễ xáo trộn dữ liệu</string>
 	<string name="mixnet_tuning_delays_description">Điều chỉnh độ trễ thời gian để thay đổi cách các gói dữ liệu được trộn.</string>
-	<string name="mixnet_tuning_delays_min">Faster speed</string>
-	<string name="mixnet_tuning_delays_low">Thấp\n0m</string>
+    <string name="mixnet_tuning_delays_low">Thấp\n0m</string>
 	<string name="mixnet_tuning_delays_high">Cao\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Mặc định\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Hiện tại\n%1$s</string>
-	<string name="mixnet_tuning_max">Ẩn danh tối đa</string>
-	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
+    <string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
 	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>
 	<string name="mixnet_tuning_restore_button">Khôi phục các cài đặt mặc định</string>
 	<!-- Diagnostic screen -->
@@ -571,7 +567,6 @@
 	<string name="setup_instructions_browser_step_1">Cài đặt → bật proxy SOCKS — Host</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">, Cổng</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">Ví Web3</string>
 	<string name="setup_instructions_wallet_step_1">Đặt URL RPC thành</string>

@@ -98,6 +98,8 @@
 	<string name="credential_modal_description">To add this device, go to your account\'s \'Devices\' page, remove one of the existing devices, and then log in on this device with your recovery passphrase.</string>
 	<string name="manage_devices">Manage your devices</string>
 	<string name="close">Close</string>
+	<string name="previous">Previous</string>
+	<string name="next">Next</string>
 	<string name="enter_access_code">Enter or paste your passphrase: 24 words separated by spaces</string>
 	<string name="support_and_feedback" translatable="false"><![CDATA[Support & feedback]]></string>
 	<string name="get_in_touch">Contact support</string>
@@ -252,7 +254,7 @@
 	<string name="settings_reset_app_title">Reset app data</string>
 	<string name="settings_system_status_title">System status</string>
 	<string name="settings_mixnet_tuning_title">Mixnet tuning</string>
-	<string name="settings_mixnet_tuning_description">Customize traffic patterns of Anonymous mode</string>
+	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
 	<string name="settings_quit_title">Quit NymVPN</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
@@ -317,6 +319,26 @@
 	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_welcome_title">Welcome to NymVPN</string>
+	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
+	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
+	<string name="onboarding_modes_description_dvpn">Privacy for all your web activities \n**Decentralized** 2-hop network \n**AmneziaWG** fork of WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
+	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
+	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
+	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
+	<string name="onboarding_around_title">Nym gets you around</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_plan_title">What plan works for you?</string>
+	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
+	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
+	<string name="onboarding_plan_save_percent">save %1$s</string>
+	<string name="onboarding_plan_free_trial">+ %1$d-day free trial</string>
+	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
+	<string name="onboarding_plan_price_per_month">%1$s / month</string>
+	<string name="onboarding_plan_try_prefix">Or try for </string>
+	<string name="onboarding_plan_one_month">1 month</string>
+	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nsubscription plan</string>
 	<string name="select_plan_line_0">7-day free trial</string>
@@ -542,30 +564,28 @@
 	<string name="mixnet_tuning_current_latency">Latency</string>
 	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
 	<string name="mixnet_tuning_current_description">Expected round-trip latency (RTT) on a standard network</string>
-	<string name="mixnet_tuning_traffic_title">Send traffic continuously</string>
+	<string name="mixnet_tuning_traffic_title">Send continuous traffic</string>
 	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
-	<string name="mixnet_tuning_traffic_off_description">We\'ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
-	<string name="mixnet_tuning_traffic_min">Use less battery &amp; data</string>
-	<string name="mixnet_tuning_traffic_on_max">Fastest</string>
+	<string name="mixnet_tuning_traffic_off_description">Choose how much cover you need.</string>
 	<string name="mixnet_tuning_traffic_on_low">Low\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">High\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Balanced\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_low">Low</string>
 	<string name="mixnet_tuning_traffic_off_high">High\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Balanced\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">Mixing delays</string>
 	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
-	<string name="mixnet_tuning_delays_min">Faster speed</string>
-	<string name="mixnet_tuning_delays_low">Low\n0m</string>
+	<string name="mixnet_tuning_delays_low">Low\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">High\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
-	<string name="mixnet_tuning_max">Max. anonymity</string>
-	<string name="mixnet_tuning_link_text">Learn more about mixnet parameters</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
+	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
 	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-tuning</string>
 	<string name="mixnet_tuning_save_button">Save custom settings</string>
 	<string name="mixnet_tuning_restore_button">Restore default settings</string>
@@ -624,7 +644,6 @@
 	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">, Port</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">Web3 wallet</string>
 	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>

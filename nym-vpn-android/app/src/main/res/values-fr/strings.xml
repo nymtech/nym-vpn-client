@@ -495,9 +495,7 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Le trafic continu est désactivé. Vos paquets seront envoyés au fur et à mesure de leur disponibilité. Cela pourrait révéler des schémas de trafic.</string>
 	<string name="mixnet_tuning_traffic_on_description">Le trafic de couverture est toujours envoyé pour maintenir un schéma uniforme. Ajustez le taux d\'envoi de vos paquets.</string>
 	<string name="mixnet_tuning_traffic_off_description">Nous enverrons quand même du trafic de couverture indépendamment de votre vrai trafic. Choisissez la quantité de couverture dont vous avez besoin. </string>
-	<string name="mixnet_tuning_traffic_min">Utiliser moins de batterie &amp; de données</string>
-	<string name="mixnet_tuning_traffic_on_max">Le plus rapide</string>
-	<string name="mixnet_tuning_traffic_on_low">Faible\n0,7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">Faible\n0,7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Élevé\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Équilibré\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Base</string>
@@ -507,13 +505,11 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">Délais de mixage</string>
 	<string name="mixnet_tuning_delays_description">Ajustez les délais pour modifier la qualité du mixage de vos paquets.</string>
-	<string name="mixnet_tuning_delays_min">Plus rapide</string>
-	<string name="mixnet_tuning_delays_low">Faible\n0m</string>
+    <string name="mixnet_tuning_delays_low">Faible\n0m</string>
 	<string name="mixnet_tuning_delays_high">Élevé\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Par défaut\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Actuel\n%1$s</string>
-	<string name="mixnet_tuning_max">Anonymat max.</string>
-	<string name="mixnet_tuning_link_text">En savoir plus sur les paramètres du mixnet</string>
+    <string name="mixnet_tuning_link_text">En savoir plus sur les paramètres du mixnet</string>
 	<string name="mixnet_tuning_save_button">Enregistrer les paramètres personnalisés</string>
 	<string name="mixnet_tuning_restore_button">Restaurer les paramètres par défaut</string>
 	<!-- Diagnostic screen -->
@@ -571,7 +567,6 @@
 	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">, Port</string>
-	<string name="setup_instructions_browser_step_4">8001</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
 	<string name="setup_instructions_wallet_title">Web3 wallet</string>
 	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>

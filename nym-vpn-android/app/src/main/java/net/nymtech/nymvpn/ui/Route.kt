@@ -11,6 +11,9 @@ sealed class Route {
 	data object Splash : Route()
 
 	@Serializable
+	data object Onboarding : Route()
+
+	@Serializable
 	data class Permission(val permission: net.nymtech.nymvpn.ui.screens.permission.Permission) : Route()
 
 	@Serializable

@@ -101,6 +101,7 @@ fun SetupScreen(proxyAddress: String, onCopyAddress: () -> Unit) {
 				.fillMaxWidth()
 				.padding(top = 8.dp),
 		)
+		val port = proxyAddress.substringAfterLast(":")
 		val browserStepText = buildAnnotatedString {
 			append(stringResource(R.string.setup_instructions_browser_step_1))
 			append(" ")
@@ -110,7 +111,7 @@ fun SetupScreen(proxyAddress: String, onCopyAddress: () -> Unit) {
 			append(stringResource(R.string.setup_instructions_browser_step_3))
 			append(" ")
 			withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-				append(stringResource(R.string.setup_instructions_browser_step_4))
+				append(port)
 			}
 			append(stringResource(R.string.setup_instructions_browser_step_5))
 		}
