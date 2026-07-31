@@ -9,7 +9,15 @@ tags:
 - assertVisible: "Mixnet"
 
 - tapOn: "Mixnet"
-- assertVisible: "Mixnet"
+- extendedWaitUntil:
+    visible:
+      text: "Mixnet"
+      selected: true
+    timeout: 5000
 
 - tapOn: "Fast"
-- assertVisible: "Fast"
+- extendedWaitUntil:
+    visible:
+      text: "Fast"
+      selected: true
+    timeout: 5000
