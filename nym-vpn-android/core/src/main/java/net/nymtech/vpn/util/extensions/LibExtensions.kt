@@ -21,23 +21,31 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State = when (this.v1) {
 	is TunnelState.Offline -> Tunnel.State.Offline
 }
 
+enum class GatewaySelectionMode(val value: String) {
+	RANDOM("Random"),
+	AUTO("Auto"),
+}
+
 fun EntryPoint.asString(): String = when (val entry = this) {
 	is EntryPoint.Gateway -> entry.identity
 	is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
-	EntryPoint.Random -> "Random"
+	EntryPoint.Random -> GatewaySelectionMode.RANDOM.value
 	is EntryPoint.Region -> entry.region.lowercase()
+	is EntryPoint.Auto -> GatewaySelectionMode.AUTO.value
 }
 
 fun ExitPoint.asString(): String = when (val exit = this) {
 	is ExitPoint.Gateway -> exit.identity
 	is ExitPoint.Country -> exit.twoLetterIsoCountryCode.lowercase()
 	is ExitPoint.Address -> exit.address
-	is ExitPoint.Random -> "Random"
+	is ExitPoint.Random -> GatewaySelectionMode.RANDOM.value
 	is ExitPoint.Region -> exit.region
+	is ExitPoint.Auto -> GatewaySelectionMode.AUTO.value
 }
 
 fun String.asEntryPoint(): EntryPoint = when {
-	this == "Random" -> EntryPoint.Random
+	this == GatewaySelectionMode.RANDOM.value -> EntryPoint.Random
+	this == GatewaySelectionMode.AUTO.value -> EntryPoint.Auto(excludeUserCountry = false)
 	length == 2 -> EntryPoint.Country(this.uppercase())
 	Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
 	else -> EntryPoint.Region(this)
@@ -47,7 +55,8 @@ fun String.asExitPoint(): ExitPoint = when {
 	length == 2 -> ExitPoint.Country(this.uppercase())
 	length == 134 -> ExitPoint.Address(this)
 	Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
-	this == "Random" -> ExitPoint.Random
+	this == GatewaySelectionMode.RANDOM.value -> ExitPoint.Random
+	this == GatewaySelectionMode.AUTO.value -> ExitPoint.Auto(excludeEntryPointCountry = false, excludeUserCountry = false)
 	else -> throw IllegalArgumentException("Invalid exit id $this")
 }
 
