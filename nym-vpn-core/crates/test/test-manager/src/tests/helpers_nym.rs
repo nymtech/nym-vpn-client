@@ -882,6 +882,7 @@ pub fn classify_upstream_probes(
     }
 }
 
+#[cfg(test)]
 fn summarize_upstream_probes(probes: &[(SocketAddr, Option<String>)]) -> String {
     classify_upstream_probes(probes).summary()
 }
