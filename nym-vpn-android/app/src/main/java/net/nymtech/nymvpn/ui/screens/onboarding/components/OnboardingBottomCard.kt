@@ -38,7 +38,7 @@ fun OnboardingBottomCard(onGetStartedClick: () -> Unit, modifier: Modifier = Mod
 		Icon(
 			imageVector = ImageVector.vectorResource(R.drawable.app_label),
 			contentDescription = stringResource(R.string.app_name),
-			tint = MaterialTheme.colorScheme.onSurface,
+			tint = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 		Text(
 			text = tagline ?: " ",

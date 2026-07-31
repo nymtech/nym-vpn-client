@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -148,7 +149,6 @@ private fun PlanPage(pricing: OnboardingPlanPricing?, modifier: Modifier = Modif
 		Box(
 			contentAlignment = Alignment.Center,
 			modifier = Modifier
-				.height(200.dp.scaledHeight())
 				.fillMaxWidth(),
 		) {
 			Icon(
@@ -160,6 +160,7 @@ private fun PlanPage(pricing: OnboardingPlanPricing?, modifier: Modifier = Modif
 					.fillMaxWidth(0.5f),
 			)
 		}
+		Spacer(modifier = Modifier.height(16.dp))
 		OnboardingTitle(stringResource(R.string.onboarding_plan_title))
 		OnboardingDescription(planSubtitle(pricing))
 	}
@@ -169,6 +170,7 @@ private fun PlanPage(pricing: OnboardingPlanPricing?, modifier: Modifier = Modif
 private fun planSubtitle(pricing: OnboardingPlanPricing?): AnnotatedString {
 	val baseColor = MaterialTheme.colorScheme.onPrimaryContainer
 	val highlightColor = MaterialTheme.colorScheme.primary
+	val p = pricing ?: OnboardingPlanPricing.FALLBACK
 
 	return buildAnnotatedString {
 		fun base(text: String) = withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = baseColor)) { append(text) }
@@ -176,20 +178,20 @@ private fun planSubtitle(pricing: OnboardingPlanPricing?): AnnotatedString {
 
 		base(stringResource(R.string.onboarding_plan_community_favorite))
 		append("\n\n")
-		pricing?.let { p ->
-			p.savingsPercent?.let { savings ->
-				base(stringResource(R.string.onboarding_plan_year_plan_prefix))
-				highlight(stringResource(R.string.onboarding_plan_save_percent, savings))
-				append("\n")
-			}
-			p.freeTrialDays?.let { days ->
-				base(stringResource(R.string.onboarding_plan_free_trial, days))
-				append("\n")
-			}
-			base(stringResource(R.string.onboarding_plan_starting_at_prefix))
-			highlight(stringResource(R.string.onboarding_plan_price_per_month, p.monthlyEquivalentPrice))
-			append("\n\n")
+		p.savingsPercent?.let { savings ->
+			base(stringResource(R.string.onboarding_plan_year_plan_prefix))
+			append(" ")
+			highlight(stringResource(R.string.onboarding_plan_save_percent, savings))
+			append("\n")
 		}
+		p.freeTrialDays?.let { days ->
+			base(stringResource(R.string.onboarding_plan_free_trial, days))
+			append("\n")
+		}
+		base(stringResource(R.string.onboarding_plan_starting_at_prefix))
+		append(" ")
+		highlight(stringResource(R.string.onboarding_plan_price_per_month, p.monthlyEquivalentPrice))
+		append("\n\n")
 		base(stringResource(R.string.onboarding_plan_try_prefix))
 		base(stringResource(R.string.onboarding_plan_one_month))
 		base(stringResource(R.string.onboarding_plan_try_suffix))
