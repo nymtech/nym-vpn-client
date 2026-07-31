@@ -68,7 +68,6 @@ import net.nymtech.nymvpn.util.extensions.toConnectMode
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.Score
 
 @Composable
@@ -369,7 +368,7 @@ private fun MainScreenContent(
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
 ) {
-	val connectMode = appUiState.vpnConfig.algorithm.toConnectMode(appUiState.vpnConfig.mode)
+	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
 	val panelState = ConnectPanelState(
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
@@ -389,9 +388,7 @@ private fun MainScreenContent(
 			location = appUiState.entryPointLocation,
 			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
 		),
-		exitIsAutoBest = connectMode == ConnectMode.AUTO &&
-			appUiState.vpnConfig.algorithm == GatewaySelectionAlgorithm.AUTO &&
-			appUiState.isExitPointRandom,
+		exitIsAutoBest = connectMode == ConnectMode.AUTO && appUiState.isExitPointRandom,
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
 	)

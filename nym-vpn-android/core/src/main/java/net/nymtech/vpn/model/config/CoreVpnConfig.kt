@@ -3,7 +3,6 @@ package net.nymtech.vpn.model.config
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 
 /**
  * Persistent VPN configuration model.
@@ -23,8 +22,6 @@ data class CoreVpnConfig(
 	val sentry: Boolean = false,
 	val adBlockingEnabled: Boolean = false,
 	val stealthMode: Boolean = false,
-	// GatewaySelectionAlgorithm.AUTO — changed to EXPLICIT (TWO_HOP_MIXNET) to default to Fast mode while Auto tab is hidden
-	val algorithm: GatewaySelectionAlgorithm = GatewaySelectionAlgorithm.EXPLICIT,
 	val nodeFamiliesNotificationsEnabled: Boolean = true,
 	val geoExclusionEnabled: Boolean = false,
 	val geoExclusionPort: Int = 1081,

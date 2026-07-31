@@ -5,7 +5,6 @@ import android.provider.Settings
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import java.util.Locale
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -32,8 +31,7 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 	false
 }
 
-fun GatewaySelectionAlgorithm.toConnectMode(vpnMode: Tunnel.Mode): ConnectMode = when {
-	this == GatewaySelectionAlgorithm.EXPLICIT && vpnMode == Tunnel.Mode.TWO_HOP_MIXNET -> ConnectMode.FAST
-	this == GatewaySelectionAlgorithm.EXPLICIT && vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET -> ConnectMode.MIXNET
-	else -> ConnectMode.AUTO
+fun Tunnel.Mode.toConnectMode(): ConnectMode = when (this) {
+	Tunnel.Mode.TWO_HOP_MIXNET -> ConnectMode.FAST
+	Tunnel.Mode.FIVE_HOP_MIXNET -> ConnectMode.MIXNET
 }

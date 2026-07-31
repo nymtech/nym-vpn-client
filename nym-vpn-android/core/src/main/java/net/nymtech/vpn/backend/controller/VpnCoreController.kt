@@ -28,7 +28,6 @@ import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
 
 import nym_vpn_lib_types.FrontingMode
@@ -113,7 +112,6 @@ class VpnCoreController(
 
 	suspend fun init(req: ConnectInitRequest): ConnectResult = coreMutex.withLock {
 		runCatching {
-			configRepo.migrate()
 			val config = configRepo.get()
 			val ua = appConfigProvider.getUserAgent()
 			val net = config.network
@@ -364,7 +362,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
-			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
+			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false),
 			gatewayIndependence = GatewayIndependence(enableNotifications = nodeFamiliesNotificationsEnabled, differentNodeFamily = true, differentAsn = true, differentSubnet = true),
 		)
 
@@ -403,9 +401,6 @@ class VpnCoreController(
 	private suspend fun applyConfigDiffToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
 		if (force || prev?.mode?.isTwoHop() != cfg.mode.isTwoHop()) {
 			sender.setEnableTwoHop(cfg.mode.isTwoHop())
-		}
-		if (force || prev?.algorithm != cfg.algorithm) {
-			sender.setGatewaySelectionAlgorithm(cfg.algorithm)
 		}
 		if (force || prev?.enableBridges != cfg.enableBridges) {
 			sender.setEnableBridges(cfg.enableBridges)
