@@ -722,19 +722,21 @@ Section VCRedist
   ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
   ${If} $4 <> 1
   ${OrIf} $ForceVCRedistMode = 1
-    Delete "$TEMP\vc_redist.exe"
+    ; $PLUGINSDIR is a private, installer-only temp directory (created on the
+    ; first plugin call below, deleted automatically when the installer exits),
+    ; unlike the predictable, shared $TEMP path.
     DetailPrint "Downloading Visual C++ Redistributable (${VCREDISTARCH})"
-    NSISdl::download "${VCREDISTURL}" "$TEMP\vc_redist.exe"
+    NSISdl::download "${VCREDISTURL}" "$PLUGINSDIR\vc_redist.exe"
     Pop $5
-    ${If} $5 == "success"
-      DetailPrint "Visual C++ Redistributable downloaded successfully"
-    ${Else}
+    ${If} $5 != "success"
       DetailPrint "vc_redist.exe download failed: $5"
       Abort "Failed to download the Visual C++ Redistributable [$5]"
     ${EndIf}
+    DetailPrint "Visual C++ Redistributable downloaded successfully"
 
     DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
-    ExecWait '"$TEMP\vc_redist.exe" /install /quiet /norestart' $5
+    ExecWait '"$PLUGINSDIR\vc_redist.exe" /install /quiet /norestart' $5
+    Delete "$PLUGINSDIR\vc_redist.exe"
     ${If} $5 = 0
       DetailPrint "Visual C++ Redistributable installed successfully"
     ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
@@ -744,7 +746,6 @@ Section VCRedist
       DetailPrint "vc_redist.exe install failed: $5"
       Abort "Failed to install the Visual C++ Redistributable [$5]"
     ${EndIf}
-    Delete "$TEMP\vc_redist.exe"
   ${EndIf}
 SectionEnd
 
