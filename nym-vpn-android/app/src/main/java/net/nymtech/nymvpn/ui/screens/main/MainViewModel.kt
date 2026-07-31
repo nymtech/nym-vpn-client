@@ -31,7 +31,6 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import timber.log.Timber
 
 @HiltViewModel
@@ -112,24 +111,16 @@ constructor(
 		}
 	}
 
-	fun onAutoSelected() = viewModelScope.launch {
-		Timber.tag(TAG).i("ConnectModeChangeRequested mode=AUTO")
-		runCatching {
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.AUTO))
-		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=AUTO")
-		}
+	fun onAutoSelected() {
+		// Auto mode is not yet wired up to the new per-hop EntryPoint/ExitPoint auto
+		// selection in core; the tab that triggers this remains hidden until it is.
+		Timber.tag(TAG).w("ConnectModeChangeRequested mode=AUTO, but Auto mode is not currently supported")
 	}
 
 	fun onTwoHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectModeChangeRequested mode=FAST")
 		runCatching {
-			vpnConfigRepository.apply(
-				listOf(
-					CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET),
-					CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.EXPLICIT),
-				),
-			)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET))
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=FAST")
 		}
@@ -138,12 +129,7 @@ constructor(
 	fun onFiveHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectModeChangeRequested mode=MIXNET")
 		runCatching {
-			vpnConfigRepository.apply(
-				listOf(
-					CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET),
-					CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.EXPLICIT),
-				),
-			)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=MIXNET")
 		}

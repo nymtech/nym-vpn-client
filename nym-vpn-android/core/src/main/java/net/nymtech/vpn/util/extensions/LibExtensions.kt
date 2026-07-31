@@ -8,7 +8,6 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FavoriteSelector
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
 import java.util.Locale
@@ -56,13 +55,6 @@ fun String.asFavoriteSelector(): FavoriteSelector = when {
 	length == 2 -> FavoriteSelector.Country(this.uppercase())
 	Base58.isValidBase58(this, 32) -> FavoriteSelector.Gateway(this)
 	else -> FavoriteSelector.Region(this)
-}
-
-fun String.asAlgorithm(): GatewaySelectionAlgorithm = when {
-	this == "AUTO" -> GatewaySelectionAlgorithm.AUTO
-	this == "EXPLICIT" -> GatewaySelectionAlgorithm.EXPLICIT
-	this == "AUTO_ENTRY_EXPLICIT_EXIT" -> GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT
-	else -> throw IllegalArgumentException("Invalid GatewaySelectionAlgorithm $this")
 }
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry

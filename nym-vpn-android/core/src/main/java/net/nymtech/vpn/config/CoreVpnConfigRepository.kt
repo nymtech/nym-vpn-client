@@ -8,8 +8,6 @@ class CoreVpnConfigRepository(context: Context) {
 
 	private val store = CoreVpnConfigStore(context)
 
-	suspend fun migrate() = store.migrateAlgorithmIfNeeded()
-
 	suspend fun get(): CoreVpnConfig = store.configFlow.first()
 
 	suspend fun applyUpdate(update: CoreVpnConfigUpdate): CoreVpnConfig = applyUpdates(listOf(update))
@@ -33,7 +31,6 @@ class CoreVpnConfigRepository(context: Context) {
 					is CoreVpnConfigUpdate.SetSentry -> acc.copy(sentry = update.value)
 					is CoreVpnConfigUpdate.SetAdBlockingEnabled -> acc.copy(adBlockingEnabled = update.value)
 					is CoreVpnConfigUpdate.SetStealthMode -> acc.copy(stealthMode = update.value)
-					is CoreVpnConfigUpdate.SetAlgorithm -> acc.copy(algorithm = update.value)
 					is CoreVpnConfigUpdate.SetNodeFamiliesNotificationsEnabled -> acc.copy(nodeFamiliesNotificationsEnabled = update.value)
 					is CoreVpnConfigUpdate.SetGeoExclusionEnabled -> acc.copy(geoExclusionEnabled = update.value)
 					is CoreVpnConfigUpdate.SetGeoExclusionPort -> acc.copy(geoExclusionPort = update.value)

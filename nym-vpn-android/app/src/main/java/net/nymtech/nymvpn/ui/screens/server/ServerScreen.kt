@@ -87,7 +87,6 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -192,7 +191,6 @@ fun ServerScreen(
 		gatewayType = gatewayType,
 		canShowQuicLabel = canShowQuicLabel,
 		showBestOption = showBestOption,
-		algorithm = appUiState.vpnConfig.algorithm,
 		gatewayLocation = selectedLocation,
 		isRefreshing = refreshing,
 		onRefresh = { refreshing = true },
@@ -219,7 +217,6 @@ internal fun ServerScreenContent(
 	gatewayType: GatewayType,
 	canShowQuicLabel: Boolean,
 	showBestOption: Boolean,
-	algorithm: GatewaySelectionAlgorithm,
 	gatewayLocation: GatewayLocation,
 	isRefreshing: Boolean,
 	onRefresh: () -> Unit,
@@ -337,7 +334,7 @@ internal fun ServerScreenContent(
 			}
 			if (uiState.filter == ServerListFilter.ALL_SERVERS) {
 				item {
-					val isBestSelected = showBestOption && selectedKey == null && algorithm == GatewaySelectionAlgorithm.AUTO
+					val isBestSelected = showBestOption && selectedKey == null
 					val isRandomSelected = !showBestOption && selectedKey == null
 
 					val items = buildList {
@@ -633,7 +630,6 @@ internal fun ServerScreenPreview() {
 				gatewayType = GatewayType.WG,
 				canShowQuicLabel = false,
 				showBestOption = true,
-				algorithm = GatewaySelectionAlgorithm.AUTO,
 				gatewayLocation = GatewayLocation.EXIT,
 				isRefreshing = false,
 				onRefresh = {},
