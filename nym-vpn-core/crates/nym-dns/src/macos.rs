@@ -514,6 +514,9 @@ fn read_all_dns(store: &SCDynamicStore) -> HashMap<ServicePath, Option<DnsSettin
         for state_path in paths.iter() {
             let state_path_str = state_path.to_string();
             let setup_path_str = state_to_setup_path(&state_path_str).unwrap();
+            if !has_backing_interface(store, &state_path_str) {
+                continue;
+            }
             settings.insert(
                 state_path_str,
                 DnsSettings::load(store, state_path.clone()).ok(),
@@ -528,12 +531,21 @@ fn read_all_dns(store: &SCDynamicStore) -> HashMap<ServicePath, Option<DnsSettin
     if let Some(paths) = store.get_keys(SETUP_PATH_PATTERN) {
         for setup_path in paths.iter() {
             let setup_path_str = setup_path.to_string();
+            if !has_backing_interface(store, &setup_path_str) {
+                continue;
+            }
             settings
                 .entry(setup_path_str)
                 .or_insert_with(|| DnsSettings::load(store, setup_path.clone()).ok());
         }
     }
     settings
+}
+
+fn has_backing_interface(store: &SCDynamicStore, dns_path: &str) -> bool {
+    InterfaceSettings::load_from_dns_key(store, dns_path.to_string())
+        .and_then(|settings| settings.interface_name())
+        .is_ok()
 }
 
 fn state_to_setup_path(state_path: &str) -> Option<String> {
