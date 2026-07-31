@@ -60,17 +60,13 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
-private val DEFAULT_PAGES = OnboardingPage.entries.filterNot { it == OnboardingPage.PLAN }
-
 @Composable
 fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 	val navigator = LocalNavController.current
 	val scope = rememberCoroutineScope()
 	val planPricing by viewModel.planPricing.collectAsStateWithLifecycle()
-	val pages = if (viewModel.isPlanPageEnabled) OnboardingPage.entries else DEFAULT_PAGES
 
 	OnboardingScreen(
-		pages = pages,
 		planPricing = planPricing,
 		onFinish = {
 			scope.launch {
@@ -82,7 +78,7 @@ fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun OnboardingScreen(pages: List<OnboardingPage> = DEFAULT_PAGES, planPricing: OnboardingPlanPricing? = null, onFinish: () -> Unit) {
+fun OnboardingScreen(pages: List<OnboardingPage> = OnboardingPage.entries, planPricing: OnboardingPlanPricing? = null, onFinish: () -> Unit) {
 	val scope = rememberCoroutineScope()
 	var selectedMode by remember { mutableStateOf(ConnectMode.FAST) }
 
@@ -136,7 +132,7 @@ fun OnboardingScreen(pages: List<OnboardingPage> = DEFAULT_PAGES, planPricing: O
 
 			OnboardingBottomCard(
 				onGetStartedClick = onFinish,
-				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
+				modifier = Modifier.padding(bottom = 20.dp.scaledHeight()),
 				tagline = tagline,
 			)
 		}
