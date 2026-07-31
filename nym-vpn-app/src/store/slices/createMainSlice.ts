@@ -15,7 +15,6 @@ import {
   DaemonStatus,
   FeatureFlags,
   FrontingMode,
-  GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
   NetworkCompat,
   NetworkEnv,
@@ -95,11 +94,7 @@ export type StateAction =
   | { type: 'set-split-tunnel-apps'; apps: SplitApp[] }
   | { type: 'set-geo-exclusion-enabled'; enabled: boolean }
   | { type: 'set-geo-exclusion-listen-port'; port: number }
-  | { type: 'set-geo-exclusion-excluded-countries'; countries: string[] }
-  | {
-      type: 'set-gateway-selection-algorithm-config';
-      config: GatewaySelectionAlgorithmConfig;
-    };
+  | { type: 'set-geo-exclusion-excluded-countries'; countries: string[] };
 
 export const initialState: AppState = {
   initialized: false,
@@ -164,10 +159,7 @@ export const initialState: AppState = {
   },
   splitTunnel: { enabled: false, apps: [] },
   geoExclusion: { enabled: false, listenPort: 1080, excludedCountries: ['CN'] },
-  gatewaySelectionAlgorithmConfig: {
-    enableGeoLocation: true,
-    gatewaySelectionAlgorithm: 'explicit',
-  },
+  gatewaySelectionAlgorithmConfig: { enableGeoLocation: true },
   gatewayIndependenceNotifications: true,
 };
 
@@ -524,10 +516,6 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
             excludedCountries: action.countries,
           },
         }));
-        break;
-
-      case 'set-gateway-selection-algorithm-config':
-        set({ gatewaySelectionAlgorithmConfig: action.config });
         break;
 
       case 'reset':
