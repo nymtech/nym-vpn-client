@@ -14,7 +14,12 @@ data class OnboardingPlanPricing(val monthlyEquivalentPrice: String, val savings
 			val yearlyMicros = yearly.priceAmountMicros ?: return null
 			val currencyCode = yearly.priceCurrencyCode ?: return null
 			val formatter = runCatching {
-				NumberFormat.getCurrencyInstance().apply { currency = Currency.getInstance(currencyCode) }
+				val currency = Currency.getInstance(currencyCode)
+				NumberFormat.getCurrencyInstance().apply {
+					this.currency = currency
+					maximumFractionDigits = currency.defaultFractionDigits
+					minimumFractionDigits = currency.defaultFractionDigits
+				}
 			}.getOrNull() ?: return null
 
 			val yearlyAmount = BigDecimal(yearlyMicros).divide(MICROS_PER_UNIT)

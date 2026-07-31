@@ -328,7 +328,7 @@
 	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
 	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
 	<string name="onboarding_around_title">Nym gets you around</string>
-	<string name="onboarding_around_description">Disguise WireGuard with **AmnesiaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
 	<string name="onboarding_plan_title">What plan works for you?</string>
 	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
 	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>

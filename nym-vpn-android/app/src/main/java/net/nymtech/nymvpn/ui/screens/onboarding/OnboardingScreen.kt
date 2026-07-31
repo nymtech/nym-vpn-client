@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
@@ -63,6 +65,7 @@ private val DEFAULT_PAGES = OnboardingPage.entries.filterNot { it == OnboardingP
 @Composable
 fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 	val navigator = LocalNavController.current
+	val scope = rememberCoroutineScope()
 	val planPricing by viewModel.planPricing.collectAsStateWithLifecycle()
 	val pages = if (viewModel.isPlanPageEnabled) OnboardingPage.entries else DEFAULT_PAGES
 
@@ -70,8 +73,10 @@ fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 		pages = pages,
 		planPricing = planPricing,
 		onFinish = {
-			viewModel.onOnboardingCompleted()
-			navigator.navigateAndForget(Route.Main())
+			scope.launch {
+				viewModel.onOnboardingCompleted()
+				navigator.navigateAndForget(Route.Main())
+			}
 		},
 	)
 }
@@ -79,7 +84,6 @@ fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 @Composable
 fun OnboardingScreen(pages: List<OnboardingPage> = DEFAULT_PAGES, planPricing: OnboardingPlanPricing? = null, onFinish: () -> Unit) {
 	val scope = rememberCoroutineScope()
-	val lastIndex = pages.lastIndex
 	var selectedMode by remember { mutableStateOf(ConnectMode.FAST) }
 
 	val pagerState = rememberPagerState(
@@ -126,64 +130,7 @@ fun OnboardingScreen(pages: List<OnboardingPage> = DEFAULT_PAGES, planPricing: O
 				)
 			}
 
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				modifier = Modifier.fillMaxWidth(),
-			) {
-				if (pagerState.currentPage > 0) {
-					Icon(
-						imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-						contentDescription = stringResource(R.string.previous),
-						tint = MaterialTheme.colorScheme.onBackground,
-						modifier = Modifier
-							.size(40.dp)
-							.clip(CircleShape)
-							.background(color = MaterialTheme.colorScheme.surfaceContainer)
-							.clickable {
-								scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
-							}
-							.padding(10.dp),
-					)
-				} else {
-					Spacer(modifier = Modifier.size(40.dp))
-				}
-
-				Spacer(modifier = Modifier.weight(1f))
-
-				Row(
-					modifier = Modifier
-						.background(
-							color = MaterialTheme.colorScheme.surfaceContainer,
-							shape = RoundedCornerShape(50),
-						)
-						.padding(horizontal = 12.dp, vertical = 8.dp),
-				) {
-					PagerIndicator(
-						pageCount = pages.size,
-						currentPage = pagerState.currentPage,
-					)
-				}
-
-				Spacer(modifier = Modifier.weight(1f))
-
-				if (pagerState.currentPage < lastIndex) {
-					Icon(
-						imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-						contentDescription = stringResource(R.string.next),
-						tint = MaterialTheme.colorScheme.onBackground,
-						modifier = Modifier
-							.size(40.dp)
-							.clip(CircleShape)
-							.background(color = MaterialTheme.colorScheme.surfaceContainer)
-							.clickable {
-								scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-							}
-							.padding(10.dp),
-					)
-				} else {
-					Spacer(modifier = Modifier.size(40.dp))
-				}
-			}
+			OnboardingNavRow(pagerState = pagerState, pageCount = pages.size, scope = scope)
 
 			Spacer(modifier = Modifier.height(18.dp.scaledHeight()))
 
@@ -192,6 +139,70 @@ fun OnboardingScreen(pages: List<OnboardingPage> = DEFAULT_PAGES, planPricing: O
 				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
 				tagline = tagline,
 			)
+		}
+	}
+}
+
+@Composable
+private fun OnboardingNavRow(pagerState: PagerState, pageCount: Int, scope: CoroutineScope, modifier: Modifier = Modifier) {
+	val lastIndex = pageCount - 1
+
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		modifier = modifier.fillMaxWidth(),
+	) {
+		if (pagerState.currentPage > 0) {
+			Icon(
+				imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+				contentDescription = stringResource(R.string.previous),
+				tint = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier
+					.size(40.dp)
+					.clip(CircleShape)
+					.background(color = MaterialTheme.colorScheme.surfaceContainer)
+					.clickable {
+						scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+					}
+					.padding(10.dp),
+			)
+		} else {
+			Spacer(modifier = Modifier.size(40.dp))
+		}
+
+		Spacer(modifier = Modifier.weight(1f))
+
+		Row(
+			modifier = Modifier
+				.background(
+					color = MaterialTheme.colorScheme.surfaceContainer,
+					shape = RoundedCornerShape(50),
+				)
+				.padding(horizontal = 12.dp, vertical = 8.dp),
+		) {
+			PagerIndicator(
+				pageCount = pageCount,
+				currentPage = pagerState.currentPage,
+			)
+		}
+
+		Spacer(modifier = Modifier.weight(1f))
+
+		if (pagerState.currentPage < lastIndex) {
+			Icon(
+				imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+				contentDescription = stringResource(R.string.next),
+				tint = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier
+					.size(40.dp)
+					.clip(CircleShape)
+					.background(color = MaterialTheme.colorScheme.surfaceContainer)
+					.clickable {
+						scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+					}
+					.padding(10.dp),
+			)
+		} else {
+			Spacer(modifier = Modifier.size(40.dp))
 		}
 	}
 }

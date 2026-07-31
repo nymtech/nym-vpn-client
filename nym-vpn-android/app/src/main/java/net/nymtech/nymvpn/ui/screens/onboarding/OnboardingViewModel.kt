@@ -42,7 +42,7 @@ constructor(private val settingsRepository: SettingsRepository, private val bill
 		}
 	}
 
-	fun onOnboardingCompleted() = viewModelScope.launch {
+	suspend fun onOnboardingCompleted() {
 		settingsRepository.setOnboardingCompleted(true)
 	}
 }
