@@ -352,7 +352,6 @@ async fn main() -> Result<()> {
             tunnel::is_split_tunnel_supported,
             tunnel::add_custom_split_tunnel_app,
             tunnel::remove_custom_split_tunnel_app,
-            tunnel::set_gateway_selection_algorithm,
             tunnel::set_enable_geo_location,
             tunnel::set_geo_exclusion_enabled,
             tunnel::set_geo_exclusion_listen_port,
