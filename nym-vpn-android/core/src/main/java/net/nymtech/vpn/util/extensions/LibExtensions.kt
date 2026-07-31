@@ -45,7 +45,7 @@ fun ExitPoint.asString(): String = when (val exit = this) {
 
 fun String.asEntryPoint(): EntryPoint = when {
 	this == GatewaySelectionMode.RANDOM.value -> EntryPoint.Random
-	this == GatewaySelectionMode.AUTO.value -> EntryPoint.Auto(excludeUserCountry = false)
+	this == GatewaySelectionMode.AUTO.value -> EntryPoint.Auto(excludeUserCountry = true)
 	length == 2 -> EntryPoint.Country(this.uppercase())
 	Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
 	else -> EntryPoint.Region(this)
@@ -56,7 +56,7 @@ fun String.asExitPoint(): ExitPoint = when {
 	length == 134 -> ExitPoint.Address(this)
 	Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 	this == GatewaySelectionMode.RANDOM.value -> ExitPoint.Random
-	this == GatewaySelectionMode.AUTO.value -> ExitPoint.Auto(excludeEntryPointCountry = false, excludeUserCountry = false)
+	this == GatewaySelectionMode.AUTO.value -> ExitPoint.Auto(excludeEntryPointCountry = true, excludeUserCountry = true)
 	else -> throw IllegalArgumentException("Invalid exit id $this")
 }
 
