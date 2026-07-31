@@ -4,8 +4,6 @@ import { Locator, Page } from '@playwright/test';
 class NodeInfoPage {
   readonly title: Locator;
   readonly backButton: Locator;
-
-  // Node features
   readonly advancedPrivacyLabel: Locator;
   readonly advancedPrivacyValue: Locator;
   readonly streamingLabel: Locator;
@@ -13,8 +11,6 @@ class NodeInfoPage {
   readonly antiCensorshipLabel: Locator;
   readonly antiCensorshipValue: Locator;
   readonly enableQuicHint: Locator;
-
-  // Performance metrics
   readonly overallPerformanceLabel: Locator;
   readonly overallPerformanceValue: Locator;
   readonly serverLoadLabel: Locator;
@@ -22,15 +18,11 @@ class NodeInfoPage {
   readonly uptimeLabel: Locator;
   readonly uptimeValue: Locator;
   readonly performanceCalculatedNote: Locator;
-
-  // Connection details
   readonly exitIpv4Label: Locator;
   readonly asnLabel: Locator;
   readonly asnValue: Locator;
   readonly asnNameLabel: Locator;
   readonly asnNameValue: Locator;
-
-  // Build information
   readonly buildVersionLabel: Locator;
   readonly identityKeyLabel: Locator;
   readonly copyIdentityKeyButton: Locator;

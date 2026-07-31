@@ -9,8 +9,6 @@ tags:
     text: "Random"
     below: "Exit server"
 
-# Picker title is now "Exit server" (clashes with the home hop label); anchor on
-# the picker-unique search field instead of the old "Exit location".
 - extendedWaitUntil:
     visible:
       text: "Search location or server"
@@ -41,12 +39,6 @@ tags:
 - assertVisible: "Mock-Entry-DE-01"
 - assertVisible: "Berlin, Berlin, Germany"
 
-# Assert the detail sections in their on-screen order (DetailsScreen.kt):
-# Privacy -> Performance -> IP -> Identity -> Bottom. Scroll to each section's
-# FIRST item; the redesigned rows are tall enough that a section can exceed one
-# viewport, so scrolling to a later item would push earlier ones off the top.
-
-# Privacy
 - scrollUntilVisible:
     element:
       text: "Advanced privacy"
@@ -58,7 +50,6 @@ tags:
 - assertVisible: "Anti-censorship"
 - assertVisible: "Standard protocol"
 
-# Performance
 - scrollUntilVisible:
     element:
       text: "Overall performance"
@@ -70,7 +61,6 @@ tags:
 - assertVisible: "Uptime"
 - assertVisible: "9570%"
 
-# Connection details (IP)
 - scrollUntilVisible:
     element:
       text: "Exit IPv4"
@@ -84,7 +74,6 @@ tags:
 - assertVisible: "ASN name"
 - assertVisible: "Deutsche Telekom AG"
 
-# Identity / build
 - scrollUntilVisible:
     element:
       text: "Nym build version"
@@ -92,7 +81,6 @@ tags:
 - assertVisible: "Nym build version"
 - assertVisible: "5mZ8G2XrYF8nW7AqH2kP3DsV9uQ4JrL1tC6bN0eMfYw"
 
-# Bottom
 - scrollUntilVisible:
     element:
       text: "Why is there missing or incorrect info"

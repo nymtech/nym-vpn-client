@@ -8,8 +8,6 @@ tags:
 
 - assertVisible: "Connect"
 - runFlow: ../../subflows/connect.yaml
-
-# Mock transitions connecting -> connected; button becomes Disconnect.
 - extendedWaitUntil:
     visible:
       text: "Disconnect"

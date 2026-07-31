@@ -36,9 +36,7 @@ abstract class ManagerModule {
 	@Singleton
 	abstract fun bindNymBillingManager(billingManager: NymBillingManager): BillingManager
 
-	// Favorites is local persistence with no backend dependency, so the mock
-	// variant binds the real implementation — same as the environment and
-	// billing managers above. Only BackendManager is faked.
+	// Favorites is local persistence — bind the real impl; only BackendManager is faked.
 	@Binds
 	@Singleton
 	abstract fun bindNymFavoritesManager(favoritesManager: NymFavoritesManager): FavoritesManager

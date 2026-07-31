@@ -11,7 +11,6 @@ test.describe('NodeInfo', () => {
     nodeListPage = new NodeListPage(page);
     nodeInfoPage = new NodeInfoPage(page);
     await nodeListPage.goto();
-    // Expand a country to reveal its gateways, then open the first one.
     await nodeListPage.clickExpandButton(1);
     await nodeListPage.clickNodeDetailsButton(0);
     await expect(page).toHaveURL(/\/node-details/);
@@ -19,24 +18,16 @@ test.describe('NodeInfo', () => {
 
   test('opens node details screen correctly', async () => {
     await expect(nodeInfoPage.title).toBeVisible();
-
-    // Node features
     await expect(nodeInfoPage.advancedPrivacyLabel).toBeVisible();
     await expect(nodeInfoPage.streamingLabel).toBeVisible();
     await expect(nodeInfoPage.antiCensorshipLabel).toBeVisible();
-
-    // Performance metrics
     await expect(nodeInfoPage.overallPerformanceLabel).toBeVisible();
     await expect(nodeInfoPage.serverLoadLabel).toBeVisible();
     await expect(nodeInfoPage.uptimeLabel).toBeVisible();
     await expect(nodeInfoPage.performanceCalculatedNote).toBeVisible();
-
-    // Connection details
     await expect(nodeInfoPage.exitIpv4Label).toBeVisible();
     await expect(nodeInfoPage.asnLabel).toBeVisible();
     await expect(nodeInfoPage.asnNameLabel).toBeVisible();
-
-    // Build information
     await expect(nodeInfoPage.buildVersionLabel).toBeVisible();
     await expect(nodeInfoPage.identityKeyLabel).toBeVisible();
     await expect(nodeInfoPage.incorrectInfoLink).toBeVisible();
@@ -58,8 +49,6 @@ test.describe('NodeInfo', () => {
 
   test('selects server correctly', async ({ page }) => {
     await nodeInfoPage.clickSelectServerButton();
-
-    // Selecting returns to home with the picked gateway shown on the row.
     await expect(page).toHaveURL(/\/home/);
     const mainPage = new MainPage(page);
     await expect(mainPage.serverRow('Exit')).not.toContainText('Random');

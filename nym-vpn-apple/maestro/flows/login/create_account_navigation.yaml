@@ -7,8 +7,6 @@ tags:
 
 - assertVisible: "Sign up"
 - tapOn: "Sign up"
-
-# Leaving the welcome sheet — the sign-up path has moved off "Welcome!".
 - extendedWaitUntil:
     notVisible:
       text: "Login to my account"

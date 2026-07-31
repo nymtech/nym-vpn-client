@@ -1,13 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-/**
- * Home screen ("/home").
- *
- * Selectors are role/text based rather than test-id based: the redesigned UI
- * exposes almost no test ids, but its accessibility tree is rich and stable.
- * The one exception is the connection status label, which needs a stable hook
- * because its text is exactly what we assert on.
- */
+/** Home screen. Role/text-based selectors (redesign exposes few test ids). */
 class MainPage {
   readonly themeButton: Locator;
   readonly settingsButton: Locator;
@@ -48,11 +41,7 @@ class MainPage {
     await this.page.waitForLoadState('networkidle');
   }
 
-  /**
-   * The server row is the button following the given "Entry/Exit server"
-   * label. In the disconnected state it reads "Random"; once connected it
-   * shows the resolved gateway name.
-   */
+  /** Server row: the button after the Entry/Exit server label. */
   serverRow(hop: 'Entry' | 'Exit'): Locator {
     return this.page.locator(
       `xpath=//p[normalize-space(text())="${hop} server"]` +

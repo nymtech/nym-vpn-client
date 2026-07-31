@@ -4,8 +4,6 @@ tags:
   - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
-
-# Entry/Exit server rows are only visible in nerd mode.
 - runFlow: ../../subflows/reveal_servers.yaml
 
 - tapOn: "Exit server"
@@ -16,6 +14,4 @@ tags:
 
 - tapOn: "Search location or server"
 - inputText: "United"
-
-# Results still render (no "no results" state for a common query).
 - assertNotVisible: "No results found."

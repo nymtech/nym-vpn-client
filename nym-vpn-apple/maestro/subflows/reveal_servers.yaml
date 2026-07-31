@@ -1,9 +1,4 @@
-# Ensures the Entry/Exit server hop rows are visible. They are accessibilityHidden
-# in the default powerUser mode; tapping "Expand" switches to nerd mode where they
-# render. The display mode persists across Maestro flows (it is a stored app
-# setting, not reset by clearState), so a prior flow may already have left the app
-# in nerd mode - in which case "Expand" is gone and the rows are already visible.
-# Only expand when the rows are not already on screen. Assumes the home screen.
+# Reveals the Entry/Exit server hop rows by switching OneClick to nerd mode.
 appId: net.nymtech.vpn
 ---
 - runFlow:

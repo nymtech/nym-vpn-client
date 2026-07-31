@@ -12,8 +12,6 @@ tags:
     timeout: 10000
 
 - tapOn: "Passphrase"
-
-# The account passphrase screen surfaces its reveal control.
 - extendedWaitUntil:
     visible:
       text: "Show my passphrase"

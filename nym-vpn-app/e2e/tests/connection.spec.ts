@@ -11,9 +11,6 @@ test.describe('Connection', () => {
 
   test('shows the connecting state after tapping connect', async () => {
     await mainPage.connectButton.click();
-
-    // While connecting the primary action becomes a cancel affordance and the
-    // status label reports tunnel progress.
     await expect(mainPage.cancelButton).toBeVisible();
     await expect(mainPage.statusText).toBeVisible();
   });
@@ -25,15 +22,12 @@ test.describe('Connection', () => {
 
     await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
     await expect(mainPage.connectionTimer).toBeVisible();
-    // The connected state replaces the status label with the connection timer.
     await expect(mainPage.statusText).toHaveCount(0);
   });
 
   test('resolves entry and exit servers once connected', async () => {
     await mainPage.connectButton.click();
     await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
-
-    // Rows switch from the "Random" placeholder to the resolved gateways.
     await expect(mainPage.serverRow('Entry')).not.toContainText('Random');
     await expect(mainPage.serverRow('Exit')).not.toContainText('Random');
   });

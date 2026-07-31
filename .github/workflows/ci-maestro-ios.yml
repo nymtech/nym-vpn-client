@@ -15,9 +15,7 @@ on:
 jobs:
   maestro-ui-tests:
     if: github.actor != 'dependabot[bot]'
-    # Self-hosted Apple Silicon: the mock app links NymVPNLib (the Rust FFI core),
-    # which must be built for the simulator (aarch64-apple-ios-sim) before Xcode
-    # can compile the NymVPN-Mock scheme. Mirrors build-nym-vpn-apple.yml.
+    # Self-hosted Apple Silicon: builds the Rust core (sim slice) the mock app links.
     runs-on: AppleSilicon
     timeout-minutes: 90
 
@@ -32,8 +30,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          # ios = device slice, ios-sim = simulator slice (needed to run the mock
-          # app on the iPhone 16 simulator that Maestro drives).
+          # ios-sim is the simulator slice Maestro drives.
           targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-darwin
 
       - name: Install cargo-swift
@@ -51,22 +48,10 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GOLANG_VERSION }}
-          # No module caching. $HOME persists on this self-hosted runner, so
-          # ~/go/pkg/mod survives between jobs and the actions cache restores a
-          # copy of something that was never lost - 210 MB and ~30s per run. It
-          # also unpacks over files Go marks read-only (0444), producing hundreds
-          # of "Can't unlink already-existing object: Permission denied" lines.
+          # No caching: $HOME persists on this runner, so the cache restores files that were never lost (and clobbers read-only Go objects).
           cache: false
 
-      # Build the iOS Rust core (libwg + NymVPNLibUniffi.xcframework) and stage it
-      # where the Xcode packages expect it. Debug build (RELEASE=false) — no code
-      # signing required.
-      #
-      # RUST_TRIPLET overrides iOS.mk's aarch64-apple-ios default so the
-      # xcframework carries the simulator slice instead of the device one. Maestro
-      # drives the iPhone 16 simulator, so that is the only slice needed here, and
-      # cargo-swift accepts --target once. build-wireguard-go.sh --ios already
-      # produces libwg.a for every iOS slice, so the libwg prerequisite resolves.
+      # RUST_TRIPLET builds the simulator slice Maestro needs (RELEASE=false, no signing).
       - name: Build NymVPNLib (iOS core)
         working-directory: nym-vpn-core
         run: make -f iOS.mk RELEASE=false RUST_TRIPLET=aarch64-apple-ios-sim
@@ -79,8 +64,7 @@ jobs:
           rm -rf "$LIB_DEST"
           cp -R "$LIB_SRC" "$LIB_DEST"
           echo "Staged NymVPNLib -> $LIB_DEST"
-          # Flatten xcframework headers for Xcode 26+ explicit module builds
-          # (matches scripts/BuildCore.sh). No-op on older Xcode.
+          # Flatten xcframework headers for Xcode 26+ (no-op on older). Matches BuildCore.sh.
           XCODE_VER="$(xcodebuild -version | head -1 | awk '{print $2}')"
           if [[ "$(printf '%s\n' "26.4" "$XCODE_VER" | sort -V | head -1)" == "26.4" ]]; then
             for HEADERS_DIR in "$LIB_DEST"/NymVPNLibUniffi.xcframework/*/Headers; do
@@ -92,11 +76,7 @@ jobs:
             echo "Flattened NymVPNLib xcframework headers (Xcode $XCODE_VER)"
           fi
 
-      # NymVPNRpc is gitignored and generated. On macOS it is built from the
-      # nym-vpn-rpc-uniffi crate, but iOS never uses it - the workspace only
-      # needs the package to exist so the package graph resolves. Without this
-      # the build fails at Resolve Package Graph with "the package at
-      # .../NymVPNRpc cannot be accessed". Mirrors ci-nym-vpn-app-ios.yml.
+      # NymVPNRpc is iOS-unused but must exist so the package graph resolves.
       - name: Add stubs for unused packages
         working-directory: nym-vpn-apple
         run: |
@@ -107,18 +87,7 @@ jobs:
           swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
           echo "✅ Stubs added successfully."
 
-      # Runs before the build so the build destination and the device the app is
-      # installed on are guaranteed to be the same one.
-      #
-      # The device used to be hardcoded to "iPhone 16", which no longer exists on
-      # the runner - it offers iPhone 16e, 17, 17 Pro, 17 Pro Max, 17e and Air.
-      # Any fixed name is fragile here: the AppleSilicon label covers more than
-      # one machine and Xcode drops old simulators as it updates. So pick
-      # whatever iPhone is actually available, newest runtime first. Set
-      # SIMULATOR_NAME to pin an exact device if a flow ever needs one.
-      #
-      # The old substring test also matched "iPhone 16e", so the boot step could
-      # pick a device the build step had already rejected.
+      # Pick an available iPhone (newest runtime first) so build and install target the same device; "iPhone 16" no longer exists on the runner.
       - name: Select and boot iOS simulator
         env:
           SIMULATOR_NAME: ""
@@ -149,7 +118,6 @@ jobs:
               sys.stderr.write('No available iPhone simulator found.\n')
               sys.exit(1)
 
-          # Newest runtime first, then by name, so the choice is deterministic.
           candidates.sort(reverse=True)
           version, name, udid = candidates[0]
           print('%s\t%s\t%d.%d' % (udid, name, version[0], version[1]))
@@ -162,11 +130,7 @@ jobs:
           echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
           echo "DEVICE_NAME=$DEVICE_NAME" >> $GITHUB_ENV
 
-          # Simulators stay booted between jobs on this runner, so there are
-          # usually several. Not shutting the others down - a concurrent Apple
-          # job on this Mac may be using one - but every maestro call passes
-          # --device, so the extras are harmless. Logged because an unexpected
-          # set here explains a lot of otherwise baffling behaviour.
+          # Extras stay booted (a concurrent job may use one); every maestro call passes --device.
           echo "--- all currently booted simulators ---"
           xcrun simctl list devices booted || true
 
@@ -174,22 +138,8 @@ jobs:
         working-directory: nym-vpn-apple
         run: |
           set -euo pipefail
-          # No `|| true` here. It used to swallow the exit code, so a failed
-          # build let the job continue and surface two steps later as an
-          # unreadable CoreSimulator abort from `simctl install` with an empty
-          # path. A broken build must fail in the step that ran it.
-          #
-          # Destination is the exact device booted above, addressed by id, so the
-          # build target and the install target cannot drift apart.
-          #
-          # SWIFT_ACTIVE_COMPILATION_CONDITIONS must append, not replace. Passing
-          # bare MOCK_MODE overwrote the Debug config's value and dropped DEBUG,
-          # which disabled the mock entirely: MockMode.isEnabled falls back to a
-          # launch-argument check "in DEBUG builds only" precisely because
-          # MOCK_MODE does not reliably reach SPM package targets - and the mocks
-          # live in the Services package. With DEBUG gone both branches failed
-          # and isEnabled returned false, so the app ran against the real backend
-          # and never reached the home screen.
+          # No `|| true`: a swallowed build failure surfaces later as an opaque simctl abort.
+          # SWIFT_ACTIVE_COMPILATION_CONDITIONS must append — bare MOCK_MODE drops DEBUG and disables the mock.
           build_mock_app() {
             xcodebuild build-for-testing \
               -workspace NymVPN.xcworkspace \
@@ -199,29 +149,21 @@ jobs:
               CODE_SIGNING_ALLOWED=NO \
               SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) DEBUG MOCK_MODE'
           }
-          # xcpretty only prettifies; never let its absence decide the outcome.
+          # xcpretty only prettifies; don't let its absence decide the outcome.
           if command -v xcpretty >/dev/null 2>&1; then
             build_mock_app | xcpretty
           else
             build_mock_app
           fi
 
-      # The Maestro CLI runs on the JVM. The self-hosted Apple Silicon runners
-      # have no system Java, so install it per-job rather than relying on the
-      # host - the AppleSilicon label covers more than one machine and their
-      # ambient tooling differs. Same JDK as ci-maestro-android.yml.
+      # Maestro runs on the JVM; the runner has no system Java. Same JDK as ci-maestro-android.yml.
       - name: Set up JDK 21
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # Installs into RUNNER_TEMP, not $HOME. ci-maestro-android.yml unpacks to
-      # $HOME/.maestro, which is safe on ubuntu-latest because each job gets a
-      # fresh home - but this runner is self-hosted and $HOME persists, so the
-      # move failed with "Directory not empty" against the previous run's
-      # install. RUNNER_TEMP is emptied per job, which also keeps concurrent
-      # jobs on this shared Mac from fighting over one install directory.
+      # Install into RUNNER_TEMP, not $HOME: $HOME persists on this runner and collides with the previous run's install.
       - name: Install Maestro
         env:
           MAESTRO_VERSION: "2.2.0"
@@ -235,7 +177,6 @@ jobs:
           mv maestro "$RUNNER_TEMP/maestro"
           rm -f maestro.zip checksums_sha256.txt
           echo "$RUNNER_TEMP/maestro/bin" >> $GITHUB_PATH
-          # Fail here rather than in a later step if the CLI cannot start.
           "$RUNNER_TEMP/maestro/bin/maestro" --version
 
       - name: Log tool versions
@@ -254,9 +195,7 @@ jobs:
         run: |
           set -euo pipefail
           APP_PATH=$(find build -name "NymVPN.app" -path "*/Debug-iphonesimulator/*" | head -1)
-          # Without this guard an empty APP_PATH reaches simctl as a null URL and
-          # aborts with 'Invalid parameter not satisfying: installURL' plus a
-          # CoreSimulator stack trace, which says nothing about the real cause.
+          # Guard empty APP_PATH: simctl otherwise aborts with an opaque CoreSimulator trace.
           if [ -z "$APP_PATH" ]; then
             echo "::error::NymVPN.app not found under nym-vpn-apple/build - the mock app build did not produce it"
             echo "--- .app bundles present ---"
@@ -266,18 +205,12 @@ jobs:
           echo "Installing $APP_PATH"
           xcrun simctl install "$DEVICE_ID" "$APP_PATH"
 
-      # Every flow fails in open_app looking for a button, but the reports only
-      # say which text was missing - never which screen was actually shown, and
-      # Maestro's --debug-output produced no screenshots. This launches the app
-      # once on its own and dumps the accessibility tree straight into the job
-      # log, so the screen can be identified without a Mac. Never fails the job.
+      # Launch once and dump the accessibility tree so a failing screen is identifiable without a Mac. Never fails the job.
       - name: Capture launch state
         working-directory: nym-vpn-apple
         continue-on-error: true
         run: |
           set -uo pipefail
-          # Separate directory: the test run below writes --debug-output to
-          # maestro-debug and would clobber anything captured here.
           OUT="$PWD/launch-diagnostics"
           mkdir -p "$OUT"
 
@@ -285,19 +218,16 @@ jobs:
           xcrun simctl terminate "$DEVICE_ID" net.nymtech.vpn 2>/dev/null || true
           xcrun simctl launch "$DEVICE_ID" net.nymtech.vpn -MOCK_MODE 1 || true
 
-          # Give the UI time to settle before sampling it.
           for _ in $(seq 1 10); do
             sleep 1
           done
 
-          # Absolute path required: simctl resolves a relative one against its own
-          # working directory, failing with "The folder ... doesn't exist".
+          # Absolute path: simctl resolves relative paths against its own cwd.
           xcrun simctl io "$DEVICE_ID" screenshot "$OUT/launch-state.png" || true
           ls -la "$OUT" || true
 
           echo "=== accessibility tree (maestro hierarchy) ==="
-          # Hard cap: maestro has to start its iOS driver here, outside a test
-          # run, and a stall must not hold the job for the full 90m timeout.
+          # Hard cap: a stalled maestro hierarchy must not hold the 90m timeout.
           maestro --device "$DEVICE_ID" hierarchy > "$OUT/hierarchy.txt" 2>&1 &
           HIER_PID=$!
           ( sleep 120; kill "$HIER_PID" 2>/dev/null ) &
@@ -317,19 +247,11 @@ jobs:
             echo "only record of what was on screen."
           fi
 
-      # Points at the workspace root, not maestro/flows/. Maestro reads
-      # config.yaml from the directory it is given, so targeting flows/ meant the
-      # appId, tags and onFlowStart hooks in maestro/config.yaml were never
-      # applied - and with no inclusion pattern it found no flows at all, since
-      # every one lives in a subdirectory. Matches ci-maestro-android.yml.
+      # Point at maestro/ (not flows/) so config.yaml's appId/tags/onFlowStart apply. Matches ci-maestro-android.yml.
       - name: Run Maestro UI tests
         working-directory: nym-vpn-apple
         run: |
-          # --device is mandatory here. The runner keeps simulators booted between
-          # jobs, so more than one is usually running, and without it Maestro
-          # prompts "Multiple running devices detected. Choose a device to run
-          # on." - which with no TTY it can never resolve. It also guarantees the
-          # flows drive the same simulator the app was installed on.
+          # --device is mandatory: multiple sims stay booted, and Maestro can't pick with no TTY.
           maestro --device "$DEVICE_ID" test maestro \
             --format junit \
             --output maestro-ios-report.xml \
@@ -343,8 +265,7 @@ jobs:
           path: nym-vpn-apple/maestro-ios-report.xml
           retention-days: 14
 
-      # Screenshots and per-command logs for failed flows. These flows have never
-      # run in CI, so this is the only way to see why one failed without a Mac.
+      # Screenshots and per-command logs for failed flows.
       - name: Upload Maestro debug artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

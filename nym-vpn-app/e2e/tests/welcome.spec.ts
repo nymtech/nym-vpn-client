@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-/**
- * Welcome screen ("/welcome").
- *
- * Replaces the former "/login" route, which no longer exists: account entry is
- * now driven from here rather than an in-app mnemonic form.
- */
+/** Welcome screen (replaces the former /login route). */
 test.describe('Welcome screen', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/welcome');

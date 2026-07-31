@@ -2,10 +2,7 @@ import Combine
 import Foundation
 import TunnelStatus
 
-/// Detects whether the app was launched in mock mode.
-/// Primary: compile-time MOCK_MODE flag (set via xcodebuild or Xcode scheme).
-/// Fallback: launch argument in DEBUG builds only (for Maestro/SPM compatibility).
-/// Release builds always return false regardless of arguments.
+/// True when launched in mock mode (compile-time MOCK_MODE, or a DEBUG launch arg).
 public enum MockMode {
     public static var isEnabled: Bool {
         #if MOCK_MODE
@@ -19,9 +16,7 @@ public enum MockMode {
     }
 }
 
-/// Lightweight mock of VPN connection behavior for UI testing.
-/// Simulates connect/disconnect state transitions with delays,
-/// without requiring the real nym-vpnd daemon or network.
+/// Lightweight mock of connect/disconnect for UI testing (no daemon or network).
 @MainActor
 public final class MockConnectionState: ObservableObject {
     @Published public var tunnelStatus: TunnelStatus = .disconnected

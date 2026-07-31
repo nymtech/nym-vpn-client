@@ -39,8 +39,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
-          # Android.mk cross-compiles arm64-v8a, armeabi-v7a and x86_64, so all
-          # three rust targets must be installed.
+          # Android.mk cross-compiles three ABIs, so all three rust targets are needed.
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
       - name: Install cargo-ndk
@@ -110,10 +109,7 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
-          # Without an explicit profile avdmanager falls back to a 320x640
-          # mdpi screen, which no real device has: most of the UI ends up
-          # below the fold and flows fail on elements that are merely
-          # off-screen. Pixel 6 is 1080x2400 @ 420dpi.
+          # Pixel 6 profile: the default AVD is a tiny 320x640 mdpi screen where most of the UI is off-screen.
           profile: pixel_6
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true

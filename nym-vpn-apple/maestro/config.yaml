@@ -3,9 +3,6 @@ tags:
   - ui-validation
 onFlowStart:
   - clearState
-# Maestro only picks up flows at the top level of the workspace unless told
-# otherwise, and every flow here lives in a subdirectory. This also keeps
-# subflows/ out of the run - those are building blocks invoked via runFlow,
-# not standalone tests. Matches nym-vpn-android/maestro/config.yaml.
+# Only run flows/ (subflows/ are invoked via runFlow, not standalone tests).
 flows:
   - flows/**

@@ -87,7 +87,6 @@ test.describe('NodesList', () => {
     await expandButton.click();
 
     await expect(expandButton).toHaveAttribute('aria-expanded', 'true');
-    // Expanding reveals the country's individual gateways.
     await expect(page.getByText('la porte en bois')).toBeVisible();
 
     await expandButton.click();
@@ -96,7 +95,6 @@ test.describe('NodesList', () => {
   });
 
   test('navigates back home', async ({ page }) => {
-    // Arrive via home so the back button has history to pop.
     const mainPage = new MainPage(page);
     await mainPage.goto();
     await mainPage.serverRow('Entry').click();

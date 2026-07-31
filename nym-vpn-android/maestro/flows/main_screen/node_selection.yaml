@@ -12,9 +12,6 @@ tags:
     text: "Random"
     below: "Exit server"
 
-# The picker title is now "Exit server" too (was "Exit location"), so it clashes
-# with the home hop label. Anchor on the search field, which is unique to the
-# picker, and on "Connect", which is unique to home.
 - extendedWaitUntil:
     visible:
       text: "Search location or server"

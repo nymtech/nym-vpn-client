@@ -11,18 +11,11 @@ appId: net.nymtech.vpn
 
 - tapOn: "Account and devices"
 
-# The account screen loads asynchronously (its .task polls the account summary).
-# Wait for "Account status" - a header near the top - so the screen is populated
-# before interacting.
 - extendedWaitUntil:
     visible:
       text: "Account status"
     timeout: 15000
 
-# The button renders as "Log out " WITH A TRAILING SPACE. Maestro anchors its
-# text regex to the whole string, so a bare "Log out" never matches - the button
-# is on screen the whole time but reported "not found". Match the trailing space.
-# scrollUntilVisible still handles smaller screens where it sits below the fold.
 - scrollUntilVisible:
     element:
       text: "Log out ?"
@@ -31,11 +24,7 @@ appId: net.nymtech.vpn
 - tapOn:
     text: "Log out ?"
 
-# Tapping Log out opens a "Log out of this device?" dialog. Its Yes button reads
-# exactly "Log out" (no trailing space), while the list button behind it is
-# "Log out " (with one). Maestro anchors its text regex, so matching the exact
-# "Log out" hits ONLY the dialog's Yes - no index needed, no risk of tapping the
-# list button and cancelling.
+# Match the exact "Log out" (no trailing space) to hit the dialog's Yes, not the list button behind it.
 - extendedWaitUntil:
     visible:
       text: "Log out of this device?"

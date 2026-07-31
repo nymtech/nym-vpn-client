@@ -50,7 +50,6 @@ test.describe('DNS', () => {
     await expect(
       settingsPage.customDnsToggle.getByRole('switch'),
     ).toBeEnabled();
-    // Saving clears the pending-changes state.
     await expect(settingsPage.saveChangesButton).toBeDisabled();
   });
 

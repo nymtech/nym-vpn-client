@@ -1,35 +1,22 @@
 # Launches the mock app with a clean state and lands on the home screen.
-# Onboarding is dismissed when present; the mock treats an account as stored,
-# so we land directly on the OneClick home once onboarding is cleared.
 appId: net.nymtech.vpn
 ---
 - launchApp:
     arguments:
       MOCK_MODE: "1"
 
-# Dismiss the onboarding carousel when it appears. Guard on the onboarding
-# tagline so we never mistake the OneClick "Get started" connect button
-# (shown only in the no-subscription state) for the onboarding CTA.
 - runFlow:
     when:
       visible: ".*most private VPN.*"
     commands:
       - tapOn: "Get started"
 
-# If the mock lands on the welcome/auth sheet, continue through it.
 - runFlow:
     when:
       visible: "Welcome!"
     commands:
       - tapOn: "Continue"
 
-# Home is ready once the connect button renders.
-#
-# Not the "Entry server"/"Exit server" labels: OneClick has two display modes
-# and those only render in .nerd, where they are also accessibilityHidden for
-# .powerUser. A cleared launch has no stored mode and falls back to .powerUser,
-# so they are never on screen here. The connect button is part of baseSection
-# and renders in every mode - the same anchor the Android open_app uses.
 - extendedWaitUntil:
     visible:
       text: "Connect"

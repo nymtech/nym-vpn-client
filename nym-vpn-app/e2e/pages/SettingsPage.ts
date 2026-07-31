@@ -1,12 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-/**
- * Settings index ("/settings") and its sub-screens.
- *
- * Menu rows expose their icon ligature and chevron in the accessible name
- * (e.g. "dns Customize DNS chevron_right"), so rows are matched by substring
- * rather than exact text.
- */
+/** Settings index and sub-screens (menu rows matched by label substring). */
 class SettingsPage {
   readonly backButton: Locator;
   readonly quitButton: Locator;
@@ -14,20 +8,14 @@ class SettingsPage {
   readonly daemonVersion: Locator;
   readonly networkName: Locator;
   readonly toast: Locator;
-
-  // Account
   readonly accountRow: Locator;
   readonly logoutButton: Locator;
   readonly accountId: Locator;
   readonly deviceId: Locator;
   readonly getStartedButton: Locator;
-
-  // Anti-censorship
   readonly quicToggle: Locator;
   readonly amneziaToggle: Locator;
   readonly stealthApiToggle: Locator;
-
-  // DNS
   readonly viewDefaultDnsButton: Locator;
   readonly customDnsToggle: Locator;
   readonly dnsAddressInput: Locator;
@@ -37,8 +25,6 @@ class SettingsPage {
   readonly deleteDnsButton: Locator;
   readonly invalidDnsError: Locator;
   readonly customDnsList: Locator;
-
-  // Appearance / display
   readonly displayModeRow: Locator;
   readonly languageRow: Locator;
   readonly automaticTheme: Locator;

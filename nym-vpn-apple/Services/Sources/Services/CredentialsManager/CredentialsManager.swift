@@ -483,10 +483,7 @@ import PathManager
 
     /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
-        // Mock mode has no account summary to fetch, so the home screen would
-        // read `.noSubscription` and render the "Get started" paywall button
-        // instead of "Connect". Treat the seeded mock session as an active
-        // account, mirroring `isAccountValid()` above.
+        // Mock has no account summary — treat the seeded session as active (else the home shows the paywall).
         if isMockMode { return true }
         if let accountSummary {
             if accountSummary.isActive { return true }
@@ -709,14 +706,7 @@ private extension CredentialsManager {
 
     func checkCredentialImport() {
         if isMockMode {
-            // Start the mock with an account already stored. The UI suite
-            // launches with cleared state and expects to land on the home
-            // screen - logout_to_welcome.yaml reaches the welcome sheet by
-            // logging *out* of this session. Returning without seeding the flag
-            // left isCredentialImported false, so every flow got the welcome
-            // screen instead of home and failed in its open_app subflow.
-            // Mirrors MockBackendManager on Android, which starts with
-            // isMnemonicStored = true.
+            // Start the mock with an account stored so UI tests land on home.
             updateIsCredentialImported(with: true)
             return
         }

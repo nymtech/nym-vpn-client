@@ -5,17 +5,7 @@ import SettingsPage from '../pages/SettingsPage';
 const MNEMONIC =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 
-/**
- * Account / login journey.
- *
- * There is no longer a dedicated "/login" route. Signing in is reached by
- * logging out and walking: Get started -> onboarding -> welcome -> log in ->
- * 24-word passphrase.
- *
- * The mocked backend keeps its logged-in flag in module state, so it resets on
- * a full page reload. Every step below therefore stays within the SPA rather
- * than calling `page.goto`.
- */
+/** Account / login journey (no /login route; reached by logging out). */
 test.describe('Login', () => {
   let mainPage: MainPage;
   let settingsPage: SettingsPage;
@@ -43,7 +33,6 @@ test.describe('Login', () => {
 
     await expect(settingsPage.toast).toBeVisible();
     await expect(page).toHaveURL(/\/settings$/);
-    // The account row is replaced by a sign-up entry point once logged out.
     await expect(settingsPage.getStartedButton).toBeVisible();
   });
 
@@ -83,8 +72,6 @@ test.describe('Login', () => {
       .getByRole('textbox', { name: /24-word passphrase/ })
       .fill(MNEMONIC);
     await page.getByRole('button', { name: 'Login' }).click();
-
-    // Back to an authenticated account screen.
     await mainPage.settingsButton.click();
     await settingsPage.accountRow.click();
     await expect(settingsPage.accountId).toBeVisible();

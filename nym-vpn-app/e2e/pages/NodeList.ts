@@ -1,11 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 
-/**
- * Node location screen ("/node-location").
- *
- * Replaces the former separate "/entry-node-location" and "/exit-node-location"
- * routes: a single screen with an Entry/Exit tab pair.
- */
+/** Node location screen with Entry/Exit tabs. */
 class NodeListPage {
   readonly backButton: Locator;
   readonly infoButton: Locator;
@@ -17,8 +12,6 @@ class NodeListPage {
   readonly accordion: Locator;
   readonly expandButtons: Locator;
   readonly nodeDetailsButtons: Locator;
-
-  // Info modal
   readonly infoModal: Locator;
   readonly infoModalTitle: Locator;
   readonly streamingHeading: Locator;
@@ -71,10 +64,7 @@ class NodeListPage {
     await this.page.getByTestId(`country-info-${code}`).click();
   }
 
-  /**
-   * Types into the search box key by key. `fill()` sets the value in one shot,
-   * which the list's incremental filter does not react to the same way.
-   */
+  /** Type key-by-key: the list's incremental filter ignores fill(). */
   async fillSearchInput(term: string) {
     await this.searchInput.click();
     await this.searchInput.fill('');

@@ -1,17 +1,10 @@
-# Gateway picker renders its server list and details affordance.
-#
-# NOTE: the per-row "info" button that opens ServerDetailsView has no stable
-# text/accessibilityIdentifier resolvable from source (GatewaysView builds it via
-# CustomNavBarButton(type: .info) / infoButtonTapCompletion). The commented block
-# below reaches "Server details" once the selector is confirmed against a running
-# build in CI — see tasks.md 5.3.
+# Gateway picker renders its server list.
 appId: net.nymtech.vpn
 tags:
   - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-# Entry/Exit server rows are only visible in nerd mode.
 - runFlow: ../../subflows/reveal_servers.yaml
 
 - tapOn: "Exit server"
@@ -20,14 +13,4 @@ tags:
       text: "Search location or server"
     timeout: 10000
 
-# The gateway list renders, including the Random (fastest) entry.
 - assertVisible: "Random"
-
-# TODO(CI): finalize the info-button selector, then assert the details sheet.
-# - tapOn:
-#     id: "<resolved info-button identifier>"
-# - extendedWaitUntil:
-#     visible:
-#       text: "Server details"
-#     timeout: 10000
-# - assertVisible: "Overall performance"

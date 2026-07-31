@@ -39,10 +39,7 @@ import nym_vpn_lib_types.VpnAccountSummary
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Mock implementation of [BackendManager] for UI testing.
- * Returns canned responses without requiring the real nym-vpnd daemon.
- */
+/** Mock [BackendManager] for UI testing (no daemon). */
 @Singleton
 class MockBackendManager @Inject constructor(@ApplicationScope private val applicationScope: CoroutineScope, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) : BackendManager {
 
@@ -272,14 +269,10 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		GatewayType.WG -> mockWgGateways
 	}
 
-	// Gateway independence is a daemon-side negotiation with no mock equivalent:
-	// report "nothing tentative" and accept the toggle without side effects.
+	// Gateway independence has no mock equivalent — accept the toggle, no side effects.
 	override suspend fun getTentativeGateways(): TentativeGateways? = null
 
-	// The mock keeps no connection history, so every tunnel type has an empty
-	// recents list. Deliberately empty rather than null: the UI treats both the
-	// same, and a fixed empty result keeps the recents filter deterministic
-	// across test runs.
+	// No mock connection history — return an empty (not null) recents list.
 	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = RecentGateways(entry = emptyList(), exit = emptyList())
 
 	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {

@@ -5,16 +5,13 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-# Entry/Exit server rows are only visible in nerd mode.
 - runFlow: ../../subflows/reveal_servers.yaml
 
-# Open the exit server picker from the home hop row.
 - tapOn: "Exit server"
 - extendedWaitUntil:
     visible:
       text: "Search location or server"
     timeout: 10000
 
-# Back to home (powerUser mode, where the connect button is the stable anchor).
 - runFlow: ../../subflows/open_app.yaml
 - assertVisible: "Connect"
