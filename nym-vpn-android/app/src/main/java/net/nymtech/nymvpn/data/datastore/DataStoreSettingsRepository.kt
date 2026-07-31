@@ -30,6 +30,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
 	private val welcomeShown = booleanPreferencesKey("WELCOME_SHOWN")
 	private val panelCollapsed = booleanPreferencesKey("PANEL_COLLAPSED")
+	private val onboardingCompleted = booleanPreferencesKey("ONBOARDING_COMPLETED")
 
 	// Keys for Mixnet Configuration
 	private val mixnetPoissonRate = intPreferencesKey("MIXNET_POISSON_RATE")
@@ -140,6 +141,12 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(panelCollapsed, collapsed)
 	}
 
+	override suspend fun isOnboardingCompleted(): Boolean = dataStoreManager.getFromStore(onboardingCompleted) ?: Settings.DEFAULT_ONBOARDING_COMPLETED
+
+	override suspend fun setOnboardingCompleted(completed: Boolean) {
+		dataStoreManager.saveToDataStore(onboardingCompleted, completed)
+	}
+
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
 		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
@@ -205,6 +212,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						mixnetTrafficConfig = mixnetConfig,
 						isWelcomeShown = pref[welcomeShown] ?: Settings.DEFAULT_WELCOME_SHOWN,
 						panelCollapsed = pref[panelCollapsed] ?: Settings.DEFAULT_PANEL_COLLAPSED,
+						isOnboardingCompleted = pref[onboardingCompleted] ?: Settings.DEFAULT_ONBOARDING_COMPLETED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

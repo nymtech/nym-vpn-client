@@ -3,14 +3,26 @@ package net.nymtech.billing.model
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.ProductDetails.RecurrenceMode.INFINITE_RECURRING
 
-data class NymProductData(override val id: String, override val name: String, override val price: String, override val freeTrialDays: Int?) : ProductData {
+data class NymProductData(
+	override val id: String,
+	override val name: String,
+	override val price: String,
+	override val freeTrialDays: Int?,
+	override val priceAmountMicros: Long?,
+	override val priceCurrencyCode: String?,
+) : ProductData {
 	companion object {
-		fun from(product: ProductDetails): NymProductData = NymProductData(
-			id = product.productId,
-			name = product.name,
-			price = product.findDisplayPrice() ?: "",
-			freeTrialDays = product.getFreeTrialDays(),
-		)
+		fun from(product: ProductDetails): NymProductData {
+			val paidPhase = product.findPaidPricingPhase()
+			return NymProductData(
+				id = product.productId,
+				name = product.name,
+				price = product.findDisplayPrice(paidPhase),
+				freeTrialDays = product.getFreeTrialDays(),
+				priceAmountMicros = paidPhase?.priceAmountMicros,
+				priceCurrencyCode = paidPhase?.priceCurrencyCode,
+			)
+		}
 
 		private fun ProductDetails.getFreeTrialDays(): Int? {
 			val offers = subscriptionOfferDetails ?: return null
@@ -28,10 +40,9 @@ data class NymProductData(override val id: String, override val name: String, ov
 			return if (totalDays > 0) totalDays else null
 		}
 
-		private fun ProductDetails.findDisplayPrice(): String? {
-			oneTimePurchaseOfferDetails?.formattedPrice?.let { return it }
+		private fun ProductDetails.findPaidPricingPhase(): ProductDetails.PricingPhase? {
 			val offers = subscriptionOfferDetails ?: return null
-			val paidRecurring = offers
+			return offers
 				.asSequence()
 				.map { it.pricingPhases.pricingPhaseList }
 				.flatMap { it.asSequence() }
@@ -44,8 +55,8 @@ data class NymProductData(override val id: String, override val name: String, ov
 				.map { it.pricingPhases.pricingPhaseList }
 				.flatMap { it.asSequence() }
 				.lastOrNull { phase -> phase.priceAmountMicros > 0L }
-
-			return paidRecurring?.formattedPrice
 		}
+
+		private fun ProductDetails.findDisplayPrice(paidPhase: ProductDetails.PricingPhase?): String = oneTimePurchaseOfferDetails?.formattedPrice ?: paidPhase?.formattedPrice ?: ""
 	}
 }

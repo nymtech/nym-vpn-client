@@ -51,6 +51,9 @@ interface SettingsRepository {
 	suspend fun isWelcomeShown(): Boolean
 	suspend fun setWelcomeShown(shown: Boolean)
 
+	suspend fun isOnboardingCompleted(): Boolean
+	suspend fun setOnboardingCompleted(completed: Boolean)
+
 	val settingsFlow: Flow<Settings>
 
 	suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig
