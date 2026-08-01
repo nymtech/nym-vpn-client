@@ -68,7 +68,7 @@ export E2E_DAEMON_LOGS_URL="https://github.com/nymtech/nym-vpn-client/actions/ru
 out="$("$COMPOSE" --report "${TMP}/report.txt")"
 
 assert_contains "status line" "**E2E** e2e failure" "$out"
-assert_contains "branch" "branch: \`feat/e2e-notify\`" "$out"
+assert_contains "branch" "Branch: \`feat/e2e-notify\`" "$out"
 assert_contains "sha" "217912acd44d7a6a7f1089695a9e5cc837db87f4" "$out"
 assert_contains "counts" "2 passed, 1 failed, 1 skipped (\`debian12_cli\`)" "$out"
 assert_contains "failed name" "test_allow_lan_off_blocks_prior_resolver_tcp" "$out"
