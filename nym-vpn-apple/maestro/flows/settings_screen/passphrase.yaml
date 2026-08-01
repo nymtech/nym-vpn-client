@@ -1,0 +1,18 @@
+# Passphrase settings entry opens the account passphrase screen.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Passphrase"
+    timeout: 10000
+
+- tapOn: "Passphrase"
+- extendedWaitUntil:
+    visible:
+      text: "Show my passphrase"
+    timeout: 10000

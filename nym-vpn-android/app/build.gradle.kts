@@ -156,6 +156,11 @@ android {
 			proguardFile("proguard-rules.pro")
 			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
+		create(Constants.MOCK) {
+			dimension = Constants.TYPE
+			applicationIdSuffix = ".mock"
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.MOCK}\"")
+		}
 	}
 
 	compileOptions {
@@ -198,6 +203,12 @@ androidComponents {
 
 		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))
 		variant.resValues.put(variant.makeResValueKey("string", "fullVersionName"), ResValue(fullName))
+	}
+}
+
+androidComponents {
+	beforeVariants(selector().withFlavor("type" to "mock")) { variant ->
+		variant.enable = variant.buildType == "debug"
 	}
 }
 

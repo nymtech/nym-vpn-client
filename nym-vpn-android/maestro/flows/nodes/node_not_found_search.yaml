@@ -1,0 +1,27 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+- tapOn:
+    text: "Random"
+    index: 0
+
+- assertNotVisible: "No results found."
+- assertVisible: "Germany"
+
+- tapOn: "Search location or server"
+- inputText: "Random non existing country"
+
+- assertVisible: "No results found."
+- assertNotVisible: "Germany"
+
+- tapOn: "Clear text"
+
+- assertVisible: "Germany"
+- assertNotVisible: "No results found."

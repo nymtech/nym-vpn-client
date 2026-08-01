@@ -1,0 +1,20 @@
+# Settings rows render and additional entries are reachable by scrolling.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 10000
+
+- assertVisible: "Passphrase"
+
+- scrollUntilVisible:
+    element:
+      text: "Legal"
+    direction: DOWN
+- assertVisible: "Legal"

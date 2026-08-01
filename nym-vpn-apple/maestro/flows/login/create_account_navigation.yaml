@@ -1,0 +1,13 @@
+# Navigating into the sign-up / create-account flow from the welcome sheet.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/logout_to_welcome.yaml
+
+- assertVisible: "Sign up"
+- tapOn: "Sign up"
+- extendedWaitUntil:
+    notVisible:
+      text: "Login to my account"
+    timeout: 10000

@@ -1,0 +1,17 @@
+# Searching for a server in the exit gateway picker returns results.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+- runFlow: ../../subflows/reveal_servers.yaml
+
+- tapOn: "Exit server"
+- extendedWaitUntil:
+    visible:
+      text: "Search location or server"
+    timeout: 10000
+
+- tapOn: "Search location or server"
+- inputText: "United"
+- assertNotVisible: "No results found."

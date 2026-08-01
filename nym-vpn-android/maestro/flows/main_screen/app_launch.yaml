@@ -1,0 +1,15 @@
+# Home screen renders correctly in its disconnected state.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+  - smoke
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- assertVisible: "NOT PROTECTED"
+- assertVisible: "Fast"
+- assertVisible: "Mixnet"
+- assertVisible: "Entry server"
+- assertVisible: "Exit server"
+- assertVisible: "Connect"
+- assertVisible: "Settings"

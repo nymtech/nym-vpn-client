@@ -1,9 +1,22 @@
+import Foundation
 import SwiftUI
 import Constants
 import ConnectionTypes
 
 @MainActor public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
+
+    // Duplicated from MockMode — importing ConnectionManager here would cycle.
+    static var isMockMode: Bool {
+        #if MOCK_MODE
+        return true
+        #elseif DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+            || ProcessInfo.processInfo.arguments.contains("MOCK_MODE")
+        #else
+        return false
+        #endif
+    }
 
 #if os(iOS)
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
@@ -196,6 +209,13 @@ import ConnectionTypes
         isAdBlockerEnabledPublisher = false
         isPassphraseStoredPublisher = false
         serverFamilyRemindersEnabledPublisher = true
+
+        // Seed a signed-in mock session so UI tests start on the home screen.
+        if Self.isMockMode {
+            isCredentialImported = true
+            welcomeScreenDidDisplay = true
+            onboardingDidDisplay = true
+        }
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported

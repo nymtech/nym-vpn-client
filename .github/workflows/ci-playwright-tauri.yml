@@ -1,0 +1,65 @@
+name: ci-playwright-tauri
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/ci-playwright-tauri.yml'
+      - 'nym-vpn-app/**'
+  workflow_dispatch:
+
+jobs:
+  playwright-ui-tests:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: |
+            nym-vpn-app
+
+      - name: Install Node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: nym-vpn-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: nym-vpn-app
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: nym-vpn-app
+        run: npx playwright install --with-deps chromium
+
+      - name: Log tool versions
+        working-directory: nym-vpn-app
+        run: |
+          echo "--- Node ---"
+          node --version
+          echo "--- Playwright ---"
+          npx playwright --version
+
+      - name: Run Playwright E2E tests
+        working-directory: nym-vpn-app
+        run: npm run test:e2e
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-html-report
+          path: nym-vpn-app/playwright-report/
+          retention-days: 14
+
+      - name: Upload test results (screenshots, videos, traces)
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-test-results
+          path: nym-vpn-app/test-results/
+          retention-days: 7

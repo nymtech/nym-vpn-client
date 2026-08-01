@@ -27,6 +27,17 @@ import PathManager
     let appSettings = AppSettings.shared
     let configurationManager = ConfigurationManager.shared
 
+    private var isMockMode: Bool {
+        #if MOCK_MODE
+        return true
+        #elseif DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+            || ProcessInfo.processInfo.arguments.contains("MOCK_MODE")
+        #else
+        return false
+        #endif
+    }
+
 #if os(iOS)
     var deeplinks: NymDeeplinks?
 #endif
@@ -85,6 +96,11 @@ import PathManager
     }
 
     public func add(credential: String) async throws {
+        if isMockMode {
+            logger.info("Mock mode: accepting credential without backend validation")
+            updateIsCredentialImported(with: true)
+            return
+        }
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
         try await login(credential: credential, environment: env)
@@ -184,6 +200,11 @@ import PathManager
 #endif
 
     public func createMnemonic() async throws {
+        if isMockMode {
+            logger.info("Mock mode: simulating account creation")
+            updateIsCredentialImported(with: true)
+            return
+        }
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
         try await createMnemonic(environment: env)
@@ -336,6 +357,12 @@ import PathManager
     }
 
     public func removeCredential() async throws {
+        if isMockMode {
+            logger.info("Mock mode: simulating credential removal")
+            updateIsCredentialImported(with: false)
+            appSettings.accountToken = nil
+            return
+        }
 #if os(iOS)
         let envOpt = configurationManager.networkEnv
         try await Task {
@@ -445,6 +472,7 @@ import PathManager
     /// Uses `isActive` from AccountSummary (backend source of truth),
     /// falling back to local date check if accountSummary is nil.
     public func isAccountValid() async -> Bool {
+        if isMockMode { return true }
         if isAccountActive() {
             return true
         } else {
@@ -455,6 +483,8 @@ import PathManager
 
     /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
+        // Mock has no account summary — treat the seeded session as active (else the home shows the paywall).
+        if isMockMode { return true }
         if let accountSummary {
             if accountSummary.isActive { return true }
             if let validUntilDate = accountSummary.validUntilDate,
@@ -675,6 +705,11 @@ private extension CredentialsManager {
     }
 
     func checkCredentialImport() {
+        if isMockMode {
+            // Start the mock with an account stored so UI tests land on home.
+            updateIsCredentialImported(with: true)
+            return
+        }
         Task {
             await ensureCredentialImportResolved()
             guard !isAccountRegistrationInFlight else { return }

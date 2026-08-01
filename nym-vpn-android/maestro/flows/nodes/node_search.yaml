@@ -1,0 +1,24 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+- tapOn:
+    text: "Random"
+    index: 0
+
+- assertNotVisible: "Mock-Entry-DE-01"
+
+- tapOn: "Search location or server"
+- inputText: "Entry-DE-01"
+
+- assertVisible: "Mock-Entry-DE-01"
+
+- tapOn: "Clear text"
+
+- assertNotVisible: "Mock-Entry-DE-01"

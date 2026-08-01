@@ -1,0 +1,278 @@
+name: ci-maestro-ios
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/ci-maestro-ios.yml'
+      - 'nym-vpn-apple/**'
+      - 'nym-vpn-core/**'
+      - 'wireguard/**'
+  workflow_dispatch:
+
+jobs:
+  maestro-ui-tests:
+    if: github.actor != 'dependabot[bot]'
+    # Self-hosted Apple Silicon: builds the Rust core (sim slice) the mock app links.
+    runs-on: AppleSilicon
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Load .env versions
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          # ios-sim is the simulator slice Maestro drives.
+          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-darwin
+
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          # No caching: $HOME persists on this runner, so the cache restores files that were never lost (and clobbers read-only Go objects).
+          cache: false
+
+      # RUST_TRIPLET builds the simulator slice Maestro needs (RELEASE=false, no signing).
+      - name: Build NymVPNLib (iOS core)
+        working-directory: nym-vpn-core
+        run: make -f iOS.mk RELEASE=false RUST_TRIPLET=aarch64-apple-ios-sim
+
+      - name: Stage NymVPNLib into the apple project
+        run: |
+          set -euo pipefail
+          LIB_SRC="nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib"
+          LIB_DEST="nym-vpn-apple/NymVPNLib"
+          rm -rf "$LIB_DEST"
+          cp -R "$LIB_SRC" "$LIB_DEST"
+          echo "Staged NymVPNLib -> $LIB_DEST"
+          # Flatten xcframework headers for Xcode 26+ (no-op on older). Matches BuildCore.sh.
+          XCODE_VER="$(xcodebuild -version | head -1 | awk '{print $2}')"
+          if [[ "$(printf '%s\n' "26.4" "$XCODE_VER" | sort -V | head -1)" == "26.4" ]]; then
+            for HEADERS_DIR in "$LIB_DEST"/NymVPNLibUniffi.xcframework/*/Headers; do
+              for SUBDIR in "$HEADERS_DIR"/*/; do
+                [[ -d "$SUBDIR" ]] || continue
+                cp -n "$SUBDIR"* "$HEADERS_DIR/" 2>/dev/null || true
+              done
+            done
+            echo "Flattened NymVPNLib xcframework headers (Xcode $XCODE_VER)"
+          fi
+
+      # NymVPNRpc is iOS-unused but must exist so the package graph resolves.
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNRpc || true
+          mkdir NymVPNRpc || true
+          cd NymVPNRpc
+          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
+
+      # Pick an available iPhone (newest runtime first) so build and install target the same device; "iPhone 16" no longer exists on the runner.
+      - name: Select and boot iOS simulator
+        env:
+          SIMULATOR_NAME: ""
+        run: |
+          set -euo pipefail
+          SELECTED=$(xcrun simctl list devices available -j | python3 -c "
+          import json, os, re, sys
+
+          data = json.load(sys.stdin)
+          want = os.environ.get('SIMULATOR_NAME', '').strip()
+
+          candidates = []
+          for runtime, devices in data['devices'].items():
+              if 'iOS' not in runtime:
+                  continue
+              match = re.search(r'iOS-(\d+)-(\d+)', runtime)
+              version = (int(match.group(1)), int(match.group(2))) if match else (0, 0)
+              for device in devices:
+                  if not device.get('isAvailable'):
+                      continue
+                  if not device['name'].startswith('iPhone'):
+                      continue
+                  if want and device['name'] != want:
+                      continue
+                  candidates.append((version, device['name'], device['udid']))
+
+          if not candidates:
+              sys.stderr.write('No available iPhone simulator found.\n')
+              sys.exit(1)
+
+          candidates.sort(reverse=True)
+          version, name, udid = candidates[0]
+          print('%s\t%s\t%d.%d' % (udid, name, version[0], version[1]))
+          ")
+          DEVICE_ID=$(printf '%s' "$SELECTED" | cut -f1)
+          DEVICE_NAME=$(printf '%s' "$SELECTED" | cut -f2)
+          DEVICE_OS=$(printf '%s' "$SELECTED" | cut -f3)
+          echo "Selected $DEVICE_NAME (iOS $DEVICE_OS) - $DEVICE_ID"
+          xcrun simctl boot "$DEVICE_ID" || true
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+          echo "DEVICE_NAME=$DEVICE_NAME" >> $GITHUB_ENV
+
+          # Extras stay booted (a concurrent job may use one); every maestro call passes --device.
+          echo "--- all currently booted simulators ---"
+          xcrun simctl list devices booted || true
+
+      - name: Build mock app for simulator
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+          # No `|| true`: a swallowed build failure surfaces later as an opaque simctl abort.
+          # SWIFT_ACTIVE_COMPILATION_CONDITIONS must append — bare MOCK_MODE drops DEBUG and disables the mock.
+          build_mock_app() {
+            xcodebuild build-for-testing \
+              -workspace NymVPN.xcworkspace \
+              -scheme NymVPN-Mock \
+              -destination "id=$DEVICE_ID" \
+              -derivedDataPath build \
+              CODE_SIGNING_ALLOWED=NO \
+              SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) DEBUG MOCK_MODE'
+          }
+          # xcpretty only prettifies; don't let its absence decide the outcome.
+          if command -v xcpretty >/dev/null 2>&1; then
+            build_mock_app | xcpretty
+          else
+            build_mock_app
+          fi
+
+      # Maestro runs on the JVM; the runner has no system Java. Same JDK as ci-maestro-android.yml.
+      - name: Set up JDK 21
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Install into RUNNER_TEMP, not $HOME: $HOME persists on this runner and collides with the previous run's install.
+      - name: Install Maestro
+        env:
+          MAESTRO_VERSION: "2.2.0"
+        run: |
+          set -euo pipefail
+          curl -fsSL -o maestro.zip "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+          curl -fsSL -o checksums_sha256.txt "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/checksums_sha256.txt"
+          shasum -a 256 --check --ignore-missing checksums_sha256.txt
+          rm -rf maestro "$RUNNER_TEMP/maestro"
+          unzip -q maestro.zip
+          mv maestro "$RUNNER_TEMP/maestro"
+          rm -f maestro.zip checksums_sha256.txt
+          echo "$RUNNER_TEMP/maestro/bin" >> $GITHUB_PATH
+          "$RUNNER_TEMP/maestro/bin/maestro" --version
+
+      - name: Log tool versions
+        run: |
+          echo "--- Xcode ---"
+          xcodebuild -version
+          echo "--- Rust ---"
+          rustc --version
+          echo "--- Maestro ---"
+          maestro --version
+          echo "--- Simulator ---"
+          xcrun simctl list devices available | head -20
+
+      - name: Install app on simulator
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+          APP_PATH=$(find build -name "NymVPN.app" -path "*/Debug-iphonesimulator/*" | head -1)
+          # Guard empty APP_PATH: simctl otherwise aborts with an opaque CoreSimulator trace.
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::NymVPN.app not found under nym-vpn-apple/build - the mock app build did not produce it"
+            echo "--- .app bundles present ---"
+            find build -name "*.app" -maxdepth 8 || echo "(none)"
+            exit 1
+          fi
+          echo "Installing $APP_PATH"
+          xcrun simctl install "$DEVICE_ID" "$APP_PATH"
+
+      # Launch once and dump the accessibility tree so a failing screen is identifiable without a Mac. Never fails the job.
+      - name: Capture launch state
+        working-directory: nym-vpn-apple
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          OUT="$PWD/launch-diagnostics"
+          mkdir -p "$OUT"
+
+          echo "--- launching net.nymtech.vpn with the mock launch argument ---"
+          xcrun simctl terminate "$DEVICE_ID" net.nymtech.vpn 2>/dev/null || true
+          xcrun simctl launch "$DEVICE_ID" net.nymtech.vpn -MOCK_MODE 1 || true
+
+          for _ in $(seq 1 10); do
+            sleep 1
+          done
+
+          # Absolute path: simctl resolves relative paths against its own cwd.
+          xcrun simctl io "$DEVICE_ID" screenshot "$OUT/launch-state.png" || true
+          ls -la "$OUT" || true
+
+          echo "=== accessibility tree (maestro hierarchy) ==="
+          # Hard cap: a stalled maestro hierarchy must not hold the 90m timeout.
+          maestro --device "$DEVICE_ID" hierarchy > "$OUT/hierarchy.txt" 2>&1 &
+          HIER_PID=$!
+          ( sleep 120; kill "$HIER_PID" 2>/dev/null ) &
+          WATCHDOG_PID=$!
+          wait "$HIER_PID" 2>/dev/null || true
+          kill "$WATCHDOG_PID" 2>/dev/null || true
+
+          if [ -s "$OUT/hierarchy.txt" ]; then
+            echo "--- visible text ---"
+            grep -oE '"(text|title|label|accessibilityText)"[[:space:]]*:[[:space:]]*"[^"]+"' \
+              "$OUT/hierarchy.txt" | sort -u | head -80 || echo "(no text nodes matched)"
+            echo "--- raw, first 200 lines ---"
+            head -200 "$OUT/hierarchy.txt"
+          else
+            echo "(hierarchy.txt empty - maestro could not read the tree)"
+            echo "The screenshot in the launch-diagnostics artifact is then the"
+            echo "only record of what was on screen."
+          fi
+
+      # Point at maestro/ (not flows/) so config.yaml's appId/tags/onFlowStart apply. Matches ci-maestro-android.yml.
+      - name: Run Maestro UI tests
+        working-directory: nym-vpn-apple
+        run: |
+          # --device is mandatory: multiple sims stay booted, and Maestro can't pick with no TTY.
+          maestro --device "$DEVICE_ID" test maestro \
+            --format junit \
+            --output maestro-ios-report.xml \
+            --debug-output maestro-debug
+
+      - name: Upload Maestro report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maestro-ios-report
+          path: nym-vpn-apple/maestro-ios-report.xml
+          retention-days: 14
+
+      # Screenshots and per-command logs for failed flows.
+      - name: Upload Maestro debug artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maestro-ios-debug
+          path: |
+            nym-vpn-apple/maestro-debug
+            nym-vpn-apple/launch-diagnostics
+          retention-days: 14
+          if-no-files-found: warn

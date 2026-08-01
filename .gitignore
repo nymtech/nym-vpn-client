@@ -48,3 +48,7 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+
+# Maestro test output
+maestro-report.xml
+maestro-debug/

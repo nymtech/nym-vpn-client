@@ -170,7 +170,7 @@ extension OneClickViewModel {
         }
 #endif
 #if os(macOS)
-        if !grpcManager.isServing {
+        if !connectionManager.isMockModeEnabled, !grpcManager.isServing {
             onRequestDaemonEnable?()
             return false
         }

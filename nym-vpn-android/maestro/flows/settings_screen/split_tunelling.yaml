@@ -1,0 +1,21 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+- tapOn: "Settings"
+
+- tapOn:
+    text: "Split tunneling"
+    index: 1
+
+- assertVisible: "Set each app to use NymVPN or connect directly."
+- assertVisible: "Direct"
+- assertVisible: "Via NymVPN"
+- assertVisible: "Save changes"
+
+

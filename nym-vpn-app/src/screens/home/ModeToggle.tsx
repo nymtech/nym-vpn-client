@@ -146,6 +146,7 @@ export const ModeToggle = () => {
           <button
             key={mode.id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => handleSelect(mode.id)}
             className={clsx(
               'relative flex flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-sm font-bold transition-colors',
