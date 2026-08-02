@@ -125,11 +125,6 @@ async fn offline_state_command() -> anyhow::Result<()> {
         Err(AccountCommandError::Offline)
     );
 
-    assert_eq!(
-        test_bench.command_sender.forget_account().await,
-        Err(AccountCommandError::Offline)
-    );
-
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
 
     assert_eq!(
@@ -214,6 +209,15 @@ async fn offline_state_command() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::Offline)
         .await;
+
+    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    test_bench
+        .assert_state(AccountControllerState::LoggedOut)
+        .await;
+    assert_eq!(
+        test_bench.command_sender.get_stored_account().await,
+        Ok(None)
+    );
 
     Ok(())
 }
@@ -335,6 +339,10 @@ async fn ready_state_command() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::LoggedOut)
         .await;
+    assert_eq!(
+        test_bench.command_sender.get_stored_account().await,
+        Ok(None)
+    );
 
     Ok(())
 }

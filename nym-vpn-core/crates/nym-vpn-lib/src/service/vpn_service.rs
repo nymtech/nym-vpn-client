@@ -61,7 +61,7 @@ use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 
 use super::{
-    Socks5Error, Socks5Service, Socks5Status,
+    Socks5Error, Socks5Service, Socks5Status, VPN_DISCONNECT_TIMEOUT,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
@@ -280,6 +280,88 @@ pub struct NymVpnServiceParameters {
     pub connectivity_monitor: Box<dyn nym_offline_monitor::NativeConnectivityAdapter + 'static>,
 }
 
+fn tunnel_requires_teardown(state: &TunnelState) -> bool {
+    matches!(
+        state,
+        TunnelState::Connecting { .. }
+            | TunnelState::Connected { .. }
+            | TunnelState::Disconnecting { .. }
+    )
+}
+
+fn send_target_state_request(
+    statistics_event_sender: &StatisticsSender,
+    command_sender: &mpsc::UnboundedSender<TunnelCommand>,
+    target_state: TargetState,
+) {
+    match target_state {
+        TargetState::Secured => {
+            statistics_event_sender.report_connection_request();
+            let _ = command_sender.send(TunnelCommand::Connect);
+        }
+        TargetState::Unsecured => {
+            statistics_event_sender.report_disconnection_request();
+            let _ = command_sender.send(TunnelCommand::Disconnect);
+        }
+    }
+}
+
+async fn wait_for_tunnel_teardown(
+    mut tunnel_state_rx: watch::Receiver<TunnelState>,
+    disconnect_timeout: Duration,
+) -> Result<(), &'static str> {
+    if !tunnel_requires_teardown(&tunnel_state_rx.borrow()) {
+        return Ok(());
+    }
+
+    match tokio::time::timeout(
+        disconnect_timeout,
+        tunnel_state_rx.wait_for(|state| !tunnel_requires_teardown(state)),
+    )
+    .await
+    {
+        Ok(Ok(_)) => Ok(()),
+        Ok(Err(_)) => Err("Tunnel state channel unexpectedly closed"),
+        Err(_) => Err("Tunnel teardown timed out"),
+    }
+}
+
+fn forget_account_after_tunnel_teardown<RequestDisconnect, Wipe, WipeFuture>(
+    tunnel_state_rx: watch::Receiver<TunnelState>,
+    disconnect_timeout: Duration,
+    request_disconnect: RequestDisconnect,
+    wipe: Wipe,
+) -> impl std::future::Future<Output = Result<(), AccountCommandError>> + Send + 'static
+where
+    RequestDisconnect: FnOnce(),
+    Wipe: FnOnce() -> WipeFuture + Send + 'static,
+    WipeFuture: std::future::Future<Output = Result<(), AccountCommandError>> + Send + 'static,
+{
+    request_disconnect();
+
+    async move {
+        let teardown_result = wait_for_tunnel_teardown(tunnel_state_rx, disconnect_timeout).await;
+
+        if let Err(failure) = teardown_result {
+            tracing::error!(
+                "{failure} after {disconnect_timeout:?}; proceeding with the local account wipe"
+            );
+        }
+
+        let wipe_result = wipe().await;
+
+        match (teardown_result, wipe_result) {
+            (Ok(()), wipe_result) => wipe_result,
+            (Err(failure), Ok(())) => Err(AccountCommandError::internal(format!(
+                "{failure}; local account data was wiped"
+            ))),
+            (Err(failure), Err(wipe_error)) => Err(AccountCommandError::internal(format!(
+                "{failure}; local account data wipe also failed: {wipe_error}"
+            ))),
+        }
+    }
+}
+
 pub struct NymVpnService {
     // Paths
     paths: NymConfigPaths,
@@ -311,6 +393,13 @@ pub struct NymVpnService {
 
     // Last known tunnel state
     tunnel_state: Arc<RwLock<TunnelState>>,
+
+    // State changes used by operations that must wait without consuming tunnel events.
+    tunnel_state_tx: watch::Sender<TunnelState>,
+
+    // Forget-account remains pending while the main loop processes tunnel state events.
+    forget_account_task: Fuse<JoinHandle<Result<(), AccountCommandError>>>,
+    forget_account_response_tx: Option<oneshot::Sender<Result<(), AccountCommandError>>>,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -567,6 +656,7 @@ impl NymVpnService {
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
         let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (tunnel_state_tx, _) = watch::channel(TunnelState::Disconnected);
 
         // Initialize lazy SOCKS5 service (disabled by default)
         let socks5_service = Socks5Service::new(tunnel_state.clone());
@@ -723,6 +813,9 @@ impl NymVpnService {
             account_state_rx,
             target_state: TargetState::Unsecured,
             tunnel_state,
+            tunnel_state_tx,
+            forget_account_task: Fuse::terminated(),
+            forget_account_response_tx: None,
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -760,6 +853,34 @@ impl NymVpnService {
         let mut account_state_rx = WatchStream::new(self.account_state_rx.subscribe()).skip(1);
 
         loop {
+            if !self.forget_account_task.is_terminated() {
+                let result = tokio::select! {
+                    Some(event) = self.event_receiver.recv() => {
+                        self.handle_tunnel_event(event);
+                        None
+                    }
+                    result = &mut self.forget_account_task => {
+                        Some(
+                            result.unwrap_or_else(|error| {
+                                Err(AccountCommandError::internal(format!(
+                                    "Forget-account task failed: {error}"
+                                )))
+                            }),
+                        )
+                    }
+                };
+
+                if let Some(result) = result {
+                    if let Some(tx) = self.forget_account_response_tx.take() {
+                        let _ = tx.send(result);
+                    } else {
+                        tracing::error!("Forget-account task completed without a response channel");
+                    }
+                }
+
+                continue;
+            }
+
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
                     self.handle_service_command_timed(command).await;
@@ -856,26 +977,30 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn set_target_state(&mut self, new_state: TargetState) -> bool {
+    async fn update_target_state(&mut self, new_state: TargetState) -> bool {
         if self.target_state != new_state || self.tunnel_state.read().await.is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
-
-            match new_state {
-                TargetState::Secured => {
-                    self.statistics_event_sender.report_connection_request();
-                    let _ = self.command_sender.send(TunnelCommand::Connect);
-                }
-                TargetState::Unsecured => {
-                    self.statistics_event_sender.report_disconnection_request();
-                    let _ = self.command_sender.send(TunnelCommand::Disconnect);
-                }
-            }
-
             true
         } else {
             false
         }
+    }
+
+    fn request_target_state(&self, target_state: TargetState) {
+        send_target_state_request(
+            &self.statistics_event_sender,
+            &self.command_sender,
+            target_state,
+        );
+    }
+
+    async fn set_target_state(&mut self, new_state: TargetState) -> bool {
+        let updated = self.update_target_state(new_state).await;
+        if updated {
+            self.request_target_state(new_state);
+        }
+        updated
     }
 
     async fn reconnect_tunnel(&mut self) -> bool {
@@ -916,6 +1041,8 @@ impl NymVpnService {
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if let TunnelEvent::NewState(ref new_state) = event {
+            self.tunnel_state_tx.send_replace(new_state.clone());
+
             if let Ok(mut state) = self.tunnel_state.try_write() {
                 *state = new_state.clone();
             } else {
@@ -1134,7 +1261,7 @@ impl NymVpnService {
                 let _ = tx.send(self.handle_get_account_mode().await);
             }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
-                let _ = tx.send(self.handle_forget_account().await);
+                self.handle_forget_account(tx).await;
             }
             VpnServiceCommand::RotateKeys(tx, ()) => {
                 let _ = tx.send(self.handle_rotate_keys().await);
@@ -1944,31 +2071,50 @@ impl NymVpnService {
             .unwrap_or(false)
     }
 
-    async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        // Only block while a tunnel is actually live: the persistent storage the
-        // wipe clears is held during connecting/connected/disconnecting, not in
-        // the genuinely-disconnected states (Disconnected, Error, Offline). A
-        // strict `!= Disconnected` check wrongly rejected forget while stuck in
-        // Error/Offline (see #5668).
-        if self.tunnel_state.read().await.is_tunnel_active() {
-            return Err(AccountCommandError::internal(
-                "Unable to forget account while connected",
-            ));
-        }
+    async fn handle_forget_account(
+        &mut self,
+        response_tx: oneshot::Sender<Result<(), AccountCommandError>>,
+    ) {
+        debug_assert!(self.forget_account_task.is_terminated());
+        debug_assert!(self.forget_account_response_tx.is_none());
 
+        let target_state_updated = self.update_target_state(TargetState::Unsecured).await;
+        let command_sender = self.command_sender.clone();
+        let statistics_event_sender = self.statistics_event_sender.clone();
         let data_dir = self.paths.network_data_dir.clone();
-        tracing::info!(
-            "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
-            data_dir.display()
-        );
+        let stats_control_commands_sender = self.stats_control_commands_sender.clone();
+        let account_command_tx = self.account_command_tx.clone();
 
-        let _ = self
-            .stats_control_commands_sender
-            .reset_seed(None)
-            .await
-            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
+        let task = tokio::spawn(forget_account_after_tunnel_teardown(
+            self.tunnel_state_tx.subscribe(),
+            VPN_DISCONNECT_TIMEOUT,
+            move || {
+                if target_state_updated {
+                    send_target_state_request(
+                        &statistics_event_sender,
+                        &command_sender,
+                        TargetState::Unsecured,
+                    );
+                }
+            },
+            move || async move {
+                tracing::info!(
+                    "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
+                    data_dir.display()
+                );
 
-        self.account_command_tx.forget_account().await
+                let _ = stats_control_commands_sender
+                    .reset_seed(None)
+                    .await
+                    .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
+
+                account_command_tx.forget_account().await
+            },
+        ))
+        .fuse();
+
+        self.forget_account_response_tx = Some(response_tx);
+        self.forget_account_task = task;
     }
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
@@ -2412,5 +2558,150 @@ impl NymVpnService {
             .await?;
         self.update_tunnel_settings_with_throttle();
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        net::{IpAddr, Ipv4Addr},
+        sync::{
+            Arc,
+            atomic::{AtomicUsize, Ordering},
+        },
+    };
+
+    use nym_vpn_lib_types::{
+        ActionAfterDisconnect, ConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
+        TunnelConnectionData,
+    };
+
+    use super::*;
+
+    fn connected_tunnel_state() -> TunnelState {
+        let address = NymAddress::new("nym-address".to_owned(), "gateway-id".to_owned());
+        let localhost = Ipv4Addr::LOCALHOST;
+
+        TunnelState::Connected {
+            connection_data: ConnectionData {
+                entry_gateway: GatewayLightInfo::new("entry".to_owned(), None),
+                exit_gateway: GatewayLightInfo::new("exit".to_owned(), None),
+                connected_at: OffsetDateTime::now_utc(),
+                tunnel: TunnelConnectionData::Mixnet(MixnetConnectionData {
+                    nym_address: address.clone(),
+                    exit_ipr: address,
+                    entry_ip: IpAddr::V4(localhost),
+                    exit_ip: IpAddr::V4(localhost),
+                    ipv4: localhost,
+                    ipv6: None,
+                }),
+            },
+        }
+    }
+
+    async fn assert_forget_wipes_immediately(initial_state: TunnelState) {
+        let (_state_tx, state_rx) = watch::channel(initial_state);
+        let wipe_count = Arc::new(AtomicUsize::new(0));
+        let wipe_count_clone = wipe_count.clone();
+
+        let result = tokio::time::timeout(
+            Duration::from_millis(100),
+            forget_account_after_tunnel_teardown(
+                state_rx,
+                VPN_DISCONNECT_TIMEOUT,
+                || {},
+                move || async move {
+                    wipe_count_clone.fetch_add(1, Ordering::SeqCst);
+                    Ok(())
+                },
+            ),
+        )
+        .await
+        .expect("forget account waited in an inactive tunnel state");
+
+        assert_eq!(result, Ok(()));
+        assert_eq!(wipe_count.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn forget_while_disconnected_wipes_without_waiting() {
+        assert_forget_wipes_immediately(TunnelState::Disconnected).await;
+    }
+
+    #[tokio::test]
+    async fn forget_while_offline_wipes_without_erroring() {
+        assert_forget_wipes_immediately(TunnelState::Offline { reconnect: true }).await;
+    }
+
+    #[tokio::test]
+    async fn forget_while_connected_requests_disconnect_then_wipes_after_settling() {
+        let (state_tx, state_rx) = watch::channel(connected_tunnel_state());
+        let (command_sender, mut command_receiver) = mpsc::unbounded_channel();
+        let (statistics_tx, _statistics_rx) = mpsc::unbounded_channel();
+        let statistics_event_sender =
+            StatisticsSender::new(statistics_tx, CancellationToken::new());
+        let wipe_count = Arc::new(AtomicUsize::new(0));
+        let wipe_count_clone = wipe_count.clone();
+
+        let forget = forget_account_after_tunnel_teardown(
+            state_rx,
+            VPN_DISCONNECT_TIMEOUT,
+            move || {
+                send_target_state_request(
+                    &statistics_event_sender,
+                    &command_sender,
+                    TargetState::Unsecured,
+                );
+            },
+            move || async move {
+                wipe_count_clone.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            },
+        );
+
+        assert!(matches!(
+            command_receiver.try_recv(),
+            Ok(TunnelCommand::Disconnect)
+        ));
+        let forget_task = tokio::spawn(forget);
+        tokio::task::yield_now().await;
+        assert_eq!(wipe_count.load(Ordering::SeqCst), 0);
+
+        state_tx.send_replace(TunnelState::Disconnected);
+
+        assert_eq!(forget_task.await.unwrap(), Ok(()));
+        assert_eq!(wipe_count.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn forget_while_disconnect_is_wedged_times_out_wipes_and_reports_failure() {
+        let (_state_tx, state_rx) = watch::channel(TunnelState::Disconnecting {
+            after_disconnect: ActionAfterDisconnect::Nothing,
+        });
+        let wipe_count = Arc::new(AtomicUsize::new(0));
+        let wipe_count_clone = wipe_count.clone();
+
+        let result = tokio::time::timeout(
+            Duration::from_secs(1),
+            forget_account_after_tunnel_teardown(
+                state_rx,
+                Duration::from_millis(10),
+                || {},
+                move || async move {
+                    wipe_count_clone.fetch_add(1, Ordering::SeqCst);
+                    Ok(())
+                },
+            ),
+        )
+        .await
+        .expect("forget account remained hung after its teardown timeout");
+
+        assert_eq!(
+            result,
+            Err(AccountCommandError::internal(
+                "Tunnel teardown timed out; local account data was wiped"
+            ))
+        );
+        assert_eq!(wipe_count.load(Ordering::SeqCst), 1);
     }
 }

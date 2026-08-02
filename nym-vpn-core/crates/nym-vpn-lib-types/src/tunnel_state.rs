@@ -79,21 +79,6 @@ impl TunnelState {
     pub fn is_error_state(&self) -> bool {
         matches!(self, Self::Error(_))
     }
-
-    /// Returns `true` only while a tunnel is actually up or transitioning up or
-    /// down (`Connecting`, `Connected`, `Disconnecting`).
-    ///
-    /// The genuinely disconnected states (`Disconnected`, `Error`, `Offline`)
-    /// return `false`: no tunnel holds the persistent storage in those states,
-    /// so operations that only need to be blocked while a tunnel is live (such
-    /// as forgetting the account) can safely proceed. The match is exhaustive
-    /// on purpose so a future variant forces this classification to be revisited.
-    pub fn is_tunnel_active(&self) -> bool {
-        match self {
-            Self::Connecting { .. } | Self::Connected { .. } | Self::Disconnecting { .. } => true,
-            Self::Disconnected | Self::Error(_) | Self::Offline { .. } => false,
-        }
-    }
 }
 
 impl std::fmt::Display for TunnelState {
@@ -366,28 +351,5 @@ impl ErrorStateReason {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn is_tunnel_active_is_false_for_disconnected_states() {
-        // These are the states documented as disconnected. The forget-account
-        // guard must permit the operation in all of them (see #5668).
-        assert!(!TunnelState::Disconnected.is_tunnel_active());
-        assert!(!TunnelState::Error(ErrorStateReason::SetDns).is_tunnel_active());
-        assert!(!TunnelState::Offline { reconnect: true }.is_tunnel_active());
-        assert!(!TunnelState::Offline { reconnect: false }.is_tunnel_active());
-    }
-
-    #[test]
-    fn is_tunnel_active_is_true_while_a_tunnel_is_live() {
-        assert!(TunnelState::Disconnecting {
-            after_disconnect: ActionAfterDisconnect::Nothing,
-        }
-        .is_tunnel_active());
     }
 }

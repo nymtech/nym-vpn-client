@@ -1,9 +1,12 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
-use nym_vpn_lib::{paths::Paths, service::ServiceConfigStorageType};
+use nym_vpn_lib::{
+    paths::Paths,
+    service::{ServiceConfigStorageType, VPN_DISCONNECT_TIMEOUT},
+};
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_network_config::NetworkCache;
 use tokio::{
@@ -16,9 +19,6 @@ use crate::{
     NymEnvironment, TOKIO_RUNTIME, VPNConfig, VpnError,
     vpn_service_command_sender::NymVpnServiceCommandSender,
 };
-
-/// Max amount of time to wait for the VPN to disconnect before shutting down.
-const DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
 struct State {
     event_handler: JoinHandle<()>,
@@ -169,7 +169,7 @@ impl NymVpnService {
         mut tunnel_state_rx: tokio::sync::watch::Receiver<Option<TunnelState>>,
     ) {
         let _ = tokio::time::timeout(
-            DISCONNECT_TIMEOUT,
+            VPN_DISCONNECT_TIMEOUT,
             tunnel_state_rx.wait_for(|tunnel_state| {
                 matches!(
                     tunnel_state,

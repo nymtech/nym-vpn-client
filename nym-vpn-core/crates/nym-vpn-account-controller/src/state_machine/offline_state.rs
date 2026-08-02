@@ -7,8 +7,8 @@ use crate::{
         AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler, handler,
     },
     state_machine::{
-        AccountControllerStateHandler, NextAccountControllerState, PrivateAccountControllerState,
-        SyncMode, SyncingNetworkState,
+        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState,
+        PrivateAccountControllerState, SyncMode, SyncingNetworkState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -58,9 +58,16 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                         return_sender.send(handler::handle_store_account(shared_state, account).await)
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
-                    // Before that command gets sent to the AC, the tunnel must be in Disconnected state, so we shouldn't ever end up here
-                    // If we nevertheless do, we can't forget the account, because maybe the tunnel is in Offline {reconnect : true} state, and we shouldn't remove the account if it's the case
-                    AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::ForgetAccount(return_sender) => {
+                        let res = handler::handle_forget_account(shared_state).await;
+                        let error = res.is_err();
+                        return_sender.send(res);
+                        return if error {
+                            NextAccountControllerState::SameState(self)
+                        } else {
+                            NextAccountControllerState::NewState(LoggedOutState::enter())
+                        }
+                    },
                     AccountCommand::LinkAccount(return_sender, _) => return_no_connectivity(return_sender),
                     AccountCommand::RotateKeys(return_sender) => {
                         return_sender.send(handler::handle_rotate_keys(shared_state).await)
