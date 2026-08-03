@@ -68,6 +68,7 @@ ${UnStrTok}
 Var PassiveMode
 Var UpdateMode
 Var NoShortcutMode
+Var ForceVCRedistMode
 Var WixMode
 Var OldMainBinaryName
 Var VpndVersion
@@ -78,6 +79,19 @@ Var VpndVersionMinor
   !define DISPLAYNAME "${PRODUCTNAME} (ARM64)"
 !else
   !define DISPLAYNAME "${PRODUCTNAME}"
+!endif
+
+; ARM64 builds place the NSIS script one directory level deeper than x64
+; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
+; so the relative path to src-tauri/ differs by one level.
+!if "${ARCH}" == "arm64"
+  !define RESPREFIX "..\..\..\..\..\"
+  !define VCREDISTARCH "Arm64"
+  !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.arm64.exe"
+!else
+  !define RESPREFIX "..\..\..\.."
+  !define VCREDISTARCH "X64"
+  !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 !endif
 
 Name "${DISPLAYNAME}"
@@ -546,6 +560,13 @@ Function .onInit
     StrCpy $UpdateMode 1
   ${EndIf}
 
+  ; Force (re)download and (re)install of the VC++ Redistributable, even if
+  ; already present. Intended for testing the VCRedist section in isolation.
+  ${GetOptions} $CMDLINE "/FORCEVCREDIST" $ForceVCRedistMode
+  ${IfNot} ${Errors}
+    StrCpy $ForceVCRedistMode 1
+  ${EndIf}
+
   !if "${DISPLAYLANGUAGESELECTOR}" == "true"
     !insertmacro MUI_LANGDLL_DISPLAY
   !endif
@@ -691,6 +712,43 @@ Section WebView2
   ${EndIf}
 SectionEnd
 
+Section VCRedist
+  ; This registry key is written by the redistributable installer for both x64 and
+  ; Arm64, and is intentionally not subject to WOW64 registry redirection, so a
+  ; 32-bit installer process can read it directly regardless of host architecture.
+  ;
+  ; Note: this check also runs when updating, since a user upgrading from a
+  ; pre-VC-redist version of the app can still be missing the runtime.
+  ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
+  ${If} $4 <> 1
+  ${OrIf} $ForceVCRedistMode = 1
+    ; $PLUGINSDIR is a private, installer-only temp directory (created on the
+    ; first plugin call below, deleted automatically when the installer exits),
+    ; unlike the predictable, shared $TEMP path.
+    DetailPrint "Downloading Visual C++ Redistributable (${VCREDISTARCH})"
+    NSISdl::download "${VCREDISTURL}" "$PLUGINSDIR\vc_redist.exe"
+    Pop $5
+    ${If} $5 != "success"
+      DetailPrint "vc_redist.exe download failed: $5"
+      Abort "Failed to download the Visual C++ Redistributable [$5]"
+    ${EndIf}
+    DetailPrint "Visual C++ Redistributable downloaded successfully"
+
+    DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
+    ExecWait '"$PLUGINSDIR\vc_redist.exe" /install /quiet /norestart' $5
+    Delete "$PLUGINSDIR\vc_redist.exe"
+    ${If} $5 = 0
+      DetailPrint "Visual C++ Redistributable installed successfully"
+    ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
+      DetailPrint "Visual C++ Redistributable installed successfully, a reboot is required"
+      SetRebootFlag true
+    ${Else}
+      DetailPrint "vc_redist.exe install failed: $5"
+      Abort "Failed to install the Visual C++ Redistributable [$5]"
+    ${EndIf}
+  ${EndIf}
+SectionEnd
+
 Section Install
   SetOutPath $INSTDIR
 
@@ -702,15 +760,6 @@ Section Install
 
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
-
-  ; ARM64 builds place the NSIS script one directory level deeper than x64
-  ; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
-  ; so the relative path to src-tauri/ differs by one level.
-  !if "${ARCH}" == "arm64"
-    !define RESPREFIX "..\..\..\..\..\"
-  !else
-    !define RESPREFIX "..\..\..\.."
-  !endif
 
   ; Copy vpnd, socks5-proxy and libs
   File "${RESPREFIX}\nym-vpnd.exe"
