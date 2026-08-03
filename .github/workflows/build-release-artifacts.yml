@@ -196,7 +196,7 @@ jobs:
 
   core:
     needs: [resolve]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.macos == 'true' }}
+    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-core.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
