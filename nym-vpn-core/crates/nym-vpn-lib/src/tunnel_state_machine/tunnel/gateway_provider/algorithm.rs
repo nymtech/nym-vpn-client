@@ -135,7 +135,7 @@ mod tests {
     #[tokio::test]
     async fn run_algo() {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
-        let (_update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+        let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
         let (selection_tx, _selection_rx) = mpsc::channel(10);
         let shutdown_token = CancellationToken::new();
         let possible_gateways_ids = [
@@ -157,6 +157,7 @@ mod tests {
             tunnel_settings: default_tunnel_settings(),
             selection_tx,
         }));
+        let _ = update_location_tx.send(Location::default());
 
         // set some default settings
         let mut selection_rx = reset_default_settings(&tunnel_settings_tx).await;
