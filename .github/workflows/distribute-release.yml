@@ -27,6 +27,12 @@ on:
         description: The name of the Play Store artifact (aab)
         type: string
         required: false
+      github_branch:
+        type: string
+        required: true
+      github_sha:
+        type: string
+        required: true
     secrets:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
@@ -57,6 +63,8 @@ jobs:
     with:
       is_public: ${{ inputs.publish_to_public_testflight }}
       ios_ipa_name: ${{ inputs.ios_ipa_name }}
+      github_branch: ${{ inputs.github_branch }}
+      github_sha: ${{ inputs.github_sha }}
     secrets: inherit
 
   handle-testflight-failures:

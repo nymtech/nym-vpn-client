@@ -551,6 +551,8 @@ jobs:
       ios_ipa_name: ${{ needs.build-outputs.outputs.ios_ipa_name }}
       publish_to_public_testflight: true
       play_artifact_name: ${{ needs.build-outputs.outputs.play_artifact_name }}
+      github_branch: ${{ github.ref_name }}
+      github_sha: ${{ github.sha }}
     secrets: inherit
 
   zulip:
