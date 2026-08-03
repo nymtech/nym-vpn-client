@@ -42,7 +42,7 @@ jobs:
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
