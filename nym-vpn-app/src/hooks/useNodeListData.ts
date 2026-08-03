@@ -161,7 +161,6 @@ export function useNodeListData(hop: NodeHop) {
     vpnMode,
     entryNode,
     exitNode,
-    algo,
     quic,
     backendFlags,
     mxEntry,
@@ -178,7 +177,6 @@ export function useNodeListData(hop: NodeHop) {
       vpnMode: s.vpnMode,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
-      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
       quic: s.quic,
       backendFlags: s.backendFlags,
       mxEntry: s.mxEntry,
@@ -193,10 +191,6 @@ export function useNodeListData(hop: NodeHop) {
     })),
   );
 
-  const effectiveEntry: SelectedNode =
-    algo === 'explicit' ? entryNode : 'random';
-  const effectiveExit: SelectedNode = algo === 'auto' ? 'random' : exitNode;
-
   const quicFilter =
     vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
 
@@ -207,8 +201,8 @@ export function useNodeListData(hop: NodeHop) {
     else rawList = wg;
     return buildNodeList(
       rawList,
-      effectiveEntry,
-      effectiveExit,
+      entryNode,
+      exitNode,
       quicFilter,
       getCountryName,
       compare,
@@ -220,8 +214,8 @@ export function useNodeListData(hop: NodeHop) {
     mxEntry,
     mxExit,
     wg,
-    effectiveEntry,
-    effectiveExit,
+    entryNode,
+    exitNode,
     quicFilter,
     getCountryName,
     compare,

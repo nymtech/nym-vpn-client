@@ -10,7 +10,6 @@ use nym_gateway_directory::{
 };
 use nym_registration_client::RegistrationNymNode;
 use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
-use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::tunnel_state_machine::{
@@ -127,9 +126,129 @@ impl SelectedGateways {
     }
 }
 
+#[derive(Debug)]
 pub enum OrderingCriteria<T> {
     Random(T),
     ClosestTo(Location),
+}
+
+impl OrderingCriteria<EntryPoint> {
+    pub fn new_entry(
+        entry_gateways: &mut GatewayList,
+        entry_point: nym_vpn_lib_types::EntryPoint,
+        device_location: Option<&Location>,
+    ) -> Self {
+        match entry_point {
+            nym_vpn_lib_types::EntryPoint::Gateway { identity } => {
+                OrderingCriteria::Random(EntryPoint::Gateway {
+                    identity: *identity.inner(),
+                })
+            }
+            nym_vpn_lib_types::EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => OrderingCriteria::Random(EntryPoint::Country {
+                two_letter_iso_country_code,
+            }),
+            nym_vpn_lib_types::EntryPoint::Region { region } => {
+                OrderingCriteria::Random(EntryPoint::Region { region })
+            }
+            nym_vpn_lib_types::EntryPoint::Random => OrderingCriteria::Random(EntryPoint::Random),
+            nym_vpn_lib_types::EntryPoint::Auto {
+                exclude_user_country,
+            } => {
+                if let Some(device_location) = device_location {
+                    if exclude_user_country {
+                        // Remove same jurisdiction as device from entry gateways
+                        entry_gateways.retain_gateways_by(|gateway| {
+                            gateway
+                                .location
+                                .as_ref()
+                                .is_some_and(|entry_gateway_location| {
+                                    !same_jurisdiction(entry_gateway_location, device_location)
+                                })
+                        });
+                    }
+                    OrderingCriteria::ClosestTo(device_location.clone())
+                } else {
+                    OrderingCriteria::Random(EntryPoint::Random)
+                }
+            }
+        }
+    }
+}
+
+impl OrderingCriteria<ExitPoint> {
+    pub fn new_exit(
+        entry_gateway_location: Option<Location>,
+        exit_gateways: &mut GatewayList,
+        exit_point: nym_vpn_lib_types::ExitPoint,
+        device_location: Option<&Location>,
+    ) -> Self {
+        match exit_point {
+            nym_vpn_lib_types::ExitPoint::Gateway { identity } => {
+                OrderingCriteria::Random(ExitPoint::Gateway {
+                    identity: *identity.inner(),
+                })
+            }
+            nym_vpn_lib_types::ExitPoint::Address { address } => {
+                OrderingCriteria::Random(ExitPoint::Address {
+                    address: Box::new(nym_gateway_directory::Recipient::from(*address)),
+                })
+            }
+            nym_vpn_lib_types::ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => OrderingCriteria::Random(ExitPoint::Country {
+                two_letter_iso_country_code,
+            }),
+            nym_vpn_lib_types::ExitPoint::Region { region } => {
+                OrderingCriteria::Random(ExitPoint::Region { region })
+            }
+            nym_vpn_lib_types::ExitPoint::Random => OrderingCriteria::Random(ExitPoint::Random),
+            nym_vpn_lib_types::ExitPoint::Auto {
+                exclude_entry_point_country,
+                exclude_user_country,
+            } => {
+                let fallback_criteria = if let Some(device_location) = device_location
+                    && exclude_user_country
+                {
+                    // Remove same jurisdiction as device from exit gateways
+                    exit_gateways.retain_gateways_by(|gateway| {
+                        gateway
+                            .location
+                            .as_ref()
+                            .is_some_and(|exit_gateway_location| {
+                                !same_jurisdiction(exit_gateway_location, device_location)
+                            })
+                    });
+                    // save it, just in case entry gateway doesn't have a location, we can use the device location instead
+                    Some(OrderingCriteria::ClosestTo(device_location.clone()))
+                } else {
+                    None
+                };
+                if let Some(entry_gateway_location) = entry_gateway_location {
+                    if exclude_entry_point_country {
+                        // Remove same jurisdiction as entry gateway from exit gateways
+                        exit_gateways.retain_gateways_by(|gateway| {
+                            gateway
+                                .location
+                                .as_ref()
+                                .is_some_and(|exit_gateway_location| {
+                                    !same_jurisdiction(
+                                        exit_gateway_location,
+                                        &entry_gateway_location,
+                                    )
+                                })
+                        });
+                    }
+                    OrderingCriteria::ClosestTo(entry_gateway_location)
+                } else if let Some(criteria) = fallback_criteria {
+                    criteria
+                } else {
+                    OrderingCriteria::Random(ExitPoint::Random)
+                }
+            }
+        }
+    }
 }
 
 fn find_best_entry_gateway(
@@ -172,36 +291,17 @@ fn select_entry(
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
-    let entry_point = EntryPoint::from(*tunnel_settings.entry_point.clone());
-
     let entry_filters = if blacklisted_gateways.is_empty().unwrap_or(true) {
         GatewayFilters::default()
     } else {
         GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())])
     };
 
-    let gateway_selection_algorithm = tunnel_settings
-        .gateway_selection_algorithm_config
-        .gateway_selection_algorithm();
-
-    let entry_ordering_criteria = match (device_location, gateway_selection_algorithm) {
-        (_, GatewaySelectionAlgorithm::Explicit) | (None, _) => {
-            OrderingCriteria::Random(entry_point)
-        }
-        (Some(device_location), GatewaySelectionAlgorithm::AutoEntryExplicitExit)
-        | (Some(device_location), GatewaySelectionAlgorithm::Auto) => {
-            // Remove same jurisdiction as device from entry gateways
-            entry_gateways.retain_gateways_by(|gateway| {
-                gateway
-                    .location
-                    .as_ref()
-                    .is_some_and(|entry_gateway_location| {
-                        !same_jurisdiction(entry_gateway_location, device_location)
-                    })
-            });
-            OrderingCriteria::ClosestTo(device_location.clone())
-        }
-    };
+    let entry_ordering_criteria = OrderingCriteria::new_entry(
+        &mut entry_gateways,
+        tunnel_settings.entry_point.as_ref().clone(),
+        device_location,
+    );
 
     find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
         .map_err(GatewayProviderError::EntryGatewayUnavailable)
@@ -214,12 +314,6 @@ fn select_exit(
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
-    let gateway_selection_algorithm = tunnel_settings
-        .gateway_selection_algorithm_config
-        .gateway_selection_algorithm();
-
-    let exit_point = ExitPoint::from(*tunnel_settings.exit_point.clone());
-
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
     exit_gateways.retain_gateways_by(|exit_gateway| {
         gateways_are_independent(
@@ -229,34 +323,12 @@ fn select_exit(
         )
     });
 
-    let exit_ordering_criteria = match (device_location, gateway_selection_algorithm) {
-        (_, GatewaySelectionAlgorithm::Explicit)
-        | (_, GatewaySelectionAlgorithm::AutoEntryExplicitExit)
-        | (None, _) => OrderingCriteria::Random(exit_point),
-        (Some(device_location), GatewaySelectionAlgorithm::Auto) => {
-            if let Some(entry_gateway_location) = entry_gateway.location.clone() {
-                // Remove same jurisdiction as device and as entry gateway from exit gateways
-                exit_gateways.retain_gateways_by(|gateway| {
-                    gateway
-                        .location
-                        .as_ref()
-                        .is_some_and(|exit_gateway_location| {
-                            !same_jurisdiction(exit_gateway_location, device_location)
-                                && !same_jurisdiction(
-                                    exit_gateway_location,
-                                    &entry_gateway_location,
-                                )
-                        })
-                });
-                OrderingCriteria::ClosestTo(entry_gateway_location)
-            } else {
-                tracing::error!(
-                    "The selected entry gateway should have a specified location, falling back to the explicit exit point: {exit_point}"
-                );
-                OrderingCriteria::Random(exit_point)
-            }
-        }
-    };
+    let exit_ordering_criteria = OrderingCriteria::new_exit(
+        entry_gateway.location.clone(),
+        &mut exit_gateways,
+        tunnel_settings.exit_point.as_ref().clone(),
+        device_location,
+    );
 
     let mut exit_filter_items: Vec<GatewayFilter> = Vec::new();
     if tunnel_settings.residential_exit {

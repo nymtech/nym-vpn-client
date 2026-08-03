@@ -167,13 +167,7 @@ export type Gateway = {
   nodeFamilyName: string | null;
 };
 
-export type GatewaySelectionAlgorithm =
-  'explicit' | 'autoEntryExplicitExit' | 'auto';
-
-export type GatewaySelectionAlgorithmConfig = {
-  enableGeoLocation: boolean;
-  gatewaySelectionAlgorithm: GatewaySelectionAlgorithm;
-};
+export type GatewaySelectionAlgorithmConfig = { enableGeoLocation: boolean };
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
@@ -303,7 +297,13 @@ export type SelectedNode =
   | { country: { code: string } }
   | { gateway: { id: string } }
   | { region: string }
-  | 'random';
+  | 'random'
+  | {
+      auto: {
+        exclude_user_country: boolean;
+        exclude_entry_point_country: boolean;
+      };
+    };
 
 export type Socks5Settings = { listenAddress: string | null };
 

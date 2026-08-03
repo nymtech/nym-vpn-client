@@ -231,7 +231,7 @@ async fn error_stream() {
     let mut tunnel_settings = default_tunnel_settings();
     tunnel_settings
         .gateway_selection_algorithm_config
-        .enable_geo_location = false;
+        .enable_geo_location = true;
     let (mut gw_provider, handle) = GatewayProvider::new(
         MockGatewayCache::new(gateways),
         MockGeoIpClient::new(),
@@ -263,7 +263,7 @@ async fn set_and_stream() {
     let mut tunnel_settings = default_tunnel_settings();
     tunnel_settings
         .gateway_selection_algorithm_config
-        .enable_geo_location = false;
+        .enable_geo_location = true;
     let (mut gw_provider, handle) = GatewayProvider::new(
         MockGatewayCache::new(gateways),
         MockGeoIpClient::new(),
@@ -303,7 +303,7 @@ async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
     let mut tunnel_settings = default_tunnel_settings();
     tunnel_settings
         .gateway_selection_algorithm_config
-        .enable_geo_location = false;
+        .enable_geo_location = true;
 
     let cache = MockGatewayCache::new_with_lookup_delay(gateways, Duration::from_millis(50));
     let (gw_provider, handle) = GatewayProvider::new(

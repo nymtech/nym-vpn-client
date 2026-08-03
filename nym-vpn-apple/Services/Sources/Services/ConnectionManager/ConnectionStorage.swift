@@ -69,15 +69,9 @@ extension ConnectionStorage {
 extension ConnectionStorage {
     static func decodeStoredConfig(appSettings: AppSettings) -> ConnectionConfig {
         guard let storedConfig = appSettings.connectionConfig,
-              var decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
+              let decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
         else {
             return generateInitialConfig()
-        }
-        switch decodedConfig.gatewaySelectionAlgorithmConfig.algorithm {
-        case .auto, .autoEntryExplicitExit:
-            decodedConfig.gatewaySelectionAlgorithmConfig.algorithm = .explicit
-        case .explicit:
-            break
         }
         return decodedConfig
     }
@@ -101,8 +95,7 @@ extension ConnectionStorage {
             ),
             splitTunnelConfig: SplitTunnelConfig(),
             gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig(
-                enableGeoLocation: true,
-                algorithm: .explicit
+                enableGeoLocation: true
             )
         )
     }

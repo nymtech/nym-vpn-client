@@ -15,11 +15,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
-import net.nymtech.vpn.util.extensions.asAlgorithm
 import net.nymtech.vpn.util.extensions.asString
 import androidx.datastore.preferences.core.Preferences
 import net.nymtech.vpn.model.config.CoreVpnConfig
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 
 private const val DS_NAME = "core_vpn_config"
 
@@ -45,7 +43,6 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_ENV_SENTRY = booleanPreferencesKey("ENV_SENTRY")
 		private val KEY_AD_BLOCKING = booleanPreferencesKey("AD_BLOCKING_ENABLED")
 		private val KEY_STEALTH_MODE = booleanPreferencesKey("STEALTH_MODE_ENABLED")
-		private val KEY_ALGORITHM = stringPreferencesKey("ALGORITHM")
 		private val KEY_NODE_FAMILIES_NOTIFICATIONS = booleanPreferencesKey("NODE_FAMILIES_NOTIFICATIONS_ENABLED")
 		private val KEY_GEO_EXCLUSION_ENABLED = booleanPreferencesKey("GEO_EXCLUSION_ENABLED")
 		private val KEY_GEO_EXCLUSION_PORT = intPreferencesKey("GEO_EXCLUSION_PORT")
@@ -60,15 +57,6 @@ class CoreVpnConfigStore(private val context: Context) {
 	}
 
 	suspend fun get(): CoreVpnConfig = throw UnsupportedOperationException("Use CoreVpnConfigRepository.get() instead")
-
-	suspend fun migrateAlgorithmIfNeeded() {
-		context.coreVpnDataStore.edit { prefs ->
-			val raw = prefs[KEY_ALGORITHM]
-			if (raw == "AUTO" || raw == "AUTO_ENTRY_EXPLICIT_EXIT") {
-				prefs[KEY_ALGORITHM] = GatewaySelectionAlgorithm.EXPLICIT.name
-			}
-		}
-	}
 
 	suspend fun update(transform: (CoreVpnConfig) -> CoreVpnConfig) {
 		context.coreVpnDataStore.edit { prefs ->
@@ -101,7 +89,6 @@ class CoreVpnConfigStore(private val context: Context) {
 		val sentry = this[KEY_ENV_SENTRY] ?: false
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
 		val stealthMode = this[KEY_STEALTH_MODE] ?: false
-		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.EXPLICIT
 		val nodeFamiliesNotificationsEnabled = this[KEY_NODE_FAMILIES_NOTIFICATIONS] ?: true
 		val geoExclusionEnabled = this[KEY_GEO_EXCLUSION_ENABLED] ?: false
 		val geoExclusionPort = this[KEY_GEO_EXCLUSION_PORT] ?: 1081
@@ -121,7 +108,6 @@ class CoreVpnConfigStore(private val context: Context) {
 			sentry = sentry,
 			adBlockingEnabled = adBlockingEnabled,
 			stealthMode = stealthMode,
-			algorithm = algorithm,
 			nodeFamiliesNotificationsEnabled = nodeFamiliesNotificationsEnabled,
 			geoExclusionEnabled = geoExclusionEnabled,
 			geoExclusionPort = geoExclusionPort,
@@ -143,7 +129,6 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_ENV_SENTRY] = cfg.sentry
 		this[KEY_AD_BLOCKING] = cfg.adBlockingEnabled
 		this[KEY_STEALTH_MODE] = cfg.stealthMode
-		this[KEY_ALGORITHM] = cfg.algorithm.name
 		this[KEY_NODE_FAMILIES_NOTIFICATIONS] = cfg.nodeFamiliesNotificationsEnabled
 		this[KEY_GEO_EXCLUSION_ENABLED] = cfg.geoExclusionEnabled
 		this[KEY_GEO_EXCLUSION_PORT] = cfg.geoExclusionPort

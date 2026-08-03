@@ -235,54 +235,12 @@ impl fmt::Display for Gateway {
 #[serde(rename_all = "camelCase")]
 pub struct GatewaySelectionAlgorithmConfig {
     pub enable_geo_location: bool,
-    pub gateway_selection_algorithm: GatewaySelectionAlgorithm,
 }
 
 impl From<lib::GatewaySelectionAlgorithmConfig> for GatewaySelectionAlgorithmConfig {
     fn from(config: lib::GatewaySelectionAlgorithmConfig) -> Self {
         GatewaySelectionAlgorithmConfig {
             enable_geo_location: config.enable_geo_location,
-            gateway_selection_algorithm: config.gateway_selection_algorithm().into(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default, TS)]
-#[ts(export, export_to = "tauri.ts")]
-#[serde(rename_all = "camelCase")]
-pub enum GatewaySelectionAlgorithm {
-    #[default]
-    /// Select gateways explicitly using the entry and exit selectors.
-    Explicit,
-
-    /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
-    AutoEntryExplicitExit,
-
-    /// Select gateways by automatically finding an entry and an exit gateway.
-    /// The hop mode is also automatically set to 2-hop
-    Auto,
-}
-
-impl From<lib::GatewaySelectionAlgorithm> for GatewaySelectionAlgorithm {
-    fn from(algorithm: lib::GatewaySelectionAlgorithm) -> Self {
-        match algorithm {
-            lib::GatewaySelectionAlgorithm::Explicit => GatewaySelectionAlgorithm::Explicit,
-            lib::GatewaySelectionAlgorithm::AutoEntryExplicitExit => {
-                GatewaySelectionAlgorithm::AutoEntryExplicitExit
-            }
-            lib::GatewaySelectionAlgorithm::Auto => GatewaySelectionAlgorithm::Auto,
-        }
-    }
-}
-
-impl From<GatewaySelectionAlgorithm> for lib::GatewaySelectionAlgorithm {
-    fn from(algorithm: GatewaySelectionAlgorithm) -> Self {
-        match algorithm {
-            GatewaySelectionAlgorithm::Explicit => lib::GatewaySelectionAlgorithm::Explicit,
-            GatewaySelectionAlgorithm::AutoEntryExplicitExit => {
-                lib::GatewaySelectionAlgorithm::AutoEntryExplicitExit
-            }
-            GatewaySelectionAlgorithm::Auto => lib::GatewaySelectionAlgorithm::Auto,
         }
     }
 }

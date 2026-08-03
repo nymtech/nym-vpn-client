@@ -101,7 +101,17 @@ export default function HopSelect({
         selected.region,
       );
     }
-    return getGatewayInfo(selected.gateway.id, gateway);
+    if (isGateway(selected)) {
+      return getGatewayInfo(selected.gateway.id, gateway);
+    }
+    return {
+      name: t('random', { ns: 'common' }),
+      animate: false,
+      showQuic: Boolean(quicTag && gateway?.quic),
+      showStreamOptimized:
+        nodeHop === 'exit' && gateway?.asn?.type === 'residential',
+      showFastest: node === 'random' && !gateway?.country?.code,
+    };
   };
 
   const getLocationInfo = (

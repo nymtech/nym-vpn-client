@@ -11,11 +11,11 @@ use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
-    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewaySelectionAlgorithm,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility,
-    ParsedAccountLinks, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams,
+    ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility, ParsedAccountLinks,
+    RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -163,17 +163,6 @@ impl NymVpnServiceCommandSender {
     pub async fn set_custom_dns(&self, addrs: Vec<IpAddr>) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetCustomDns, addrs)
             .await
-    }
-
-    pub async fn set_gateway_selection_algorithm(
-        &self,
-        gateway_selection_algorithm: GatewaySelectionAlgorithm,
-    ) -> Result<()> {
-        self.send_and_wait(
-            VpnServiceCommand::SetGatewaySelectionAlgorithm,
-            gateway_selection_algorithm,
-        )
-        .await
     }
 
     pub async fn set_enable_gateway_independence(

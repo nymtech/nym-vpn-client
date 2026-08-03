@@ -16,12 +16,11 @@ use nym_common::ErrorExt;
 use nym_favorites::{FavoritesError, FavoritesManager};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
-    FavoriteSelector, FavoriteSelectors, FeatureFlags, FrontingMode, Gateway,
-    GatewaySelectionAlgorithm, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
-    MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RecentGateways, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    FavoriteSelector, FavoriteSelectors, FeatureFlags, FrontingMode, Gateway, GatewayType,
+    GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NetworkCompatibility,
+    NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, RecentGateways,
+    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
@@ -117,17 +116,6 @@ impl RpcClient {
         self.inner
             .clone()
             .set_mixnet_traffic_config(mixnet_traffic_config)
-            .await?;
-        Ok(())
-    }
-
-    pub async fn set_gateway_selection_algorithm(
-        &self,
-        gateway_selection_algorithm: GatewaySelectionAlgorithm,
-    ) -> Result<()> {
-        self.inner
-            .clone()
-            .set_gateway_selection_algorithm(gateway_selection_algorithm)
             .await?;
         Ok(())
     }
