@@ -75,8 +75,8 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewayIndependence, GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -148,8 +148,7 @@ pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
 
-    /// Type of tunnel. This is persisted across different `GatewaySelectionAlgorithm`s,
-    /// but is disregarded for `GatewaySelectionAlgorithm::Auto` selection
+    /// Type of tunnel.
     pub tunnel_type: TunnelType,
 
     /// Allow LAN connections outside of tunnel.
@@ -189,7 +188,7 @@ pub struct TunnelSettings {
     /// Geo exclusion settings.
     pub geo_exclusion_settings: GeoExclusionSettings,
 
-    /// How the gateways should be selected.
+    /// Configuration of the gateway selection algorithm.
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 
     /// Heuristics for what is accepted as independent entry and exit gateways
@@ -198,19 +197,8 @@ pub struct TunnelSettings {
 
 impl TunnelSettings {
     /// The tunnel type to be used
-    /// If the gateway selection algorithm is set to Auto, the tunnel_type is
-    /// disregarded and Wireguard mode is used, otherwise it's just the
-    /// configured tunnel_type
     pub fn tunnel_type_used(&self) -> TunnelType {
-        if matches!(
-            self.gateway_selection_algorithm_config
-                .gateway_selection_algorithm(),
-            GatewaySelectionAlgorithm::Auto
-        ) {
-            TunnelType::Wireguard
-        } else {
-            self.tunnel_type
-        }
+        self.tunnel_type
     }
 
     pub fn ticket_types_required(&self, enabled_lp: bool) -> Vec<TicketType> {
@@ -416,14 +404,10 @@ impl TunnelSettings {
         {
             diff.add(TunnelSettingsDiffFields::GeoLocationEnabled);
         }
-        if self
-            .gateway_selection_algorithm_config
-            .gateway_selection_algorithm()
-            != other
-                .gateway_selection_algorithm_config
-                .gateway_selection_algorithm()
+        if self.gateway_selection_algorithm_config.enable_geo_location
+            != other.gateway_selection_algorithm_config.enable_geo_location
         {
-            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithmConfig);
         }
         if self.gateway_independence != other.gateway_independence {
             diff.add(TunnelSettingsDiffFields::GatewayIndependence);
@@ -453,7 +437,7 @@ pub enum TunnelSettingsDiffFields {
     GeoExclusionEnabled,
     GeoExclusionExcludedCountries,
     GeoLocationEnabled,
-    GatewaySelectionAlgorithm,
+    GatewaySelectionAlgorithmConfig,
     GatewayIndependence,
 }
 
@@ -469,7 +453,7 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns
-            | Self::GatewaySelectionAlgorithm
+            | Self::GatewaySelectionAlgorithmConfig
             | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
                 // On android reconnect is necessary due to packet filtering used for adblocking.

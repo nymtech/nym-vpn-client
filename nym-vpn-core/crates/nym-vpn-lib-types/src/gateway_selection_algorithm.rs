@@ -8,40 +8,6 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
-#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(
-    feature = "typescript-bindings",
-    derive(TS),
-    ts(export),
-    ts(export_to = "bindings.ts")
-)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub enum GatewaySelectionAlgorithm {
-    /// Select gateways explicitly using the entry and exit selectors.
-    #[default]
-    Explicit,
-
-    /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
-    AutoEntryExplicitExit,
-
-    /// Select gateways by automatically finding an entry and an exit gateway.
-    /// The hop mode is also automatically set to 2-hop
-    Auto,
-}
-
-impl fmt::Display for GatewaySelectionAlgorithm {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Self::Explicit => "Explicit",
-            Self::AutoEntryExplicitExit => "Explicit for exit",
-            Self::Auto => "Auto",
-        };
-        write!(f, "{s}")
-    }
-}
-
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
@@ -55,31 +21,13 @@ impl fmt::Display for GatewaySelectionAlgorithm {
 pub struct GatewaySelectionAlgorithmConfig {
     /// Whether selection algorithm uses geo-location is enabled.
     pub enable_geo_location: bool,
-    /// The gateway selection algorithm that should be used.
-    gateway_selection_algorithm: GatewaySelectionAlgorithm,
 }
 
 impl GatewaySelectionAlgorithmConfig {
-    pub fn new(
-        enable_geo_location: bool,
-        gateway_selection_algorithm: GatewaySelectionAlgorithm,
-    ) -> Self {
+    pub fn new(enable_geo_location: bool) -> Self {
         Self {
             enable_geo_location,
-            gateway_selection_algorithm,
         }
-    }
-
-    pub fn gateway_selection_algorithm(&self) -> GatewaySelectionAlgorithm {
-        // hard-code the algorithm to explicit to make sure that disabling it works, regardless of what value might have been persisted
-        GatewaySelectionAlgorithm::Explicit
-    }
-
-    pub fn set_gateway_selection_algorithm(
-        &mut self,
-        gateway_selection_algorithm: GatewaySelectionAlgorithm,
-    ) {
-        self.gateway_selection_algorithm = gateway_selection_algorithm;
     }
 }
 
@@ -87,18 +35,12 @@ impl Default for GatewaySelectionAlgorithmConfig {
     fn default() -> Self {
         Self {
             enable_geo_location: true,
-            gateway_selection_algorithm: Default::default(),
         }
     }
 }
 
 impl fmt::Display for GatewaySelectionAlgorithmConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "geo location enabled: {}; ", self.enable_geo_location)?;
-        write!(
-            f,
-            "gateway selection algorithm: {}",
-            self.gateway_selection_algorithm
-        )
+        write!(f, "geo location enabled: {}; ", self.enable_geo_location)
     }
 }

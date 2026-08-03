@@ -48,6 +48,15 @@ message Region {
   string region = 1;
 }
 
+message AutoEntry {
+  bool exclude_user_country = 1;
+}
+
+message AutoExit {
+  bool exclude_entry_point_country = 1;
+  bool exclude_user_country = 2;
+}
+
 message Location {
   string two_letter_iso_country_code = 1;
   double latitude = 2;
@@ -68,6 +77,7 @@ message EntryNode {
     Country country = 2;
     Region region = 3;
     google.protobuf.Empty random = 4;
+    AutoEntry auto = 5;
   }
 }
 
@@ -78,6 +88,7 @@ message ExitNode {
     Country country = 3;
     Region region = 4;
     google.protobuf.Empty random = 5;
+    AutoExit auto = 6;
   }
 }
 
@@ -280,20 +291,8 @@ message GeoExclusionListenPortRequest {
   uint32 listen_port = 1;
 }
 
-message GatewaySelectionAlgorithm {
-  message Explicit {};
-  message AutoEntryExplicitExit {};
-  message Auto {};
-  oneof gateway_selection_algorithm {
-    Explicit explicit = 1;
-    AutoEntryExplicitExit auto_entry_explicit_exit = 2;
-    Auto auto = 3;
-  }
-}
-
 message GatewaySelectionAlgorithmConfig {
   bool enable_geo_location = 1;
-  GatewaySelectionAlgorithm gateway_selection_algorithm = 2;
 }
 
 message GatewayIndependence {
@@ -320,7 +319,7 @@ message VpnServiceConfig {
   MixnetTrafficConfig mixnet_traffic = 25;
   SplitTunnelSettings split_tunnel = 28;
   GeoExclusionSettings geo_exclusion = 29;
-  GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
+  GatewaySelectionAlgorithmConfig gateway_selection_algorithm_config = 30;
   FrontingModes fronting_mode = 31;
   GatewayIndependence gateway_independence = 32;
 }
@@ -1164,7 +1163,6 @@ service NymVpnService {
   rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionListenPort(GeoExclusionListenPortRequest) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionExcludedCountries(StringList) returns (google.protobuf.Empty) {}
-  rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableGatewayIndependence(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGatewayIndependenceNotifications(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

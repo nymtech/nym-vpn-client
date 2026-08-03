@@ -105,17 +105,6 @@ extension ConnectionManager {
         setExitGateway(exit)
     }
 
-    public func setGatewaySelectionAlgorithm(_ config: NymGatewaySelectionAlgorithmConfig) {
-        connectionConfig.gatewaySelectionAlgorithmConfig = config
-        Task {
-#if os(iOS)
-            await sendAfterPersistingConfig(.setGatewaySelectionAlgorithm(config.algorithm))
-#elseif os(macOS)
-            try? await grpcManager.setGatewaySelectionAlgorithm(config.algorithm)
-#endif
-        }
-    }
-
     public func setStealthApiEnabled(_ enabled: Bool) {
         appSettings.isStealthApiEnabled = enabled
         Task {

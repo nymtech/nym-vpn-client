@@ -219,23 +219,6 @@ impl VpnServiceConfigManager {
         Ok(())
     }
 
-    pub async fn _set_gateway_selection_algorithm(
-        &mut self,
-        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) {
-        if self
-            .config
-            .gateway_selection_algorithm_config
-            .gateway_selection_algorithm()
-            != gateway_selection_algorithm
-        {
-            self.config
-                .gateway_selection_algorithm_config
-                .set_gateway_selection_algorithm(gateway_selection_algorithm);
-            self.save_config_and_send_event().await;
-        }
-    }
-
     pub async fn set_enable_geo_location(
         &mut self,
         enable_geo_location: bool,

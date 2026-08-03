@@ -5,7 +5,6 @@ mod boolean_option;
 mod commands;
 mod display_helpers;
 mod fs;
-mod gateway_selection_algorithm;
 mod table_style;
 
 use anyhow::{Context, Result, bail};

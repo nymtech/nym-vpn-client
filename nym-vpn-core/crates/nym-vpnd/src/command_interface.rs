@@ -24,7 +24,7 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self, GatewaySelectionAlgorithm, MixnetTrafficConfig,
+    self, MixnetTrafficConfig,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
@@ -294,31 +294,6 @@ impl NymVpnService for CommandInterface {
         .map_err(|err| {
             Status::invalid_argument(format!(
                 "[set_mixnet_traffic_config] validation failed: {err}"
-            ))
-        })?;
-
-        Ok(Response::new(()))
-    }
-
-    async fn set_gateway_selection_algorithm(
-        &self,
-        request: Request<GatewaySelectionAlgorithm>,
-    ) -> std::result::Result<Response<()>, Status> {
-        let gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm =
-            request.into_inner().try_into().map_err(|e| {
-                tonic::Status::invalid_argument(format!(
-                    "Invalid Gateway selection algorithm Request: {e}"
-                ))
-            })?;
-
-        self.send_and_wait(
-            VpnServiceCommand::SetGatewaySelectionAlgorithm,
-            gateway_selection_algorithm,
-        )
-        .await
-        .map_err(|e| {
-            Status::internal(format!(
-                "[set_gateway_selection_algorithm] transport error: {e}"
             ))
         })?;
 

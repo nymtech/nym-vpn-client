@@ -27,7 +27,6 @@ import net.nymtech.vpn.util.extensions.toDisplayCountry
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FavoriteSelector
 import nym_vpn_lib_types.FavoriteSelectors
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewayType
 import timber.log.Timber
 import java.text.Collator
@@ -349,20 +348,10 @@ class ServerViewModel @Inject constructor(
 
 				GatewayLocation.EXIT -> {
 					if (id == "Best") {
-						vpnConfigRepository.apply(
-							listOf(
-								CoreVpnConfigUpdate.SetExitPoint(ExitPoint.Random),
-								CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.AUTO),
-							),
-						)
-						Timber.tag(TAG).i("GatewaySelectionBest location=EXIT algo=AUTO")
+						vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(ExitPoint.Random))
+						Timber.tag(TAG).i("GatewaySelectionBest location=EXIT")
 					} else {
-						val currentAlgo = vpnConfigRepository.getConfig().algorithm
-						val updates = mutableListOf<CoreVpnConfigUpdate>(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
-						if (currentAlgo == GatewaySelectionAlgorithm.AUTO) {
-							updates.add(CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT))
-						}
-						vpnConfigRepository.apply(updates)
+						vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
 						Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 					}
 				}

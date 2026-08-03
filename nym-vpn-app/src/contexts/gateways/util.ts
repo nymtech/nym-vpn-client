@@ -4,6 +4,7 @@ import {
   GatewaysByCountry,
   SelectedNode,
   isCountry,
+  isGateway,
   isRegion,
 } from '../../types';
 import { GatewaysState } from './types';
@@ -62,7 +63,10 @@ export function exists(selected: SelectedNode, gateways: GatewaysByCountry[]) {
       g.regions.some((r) => r.name === selected.region),
     );
   }
-  return gateways.some((g) =>
-    g.gateways.some((gw) => gw.id === selected.gateway.id),
-  );
+  if (isGateway(selected)) {
+    return gateways.some((g) =>
+      g.gateways.some((gw) => gw.id === selected.gateway.id),
+    );
+  }
+  return false;
 }
