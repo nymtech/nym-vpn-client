@@ -110,8 +110,13 @@ impl fmt::Display for VpnServiceConfig {
 impl Default for VpnServiceConfig {
     fn default() -> Self {
         Self {
-            entry_point: EntryPoint::Random,
-            exit_point: ExitPoint::Random,
+            entry_point: EntryPoint::Auto {
+                exclude_user_country: true,
+            },
+            exit_point: ExitPoint::Auto {
+                exclude_entry_point_country: true,
+                exclude_user_country: true,
+            },
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: true,
