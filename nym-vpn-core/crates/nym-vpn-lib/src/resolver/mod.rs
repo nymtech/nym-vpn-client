@@ -32,7 +32,7 @@ mod tcp;
 use tcp::new_tcp_listener;
 
 mod udp;
-use udp::new_random_socket;
+use udp::{new_random_socket, new_udp_socket};
 
 #[cfg(target_os = "ios")]
 mod apple_connection_provider;
@@ -144,6 +144,23 @@ pub struct LocalResolver {
     inner_resolver: Resolver,
     dns_filter: DnsFilter,
     shutdown_token: CancellationToken,
+}
+
+/// Interface to listen on for DNS queries
+pub enum ListenInterface {
+    /// Listen on the loopback interface
+    Loopback {
+        /// Whether to add random IP alias to the loopback interface
+        random_loopback: bool,
+    },
+    /// Listen on user-specified IP
+    Custom { bind_to: Ipv4Addr },
+}
+
+impl ListenInterface {
+    fn is_loopback(&self) -> bool {
+        matches!(self, ListenInterface::Loopback { .. })
+    }
 }
 
 /// A message to [LocalResolver]
@@ -383,17 +400,27 @@ impl ResolverHandle {
 impl LocalResolver {
     /// Spawn new filtering resolver and its handle.
     pub async fn spawn(
-        use_random_loopback: bool,
+        listen_interface: ListenInterface,
         shutdown_token: CancellationToken,
     ) -> Result<(ResolverHandle, tokio::task::JoinHandle<()>), Error> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let (udp_socket, loopback_alias) =
-            new_random_socket(DNS_LISTEN_PORT, use_random_loopback).await?;
+        let (udp_socket, loopback_alias) = match listen_interface {
+            ListenInterface::Loopback { random_loopback } => {
+                new_random_socket(DNS_LISTEN_PORT, random_loopback).await?
+            }
+            ListenInterface::Custom { bind_to } => {
+                let addr = SocketAddr::new(IpAddr::V4(bind_to), DNS_LISTEN_PORT);
+                let udp_socket = new_udp_socket(addr, false)
+                    .await
+                    .map_err(|_| Error::UdpBind)?;
+                (udp_socket, None)
+            }
+        };
         let resolver_addr = udp_socket.local_addr().map_err(Error::GetSocketAddr)?;
 
         // Attempt to bind TCP listener to the same port as UDP, but don't fail if it's not possible.
-        let tcp_listener = new_tcp_listener(resolver_addr)
+        let tcp_listener = new_tcp_listener(resolver_addr, listen_interface.is_loopback())
             .inspect_err(|_err| {
                 tracing::warn!("Failed to bind TCP socket to {resolver_addr}");
             })
@@ -726,10 +753,7 @@ impl RequestHandler for ResolverImpl {
         request: &Request,
         response_handle: R,
     ) -> ResponseInfo {
-        if !request.src().ip().is_loopback() {
-            tracing::error!("Dropping a stray request from outside: {}", request.src());
-            make_response_info(request, ResponseCode::Refused)
-        } else if request.metadata.message_type == MessageType::Query
+        if request.metadata.message_type == MessageType::Query
             && request.metadata.op_code == OpCode::Query
         {
             self.lookup(request, response_handle)

@@ -8,7 +8,7 @@ use tokio::net::TcpListener;
 
 const DEFAULT_BACKLOG: i32 = 128;
 
-pub fn new_tcp_listener(socket_addr: SocketAddr) -> std::io::Result<TcpListener> {
+pub fn new_tcp_listener(socket_addr: SocketAddr, reuse_addr: bool) -> std::io::Result<TcpListener> {
     let domain = Domain::for_address(socket_addr);
     let socket = Socket::new(domain, Type::STREAM, Some(Protocol::TCP)).inspect_err(|err| {
         tracing::warn!("Failed to open TCP socket: {err}");
@@ -22,9 +22,11 @@ pub fn new_tcp_listener(socket_addr: SocketAddr) -> std::io::Result<TcpListener>
     // SO_REUSEADDR allows us to bind to `127.x.y.z` even if another socket is bound to `0.0.0.0`.
     // Best-effort: allow binding even if wildcard is in use. Windows semantics differ but
     // this is harmless.
-    socket.set_reuse_address(true).inspect_err(|err| {
-        tracing::warn!("Failed to set SO_REUSEADDR on TCP socket: {err}");
-    })?;
+    if reuse_addr {
+        socket.set_reuse_address(true).inspect_err(|err| {
+            tracing::warn!("Failed to set SO_REUSEADDR on TCP socket: {err}");
+        })?;
+    }
 
     let sa = SockAddr::from(socket_addr);
     socket.bind(&sa).inspect_err(|err| {

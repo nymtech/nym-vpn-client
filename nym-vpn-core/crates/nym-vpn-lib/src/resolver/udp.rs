@@ -39,7 +39,7 @@ pub async fn new_random_socket(
             4.. => break,
         };
 
-        match bind_socket(SocketAddr::new(ip, port)).await {
+        match new_udp_socket(SocketAddr::new(ip, port), true).await {
             Ok(socket) => {
                 return Ok((socket, alias));
             }
@@ -55,7 +55,7 @@ pub async fn new_random_socket(
     Err(Error::UdpBind)
 }
 
-async fn bind_socket(addr: SocketAddr) -> std::io::Result<UdpSocket> {
+pub async fn new_udp_socket(addr: SocketAddr, reuse_addr: bool) -> std::io::Result<UdpSocket> {
     let sock = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP)).inspect_err(|err| {
         tracing::error!("Failed to open IPv4/UDP socket: {err}");
     })?;
@@ -68,7 +68,7 @@ async fn bind_socket(addr: SocketAddr) -> std::io::Result<UdpSocket> {
     // SO_REUSEADDR enables us to bind to `127.x.y.z` even if another socket is bound to `0.0.0.0`.
     // Best-effort: allow binding even if wildcard is in use. Windows semantics differ but
     // this is harmless.
-    if let Err(err) = sock.set_reuse_address(true) {
+    if reuse_addr && let Err(err) = sock.set_reuse_address(true) {
         tracing::warn!("Failed to set SO_REUSEADDR on UDP socket: {err}");
     }
 

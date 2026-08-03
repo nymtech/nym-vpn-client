@@ -21,9 +21,14 @@ async fn test_bind() {
         .expect("failed to bind wildcard port");
 
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) = LocalResolver::spawn(
+        ListenInterface::Loopback {
+            random_loopback: false,
+        },
+        shutdown_token.child_token(),
+    )
+    .await
+    .unwrap();
 
     let test_resolver = get_test_resolver(handle.listen_addr()).expect("failed to create resolver");
     test_resolver
@@ -46,9 +51,14 @@ async fn test_bind() {
 #[ignore] // Won't work unless we are root
 async fn test_random_loopback_bind() {
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(true, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) = LocalResolver::spawn(
+        ListenInterface::Loopback {
+            random_loopback: true,
+        },
+        shutdown_token.child_token(),
+    )
+    .await
+    .unwrap();
 
     let ip = handle.listen_addr().ip();
     assert!(ip.is_ipv4(), "expected IPv4 loopback resolver address");
@@ -66,9 +76,14 @@ async fn test_random_loopback_bind() {
 #[serial_test::serial]
 async fn test_successful_lookup() {
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) = LocalResolver::spawn(
+        ListenInterface::Loopback {
+            random_loopback: false,
+        },
+        shutdown_token.child_token(),
+    )
+    .await
+    .unwrap();
     let test_resolver = get_test_resolver(handle.listen_addr()).expect("failed to create resolver");
 
     for domain in &*ALLOWED_DOMAINS {
@@ -86,9 +101,14 @@ async fn test_successful_lookup() {
 #[serial_test::serial]
 async fn test_failed_lookup() {
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) = LocalResolver::spawn(
+        ListenInterface::Loopback {
+            random_loopback: false,
+        },
+        shutdown_token.child_token(),
+    )
+    .await
+    .unwrap();
     let test_resolver = get_test_resolver(handle.listen_addr()).expect("failed to create resolver");
 
     let captive_portal_domain = LowerName::from(Name::from_str("apple.com").unwrap());
@@ -109,9 +129,14 @@ async fn test_failed_lookup() {
 async fn test_unbind_socket_on_stop() {
     // Bind resolver to 127.0.0.1 so we can easily bind to the same address here.
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) = LocalResolver::spawn(
+        ListenInterface::Loopback {
+            random_loopback: false,
+        },
+        shutdown_token.child_token(),
+    )
+    .await
+    .unwrap();
     let addr = handle.listen_addr();
     assert_eq!(
         addr,
