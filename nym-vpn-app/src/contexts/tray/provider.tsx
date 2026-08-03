@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import {
   Gateway,
   SelectedNode,
+  isAuto,
   isCountry,
   isGateway,
   isRegion,
@@ -120,6 +121,11 @@ export function TrayProvider({ children }: TrayProviderProps) {
         displayValue = `${gateway.name} (${location})`;
       } else if (node === 'random') {
         displayValue = t('random');
+      } else if (isAuto(node)) {
+        // "Safest" is the daemon's `Auto`. Only reached while no server has
+        // resolved — the `gateway` branch above takes over as soon as the
+        // daemon reports the one it picked.
+        displayValue = t('safest');
       } else if (isCountry(node)) {
         displayValue = getCountryName(node.country.code);
       } else if (isRegion(node)) {

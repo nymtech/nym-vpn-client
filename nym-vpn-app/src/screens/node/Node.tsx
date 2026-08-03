@@ -6,13 +6,13 @@ import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@headlessui/react';
 import { useDialog } from '../../contexts';
-import { NodeHop, isGateway } from '../../types';
+import { NodeHop, isAuto, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
+import { Link, MsIcon, PageAnim, SmileyIcon, TextInput } from '../../ui';
 import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
@@ -148,7 +148,15 @@ function Node({ node }: { node: NodeHop }) {
     handleSelect({ nodeType: 'random', isSelected: false });
   };
 
+  const handleSafest = () => {
+    handleSelect({ nodeType: 'safest', isSelected: false });
+  };
+
   const randomActive = storedNode === 'random';
+  // "Safest" is the daemon's `Auto` selection. Ignore the stored flag values —
+  // a selection round-tripped from the daemon still highlights correctly
+  // whatever it reports back.
+  const safestActive = isAuto(storedNode);
 
   const handleNodeDetails = (gateway: UiGateway) => {
     navigate(routes.nodeDetails, {
@@ -255,6 +263,18 @@ function Node({ node }: { node: NodeHop }) {
             <>
               {view === 'all' && (
                 <div className="flex w-full flex-col gap-3 px-3 pt-3">
+                  <Button
+                    onClick={handleSafest}
+                    className={clsx(QUICK_PICK_CLASSES, {
+                      'border-brand-primary-active border-2': safestActive,
+                    })}
+                    data-testid="node-quick-pick-safest"
+                  >
+                    <SmileyIcon className="h-6 w-6" />
+                    <span className="text-text-primary text-base">
+                      {t('quick-pick.safest')}
+                    </span>
+                  </Button>
                   <Button
                     onClick={handleRandom}
                     className={clsx(QUICK_PICK_CLASSES, {

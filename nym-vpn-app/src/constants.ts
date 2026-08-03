@@ -1,4 +1,4 @@
-import { SelectedNode } from './types';
+import { SafestNode, SelectedNode } from './types';
 
 // declared in src-tauri/src/events.rs
 export const AppName = 'NymVPN';
@@ -11,7 +11,7 @@ export const UpdatePendingEvent = 'update-pending';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
 
-export const DefaultNode: SelectedNode = 'random';
+export const DefaultNode: SelectedNode = SafestNode;
 export const DefaultThemeMode = 'system';
 // ⚠ keep those in sync with the theme definition in `styles.css`
 export const ColorMainBgLight = '#242b2d';
