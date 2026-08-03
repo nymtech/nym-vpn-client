@@ -46,7 +46,7 @@ public struct ConnectionConfig: Codable {
         mixnetTuningConfig: MixnetTuningConfig,
         splitTunnelConfig: SplitTunnelConfig,
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
-        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .explicit)
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
     ) {
         self.entry = entry
         self.exit = exit
@@ -82,8 +82,7 @@ public struct ConnectionConfig: Codable {
         self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
         self.geoExclusionConfig = GeoExclusionConfig(from: config.geoExclusion)
         self.gatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
-            enableGeoLocation: true,
-            algorithm: .explicit
+            enableGeoLocation: true
         )
     }
 #endif
@@ -101,6 +100,10 @@ private extension ConnectionConfig {
             return .region(countryCode: "", region: region)
         case .random:
             return .random
+        case .auto:
+            // TODO: no dedicated UI representation yet — coerce to .random until
+            // the auto entry/exit selection feature is implemented.
+            return .random
         }
     }
 
@@ -116,6 +119,10 @@ private extension ConnectionConfig {
         case let .region(region):
             return ExitRouter.region(countryCode: "", region: region)
         case .random:
+            return ExitRouter.random
+        case .auto:
+            // TODO: no dedicated UI representation yet — coerce to .random until
+            // the auto entry/exit selection feature is implemented.
             return ExitRouter.random
         }
     }
@@ -196,7 +203,7 @@ extension ConnectionConfig {
         self.gatewaySelectionAlgorithmConfig = try container.decodeIfPresent(
             NymGatewaySelectionAlgorithmConfig.self,
             forKey: .gatewaySelectionAlgorithmConfig
-        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .explicit)
+        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
     }
 }
 

@@ -58,10 +58,6 @@ extension GRPCManager {
         try await rpcClient?.setAllowLan(allowLan: allowed)
     }
 
-    public func setGatewaySelectionAlgorithm(_ algorithm: NymGatewaySelectionAlgorithm) async throws {
-        try await rpcClient?.setGatewaySelectionAlgorithm(gatewaySelectionAlgorithm: algorithm.sdkValue)
-    }
-
     public func setGatewayIndependence(_ isEnabled: Bool) async throws {
         try await rpcClient?.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
     }

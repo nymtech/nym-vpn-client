@@ -85,7 +85,7 @@ pub use gateway::{
     QuicClientOptions, RecentGateways, Recipient, Score, Socks5, TentativeGateways,
 };
 pub use gateway_independence::GatewayIndependence;
-pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
+pub use gateway_selection_algorithm::GatewaySelectionAlgorithmConfig;
 pub use network::{
     ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
     NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,

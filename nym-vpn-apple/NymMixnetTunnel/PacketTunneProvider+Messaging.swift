@@ -35,13 +35,6 @@ extension PacketTunnelProvider {
         case let .setExitPoint(exit):
             await runCommand { try await self.commandSender?.setExitPoint(exitPoint: exit.exitPoint) }
             return nil
-        case let .setGatewaySelectionAlgorithm(algorithm):
-            await runCommand {
-                try await self.commandSender?.setGatewaySelectionAlgorithm(
-                    gatewaySelectionAlgorithm: algorithm.sdkValue
-                )
-            }
-            return nil
         case let .setFrontingModeEnabled(enabled):
             await runCommand {
                 try await self.commandSender?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)

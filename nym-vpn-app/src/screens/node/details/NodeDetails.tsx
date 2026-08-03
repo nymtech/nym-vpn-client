@@ -49,14 +49,12 @@ function NodeDetails() {
     entryNode,
     exitNode,
     quic: quicSetting,
-    algoConfig,
   } = useAppStore(
     useShallow((s) => ({
       backendFlags: s.backendFlags,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
       quic: s.quic,
-      algoConfig: s.gatewaySelectionAlgorithmConfig,
     })),
   );
   const location = useLocation() as H.Location<RouteState>;
@@ -124,39 +122,6 @@ function NodeDetails() {
     if (isSelected) return;
 
     const node = { gateway: { id: gateway.id } };
-    // Mirror of Node.tsx: picking an exit while in 'auto' flips us into
-    // 'autoEntryExplicitExit'. Apply the algorithm change first so a failure
-    // aborts before set_node diverges from the daemon; roll back if set_node
-    // later fails.
-    const needsAlgoFlip =
-      hop === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto';
-    if (needsAlgoFlip) {
-      try {
-        await invoke('set_gateway_selection_algorithm', {
-          algorithm: 'autoEntryExplicitExit',
-        });
-        dispatch({
-          type: 'set-gateway-selection-algorithm-config',
-          config: {
-            ...algoConfig,
-            gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
-          },
-        });
-      } catch (error: unknown) {
-        console.error(
-          'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
-          error,
-        );
-        add({
-          id: 'node-select-error',
-          title: t('node-details.error.title'),
-          description: t('node-details.error.description'),
-          type: 'error',
-        });
-        return;
-      }
-    }
-
     try {
       await invoke('set_node', {
         node,
@@ -174,22 +139,6 @@ function NodeDetails() {
         description: t('node-details.error.description'),
         type: 'error',
       });
-      if (needsAlgoFlip) {
-        try {
-          await invoke('set_gateway_selection_algorithm', {
-            algorithm: 'auto',
-          });
-          dispatch({
-            type: 'set-gateway-selection-algorithm-config',
-            config: { ...algoConfig, gatewaySelectionAlgorithm: 'auto' },
-          });
-        } catch (rollbackError: unknown) {
-          console.error(
-            'failed to rollback gateway selection algorithm to [auto]',
-            rollbackError,
-          );
-        }
-      }
       return;
     }
     navigate(routes.root);

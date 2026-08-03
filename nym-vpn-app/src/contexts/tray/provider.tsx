@@ -28,7 +28,6 @@ export function TrayProvider({ children }: TrayProviderProps) {
     tunnel,
     connectingState,
     daemonStatus,
-    gatewaySelectionAlgorithm,
   } = useAppStore(
     useShallow((s) => ({
       vpnMode: s.vpnMode,
@@ -38,14 +37,8 @@ export function TrayProvider({ children }: TrayProviderProps) {
       tunnel: s.tunnel,
       connectingState: s.connectingState,
       daemonStatus: s.daemonStatus,
-      gatewaySelectionAlgorithm:
-        s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
     })),
   );
-
-  const isAutoExit =
-    gatewaySelectionAlgorithm === 'auto' ||
-    gatewaySelectionAlgorithm === 'autoEntryExplicitExit';
 
   const lookupGw = useLookupGw();
   const { getCountryName } = useLang();
@@ -140,52 +133,28 @@ export function TrayProvider({ children }: TrayProviderProps) {
     [getCountryName, t],
   );
 
-  // Entry visibility (Explicit shows entry; Auto/AutoEntryExplicitExit hides it)
+  // Entry visibility
   useEffect(() => {
     invoke<void>('update_tray_entry_visible', {
-      visible: !isAutoExit,
+      visible: true,
     });
-  }, [isAutoExit]);
+  }, []);
 
   // Entry
   useEffect(() => {
-    if (isAutoExit) return;
     const displayValue = getNodeDisplayValue(entryNode, entryGateway);
     invoke<void>('update_tray_entry', {
       entry: `${t('entry')}: ${displayValue || '-'}`,
     });
-  }, [entryNode, entryGateway, getNodeDisplayValue, t, isAutoExit]);
+  }, [entryNode, entryGateway, getNodeDisplayValue, t]);
 
   // Exit
   useEffect(() => {
-    let displayValue: string | null | undefined;
-    if (isAutoExit) {
-      if (exitGateway) {
-        const ip = exitGateway.exitIpv4 ?? exitGateway.exitIpv6;
-        const location = `${exitGateway.location.city}, ${getCountryName(exitGateway.country.code)}`;
-        displayValue = ip
-          ? `${ip} (${location})`
-          : `${exitGateway.name} (${location})`;
-      } else if (gatewaySelectionAlgorithm === 'auto') {
-        displayValue = t('best-server-location');
-      } else {
-        displayValue = getNodeDisplayValue(exitNode, exitGateway);
-      }
-    } else {
-      displayValue = getNodeDisplayValue(exitNode, exitGateway);
-    }
+    const displayValue = getNodeDisplayValue(exitNode, exitGateway);
     invoke<void>('update_tray_exit', {
       exit: `${t('exit')}: ${displayValue || '-'}`,
     });
-  }, [
-    exitNode,
-    exitGateway,
-    getNodeDisplayValue,
-    t,
-    gatewaySelectionAlgorithm,
-    isAutoExit,
-    getCountryName,
-  ]);
+  }, [exitNode, exitGateway, getNodeDisplayValue, t]);
 
   // Static tray menu items
   useEffect(() => {

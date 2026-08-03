@@ -8,12 +8,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { kvGet } from './kvStore';
-import {
-  GatewaySelectionAlgorithmConfig,
-  InitState,
-  VpndConfig,
-  VpndStatus,
-} from './types';
+import { InitState, VpndConfig, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { getTheme } from './util';
@@ -78,10 +73,7 @@ const defaultGeoExclusion = {
   excludedCountries: ['CN'],
 };
 
-const defaultGatewaySelectionAlgorithmConfig = {
-  enableGeoLocation: true,
-  gatewaySelectionAlgorithm: 'explicit',
-} as GatewaySelectionAlgorithmConfig;
+const defaultGatewaySelectionAlgorithmConfig = { enableGeoLocation: true };
 
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu

@@ -14,6 +14,7 @@ mod split_tunnel_settings;
 mod v1;
 mod v10;
 mod v11;
+mod v12;
 mod v2;
 mod v3;
 mod v4;
@@ -40,9 +41,9 @@ use tokio::{
 
 use crate::service::config::{
     circumvention::v9::FrontingMode,
-    entry_exit::v2::{EntryPoint, ExitPoint},
+    entry_exit::v3::{EntryPoint, ExitPoint},
     gateway_independence::v11::GatewayIndependence,
-    gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
+    gateway_selection_algorithm::v12::GatewaySelectionAlgorithmConfig,
     geo_exclusion_settings::v9::GeoExclusionSettings,
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
@@ -107,12 +108,13 @@ enum VpnServiceConfigVersion {
     V9,
     V10,
     V11,
+    V12,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V11
+        VpnServiceConfigVersion::V12
     }
 }
 
@@ -130,6 +132,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V9 => "v9",
             VpnServiceConfigVersion::V10 => "v10",
             VpnServiceConfigVersion::V11 => "v11",
+            VpnServiceConfigVersion::V12 => "v12",
         })
     }
 }
@@ -149,6 +152,7 @@ enum VpnServiceConfigExt {
     V9(v9::VpnServiceConfig),
     V10(v10::VpnServiceConfig),
     V11(v11::VpnServiceConfig),
+    V12(v12::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -165,6 +169,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V9(_) => VpnServiceConfigVersion::V9,
             VpnServiceConfigExt::V10(_) => VpnServiceConfigVersion::V10,
             VpnServiceConfigExt::V11(_) => VpnServiceConfigVersion::V11,
+            VpnServiceConfigExt::V12(_) => VpnServiceConfigVersion::V12,
         }
     }
 }
@@ -185,6 +190,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V9(v9) => nym_vpn_lib_types::VpnServiceConfig::try_from(v9),
             VpnServiceConfigExt::V10(v10) => nym_vpn_lib_types::VpnServiceConfig::try_from(v10),
             VpnServiceConfigExt::V11(v11) => nym_vpn_lib_types::VpnServiceConfig::try_from(v11),
+            VpnServiceConfigExt::V12(v12) => nym_vpn_lib_types::VpnServiceConfig::try_from(v12),
         }
     }
 }
@@ -217,7 +223,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let gateway_independence = GatewayIndependence::from(&value.gateway_independence);
 
-        let v11 = v11::VpnServiceConfig {
+        let v12 = v12::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -239,7 +245,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             gateway_independence,
         };
 
-        Ok(VpnServiceConfigExt::V11(v11))
+        Ok(VpnServiceConfigExt::V12(v12))
     }
 }
 
