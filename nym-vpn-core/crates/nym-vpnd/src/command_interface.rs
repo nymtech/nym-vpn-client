@@ -39,7 +39,7 @@ const NYM_CERTIFICATE_SERIAL_NUMBER: &str = "4ec9356d8c87f9cf3ccf60e7bdad022f";
 // The MacOS signing requirement signifying that the binary was signed by apple
 // certificate with Nym's identifiers
 #[cfg(target_os = "macos")]
-const CLIENT_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn""#;
+const CLIENT_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and (identifier "net.nymtech.vpn" or identifier "net.nymtech.vpn.cli")"#;
 #[cfg(target_os = "macos")]
 const DAEMON_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn.daemon""#;
 
