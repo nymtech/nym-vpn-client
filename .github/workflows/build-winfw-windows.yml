@@ -70,7 +70,7 @@ jobs:
         run: make -f Windows.mk winfw CPU_ARCH=${{ matrix.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} RELEASE=1 PWSH=1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: winfw_${{ matrix.cpu_arch }}
           path: |

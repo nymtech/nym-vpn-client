@@ -728,7 +728,7 @@ jobs:
           cp "$PKG" "${{ env.UPLOAD_DIR_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_MACOS }}
           path: ${{ env.UPLOAD_DIR_MACOS }}
