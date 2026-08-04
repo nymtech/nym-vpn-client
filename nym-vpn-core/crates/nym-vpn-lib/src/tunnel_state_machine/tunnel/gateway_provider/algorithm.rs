@@ -134,7 +134,7 @@ mod tests {
     #[tokio::test]
     async fn run_algo() {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
-        let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+        let (_update_location_tx, update_location_rx) = mpsc::unbounded_channel();
         let (selection_tx, _selection_rx) = mpsc::channel(10);
         let shutdown_token = CancellationToken::new();
         let possible_gateways_ids = [

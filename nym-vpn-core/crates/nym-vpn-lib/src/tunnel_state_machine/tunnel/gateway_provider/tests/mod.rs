@@ -252,6 +252,33 @@ async fn error_stream() {
 }
 
 #[tokio::test]
+async fn geo_location_disabled() {
+    let shutdown_token = CancellationToken::new();
+    let gateways = Arc::new(RwLock::new(None));
+    let mut tunnel_settings = default_tunnel_settings();
+    tunnel_settings
+        .gateway_selection_algorithm_config
+        .enable_geo_location = false;
+    let (mut gw_provider, handle) = GatewayProvider::new(
+        MockGatewayCache::new(gateways),
+        MockGeoIpClient::new(),
+        tunnel_settings,
+        WireguardKeysDb::Ephemeral(Default::default()),
+        shutdown_token.child_token(),
+    );
+    // No gateways come out of the stream when there are no gateways to select from
+    assert!(
+        tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .is_err()
+    );
+    shutdown_token.cancel();
+    handle.await.unwrap();
+}
+
+#[tokio::test]
 async fn set_and_stream() {
     let shutdown_token = CancellationToken::new();
     let possible_gateways = [
