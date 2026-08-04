@@ -81,7 +81,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
         let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
 
-        let geo_ip_provider = GeoIpProvider::new(update_location_rx);
+        let mut geo_ip_provider = GeoIpProvider::new(update_location_rx);
         let geo_ip_fetcher = GeoIpFetcher::new(
             tunnel_settings
                 .gateway_selection_algorithm_config
@@ -96,20 +96,37 @@ impl<C: GatewayCache> GatewayProvider<C> {
 
         // Pre-compute at most 10 different possibilities of selected gateways
         let (selection_tx, selection_rx) = mpsc::channel(10);
-        let selection_algorithm_handle = tokio::spawn(
+        let gateway_cache_clone = gateway_cache.clone();
+        let blacklisted_gateways_clone = blacklisted_gateways.clone();
+        let selection_algorithm_handle = tokio::spawn(async move {
+            let latest_location = if tunnel_settings
+                .gateway_selection_algorithm_config
+                .enable_geo_location
+            {
+                shutdown_token
+                    .run_until_cancelled(geo_ip_provider.new_location())
+                    .await
+                    .flatten()
+            } else {
+                None
+            };
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
-                gateway_cache.clone(),
+                gateway_cache_clone,
                 geo_ip_provider,
-                blacklisted_gateways.clone(),
+                blacklisted_gateways_clone,
                 wg_keys_db,
                 shutdown_token,
             )
-            .run(SelectAndSend {
-                tunnel_settings,
-                selection_tx,
-            }),
-        );
+            .run(
+                SelectAndSend {
+                    tunnel_settings,
+                    selection_tx,
+                },
+                latest_location,
+            )
+            .await
+        });
         let selected_gateways_stream = Arc::new(Mutex::new(tokio_stream::StreamExt::peekable(
             ReceiverStream::new(selection_rx),
         )));
