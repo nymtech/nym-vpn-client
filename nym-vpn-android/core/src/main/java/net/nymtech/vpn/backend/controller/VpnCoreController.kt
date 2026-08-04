@@ -362,7 +362,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
-			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false),
+			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(true),
 			gatewayIndependence = GatewayIndependence(enableNotifications = nodeFamiliesNotificationsEnabled, differentNodeFamily = true, differentAsn = true, differentSubnet = true),
 		)
 
