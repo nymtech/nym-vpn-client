@@ -73,10 +73,10 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
-    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewayIndependence, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData,
+    DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
+    EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
+    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -1097,11 +1097,53 @@ pub struct NymConfig {
     pub network_rx: watch::Receiver<Box<Network>>,
 }
 
+const DIAGNOSTICS_SUGGESTION_RETRY_THRESHOLD: u32 = 3;
+
+#[derive(Default)]
+struct DiagnosticsSuggestionTracker {
+    already_suggested: bool,
+}
+
+impl DiagnosticsSuggestionTracker {
+    fn observe(&mut self, state: &TunnelState) -> Option<DiagnosticsSuggestionReason> {
+        match state {
+            TunnelState::Connected { .. } | TunnelState::Disconnected => {
+                self.already_suggested = false;
+                None
+            }
+            TunnelState::Connecting { retry_attempt, .. }
+                if *retry_attempt >= DIAGNOSTICS_SUGGESTION_RETRY_THRESHOLD =>
+            {
+                self.suggest_once(DiagnosticsSuggestionReason::RepeatedConnectionRetries {
+                    attempts: *retry_attempt,
+                })
+            }
+            TunnelState::Error(reason) if reason.suggests_running_diagnostics() => {
+                self.suggest_once(DiagnosticsSuggestionReason::AmbiguousError(reason.clone()))
+            }
+            _ => None,
+        }
+    }
+
+    fn suggest_once(
+        &mut self,
+        reason: DiagnosticsSuggestionReason,
+    ) -> Option<DiagnosticsSuggestionReason> {
+        if self.already_suggested {
+            None
+        } else {
+            self.already_suggested = true;
+            Some(reason)
+        }
+    }
+}
+
 pub struct TunnelStateMachine {
     current_state_handler: Box<dyn TunnelStateHandler>,
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
+    diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(target_os = "android"))]
@@ -1247,6 +1289,7 @@ impl TunnelStateMachine {
             shared_state,
             command_receiver,
             event_sender,
+            diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker::default(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(target_os = "android"))]
@@ -1279,7 +1322,15 @@ impl TunnelStateMachine {
                     self.shared_state
                         .statistics_event_sender
                         .report_tunnel_state(state.clone());
+                    let diagnostics_suggestion =
+                        self.diagnostics_suggestion_tracker.observe(&state);
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
+                    if let Some(reason) = diagnostics_suggestion {
+                        tracing::info!("Suggesting diagnostics: {reason}");
+                        let _ = self
+                            .event_sender
+                            .send(TunnelEvent::DiagnosticsSuggested(reason));
+                    }
                 }
                 NextTunnelState::SameState(same_state) => {
                     self.current_state_handler = same_state;

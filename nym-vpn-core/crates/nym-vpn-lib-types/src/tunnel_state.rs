@@ -360,4 +360,19 @@ impl ErrorStateReason {
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)
     }
+
+    pub fn suggests_running_diagnostics(&self) -> bool {
+        matches!(
+            self,
+            Self::SetDns
+                | Self::SetRouting
+                | Self::TunDevice
+                | Self::TunnelProvider
+                | Self::PerformantEntryGatewayUnavailable
+                | Self::PerformantExitGatewayUnavailable
+                | Self::CredentialWastedOnEntryGateway
+                | Self::CredentialWastedOnExitGateway
+                | Self::Internal(_)
+        )
+    }
 }

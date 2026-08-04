@@ -3,7 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountControllerState, BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent,
-    MixnetEvent, SphinxPacketRates, TunnelEvent, TunnelState,
+    DiagnosticsSuggestionReason, ErrorStateReason, MixnetEvent, SphinxPacketRates, TunnelEvent,
+    TunnelState,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -32,6 +33,9 @@ impl TryFrom<proto::TunnelEvent> for TunnelEvent {
             proto::tunnel_event::Event::AccountState(account_state) => {
                 TunnelEvent::AccountState(AccountControllerState::try_from(account_state)?)
             }
+            proto::tunnel_event::Event::DiagnosticsSuggestedEvent(event) => {
+                TunnelEvent::DiagnosticsSuggested(DiagnosticsSuggestionReason::try_from(event)?)
+            }
         })
     }
 }
@@ -53,8 +57,54 @@ impl From<TunnelEvent> for proto::TunnelEvent {
             TunnelEvent::AccountState(account_state) => proto::tunnel_event::Event::AccountState(
                 proto::AccountControllerState::from(account_state),
             ),
+            TunnelEvent::DiagnosticsSuggested(reason) => {
+                proto::tunnel_event::Event::DiagnosticsSuggestedEvent(
+                    proto::DiagnosticsSuggestedEvent::from(reason),
+                )
+            }
         };
         Self { event: Some(event) }
+    }
+}
+
+impl TryFrom<proto::DiagnosticsSuggestedEvent> for DiagnosticsSuggestionReason {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::DiagnosticsSuggestedEvent) -> Result<Self, Self::Error> {
+        let reason = value.reason.ok_or(ConversionError::NoValueSet(
+            "DiagnosticsSuggestedEvent.reason",
+        ))?;
+
+        Ok(match reason {
+            proto::diagnostics_suggested_event::Reason::RepeatedConnectionRetries(retries) => {
+                Self::RepeatedConnectionRetries {
+                    attempts: retries.attempts,
+                }
+            }
+            proto::diagnostics_suggested_event::Reason::AmbiguousError(error) => {
+                Self::AmbiguousError(ErrorStateReason::try_from(error)?)
+            }
+        })
+    }
+}
+
+impl From<DiagnosticsSuggestionReason> for proto::DiagnosticsSuggestedEvent {
+    fn from(value: DiagnosticsSuggestionReason) -> Self {
+        let reason = match value {
+            DiagnosticsSuggestionReason::RepeatedConnectionRetries { attempts } => {
+                proto::diagnostics_suggested_event::Reason::RepeatedConnectionRetries(
+                    proto::diagnostics_suggested_event::RepeatedConnectionRetries { attempts },
+                )
+            }
+            DiagnosticsSuggestionReason::AmbiguousError(reason) => {
+                proto::diagnostics_suggested_event::Reason::AmbiguousError(
+                    proto::tunnel_state::Error::from(reason),
+                )
+            }
+        };
+        Self {
+            reason: Some(reason),
+        }
     }
 }
 

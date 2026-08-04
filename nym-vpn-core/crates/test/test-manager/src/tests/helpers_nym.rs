@@ -1118,9 +1118,7 @@ mod tests {
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
     use nym_vpn_proto::rpc_client::Error as NymClientError;
-    use std::cell::Cell;
-    use std::collections::VecDeque;
-    use std::sync::Mutex;
+    use std::{cell::Cell, collections::VecDeque, sync::Mutex};
 
     fn sample_addr() -> std::net::SocketAddr {
         "93.184.216.34:443"

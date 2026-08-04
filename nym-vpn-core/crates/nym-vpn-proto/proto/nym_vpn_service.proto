@@ -612,6 +612,18 @@ message TunnelEvent {
     MixnetEvent mixnet_event = 2;
     ConfigChangedEvent config_changed_event = 3;
     AccountControllerState account_state = 4;
+    DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
+  }
+}
+
+// Advisory hint that running the diagnostic tool might help. Does not change TunnelState.
+message DiagnosticsSuggestedEvent {
+  message RepeatedConnectionRetries {
+    uint32 attempts = 1;
+  }
+  oneof reason {
+    RepeatedConnectionRetries repeated_connection_retries = 1;
+    TunnelState.Error ambiguous_error = 2;
   }
 }
 
