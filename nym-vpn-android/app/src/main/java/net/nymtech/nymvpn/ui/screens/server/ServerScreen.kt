@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,9 +49,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -361,7 +363,7 @@ internal fun ServerScreenContent(
 								leading = {
 									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 										Icon(
-											imageVector = Icons.Rounded.Star,
+											imageVector = ImageVector.vectorResource(R.drawable.ic_safest),
 											contentDescription = null,
 											modifier = Modifier.size(iconSize),
 										)
@@ -371,13 +373,24 @@ internal fun ServerScreenContent(
 								selected = isSafestSelected,
 							),
 						)
+					}
+					SurfaceSelectionGroupButton(
+						items = items,
+						shape = RoundedCornerShape(14.dp),
+						background = MaterialTheme.colorScheme.primaryContainer,
+						anchorsPadding = 0.dp,
+					)
+					Spacer(modifier = Modifier.height(8.dp))
+				}
+				item {
+					val items = buildList {
 						add(
 							SelectionItem(
 								onClick = { onSelect("Random") },
 								leading = {
 									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 										Icon(
-											imageVector = Icons.Rounded.Shuffle,
+											imageVector = ImageVector.vectorResource(R.drawable.ic_random),
 											contentDescription = null,
 											modifier = Modifier.size(iconSize),
 										)
@@ -395,6 +408,7 @@ internal fun ServerScreenContent(
 						background = MaterialTheme.colorScheme.primaryContainer,
 						anchorsPadding = 0.dp,
 					)
+					Spacer(modifier = Modifier.height(4.dp))
 				}
 			}
 

@@ -30,7 +30,7 @@ fun EntryPoint.asString(): String = when (val entry = this) {
 	is EntryPoint.Gateway -> entry.identity
 	is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 	EntryPoint.Random -> GatewaySelectionMode.RANDOM.value
-	is EntryPoint.Region -> entry.region.lowercase()
+	is EntryPoint.Region -> entry.region
 	is EntryPoint.Auto -> GatewaySelectionMode.AUTO.value
 }
 
@@ -57,7 +57,7 @@ fun String.asExitPoint(): ExitPoint = when {
 	Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 	this == GatewaySelectionMode.RANDOM.value -> ExitPoint.Random
 	this == GatewaySelectionMode.AUTO.value -> ExitPoint.Auto(excludeEntryPointCountry = true, excludeUserCountry = true)
-	else -> throw IllegalArgumentException("Invalid exit id $this")
+	else -> ExitPoint.Region(this)
 }
 
 fun String.asFavoriteSelector(): FavoriteSelector = when {

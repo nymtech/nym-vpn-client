@@ -133,7 +133,7 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 				modifier = Modifier.offset(y = nameOffset),
 			) {
-				CountryFlag(node.countryCode, 22.dp)
+				CountryFlag(node.countryCode, 22.dp, node.selectionType)
 
 				Text(
 					text = node.name.orEmpty(),

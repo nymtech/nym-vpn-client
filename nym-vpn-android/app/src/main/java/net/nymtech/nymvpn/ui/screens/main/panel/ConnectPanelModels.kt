@@ -10,7 +10,9 @@ enum class ConnectMode { FAST, MIXNET }
 
 enum class ConnectAction { CONNECT, DISCONNECT, STOP_KILL_SWITCH, GET_STARTED }
 
-data class ServerNode(val id: String = "", val name: String?, val countryCode: String?, val location: String?, val score: Score)
+enum class NodeSelectionType { NODE, RANDOM, AUTO }
+
+data class ServerNode(val id: String = "", val name: String?, val countryCode: String?, val location: String?, val score: Score, val selectionType: NodeSelectionType = NodeSelectionType.NODE)
 
 data class ConnectPanelState(
 	val connectionState: ConnectionState,
