@@ -6,7 +6,7 @@ import nym_vpn_lib_types.Score
 
 enum class PanelState { COLLAPSED, FULL }
 
-enum class ConnectMode { AUTO, FAST, MIXNET }
+enum class ConnectMode { FAST, MIXNET }
 
 enum class ConnectAction { CONNECT, DISCONNECT, STOP_KILL_SWITCH, GET_STARTED }
 
@@ -19,7 +19,6 @@ data class ConnectPanelState(
 	val connectMode: ConnectMode,
 	val exitNode: ServerNode,
 	val entryNode: ServerNode,
-	val exitIsAutoBest: Boolean,
 	val initialPanelState: PanelState,
 	val isSubscriptionExpired: Boolean = false,
 )

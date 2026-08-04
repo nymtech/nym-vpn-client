@@ -178,9 +178,7 @@
 	<string name="connection_state_connecting_mixnet_client">正在匿名注册服务器（6/7）</string>
 	<string name="connection_state_connecting_tunnel">正在建立服务器连接（7/7）</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">使用最佳服务器</string>
 	<string name="one_click_mode_fast">快速</string>
-	<string name="connect_mode_auto">自动</string>
 	<string name="connect_mode_mixnet">混合网络</string>
 	<string name="one_click_nym_exit_node">出口服务器</string>
 	<string name="one_click_nym_entry_node">入口服务器</string>
@@ -189,7 +187,6 @@
 	<string name="connection_status_fast_mode">快速模式保护</string>
 	<string name="connection_status_anonymous">混合网络保护</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">最佳服务器</string>
 	<string name="gateway_random">随机服务器</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">欢迎！</string>

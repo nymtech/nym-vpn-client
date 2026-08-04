@@ -269,7 +269,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 		onModeChange = { mode ->
 			when (mode) {
-				ConnectMode.AUTO -> viewModel.onAutoSelected()
 				ConnectMode.FAST -> viewModel.onTwoHopSelected()
 				ConnectMode.MIXNET -> viewModel.onFiveHopSelected()
 			}
@@ -388,7 +387,6 @@ private fun MainScreenContent(
 			location = appUiState.entryPointLocation,
 			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
 		),
-		exitIsAutoBest = connectMode == ConnectMode.AUTO && appUiState.isExitPointRandom,
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
 	)

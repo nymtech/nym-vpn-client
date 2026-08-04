@@ -24,7 +24,6 @@ import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import net.nymtech.vpn.util.extensions.asFavoriteSelector
 import net.nymtech.vpn.util.extensions.toDisplayCountry
-import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FavoriteSelector
 import nym_vpn_lib_types.FavoriteSelectors
 import nym_vpn_lib_types.GatewayType
@@ -336,7 +335,7 @@ class ServerViewModel @Inject constructor(
 		}
 	}
 
-	fun onSelected(id: String, gatewayLocation: GatewayLocation) = viewModelScope.launch {
+	suspend fun onSelected(id: String, gatewayLocation: GatewayLocation) {
 		Timber.tag(TAG).i("GatewaySelectionRequested location=%s", gatewayLocation)
 
 		runCatching {
@@ -347,13 +346,8 @@ class ServerViewModel @Inject constructor(
 				}
 
 				GatewayLocation.EXIT -> {
-					if (id == "Best") {
-						vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(ExitPoint.Random))
-						Timber.tag(TAG).i("GatewaySelectionBest location=EXIT")
-					} else {
-						vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
-						Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
-					}
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
+					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}
 		}.onFailure { t ->

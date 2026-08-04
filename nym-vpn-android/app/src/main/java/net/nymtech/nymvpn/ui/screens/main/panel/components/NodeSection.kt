@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,10 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.details.components.CountryFlag
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
@@ -45,7 +42,6 @@ import net.nymtech.nymvpn.util.extensions.getScoreIcon
 internal fun NodeSection(
 	label: String,
 	node: ServerNode,
-	isAuto: Boolean,
 	isClickable: Boolean,
 	onNodeClick: () -> Unit,
 	onInfoClick: () -> Unit,
@@ -70,7 +66,6 @@ internal fun NodeSection(
 		if (alwaysShowRow) {
 			ServerRow(
 				node = node,
-				isAuto = isAuto,
 				isClickable = isClickable,
 				onServerClick = onNodeClick,
 				onInfoClick = onInfoClick,
@@ -84,7 +79,6 @@ internal fun NodeSection(
 			) {
 				ServerRow(
 					node = node,
-					isAuto = isAuto,
 					isClickable = isClickable,
 					onServerClick = onNodeClick,
 					onInfoClick = onInfoClick,
@@ -96,9 +90,9 @@ internal fun NodeSection(
 }
 
 @Composable
-private fun ServerRow(node: ServerNode, isAuto: Boolean, isClickable: Boolean, onServerClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
 	val indication = if (isClickable) ripple() else null
-	val showDetails = !isAuto && node.location != null
+	val showDetails = node.location != null
 	val locationAlpha by animateFloatAsState(
 		targetValue = if (showDetails) 1f else 0f,
 		animationSpec = tween(350),
@@ -139,19 +133,10 @@ private fun ServerRow(node: ServerNode, isAuto: Boolean, isClickable: Boolean, o
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 				modifier = Modifier.offset(y = nameOffset),
 			) {
-				if (isAuto) {
-					Icon(
-						imageVector = Icons.Filled.Star,
-						contentDescription = null,
-						tint = LocalNymColors.current.warning,
-						modifier = Modifier.size(22.dp),
-					)
-				} else {
-					CountryFlag(node.countryCode, 22.dp)
-				}
+				CountryFlag(node.countryCode, 22.dp)
 
 				Text(
-					text = if (isAuto) stringResource(R.string.one_click_auto_server) else node.name ?: stringResource(R.string.one_click_auto_server),
+					text = node.name.orEmpty(),
 					style = MaterialTheme.typography.bodyLarge,
 					color = if (isClickable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
 					maxLines = 1,

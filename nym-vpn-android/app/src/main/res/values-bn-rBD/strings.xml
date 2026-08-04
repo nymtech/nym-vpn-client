@@ -176,9 +176,7 @@
 	<string name="connection_state_connecting_mixnet_client">সার্ভারগুলোর সাথে গোপনভাবে রেজিস্টার করা হচ্ছে (6/7)</string>
 	<string name="connection_state_connecting_tunnel">সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Use best server</string>
 	<string name="one_click_mode_fast">Fast</string>
-	<string name="connect_mode_auto">Auto</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Exit server</string>
 	<string name="one_click_nym_entry_node">Entry server</string>
@@ -187,7 +185,6 @@
 	<string name="connection_status_fast_mode">Fast mode protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Best server</string>
 	<string name="gateway_random">Random server</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
