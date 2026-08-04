@@ -407,7 +407,7 @@ jobs:
           EOF
 
       - name: Upload release notes
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.RELEASE_NOTES_ARTIFACT }}
           path: ${{ env.RELEASE_NOTES }}

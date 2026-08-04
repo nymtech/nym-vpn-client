@@ -52,7 +52,7 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh --ios
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: wireguard-go_ios_universal
           path: build/lib

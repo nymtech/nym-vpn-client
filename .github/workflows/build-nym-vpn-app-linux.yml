@@ -175,7 +175,7 @@ jobs:
           cp -vpr .pkg/linux/install ${{ env.UPLOAD_DIR_LINUX }}/install
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}

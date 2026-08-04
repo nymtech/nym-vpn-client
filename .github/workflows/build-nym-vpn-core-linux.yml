@@ -142,7 +142,7 @@ jobs:
           cp -vpr ${{ env.SRC_DEB }}/nym-vpnd_*.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}
@@ -150,7 +150,7 @@ jobs:
           retention-days: 1
 
       - name: Upload deb artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_DEB }}
           path: ${{ env.UPLOAD_DIR_DEB }}

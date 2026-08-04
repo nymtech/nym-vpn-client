@@ -111,7 +111,7 @@ jobs:
             UPLOAD_DIR_MAC="${{ github.workspace }}/${{ env.UPLOAD_DIR_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_MACOS }}
           path: ${{ env.UPLOAD_DIR_MACOS }}
@@ -197,7 +197,7 @@ jobs:
           mv "nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc" "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
           path: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
@@ -252,7 +252,7 @@ jobs:
           mv "${{ env.NYM_RPC_ARTIFACTS_MACOS }}/NymVPNRpc" "${{ env.CORE_ARTIFACTS_MACOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.CORE_ARTIFACTS_MACOS }}
           path: ${{ env.CORE_ARTIFACTS_MACOS }}

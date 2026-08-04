@@ -107,7 +107,7 @@ jobs:
           mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib "${{ env.UPLOAD_DIR_IOS }}"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: ${{ env.UPLOAD_DIR_IOS }}

@@ -164,7 +164,7 @@ jobs:
           cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.cat ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_WINDOWS }}
           path: ${{ env.UPLOAD_DIR_WINDOWS }}
