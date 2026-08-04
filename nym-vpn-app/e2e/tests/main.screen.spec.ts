@@ -36,7 +36,9 @@ test.describe('MainScreen', () => {
   test('renders entry and exit server rows', async () => {
     await expect(mainPage.serverRow('Entry')).toBeVisible();
     await expect(mainPage.serverRow('Exit')).toBeVisible();
-    await expect(mainPage.serverRow('Entry')).toContainText('Random');
+    await expect(mainPage.serverRow('Entry')).toContainText(
+      'Safest server selection',
+    );
   });
 
   test('navigates to settings screen correctly', async ({ page }) => {

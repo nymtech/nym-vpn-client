@@ -3,6 +3,30 @@ use serde::Serialize;
 use tracing::instrument;
 use ts_rs::TS;
 
+use super::tunnel_error::TunnelError;
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "kebab-case")]
+pub enum DiagnosticsSuggestedReason {
+    RepeatedConnectionRetries { attempts: u32 },
+    AmbiguousError(TunnelError),
+}
+
+impl DiagnosticsSuggestedReason {
+    #[instrument(skip(reason))]
+    pub fn from_lib(reason: lib::DiagnosticsSuggestionReason) -> Self {
+        match reason {
+            lib::DiagnosticsSuggestionReason::RepeatedConnectionRetries { attempts } => {
+                Self::RepeatedConnectionRetries { attempts }
+            }
+            lib::DiagnosticsSuggestionReason::AmbiguousError(reason) => {
+                Self::AmbiguousError(TunnelError::from(reason))
+            }
+        }
+    }
+}
+
 #[derive(Serialize, Clone, Debug, PartialEq, TS, strum::AsRefStr)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
@@ -51,5 +75,34 @@ impl From<lib::ConnectionEvent> for MixnetEvent {
             lib::ConnectionEvent::ConnectedIpv4 => Self::ConnectedIpv4,
             lib::ConnectionEvent::ConnectedIpv6 => Self::ConnectedIpv6,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn diagnostics_suggested_reason_from_lib_repeated_connection_retries() {
+        let reason = DiagnosticsSuggestedReason::from_lib(
+            lib::DiagnosticsSuggestionReason::RepeatedConnectionRetries { attempts: 3 },
+        );
+
+        assert_eq!(
+            reason,
+            DiagnosticsSuggestedReason::RepeatedConnectionRetries { attempts: 3 }
+        );
+    }
+
+    #[test]
+    fn diagnostics_suggested_reason_from_lib_ambiguous_error() {
+        let reason = DiagnosticsSuggestedReason::from_lib(
+            lib::DiagnosticsSuggestionReason::AmbiguousError(lib::ErrorStateReason::SetDns),
+        );
+
+        assert_eq!(
+            reason,
+            DiagnosticsSuggestedReason::AmbiguousError(TunnelError::SetDns)
+        );
     }
 }
