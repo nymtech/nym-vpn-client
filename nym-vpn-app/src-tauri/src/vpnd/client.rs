@@ -303,6 +303,9 @@ impl VpndClient {
                 debug!("config event {e}");
                 VpndClient::handle_config_update(app, *e).await.ok();
             }
+            lib::TunnelEvent::DiagnosticsSuggested(reason) => {
+                debug!("diagnostics suggested: {reason}");
+            }
         }
         Ok(())
     }
