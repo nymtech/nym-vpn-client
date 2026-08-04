@@ -19,7 +19,7 @@ bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
 hex.workspace = true
 itertools.workspace = true
-nym-bridges-types.workspace = true
+nym-bridges-types ={ workspace = true, features = ["serde"] }
 nym-common.workspace = true
 nym-compact-ecash.workspace = true
 nym-config.workspace = true
