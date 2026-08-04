@@ -8,6 +8,7 @@ import {
   FlagIcon,
   MsIcon,
   Skeleton,
+  SmileyIcon,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
@@ -16,6 +17,7 @@ import {
   Gateway,
   Score,
   SelectedNode,
+  isAuto,
   isCountry,
   isGateway,
   isRegion,
@@ -24,8 +26,8 @@ import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
+import { ScoreIndicator } from '../node/ScoreIndicator';
 import { isBridgeMode, regionToCountryCode } from './util';
-import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
 const DURATION = 0.3;
 
@@ -47,7 +49,6 @@ export type SelectedNodeDisplayProps = {
   showQuic?: boolean;
   disabled?: boolean;
   showStreamOptimized?: boolean;
-  showFastest?: boolean;
   score?: Score;
 };
 
@@ -126,10 +127,9 @@ export function NodeRow({ type }: NodeRowProps) {
     (gw: Gateway | null) => ({
       showQuic: Boolean(quicTag && gw?.quic),
       showStreamOptimized: type === 'exit' && gw?.asn?.type === 'residential',
-      showFastest: userSelectedNode === 'random' && !gw?.country?.code,
       score: gw?.type === 'wg' ? gw?.wgScore : gw?.mxScore,
     }),
-    [quicTag, type, userSelectedNode],
+    [quicTag, type],
   );
 
   const getLocationInfo = useCallback(
@@ -190,6 +190,13 @@ export function NodeRow({ type }: NodeRowProps) {
           ...gwFlags(gw),
         };
       }
+      if (isAuto(selected)) {
+        return {
+          name: t('safest-server-selection'),
+          ip: '',
+          ...gwFlags(gw),
+        };
+      }
       if (isCountry(selected))
         return getLocationInfo(selected.country.code, gw);
       if (isRegion(selected)) {
@@ -243,11 +250,11 @@ export function NodeRow({ type }: NodeRowProps) {
   ]);
 
   const nodeDetails = useMemo(() => {
-    // 'random' is a "let the daemon pick each time" selection; once we're
-    // connecting/connected we know which gateway it picked — show that
-    // instead of the generic "Random server" placeholder.
+    // 'random' and 'safest' (the daemon's `Auto`) are both "let the daemon pick
+    // each time" selections; once we're connecting/connected we know which
+    // gateway it picked — show that instead of the generic placeholder.
     if (
-      userSelectedNode === 'random' &&
+      (userSelectedNode === 'random' || isAuto(userSelectedNode)) &&
       (state === 'connecting' || state === 'connected') &&
       gateway
     ) {
@@ -279,6 +286,13 @@ export function NodeRow({ type }: NodeRowProps) {
       : nodeDetails.name;
   }, [gateway?.name, nodeDetails.name, state]);
 
+  // A 'safest' hop carries no gateway id of its own, so `gateway` is null until
+  // the daemon reports the one it picked. Gate on that rather than on the
+  // tunnel state: at the moment the state flips to 'connecting' the gateway is
+  // still unknown, and ScoreIndicator maps an undefined score to a
+  // full-strength bar — i.e. a confident signal reading for no server.
+  const showSafestPlaceholder = isAuto(userSelectedNode) && !gateway;
+
   const descriptionLabel = useMemo(() => {
     if (showLoading) return null;
     return isGateway(userSelectedNode) || state === 'connected'
@@ -306,7 +320,11 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
-              <ScoreIndicatorContainer score={nodeDetails.score} />
+              {showSafestPlaceholder ? (
+                <SmileyIcon className="h-6 w-6" />
+              ) : (
+                <ScoreIndicator score={nodeDetails.score} />
+              )}
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode && (
                   <motion.div
