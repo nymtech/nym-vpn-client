@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `NYM_LOCAL_RESOLVER_IP` environment variable for local DNS resolver bind IP customization (https://github.com/nymtech/nym-vpn-client/pull/5989)
+
+
 ## [2026.12.0] - TBD
 
 ### Added

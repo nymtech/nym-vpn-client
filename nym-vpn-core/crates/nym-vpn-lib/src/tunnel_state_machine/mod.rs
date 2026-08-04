@@ -19,6 +19,8 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
+#[cfg(not(target_os = "android"))]
+use std::str::FromStr;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 
@@ -1143,10 +1145,12 @@ impl TunnelStateMachine {
         let dns_handler_shutdown_token = CancellationToken::new();
 
         #[cfg(not(target_os = "android"))]
-        let (filtering_resolver, filtering_resolver_handle) =
-            resolver::LocalResolver::spawn(true, dns_handler_shutdown_token.child_token())
-                .await
-                .map_err(Error::StartLocalDnsResolver)?;
+        let (filtering_resolver, filtering_resolver_handle) = resolver::LocalResolver::spawn(
+            resolver_listen_addr(),
+            dns_handler_shutdown_token.child_token(),
+        )
+        .await
+        .map_err(Error::StartLocalDnsResolver)?;
 
         let adblocker = create_adblocker(&nym_config, file_updater_handle);
         if tunnel_settings.enable_ad_blocking {
@@ -1630,5 +1634,26 @@ impl From<tunnel::transports::TransportError> for Error {
 impl From<nym_registration_client::RegistrationClientError> for Error {
     fn from(value: nym_registration_client::RegistrationClientError) -> Self {
         Self::Tunnel(Box::new(tunnel::Error::RegistrationClient(Box::new(value))))
+    }
+}
+
+#[cfg(not(target_os = "android"))]
+fn resolver_listen_addr() -> resolver::ListenInterface {
+    if let Some(bind_to) = std::env::var("NYM_LOCAL_RESOLVER_IP")
+        .inspect_err(|err| tracing::warn!("Failed to parse NYM_LOCAL_RESOLVER_IP: {err}"))
+        .ok()
+        .and_then(|v| {
+            Ipv4Addr::from_str(&v)
+                .inspect_err(|err| {
+                    tracing::warn!("Couldn't parse IPv4 address from NYM_LOCAL_RESOLVER_IP: {err}")
+                })
+                .ok()
+        })
+    {
+        resolver::ListenInterface::Custom { bind_to }
+    } else {
+        resolver::ListenInterface::Loopback {
+            random_loopback: true,
+        }
     }
 }

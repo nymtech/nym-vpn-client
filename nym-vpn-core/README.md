@@ -315,6 +315,9 @@ make -C nym-vpn-core -f Android.mk
         - `netsh`: use the `netsh` program
         - `tcpip`: set TCP/IP parameters in the registry
 
+- `NYM_LOCAL_RESOLVER_IP` - Set to IPv4 address to override local DNS resolver IP. If not set, the
+  default behavior is to bind to random alias to loopback interface (`127.x.x.x`).
+
 - `NYM_DISABLE_OFFLINE_MONITOR` - Set to `1` to forces the daemon to always assume the host is online.
 
 - `NYM_USE_PATH_MONITOR` - Set to `1` to use Apple Network framework for offline monitoring. (macOS only)
