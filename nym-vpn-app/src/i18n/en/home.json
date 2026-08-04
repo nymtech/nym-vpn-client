@@ -16,8 +16,8 @@
   "nym-entry-server": "Entry server",
   "nym-exit-server": "Exit server",
   "connection-time": "Connection time",
-  "best-server-for-my-location": "Use best server",
   "random-server": "Random server",
+  "safest-server-selection": "Safest server selection",
   "mode-toggle": {
     "fast": "Fast",
     "mixnet": "Mixnet"
