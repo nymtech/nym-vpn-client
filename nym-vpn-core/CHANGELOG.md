@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
 
+### Changed
+
+- [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
+
 
 ## [2026.12.0] - TBD
 
