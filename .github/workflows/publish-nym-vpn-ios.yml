@@ -11,6 +11,12 @@ on:
         description: "Whether the build is available to the general public (true/false)"
         type: boolean
         required: true
+      github_branch:
+        type: string
+        required: true
+      github_sha:
+        type: string
+        required: true
     secrets:
       APP_STORE_CONNECT_API_KEY:
         required: true
@@ -79,11 +85,21 @@ jobs:
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
           IPA_FILE: ${{ github.workspace }}/dist/${{ inputs.ios_ipa_name }}
           BETA_GROUP: ${{ inputs.is_public == true && 'World' || 'Nym Team External' }}
+          BRANCH_NAME: ${{ inputs.github_branch }}
+          COMMIT_SHA: ${{ inputs.github_sha }}
+          WHATS_NEW_FILE: ${{ github.workspace }}/whatsnew.txt
         run: |
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight (beta group: $BETA_GROUP)..."
 
-          app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$IPA_FILE"
+          DATE=$(date -u '+%F %T')
+          cat << EOF > "$WHATS_NEW_FILE"
+          Date: $DATE
+          Branch: $BRANCH_NAME
+          Git commit: $COMMIT_SHA
+          EOF
+
+          app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$IPA_FILE" --whats-new="@file:${WHATS_NEW_FILE}"
 
           echo "✅ Upload completed successfully."
