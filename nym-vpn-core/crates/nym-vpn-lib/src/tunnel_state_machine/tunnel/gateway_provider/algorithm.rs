@@ -73,12 +73,11 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
         }
     }
 
-    pub async fn run(mut self, mut latest_tunnel_settings: SelectAndSend) {
-        let mut latest_location = self
-            .shutdown_token
-            .run_until_cancelled(self.geo_ip_provider.new_location())
-            .await
-            .flatten();
+    pub async fn run(
+        mut self,
+        mut latest_tunnel_settings: SelectAndSend,
+        mut latest_location: Option<Location>,
+    ) {
         loop {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
@@ -135,7 +134,7 @@ mod tests {
     #[tokio::test]
     async fn run_algo() {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
-        let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+        let (_update_location_tx, update_location_rx) = mpsc::unbounded_channel();
         let (selection_tx, _selection_rx) = mpsc::channel(10);
         let shutdown_token = CancellationToken::new();
         let possible_gateways_ids = [
@@ -153,11 +152,13 @@ mod tests {
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.clone(),
         );
-        let handle = tokio::spawn(algo.run(SelectAndSend {
-            tunnel_settings: default_tunnel_settings(),
-            selection_tx,
-        }));
-        let _ = update_location_tx.send(Location::default());
+        let handle = tokio::spawn(algo.run(
+            SelectAndSend {
+                tunnel_settings: default_tunnel_settings(),
+                selection_tx,
+            },
+            None,
+        ));
 
         // set some default settings
         let mut selection_rx = reset_default_settings(&tunnel_settings_tx).await;
