@@ -183,13 +183,22 @@ message NymNetworkDetails {
   ChainDetails chain_details = 2;
   repeated ValidatorDetails endpoints = 3;
   NymContracts contracts = 4;
-  optional string nym_vpn_api_url = 5;
-  repeated ApiUrl nym_api_urls = 6;
-  repeated ApiUrl nym_vpn_api_urls = 7;
+  NetworkingSpecifics networking = 10;
 }
 
 message NymVpnNetworkDetails {
   repeated ApiUrl nym_vpn_api_urls = 2;
+}
+
+message NetworkingSpecifics {
+  repeated ApiUrl nym_api_urls = 1;
+  repeated ApiUrl nym_vpn_api_urls = 2;
+  repeated DnsFallback dns_fallbacks = 3;
+}
+
+message DnsFallback {
+  string url = 1;
+  repeated string addresses = 2;
 }
 
 message AccountManagement {

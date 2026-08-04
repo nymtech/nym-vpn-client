@@ -70,6 +70,10 @@ impl DiagnosticHandler {
 }
 
 pub async fn build_api_client(network: &Network) -> Result<Client> {
-    let nym_urls = api_urls_to_urls(&network.nym_api_urls().ok_or(Error::MissingApiUrl)?)?;
+    let nym_urls = api_urls_to_urls(&network.nym_api_urls())?;
+    if nym_urls.is_empty() {
+        return Err(Error::MissingApiUrl);
+    }
+
     Ok(fronted_http_client(nym_urls, None, None)?)
 }

@@ -19,11 +19,7 @@ pub struct NymVpnNetwork {
 
 impl NymVpnNetwork {
     pub fn new(network_details: NymNetworkDetails) -> Self {
-        let nym_vpn_api_urls = network_details
-            .nym_vpn_api_urls
-            .unwrap_or_default()
-            .into_iter()
-            .collect();
+        let nym_vpn_api_urls = network_details.nym_vpn_api_urls();
 
         Self {
             nym_vpn_api_urls,
@@ -92,11 +88,10 @@ impl TryFrom<&NymNetworkDetails> for NymVpnNetwork {
     type Error = NymVpnNetworkFromDetailsError;
 
     fn try_from(network_details: &NymNetworkDetails) -> Result<Self, Self::Error> {
-        let nym_vpn_api_urls = network_details
-            .nym_vpn_api_urls
-            .as_ref()
-            .ok_or(NymVpnNetworkFromDetailsError::NymVpnApiUrlsMissing)?
-            .clone();
+        let nym_vpn_api_urls = network_details.nym_vpn_api_urls();
+        if nym_vpn_api_urls.is_empty() {
+            return Err(NymVpnNetworkFromDetailsError::NymVpnApiUrlsMissing);
+        }
 
         Ok(Self {
             nym_vpn_api_urls,

@@ -587,15 +587,9 @@ mod test {
             .expect("rust sdk mainnet default incorrectly configured")
             .nyxd_url();
         let default_api_urls = mainnet_network_defaults
-            .nym_api_urls
-            .as_ref()
-            .expect("rust sdk mainnet default incorrectly configured")
-            .clone();
+            .nym_api_urls();
         let default_nym_vpn_api_urls = mainnet_network_defaults
-            .nym_vpn_api_urls
-            .as_ref()
-            .expect("rust sdk mainnet default incorrectly configured")
-            .clone();
+            .nym_vpn_api_urls();
         Config {
             nyxd_url: default_nyxd_url,
             nym_api_urls: default_api_urls,

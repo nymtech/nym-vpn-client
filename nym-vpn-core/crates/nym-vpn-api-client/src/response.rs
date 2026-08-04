@@ -13,6 +13,7 @@ use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
 use nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1;
+use nym_network_defaults::network::NetworkingSpecifics;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
 
@@ -765,13 +766,53 @@ pub struct ApiUrl {
     pub fronts: Option<Vec<String>>,
 }
 
+impl ApiUrl {
+    pub fn new<S: AsRef<str>, T: AsRef<str>>(url: S, fronts: Option<Vec<T>>) -> Self {
+        Self {
+            url: url.as_ref().to_string(),
+            fronts: fronts.map(|fronts| {
+                fronts
+                    .into_iter()
+                    .map(|front| front.as_ref().to_string())
+                    .collect()
+            }),
+        }
+    }
+}
+
+impl From<nym_network_defaults::ApiUrl> for ApiUrl {
+    fn from(value: nym_network_defaults::ApiUrl) -> Self {
+        ApiUrl {
+            url: value.url,
+            fronts: value.front_hosts,
+        }
+    }
+}
+
+impl From<ApiUrl> for nym_network_defaults::ApiUrl {
+    fn from(value: ApiUrl) -> Self {
+        nym_network_defaults::ApiUrl {
+            url: value.url,
+            front_hosts: value.fronts,
+        }
+    }
+}
+
+impl From<&ApiUrl> for nym_network_defaults::ApiUrl {
+    fn from(value: &ApiUrl) -> Self {
+        nym_network_defaults::ApiUrl {
+            url: value.url.clone(),
+            front_hosts: value.fronts.clone(),
+        }
+    }
+}
+
 // The response type we fetch from the discovery endpoint
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymWellknownDiscoveryItemResponse {
     pub network_name: String,
-    pub nym_api_url: String,
+    pub networking: NetworkingSpecifics,
     pub nym_api_urls: Vec<ApiUrl>,
-    pub nym_vpn_api_url: String,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
     pub account_management: Option<AccountManagementResponse>,
     pub feature_flags: Option<serde_json::Value>,

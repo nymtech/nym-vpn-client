@@ -129,7 +129,6 @@ pub fn hostnames(network: &Network) -> Vec<String> {
         .nym_api_urls_as_urls()
         .into_iter()
         .chain(network.nym_vpn_api_urls_as_urls())
-        .flatten()
         .chain(iter::once(network.nyxd_url.clone()));
 
     // Convert str urls to hostnames

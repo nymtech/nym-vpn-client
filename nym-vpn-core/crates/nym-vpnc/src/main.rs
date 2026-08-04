@@ -432,7 +432,9 @@ impl Command {
                     .coconut_dkg_contract_address
             )
         );
-        if let Some(nym_api_urls) = service_info.nym_network.nym_api_urls {
+
+        let nym_api_urls = service_info.nym_network.nym_api_urls();
+        if !nym_api_urls.is_empty() {
             println!("  nym_api_urls:");
             for nym_api_url in nym_api_urls {
                 println!("    - url: {}", nym_api_url.url);
@@ -447,8 +449,9 @@ impl Command {
                 }
             }
         }
-        println!("  nym_vpn_api_urls:");
-        if let Some(nym_vpn_api_urls) = service_info.nym_network.nym_vpn_api_urls {
+        let nym_vpn_api_urls = service_info.nym_network.nym_vpn_api_urls();
+        if !nym_vpn_api_urls.is_empty() {
+            println!("  nym_vpn_api_urls:");
             for nym_vpn_api_url in nym_vpn_api_urls {
                 println!("    - url: {}", nym_vpn_api_url.url);
                 match nym_vpn_api_url.front_hosts {

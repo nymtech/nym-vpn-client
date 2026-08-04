@@ -522,9 +522,7 @@ impl NymVpnService {
 
         // Built here (rather than owned solely by `VpnApiClient`) so it can be shared with the
         // tunnel state machine's bandwidth monitor further down.
-        let skew_time_provider_urls = network_env
-            .nym_vpn_api_urls()
-            .ok_or(Error::InvalidEnvironment("empty nym_vpn_api_urls"))?;
+        let skew_time_provider_urls = network_env.nym_vpn_api_urls();
         let skew_time_provider = nym_vpn_api_client::VpnApiClient::health_endpoint_time_provider(
             api_urls_to_urls(&skew_time_provider_urls).map_err(Error::ConvertApiUrls)?,
             Some(parameters.user_agent.clone()),
@@ -609,12 +607,8 @@ impl NymVpnService {
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = network_env.nyxd_url();
 
-        let nym_api_urls = network_env
-            .nym_api_urls()
-            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
-        let nym_vpn_api_urls = network_env
-            .nym_vpn_api_urls()
-            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
+        let nym_api_urls = network_env.nym_api_urls();
+        let nym_vpn_api_urls = network_env.nym_vpn_api_urls();
 
         let gateway_config =
             gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)

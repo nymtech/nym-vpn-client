@@ -120,28 +120,28 @@ impl Network {
         self.nyxd_url.clone()
     }
 
-    pub fn nym_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
-        self.nym_network.nym_api_urls.clone()
+    pub fn nym_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
+        self.nym_network.nym_api_urls()
     }
 
-    pub fn nym_api_urls_as_urls(&self) -> Option<Vec<url::Url>> {
-        self.nym_network.nym_api_urls.as_ref().map(|urls| {
-            urls.iter()
-                .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
-                .collect()
-        })
+    pub fn nym_api_urls_as_urls(&self) -> Vec<url::Url> {
+        self.nym_network
+            .nym_api_urls()
+            .iter()
+            .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
+            .collect()
     }
 
-    pub fn nym_vpn_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
-        self.nym_network.nym_vpn_api_urls.clone()
+    pub fn nym_vpn_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
+        self.nym_network.nym_vpn_api_urls()
     }
 
-    pub fn nym_vpn_api_urls_as_urls(&self) -> Option<Vec<url::Url>> {
-        self.nym_network.nym_vpn_api_urls.as_ref().map(|urls| {
-            urls.iter()
-                .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
-                .collect()
-        })
+    pub fn nym_vpn_api_urls_as_urls(&self) -> Vec<url::Url> {
+        self.nym_network
+            .nym_vpn_api_urls()
+            .iter()
+            .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
+            .collect()
     }
 
     pub fn get_simple_feature_flag<T>(&self, flag: &str) -> Option<T>
@@ -331,16 +331,11 @@ impl NetworkCache {
         network_details: &mut NymNetworkDetails,
         discovery: &Discovery,
     ) {
-        if network_details.nym_vpn_api_urls.is_none()
-            || network_details
-                .nym_vpn_api_urls
-                .as_ref()
-                .is_some_and(|v| v.is_empty())
-        {
+        if network_details.nym_vpn_api_urls().is_empty() {
             tracing::debug!(
                 "Patching up network details from discovery due to missing network details!"
             );
-            network_details.nym_vpn_api_urls = Some(discovery.nym_vpn_api_urls());
+            network_details.set_nym_vpn_api_urls(discovery.nym_vpn_api_urls());
         }
     }
 

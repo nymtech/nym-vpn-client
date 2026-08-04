@@ -7,6 +7,8 @@ use crate::{
 };
 use nym_vpn_api_client::response::{ApiUrl, NymWellknownDiscoveryItemResponse};
 
+pub use nym_network_defaults::network::NetworkingSpecifics;
+
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
 static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
@@ -17,9 +19,10 @@ pub struct Discovery {
     pub network_name: String,
 
     // Use the getters!
-    nym_api_url: url::Url,
+    networking: NetworkingSpecifics,
+    // to be removed in favor of networking_specifics
     nym_api_urls: Vec<ApiUrl>,
-    nym_vpn_api_url: url::Url,
+    // to be removed in favor of networking_specifics
     nym_vpn_api_urls: Vec<ApiUrl>,
 
     // Additional context
@@ -63,37 +66,23 @@ impl Discovery {
     }
 
     pub fn nym_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
-        if self.nym_api_urls.is_empty() {
-            vec![nym_network_defaults::ApiUrl {
-                url: self.nym_api_url.to_string(),
-                front_hosts: None,
-            }]
-        } else {
-            self.nym_api_urls
-                .iter()
-                .map(|api_url| nym_network_defaults::ApiUrl {
-                    url: api_url.url.clone(),
-                    front_hosts: api_url.fronts.clone(),
-                })
-                .collect()
-        }
+        self.nym_api_urls
+            .iter()
+            .map(|api_url| nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            })
+            .collect()
     }
 
     pub fn nym_vpn_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
-        if self.nym_vpn_api_urls.is_empty() {
-            vec![nym_network_defaults::ApiUrl {
-                url: self.nym_vpn_api_url.to_string(),
-                front_hosts: None,
-            }]
-        } else {
-            self.nym_vpn_api_urls
-                .iter()
-                .map(|api_url| nym_network_defaults::ApiUrl {
-                    url: api_url.url.clone(),
-                    front_hosts: api_url.fronts.clone(),
-                })
-                .collect()
-        }
+        self.nym_vpn_api_urls
+            .iter()
+            .map(|api_url| nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            })
+            .collect()
     }
 }
 
@@ -137,28 +126,20 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
-        let nym_api_url = discovery.nym_api_url.parse().map_err(|source| {
-            DiscoveryFromNymWellknownDiscoveryError::ParseNymApiUrl {
-                value: discovery.nym_api_url,
-                source,
-            }
-        })?;
-
         let nym_api_urls = discovery.nym_api_urls.clone();
 
-        let nym_vpn_api_url = discovery.nym_vpn_api_url.parse().map_err(|source| {
-            DiscoveryFromNymWellknownDiscoveryError::ParseNymVpnApiUrl {
-                value: discovery.nym_vpn_api_url,
-                source,
-            }
-        })?;
         let nym_vpn_api_urls = discovery.nym_vpn_api_urls.clone();
+
+        let networking = NetworkingSpecifics {
+            nym_api_urls: nym_api_urls.iter().map(Into::into).collect(),
+            nym_vpn_api_urls: nym_vpn_api_urls.iter().map(Into::into).collect(),
+            dns_fallbacks: Vec::new(),
+        };
 
         Ok(Self {
             network_name: discovery.network_name,
-            nym_api_url,
+            networking,
             nym_api_urls,
-            nym_vpn_api_url,
             nym_vpn_api_urls,
             account_management,
             feature_flags,
@@ -209,8 +190,7 @@ mod tests {
 
         // Only compare the base fields
         assert_eq!(discovery.network_name, fetched.network_name);
-        assert_eq!(discovery.nym_api_url, fetched.nym_api_url);
-        assert_eq!(discovery.nym_vpn_api_url, fetched.nym_vpn_api_url);
+        assert_eq!(discovery.networking, fetched.networking);
     }
 
     #[test]
@@ -268,19 +248,43 @@ mod tests {
                         "modal": "true"
                     }
                 }
-            ]
+            ],
+            "networking": {
+                "nym_api_urls": [
+                    {
+                        "url": "https://foo.ch/api/",
+                        "fronts": ["foobar.ch", "qux.baz"]
+                    }
+                ],
+                "nym_vpn_api_urls": [
+                    {
+                        "url": "https://bar.ch/api/",
+                        "fronts": ["quxbar.ch", "qux.baz"]
+                    }
+                ],
+                "dns_fallbacks": []
+            }
         }"#;
         let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
         let network: Discovery = discovery.try_into().unwrap();
 
+        let expected_network_specifics = NetworkingSpecifics {
+            nym_api_urls: vec![
+                ApiUrl::new("https://foo.ch/api/", Some(vec!["foobar.ch", "qux.baz"])).into(),
+            ],
+            nym_vpn_api_urls: vec![
+                ApiUrl::new("https://bar.ch/api/", Some(vec!["quxbar.ch", "qux.baz"])).into(),
+            ],
+            dns_fallbacks: vec![],
+        };
+
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
-            nym_api_url: "https://foo.ch/api/".parse().unwrap(),
+            networking: expected_network_specifics,
             nym_api_urls: vec![ApiUrl {
                 url: "https://foo.ch/api/".parse().unwrap(),
                 fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
             }],
-            nym_vpn_api_url: "https://bar.ch/api/".parse().unwrap(),
             nym_vpn_api_urls: vec![ApiUrl {
                 url: "https://bar.ch/api/".parse().unwrap(),
                 fronts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),

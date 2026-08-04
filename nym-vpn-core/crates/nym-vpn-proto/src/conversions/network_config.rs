@@ -83,26 +83,42 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
             .clone()
             .map(nym_vpn_lib_types::NymContracts::from)
             .ok_or_else(|| ConversionError::Generic("missing contracts".to_string()))?;
-        let nym_api_urls = details
-            .nym_api_urls
-            .into_iter()
-            .map(nym_vpn_lib_types::ApiUrl::from)
-            .collect();
-        let nym_vpn_api_urls = details
-            .nym_vpn_api_urls
-            .into_iter()
-            .map(nym_vpn_lib_types::ApiUrl::from)
-            .collect();
+
+        let networking = details
+            .networking
+            .clone()
+            .map(nym_vpn_lib_types::NymNetworkingSpecifics::from)
+            .ok_or_else(|| ConversionError::Generic("missing network specifics".to_string()))?;
 
         Ok(Self {
             network_name: details.network_name,
             chain_details,
             endpoints,
             contracts,
-            nym_vpn_api_url: details.nym_vpn_api_url,
-            nym_api_urls: Some(nym_api_urls),
-            nym_vpn_api_urls: Some(nym_vpn_api_urls),
+            networking,
         })
+    }
+}
+
+impl From<proto::NetworkingSpecifics> for nym_vpn_lib_types::NymNetworkingSpecifics {
+    fn from(value: proto::NetworkingSpecifics) -> Self {
+        let nym_api_urls = value.nym_api_urls.into_iter().map(Into::into).collect();
+        let nym_vpn_api_urls = value.nym_vpn_api_urls.into_iter().map(Into::into).collect();
+        let dns_fallbacks = value.dns_fallbacks.into_iter().map(Into::into).collect();
+        nym_vpn_lib_types::NymNetworkingSpecifics {
+            nym_api_urls,
+            nym_vpn_api_urls,
+            dns_fallbacks,
+        }
+    }
+}
+
+impl From<proto::DnsFallback> for nym_vpn_lib_types::DnsFallback {
+    fn from(value: proto::DnsFallback) -> Self {
+        Self {
+            url: value.url,
+            addresses: value.addresses,
+        }
     }
 }
 
@@ -201,20 +217,9 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
     fn from(nym_network: nym_vpn_lib_types::NymNetworkDetails) -> Self {
         let endpoints = nym_network
             .endpoints
-            .into_iter()
+            .iter()
+            .cloned()
             .map(proto::ValidatorDetails::from)
-            .collect();
-        let nym_api_urls = nym_network
-            .nym_api_urls
-            .unwrap_or_default()
-            .into_iter()
-            .map(proto::ApiUrl::from)
-            .collect();
-        let nym_vpn_api_urls = nym_network
-            .nym_vpn_api_urls
-            .unwrap_or_default()
-            .into_iter()
-            .map(proto::ApiUrl::from)
             .collect();
 
         proto::NymNetworkDetails {
@@ -222,9 +227,29 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
             chain_details: Some(nym_network.chain_details.into()),
             endpoints,
             contracts: Some(nym_network.contracts.into()),
-            nym_vpn_api_url: nym_network.nym_vpn_api_url,
+            networking: Some(nym_network.networking.into()),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::NymNetworkingSpecifics> for proto::NetworkingSpecifics {
+    fn from(value: nym_vpn_lib_types::NymNetworkingSpecifics) -> Self {
+        let nym_api_urls = value.nym_api_urls.into_iter().map(Into::into).collect();
+        let nym_vpn_api_urls = value.nym_vpn_api_urls.into_iter().map(Into::into).collect();
+        let dns_fallbacks = value.dns_fallbacks.into_iter().map(Into::into).collect();
+        proto::NetworkingSpecifics {
             nym_api_urls,
             nym_vpn_api_urls,
+            dns_fallbacks,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::DnsFallback> for proto::DnsFallback {
+    fn from(value: nym_vpn_lib_types::DnsFallback) -> Self {
+        Self {
+            url: value.url,
+            addresses: value.addresses,
         }
     }
 }
@@ -238,7 +263,25 @@ impl From<nym_vpn_lib_types::ApiUrl> for proto::ApiUrl {
     }
 }
 
+impl From<nym_network_defaults::ApiUrl> for proto::ApiUrl {
+    fn from(value: nym_network_defaults::ApiUrl) -> Self {
+        Self {
+            url: value.url,
+            front_hosts: value.front_hosts.unwrap_or_default(),
+        }
+    }
+}
+
 impl From<proto::ApiUrl> for nym_vpn_lib_types::ApiUrl {
+    fn from(value: proto::ApiUrl) -> Self {
+        Self {
+            url: value.url,
+            front_hosts: Some(value.front_hosts),
+        }
+    }
+}
+
+impl From<proto::ApiUrl> for nym_network_defaults::ApiUrl {
     fn from(value: proto::ApiUrl) -> Self {
         Self {
             url: value.url,

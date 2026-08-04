@@ -24,6 +24,7 @@ thiserror = { workspace = true, optional = true }
 time = { workspace = true, optional = true, features = ["parsing"] }
 nym-vpn-lib-types = { workspace = true, optional = true, features = ["serde"] }
 nym-ipc = { workspace = true, optional = true }
+nym-network-defaults = { workspace = true, optional = true }
 
 [build-dependencies]
 tonic-prost-build.workspace = true
@@ -32,6 +33,7 @@ tonic-prost-build.workspace = true
 default = []
 conversions = [
     "dep:nym-vpn-lib-types",
+    "dep:nym-network-defaults",
     "dep:thiserror",
     "dep:time",
     "dep:serde_json",
