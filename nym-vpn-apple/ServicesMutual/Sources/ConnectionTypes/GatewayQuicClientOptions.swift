@@ -17,7 +17,7 @@ public struct GatewayQuicClientOptions: Codable, Hashable {
 }
 
 public extension GatewayQuicClientOptions {
-    init(with options: QuicClientOptions) {
+    init(with options: QuicPlainClientOptions) {
         self.init(addresses: options.addresses, host: options.host, idPubkey: options.idPubkey)
     }
 }

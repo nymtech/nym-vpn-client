@@ -10,7 +10,7 @@ public enum GatewayBridgeParameters: Codable, Hashable {
 }
 
 public extension GatewayBridgeParameters {
-    init(with parameters: BridgeParameters) {
+    init(with parameters: ClientConfig) {
         switch parameters {
         case let .quicPlain(quicClientOptions):
             self = .quicPlain(GatewayQuicClientOptions(with: quicClientOptions))

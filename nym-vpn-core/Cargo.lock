@@ -5344,7 +5344,7 @@ dependencies = [
 [[package]]
 name = "nym-bridges"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#35768309dc71537031410b29ad938542addc0e3f"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#9e0aba059940050fd165db3190eb03e47aabd4c7"
 dependencies = [
  "anyhow",
  "base64 0.23.0",
@@ -5369,7 +5369,7 @@ dependencies = [
  "serde",
  "serde_json",
  "slab",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "thiserror 2.0.18",
  "tinyvec",
  "tokio",
@@ -5385,7 +5385,7 @@ dependencies = [
 [[package]]
 name = "nym-bridges-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#35768309dc71537031410b29ad938542addc0e3f"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#9e0aba059940050fd165db3190eb03e47aabd4c7"
 dependencies = [
  "serde",
  "ts-rs",
@@ -8115,7 +8115,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.36.1",
 ]
 
 [[package]]

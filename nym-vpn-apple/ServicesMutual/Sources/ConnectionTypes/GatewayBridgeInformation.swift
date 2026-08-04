@@ -15,7 +15,7 @@ public struct GatewayBridgeInformation: Codable, Hashable {
 }
 
 public extension GatewayBridgeInformation {
-    init?(with info: BridgeInformation?) {
+    init?(with info: PersistedClientConfig?) {
         guard let info else { return nil }
         self.init(version: info.version, transports: info.transports.map { GatewayBridgeParameters(with: $0) })
     }

@@ -17,7 +17,7 @@ public struct GatewayTlsClientOptions: Codable, Hashable {
 }
 
 public extension GatewayTlsClientOptions {
-    init(with options: TlsClientOptions) {
+    init(with options: TlsPlainClientOptions) {
         self.init(addresses: options.addresses, host: options.host, idPubkey: options.idPubkey)
     }
 }
