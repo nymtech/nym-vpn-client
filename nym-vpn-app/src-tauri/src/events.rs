@@ -7,13 +7,18 @@ use crate::error::{BackendError, ErrorKey};
 use crate::vpnd::account::AccountState;
 use crate::vpnd::config::VpndConfig;
 use crate::vpnd::tunnel::ConnectingState;
-use crate::vpnd::{client::VpndStatus, events::MixnetEvent, tunnel::TunnelState};
+use crate::vpnd::{
+    client::VpndStatus,
+    events::{DiagnosticsSuggestedReason, MixnetEvent},
+    tunnel::TunnelState,
+};
 
 pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_TUNNEL_STATE: &str = "tunnel-state";
 pub const EVENT_ACCOUNT_STATE: &str = "account-state";
 pub const EVENT_VPN_CONFIG: &str = "vpn-config";
 pub const EVENT_MIXNET: &str = "mixnet-event";
+pub const EVENT_DIAGNOSTICS_SUGGESTED: &str = "diagnostics-suggested";
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub const EVENT_UPDATE_PENDING: &str = "update-pending";
 
@@ -67,6 +72,7 @@ pub trait AppHandleEventEmitter {
     fn emit_disconnected(&self, error: Option<BackendError>);
     fn emit_mixnet_event(&self, event: MixnetEvent);
     fn emit_account_state_update(&self, state: &AccountState);
+    fn emit_diagnostics_suggested(&self, reason: DiagnosticsSuggestedReason);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
@@ -122,5 +128,13 @@ impl AppHandleEventEmitter for tauri::AppHandle {
             state.as_ref()
         );
         self.emit(EVENT_ACCOUNT_STATE, state).ok();
+    }
+
+    fn emit_diagnostics_suggested(&self, reason: DiagnosticsSuggestedReason) {
+        debug!(
+            "sending event [{}]: {:?}",
+            EVENT_DIAGNOSTICS_SUGGESTED, reason
+        );
+        self.emit(EVENT_DIAGNOSTICS_SUGGESTED, reason).ok();
     }
 }

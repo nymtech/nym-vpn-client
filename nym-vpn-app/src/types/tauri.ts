@@ -93,7 +93,15 @@ export type DbKey =
   | 'cache-device-id';
 
 export type DeeplinkKind =
-  'privy' | 'privyLink' | 'autologinRenew' | 'autologinView' | 'createAccount';
+  | 'privy'
+  | 'privyLink'
+  | 'autologinRenew'
+  | 'autologinView'
+  | 'createAccount';
+
+export type DiagnosticsSuggestedReason =
+  | { 'repeated-connection-retries': { attempts: number } }
+  | { 'ambiguous-error': TunnelError };
 
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
@@ -498,14 +506,20 @@ export type TTunnelState =
 export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
 
 export type TVpnSubscriptionKind =
-  'one-month' | 'one-year' | 'two-years' | 'freepass' | { other: string };
+  | 'one-month'
+  | 'one-year'
+  | 'two-years'
+  | 'freepass'
+  | { other: string };
 
 /**
  * Only the discriminant is needed by the UI to decide the connect flow, so the
  * `Selected` entry/exit payload is intentionally dropped.
  */
 export type TentativeGateways =
-  'selected' | 'needs-relaxed-independence-criteria' | 'no-gateways-available';
+  | 'selected'
+  | 'needs-relaxed-independence-criteria'
+  | 'no-gateways-available';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
