@@ -45,7 +45,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           # No caching: $HOME persists on this runner, so the cache restores files that were never lost (and clobbers read-only Go objects).
