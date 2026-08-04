@@ -256,14 +256,80 @@ jobs:
           # for prereleases, extract the changelog from the [unreleased] section
           prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
 
+      - name: Extract tauri changelog
+        id: tauri-changelog
+        if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
+        uses: ffurrer2/extract-release-notes@v3
+        with:
+          changelog_file: nym-vpn-app/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
+
       - name: Add release notes (General + Core changes)
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           VERSION: ${{ needs.resolve.outputs.version }}
           CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
+          ANDROID: ${{ needs.resolve.outputs.android }}
+          FDROID: ${{ needs.resolve.outputs.fdroid }}
+          IOS: ${{ needs.resolve.outputs.ios }}
+          MACOS: ${{ needs.resolve.outputs.macos }}
+          WINDOWS: ${{ needs.resolve.outputs.windows }}
+          LINUX: ${{ needs.resolve.outputs.linux }}
         run: |
-          cat << 'EOF' > "$RELEASE_NOTES"
-          Nym VPN v${{ env.VERSION }} application and core binaries.
+          include_platforms=()
+          exclude_platforms=()
+
+          # Define platforms mapping (Variable name : Display Name)
+          declare -A platforms=(
+            [ANDROID]="Android (Google Play)"
+            [FDROID]="F-Droid"
+            [IOS]="iOS"
+            [MACOS]="macOS"
+            [WINDOWS]="Windows"
+            [LINUX]="Linux"
+          )
+
+          # Process platforms dynamically
+          for var in "${!platforms[@]}"; do
+            if [[ "${!var}" == "true" ]]; then
+              include_platforms+=("${platforms[$var]}")
+            else
+              exclude_platforms+=("${platforms[$var]}")
+            fi
+          done
+
+          # Determine if core binaries are included
+          if [[ "$MACOS" == "true" || "$WINDOWS" == "true" || "$LINUX" == "true" ]]; then
+            REL_INCLUDES="application and core binaries"
+          else
+            REL_INCLUDES="application binaries"
+          fi
+
+          # Compare counts and build the release note string
+          if [[ ${#include_platforms[@]} -gt ${#exclude_platforms[@]} ]]; then
+            # More included than excluded
+            if [[ ${#exclude_platforms[@]} -eq 0 ]]; then
+              REL_FOR=""
+            else
+              IFS=', ' list_excluded="${exclude_platforms[*]}"
+              REL_FOR=" This release is for all platforms, except ${list_excluded}"
+            fi
+          else
+            # More excluded than included
+            if [[ ${#include_platforms[@]} -eq 0 ]]; then
+              REL_FOR=""
+            else
+              IFS=', ' list_included="${include_platforms[*]}"
+              REL_FOR=" This release is for ${list_included} only"
+            fi
+          fi
+
+          export REL_INCLUDES="$REL_INCLUDES"
+          export REL_FOR="$REL_FOR"
+
+          envsubst '$VERSION $REL_INCLUDES $REL_FOR' << 'EOF' > "$RELEASE_NOTES"
+          Nym VPN v$VERSION $REL_INCLUDES.$REL_FOR
 
           EOF
 
@@ -273,7 +339,7 @@ jobs:
 
             envsubst '$UPDATED_CORE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
           ## 🚀 What's New
-          ### 🛠️ Core Changes
+          ### 🛠️ Core
 
           $UPDATED_CORE_CHANGES
 
@@ -292,14 +358,34 @@ jobs:
             export UPDATED_ANDROID_CHANGES=$(sed 's/^### /#### /' <<< "$ANDROID_CHANGES")
 
             envsubst '$UPDATED_ANDROID_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
-          ### 🤖 Android Changes
+          ### 🤖 Android app
 
           $UPDATED_ANDROID_CHANGES
 
           EOF
           fi
 
+      - name: Add release notes (Tauri changes)
+        if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          TAURI_CHANGES: ${{ steps.tauri-changelog.outputs.release_notes || '' }}
+        run: |
+          if [ -n "$TAURI_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_TAURI_CHANGES=$(sed 's/^### /#### /' <<< "$TAURI_CHANGES")
+
+            envsubst '$UPDATED_TAURI_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ### 🐧🪟 Windows & Linux apps
+
+          $UPDATED_TAURI_CHANGES
+
+          EOF
+          fi
+
       - name: Add release notes (Core overview)
+        if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.linux == 'true' }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
         run: |
@@ -312,6 +398,11 @@ jobs:
           - `nym-diagnostic`: System information and network troubleshooting tool.
           - `nym-setup`: macOS helper tool for system service configuration.
 
+          EOF
+
+      - name: Add release notes (Downloads & Assets)
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
           ## 💾 Downloads & Assets
 
           EOF
