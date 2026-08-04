@@ -161,7 +161,7 @@ jobs:
             --timestamp \
             --options runtime \
             --force \
-            -i "net.nymtech.vpn.cli"
+            -i "net.nymtech.vpn.cli" \
             "$BINARY"
 
           echo "Verifying codesign..."
