@@ -3,8 +3,8 @@
   "tab-exit": "Exit",
   "loading": "Loading…",
   "quick-pick": {
+    "safest": "Safest",
     "random": "Random",
-    "best-server": "Best server",
     "select-error": "Failed to update server selection"
   },
   "search-country": "Search location",

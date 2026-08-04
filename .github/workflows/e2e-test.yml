@@ -200,7 +200,7 @@ jobs:
 
       - name: Install Go
         if: needs.resolve.outputs.binary_source == 'zigbuild'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION}}
           cache-dependency-path: wireguard/libwg/go.sum
@@ -293,7 +293,7 @@ jobs:
           cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner /tmp/dist/
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: test-binaries
           path: /tmp/dist/
@@ -486,7 +486,7 @@ jobs:
       - name: Upload daemon logs
         if: always()
         id: upload-logs
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: daemon-logs
           path: /tmp/daemon-logs/
@@ -506,7 +506,7 @@ jobs:
       - name: Upload test report
         if: always()
         id: upload-report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: test-report
           path: |

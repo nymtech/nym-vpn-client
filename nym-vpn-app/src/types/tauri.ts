@@ -95,6 +95,10 @@ export type DbKey =
 export type DeeplinkKind =
   'privy' | 'privyLink' | 'autologinRenew' | 'autologinView' | 'createAccount';
 
+export type DiagnosticsSuggestedReason =
+  | { 'repeated-connection-retries': { attempts: number } }
+  | { 'ambiguous-error': TunnelError };
+
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
 export type DownloadUpdateEvent =

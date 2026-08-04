@@ -552,7 +552,7 @@ jobs:
           fi
 
       - name: Upload release assets list
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.RELEASE_ASSETS_ARTIFACT }}
           path: ${{ env.RELEASE_ASSETS }}
@@ -612,7 +612,7 @@ jobs:
           gh release view "$TAG" --json assets --repo "$GITHUB_REPOSITORY" > "${{ env.RELEASE_PAYLOAD }}"
 
       - name: Upload release payload
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
           path: ${{ env.RELEASE_PAYLOAD }}

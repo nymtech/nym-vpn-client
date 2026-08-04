@@ -1,12 +1,11 @@
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonVariant, type countryCode } from '../../ui';
+import { Button, ButtonVariant } from '../../ui';
 import { dispatch, useMainState } from '../../store';
 import { useConnect, useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
-import { Score } from '../../types';
 import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
 import { NodeRow } from './NodeRow';
@@ -15,18 +14,6 @@ export type FoldState = 0 | 1 | 2;
 
 const DURATION = 0.3;
 const easeOutQuart = [0.22, 1, 0.36, 1] as const;
-
-export type SelectedNodeDisplayProps = {
-  countryCode?: countryCode;
-  name: string;
-  location?: string;
-  ip?: string;
-  showQuic?: boolean;
-  disabled?: boolean;
-  showStreamOptimized?: boolean;
-  showFastest?: boolean;
-  score?: Score;
-};
 
 export function NewBottomComponent() {
   const navigate = useAnimatedNavigate();

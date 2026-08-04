@@ -116,7 +116,7 @@ jobs:
             --config crowdin-configs/linux-windows.yml
 
       - name: Upload translations artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: translations
           path: nym-vpn-app/src/i18n

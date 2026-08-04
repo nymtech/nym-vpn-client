@@ -11,7 +11,7 @@ pub use super::{
 };
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
-    events::MixnetEvent,
+    events::{DiagnosticsSuggestedReason, MixnetEvent},
     gateway::{Gateway, GatewayType},
     tentative_gateways::TentativeGateways,
     tunnel::{FrontingMode, SplitApp, TunnelState},
@@ -302,6 +302,10 @@ impl VpndClient {
             lib::TunnelEvent::ConfigChanged(e) => {
                 debug!("config event {e}");
                 VpndClient::handle_config_update(app, *e).await.ok();
+            }
+            lib::TunnelEvent::DiagnosticsSuggested(reason) => {
+                debug!("diagnostics suggested: {reason}");
+                app.emit_diagnostics_suggested(DiagnosticsSuggestedReason::from_lib(reason));
             }
         }
         Ok(())

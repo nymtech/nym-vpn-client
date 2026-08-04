@@ -87,14 +87,14 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-react": "^7.34.4",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "globals": "^17.7.0",
+    "globals": "^17.8.0",
     "npm-run-all2": "^9.0.2",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.2.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.64.0",
-    "vite": "^8.1.5",
+    "vite": "^8.2.0",
     "vite-plugin-svgr": "^5.2.0"
   }
 }

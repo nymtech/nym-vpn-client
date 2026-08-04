@@ -37,7 +37,7 @@ jobs:
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
@@ -64,7 +64,7 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh --android
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: wireguard-go_linux-android
           path: build/lib
