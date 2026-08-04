@@ -8,8 +8,8 @@ import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
 import nym_vpn_lib_types.NodeIdentity
 import nym_vpn_lib_types.Score
-import nym_vpn_lib_types.BridgeInformation as SdkBridgeInformation
-import nym_vpn_lib_types.BridgeParameters as SdkBridgeParameter
+import nym_bridges_types.PersistedClientConfig as SdkBridgeInformation
+import nym_bridges_types.ClientConfig as SdkBridgeParameter
 
 /**
  * Gateway domain model mapped from SDK types.
@@ -75,6 +75,7 @@ data class NymGateway(
 
 		private fun SdkBridgeParameter.toBridgeParameter() = when (this) {
 			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
+			is SdkBridgeParameter.TlsPlain -> BridgeParameter.TlsPlain()
 		}
 	}
 
@@ -88,4 +89,7 @@ data class BridgeInformation(val transports: List<BridgeParameter>)
 sealed class BridgeParameter {
 	@Serializable
 	class QuicPlain : BridgeParameter()
+
+	@Serializable
+	class TlsPlain : BridgeParameter()
 }
