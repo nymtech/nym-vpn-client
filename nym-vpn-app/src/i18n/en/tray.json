@@ -17,7 +17,7 @@
   "entry": "Entry",
   "exit": "Exit",
   "random": "Random",
-  "best-server-location": "Best server for my location",
+  "safest": "Safest",
   "show-hide": "Show/Hide",
   "quit": "Quit (disconnect)"
 }
