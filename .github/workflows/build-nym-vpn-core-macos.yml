@@ -105,7 +105,7 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          make -C nym-vpn-core -f macOS.mk nym-setup nym-vpnc nym-vpnd nym-socks5-proxy \
+          make -C nym-vpn-core -f macOS.mk nym-setup nym-vpnc nym-vpnd nym-socks5-proxy nym-diagnostic \
             RELEASE="true" \
             ARCH="${{ matrix.cpu_arch }}" \
             UPLOAD_DIR_MAC="${{ github.workspace }}/${{ env.UPLOAD_DIR_MACOS }}"

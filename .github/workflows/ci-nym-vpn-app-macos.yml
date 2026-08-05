@@ -63,6 +63,7 @@ jobs:
           touch nym-vpn-apple/NymVPND/nym-setup
           touch nym-vpn-apple/NymVPND/nym-vpnd
           touch nym-vpn-apple/NymVPND/nym-socks5-proxy
+          touch nym-vpn-apple/NymVPND/nym-diagnostic
 
       - name: Add stubs for unused packages
         working-directory: nym-vpn-apple
