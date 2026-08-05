@@ -38,4 +38,8 @@ pub struct TunnelSettings {
 
     /// Tunnel device MTU.
     pub mtu: u16,
+
+    /// When true on Android, exclude the VPN app from the tunnel so control-plane traffic can
+    /// use the physical interface (used by the blocking placeholder during reconnect/error).
+    pub exclude_vpn_app: bool,
 }
