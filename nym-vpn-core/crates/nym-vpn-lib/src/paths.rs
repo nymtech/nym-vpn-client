@@ -84,7 +84,11 @@ impl Default for Paths {
 
 impl Paths {
     pub async fn create_directories(&self) -> Result<(), PathsSetupError> {
-        for dir in [&self.data_dir, &self.config_dir, &self.log_dir] {
+        for (dir, allow_read) in [
+            (&self.data_dir, false),
+            (&self.config_dir, false),
+            (&self.log_dir, true),
+        ] {
             tracing::debug!("Making sure directory exists at {}", dir.display());
 
             fs::create_dir_all(dir)
@@ -94,12 +98,12 @@ impl Paths {
                     error,
                 })?;
 
-            set_permissions(dir)
-                .await
-                .map_err(|error| PathsSetupError::SetPermissions {
+            set_permissions(dir, allow_read).await.map_err(|error| {
+                PathsSetupError::SetPermissions {
                     dir: dir.to_path_buf(),
                     error,
-                })?;
+                }
+            })?;
         }
 
         Ok(())
@@ -127,7 +131,7 @@ impl NymConfigPaths {
                 error,
             })?;
 
-        set_permissions(dir)
+        set_permissions(dir, false)
             .await
             .map_err(|error| PathsSetupError::SetPermissions {
                 dir: dir.to_path_buf(),
@@ -138,17 +142,22 @@ impl NymConfigPaths {
     }
 }
 
+/// Set restrictive permissions on `path`, unless `allow_read` is set, in which case
+/// other users are additionally granted read (but not write) access.
 #[cfg(unix)]
-async fn set_permissions(path: &Path) -> std::io::Result<()> {
+async fn set_permissions(path: &Path, allow_read: bool) -> std::io::Result<()> {
     use std::os::unix::fs::PermissionsExt;
 
-    // Set directory permissions to 700 (rwx------)
-    let permissions = std::fs::Permissions::from_mode(0o700);
+    // 700 (rwx------) normally, or 755 (rwxr-xr-x) when read access is allowed.
+    let mode = if allow_read { 0o755 } else { 0o700 };
+    let permissions = std::fs::Permissions::from_mode(mode);
     fs::set_permissions(path, permissions).await
 }
 
+/// Set restrictive permissions on `path`, unless `allow_read` is set, in which case
+/// the built-in Users group is additionally granted read & execute access.
 #[cfg(windows)]
-async fn set_permissions(path: &Path) -> nym_windows::security::Result<()> {
+async fn set_permissions(path: &Path, allow_read: bool) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
         AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
         SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
@@ -163,7 +172,22 @@ async fn set_permissions(path: &Path) -> nym_windows::security::Result<()> {
         AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
     );
 
-    let acl = Acl::new(vec![allow_admin_group_access])?;
+    let mut entries = vec![allow_admin_group_access];
+
+    if allow_read {
+        let users_sid = Sid::well_known(WellKnownSid::BuiltinUsers)?;
+
+        let allow_users_read_access = ExplicitAccess::new(
+            Trustee::new(users_sid, TrusteeType::WellKnownGroup),
+            AccessMode::SetAccess,
+            (FileAccessRights::FILE_GENERIC_READ | FileAccessRights::FILE_GENERIC_EXECUTE).into(),
+            AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
+        );
+
+        entries.push(allow_users_read_access);
+    }
+
+    let acl = Acl::new(entries)?;
 
     set_named_security_info(
         path,
