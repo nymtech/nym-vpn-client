@@ -24,7 +24,7 @@ data class AppUiState(
 
 	private val effectiveEntryPoint: EntryPoint
 		get() {
-			if (vpnConfig.entryPoint is EntryPoint.Random) {
+			if (vpnConfig.entryPoint is EntryPoint.Random || vpnConfig.entryPoint is EntryPoint.Auto) {
 				if (managerState.tunnelState != Tunnel.State.Down) {
 					managerState.connectionData?.entryGateway?.id?.let { id ->
 						return EntryPoint.Gateway(identity = id)
@@ -36,7 +36,7 @@ data class AppUiState(
 
 	private val effectiveExitPoint: ExitPoint
 		get() {
-			if (vpnConfig.exitPoint is ExitPoint.Random) {
+			if (vpnConfig.exitPoint is ExitPoint.Random || vpnConfig.exitPoint is ExitPoint.Auto) {
 				if (managerState.tunnelState != Tunnel.State.Down) {
 					managerState.connectionData?.exitGateway?.id?.let { id ->
 						return ExitPoint.Gateway(identity = id)
@@ -95,6 +95,7 @@ data class AppUiState(
 		}
 		is EntryPoint.Country -> entry.toDisplayCountry()
 		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region
+		is EntryPoint.Auto -> "Safest"
 		else -> "Random"
 	}
 
@@ -105,6 +106,7 @@ data class AppUiState(
 		}
 		is ExitPoint.Country -> exit.toDisplayCountry()
 		is ExitPoint.Region -> exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region
+		is ExitPoint.Auto -> "Safest"
 		else -> "Random"
 	}
 
@@ -140,10 +142,6 @@ data class AppUiState(
 		is EntryPoint.Region -> entry.region
 		else -> null
 	}
-
-	val isExitPointRandom = effectiveExitPoint == ExitPoint.Random
-
-	val isEntryPointRandom = effectiveEntryPoint == EntryPoint.Random
 
 	private fun entryGateways(): List<NymGateway> = when (vpnConfig.mode) {
 		Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways

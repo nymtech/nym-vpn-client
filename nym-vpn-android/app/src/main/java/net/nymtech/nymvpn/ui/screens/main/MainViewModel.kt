@@ -111,12 +111,6 @@ constructor(
 		}
 	}
 
-	fun onAutoSelected() {
-		// Auto mode is not yet wired up to the new per-hop EntryPoint/ExitPoint auto
-		// selection in core; the tab that triggers this remains hidden until it is.
-		Timber.tag(TAG).w("ConnectModeChangeRequested mode=AUTO, but Auto mode is not currently supported")
-	}
-
 	fun onTwoHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectModeChangeRequested mode=FAST")
 		runCatching {

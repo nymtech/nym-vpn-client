@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.ui.common.buttons.surface
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,23 +63,18 @@ fun SurfaceSelectionGroupButton(
 					) {
 						it.onClick()
 					}
-					.fillMaxWidth().padding(vertical = 6.dp),
+					.fillMaxWidth()
+					.padding(horizontal = 8.dp, vertical = 6.dp)
+					.border(
+						width = 1.dp,
+						color = if (it.selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+						shape = RoundedCornerShape(12.dp),
+					),
 			) {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
 					modifier = Modifier.fillMaxWidth(),
 				) {
-					if (it.selected) {
-						Box(
-							modifier = Modifier
-								.offset(x = 0.dp, y = 0.dp)
-								.width(4.dp)
-								.background(
-									color = MaterialTheme.colorScheme.primary,
-									shape = RoundedCornerShape(topStart = 0.dp, topEnd = 4.dp, bottomStart = 0.dp, bottomEnd = 4.dp),
-								),
-						)
-					}
 					Row(
 						verticalAlignment = Alignment.CenterVertically,
 						modifier = Modifier

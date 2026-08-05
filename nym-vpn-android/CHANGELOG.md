@@ -11,17 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recents support (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Favorites support (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Onboarding screen (https://github.com/nymtech/nym-vpn-client/pull/5968)
+- Add Safest option for Servers list (https://github.com/nymtech/nym-vpn-client/pull/5996)
+- Add new Icons for Random and Auto modes (https://github.com/nymtech/nym-vpn-client/pull/5996)
 
 ### Changed
 - Changed UI for Server Details screen (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Changed UI for Server List screen (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Changed Mixnet tuning appearance in Settings (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Update UI and sections for Mixnet Tuning screen (https://github.com/nymtech/nym-vpn-client/pull/5958)
+- Update Selected item UI (https://github.com/nymtech/nym-vpn-client/pull/5996)
 
 ### Fixed
 - Fix auto-connect getting stuck after boot (https://github.com/nymtech/nym-vpn-client/pull/5924)
 - Fix Search across favorites (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Fix for Geo Exclusion UI (https://github.com/nymtech/nym-vpn-client/pull/5958)
+- Fix Region selection for Entry Server (https://github.com/nymtech/nym-vpn-client/pull/5996)
 
 ## [v2026.11.3]
 

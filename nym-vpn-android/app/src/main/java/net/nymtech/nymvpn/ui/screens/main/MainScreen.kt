@@ -55,6 +55,7 @@ import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanel
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanelState
+import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.screens.main.panel.PanelState
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
 import net.nymtech.nymvpn.ui.screens.permission.Permission
@@ -68,6 +69,8 @@ import net.nymtech.nymvpn.util.extensions.toConnectMode
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.Score
 
 @Composable
@@ -269,7 +272,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 		onModeChange = { mode ->
 			when (mode) {
-				ConnectMode.AUTO -> viewModel.onAutoSelected()
 				ConnectMode.FAST -> viewModel.onTwoHopSelected()
 				ConnectMode.MIXNET -> viewModel.onFiveHopSelected()
 			}
@@ -380,15 +382,24 @@ private fun MainScreenContent(
 			countryCode = appUiState.exitPointCountry,
 			location = appUiState.exitPointLocation,
 			score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
+			selectionType = when (appUiState.vpnConfig.exitPoint) {
+				is ExitPoint.Random -> NodeSelectionType.RANDOM
+				is ExitPoint.Auto -> NodeSelectionType.AUTO
+				else -> NodeSelectionType.NODE
+			},
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
 			name = appUiState.entryPointName,
 			countryCode = appUiState.entryPointCountry,
 			location = appUiState.entryPointLocation,
+			selectionType = when (appUiState.vpnConfig.entryPoint) {
+				is EntryPoint.Random -> NodeSelectionType.RANDOM
+				is EntryPoint.Auto -> NodeSelectionType.AUTO
+				else -> NodeSelectionType.NODE
+			},
 			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
 		),
-		exitIsAutoBest = connectMode == ConnectMode.AUTO && appUiState.isExitPointRandom,
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
 	)

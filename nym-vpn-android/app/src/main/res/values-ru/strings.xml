@@ -178,9 +178,7 @@
 	<string name="connection_state_connecting_mixnet_client">Анонимная регистрация на серверах (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Установка соединения с сервером (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Использовать лучший сервер</string>
 	<string name="one_click_mode_fast">Быстрый</string>
-	<string name="connect_mode_auto">Авто</string>
 	<string name="connect_mode_mixnet">Микснет</string>
 	<string name="one_click_nym_exit_node">Сервер выхода</string>
 	<string name="one_click_nym_entry_node">Сервер входа</string>
@@ -189,7 +187,6 @@
 	<string name="connection_status_fast_mode">Защита в быстром режиме</string>
 	<string name="connection_status_anonymous">Защита микснета</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Лучший сервер</string>
 	<string name="gateway_random">Случайный сервер</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Добро пожаловать!</string>
