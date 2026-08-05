@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod blacklisted_gateways;
+mod builtin;
 mod entries;
 mod error;
 pub mod gateway_cache;

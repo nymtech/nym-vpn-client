@@ -4,6 +4,8 @@
 use nym_http_api_client::HttpClientError;
 use nym_validator_client::nym_api::error::NymAPIError;
 
+use crate::entries::gateway::GatewayType;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("identity not formatted correctly: {identity}")]
@@ -102,6 +104,12 @@ pub enum Error {
 
     #[error("invalid configuration: {0}")]
     InvalidConfiguration(String),
+
+    #[error("failed to load builtin gateway list for {gw_type}: {reason}")]
+    BuiltinGatewayList {
+        gw_type: GatewayType,
+        reason: String,
+    },
 }
 
 impl Error {
