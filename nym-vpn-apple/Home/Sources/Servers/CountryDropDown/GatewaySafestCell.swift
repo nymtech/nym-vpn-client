@@ -4,7 +4,7 @@ import ImpactGenerator
 import Theme
 import UIComponents
 
-public struct GatewayRandomCell: View {
+public struct GatewaySafestCell: View {
     private let hopType: HopType
     private let cornerRadius: CGFloat = 16
 
@@ -17,9 +17,9 @@ public struct GatewayRandomCell: View {
     private var isSelected: Bool {
         switch hopType {
         case .entry:
-            if case .random = entryGateway { return true }
+            if case .auto = entryGateway { return true }
         case .exit:
-            if case .random = exitRouter { return true }
+            if case .auto = exitRouter { return true }
         }
         return false
     }
@@ -40,11 +40,11 @@ public struct GatewayRandomCell: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            GenericImage(imageName: "random")
+            GenericImage(imageName: "safest")
                 .foregroundStyle(Color.Nym.textPrimary)
                 .frame(width: 24, height: 24)
                 .padding(.leading, NymSpacing.large)
-            Text("gatewaysView.random".localizedString)
+            Text("gatewaysView.safest".localizedString)
                 .foregroundStyle(Color.Nym.textPrimary)
                 .nymTextStyle(.bodyLarge)
                 .padding(.leading, NymSpacing.medium)
@@ -69,7 +69,7 @@ public struct GatewayRandomCell: View {
         .padding(.bottom, NymSpacing.small)
         .animation(.default, value: isSelected)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("gatewaysView.random".localizedString)
+        .accessibilityLabel("gatewaysView.safest".localizedString)
         .accessibilityValue(isSelected ? "selected".localizedString : "")
         .accessibilityAddTraits([.isButton])
         .onHover { newValue in
@@ -84,7 +84,7 @@ public struct GatewayRandomCell: View {
     }
 }
 
-private extension GatewayRandomCell {
+private extension GatewaySafestCell {
     func tapAction() {
         ImpactGenerator.shared.softImpact()
         if let onTapOverride {
@@ -92,9 +92,9 @@ private extension GatewayRandomCell {
         } else {
             switch hopType {
             case .entry:
-                entryGateway = .random
+                entryGateway = .auto
             case .exit:
-                exitRouter = .random
+                exitRouter = .auto
             }
         }
         path = .init()

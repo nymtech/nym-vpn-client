@@ -11,8 +11,8 @@ public extension ConnectionManager {
 
     func resetGatewaySelectionsForEnvironmentChange() {
         connectionStorage.resetGatewaySelectionsForEnvironmentChange()
-        entryGateway = .random
-        exitRouter = .random
+        entryGateway = .auto
+        exitRouter = .auto
         connectionConfig = connectionStorage.connectionConfig
     }
 }

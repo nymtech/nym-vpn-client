@@ -14066,6 +14066,17 @@
         }
       }
     },
+    "gatewaysView.safest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Safest"
+          }
+        }
+      }
+    },
     "general.beta" : {
       "extractionState" : "manual",
       "localizations" : {
