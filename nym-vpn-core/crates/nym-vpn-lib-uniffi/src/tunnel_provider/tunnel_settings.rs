@@ -234,6 +234,9 @@ pub struct TunnelNetworkSettings {
 
     /// Tunnel device MTU.
     pub mtu: u16,
+
+    /// When true on Android, exclude the VPN app from the tunnel (blocking placeholder).
+    pub exclude_vpn_app: bool,
 }
 
 #[cfg(target_os = "android")]
@@ -354,6 +357,7 @@ impl From<nym_vpn_lib::tunnel_provider::TunnelSettings> for TunnelNetworkSetting
                 match_domains: Some(vec!["".to_owned()]),
             }),
             mtu: settings.mtu,
+            exclude_vpn_app: settings.exclude_vpn_app,
         }
     }
 }

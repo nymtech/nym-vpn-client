@@ -27,6 +27,7 @@ pub fn blocking_tunnel_settings(dns_server: IpAddr) -> TunnelSettings {
         interface_addresses: BLOCKING_INTERFACE_ADDRS.map(IpNetwork::from).to_vec(),
         dns_servers: vec![dns_server],
         mtu: BLOCKING_TUN_MTU,
+        exclude_vpn_app: true,
     }
 }
 
@@ -60,6 +61,7 @@ mod tests {
         assert_eq!(settings.mtu, BLOCKING_TUN_MTU);
         assert_eq!(settings.dns_servers, vec![dns]);
         assert!(settings.remote_addresses.is_empty());
+        assert!(settings.exclude_vpn_app);
         assert_eq!(
             settings.interface_addresses,
             BLOCKING_INTERFACE_ADDRS.map(IpNetwork::from).to_vec()
