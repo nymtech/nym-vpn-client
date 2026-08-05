@@ -56,6 +56,10 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Real tunnel replaced the blocking placeholder via configure_tunnel; drop the stale FD.
+        #[cfg(target_os = "android")]
+        shared_state.clear_android_blocking_tun();
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
