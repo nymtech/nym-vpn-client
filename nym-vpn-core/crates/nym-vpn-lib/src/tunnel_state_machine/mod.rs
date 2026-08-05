@@ -861,6 +861,27 @@ impl SharedState {
         self.android_tun_hold = None;
     }
 
+    /// Install blocking cover, then release the previous TUN. On install failure, keep the previous
+    /// TUN in `android_tun_hold` so reconnect/error cannot open an ISP window.
+    #[cfg(target_os = "android")]
+    fn prepare_blocking_cover_before_release(
+        &mut self,
+        mut tombstone: Option<tunnel::Tombstone>,
+    ) -> std::io::Result<()> {
+        use crate::tunnel_state_machine::blocking_tun::with_blocking_before_tun_release;
+
+        let result = with_blocking_before_tun_release(
+            || self.install_android_blocking_tun(),
+            || {
+                drop(tombstone.take());
+            },
+        );
+        if result.is_err() {
+            self.android_tun_hold = tombstone;
+        }
+        result
+    }
+
     #[cfg(target_os = "linux")]
     pub fn disable_nm_connectivity_check(&mut self) {
         if self.nm_connectivity_check_enabled.is_none()

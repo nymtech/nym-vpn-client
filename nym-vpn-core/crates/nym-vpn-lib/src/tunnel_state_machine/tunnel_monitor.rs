@@ -1086,6 +1086,7 @@ impl TunnelMonitor {
                 interface_addresses,
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
                 mtu,
+                exclude_vpn_app: false,
             };
 
             self.create_tun_device(packet_tunnel_settings).await?
@@ -1786,6 +1787,7 @@ impl TunnelMonitor {
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
             mtu,
+            exclude_vpn_app: false,
         };
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
