@@ -2,20 +2,6 @@
 """Fetch gateway lists from the nym-vpn-api directory endpoints and save a single
 deduplicated, gzip-compressed snapshot. Run this script to refresh the builtin
 gateway list embedded in the binary.
-
-The entry/exit/wg endpoints overlap heavily (in practice the wg endpoint is a
-strict superset of entry, which is a strict superset of exit), so rather than
-storing 3 near-duplicate lists we fetch all 3, then write out one deduplicated
-list where each gateway carries the set of types it appeared under, e.g.:
-
-    [{"types": ["entry", "exit", "wg"], "gateway": {...}}, ...]
-
-Unlike the sibling builtin/ scripts in nym-socks5-proxy and nym-vpn-lib's
-adblocker, this file is not kept fresh at runtime via nym-file-updater: nym-api
-is queried live on every real gateway cache refresh anyway, so this snapshot is
-only ever used as a one-time seed when the cache is empty and the device is
-offline (e.g. on first install). There is therefore no ETag sidecar
-bookkeeping here, just a plain fetch.
 """
 
 from __future__ import annotations
@@ -78,13 +64,15 @@ def main() -> int:
 
     combined = [
         {
-            "types": [tag for tag, ids in ids_by_type.items() if identity in ids],
+            "types": sorted(tag for tag, ids in ids_by_type.items() if identity in ids),
             "gateway": gateway,
         }
-        for identity, gateway in gateways_by_id.items()
+        for identity, gateway in sorted(gateways_by_id.items())
     ]
 
-    raw = json.dumps(combined).encode("utf-8")
+    # Deterministic bytes regardless of API response ordering, so the committed snapshot only
+    # changes when the underlying gateway data actually changes.
+    raw = json.dumps(combined, sort_keys=True, separators=(",", ":")).encode("utf-8")
     tmp = OUTPUT_FILE.with_suffix(OUTPUT_FILE.suffix + ".tmp")
     with gzip.GzipFile(filename=tmp, mode="wb", mtime=0) as out:
         out.write(raw)
