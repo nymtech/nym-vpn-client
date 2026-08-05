@@ -5990,6 +5990,7 @@ name = "nym-gateway-directory"
 version = "2026.13.0-beta.1"
 dependencies = [
  "anyhow",
+ "async-compression",
  "ipnetwork",
  "itertools 0.14.0",
  "nym-client-core",
@@ -6002,6 +6003,7 @@ dependencies = [
  "nym-vpn-api-client",
  "rand 0.8.6",
  "serde",
+ "serde_json",
  "strum",
  "thiserror 2.0.18",
  "tokio",

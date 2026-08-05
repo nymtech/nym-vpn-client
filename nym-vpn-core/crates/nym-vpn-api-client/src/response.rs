@@ -449,10 +449,10 @@ pub struct Authenticator {
     pub address: String,
 }
 
-pub use nym_bridges_types::ClientConfig as BridgeParameters;
-pub use nym_bridges_types::PersistedClientConfig as BridgeInformation;
-pub use nym_bridges_types::quic::ClientOptions as QuicClientOptions;
-pub use nym_bridges_types::tls::ClientOptions as TlsClientOptions;
+pub use nym_bridges_types::{
+    ClientConfig as BridgeParameters, PersistedClientConfig as BridgeInformation,
+    quic::ClientOptions as QuicClientOptions, tls::ClientOptions as TlsClientOptions,
+};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Role {
