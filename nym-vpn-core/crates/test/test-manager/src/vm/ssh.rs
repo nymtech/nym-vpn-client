@@ -8,10 +8,14 @@ use ssh2::Session;
 use std::{
     io::Read,
     net::{IpAddr, SocketAddr, TcpStream},
+    time::Duration,
 };
 
 /// Default `ssh` port.
 const PORT: u16 = 22;
+
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+const SESSION_OPERATION_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Handle to an `ssh` session.
 pub struct SSHSession {
@@ -26,8 +30,10 @@ impl SSHSession {
     pub fn connect(username: String, password: String, ip: IpAddr) -> Result<Self> {
         // Set up the SSH connection
         log::info!("initializing a new SSH session ..");
-        let stream = TcpStream::connect(SocketAddr::new(ip, PORT)).context("TCP connect failed")?;
+        let stream = TcpStream::connect_timeout(&SocketAddr::new(ip, PORT), CONNECT_TIMEOUT)
+            .context("TCP connect failed")?;
         let mut session = Session::new().context("Failed to connect to SSH server")?;
+        session.set_timeout(SESSION_OPERATION_TIMEOUT.as_millis() as u32);
         session.set_tcp_stream(stream);
         session.handshake()?;
         session
@@ -46,6 +52,14 @@ impl SSHSession {
         channel.send_eof()?;
         channel.wait_eof()?;
         channel.wait_close()?;
+        let exit_status = channel
+            .exit_status()
+            .context("Failed to read SSH exit status")?;
+        if exit_status != 0 {
+            anyhow::bail!(
+                "SSH command failed with exit status {exit_status}: {command}; stdout={output}"
+            );
+        }
         Ok(output)
     }
 }
