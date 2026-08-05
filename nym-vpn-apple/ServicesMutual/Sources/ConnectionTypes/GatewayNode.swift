@@ -17,6 +17,8 @@ public struct GatewayNode: Codable, Hashable {
             switch $0 {
             case .quicPlain:
                 true
+            case .tlsPlain:
+                false
             }
         }
     }

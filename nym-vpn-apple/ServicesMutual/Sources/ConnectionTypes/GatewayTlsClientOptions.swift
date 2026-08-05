@@ -4,7 +4,7 @@ import NymVPNLib
 import NymVPNRpc
 #endif
 
-public struct GatewayQuicClientOptions: Codable, Hashable {
+public struct GatewayTlsClientOptions: Codable, Hashable {
     public var addresses: [String]
     public var host: String?
     public var idPubkey: String
@@ -16,8 +16,8 @@ public struct GatewayQuicClientOptions: Codable, Hashable {
     }
 }
 
-public extension GatewayQuicClientOptions {
-    init(with options: QuicPlainClientOptions) {
+public extension GatewayTlsClientOptions {
+    init(with options: TlsPlainClientOptions) {
         self.init(addresses: options.addresses, host: options.host, idPubkey: options.idPubkey)
     }
 }

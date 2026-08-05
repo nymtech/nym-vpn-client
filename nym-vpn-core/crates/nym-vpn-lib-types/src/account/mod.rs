@@ -677,9 +677,9 @@ impl From<nym_vpn_api_client::response::NymVpnAccountStatusResponse> for VpnAcco
     ts(export),
     ts(export_to = "bindings.ts")
 )]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
-    feature = "serde",
-    derive(Serialize, Deserialize),
+    all(feature = "serde", not(feature = "typescript-bindings")),
     serde(rename_all = "snake_case")
 )]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]

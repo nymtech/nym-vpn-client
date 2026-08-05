@@ -26,5 +26,6 @@ nym-vpn-lib-types = { workspace = true, features = [
     "uniffi-bindings",
     "serde",
 ] }
+nym-bridges-types = { workspace = true, features = ["uniffi-bindings", "serde"] }
 nym-common.workspace = true
 nym-favorites.workspace = true

@@ -4,7 +4,7 @@
 use std::{
     collections::HashMap,
     fmt,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{Ipv4Addr, Ipv6Addr},
     str::FromStr,
 };
 
@@ -612,50 +612,10 @@ pub struct RecentGateways {
     pub exit: Vec<Gateway>,
 }
 
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-#[cfg_attr(
-    feature = "typescript-bindings",
-    derive(TS),
-    ts(export),
-    ts(export_to = "bindings.ts")
-)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct BridgeInformation {
-    pub version: String,
-    pub transports: Vec<BridgeParameters>,
-}
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(
-    feature = "typescript-bindings",
-    derive(TS),
-    ts(export),
-    ts(export_to = "bindings.ts")
-)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub enum BridgeParameters {
-    QuicPlain(QuicClientOptions),
-}
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-#[cfg_attr(
-    feature = "typescript-bindings",
-    derive(TS),
-    ts(export),
-    ts(export_to = "bindings.ts")
-)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct QuicClientOptions {
-    pub addresses: Vec<SocketAddr>,
-    pub host: Option<String>,
-    pub id_pubkey: String,
-}
+pub use nym_bridges_types::ClientConfig as BridgeParameters;
+pub use nym_bridges_types::PersistedClientConfig as BridgeInformation;
+pub use nym_bridges_types::quic::ClientOptions as QuicClientOptions;
+pub use nym_bridges_types::tls::ClientOptions as TlsClientOptions;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -1185,7 +1145,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
             mixnet_performance: gateway.mixnet_performance.map(|p| p.round_to_integer()),
-            bridge_params: gateway.bridge_params.map(BridgeInformation::from),
+            bridge_params: gateway.bridge_params,
             performance: gateway.performance.map(Performance::from),
             exit_ipv4s,
             exit_ipv6s,
@@ -1198,38 +1158,51 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
     }
 }
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::response::BridgeInformation> for BridgeInformation {
-    fn from(value: nym_vpn_api_client::response::BridgeInformation) -> Self {
-        Self {
-            version: value.version,
-            transports: value
-                .transports
-                .into_iter()
-                .map(BridgeParameters::from)
-                .collect(),
-        }
-    }
-}
+#[cfg(test)]
+#[cfg(feature = "serde")]
+mod bridges_test {
+    use super::BridgeInformation;
+    use super::BridgeParameters;
+    const RAW_V0_CLIENT_CONFIG: &str = r#"{"version":"0","transports":[{"transport_type":"quic_plain","args":{"addresses":["139.162.33.226:4443","[2400:8901::2000:faff:fea6:87f2]:4443"],"host":"netdna.bootstrapcdn.com","id_pubkey":"9JC91ZiszhIn3n4FG+MDYE/lYwhGdpHGWQTKUqGl+sE="}}]}"#;
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::response::BridgeParameters> for BridgeParameters {
-    fn from(value: nym_vpn_api_client::response::BridgeParameters) -> Self {
-        match value {
-            nym_vpn_api_client::response::BridgeParameters::QuicPlain(options) => {
-                BridgeParameters::QuicPlain(QuicClientOptions::from(options))
-            }
-        }
-    }
-}
+    /// The initial version of the bridge descriptors that are provided by the gateways use a snake case
+    /// for the enum differentiator. This test validates that under normal circumstances that the descriptor
+    /// is parsed as  expected. The only situation under which the enum differentiator has a different format
+    /// is when using the `typescript-bindings` feature.
+    #[test]
+    fn ensure_bridge_v0_parsing_compatibility() -> Result<(), Box<dyn std::error::Error>> {
+        // Parse the JSON to verify structure
+        let parsed: BridgeInformation = serde_json::from_str(RAW_V0_CLIENT_CONFIG)?;
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::response::QuicClientOptions> for QuicClientOptions {
-    fn from(value: nym_vpn_api_client::response::QuicClientOptions) -> Self {
-        Self {
-            addresses: value.addresses,
-            host: value.host,
-            id_pubkey: value.id_pubkey,
-        }
+        // Verify version
+        assert_eq!(parsed.version, "0");
+
+        // Verify transport type
+        let params = match &parsed.transports[0] {
+            BridgeParameters::QuicPlain(p) => p,
+            BridgeParameters::TlsPlain(_) => return Err("expected quic transport args".into()),
+        };
+
+        // Verify addresses contain our test IPs
+        let addresses = &params.addresses;
+
+        let address_strings: Vec<String> = addresses.iter().map(|v| v.to_string()).collect();
+
+        // Should contain both IPv4 and IPv6 addresses with port 4443
+        assert!(
+            address_strings
+                .iter()
+                .any(|addr| addr.contains("139.162.33.226:4443"))
+        );
+        assert!(
+            address_strings
+                .iter()
+                .any(|addr| addr.contains("[2400:8901::2000:faff:fea6:87f2]:4443"))
+        );
+
+        // Verify host field
+        assert_eq!(params.host, Some("netdna.bootstrapcdn.com".to_string()),);
+
+        Ok(())
     }
 }
