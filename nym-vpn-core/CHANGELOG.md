@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
 - Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006)
-- Use a built-in list of gateways for when we cannot get them from the NYM API (https://github.com/nymtech/nym-vpn-client/pull/6015)
+- Use a built-in list of gateways when gateway refresh fails and the local gateway cache is empty (https://github.com/nymtech/nym-vpn-client/pull/6015)
 ### Changed
 
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)

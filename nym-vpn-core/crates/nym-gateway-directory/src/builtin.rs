@@ -1,17 +1,6 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Builtin gateway list seed, used by [`crate::GatewayCache`] as a one-time fallback when the
-//! cache is empty and a live nym-api/nym-vpn-api fetch fails (e.g. on first install while
-//! offline). Unlike the builtin files in nym-socks5-proxy and nym-vpn-lib's adblocker, this data
-//! is never refreshed at runtime: nym-api is queried live on every real cache refresh anyway, so
-//! this snapshot only ever needs to bridge the gap until that first successful fetch. Refresh it
-//! periodically with `builtin/download_sources.py`.
-//!
-//! The entry/exit/wg gateway lists overlap heavily, so rather than embedding 3 near-duplicate
-//! lists this stores one deduplicated list where each gateway is tagged with the set of
-//! [`GatewayType`]s it belongs to (see `builtin/download_sources.py` for how it's built).
-
 use async_compression::tokio::bufread::GzipDecoder;
 use nym_vpn_api_client::response::NymDirectoryGateway;
 use serde::Deserialize;
