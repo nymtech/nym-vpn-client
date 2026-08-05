@@ -5,6 +5,11 @@ use futures::future::{BoxFuture, Fuse, FusedFuture, FutureExt};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "android")]
+use nym_vpn_lib_types::ErrorStateReason;
+
+#[cfg(target_os = "android")]
+use crate::tunnel_state_machine::blocking_tun::with_blocking_before_tun_release;
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
@@ -59,9 +64,51 @@ impl DisconnectingState {
                 DisconnectedState::enter(tombstone, shared_state).await
             }
             PrivateActionAfterDisconnect::Error(reason) => {
+                #[cfg(target_os = "android")]
+                {
+                    let mut tombstone = tombstone;
+                    if let Err(err) = with_blocking_before_tun_release(
+                        || shared_state.install_android_blocking_tun(),
+                        || {
+                            drop(tombstone.take());
+                        },
+                    ) {
+                        tracing::error!(
+                            "Failed to install Android blocking TUN before error state: {err}"
+                        );
+                        shared_state.android_tun_hold = tombstone;
+                    }
+                }
+                #[cfg(not(target_os = "android"))]
+                {
+                    let _ = tombstone;
+                }
                 ErrorState::enter(reason, shared_state).await
             }
             PrivateActionAfterDisconnect::Reconnect => {
+                #[cfg(target_os = "android")]
+                {
+                    let mut tombstone = tombstone;
+                    let install_result = with_blocking_before_tun_release(
+                        || shared_state.install_android_blocking_tun(),
+                        || {
+                            drop(tombstone.take());
+                        },
+                    );
+                    if let Err(err) = install_result {
+                        tracing::error!(
+                            "Failed to install Android blocking TUN before reconnect: {err}"
+                        );
+                        // Keep previous TUN alive — do not open an ISP window.
+                        shared_state.android_tun_hold = tombstone;
+                        return ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state)
+                            .await;
+                    }
+                }
+                #[cfg(not(target_os = "android"))]
+                {
+                    let _ = tombstone;
+                }
                 ConnectingState::enter(0, None, shared_state).await
             }
             PrivateActionAfterDisconnect::Offline {

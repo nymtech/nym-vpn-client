@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod account;
+#[cfg(any(target_os = "android", target_os = "ios", test))]
+mod blocking_tun;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -28,9 +30,14 @@ use std::{
 };
 
 #[cfg(target_os = "android")]
+use std::os::fd::{FromRawFd, OwnedFd};
+
+#[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::tunnel_state_machine::blocking_tun::{android_blocking_dns, blocking_tunnel_settings};
 
 use crate::adblocker;
 #[cfg(not(target_os = "android"))]
@@ -777,6 +784,12 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
+    /// Held FD for the Android blocking / placeholder VPN interface during Connecting / Error.
+    #[cfg(target_os = "android")]
+    android_blocking_tun: Option<OwnedFd>,
+    /// Previous live TUN kept when blocking install fails mid-reconnect (avoids ISP window).
+    #[cfg(target_os = "android")]
+    android_tun_hold: Option<tunnel::Tombstone>,
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     bandwidth_command_tx: BandwidthControllerRequestSender,
@@ -817,6 +830,35 @@ impl SharedState {
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
         self.gateway_provider.set_active_geo_location(false).await;
         self.gateway_provider.set_gateway_cache_paused(true);
+    }
+
+    /// Establish (or replace) the Android blocking VPN interface and retain its FD.
+    #[cfg(target_os = "android")]
+    fn install_android_blocking_tun(&mut self) -> std::io::Result<()> {
+        let settings = blocking_tunnel_settings(android_blocking_dns());
+        let raw_fd = self.tun_provider.configure_tunnel(settings)?;
+        // Safety: configure_tunnel returns a freshly owned FD from VpnService.Builder.establish().
+        let owned = unsafe { OwnedFd::from_raw_fd(raw_fd) };
+        self.android_blocking_tun = Some(owned);
+        // Blocking interface replaced any prior live TUN; drop retained tombstone if present.
+        self.android_tun_hold = None;
+        Ok(())
+    }
+
+    /// Install blocking TUN when none is held yet.
+    #[cfg(target_os = "android")]
+    fn ensure_android_blocking_tun(&mut self) -> std::io::Result<()> {
+        if self.android_blocking_tun.is_some() {
+            return Ok(());
+        }
+        self.install_android_blocking_tun()
+    }
+
+    /// Drop blocking TUN and any retained previous TUN (intentional Disconnect / real tunnel up).
+    #[cfg(target_os = "android")]
+    fn clear_android_blocking_tun(&mut self) {
+        self.android_blocking_tun = None;
+        self.android_tun_hold = None;
     }
 
     #[cfg(target_os = "linux")]
@@ -1203,6 +1245,10 @@ impl TunnelStateMachine {
             status_listener_handle: None,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
+            #[cfg(target_os = "android")]
+            android_blocking_tun: None,
+            #[cfg(target_os = "android")]
+            android_tun_hold: None,
             account_command_tx,
             account_controller_state,
             bandwidth_command_tx,
