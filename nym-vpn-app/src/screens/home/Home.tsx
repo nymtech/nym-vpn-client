@@ -4,6 +4,7 @@ import { type } from '@tauri-apps/plugin-os';
 import { motion } from 'motion/react';
 import { useAppStore } from '../../store';
 import { useGatewayIndependenceWatcher } from '../../hooks';
+import DiagnosticsSuggestedDialog from './DiagnosticsSuggestedDialog';
 import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
@@ -37,6 +38,7 @@ function Home() {
   return (
     <>
       <UpdateDialog />
+      <DiagnosticsSuggestedDialog />
       <GatewayIndependenceWarningDialog />
       {os !== 'windows' && (
         <NetworkUpdateDialog

@@ -4,6 +4,7 @@ import { StateAction } from '../store/slices/createMainSlice';
 import {
   AccountLinks,
   ConnectingState,
+  DiagnosticsSuggestedReason,
   FeatureFlags,
   FrontingMode,
   GatewaySelectionAlgorithmConfig,
@@ -76,6 +77,7 @@ export type AppState = {
   networkEnv: NetworkEnv;
   version: string | null;
   linuxAppUpdated?: boolean;
+  diagnosticsSuggestedReason?: DiagnosticsSuggestedReason | null;
   error?: AppError | null;
   // general progress messages to show in the main badge
   progressMessages: ProgressMsg[];

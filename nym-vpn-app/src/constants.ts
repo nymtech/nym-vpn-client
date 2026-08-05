@@ -8,6 +8,7 @@ export const DaemonEvent = 'vpnd-status';
 export const MixnetEvent = 'mixnet-event';
 export const VpnConfigEvent = 'vpn-config';
 export const UpdatePendingEvent = 'update-pending';
+export const DiagnosticsSuggestedEvent = 'diagnostics-suggested';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
 

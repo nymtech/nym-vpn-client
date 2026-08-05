@@ -14,5 +14,9 @@
   "daemon-not-connected": "Can't connect to daemon. Restart the app or device. If this persists, reinstall NymVPN.",
   "account-linking-timeout": "Account linking timeout",
   "account-linking-error": "Failed to link account",
-  "update-installed-restart-required": "A new version of NymVPN has been installed. Please restart the app to apply the changes."
+  "update-installed-restart-required": "A new version of NymVPN has been installed. Please restart the app to apply the changes.",
+  "diagnostics-suggested": {
+    "success": "Diagnostics report saved",
+    "error": "Failed to run diagnostics"
+  }
 }
