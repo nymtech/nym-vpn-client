@@ -16,6 +16,7 @@ workspace = true
 
 [dependencies]
 async-trait.workspace = true
+cfg-if.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 sentry = { workspace = true, features = [
@@ -42,6 +43,7 @@ nym-vpn-lib.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [
     "uniffi-bindings",
     "nym-type-conversions",
+    "serde",
 ] }
 nym-vpn-account-controller.workspace = true
 nym-vpn-network-config.workspace = true
@@ -54,6 +56,7 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-favorites.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
+futures.workspace = true
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 
 [target.'cfg(target_os = "android")'.dependencies]

@@ -7503,6 +7503,8 @@ name = "nym-vpn-lib-uniffi"
 version = "2026.13.0-beta.1"
 dependencies = [
  "async-trait",
+ "cfg-if",
+ "futures",
  "inventory",
  "ipnet",
  "ipnetwork",
