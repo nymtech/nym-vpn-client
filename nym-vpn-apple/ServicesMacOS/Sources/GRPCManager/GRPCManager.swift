@@ -89,11 +89,13 @@ private extension GRPCManager {
                 updateTunnelStatus(with: tunnelState)
             }
         case .mixnetState:
-            Task { @MainActor in }
+            break
         case .configChanged:
-            Task { @MainActor in }
+            break
         case .accountState:
-            Task { @MainActor in }
+            break
+        case .diagnosticsSuggested(_):
+            break
         }
     }
 

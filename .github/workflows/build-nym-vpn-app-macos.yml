@@ -419,7 +419,7 @@ jobs:
         run: |
           VPND_DEST_DIR="nym-vpn-apple/NymVPND"
 
-          for f in nym-vpnd nym-socks5-proxy nym-setup; do
+          for f in nym-vpnd nym-socks5-proxy nym-setup nym-diagnostic; do
             mv "core_artifacts_macos/${f}" "${VPND_DEST_DIR}/${f}"
             chmod +x "${VPND_DEST_DIR}/${f}"
           done
