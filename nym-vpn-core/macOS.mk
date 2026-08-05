@@ -48,14 +48,17 @@ ifeq ($(ARCH), x86_64)
     LIBWG_OBJS := $(LIBWG_X86_64_BUILD_DIR)/libwg.a
     BUILD_X86  := true
     BUILD_ARM  := false
+    RPC_BUILD_TARGET := --target x86_64-apple-darwin
 else ifeq ($(ARCH), arm64)
     LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a
     BUILD_X86  := false
     BUILD_ARM  := true
+    RPC_BUILD_TARGET := --target aarch64-apple-darwin
 else ifeq ($(ARCH), fat)
     LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a $(LIBWG_X86_64_BUILD_DIR)/libwg.a
     BUILD_X86  := true
     BUILD_ARM  := true
+    RPC_BUILD_TARGET :=
 else
     $(error Unknown ARCH: $(ARCH). Please use 'x86_64', 'arm64', or 'fat')
 endif
@@ -81,7 +84,7 @@ $(LIBWG_OBJS): $(LIBWG_SOURCES)
 
 rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RPC_BUILD_TARGET) $(RELEASE_FLAG)
 
 	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
 	cd $(RPC_CRATE_DIR); \

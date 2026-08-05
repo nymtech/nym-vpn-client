@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5818E54130234B2E00D544A1 /* nym-diagnostic in Copy Files */ = {isa = PBXBuildFile; fileRef = 5818E53F30234A4800D544A1 /* nym-diagnostic */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
 		5852D3A42FBCC46C002DC7AF /* NymVPNWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5852D3A22FBCC46C002DC7AF /* NymVPNWidgetBundle.swift */; };
 		5852D3A52FBCC46C002DC7AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5852D39F2FBCC46C002DC7AF /* Assets.xcassets */; };
@@ -210,6 +211,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
+				5818E54130234B2E00D544A1 /* nym-diagnostic in Copy Files */,
 				58E98AED2F92534300A120DF /* nym-socks5-proxy in Copy Files */,
 				58FF8CEC2F8EAF2F0037AC51 /* nym-setup in Copy Files */,
 				58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */,
@@ -263,6 +265,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5818E53F30234A4800D544A1 /* nym-diagnostic */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-diagnostic"; sourceTree = "<group>"; };
 		5852D39F2FBCC46C002DC7AF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5852D3A02FBCC46C002DC7AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5852D3A12FBCC46C002DC7AF /* NymVPNmacOSWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPNmacOSWidgetExtension.entitlements; sourceTree = "<group>"; };
@@ -498,6 +501,7 @@
 				58FF8CEA2F8EAF2F0037AC51 /* nym-setup */,
 				58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */,
 				58E98AEB2F92533600A120DF /* nym-socks5-proxy */,
+				5818E53F30234A4800D544A1 /* nym-diagnostic */,
 			);
 			path = NymVPND;
 			sourceTree = "<group>";

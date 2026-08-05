@@ -29,6 +29,7 @@ NymVPNRpc
 NymVPND/nym-vpnd
 NymVPND/nym-setup
 NymVPND/nym-socks5-proxy
+NymVPND/nym-diagnostic
 
 fastlane/report.xml
 fastlane/README.md
