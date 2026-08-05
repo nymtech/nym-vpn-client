@@ -8,7 +8,7 @@ enum class PanelState { COLLAPSED, FULL }
 
 enum class ConnectMode { FAST, MIXNET }
 
-enum class ConnectAction { CONNECT, DISCONNECT, STOP_KILL_SWITCH, GET_STARTED }
+enum class ConnectAction { CONNECT, DISCONNECT, STOP_KILL_SWITCH, GET_STARTED, REFRESH_ACCOUNT }
 
 enum class NodeSelectionType { NODE, RANDOM, AUTO }
 
@@ -23,4 +23,5 @@ data class ConnectPanelState(
 	val entryNode: ServerNode,
 	val initialPanelState: PanelState,
 	val isSubscriptionExpired: Boolean = false,
+	val hasSubscriptionHistory: Boolean = false,
 )

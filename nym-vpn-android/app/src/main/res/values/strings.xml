@@ -189,6 +189,11 @@
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
+	<string name="error_no_subscription_title">No active subscription</string>
+	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
+	<string name="error_no_subscription_button">Select Plan</string>
+	<string name="account_subscription_pending_title">Subscription pending</string>
+	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
 	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>

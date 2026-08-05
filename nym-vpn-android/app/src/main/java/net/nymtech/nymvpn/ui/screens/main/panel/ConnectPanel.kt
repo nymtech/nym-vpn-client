@@ -131,6 +131,7 @@ fun ConnectPanel(
 				accountState = state.accountState,
 				isMnemonicStored = state.isMnemonicStored,
 				isSubscriptionExpired = state.isSubscriptionExpired,
+				hasSubscriptionHistory = state.hasSubscriptionHistory,
 				onAction = onAction,
 			)
 		}
