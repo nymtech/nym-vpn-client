@@ -16,6 +16,7 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import net.nymtech.vpn.backend.service.VpnService
+import net.nymtech.vpn.model.VpnServiceEvent.*
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
 import net.nymtech.vpn.util.extensions.asTunnelState
 import nym_vpn_lib.LogLevel
@@ -254,8 +255,9 @@ class VpnCoreController(
 		when (event) {
 			is TunnelEvent.NewState -> handleTunnelState(event)
 			is TunnelEvent.MixnetState -> handleMixnetEvent(event)
-			is TunnelEvent.AccountState -> events.tryEmit(VpnServiceEvent.AccountStateChanged(event.v1))
-			is TunnelEvent.ConfigChanged -> events.tryEmit(VpnServiceEvent.Log("TunnelEvent config_changed"))
+			is TunnelEvent.AccountState -> events.tryEmit(AccountStateChanged(event.v1))
+			is TunnelEvent.ConfigChanged -> events.tryEmit(Log("TunnelEvent config_changed"))
+			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 		}
 	}
 
