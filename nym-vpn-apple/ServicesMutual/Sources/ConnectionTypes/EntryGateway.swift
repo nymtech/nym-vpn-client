@@ -6,12 +6,13 @@ public enum EntryGateway: Codable, Equatable {
     case region(countryCode: String, region: String)
     case gateway(String)
     case random
+    case auto
 
     public var isCountry: Bool {
         switch self {
         case .country:
             true
-        case .random, .gateway, .region:
+        case .random, .auto, .gateway, .region:
             false
         }
     }
@@ -20,7 +21,7 @@ public enum EntryGateway: Codable, Equatable {
         switch self {
         case .region:
             true
-        case .gateway, .random, .country:
+        case .gateway, .random, .auto, .country:
             false
         }
     }
@@ -31,14 +32,14 @@ extension EntryGateway: GatewayInfoProtocol {
         switch self {
         case let .country(code):
             code
-        case .random, .region, .gateway:
+        case .random, .auto, .region, .gateway:
             nil
         }
     }
 
     public var isGateway: Bool {
         switch self {
-        case .country, .random, .region:
+        case .country, .random, .auto, .region:
             false
         case .gateway:
             true
@@ -49,7 +50,7 @@ extension EntryGateway: GatewayInfoProtocol {
         switch self {
         case let .gateway(identifier):
             identifier
-        case .country, .random, .region:
+        case .country, .random, .auto, .region:
             nil
         }
     }

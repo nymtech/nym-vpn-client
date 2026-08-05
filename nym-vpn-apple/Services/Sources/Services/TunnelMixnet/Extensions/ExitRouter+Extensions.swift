@@ -13,6 +13,8 @@ extension ExitRouter {
             .region(region: region)
         case .random:
             .random
+        case .auto:
+            .auto(excludeEntryPointCountry: true, excludeUserCountry: true)
         }
     }
 }
