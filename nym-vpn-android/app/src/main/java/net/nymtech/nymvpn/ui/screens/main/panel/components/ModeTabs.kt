@@ -45,15 +45,13 @@ import net.nymtech.nymvpn.util.extensions.getModeIcon
 
 internal val ConnectMode.labelRes: Int
 	get() = when (this) {
-		ConnectMode.AUTO -> R.string.connect_mode_auto
 		ConnectMode.FAST -> R.string.one_click_mode_fast
 		ConnectMode.MIXNET -> R.string.connect_mode_mixnet
 	}
 
 @Composable
 internal fun ModeTabs(selected: ConnectMode, onSelect: (ConnectMode) -> Unit, modifier: Modifier = Modifier) {
-	// ConnectMode.entries — AUTO tab hidden until the feature is re-enabled
-	val modes = ConnectMode.entries.filter { it != ConnectMode.AUTO }
+	val modes = ConnectMode.entries
 	var selectedIndex = modes.indexOf(selected)
 	val indicatorPadding = 2.dp
 
@@ -119,12 +117,12 @@ internal fun ModeTabs(selected: ConnectMode, onSelect: (ConnectMode) -> Unit, mo
 	}
 }
 
-@Preview(name = "Auto selected – dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Preview(name = "Fast selected – dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Preview(name = "Fast selected – light", uiMode = Configuration.UI_MODE_NIGHT_NO, showBackground = true)
 @Composable
 private fun PreviewModeTabs() {
 	NymVPNTheme(Theme.DARK_MODE) {
-		var selected by remember { mutableStateOf(ConnectMode.AUTO) }
+		var selected by remember { mutableStateOf(ConnectMode.FAST) }
 		ModeTabs(
 			selected = selected,
 			onSelect = { selected = it },

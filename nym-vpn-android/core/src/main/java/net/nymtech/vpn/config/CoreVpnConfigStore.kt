@@ -67,8 +67,8 @@ class CoreVpnConfigStore(private val context: Context) {
 	}
 
 	private fun Preferences.toCoreConfig(): CoreVpnConfig {
-		val entry: EntryPoint = this[KEY_ENTRY]?.asEntryPoint() ?: EntryPoint.Random
-		val exit: ExitPoint = this[KEY_EXIT]?.asExitPoint() ?: ExitPoint.Random
+		val entry: EntryPoint = this[KEY_ENTRY]?.asEntryPoint() ?: EntryPoint.Auto(excludeUserCountry = true)
+		val exit: ExitPoint = this[KEY_EXIT]?.asExitPoint() ?: ExitPoint.Auto(excludeEntryPointCountry = true, excludeUserCountry = true)
 
 		val mode: Tunnel.Mode =
 			this[KEY_MODE]?.let { runCatching { Tunnel.Mode.valueOf(it) }.getOrNull() }

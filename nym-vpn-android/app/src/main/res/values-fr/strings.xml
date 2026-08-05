@@ -176,9 +176,7 @@
 	<string name="connection_state_connecting_mixnet_client">Inscription anonyme sur les serveurs (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Établissement de la connexion au serveur (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Utiliser le meilleur serveur</string>
 	<string name="one_click_mode_fast">Rapide</string>
-	<string name="connect_mode_auto">Automatique</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Serveur de sortie</string>
 	<string name="one_click_nym_entry_node">Serveur d\'entrée</string>
@@ -187,7 +185,6 @@
 	<string name="connection_status_fast_mode">Protection du mode Rapide</string>
 	<string name="connection_status_anonymous">Protection du mixnet</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Meilleur serveur</string>
 	<string name="gateway_random">Serveur aléatoire</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Bienvenue !</string>

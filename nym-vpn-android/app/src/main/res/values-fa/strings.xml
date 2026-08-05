@@ -178,9 +178,7 @@
 	<string name="connection_state_connecting_mixnet_client">در حال ثبت‌نام ناشناس در سرورها ‏(۵/۶)</string>
 	<string name="connection_state_connecting_tunnel">در حال برقراری اتصال با سرور ‏(۶/۶)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">استفاده از بهترین سرور</string>
 	<string name="one_click_mode_fast">سریع</string>
-	<string name="connect_mode_auto">خودکار</string>
 	<string name="connect_mode_mixnet">میکس‌نت</string>
 	<string name="one_click_nym_exit_node">سرور خروجی</string>
 	<string name="one_click_nym_entry_node">سرور ورودی</string>
@@ -189,7 +187,6 @@
 	<string name="connection_status_fast_mode">محافظت حالت سریع</string>
 	<string name="connection_status_anonymous">محافظت میکس‌نتی</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">بهترین سرور</string>
 	<string name="gateway_random">سرور تصادفی</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">خوش آمدید!</string>
