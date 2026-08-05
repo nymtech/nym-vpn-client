@@ -64,5 +64,11 @@
     "disable-reminders": "Disable reminders in <settingsLink>notification settings</settingsLink>.",
     "cancel": "Cancel",
     "connect-anyway": "Connect anyway"
+  },
+  "diagnostics-suggested": {
+    "title": "Run diagnostics?",
+    "description": "We noticed you're having trouble connecting. Running the diagnostics tool can help us find out why. The report, along with your app and daemon logs, will be saved as a zip file you can share with support.",
+    "button-run": "Run diagnostics",
+    "button-dismiss": "Not now"
   }
 }

@@ -13,6 +13,7 @@ import {
   CodeDependency,
   ConnectingState,
   DaemonStatus,
+  DiagnosticsSuggestedReason,
   FeatureFlags,
   FrontingMode,
   MixnetTrafficConfig,
@@ -50,6 +51,10 @@ export type StateAction =
   | { type: 'disconnect' }
   | { type: 'set-version'; version: string }
   | { type: 'set-linux-app-updated'; updated: boolean }
+  | {
+      type: 'set-diagnostics-suggested-reason';
+      reason: DiagnosticsSuggestedReason | null;
+    }
   | { type: 'set-tunnel-connected'; tunnel: Tunnel }
   | { type: 'set-tunnel-disconnected' }
   | { type: 'set-tunnel-connecting'; state: ConnectingState }
@@ -110,6 +115,7 @@ export const initialState: AppState = {
   networkEnv: 'mainnet',
   version: null,
   linuxAppUpdated: false,
+  diagnosticsSuggestedReason: null,
   vpnMode: 'wg',
   uiTheme: 'light',
   themeMode: DefaultThemeMode,
@@ -312,6 +318,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-linux-app-updated':
         set({ linuxAppUpdated: action.updated });
+        break;
+
+      case 'set-diagnostics-suggested-reason':
+        set({ diagnosticsSuggestedReason: action.reason });
         break;
 
       case 'set-tunnel-connected':

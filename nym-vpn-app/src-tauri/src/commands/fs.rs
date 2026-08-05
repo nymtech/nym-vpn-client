@@ -119,7 +119,8 @@ fn add_directory_to_zip<W: Write + io::Seek>(
     Ok(())
 }
 
-/// Creates a zip archive containing logs from both the app and vpnd.
+/// Creates a zip archive containing logs from both the app and vpnd, plus an
+/// optional extra file (e.g. a diagnostic report) added at the root of the archive.
 ///
 /// Returns `true` if the archive was created successfully, `false` if the user
 /// cancelled the save dialog.
@@ -127,6 +128,7 @@ fn create_logs_archive(
     output_path: &Path,
     app_log_dir: &Path,
     vpnd_log_dir: &Path,
+    extra_file: Option<(String, Vec<u8>)>,
 ) -> io::Result<()> {
     let file = File::create(output_path)?;
     let writer = BufWriter::new(file);
@@ -140,6 +142,14 @@ fn create_logs_archive(
         add_directory_to_zip(&mut zip, app_log_dir, ZIP_APP_LOGS_PREFIX)?;
     }
 
+    if let Some((name, contents)) = extra_file {
+        let options = FileOptions::<()>::default()
+            .compression_method(zip::CompressionMethod::Deflated)
+            .unix_permissions(0o644);
+        zip.start_file(&name, options)?;
+        zip.write_all(&contents)?;
+    }
+
     zip.finish()?;
     Ok(())
 }
@@ -148,7 +158,7 @@ fn create_logs_archive(
 ///
 /// Attempts to get the path from the running daemon, falls back to the default
 /// path if the daemon is unavailable or returns an error.
-async fn resolve_vpnd_log_dir(
+pub(crate) async fn resolve_vpnd_log_dir(
     app_state: &State<'_, SharedAppState>,
     vpnd: &State<'_, VpndClient>,
 ) -> PathBuf {
@@ -169,14 +179,19 @@ async fn resolve_vpnd_log_dir(
     log_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_VPND_LOG_DIR))
 }
 
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn zip_logs(
-    app: AppHandle,
-    app_state: State<'_, SharedAppState>,
-    vpnd: State<'_, VpndClient>,
+/// Prompts the user to choose a save location, then builds a zip archive containing
+/// the app and vpnd logs, plus an optional extra file (e.g. a diagnostic report).
+///
+/// Returns `true` if the archive was created successfully, `false` if the user
+/// cancelled the save dialog.
+pub(crate) async fn export_logs_archive(
+    app: &AppHandle,
+    app_state: &State<'_, SharedAppState>,
+    vpnd: &State<'_, VpndClient>,
+    default_file_name: &str,
+    extra_file: Option<(String, Vec<u8>)>,
 ) -> Result<bool, BackendError> {
-    let vpnd_log_dir = resolve_vpnd_log_dir(&app_state, &vpnd).await;
+    let vpnd_log_dir = resolve_vpnd_log_dir(app_state, vpnd).await;
     let app_log_dir = APP_LOG_DIR
         .clone()
         .ok_or_else(|| BackendError::internal("failed to get app log directory path", None))?;
@@ -187,7 +202,7 @@ pub async fn zip_logs(
         .dialog()
         .file()
         .add_filter("Zip files", &["zip"])
-        .set_file_name("nymvpn-logs.zip")
+        .set_file_name(default_file_name)
         .blocking_save_file()
     else {
         info!("user cancelled save dialog");
@@ -203,7 +218,7 @@ pub async fn zip_logs(
 
     // Run blocking I/O on a dedicated thread to avoid blocking the async runtime
     tokio::task::spawn_blocking(move || {
-        create_logs_archive(&output_path, &app_log_dir, &vpnd_log_dir)
+        create_logs_archive(&output_path, &app_log_dir, &vpnd_log_dir, extra_file)
     })
     .await
     .map_err(|e| {
@@ -217,4 +232,14 @@ pub async fn zip_logs(
 
     info!("logs archive created successfully");
     Ok(true)
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn zip_logs(
+    app: AppHandle,
+    app_state: State<'_, SharedAppState>,
+    vpnd: State<'_, VpndClient>,
+) -> Result<bool, BackendError> {
+    export_logs_archive(&app, &app_state, &vpnd, "nymvpn-logs.zip", None).await
 }

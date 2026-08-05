@@ -10,11 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
+- Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006).
 
 ### Changed
 
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
-
 
 ## [2026.12.0] - TBD
 
@@ -377,7 +377,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon global and service configuration is now stored in JSON format, allowing versioning to be
   supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
 - Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
-
 
 ## [1.14.0] - 2025-08-26
 
