@@ -15,7 +15,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     Error, Gateway, GatewayClient, GatewayList, GatewayType, LookupGatewayFilters, NymNode,
-    NymNodeList, error::Result,
+    NymNodeList, builtin, error::Result,
 };
 
 /// The maximum age of the cache before it is considered stale.
@@ -415,19 +415,54 @@ impl GatewayCache {
         if let Some((gw_list, last_updated)) = self.cached_gateways.get(&gw_type)
             && last_updated.elapsed() < MAX_CACHE_AGE
         {
-            Ok(gw_list.clone())
-        } else {
-            if self.connectivity_handle.connectivity().await.is_offline() {
-                tracing::warn!("Not refreshing countries because we are not connected");
-                return Err(Error::Offline);
+            return Ok(gw_list.clone());
+        }
+
+        if self.connectivity_handle.connectivity().await.is_offline() {
+            tracing::warn!("Not refreshing gateways for {gw_type:?} because we are not connected");
+            return self.seed_from_builtin_or(gw_type, Error::Offline).await;
+        }
+
+        match self.gateway_client.lookup_gateways(gw_type).await {
+            Ok(refreshed_gateways) => {
+                self.cached_gateways
+                    .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
+                Ok(refreshed_gateways)
             }
+            Err(err) => self.seed_from_builtin_or(gw_type, err).await,
+        }
+    }
 
-            let refreshed_gateways = self.gateway_client.lookup_gateways(gw_type).await?;
+    /// Called when a refresh for `gw_type` has failed. If we have no cached data at all for this
+    /// type, seed the cache from the builtin gateway list so callers get something usable on a
+    /// fresh/offline install, marking it stale so the next lookup retries a real fetch. If we
+    /// already have (possibly stale) cached data, leave it untouched and propagate the error.
+    async fn seed_from_builtin_or(
+        &mut self,
+        gw_type: GatewayType,
+        err: Error,
+    ) -> Result<GatewayList> {
+        if self.cached_gateways.contains_key(&gw_type) {
+            return Err(err);
+        }
 
-            self.cached_gateways
-                .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
-
-            Ok(refreshed_gateways)
+        match builtin::load_builtin_gateways(gw_type).await {
+            Ok(builtin_list) => {
+                tracing::warn!(
+                    "No cache and refresh failed for {gw_type:?} ({err}); seeding {} gateways from builtin list",
+                    builtin_list.len()
+                );
+                let backdated = Instant::now() - MAX_CACHE_AGE - Duration::from_secs(1);
+                self.cached_gateways
+                    .insert(gw_type, (builtin_list.clone(), backdated));
+                Ok(builtin_list)
+            }
+            Err(builtin_err) => {
+                tracing::error!(
+                    "Failed to load builtin gateway list for {gw_type:?}: {builtin_err}"
+                );
+                Err(err)
+            }
         }
     }
 

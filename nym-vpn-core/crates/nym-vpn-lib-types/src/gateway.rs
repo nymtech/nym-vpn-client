@@ -612,10 +612,10 @@ pub struct RecentGateways {
     pub exit: Vec<Gateway>,
 }
 
-pub use nym_bridges_types::ClientConfig as BridgeParameters;
-pub use nym_bridges_types::PersistedClientConfig as BridgeInformation;
-pub use nym_bridges_types::quic::ClientOptions as QuicClientOptions;
-pub use nym_bridges_types::tls::ClientOptions as TlsClientOptions;
+pub use nym_bridges_types::{
+    ClientConfig as BridgeParameters, PersistedClientConfig as BridgeInformation,
+    quic::ClientOptions as QuicClientOptions, tls::ClientOptions as TlsClientOptions,
+};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -1161,8 +1161,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
 #[cfg(test)]
 #[cfg(feature = "serde")]
 mod bridges_test {
-    use super::BridgeInformation;
-    use super::BridgeParameters;
+    use super::{BridgeInformation, BridgeParameters};
     const RAW_V0_CLIENT_CONFIG: &str = r#"{"version":"0","transports":[{"transport_type":"quic_plain","args":{"addresses":["139.162.33.226:4443","[2400:8901::2000:faff:fea6:87f2]:4443"],"host":"netdna.bootstrapcdn.com","id_pubkey":"9JC91ZiszhIn3n4FG+MDYE/lYwhGdpHGWQTKUqGl+sE="}}]}"#;
 
     /// The initial version of the bridge descriptors that are provided by the gateways use a snake case
