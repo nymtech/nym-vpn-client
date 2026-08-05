@@ -135,8 +135,8 @@ import GRPCManager
             )
         }
 #endif
-        setEntryGateway(.random)
-        setExitGateway(.random)
+        setEntryGateway(.auto)
+        setExitGateway(.auto)
     }
 
     /// Logout path: bounded wait when the user already started disconnecting elsewhere.

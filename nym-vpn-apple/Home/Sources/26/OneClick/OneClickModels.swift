@@ -65,6 +65,8 @@ public struct OneClickServerInfo: Equatable {
     public var gateway: GatewayNode?
     public var hopType: HopType?
     public var showsInfoButton: Bool
+    public var isRandomSelection: Bool
+    public var isSafestSelection: Bool
 
     public init(
         countryCode: String,
@@ -73,7 +75,9 @@ public struct OneClickServerInfo: Equatable {
         score: OneClickServerScore,
         gateway: GatewayNode? = nil,
         hopType: HopType? = nil,
-        showsInfoButton: Bool = false
+        showsInfoButton: Bool = false,
+        isRandomSelection: Bool = false,
+        isSafestSelection: Bool = false
     ) {
         self.countryCode = countryCode
         self.title = title
@@ -82,6 +86,8 @@ public struct OneClickServerInfo: Equatable {
         self.gateway = gateway
         self.hopType = hopType
         self.showsInfoButton = showsInfoButton
+        self.isRandomSelection = isRandomSelection
+        self.isSafestSelection = isSafestSelection
     }
 }
 

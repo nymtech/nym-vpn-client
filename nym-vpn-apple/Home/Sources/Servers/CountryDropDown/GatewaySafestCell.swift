@@ -2,7 +2,7 @@ import SwiftUI
 import ConnectionTypes
 import UIComponents
 
-public struct GatewayRandomCell: View {
+public struct GatewaySafestCell: View {
     private let hopType: HopType
     @Binding private var path: NavigationPath
     @Binding private var entryGateway: EntryGateway
@@ -12,9 +12,9 @@ public struct GatewayRandomCell: View {
     private var isSelected: Bool {
         switch hopType {
         case .entry:
-            if case .random = entryGateway { return true }
+            if case .auto = entryGateway { return true }
         case .exit:
-            if case .random = exitRouter { return true }
+            if case .auto = exitRouter { return true }
         }
         return false
     }
@@ -35,24 +35,24 @@ public struct GatewayRandomCell: View {
 
     public var body: some View {
         GatewaySelectionCell(
-            imageName: "random",
-            titleKey: "gatewaysView.random",
+            imageName: "safest",
+            titleKey: "gatewaysView.safest",
             isSelected: isSelected,
             onTap: tapAction
         )
     }
 }
 
-private extension GatewayRandomCell {
+private extension GatewaySafestCell {
     func tapAction() {
         if let onTapOverride {
             onTapOverride()
         } else {
             switch hopType {
             case .entry:
-                entryGateway = .random
+                entryGateway = .auto
             case .exit:
-                exitRouter = .random
+                exitRouter = .auto
             }
         }
         path = .init()
