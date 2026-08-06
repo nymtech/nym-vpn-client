@@ -235,7 +235,7 @@ jobs:
       release_notes_artifact: ${{ env.RELEASE_NOTES_ARTIFACT }}
       release_notes_file: ${{ env.RELEASE_NOTES }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 

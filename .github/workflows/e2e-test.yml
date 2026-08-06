@@ -67,7 +67,7 @@ jobs:
       checkout_ref: ${{ steps.pick.outputs.checkout_ref }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -142,7 +142,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: ${{ needs.resolve.outputs.checkout_ref }}
@@ -271,7 +271,7 @@ jobs:
 
       - name: Checkout workflow scripts
         if: needs.resolve.outputs.binary_source == 'release'
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: ${{ github.sha }}
@@ -325,7 +325,7 @@ jobs:
           echo "value=$TYPE" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: ${{ needs.resolve.outputs.checkout_ref }}
@@ -553,7 +553,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout notify scripts
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           sparse-checkout: |

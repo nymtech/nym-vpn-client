@@ -59,7 +59,7 @@ jobs:
       JSON_FILE: ${{ inputs.channel == 'stable' && 'stable.json' || 'dev.json' }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: "develop"

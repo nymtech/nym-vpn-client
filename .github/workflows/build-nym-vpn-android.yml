@@ -120,7 +120,7 @@ jobs:
       upload_dir: ${{ env.UPLOAD_DIR_ANDROID }}
       artifact_name: ${{ steps.output-path.outputs.artifact_name }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 

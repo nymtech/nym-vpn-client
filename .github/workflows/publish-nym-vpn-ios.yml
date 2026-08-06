@@ -43,7 +43,7 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Install python3
         run: |

@@ -8,7 +8,7 @@ jobs:
     runs-on: arc-linux-latest-dind
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
       - name: Set up QEMU

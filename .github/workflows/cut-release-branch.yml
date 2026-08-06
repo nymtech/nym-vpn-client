@@ -54,7 +54,7 @@ jobs:
           git config --global user.email "${{ env.GIT_EMAIL }}"
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: develop
