@@ -14,35 +14,45 @@ extension PacketTunnelProvider {
         switch message {
         case .status:
             return await handleStatusMessage()
+
         case let .setCustomDns(addrs):
             await runCommand { try await self.commandSender?.setCustomDns(addrs: addrs) }
             return nil
+
         case let .setEnableCustomDns(enabled):
             await runCommand { try await self.commandSender?.setEnableCustomDns(enableCustomDns: enabled) }
             return nil
+
         case let .setEnableTwoHop(enabled):
             await runCommand { try await self.commandSender?.setEnableTwoHop(enableTwoHop: enabled) }
             return nil
+
         case let .setEnableAdBlocking(enabled):
             await runCommand { try await self.commandSender?.setEnableAdBlocking(enableAdBlocking: enabled) }
             return nil
+
         case let .setEnableBridges(enabled):
             await runCommand { try await self.commandSender?.setEnableBridges(enableBridges: enabled) }
             return nil
+
         case let .setEntryPoint(entry):
             await runCommand { try await self.commandSender?.setEntryPoint(entryPoint: entry.entryPoint) }
             return nil
+
         case let .setExitPoint(exit):
             await runCommand { try await self.commandSender?.setExitPoint(exitPoint: exit.exitPoint) }
             return nil
+
         case let .setFrontingModeEnabled(enabled):
             await runCommand {
                 try await self.commandSender?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
             }
             return nil
+
         case let .setDisableIpv6(disabled):
             await runCommand { try await self.commandSender?.setDisableIpv6(disableIpv6: disabled) }
             return nil
+
         case let .setMixnetTrafficConfig(config):
             await runCommand {
                 try await self.commandSender?.setMixnetTrafficConfig(
@@ -50,6 +60,7 @@ extension PacketTunnelProvider {
                 )
             }
             return nil
+
         case let .setGatewayIndependence(isEnabled):
             await runCommand {
                 try await self.commandSender?.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
@@ -71,6 +82,7 @@ extension PacketTunnelProvider {
                 }
             }
             return nil
+
         case let .setGatewayIndependenceNotifications(enabled):
             await runCommand {
                 try await self.commandSender?.setGatewayIndependenceNotifications(enableNotifications: enabled)

@@ -161,11 +161,11 @@ extension ConnectionManager {
     func fetchConnectionConfig() async {}
 
     @MainActor
-    func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async {
+    func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async throws {
         if let cfg = try? generateConfig() {
             MixnetConfigStorage.save(cfg)
         }
-        await tunnelsManager.send(message)
+        try await tunnelsManager.activeTunnel?.send(message)
     }
 
     @MainActor

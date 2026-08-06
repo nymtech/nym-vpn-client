@@ -112,9 +112,85 @@ import TunnelStatus
         }
     }
 
-    func sendProviderMessage(with messageData: Data) async throws -> Data? {
-        let session = tunnel.connection as? NETunnelProviderSession
-        return try await session?.sendMessageOnMainActor(messageData)
+    /// Send a message to the network extension.
+    public func send(_ message: TunnelProviderMessage) async throws {
+        do {
+            try assertCanSendMessage()
+
+            let data = try message.encode()
+            _ = try await sendProviderMessage(with: data)
+        } catch {
+            logger.error("Failed to send tunnel message: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+    /// Send a message to the network extension decoding response.
+    public func sendWithResponse<T: Decodable>(_ message: TunnelProviderMessage) async throws -> T {
+        do {
+            try assertCanSendMessage()
+
+            if let res = try await sendProviderMessage(with: message.encode()) {
+                return try JSONDecoder().decode(T.self, from: res)
+            } else {
+                throw SendTunnelProviderMessageError.noData
+            }
+        } catch {
+            logger.error("Failed to send tunnel message: \(error.localizedDescription)")
+            throw error
+        }
+    }
+
+    /// Asserts if IPC will be able to pass the message to the network extension.
+    private func assertCanSendMessage() throws {
+        let status = tunnel.connection.status
+
+        switch status {
+        case .connecting, .connected, .reasserting:
+            break
+
+        case .invalid, .disconnected, .disconnecting:
+            throw SendTunnelProviderMessageError.tunnelDown(status)
+
+        @unknown default:
+            break
+        }
+    }
+
+    private func sendProviderMessage(with messageData: Data) async throws -> Data? {
+        if let session = tunnel.connection as? NETunnelProviderSession {
+            return try await session.sendProviderMessageAsync(messageData)
+        } else {
+            logger.warning("TunnelProvider session is nil")
+            throw SendTunnelProviderMessageError.noActiveTunnel
+        }
+    }
+}
+
+enum SendTunnelProviderMessageError: LocalizedError {
+    /// No data returned by network extension
+    case noData
+
+    /// System error
+    case system(Error)
+
+    /// No active tunnel is around
+    case noActiveTunnel
+
+    /// Tunnel is down or about to go down
+    case tunnelDown(NEVPNStatus)
+
+    var errorDescription: String? {
+        switch self {
+        case .noData:
+            return "No data was returned"
+        case let .system(err):
+            return "System error: \(err)"
+        case .noActiveTunnel:
+            return "No active tunnel"
+        case let .tunnelDown(status):
+            return "Tunnel is down or about to go down: \(status)"
+        }
     }
 }
 
@@ -145,38 +221,23 @@ private extension Tunnel {
     }
 
     func pollTunnelStatus() async {
-        let (session, message): (NETunnelProviderSession?, Data?) = await MainActor.run { [weak self] in
-            guard let self else {
-                return (nil, nil)
-            }
-            let session = self.tunnel.connection as? NETunnelProviderSession
-            let message = try? TunnelProviderMessage.status.encode()
-            return (session, message)
-        }
+        do {
+            let decoded: TunnelStatusResponse = try await sendWithResponse(.status)
 
-        guard let session, let message else { return }
-
-        guard let response = try? await session.sendMessageOnMainActor(message),
-            let decoded = try? JSONDecoder().decode(TunnelStatusResponse.self, from: response)
-        else {
-            return
-        }
-
-        await MainActor.run { [weak self] in
-            guard let self else { return }
             self.retryAttempt = decoded.retryAttempt
             self.afterDisconnectAction = decoded.afterDisconnectAction
             self.tunnelConnectingState = decoded.tunnelConnectingState
             self.connectionInfoData = decoded.connectionInfoData
 
             guard self.isPolling else { return }
-            if let newError = decoded.lastError {
-                guard self.status != .error else { return }
+            if let newError = decoded.lastError, self.status != .error {
                 self.status = .error
                 self.lastError = newError
             } else if self.status != decoded.status {
                 self.status = decoded.status
             }
+        } catch {
+            logger.error("Failed to poll status: \(error)")
         }
     }
 }
