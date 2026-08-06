@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use nym_favorites::RecentGatewayCache;
 use tokio::{sync::Mutex, task::JoinHandle};
@@ -39,6 +39,7 @@ impl NymGatewayCache {
         user_agent: UserAgent,
         environment: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
+        data_dir: PathBuf,
     ) -> Result<Self, VpnError> {
         let shutdown_token = CancellationToken::new();
 
@@ -62,6 +63,10 @@ impl NymGatewayCache {
             gateway_client,
             offline_monitor.inner(),
             shutdown_token.child_token(),
+            data_dir
+                .join(environment.network_name())
+                .join("gateway-cache"),
+            environment.network_name() == "mainnet",
         );
 
         Ok(Self {
