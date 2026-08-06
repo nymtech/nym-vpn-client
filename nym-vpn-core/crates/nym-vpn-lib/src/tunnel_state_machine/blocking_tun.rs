@@ -103,4 +103,23 @@ mod tests {
         assert_eq!(err, Err("fail"));
         assert_eq!(steps.into_inner(), ["install"]);
     }
+
+    /// Connecting/Connected unexpected Down must use this ordering (not cold Connecting::enter).
+    #[test]
+    fn reconnect_down_cover_ordering_is_install_then_release() {
+        let steps = RefCell::new(Vec::new());
+        with_blocking_before_tun_release::<()>(
+            || {
+                steps.borrow_mut().push("blocking_cover");
+                Ok(())
+            },
+            || steps.borrow_mut().push("release_tombstone"),
+        )
+        .expect("cover ok");
+        assert_eq!(
+            steps.into_inner(),
+            ["blocking_cover", "release_tombstone"],
+            "ISP window if tombstone is released before blocking establish"
+        );
+    }
 }
