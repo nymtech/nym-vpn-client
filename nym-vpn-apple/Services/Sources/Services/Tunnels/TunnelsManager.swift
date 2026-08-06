@@ -25,6 +25,14 @@ import ErrorHandler
             self.observeTunnelStatuses()
         }
     }
+
+    public func send(message: TunnelProviderMessage) async throws {
+        guard let activeTunnel else {
+            throw SendTunnelProviderMessageError.noActiveTunnel
+        }
+
+        try await activeTunnel.send(message: message)
+    }
 }
 
 // MARK: - Management
