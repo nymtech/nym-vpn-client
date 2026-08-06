@@ -195,8 +195,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	LaunchedEffect(appUiState.managerState.isInitialized) {
 		if (appUiState.managerState.isInitialized && !authSheetChecked) {
 			authSheetChecked = true
-			if (!appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown) {
-				bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.Welcome)
+			when {
+				!appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown ->
+					bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.Welcome)
+				appUiState.managerState.isMnemonicStored && !appUiState.settings.technicalOptCompleted ->
+					bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.TechOpt)
 			}
 		}
 	}
@@ -245,6 +248,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		expiryState = appUiState.subscription?.expiryState,
 		validUntilDate = appUiState.subscription?.validUntilDate ?: "",
 		expiryBannerDismissed = expiryBannerDismissed,
+		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
 		onRenewSubscription = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
@@ -268,6 +272,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				}
 				ConnectAction.STOP_KILL_SWITCH -> navController.goFromRoot(Route.Settings(true))
 				ConnectAction.GET_STARTED -> onGetStartedPressed()
+				ConnectAction.REFRESH_ACCOUNT -> viewModel.refreshAccount()
 			}
 		},
 		onModeChange = { mode ->
@@ -402,6 +407,7 @@ private fun MainScreenContent(
 		),
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
+		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 	)
 
 	Box(
