@@ -41,12 +41,25 @@ pub(crate) async fn seed_all(
         let path = data_dir.join(file_name(gw_type));
         match load_raw(&path).await {
             Ok(raw) => {
-                tracing::debug!(
-                    "Loaded {} gateways for {gw_type:?} from '{}'",
-                    raw.len(),
-                    path.display()
-                );
-                results.push((gw_type, Ok(Some(gateways_from_raw(raw, gw_type)))));
+                let gateways = gateways_from_raw(raw, gw_type);
+                if gateways.is_empty() {
+                    // A file that parses but yields nothing usable (e.g. every entry failed
+                    // conversion or is mixnet-blacklisted) is not a usable seed either — treat
+                    // it the same as a missing file so callers fall through to a real fetch
+                    // (and get `Error::Offline` if that fails) instead of an empty gateway list.
+                    tracing::debug!(
+                        "On-disk gateway cache for {gw_type:?} at '{}' parsed but yielded no usable gateways; treating as a miss",
+                        path.display()
+                    );
+                    disk_misses.push(gw_type);
+                } else {
+                    tracing::debug!(
+                        "Loaded {} gateways for {gw_type:?} from '{}'",
+                        gateways.len(),
+                        path.display()
+                    );
+                    results.push((gw_type, Ok(Some(gateways))));
+                }
             }
             Err(err) => {
                 tracing::debug!(
@@ -76,6 +89,16 @@ pub(crate) async fn seed_all(
         Ok(snapshot) => {
             for gw_type in disk_misses {
                 let raw = snapshot.raw_gateways(gw_type);
+                let gateways = gateways_from_raw(raw.clone(), gw_type);
+
+                if gateways.is_empty() {
+                    tracing::warn!(
+                        "Builtin snapshot yielded no usable gateways for {gw_type:?}; not seeding"
+                    );
+                    results.push((gw_type, Ok(None)));
+                    continue;
+                }
+
                 let path = data_dir.join(file_name(gw_type));
                 if let Err(err) = save_raw(&path, &raw).await {
                     tracing::warn!(
@@ -83,7 +106,7 @@ pub(crate) async fn seed_all(
                         path.display()
                     );
                 }
-                results.push((gw_type, Ok(Some(gateways_from_raw(raw, gw_type)))));
+                results.push((gw_type, Ok(Some(gateways))));
             }
         }
         Err(err) => {
@@ -220,6 +243,35 @@ mod tests {
         assert!(
             !path.exists(),
             "expected seed_all not to write anything to disk when it can't seed"
+        );
+    }
+
+    #[tokio::test]
+    async fn treats_empty_on_disk_cache_as_a_miss() {
+        let dir = tempdir().unwrap();
+        let gw_type = GatewayType::MixnetExit;
+        let path = dir.path().join(file_name(gw_type));
+
+        // A file that exists and parses, but yields zero gateways (e.g. every entry failed
+        // conversion or was blacklisted), must not be treated as a usable seed.
+        save_raw(&path, &[]).await.unwrap();
+        assert!(path.exists());
+
+        let results = seed_all(dir.path(), true).await;
+        let gateways =
+            find(&results, gw_type).as_ref().unwrap().clone().expect(
+                "expected the empty disk file to be ignored in favor of the builtin fallback",
+            );
+        assert!(!gateways.is_empty());
+
+        // Reset to the empty file and check the not-allowed case falls through to `None` rather
+        // than an empty `Some`.
+        save_raw(&path, &[]).await.unwrap();
+        let results = seed_all(dir.path(), false).await;
+        let result = find(&results, gw_type).as_ref().unwrap();
+        assert!(
+            result.is_none(),
+            "expected an empty on-disk cache with no builtin fallback to be treated as no seed"
         );
     }
 
