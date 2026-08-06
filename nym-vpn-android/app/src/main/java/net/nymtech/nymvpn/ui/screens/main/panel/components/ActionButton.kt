@@ -97,10 +97,16 @@ internal fun ActionButton(
 		is ConnectionState.Error -> {
 			val isSubscriptionError = connectionState.reason is ErrorStateReason.InactiveSubscription ||
 				connectionState.reason is ErrorStateReason.InactiveAccount
-			val isAccountActionPending = accountState == AccountControllerState.Syncing ||
-				accountState == AccountControllerState.PendingSubscription
+			val isPendingSubscription = accountState is AccountControllerState.PendingSubscription
+			val isAccountActionPending = accountState == AccountControllerState.Syncing || isPendingSubscription
 
 			when {
+				isSubscriptionError && isPendingSubscription -> MainStyledButton(
+					onClick = { onAction(ConnectAction.REFRESH_ACCOUNT) },
+					content = { Text(stringResource(R.string.refresh), style = CustomTypography.buttonMain) },
+					modifier = buttonModifier,
+					shape = buttonShape,
+				)
 				isSubscriptionError && !isAccountActionPending && isVpnAlwaysOn(context) -> MainStyledButton(
 					onClick = { onAction(ConnectAction.STOP_KILL_SWITCH) },
 					textColor = MaterialTheme.colorScheme.onError,
