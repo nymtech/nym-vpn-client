@@ -2,14 +2,14 @@ name: ci-maestro-ios
 
 on:
   schedule:
-    - cron: '0 4 * * *'
+    - cron: "0 4 * * *"
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - '.github/workflows/ci-maestro-ios.yml'
-      - 'nym-vpn-apple/**'
-      - 'nym-vpn-core/**'
-      - 'wireguard/**'
+      - ".github/workflows/ci-maestro-ios.yml"
+      - "nym-vpn-apple/**"
+      - "nym-vpn-core/**"
+      - "wireguard/**"
   workflow_dispatch:
 
 jobs:
@@ -75,17 +75,6 @@ jobs:
             done
             echo "Flattened NymVPNLib xcframework headers (Xcode $XCODE_VER)"
           fi
-
-      # NymVPNRpc is iOS-unused but must exist so the package graph resolves.
-      - name: Add stubs for unused packages
-        working-directory: nym-vpn-apple
-        run: |
-          echo "📦 Adding stubs for unused packages..."
-          rm -rf NymVPNRpc || true
-          mkdir NymVPNRpc || true
-          cd NymVPNRpc
-          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
-          echo "✅ Stubs added successfully."
 
       # Pick an available iPhone (newest runtime first) so build and install target the same device; "iPhone 16" no longer exists on the runner.
       - name: Select and boot iOS simulator
@@ -160,8 +149,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
 
       # Install into RUNNER_TEMP, not $HOME: $HOME persists on this runner and collides with the previous run's install.
       - name: Install Maestro

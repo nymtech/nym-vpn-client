@@ -1,5 +1,5 @@
 import ConnectionTypes
-import NymVPNRpc
+import NymVPNLib
 import TunnelStatus
 
 extension GRPCManager {
@@ -29,7 +29,7 @@ extension GRPCManager {
 }
 
 private extension ConnectionTunnelType {
-    var rpcValue: NymVPNRpc.TunnelType {
+    var rpcValue: NymVPNLib.TunnelType {
         switch self {
         case .mixnet:
             .mixnet

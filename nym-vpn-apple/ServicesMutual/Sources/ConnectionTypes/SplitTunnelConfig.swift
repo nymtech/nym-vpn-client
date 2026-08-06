@@ -1,5 +1,5 @@
 #if os(macOS)
-import NymVPNRpc
+import NymVPNLib
 #endif
 
 public struct SplitTunnelConfig: Codable, Equatable {

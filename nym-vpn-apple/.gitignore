@@ -24,7 +24,6 @@ xcshareddata/swiftpm/
 *.xcresult
 
 NymVPNLib
-NymVPNRpc
 
 NymVPND/nym-vpnd
 NymVPND/nym-setup

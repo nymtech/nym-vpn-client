@@ -4,7 +4,7 @@ import NymLogger
 import SwiftUI
 import ServiceManagement
 import ErrorReason
-import NymVPNRpc
+import NymVPNLib
 import Logging
 import AppVersionProvider
 import Constants

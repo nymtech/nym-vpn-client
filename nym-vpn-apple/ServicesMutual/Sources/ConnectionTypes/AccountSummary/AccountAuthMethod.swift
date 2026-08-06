@@ -1,9 +1,5 @@
 import Foundation
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 public struct AccountAuthMethod: Codable {
     public var id: String

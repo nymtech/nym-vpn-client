@@ -26,8 +26,6 @@ wireguard/libwg/version.h
 nym-vpn-windows/winfw/src/winfw/version.h
 
 # uniffi binaries
-nym-vpn-core/crates/nym-vpn-rpc-uniffi/generated
-nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc
 nym-vpn-core/crates/nym-vpn-lib-uniffi/generated
 nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib
 

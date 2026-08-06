@@ -36,6 +36,10 @@ tracing.workspace = true
 serde_json.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
 nym-bandwidth-controller = { workspace = true }
+nym-bridges-types = { workspace = true, features = [
+    "uniffi-bindings",
+    "serde",
+] }
 nym-sdk.workspace = true
 nym-offline-monitor.workspace = true
 nym-diagnostic.workspace = true

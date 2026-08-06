@@ -8,19 +8,15 @@ NYM_VPN_LIB_DEST := $(CURDIR)/NymVPNLib
 NYM_VPND_SRC_DIR := $(CORE_DIR)/upload/mac
 NYM_VPND_DEST_DIR := ${CURDIR}/NymVPND
 
-NYM_VPN_RPC_SRC_DIR := $(CORE_DIR)/crates/nym-vpn-rpc-uniffi/NymVPNRpc
-NYM_VPN_RPC_DEST_DIR := ${CURDIR}/NymVPNRpc
-
 .PHONY: all build-mac build-ios
 
 all: build-mac build-ios
+	rm -rf "${NYM_VPN_LIB_DEST}"
+	cp -R "${NYM_VPN_LIB_SRC}" "${NYM_VPN_LIB_DEST}"
+	@echo "Copied NymVPNLib → ${NYM_VPN_LIB_DEST}"
 
 build-mac:
 	$(MAKE) -C $(CORE_DIR) -f macOS.mk build-all RELEASE=$(RELEASE) ARCH=$(ARCH)
-
-	rm -rf "${NYM_VPN_RPC_DEST_DIR}"
-	cp -R "${NYM_VPN_RPC_SRC_DIR}" "${NYM_VPN_RPC_DEST_DIR}"
-	echo "Copied NymVPNRpc → ${NYM_VPN_RPC_DEST_DIR}"
 
 	mkdir -p "$(NYM_VPND_DEST_DIR)"
 	for f in nym-vpnd nym-socks5-proxy nym-diagnostic nym-setup; do \
@@ -36,6 +32,3 @@ build-mac:
 build-ios:
 	$(MAKE) -C $(CORE_DIR) -f iOS.mk RELEASE=$(RELEASE)
 
-	rm -rf "${NYM_VPN_LIB_DEST}"
-	cp -R "${NYM_VPN_LIB_SRC}" "${NYM_VPN_LIB_DEST}"
-	@echo "Copied NymVPNLib → ${NYM_VPN_LIB_DEST}"

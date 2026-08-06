@@ -17,7 +17,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  NYM_RPC_ARTIFACTS_MACOS: nym_rpc_artifacts_macos
+  NYM_LIB_ARTIFACTS_MACOS: nym_lib_artifacts_macos
   CORE_ARTIFACTS_MACOS: core_artifacts_macos
   CORE_ARTIFACTS_MACOS_X86_64: core_artifacts_macos_x86_64
   CORE_ARTIFACTS_MACOS_ARM64: core_artifacts_macos_arm64
@@ -118,7 +118,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  build-nym-vpn-rpc:
+  build-nym-vpn-lib:
     if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     needs: build-wireguard-go-macos
@@ -188,24 +188,24 @@ jobs:
           name: wireguard-go_apple_universal
           path: build/lib
 
-      - name: Build rpc-swift-package
+      - name: Build swift-package
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          make -C nym-vpn-core -f macOS.mk rpc-swift-package RELEASE="true"
-          mkdir "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
-          mv "nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc" "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
+          make -C nym-vpn-core -f macOS.mk swift-package RELEASE="true"
+          mkdir "${{ env.NYM_LIB_ARTIFACTS_MACOS }}"
+          mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "${{ env.NYM_LIB_ARTIFACTS_MACOS }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
-          path: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
+          name: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
+          path: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
           if-no-files-found: error
           retention-days: 1
 
   merge-core-artifacts-macos:
-    needs: [build-nym-vpn-core-macos, build-nym-vpn-rpc]
+    needs: [build-nym-vpn-core-macos, build-nym-vpn-lib]
     runs-on: custom-macos-15
     steps:
       - name: "Cleanup working directory"
@@ -228,11 +228,11 @@ jobs:
           name: ${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}
           path: ${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}
 
-      - name: Download nym-vpn-rpc artifacts
+      - name: Download nym-vpn-lib artifacts
         uses: actions/download-artifact@v8
         with:
-          name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
-          path: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
+          name: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
+          path: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
 
       - name: Merge x86_64 and arm64 artifacts
         run: |
@@ -249,7 +249,7 @@ jobs:
             fi
           done
 
-          mv "${{ env.NYM_RPC_ARTIFACTS_MACOS }}/NymVPNRpc" "${{ env.CORE_ARTIFACTS_MACOS }}"
+          mv "${{ env.NYM_LIB_ARTIFACTS_MACOS }}/NymVPNLib" "${{ env.CORE_ARTIFACTS_MACOS }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7.0.1

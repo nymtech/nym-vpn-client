@@ -399,16 +399,6 @@ jobs:
             echo "[BuildCore] ⚠️ ${DAEMON_PLIST} not found, skipping Santa plist flag"
           fi
 
-      - name: Add stubs for unused packages
-        working-directory: nym-vpn-apple
-        run: |
-          echo "📦 Adding stubs for unused packages..."
-          rm -rf NymVPNLib || true
-          mkdir NymVPNLib || true
-          cd NymVPNLib
-          swift package init --type library --name NymVPNLib --disable-xctest --disable-swift-testing
-          echo "✅ Stubs added successfully."
-
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -424,7 +414,7 @@ jobs:
             chmod +x "${VPND_DEST_DIR}/${f}"
           done
 
-          mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
+          mv core_artifacts_macos/NymVPNLib nym-vpn-apple/NymVPNLib
 
       - name: Purge caches
         working-directory: nym-vpn-apple
