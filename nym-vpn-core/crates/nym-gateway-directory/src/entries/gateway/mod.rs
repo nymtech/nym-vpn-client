@@ -694,6 +694,26 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
     }
 }
 
+/// Convert a raw nym-vpn-api gateway list into a filtered [`GatewayList`], applying the same
+/// per-gateway conversion and mixnet-blacklist filtering regardless of whether the raw data came
+/// from a live fetch, the builtin snapshot, or the on-disk gateway cache.
+pub(crate) fn gateways_from_raw(
+    raw: Vec<nym_vpn_api_client::response::NymDirectoryGateway>,
+    gw_type: GatewayType,
+) -> GatewayList {
+    let gateways: Vec<_> = raw
+        .into_iter()
+        .filter_map(|gw| {
+            Gateway::try_from(gw)
+                .inspect_err(|err| tracing::error!("Failed to parse gateway: {err}"))
+                .ok()
+        })
+        .filter(Gateway::not_mixnet_blacklisted)
+        .collect();
+
+    GatewayList::new(Some(gw_type), gateways)
+}
+
 pub type NymNodeList = GatewayList;
 
 #[derive(Debug, Clone)]

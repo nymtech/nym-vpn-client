@@ -5,13 +5,8 @@ use async_compression::tokio::bufread::GzipDecoder;
 use nym_vpn_api_client::response::NymDirectoryGateway;
 use serde::Deserialize;
 use tokio::io::{AsyncReadExt, BufReader};
-use tracing::error;
 
-use crate::{
-    Error, GatewayType,
-    entries::gateway::{Gateway, GatewayList},
-    error::Result,
-};
+use crate::GatewayType;
 
 static BUILTIN_GATEWAYS: &[u8] = include_bytes!("../builtin/gateways.json.gz");
 
@@ -40,32 +35,33 @@ impl BuiltinGatewayType {
     }
 }
 
-/// Load the builtin gateway list for `gw_type`, applying the same conversion and filtering that
-/// [`crate::gateway_client::GatewayClient::lookup_gateways`] applies to a live response.
-pub(crate) async fn load_builtin_gateways(gw_type: GatewayType) -> Result<GatewayList> {
-    let builtin_err = |reason: String| Error::BuiltinGatewayList { gw_type, reason };
-
+async fn decode_builtin() -> anyhow::Result<Vec<BuiltinEntry>> {
     let mut decompressed = Vec::new();
     GzipDecoder::new(BufReader::new(BUILTIN_GATEWAYS))
         .read_to_end(&mut decompressed)
-        .await
-        .map_err(|err| builtin_err(format!("failed to decompress: {err}")))?;
+        .await?;
 
-    let entries: Vec<BuiltinEntry> = serde_json::from_slice(&decompressed)
-        .map_err(|err| builtin_err(format!("failed to parse json: {err}")))?;
+    Ok(serde_json::from_slice(&decompressed)?)
+}
 
-    let gateways: Vec<_> = entries
-        .into_iter()
-        .filter(|entry| entry.types.iter().any(|t| t.matches(gw_type)))
-        .filter_map(|entry| {
-            Gateway::try_from(entry.gateway)
-                .inspect_err(|err| error!("Failed to parse builtin gateway: {err}"))
-                .ok()
-        })
-        .filter(Gateway::not_mixnet_blacklisted)
-        .collect();
+/// The builtin snapshot, already decompressed and deserialized. Decoding it is not free — it's
+/// ~561 gateway objects, each with nested location/probe/performance data — so callers that need
+/// more than one [`GatewayType`] out of it (see `crate::gateway_store::seed_all`) should decode
+/// once via [`load_builtin_snapshot`] and reuse this, rather than decoding it again per type.
+pub(crate) struct BuiltinSnapshot(Vec<BuiltinEntry>);
 
-    Ok(GatewayList::new(Some(gw_type), gateways))
+impl BuiltinSnapshot {
+    pub(crate) fn raw_gateways(&self, gw_type: GatewayType) -> Vec<NymDirectoryGateway> {
+        self.0
+            .iter()
+            .filter(|entry| entry.types.iter().any(|t| t.matches(gw_type)))
+            .map(|entry| entry.gateway.clone())
+            .collect()
+    }
+}
+
+pub(crate) async fn load_builtin_snapshot() -> anyhow::Result<BuiltinSnapshot> {
+    decode_builtin().await.map(BuiltinSnapshot)
 }
 
 #[cfg(test)]
@@ -73,13 +69,28 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
+    use crate::entries::gateway::gateways_from_raw;
+
+    #[tokio::test]
+    async fn builtin_snapshot_is_deserializable() {
+        let entries = decode_builtin()
+            .await
+            .expect("committed builtin/gateways.json.gz must decompress and deserialize under the current schema");
+        assert!(
+            !entries.is_empty(),
+            "builtin snapshot deserialized but contained no entries"
+        );
+    }
 
     #[tokio::test]
     async fn loads_non_empty_builtin_gateways_for_every_type() {
+        let snapshot = load_builtin_snapshot()
+            .await
+            .expect("failed to load builtin snapshot");
+
         for gw_type in GatewayType::iter() {
-            let gateways = load_builtin_gateways(gw_type).await.unwrap_or_else(|err| {
-                panic!("failed to load builtin gateways for {gw_type:?}: {err}")
-            });
+            let raw = snapshot.raw_gateways(gw_type);
+            let gateways = gateways_from_raw(raw, gw_type);
             assert!(
                 !gateways.is_empty(),
                 "expected at least one builtin gateway for {gw_type:?}"
