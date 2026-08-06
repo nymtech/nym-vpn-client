@@ -328,7 +328,14 @@ impl GatewayCache {
     }
 
     async fn seed_from_disk_or_builtin(&mut self) {
-        let backdated = Instant::now() - MAX_CACHE_AGE - Duration::from_secs(1);
+        // Best-effort backdating so seeded entries are treated as stale and a real fetch is
+        // retried on the next lookup. `checked_sub` avoids a panic on platforms where `Instant`
+        // is boot-relative and the process has been up for less than MAX_CACHE_AGE + 1s; in that
+        // rare case we just fall back to `now`, so the seed is briefly treated as fresh instead.
+        let now = Instant::now();
+        let backdated = now
+            .checked_sub(MAX_CACHE_AGE + Duration::from_secs(1))
+            .unwrap_or(now);
 
         for (gw_type, result) in
             gateway_store::seed_all(&self.data_dir, self.allow_builtin_fallback).await
