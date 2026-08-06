@@ -12,11 +12,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 
 @Composable
-fun CountryFlag(countryCode: String?, size: Dp = iconSize) {
+fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSelectionType = NodeSelectionType.NODE) {
 	val context = LocalContext.current
 	val (painter, description, colorFilter) = if (LocalInspectionMode.current) {
 		Triple(
@@ -31,11 +32,23 @@ fun CountryFlag(countryCode: String?, size: Dp = iconSize) {
 				stringResource(R.string.country_flag, code),
 				null,
 			)
-		} ?: Triple(
-			painterResource(R.drawable.faq),
-			stringResource(R.string.unknown),
-			ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-		)
+		} ?: when (selectionType) {
+			NodeSelectionType.AUTO -> Triple(
+				painterResource(R.drawable.ic_safest),
+				stringResource(R.string.gateway_safest),
+				null,
+			)
+			NodeSelectionType.RANDOM -> Triple(
+				painterResource(R.drawable.ic_random),
+				stringResource(R.string.unknown),
+				ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+			)
+			NodeSelectionType.NODE -> Triple(
+				painterResource(R.drawable.faq),
+				stringResource(R.string.unknown),
+				ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+			)
+		}
 	}
 
 	Image(

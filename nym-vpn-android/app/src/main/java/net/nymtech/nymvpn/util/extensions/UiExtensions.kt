@@ -256,7 +256,6 @@ fun FavoriteIcon(isFavorite: Boolean, onToggleFavorite: () -> Unit, modifier: Mo
 
 @Composable
 fun getModeIcon(mode: ConnectMode): ImageVector = when (mode) {
-	ConnectMode.AUTO -> ImageVector.vectorResource(R.drawable.ic_mode_auto)
 	ConnectMode.FAST -> ImageVector.vectorResource(R.drawable.ic_mode_fast)
 	ConnectMode.MIXNET -> ImageVector.vectorResource(R.drawable.ic_mode_mixnet)
 }

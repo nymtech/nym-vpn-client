@@ -28,12 +28,11 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.theme.*
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
-	val pendingNavigation by viewModel.pendingNavigation.collectAsStateWithLifecycle()
+	val readyForSelectPlan by viewModel.readyForSelectPlan.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val mode = viewModel.mode
 	val errorText = stringResource(R.string.account_generating_error)
@@ -46,13 +45,9 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 		}
 	}
 
-	LaunchedEffect(animationEnded, pendingNavigation) {
-		val nav = pendingNavigation ?: return@LaunchedEffect
-		if (!animationEnded) return@LaunchedEffect
-		when (nav) {
-			Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
-			else -> navController.navigateAndForget(nav)
-		}
+	LaunchedEffect(animationEnded, readyForSelectPlan) {
+		if (!readyForSelectPlan || !animationEnded) return@LaunchedEffect
+		navController.navigateAndForget(Route.SelectPlan)
 	}
 
 	GeneratingContent(
