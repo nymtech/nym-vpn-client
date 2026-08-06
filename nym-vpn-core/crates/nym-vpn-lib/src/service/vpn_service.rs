@@ -634,6 +634,8 @@ impl NymVpnService {
             gateway_directory_client.clone(),
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
+            paths.network_data_dir.join("gateway-cache"),
+            network_name == "mainnet",
         );
 
         let urls = api_urls_to_urls(&nym_api_urls).map_err(Error::ConvertApiUrls)?;

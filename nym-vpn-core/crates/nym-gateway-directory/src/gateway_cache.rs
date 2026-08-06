@@ -4,22 +4,24 @@
 use std::{
     collections::HashMap,
     net::IpAddr,
+    path::PathBuf,
     time::{Duration, Instant},
 };
 
 use nym_offline_monitor::ConnectivityHandle;
 use nym_sdk::mixnet::NodeIdentity;
+use nym_vpn_api_client::response::NymDirectoryGateway;
 use strum::IntoEnumIterator;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     Error, Gateway, GatewayClient, GatewayList, GatewayType, LookupGatewayFilters, NymNode,
-    NymNodeList, builtin, error::Result,
+    NymNodeList, entries::gateway::gateways_from_raw, error::Result, gateway_store,
 };
 
 /// The maximum age of the cache before it is considered stale.
-const MAX_CACHE_AGE: Duration = Duration::from_secs(5 * 60);
+const MAX_CACHE_AGE: Duration = Duration::from_secs(10 * 60);
 
 #[derive(Clone)]
 pub struct GatewayCacheHandle {
@@ -233,6 +235,13 @@ pub struct GatewayCache {
 
     // Shutdown token
     shutdown_token: CancellationToken,
+
+    // Directory holding the on-disk gateway cache (see `crate::gateway_store`)
+    data_dir: PathBuf,
+
+    // Whether the builtin (mainnet-only) gateway snapshot may be used to seed the on-disk cache
+    // when it's empty. Must be false for any non-mainnet network.
+    allow_builtin_fallback: bool,
 }
 
 impl GatewayCache {
@@ -240,6 +249,8 @@ impl GatewayCache {
         gateway_client: GatewayClient,
         connectivity_handle: ConnectivityHandle,
         shutdown_token: CancellationToken,
+        data_dir: PathBuf,
+        allow_builtin_fallback: bool,
     ) -> (GatewayCacheHandle, JoinHandle<()>) {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -252,12 +263,16 @@ impl GatewayCache {
             is_performed_initial_refresh: false,
             paused: false,
             shutdown_token,
+            data_dir,
+            allow_builtin_fallback,
         };
         let join_handle = tokio::spawn(inner.run());
         (GatewayCacheHandle::new(command_tx), join_handle)
     }
 
     async fn run(mut self) {
+        self.seed_from_disk_or_builtin().await;
+
         if !self.paused && self.connectivity_handle.connectivity().await.is_online() {
             self.perform_initial_fetch_once().await;
         }
@@ -307,6 +322,32 @@ impl GatewayCache {
                 }
                 _ = self.shutdown_token.cancelled() => {
                     break;
+                }
+            }
+        }
+    }
+
+    async fn seed_from_disk_or_builtin(&mut self) {
+        let backdated = Instant::now() - MAX_CACHE_AGE - Duration::from_secs(1);
+
+        for (gw_type, result) in
+            gateway_store::seed_all(&self.data_dir, self.allow_builtin_fallback).await
+        {
+            match result {
+                Ok(Some(gateways)) => {
+                    tracing::debug!(
+                        "Seeded {} gateways for {gw_type:?} from on-disk/builtin cache",
+                        gateways.len()
+                    );
+                    self.cached_gateways.insert(gw_type, (gateways, backdated));
+                }
+                Ok(None) => {
+                    tracing::debug!(
+                        "Nothing to seed {gw_type:?} with yet (no on-disk cache, builtin not applicable)"
+                    );
+                }
+                Err(err) => {
+                    tracing::error!("Failed to seed gateway cache for {gw_type:?}: {err}");
                 }
             }
         }
@@ -374,7 +415,7 @@ impl GatewayCache {
         for gw_type in gw_list_types {
             let client = self.gateway_client.clone();
             tasks.spawn(async move {
-                let res = client.lookup_gateways(gw_type).await;
+                let res = client.lookup_gateways_raw(gw_type).await;
                 (gw_type, res)
             });
         }
@@ -383,17 +424,14 @@ impl GatewayCache {
 
         while let Some(res) = tasks.join_next().await {
             match res {
-                Ok((gw_type, r)) => match r {
-                    Ok(refreshed_gateways) => {
-                        tracing::debug!("Refreshed gateways for {gw_type:?}");
-                        self.cached_gateways
-                            .insert(gw_type, (refreshed_gateways, Instant::now()));
-                        ok = true;
-                    }
-                    Err(err) => {
-                        tracing::debug!("Failed to refresh gateways for {gw_type:?}: {err}");
-                    }
-                },
+                Ok((gw_type, Ok(raw))) => {
+                    tracing::debug!("Refreshed gateways for {gw_type:?}");
+                    self.store_and_cache(gw_type, raw).await;
+                    ok = true;
+                }
+                Ok((gw_type, Err(err))) => {
+                    tracing::debug!("Failed to refresh gateways for {gw_type:?}: {err}");
+                }
                 Err(err) => {
                     tracing::error!("Failed to join on refresh task: {err}");
                 }
@@ -411,6 +449,25 @@ impl GatewayCache {
             .unwrap_or_default()
     }
 
+    /// Convert a freshly-fetched raw gateway list, persist it to disk (best-effort — a write
+    /// failure is only logged, since the in-memory cache and the running process are unaffected),
+    /// and update the in-memory cache.
+    async fn store_and_cache(
+        &mut self,
+        gw_type: GatewayType,
+        raw: Vec<NymDirectoryGateway>,
+    ) -> GatewayList {
+        let refreshed_gateways = gateways_from_raw(raw.clone(), gw_type);
+
+        if let Err(err) = gateway_store::save(&self.data_dir, gw_type, &raw).await {
+            tracing::warn!("Failed to persist gateway cache for {gw_type:?} to disk: {err}");
+        }
+
+        self.cached_gateways
+            .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
+        refreshed_gateways
+    }
+
     async fn refresh_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some((gw_list, last_updated)) = self.cached_gateways.get(&gw_type)
             && last_updated.elapsed() < MAX_CACHE_AGE
@@ -420,50 +477,11 @@ impl GatewayCache {
 
         if self.connectivity_handle.connectivity().await.is_offline() {
             tracing::warn!("Not refreshing gateways for {gw_type:?} because we are not connected");
-            return self.seed_from_builtin_or(gw_type, Error::Offline).await;
+            return Err(Error::Offline);
         }
 
-        match self.gateway_client.lookup_gateways(gw_type).await {
-            Ok(refreshed_gateways) => {
-                self.cached_gateways
-                    .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
-                Ok(refreshed_gateways)
-            }
-            Err(err) => self.seed_from_builtin_or(gw_type, err).await,
-        }
-    }
-
-    /// Called when a refresh for `gw_type` has failed. If we have no cached data at all for this
-    /// type, seed the cache from the builtin gateway list so callers get something usable on a
-    /// fresh/offline install, marking it stale so the next lookup retries a real fetch. If we
-    /// already have (possibly stale) cached data, leave it untouched and propagate the error.
-    async fn seed_from_builtin_or(
-        &mut self,
-        gw_type: GatewayType,
-        err: Error,
-    ) -> Result<GatewayList> {
-        if self.cached_gateways.contains_key(&gw_type) {
-            return Err(err);
-        }
-
-        match builtin::load_builtin_gateways(gw_type).await {
-            Ok(builtin_list) => {
-                tracing::warn!(
-                    "No cache and refresh failed for {gw_type:?} ({err}); seeding {} gateways from builtin list",
-                    builtin_list.len()
-                );
-                let backdated = Instant::now() - MAX_CACHE_AGE - Duration::from_secs(1);
-                self.cached_gateways
-                    .insert(gw_type, (builtin_list.clone(), backdated));
-                Ok(builtin_list)
-            }
-            Err(builtin_err) => {
-                tracing::error!(
-                    "Failed to load builtin gateway list for {gw_type:?}: {builtin_err}"
-                );
-                Err(err)
-            }
-        }
+        let raw = self.gateway_client.lookup_gateways_raw(gw_type).await?;
+        Ok(self.store_and_cache(gw_type, raw).await)
     }
 
     async fn lookup_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {

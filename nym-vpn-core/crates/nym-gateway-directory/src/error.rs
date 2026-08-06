@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
+
 use nym_http_api_client::HttpClientError;
 use nym_validator_client::nym_api::error::NymAPIError;
 
@@ -110,6 +112,9 @@ pub enum Error {
         gw_type: GatewayType,
         reason: String,
     },
+
+    #[error("failed to access on-disk gateway cache at '{}': {reason}", path.display())]
+    GatewayStore { path: PathBuf, reason: String },
 }
 
 impl Error {
