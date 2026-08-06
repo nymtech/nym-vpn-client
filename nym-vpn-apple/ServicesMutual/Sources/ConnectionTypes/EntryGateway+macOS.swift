@@ -1,5 +1,5 @@
 #if os(macOS)
-import NymVPNRpc
+import NymVPNLib
 
 extension EntryGateway {
     public var entryPoint: EntryPoint {

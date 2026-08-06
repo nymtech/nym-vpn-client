@@ -3,7 +3,7 @@ import AppSettings
 import ConnectionManager
 import Constants
 #if os(macOS)
-import NymVPNRpc
+import NymVPNLib
 import GRPCManager
 #endif
 import Theme

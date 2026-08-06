@@ -1,8 +1,4 @@
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 extension BackgroundCoverTrafficRate: @retroactive Codable {
     public init(from decoder: Decoder) throws {

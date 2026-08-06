@@ -1,5 +1,5 @@
 import Foundation
-import NymVPNRpc
+import NymVPNLib
 import Constants
 import ErrorReason
 import TunnelStatus
@@ -229,7 +229,7 @@ extension ErrorReason {
 #endif
 
 private extension ConnectionTunnelType {
-    init(_ tunnelType: NymVPNRpc.TunnelType) {
+    init(_ tunnelType: NymVPNLib.TunnelType) {
         switch tunnelType {
         case .mixnet:
             self = .mixnet
@@ -238,7 +238,7 @@ private extension ConnectionTunnelType {
         }
     }
 
-    init(_ data: NymVPNRpc.TunnelConnectionData) {
+    init(_ data: NymVPNLib.TunnelConnectionData) {
         switch data {
         case .mixnet:
             self = .mixnet

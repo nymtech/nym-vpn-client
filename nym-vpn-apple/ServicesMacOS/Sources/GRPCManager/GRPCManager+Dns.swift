@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 
 extension GRPCManager {
     public func getDefaultDns() async throws -> [IpAddr] {

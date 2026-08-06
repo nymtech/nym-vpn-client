@@ -1,8 +1,4 @@
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 public enum VpnSubscriptionStatus: Equatable, Hashable, Codable {
     case pending

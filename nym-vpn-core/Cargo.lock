@@ -7519,6 +7519,7 @@ dependencies = [
  "log",
  "ndk-context",
  "nym-bandwidth-controller",
+ "nym-bridges-types",
  "nym-common 2026.13.0-beta.1",
  "nym-diagnostic",
  "nym-favorites",
@@ -7591,22 +7592,6 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tower",
-]
-
-[[package]]
-name = "nym-vpn-rpc-uniffi"
-version = "2026.13.0-beta.1"
-dependencies = [
- "futures",
- "nym-bridges-types",
- "nym-common 2026.13.0-beta.1",
- "nym-favorites",
- "nym-vpn-lib-types",
- "nym-vpn-proto",
- "tokio",
- "tokio-util",
- "tracing",
- "uniffi",
 ]
 
 [[package]]

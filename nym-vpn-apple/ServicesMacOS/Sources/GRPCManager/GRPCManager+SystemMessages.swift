@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 
 extension GRPCManager {
     public func fetchCompatibleVersions() async throws -> (macOS: String?, core: String?) {

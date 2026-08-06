@@ -1,7 +1,6 @@
 import Foundation
-#if os(iOS)
-#elseif os(macOS)
-import NymVPNRpc
+#if os(macOS)
+import NymVPNLib
 #endif
 
 public struct ConnectionConfig: Codable {
