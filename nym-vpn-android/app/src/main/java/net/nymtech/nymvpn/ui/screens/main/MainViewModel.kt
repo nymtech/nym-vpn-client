@@ -100,6 +100,12 @@ constructor(
 		_expiryBannerDismissed.value = true
 	}
 
+	fun refreshAccount() = viewModelScope.launch {
+		Timber.tag(TAG).i("RefreshAccountRequested")
+		runCatching { backendManager.refreshAccount() }
+			.onFailure { t -> Timber.tag(TAG).e(t, "RefreshAccountFailed") }
+	}
+
 	fun registerAccount() = viewModelScope.launch {
 		Timber.tag(TAG).i("RegisterAccountRequested")
 		_events.tryEmit(MainUiEvent.NavigateToSelectPlan)

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.0] - TBD
+
 ### Added
 - Recents support (https://github.com/nymtech/nym-vpn-client/pull/5922)
 - Favorites support (https://github.com/nymtech/nym-vpn-client/pull/5922)
@@ -20,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed Mixnet tuning appearance in Settings (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Update UI and sections for Mixnet Tuning screen (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Update Selected item UI (https://github.com/nymtech/nym-vpn-client/pull/5996)
+- Improved account signup and subscription flow (https://github.com/nymtech/nym-vpn-client/pull/6014)
 
 ### Fixed
 - Fix auto-connect getting stuck after boot (https://github.com/nymtech/nym-vpn-client/pull/5924)
