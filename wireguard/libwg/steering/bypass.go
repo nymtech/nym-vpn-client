@@ -86,9 +86,35 @@ type bypassStack struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
 	waitGroup sync.WaitGroup
+
+	mu     sync.Mutex
+	closed bool
+}
+
+// tryAdd registers a goroutine (handler, pump, or dial) as tracked work
+// against b.waitGroup, unless Close has already begun. It must be used
+// instead of a bare waitGroup.Add anywhere that can race Close's Wait:
+// gVisor's tcp.Forwarder invokes handleTCP/handleUDP on fresh, unmanaged
+// goroutines, so an Add there can otherwise land concurrently with a Wait
+// that just observed the counter hit zero, which panics ("WaitGroup misuse:
+// Add called concurrently with Wait"). Serializing Add against the
+// closed flag under mu removes that race, and rejecting new work once
+// closed keeps Close's "waits for every goroutine started by this stack"
+// contract true even for handlers that haven't reached CreateEndpoint yet.
+func (b *bypassStack) tryAdd() bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.closed {
+		return false
+	}
+	b.waitGroup.Add(1)
+	return true
 }
 
 func newBypassStack(cfg Config, cb Callbacks, writeToTun func([]byte), logger *device.Logger) (*bypassStack, error) {
+	if cb.Protect == nil {
+		return nil, fmt.Errorf("bypass stack requires a non-nil Protect callback: every socket dialed for a bypassed flow must be protected")
+	}
 	s := stack.New(stack.Options{
 		NetworkProtocols:   []stack.NetworkProtocolFactory{ipv4.NewProtocol, ipv6.NewProtocol},
 		TransportProtocols: []stack.TransportProtocolFactory{tcp.NewProtocol, udp.NewProtocol},
@@ -121,11 +147,11 @@ func newBypassStack(cfg Config, cb Callbacks, writeToTun func([]byte), logger *d
 		ctx:      ctx,
 		cancel:   cancel,
 		dialer: net.Dialer{
+			// cb.Protect is guaranteed non-nil (checked above), so this hook
+			// unconditionally protects every socket this stack dials.
 			Control: func(network, address string, c syscall.RawConn) error {
 				return c.Control(func(fd uintptr) {
-					if cb.Protect != nil {
-						cb.Protect(int32(fd))
-					}
+					cb.Protect(int32(fd))
 				})
 			},
 		},
@@ -137,6 +163,9 @@ func newBypassStack(cfg Config, cb Callbacks, writeToTun func([]byte), logger *d
 	s.SetTransportProtocolHandler(udp.ProtocolNumber, udpFwd.HandlePacket)
 
 	// Pump packets the netstack emits (responses to the apps) back to the TUN.
+	// This Add happens before newBypassStack returns and before Close can
+	// possibly be called (the caller doesn't have b yet), so it cannot race
+	// Close's Wait; tryAdd is not needed here.
 	b.waitGroup.Add(1)
 	go func() {
 		defer b.waitGroup.Done()
@@ -170,8 +199,17 @@ func (b *bypassStack) InjectInbound(pkt []byte, isIPv4 bool) {
 }
 
 // Close tears down the netstack and blocks until the packet pump and every
-// flow-bridging goroutine started by this stack have exited.
+// flow-bridging goroutine started by this stack have exited. Setting closed
+// (under mu, before cancel/endpoint-close/stack-destroy) makes every
+// in-flight handleTCP/handleUDP invocation observe the shutdown via tryAdd
+// and bail out instead of touching a torn-down stack; the Wait at the end
+// then blocks until all goroutines that did win a tryAdd race have
+// finished.
 func (b *bypassStack) Close() {
+	b.mu.Lock()
+	b.closed = true
+	b.mu.Unlock()
+
 	b.cancel()
 	b.endpoint.Close()
 	b.stack.Destroy()
@@ -179,6 +217,18 @@ func (b *bypassStack) Close() {
 }
 
 func (b *bypassStack) handleTCP(r *tcp.ForwarderRequest) {
+	// gVisor's tcp.Forwarder invokes handleTCP on a fresh goroutine per
+	// flow, so this Add must be serialized against Close's closed flag
+	// (tryAdd) rather than called bare: otherwise it can race a Wait that
+	// just observed the counter reach zero and panic, and an untracked
+	// handler could still be between here and CreateEndpoint when Close
+	// returns and the stack is destroyed.
+	if !b.tryAdd() {
+		r.Complete(true) // free the forwarder's in-flight slot; we're shutting down
+		return
+	}
+	defer b.waitGroup.Done()
+
 	id := r.ID()
 	dst := forwarderDstAddr(id)
 	dialAddr := resolveBypassDialAddr(dst, b.cfg.UnderlyingDNS)
@@ -203,14 +253,20 @@ func (b *bypassStack) handleTCP(r *tcp.ForwarderRequest) {
 	r.Complete(false)
 	inbound := gonet.NewTCPConn(&wq, ep)
 
-	b.waitGroup.Add(1)
-	go func() {
-		defer b.waitGroup.Done()
-		pump(b.ctx, inbound, outbound)
-	}()
+	// Run the pump synchronously so the flow's lifetime stays covered by
+	// the Add above for as long as data is flowing, instead of handing off
+	// to a second, separately tracked goroutine.
+	pump(b.ctx, inbound, outbound)
 }
 
 func (b *bypassStack) handleUDP(r *udp.ForwarderRequest) {
+	// See handleTCP: gVisor's udp.Forwarder also dispatches on a fresh,
+	// unmanaged goroutine, so this must go through tryAdd, not a bare Add.
+	if !b.tryAdd() {
+		return
+	}
+	defer b.waitGroup.Done()
+
 	id := r.ID()
 	dst := forwarderDstAddr(id)
 	dialAddr := resolveBypassDialAddr(dst, b.cfg.UnderlyingDNS)
@@ -230,11 +286,9 @@ func (b *bypassStack) handleUDP(r *udp.ForwarderRequest) {
 		return
 	}
 
-	b.waitGroup.Add(1)
-	go func() {
-		defer b.waitGroup.Done()
-		pumpUDP(b.ctx, inbound, outbound)
-	}()
+	// Run synchronously (see handleTCP) so the whole flow's lifetime is
+	// covered by the Add above.
+	pumpUDP(b.ctx, inbound, outbound)
 }
 
 func forwarderDstAddr(id stack.TransportEndpointID) netip.AddrPort {

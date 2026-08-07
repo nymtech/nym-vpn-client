@@ -8,6 +8,8 @@ package steering
 import (
 	"net/netip"
 	"testing"
+
+	"github.com/amnezia-vpn/amneziawg-go/device"
 )
 
 func TestDialAddrRedirectsDNSToUnderlyingResolver(t *testing.T) {
@@ -40,5 +42,29 @@ func TestDialAddrPassthroughDNSWhenNoResolvers(t *testing.T) {
 	orig := netip.AddrPortFrom(netip.MustParseAddr("10.64.0.1"), 53)
 	if got := resolveBypassDialAddr(orig, nil); got != orig {
 		t.Fatalf("got %v want %v", got, orig)
+	}
+}
+
+// TestNewBypassStackRejectsNilProtect asserts the nil-Protect invariant
+// structurally: without a Protect callback, a dialed socket for a bypassed
+// flow would go out unprotected, re-entering the VPN routing loop the
+// design forbids. newBypassStack must refuse to construct in that case
+// rather than silently producing a fail-open dialer.
+func TestNewBypassStackRejectsNilProtect(t *testing.T) {
+	cfg := Config{MTU: 1500}
+	cb := Callbacks{
+		Protect:  nil,
+		OwnerUID: func(proto Proto, src, dst netip.AddrPort) int32 { return -1 },
+	}
+	logger := device.NewLogger(device.LogLevelError, "test")
+	b, err := newBypassStack(cfg, cb, func([]byte) {}, logger)
+	if err == nil {
+		if b != nil {
+			b.Close()
+		}
+		t.Fatal("newBypassStack with nil Protect: got nil error, want error")
+	}
+	if b != nil {
+		t.Fatal("newBypassStack with nil Protect: got non-nil stack, want nil")
 	}
 }
