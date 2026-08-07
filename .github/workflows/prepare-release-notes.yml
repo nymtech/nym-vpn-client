@@ -265,7 +265,16 @@ jobs:
           # for prereleases, extract the changelog from the [unreleased] section
           prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
 
-      - name: Add release notes (General + Core changes)
+      - name: Extract apple changelog
+        id: apple-changelog
+        if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
+        uses: ffurrer2/extract-release-notes@v3
+        with:
+          changelog_file: nym-vpn-apple/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
+
+      - name: Add release notes (General + Core)
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
           VERSION: ${{ needs.resolve.outputs.version }}
@@ -346,7 +355,7 @@ jobs:
           EOF
           fi
 
-      - name: Add release notes (Android changes)
+      - name: Add release notes (Android)
         if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
@@ -365,7 +374,7 @@ jobs:
           EOF
           fi
 
-      - name: Add release notes (Tauri changes)
+      - name: Add release notes (Tauri)
         if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
         env:
           RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
@@ -380,6 +389,25 @@ jobs:
           ### 🐧🪟 Windows & Linux apps
 
           $UPDATED_TAURI_CHANGES
+
+          EOF
+          fi
+
+      - name: Add release notes (Apple)
+        if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          APPLE_CHANGES: ${{ steps.apple-changelog.outputs.release_notes || '' }}
+        run: |
+          if [ -n "$APPLE_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_APPLE_CHANGES=$(sed 's/^### /#### /' <<< "$APPLE_CHANGES")
+
+            envsubst '$UPDATED_APPLE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ### 🍎 iOS & macOS apps
+
+          $UPDATED_APPLE_CHANGES
 
           EOF
           fi

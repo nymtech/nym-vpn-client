@@ -343,6 +343,14 @@ jobs:
           version: ${{ steps.changelog.outputs.version }}
           release_date: ${{ steps.changelog.outputs.release_date }}
 
+      - name: Update nym-vpn-apple/CHANGELOG.md
+        if: ${{ inputs.update_changelog }}
+        uses: ./.github/actions/add-changelog-release
+        with:
+          changelog: nym-vpn-apple/CHANGELOG.md
+          version: ${{ steps.changelog.outputs.version }}
+          release_date: ${{ steps.changelog.outputs.release_date }}
+
       # --- diff + PR ---
       - name: Show diff
         run: git diff --stat && git diff
