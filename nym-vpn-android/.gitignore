@@ -74,3 +74,6 @@ lint/tmp/
 
 # Maestro test debug output
 maestro/tests/
+
+# Generated uniffi bindings
+core/src/main/java/net/nymtech/vpn/nym_bridges_types/

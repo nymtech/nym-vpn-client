@@ -418,8 +418,9 @@ class MainActivity : AppCompatActivity() {
 			}
 		} else if (host == "account" && path?.startsWith("/response") == true) {
 			lifecycleScope.launch {
-				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
-				navControllerRef?.navigate(routeAfterDeepLinkAuth(storeSucceeded)) {
+				appViewModel.handleDeepLinkAuth(uri.toString())
+				appViewModel.dismissAutologin()
+				navControllerRef?.navigate(Route.Main(autoStart = false)) {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
