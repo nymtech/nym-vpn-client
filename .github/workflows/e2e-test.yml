@@ -119,12 +119,16 @@ jobs:
               echo "::error::release_tag must match nym-vpn-vMAJOR.MINOR.PATCH[-beta.N|-nightly.DATE] (got: ${TAG})"
               exit 1
             fi
+            # Core binaries (vpnd/vpnc) come from the published tarball, but the
+            # harness (test-manager, tests, workflow scripts) must come from this
+            # workflow run's commit - otherwise a branch that adds subcommands
+            # like delete-devices fails when pointed at an older release tag.
             {
               echo "release_tag=${TAG}"
               echo "binary_source=release"
-              echo "checkout_ref=${TAG}"
+              echo "checkout_ref=${WORKFLOW_SHA}"
             } >> "$GITHUB_OUTPUT"
-            echo "mode=release tag=${TAG}"
+            echo "mode=release tag=${TAG} harness=${WORKFLOW_SHA}"
           else
             {
               echo "release_tag="
