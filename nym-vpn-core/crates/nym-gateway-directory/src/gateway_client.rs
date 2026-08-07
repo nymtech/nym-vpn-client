@@ -24,7 +24,9 @@ use url::Url;
 
 use crate::{
     Error, NymNode,
-    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList, gateways_from_raw},
+    entries::gateway::{
+        Gateway, GatewayList, GatewayType, NymNodeList, gateways_from_directory_response,
+    },
     error::Result,
 };
 
@@ -514,7 +516,7 @@ impl GatewayClient {
 
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         let raw_gateways_vec = self.lookup_gateways_raw(gw_type).await?;
-        let gateways = gateways_from_raw(raw_gateways_vec, gw_type);
+        let gateways = gateways_from_directory_response(raw_gateways_vec, gw_type);
 
         debug!(
             "Successfully parsed {} gateways for {:?}",

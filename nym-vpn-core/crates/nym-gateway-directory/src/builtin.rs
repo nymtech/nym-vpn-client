@@ -69,7 +69,7 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::*;
-    use crate::entries::gateway::gateways_from_raw;
+    use crate::entries::gateway::gateways_from_directory_response;
 
     #[tokio::test]
     async fn builtin_snapshot_is_deserializable() {
@@ -90,7 +90,7 @@ mod tests {
 
         for gw_type in GatewayType::iter() {
             let raw = snapshot.raw_gateways(gw_type);
-            let gateways = gateways_from_raw(raw, gw_type);
+            let gateways = gateways_from_directory_response(raw, gw_type);
             assert!(
                 !gateways.is_empty(),
                 "expected at least one builtin gateway for {gw_type:?}"

@@ -17,7 +17,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     Error, Gateway, GatewayClient, GatewayList, GatewayType, LookupGatewayFilters, NymNode,
-    NymNodeList, entries::gateway::gateways_from_raw, error::Result, gateway_store,
+    NymNodeList, entries::gateway::gateways_from_directory_response, error::Result, gateway_store,
 };
 
 /// The maximum age of the cache before it is considered stale.
@@ -328,12 +328,14 @@ impl GatewayCache {
     }
 
     async fn seed_from_disk_or_builtin(&mut self) {
-        // Best-effort backdating so seeded entries are treated as stale and a real fetch is
-        // retried on the next lookup. `checked_sub` avoids a panic on platforms where `Instant`
-        // is boot-relative and the process has been up for less than MAX_CACHE_AGE + 1s; in that
-        // rare case we just fall back to `now`, so the seed is briefly treated as fresh instead.
+        // Builtin-seeded entries are backdated so they're treated as stale and a real fetch is
+        // retried on the next lookup: the builtin snapshot is static data bundled at build time,
+        // not the result of a real fetch, so we don't want to sit on it for a full MAX_CACHE_AGE.
+        // `checked_sub` avoids a panic on platforms where `Instant` is boot-relative and the
+        // process has been up for less than MAX_CACHE_AGE + 1s; in that rare case we just fall
+        // back to `now`, so the seed is briefly treated as fresh instead.
         let now = Instant::now();
-        let backdated = now
+        let backdated_for_builtin = now
             .checked_sub(MAX_CACHE_AGE + Duration::from_secs(1))
             .unwrap_or(now);
 
@@ -341,12 +343,25 @@ impl GatewayCache {
             gateway_store::seed_all(&self.data_dir, self.allow_builtin_fallback).await
         {
             match result {
-                Ok(Some(gateways)) => {
+                Ok(Some(gateway_store::SeededGateways::FromDisk { gateways, age })) => {
+                    // Preserve the on-disk cache's real age instead of always backdating it, so a
+                    // cache that's still fresh from a previous run doesn't trigger an unnecessary
+                    // refetch on every startup — a real cost on mobile.
+                    let last_updated = now.checked_sub(age).unwrap_or(now);
                     tracing::debug!(
-                        "Seeded {} gateways for {gw_type:?} from on-disk/builtin cache",
+                        "Seeded {} gateways for {gw_type:?} from on-disk cache (age: {age:?})",
                         gateways.len()
                     );
-                    self.cached_gateways.insert(gw_type, (gateways, backdated));
+                    self.cached_gateways
+                        .insert(gw_type, (gateways, last_updated));
+                }
+                Ok(Some(gateway_store::SeededGateways::FromBuiltin(gateways))) => {
+                    tracing::debug!(
+                        "Seeded {} gateways for {gw_type:?} from builtin fallback",
+                        gateways.len()
+                    );
+                    self.cached_gateways
+                        .insert(gw_type, (gateways, backdated_for_builtin));
                 }
                 Ok(None) => {
                     tracing::debug!(
@@ -464,7 +479,7 @@ impl GatewayCache {
         gw_type: GatewayType,
         raw: Vec<NymDirectoryGateway>,
     ) -> GatewayList {
-        let refreshed_gateways = gateways_from_raw(raw.clone(), gw_type);
+        let refreshed_gateways = gateways_from_directory_response(raw.clone(), gw_type);
 
         if let Err(err) = gateway_store::save(&self.data_dir, gw_type, &raw).await {
             tracing::warn!("Failed to persist gateway cache for {gw_type:?} to disk: {err}");
