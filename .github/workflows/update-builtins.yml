@@ -67,6 +67,10 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.branch || github.ref }}
+          # This job runs download_sources.py from the checked-out ref before it ever needs
+          # to push - don't leave a write-scoped token sitting in .git/config while that runs.
+          # `gh auth setup-git` configures git authentication just before the push instead.
+          persist-credentials: false
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -123,6 +127,7 @@ jobs:
           BRANCH_NAME: "ci/update-builtins-${{ github.run_number }}"
           BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
+          gh auth setup-git
           git checkout -b "$BRANCH_NAME"
           git commit -m "ci: update builtin snapshots"
           git push origin "$BRANCH_NAME"

@@ -160,5 +160,8 @@ jobs:
       contents: write
       pull-requests: write
     with:
-      branch: ${{ needs.push-release-branch.outputs.release_branch }}
+      # The release branch is only pushed to origin for a real run (see "Create release
+      # branch" above) - a dry run has nothing to check it out from, so preview the diff
+      # against develop instead.
+      branch: ${{ inputs.dry_run && 'develop' || needs.push-release-branch.outputs.release_branch }}
       dry_run: ${{ inputs.dry_run }}
