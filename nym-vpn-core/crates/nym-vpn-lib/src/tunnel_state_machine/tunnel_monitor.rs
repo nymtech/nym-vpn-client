@@ -2312,3 +2312,36 @@ mod tests {
         );
     }
 }
+
+#[cfg(all(test, target_os = "linux"))]
+mod tun_over_socketpair_tests {
+    use std::os::fd::{AsRawFd, IntoRawFd};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    /// The Android steering engine substitutes the TUN fd with one end of a
+    /// SOCK_DGRAM socketpair (see steering.rs). This test pins the `tun`
+    /// crate's ability to do raw I/O over such an fd.
+    #[tokio::test]
+    async fn tun_async_device_works_over_socketpair() {
+        let (a, b) = std::os::unix::net::UnixDatagram::pair().unwrap();
+        a.set_nonblocking(true).unwrap();
+        b.set_nonblocking(true).unwrap();
+
+        let mut config = tun::Configuration::default();
+        config.raw_fd(a.as_raw_fd());
+        let mut device =
+            tun::create_as_async(&config).expect("tun crate must accept socketpair fd");
+        let _ = a.into_raw_fd(); // device owns it now
+
+        let b = tokio::net::UnixDatagram::from_std(b).unwrap();
+        b.send(b"ping").await.unwrap();
+        let mut buf = [0u8; 16];
+        let n = device.read(&mut buf).await.unwrap();
+        assert_eq!(&buf[..n], b"ping");
+
+        device.write_all(b"pong").await.unwrap();
+        let mut buf2 = [0u8; 16];
+        let n2 = b.recv(&mut buf2).await.unwrap();
+        assert_eq!(&buf2[..n2], b"pong");
+    }
+}

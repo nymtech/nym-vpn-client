@@ -4,6 +4,8 @@
 #[cfg(feature = "amnezia")]
 pub mod amnezia;
 pub mod netstack;
+#[cfg(target_os = "android")]
+pub mod steering;
 pub mod uapi;
 pub mod wireguard_go;
 
@@ -37,6 +39,14 @@ pub enum Error {
     #[cfg(target_os = "android")]
     #[error("failed to obtain tunnel socket fd")]
     ObtainSocketFd,
+
+    #[cfg(target_os = "android")]
+    #[error("failed to start the steering engine (code: {0})")]
+    StartSteering(i32),
+
+    #[cfg(target_os = "android")]
+    #[error("failed to create steering socketpair: {0}")]
+    CreateSteeringSocketPair(#[source] std::io::Error),
 
     #[error("failed to convert {0} to C string")]
     ConvertToCString(&'static str),
