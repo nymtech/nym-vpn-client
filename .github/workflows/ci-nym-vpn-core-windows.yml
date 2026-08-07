@@ -45,7 +45,7 @@ jobs:
         run: git config --system core.longpaths true
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true

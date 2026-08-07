@@ -251,7 +251,7 @@ jobs:
           echo "appcast_item=$APP_CAST_ITEM" >> $GITHUB_OUTPUT
 
       - name: Checkout nym-websites
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           repository: nymtech/nym-websites

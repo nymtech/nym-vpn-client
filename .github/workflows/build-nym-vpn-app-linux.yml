@@ -55,7 +55,7 @@ jobs:
       UPLOAD_DIR_LINUX: app_artifacts_linux_${{ matrix.arch }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 

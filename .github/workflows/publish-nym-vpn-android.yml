@@ -35,7 +35,7 @@ jobs:
       RUBYOPT: "-rresolv-replace"
       BUNDLE_TIMEOUT: "120"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Setup ruby
         uses: ruby/setup-ruby@v1

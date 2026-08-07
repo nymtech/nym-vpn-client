@@ -51,7 +51,7 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -132,7 +132,7 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
