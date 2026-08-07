@@ -37,17 +37,28 @@ type Engine struct {
 	waitGroup sync.WaitGroup
 }
 
+// Start takes ownership of both tunFd and innerFd on success AND on failure:
+// on any error return, both fds have already been closed (either directly,
+// or via the os.File wrapping them), so the caller must never close them
+// itself in either case. This avoids leaving the fds to an os.File
+// finalizer, which would run at an arbitrary later time and could end up
+// closing an unrelated fd the caller has since reused for something else.
 func Start(tunFd int, innerFd int, cfg Config, cb Callbacks, logger *device.Logger) (*Engine, error) {
+	tunFile := os.NewFile(uintptr(tunFd), "steering-tun")
+	innerFile := os.NewFile(uintptr(innerFd), "steering-inner")
+
 	// Non-blocking so os.File uses the runtime poller and Close() unblocks
 	// pending reads (same as newSocketTunFromFD in libwg_android.go).
 	for _, fd := range []int{tunFd, innerFd} {
 		if err := unix.SetNonblock(fd, true); err != nil {
+			tunFile.Close()
+			innerFile.Close()
 			return nil, err
 		}
 	}
 	e := &Engine{
-		tunFile:   os.NewFile(uintptr(tunFd), "steering-tun"),
-		innerFile: os.NewFile(uintptr(innerFd), "steering-inner"),
+		tunFile:   tunFile,
+		innerFile: innerFile,
 		flows:     NewFlowTable(flowTableSize, flowTTL, time.Now),
 		classify:  NewClassifier(cfg.ExcludedUIDs, cb.OwnerUID),
 		hasBypass: len(cfg.ExcludedUIDs) > 0,
@@ -57,6 +68,8 @@ func Start(tunFd int, innerFd int, cfg Config, cb Callbacks, logger *device.Logg
 	if e.hasBypass {
 		b, err := newBypassStack(cfg, cb, e.writeToTun, logger)
 		if err != nil {
+			tunFile.Close()
+			innerFile.Close()
 			return nil, err
 		}
 		e.bypass = b

@@ -28,6 +28,8 @@ import (
 	"strings"
 	"unsafe"
 
+	"golang.org/x/sys/unix"
+
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/steering"
@@ -43,6 +45,20 @@ func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 	logSink LogSink, logContext LogContext) int32 {
 
 	logger := logging.NewLogger(logSink, logContext)
+
+	// A null callback would otherwise defeat the fail-safe checks further
+	// down the call chain (newBypassStack's nil-Protect error, Classifier's
+	// nil-callback fail-closed): the Go closures wrapping protectCb/
+	// ownerUidCb below are always non-nil regardless of whether the
+	// underlying C function pointer is, so invoking a null protectCb would
+	// crash (e.g. inside net.Dialer.Control) instead of failing cleanly.
+	// Reject here, before Start ever takes ownership of the fds.
+	if protectCb == nil || ownerUidCb == nil {
+		logger.Errorf("steeringTurnOn: nil callback")
+		unix.Close(int(tunFd))
+		unix.Close(int(innerFd))
+		return ERROR_GENERAL_FAILURE
+	}
 
 	var uids []uint32
 	if excludedUids != nil && uidCount > 0 {

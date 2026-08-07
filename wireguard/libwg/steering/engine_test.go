@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/amnezia-vpn/amneziawg-go/device"
+	"golang.org/x/sys/unix"
 )
 
 func socketPair(t *testing.T) (*os.File, *os.File) {
@@ -97,5 +98,41 @@ func TestEngineUnattributableFlowGoesToTunnel(t *testing.T) {
 	n, err := innerB.Read(buf)
 	if err != nil || n != len(pkt) {
 		t.Fatalf("unattributable flow did not reach tunnel: n=%d err=%v", n, err)
+	}
+}
+
+// TestEngineStartClosesFdsOnError asserts Start's fd-ownership contract: it
+// takes ownership of both fds on success AND failure. If a fallible step
+// after the fds are wrapped (here, newBypassStack rejecting a nil Protect)
+// causes Start to return an error, both original fd numbers must already be
+// closed — otherwise they leak into os.File finalizers, which run at an
+// arbitrary later time and can close an unrelated fd the caller/OS has since
+// reused for something else.
+func TestEngineStartClosesFdsOnError(t *testing.T) {
+	tunA, tunB := socketPair(t)
+	innerA, innerB := socketPair(t)
+	defer tunA.Close()
+	defer innerB.Close()
+
+	tunFd := int(tunB.Fd())
+	innerFd := int(innerA.Fd())
+
+	logger := device.NewLogger(device.LogLevelError, "test")
+	eng, err := Start(tunFd, innerFd,
+		Config{MTU: 1500, ExcludedUIDs: []uint32{10123}},
+		Callbacks{
+			Protect:  nil, // forces newBypassStack to fail
+			OwnerUID: func(Proto, netip.AddrPort, netip.AddrPort) int32 { return -1 },
+		},
+		logger)
+	if err == nil {
+		eng.Stop()
+		t.Fatal("expected Start to fail when bypass stack construction fails (nil Protect)")
+	}
+
+	for _, fd := range []int{tunFd, innerFd} {
+		if _, fcntlErr := unix.FcntlInt(uintptr(fd), unix.F_GETFD, 0); fcntlErr != unix.EBADF {
+			t.Fatalf("fd %d not closed on Start error: fcntl err=%v", fd, fcntlErr)
+		}
 	}
 }
