@@ -101,9 +101,7 @@ private extension ConnectionConfig {
         case .random:
             return .random
         case .auto:
-            // TODO: no dedicated UI representation yet — coerce to .random until
-            // the auto entry/exit selection feature is implemented.
-            return .random
+            return .auto
         }
     }
 
@@ -121,9 +119,7 @@ private extension ConnectionConfig {
         case .random:
             return ExitRouter.random
         case .auto:
-            // TODO: no dedicated UI representation yet — coerce to .random until
-            // the auto entry/exit selection feature is implemented.
-            return ExitRouter.random
+            return ExitRouter.auto
         }
     }
 
@@ -135,6 +131,8 @@ private extension ConnectionConfig {
             EntryPoint.gateway(identity: node)
         case .random:
             EntryPoint.random
+        case .auto:
+            EntryPoint.auto(excludeUserCountry: true)
         case let .region(countryCode: _, region: region):
             EntryPoint.region(region: region)
         }
@@ -150,6 +148,8 @@ private extension ConnectionConfig {
             ExitPoint.region(region: region)
         case .random:
             ExitPoint.random
+        case .auto:
+            ExitPoint.auto(excludeEntryPointCountry: true, excludeUserCountry: true)
         }
     }
 }

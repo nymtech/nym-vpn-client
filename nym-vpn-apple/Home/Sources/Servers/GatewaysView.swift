@@ -70,6 +70,7 @@ public struct GatewaysView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
+                    safestRow()
                     randomRow()
                     recentGatewaysList()
                     favoriteGatewaysList()
@@ -231,6 +232,29 @@ private extension GatewaysView {
                 Spacer()
             }
             .padding(.horizontal, 16)
+        }
+    }
+
+    @ViewBuilder
+    func safestRow() -> some View {
+        if viewModel.searchText.count < viewModel.minimumSearchSymbols, favoritesState.filter == .allServers {
+            switch viewModel.type {
+            case .entry:
+                GatewaySafestCell(
+                    type: .entry,
+                    path: $viewModel.path,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding
+                )
+            case .exit:
+                GatewaySafestCell(
+                    type: .exit,
+                    path: $viewModel.path,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding,
+                    onTap: { viewModel.applyExitAutoTap() }
+                )
+            }
         }
     }
 

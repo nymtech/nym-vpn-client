@@ -76,6 +76,10 @@ extension GatewaysViewModel {
     func applyExitRandomTap() {
         connectionManager.setExitGateway(.random)
     }
+
+    func applyExitAutoTap() {
+        connectionManager.setExitGateway(.auto)
+    }
 }
 
 extension GatewaysViewModel {
