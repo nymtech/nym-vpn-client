@@ -13,6 +13,5 @@ data class SettingsValues(
 	val appDeviceStartupEnabled: Boolean = false,
 	val appSystemTrayEnabled: Boolean = false,
 	val appVersion: String = "",
-	val daemonVersion: String = "",
 	val subscription: SubscriptionUiState? = null,
 )
