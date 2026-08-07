@@ -75,6 +75,14 @@ jobs:
           swift package init --type library --name NymVPNLib --disable-xctest --disable-swift-testing
           echo "✅ Stubs added successfully."
 
+      - name: Purge caches
+        run: |
+          # This runner is persistent (self-hosted), so stale SPM/DerivedData state from
+          # packages removed/renamed between runs survives
+          # the workspace checkout and corrupts module resolution for later builds.
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/" || true
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData/" || true
+
       - name: Build rpc-swift-package
         run: |
           make -C nym-vpn-core -f macOS.mk rpc-swift-package RELEASE="false"
