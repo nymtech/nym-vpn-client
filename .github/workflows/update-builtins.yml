@@ -1,0 +1,145 @@
+name: update-builtins
+
+# Refreshes the builtin snapshots embedded in the binary at build time (builtin gateway list,
+# ad-blocking lists, geo-exclusion routing data) by re-running each feature's
+# `download_sources.py` in its own `builtin/` directory, then opens a single PR with whatever
+# changed. Intended to be run as one of the steps when cutting a release, either manually or
+# chained from another workflow via `workflow_call`.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Git branch to run against (uses github ref if not set)"
+        type: string
+        required: false
+      dry_run:
+        description: "Print git diff only, do not commit or open PR"
+        type: boolean
+        required: true
+  workflow_call:
+    inputs:
+      branch:
+        description: "Git branch to run against (uses github ref if not set)"
+        type: string
+        required: false
+      dry_run:
+        description: "Print git diff only, do not commit or open PR"
+        type: boolean
+        required: true
+        default: false
+    outputs:
+      pr_url:
+        description: "URL of the PR that was opened, if any"
+        value: ${{ jobs.update-builtins.outputs.pr_url }}
+
+env:
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+  # Each of these directories holds its own `download_sources.py` which writes its outputs
+  # relative to its own directory - see the comment above each `Run` step below.
+  GATEWAY_LIST_DIR: nym-vpn-core/crates/nym-gateway-directory/builtin
+  GEO_EXCLUSION_DIR: nym-vpn-core/crates/nym-socks5-proxy/builtin
+  AD_BLOCKING_DIR: nym-vpn-core/crates/nym-vpn-lib/src/adblocker/builtin
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.branch || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-builtins:
+    name: Update builtin snapshots
+    runs-on: arc-linux-latest
+    outputs:
+      pr_url: ${{ steps.create_pr.outputs.pr_url }}
+    steps:
+      - name: Configure git
+        run: |
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
+
+      - name: Checkout selected branch
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ inputs.branch || github.ref }}
+          # This job runs download_sources.py from the checked-out ref before it ever needs
+          # to push - don't leave a write-scoped token sitting in .git/config while that runs.
+          # `gh auth setup-git` configures git authentication just before the push instead.
+          persist-credentials: false
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Builtin gateway list (NYM-1736): union of entry/exit/wg gateways from the nym-vpn-api
+      # directory endpoints, deduplicated and gzip-compressed into gateways.json.gz.
+      - name: Update builtin gateway list
+        working-directory: ${{ env.GATEWAY_LIST_DIR }}
+        run: python3 download_sources.py
+
+      # Geo-exclusion routing data for the socks5 proxy: per-country IP and domain routing
+      # lists, downloaded pre-compressed from the CDN.
+      - name: Update geo-exclusion routing data
+        working-directory: ${{ env.GEO_EXCLUSION_DIR }}
+        run: python3 download_sources.py
+
+      # Ad-blocking lists: blocklists downloaded pre-compressed from the CDN.
+      - name: Update ad-blocking lists
+        working-directory: ${{ env.AD_BLOCKING_DIR }}
+        run: python3 download_sources.py
+
+      - name: Show diff
+        run: |
+          git status --porcelain -- "$GATEWAY_LIST_DIR" "$GEO_EXCLUSION_DIR" "$AD_BLOCKING_DIR"
+          git diff --stat -- "$GATEWAY_LIST_DIR" "$GEO_EXCLUSION_DIR" "$AD_BLOCKING_DIR"
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git add -- "$GATEWAY_LIST_DIR" "$GEO_EXCLUSION_DIR" "$AD_BLOCKING_DIR"
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Up to date
+        if: ${{ steps.changes.outputs.has_changes == 'false' }}
+        run: |
+          echo "::notice:: All builtin snapshots are already up to date, nothing to do."
+
+      - name: Dry-run summary
+        if: ${{ steps.changes.outputs.has_changes == 'true' && inputs.dry_run == true }}
+        run: |
+          echo "::warning:: Dry run — no commit or PR created."
+
+      - name: Create PR
+        id: create_pr
+        if: ${{ steps.changes.outputs.has_changes == 'true' && inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: "ci/update-builtins-${{ github.run_number }}"
+          BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
+        run: |
+          gh auth setup-git
+          git checkout -b "$BRANCH_NAME"
+          git commit -m "ci: update builtin snapshots"
+          git push origin "$BRANCH_NAME"
+          PR_URL=$(gh pr create \
+              --base "$BASE_BRANCH" \
+              --title "Update builtin snapshots" \
+              --milestone "no-milestone" \
+              --body "Automated refresh of the builtin snapshots embedded at build time.
+
+          - **gateway list** (\`$GATEWAY_LIST_DIR\`): builtin mainnet gateway fallback, from the nym-vpn-api directory endpoints
+          - **geo-exclusion routing data** (\`$GEO_EXCLUSION_DIR\`): per-country IP/domain routing lists for the socks5 proxy
+          - **ad-blocking lists** (\`$AD_BLOCKING_DIR\`): builtin blocklists
+
+          Only the files that actually changed are included in this diff.")
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
