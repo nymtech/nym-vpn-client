@@ -30,6 +30,7 @@ import net.nymtech.vpn.backend.controller.VpnForegroundController
 import net.nymtech.vpn.backend.controller.VpnTunController
 import net.nymtech.vpn.model.VpnServiceEvent
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
+import net.nymtech.vpn.util.ConnectionOwnerResolver
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.notifications.StopVpnReceiver
 import nym_vpn_lib.AndroidConnectivityMonitor
@@ -222,6 +223,14 @@ class VpnService :
 	override fun bypass(socket: Int) {
 		protect(socket)
 	}
+
+	override fun getConnectionOwnerUid(protocol: Int, source: String, destination: String): Int =
+		ConnectionOwnerResolver.lookup(
+			getSystemService(ConnectivityManager::class.java),
+			protocol,
+			source,
+			destination,
+		)
 
 	override fun configureTunnel(config: TunnelNetworkSettings): Int = tun.configureTunnel(config)
 

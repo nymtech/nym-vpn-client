@@ -22,6 +22,10 @@ pub trait OSTunProvider: Send + Sync + std::fmt::Debug {
 pub trait AndroidTunProvider: Send + Sync + std::fmt::Debug {
     fn bypass(&self, socket: i32);
     fn configure_tunnel(&self, config: TunnelSettings) -> std::io::Result<std::os::fd::RawFd>;
+    /// Resolve the UID owning a connection. protocol: 6 = TCP, 17 = UDP;
+    /// source/destination: "ip:port" ("[ip]:port" for IPv6). Returns -1 when
+    /// the owner cannot be determined.
+    fn get_connection_owner_uid(&self, protocol: i32, source: String, destination: String) -> i32;
 }
 
 #[derive(Debug)]

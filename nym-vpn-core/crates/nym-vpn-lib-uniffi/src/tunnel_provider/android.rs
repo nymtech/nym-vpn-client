@@ -14,6 +14,10 @@ pub trait AndroidTunProvider: Send + Sync + Debug {
 
     /// Configure VPN tunnel with the given settings returning a file descriptor to tunnel device that can be used to read and write packets.
     fn configure_tunnel(&self, config: TunnelNetworkSettings) -> Result<RawFd, VpnError>;
+
+    /// Resolve the UID owning a connection (ConnectivityManager.getConnectionOwnerUid).
+    /// Returns -1 when unknown. protocol: 6 = TCP, 17 = UDP.
+    fn get_connection_owner_uid(&self, protocol: i32, source: String, destination: String) -> i32;
 }
 
 /// Adapter type for `nym_vpn_lib::tun_provider::AndroidTunProvider`
@@ -40,5 +44,10 @@ impl nym_vpn_lib::tunnel_provider::AndroidTunProvider for AndroidTunProviderImpl
         self.inner
             .configure_tunnel(config.into())
             .map_err(|e| std::io::Error::other(e.to_string()))
+    }
+
+    fn get_connection_owner_uid(&self, protocol: i32, source: String, destination: String) -> i32 {
+        self.inner
+            .get_connection_owner_uid(protocol, source, destination)
     }
 }
