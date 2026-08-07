@@ -308,28 +308,6 @@ jobs:
         with:
           keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
-      - name: Update core version in app
-        if: ${{ env.RELEASE_TYPE != 'pr' }}
-        run: |
-          set -euo pipefail
-
-          # Get version from Cargo.toml workspace
-          LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core/Cargo.toml)
-          echo "📦 Core library version: ${LIB_VERSION}"
-
-          # Path to Swift source file
-          app_version_file="nym-vpn-apple/ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
-
-          # Validate and update
-          if [[ -f "$app_version_file" ]]; then
-            # macOS/BSD sed syntax: -i ''
-            sed -i '' -E 's|(public static let libVersion = ")[^"]*(")|\1'"$LIB_VERSION"'\2|' "$app_version_file"
-            echo "✅ libVersion updated to ${LIB_VERSION} in ${app_version_file}."
-          else
-            echo "❌ Error: AppVersionProvider.swift file not found at ${app_version_file}"
-            exit 1
-          fi
-
       - name: Update localizations Crowdin
         if: ${{ env.RELEASE_TYPE != 'pr' }}
         env:
