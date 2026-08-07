@@ -24,7 +24,9 @@ use url::Url;
 
 use crate::{
     Error, NymNode,
-    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
+    entries::gateway::{
+        Gateway, GatewayList, GatewayType, NymNodeList, gateways_from_directory_response,
+    },
     error::Result,
 };
 
@@ -489,7 +491,13 @@ impl GatewayClient {
         Ok(GatewayList::new(None, gateways))
     }
 
-    pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
+    /// Fetch the raw, unconverted gateway list for `gw_type` from nym-vpn-api. Exposed separately
+    /// from [`Self::lookup_gateways`] so callers that need to persist the raw response (e.g. the
+    /// on-disk gateway cache) don't have to fetch twice.
+    pub async fn lookup_gateways_raw(
+        &self,
+        gw_type: GatewayType,
+    ) -> Result<Vec<nym_vpn_api_client::response::NymDirectoryGateway>> {
         debug!("Fetching {gw_type} gateways from nym-vpn-api...");
         let raw_gateways = self
             .vpn_api_client
@@ -497,31 +505,26 @@ impl GatewayClient {
             .await?;
 
         let raw_gateways_vec = raw_gateways.into_inner();
-
-        tracing::debug!(
+        debug!(
             "VPN-API returned {} raw gateways for {:?}",
             raw_gateways_vec.len(),
             gw_type
         );
 
-        let gateways: Vec<_> = raw_gateways_vec
-            .into_iter()
-            .filter_map(|gw| {
-                Gateway::try_from(gw)
-                    .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-                    .ok()
-            })
-            // we need to filter for possible mixnet blacklisting, as the mixnet channel is a prerequisite for VPN connection too
-            .filter(|gw| gw.not_mixnet_blacklisted())
-            .collect();
+        Ok(raw_gateways_vec)
+    }
 
-        tracing::debug!(
+    pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
+        let raw_gateways_vec = self.lookup_gateways_raw(gw_type).await?;
+        let gateways = gateways_from_directory_response(raw_gateways_vec, gw_type);
+
+        debug!(
             "Successfully parsed {} gateways for {:?}",
             gateways.len(),
             gw_type
         );
 
-        Ok(GatewayList::new(Some(gw_type), gateways))
+        Ok(gateways)
     }
 }
 

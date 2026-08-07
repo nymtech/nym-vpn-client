@@ -124,7 +124,8 @@ actor GatewayWorker {
                 let gatewayCache = try await NymGatewayCache(
                     userAgent: .appUserAgent,
                     environment: configurationManager.networkEnv ?? .newWithMainnetFallback(),
-                    offlineMonitor: offlineMonitor
+                    offlineMonitor: offlineMonitor,
+                    dataDir: try PathManager.dataFolderURL().path()
                 )
 
                 try Task.checkCancellation()

@@ -6043,6 +6043,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-bridges-types"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#9e0aba059940050fd165db3190eb03e47aabd4c7"
+dependencies = [
+ "serde",
+ "uniffi",
+]
+
+[[package]]
 name = "nym-client-core"
 version = "1.21.4"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.14-amsterdam#1bff1b388b3a2d5fb2dc299c5e9462d44893a5bd"
@@ -6485,6 +6494,7 @@ name = "nym-gateway-directory"
 version = "2026.13.0-beta.1"
 dependencies = [
  "anyhow",
+ "async-compression",
  "ipnetwork",
  "itertools 0.14.0",
  "nym-client-core",
@@ -6497,6 +6507,7 @@ dependencies = [
  "nym-vpn-api-client",
  "rand 0.8.6",
  "serde",
+ "serde_json",
  "strum 0.28.0",
  "thiserror 2.0.18",
  "tokio",
@@ -7484,6 +7495,7 @@ dependencies = [
  "bs58",
  "hex",
  "itertools 0.14.0",
+ "nym-bridges-types",
  "nym-common 2026.13.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
@@ -7577,6 +7589,7 @@ dependencies = [
  "bip39",
  "ipnetwork",
  "nym-bandwidth-controller",
+ "nym-bridges-types",
  "nym-crypto",
  "nym-gateway-directory",
  "nym-network-defaults",

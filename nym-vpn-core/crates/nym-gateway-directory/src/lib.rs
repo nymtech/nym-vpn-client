@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod blacklisted_gateways;
+mod builtin;
 mod entries;
 mod error;
 pub mod gateway_cache;
 mod gateway_client;
+mod gateway_store;
 mod helpers;
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};

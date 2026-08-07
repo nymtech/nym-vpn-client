@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
-- Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006).
+- Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006)
+- Persist gateway list to disk, seeded from a built-in list (https://github.com/nymtech/nym-vpn-client/pull/6015)
 
 ### Changed
 
