@@ -694,10 +694,10 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
     }
 }
 
-/// Convert a raw nym-vpn-api gateway list into a filtered [`GatewayList`], applying the same
+/// Convert a nym-vpn-api directory response into a filtered [`GatewayList`], applying the same
 /// per-gateway conversion and mixnet-blacklist filtering regardless of whether the raw data came
 /// from a live fetch, the builtin snapshot, or the on-disk gateway cache.
-pub(crate) fn gateways_from_raw(
+pub(crate) fn gateways_from_directory_response(
     raw: Vec<nym_vpn_api_client::response::NymDirectoryGateway>,
     gw_type: GatewayType,
 ) -> GatewayList {
