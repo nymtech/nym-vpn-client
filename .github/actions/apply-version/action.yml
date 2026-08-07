@@ -73,7 +73,10 @@ runs:
             # The channel is carried by the release tag and TestFlight build, not the
             # marketing version. CURRENT_PROJECT_VERSION (build number) is set by bump_build.
             MV="${VERSION%%-*}"
-            ( cd nym-vpn-apple && fastlane mac bump_version "$MV" )
+            cd nym-vpn-apple
+            fastlane mac bump_version "$MV"
+            fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
+            fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
             ;;
           *)
             echo "::error:: unknown target '${TARGET}' (expected core|tauri|android|apple)"

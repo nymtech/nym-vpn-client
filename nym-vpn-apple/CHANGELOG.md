@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix switching between modes to always land on the last selected mode (https://github.com/nymtech/nym-vpn-client/pull/6023)
+- Show full version in settings (https://github.com/nymtech/nym-vpn-client/pull/6032)
 
 
 ## [2.11.0]
