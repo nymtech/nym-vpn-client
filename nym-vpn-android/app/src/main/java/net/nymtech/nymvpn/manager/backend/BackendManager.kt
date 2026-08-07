@@ -39,7 +39,6 @@ interface BackendManager {
 	suspend fun getAccountState(): AccountControllerState
 	fun getState(): Tunnel.State
 	fun initialize()
-	suspend fun getDaemonVersion(): String
 	suspend fun getDeviceId(): String?
 	suspend fun getAccountId(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?

@@ -251,8 +251,6 @@ class ServiceBackedBackendManager @Inject constructor(
 		_accountSummaryFlow.value = summary
 	}
 
-	override suspend fun getDaemonVersion(): String = serviceConnectionManager.withApi { it.getNetworkVersions()?.core ?: "" }
-
 	override suspend fun getFeatureFlags(): FeatureFlags? = runCatching {
 		serviceConnectionManager.withApi { it.getFeatureFlags() }
 	}.getOrElse {

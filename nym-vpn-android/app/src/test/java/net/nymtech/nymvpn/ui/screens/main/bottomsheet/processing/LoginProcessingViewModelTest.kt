@@ -166,7 +166,6 @@ private class FakeBackendManager(initialAccountState: AccountControllerState = A
 	override suspend fun getAccountState(): AccountControllerState = managerState.value.accountState
 	override fun getState(): Tunnel.State = Tunnel.State.Down
 	override fun initialize() = Unit
-	override suspend fun getDaemonVersion(): String = unsupported()
 	override suspend fun getDeviceId(): String? = null
 	override suspend fun getAccountId(): String? = null
 	override suspend fun getFeatureFlags(): FeatureFlags? = null
@@ -212,6 +211,8 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override suspend fun setLogsEnabled(enabled: Boolean) = Unit
 	override suspend fun isWelcomeShown(): Boolean = false
 	override suspend fun setWelcomeShown(shown: Boolean) = Unit
+	override suspend fun isOnboardingCompleted(): Boolean = false
+	override suspend fun setOnboardingCompleted(completed: Boolean) = Unit
 	override val settingsFlow: Flow<Settings> = MutableStateFlow(Settings())
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig = unsupported()
 	override suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig) = Unit
