@@ -36,6 +36,7 @@ subprojects {
 			exclude("**/nym_vpn_lib/**")
 			exclude("**/nym_vpn_lib_types/**")
 			exclude("**/tun_provider/**")
+			exclude("**/nym_bridges_types/**")
 			include("**/kotlin/**")
 		}
 	}
@@ -46,6 +47,6 @@ subprojects {
 		buildUponDefaultConfig = true
 	}
 	tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-		exclude("**/nym_vpn_lib/**", "**/nym_vpn_lib_types/**", "**/tun_provider/**")
+		exclude("**/nym_vpn_lib/**", "**/nym_vpn_lib_types/**", "**/tun_provider/**", "**/nym_bridges_types/**")
 	}
 }

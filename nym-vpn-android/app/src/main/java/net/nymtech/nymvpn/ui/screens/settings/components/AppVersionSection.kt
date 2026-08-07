@@ -18,7 +18,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun AppVersionSection(appVersion: String, daemonVersion: String, onAppVersionClick: () -> Unit) {
+fun AppVersionSection(appVersion: String, onAppVersionClick: () -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -34,12 +34,6 @@ fun AppVersionSection(appVersion: String, daemonVersion: String, onAppVersionCli
 			style = MaterialTheme.typography.bodyMedium,
 			color = MaterialTheme.colorScheme.outline,
 		)
-		Text(
-			stringResource(R.string.settings_daemon_version_line, daemonVersion),
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
-			modifier = Modifier.padding(top = 8.dp),
-		)
 	}
 }
 
@@ -47,6 +41,6 @@ fun AppVersionSection(appVersion: String, daemonVersion: String, onAppVersionCli
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAppVersion() {
 	NymVPNTheme(Theme.default()) {
-		AppVersionSection("2.2.2", "2.2.2") {}
+		AppVersionSection("2.2.2") {}
 	}
 }
