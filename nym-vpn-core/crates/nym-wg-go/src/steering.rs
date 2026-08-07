@@ -4,20 +4,30 @@
 //! Bindings for the libwg steering engine: routes split-tunnel-excluded apps'
 //! traffic directly (bypassing the tunnel) so they keep connectivity under
 //! Android VPN lockdown.
+//!
+//! The `steeringTurnOn`/`steeringTurnOff` cgo exports only exist in libwg's
+//! Android build, so everything that touches that FFI surface is gated
+//! `#[cfg(target_os = "android")]`. The pure, non-FFI pieces (config types,
+//! the DNS-list-to-CSV conversion) have no platform dependency and are left
+//! unconditional so they compile and unit-test on the host.
 
+use std::{ffi::CString, net::IpAddr};
+
+#[cfg(target_os = "android")]
 use std::{
-    ffi::{CStr, CString, c_char, c_void},
-    net::IpAddr,
+    ffi::{CStr, c_char, c_void},
     os::fd::{IntoRawFd, OwnedFd, RawFd},
     sync::Arc,
 };
 
+#[cfg(target_os = "android")]
 use crate::{Error, LoggingCallback, Result, wireguard_go::wg_logger_callback};
 
 /// Callbacks the steering engine invokes on the Rust side to protect its own
 /// sockets from being routed back into the tunnel, and to resolve the
 /// originating UID of a flow so it can be matched against the excluded-UID
 /// set.
+#[cfg(target_os = "android")]
 pub trait SteeringCallbacks: Send + Sync + 'static {
     /// Protect `fd` (a raw socket owned by the steering engine) from the VPN,
     /// mirroring `VpnService.protect()`.
@@ -36,8 +46,30 @@ pub struct SteeringConfig {
     pub underlying_dns: Vec<IpAddr>,
 }
 
+/// Convert the underlying-DNS list into the comma-separated C string that
+/// `steeringTurnOn`'s `dns_servers` parameter expects, or `None` (mapped to a
+/// NULL pointer by the caller) when there are no DNS servers -- matching the
+/// cgo export's documented "may be NULL" contract, and avoiding an
+/// allocation for the common no-DNS case.
+#[cfg_attr(not(target_os = "android"), allow(dead_code))]
+fn dns_servers_csv(dns: &[IpAddr]) -> Option<CString> {
+    if dns.is_empty() {
+        return None;
+    }
+    let csv = dns
+        .iter()
+        .map(|ip| ip.to_string())
+        .collect::<Vec<_>>()
+        .join(",");
+    // SAFETY (infallibility): `IpAddr`'s `Display` only ever emits digits,
+    // ASCII letters, '.', ':', and '%', never a NUL byte, so `CString::new`
+    // cannot fail here.
+    Some(CString::new(csv).expect("IP address strings never contain NUL"))
+}
+
 /// Heap-allocated context handed to the Go side as an opaque `void*`, and
 /// passed back on every callback invocation.
+#[cfg(target_os = "android")]
 struct CallbackCtx {
     callbacks: Arc<dyn SteeringCallbacks>,
 }
@@ -46,6 +78,7 @@ struct CallbackCtx {
 /// Called by the Go engine with the `ctx` pointer that `Steering::start`
 /// registered; that pointer is a live `*const CallbackCtx` for as long as
 /// the engine has not returned from `steeringTurnOff`.
+#[cfg(target_os = "android")]
 unsafe extern "C" fn protect_trampoline(ctx: *mut c_void, fd: i32) {
     let ctx = unsafe { &*(ctx as *const CallbackCtx) };
     ctx.callbacks.protect(fd);
@@ -54,6 +87,7 @@ unsafe extern "C" fn protect_trampoline(ctx: *mut c_void, fd: i32) {
 /// # Safety
 /// Same contract as [`protect_trampoline`]. `src`/`dst` are non-null,
 /// NUL-terminated C strings owned by the caller for the duration of the call.
+#[cfg(target_os = "android")]
 unsafe extern "C" fn owner_uid_trampoline(
     ctx: *mut c_void,
     protocol: i32,
@@ -67,6 +101,7 @@ unsafe extern "C" fn owner_uid_trampoline(
 }
 
 /// Handle to a running steering engine.
+#[cfg(target_os = "android")]
 pub struct Steering {
     handle: i32,
     // Kept alive for the lifetime of the engine; freed in stop()/drop() only
@@ -78,9 +113,12 @@ pub struct Steering {
 // SAFETY: `ctx` is only ever dereferenced by the Go engine's callback
 // trampolines, which access it through `&CallbackCtx` and never mutate it;
 // the wrapped `Arc<dyn SteeringCallbacks>` is itself Send + Sync.
+#[cfg(target_os = "android")]
 unsafe impl Send for Steering {}
+#[cfg(target_os = "android")]
 unsafe impl Sync for Steering {}
 
+#[cfg(target_os = "android")]
 impl Steering {
     /// Start the steering engine.
     ///
@@ -105,19 +143,7 @@ impl Steering {
         let (outer, inner) =
             std::os::unix::net::UnixDatagram::pair().map_err(Error::CreateSteeringSocketPair)?;
 
-        let dns_csv = config
-            .underlying_dns
-            .iter()
-            .map(|ip| ip.to_string())
-            .collect::<Vec<_>>()
-            .join(",");
-        // Pass NULL rather than an empty string when there are no DNS
-        // servers, matching the cgo export's "may be NULL" contract.
-        let dns_cstring = if dns_csv.is_empty() {
-            None
-        } else {
-            Some(CString::new(dns_csv).map_err(|_| Error::ConvertToCString("underlying dns"))?)
-        };
+        let dns_cstring = dns_servers_csv(&config.underlying_dns);
         let dns_ptr = dns_cstring
             .as_ref()
             .map_or(std::ptr::null(), |c| c.as_ptr());
@@ -163,15 +189,23 @@ impl Steering {
     /// `steeringTurnOff` blocks until every goroutine of the engine
     /// (including callback invocations) has joined, so it is sound to free
     /// `ctx` immediately afterwards.
+    ///
+    /// Wrapping `self` in `ManuallyDrop` (rather than tearing down and then
+    /// calling `mem::forget`) keeps the exactly-once invariant even if the
+    /// `SteeringCallbacks` destructor invoked by dropping the boxed `ctx`
+    /// panics: `ManuallyDrop::drop` is a no-op, so unwinding out of this
+    /// function can never re-enter `Steering::drop` and repeat
+    /// `steeringTurnOff`/`Box::from_raw` on the same handle/pointer.
     pub fn stop(self) {
+        let this = std::mem::ManuallyDrop::new(self);
         unsafe {
-            steeringTurnOff(self.handle);
-            drop(Box::from_raw(self.ctx));
+            steeringTurnOff(this.handle);
+            drop(Box::from_raw(this.ctx));
         }
-        std::mem::forget(self);
     }
 }
 
+#[cfg(target_os = "android")]
 impl Drop for Steering {
     fn drop(&mut self) {
         unsafe {
@@ -181,6 +215,7 @@ impl Drop for Steering {
     }
 }
 
+#[cfg(target_os = "android")]
 unsafe extern "C" {
     /// Start the steering engine. Takes ownership of both `tun_fd` and
     /// `inner_fd` unconditionally: the Go side closes both on every return
@@ -205,4 +240,33 @@ unsafe extern "C" {
     /// all of the engine's goroutines (including any in-flight callback
     /// invocation) have joined.
     unsafe fn steeringTurnOff(handle: i32);
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+
+    use super::*;
+
+    #[test]
+    fn dns_servers_csv_empty_is_none() {
+        assert!(dns_servers_csv(&[]).is_none());
+    }
+
+    #[test]
+    fn dns_servers_csv_single_entry() {
+        let dns = [IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1))];
+        let csv = dns_servers_csv(&dns).expect("non-empty input must yield Some");
+        assert_eq!(csv.to_str().unwrap(), "1.1.1.1");
+    }
+
+    #[test]
+    fn dns_servers_csv_preserves_order_for_v4_and_v6_mix() {
+        let dns = [
+            IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
+            IpAddr::V6(Ipv6Addr::new(0xfd00, 0, 0, 0, 0, 0, 0, 1)),
+        ];
+        let csv = dns_servers_csv(&dns).expect("non-empty input must yield Some");
+        assert_eq!(csv.to_str().unwrap(), "1.2.3.4,fd00::1");
+    }
 }
