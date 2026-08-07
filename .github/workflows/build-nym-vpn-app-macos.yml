@@ -227,13 +227,13 @@ jobs:
           keychain --version
 
       - name: Apply orchestrated version (apple)
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: apple
 
       - name: Apply orchestrated version (core)
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: core

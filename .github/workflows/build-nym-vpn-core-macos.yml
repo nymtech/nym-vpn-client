@@ -90,7 +90,7 @@ jobs:
           crate: toml-cli
 
       - name: Apply orchestrated version
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: core
@@ -177,7 +177,7 @@ jobs:
           version: ${{ env.CARGO_SWIFT_VERSION }}
 
       - name: Apply orchestrated version
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: core
