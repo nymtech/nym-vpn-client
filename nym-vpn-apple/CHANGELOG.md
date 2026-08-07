@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- macOS: fix IPv6 toggle not working
+- Fix switching between modes to always land on the last selected mode (https://github.com/nymtech/nym-vpn-client/pull/6023)
+
 
 ## [2.11.0]
 
