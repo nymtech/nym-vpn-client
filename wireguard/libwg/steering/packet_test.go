@@ -115,3 +115,28 @@ func TestParseIPv6TCP(t *testing.T) {
 		t.Fatalf("expected IsTCPSyn to be true when SYN flag is set")
 	}
 }
+
+func TestParseRejectsIPv4Fragment(t *testing.T) {
+	// Build a non-initial IPv4 TCP fragment (offset != 0)
+	// Use a payload that's at least TCPMinimumSize so it looks like a valid TCP header
+	payload := make([]byte, header.TCPMinimumSize+10)
+	length := header.IPv4MinimumSize + len(payload)
+	buf := make([]byte, length)
+	ip := header.IPv4(buf)
+	ip.Encode(&header.IPv4Fields{
+		TotalLength:    uint16(length),
+		TTL:            64,
+		Protocol:       uint8(header.TCPProtocolNumber),
+		SrcAddr:        tcpip.AddrFrom4(netip.MustParseAddr("10.0.0.2").As4()),
+		DstAddr:        tcpip.AddrFrom4(netip.MustParseAddr("9.9.9.9").As4()),
+		Flags:          0,   // No flags
+		FragmentOffset: 100, // Non-initial fragment (offset != 0)
+	})
+	ip.SetChecksum(^ip.CalculateChecksum())
+	copy(buf[header.IPv4MinimumSize:], payload)
+
+	// Non-initial fragments must be rejected (fail-closed)
+	if _, ok := ParsePacket(buf); ok {
+		t.Fatal("expected non-initial IPv4 fragment to be rejected")
+	}
+}

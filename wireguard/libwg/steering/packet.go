@@ -30,6 +30,11 @@ func ParsePacket(pkt []byte) (PacketInfo, bool) {
 		if len(pkt) < header.IPv4MinimumSize || !ip.IsValid(len(pkt)) {
 			return PacketInfo{}, false
 		}
+		// Reject non-initial fragments (fail-closed): only initial fragments
+		// (offset 0) carry the transport header with port information.
+		if ip.FragmentOffset() != 0 {
+			return PacketInfo{}, false
+		}
 		srcBytes := ip.SourceAddress().As4()
 		dstBytes := ip.DestinationAddress().As4()
 		src, _ := netip.AddrFromSlice(srcBytes[:])
