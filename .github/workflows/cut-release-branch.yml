@@ -38,6 +38,7 @@ jobs:
       major: ${{ steps.next_version.outputs.major }}
       minor: ${{ steps.next_version.outputs.minor }}
       patch: ${{ steps.next_version.outputs.patch }}
+      release_branch: ${{ steps.next_version.outputs.release_branch }}
     steps:
       - name: Validate input
         env:
@@ -149,4 +150,15 @@ jobs:
       pre_release_ident: 1
       update_linux_installer: false
       update_changelog: true
+      dry_run: ${{ inputs.dry_run }}
+
+  update-builtins:
+    name: Create PR updating builtin snapshots on the release branch
+    uses: ./.github/workflows/update-builtins.yml
+    needs: push-release-branch
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      branch: ${{ needs.push-release-branch.outputs.release_branch }}
       dry_run: ${{ inputs.dry_run }}
