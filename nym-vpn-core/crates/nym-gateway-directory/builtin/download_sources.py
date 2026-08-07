@@ -45,11 +45,11 @@ def _existing_entry_count() -> int | None:
     try:
         with gzip.open(OUTPUT_FILE, "rb") as f:
             return len(json.loads(f.read()))
-    except (OSError, gzip.BadGzipFile, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError):
         return None
 
 
-def main() -> int:
+def main() -> None:
     fetched = {tag: _fetch(path) for tag, path in ENDPOINTS.items()}
     ids_by_type = {tag: {gw["identity_key"] for gw in gws} for tag, gws in fetched.items()}
 
@@ -81,7 +81,7 @@ def main() -> int:
     if OUTPUT_FILE.exists() and OUTPUT_FILE.read_bytes() == tmp.read_bytes():
         tmp.unlink()
         print(f"Unchanged {OUTPUT_FILE} ({len(combined)} gateways; {counts})")
-        return 0
+        return
 
     tmp.replace(OUTPUT_FILE)
     if old_count is None:
@@ -89,8 +89,6 @@ def main() -> int:
     else:
         print(f"Updated {OUTPUT_FILE} ({old_count} -> {len(combined)} gateways; {counts})")
 
-    return 0
-
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
