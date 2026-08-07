@@ -53,7 +53,8 @@ object ConnectionOwnerResolver {
 		}
 	}
 
-	fun lookup(connectivityManager: ConnectivityManager, protocol: Int, source: String, destination: String): Int {
+	fun lookup(connectivityManager: ConnectivityManager?, protocol: Int, source: String, destination: String): Int {
+		if (connectivityManager == null) return INVALID_UID
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return INVALID_UID
 		val src = parseNumericAddrPort(source) ?: return INVALID_UID
 		val dst = parseNumericAddrPort(destination) ?: return INVALID_UID

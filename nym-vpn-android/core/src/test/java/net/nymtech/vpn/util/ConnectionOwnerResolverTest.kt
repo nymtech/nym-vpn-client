@@ -4,6 +4,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+private const val INVALID_UID = -1
+
 class ConnectionOwnerResolverTest {
 	@Test
 	fun `parses ipv4 addr port`() {
@@ -24,5 +26,10 @@ class ConnectionOwnerResolverTest {
 		assertNull(ConnectionOwnerResolver.parseAddrPort("not-an-address"))
 		assertNull(ConnectionOwnerResolver.parseAddrPort("10.0.0.2"))
 		assertNull(ConnectionOwnerResolver.parseAddrPort("[fd00::1]:notaport"))
+	}
+
+	@Test
+	fun `lookup fails closed when ConnectivityManager is null`() {
+		assertEquals(INVALID_UID, ConnectionOwnerResolver.lookup(null, 6, "10.0.0.2:443", "10.0.0.3:80"))
 	}
 }
