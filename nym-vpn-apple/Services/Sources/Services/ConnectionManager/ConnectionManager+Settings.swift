@@ -12,7 +12,7 @@ extension ConnectionManager {
         appSettings.serverFamilyRemindersEnabled = enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setGatewayIndependenceNotifications(enabled))
+            try? await sendAfterPersistingConfig(.setGatewayIndependenceNotifications(enabled))
 #elseif os(macOS)
             try? await grpcManager.setGatewayIndependenceNotifications(enabled)
 #endif
@@ -23,7 +23,7 @@ extension ConnectionManager {
         appSettings.customDns = dns
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setCustomDns(dns))
+            try? await sendAfterPersistingConfig(.setCustomDns(dns))
 #elseif os(macOS)
             try? await grpcManager.setCustomDns(dnsServers: dns)
 #endif
@@ -34,7 +34,7 @@ extension ConnectionManager {
         appSettings.isCustomDnsEnabled = enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setEnableCustomDns(enabled))
+            try? await sendAfterPersistingConfig(.setEnableCustomDns(enabled))
 #elseif os(macOS)
             try? await grpcManager.setEnableCustomDns(enable: enabled)
 #endif
@@ -46,7 +46,7 @@ extension ConnectionManager {
         connectionConfig.enableTwoHop = enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setEnableTwoHop(enabled))
+            try? await sendAfterPersistingConfig(.setEnableTwoHop(enabled))
 #elseif os(macOS)
             try? await grpcManager.setEnableTwoHop(enabled)
 #endif
@@ -58,7 +58,7 @@ extension ConnectionManager {
         connectionConfig.enableAdBlocking = enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setEnableAdBlocking(enabled))
+            try? await sendAfterPersistingConfig(.setEnableAdBlocking(enabled))
 #elseif os(macOS)
             try? await grpcManager.setEnableAdBlocking(enabled)
 #endif
@@ -70,7 +70,7 @@ extension ConnectionManager {
         connectionConfig.enableBridges = enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setEnableBridges(enabled))
+            try? await sendAfterPersistingConfig(.setEnableBridges(enabled))
 #elseif os(macOS)
             try? await grpcManager.setEnableBridges(enabled)
 #endif
@@ -82,7 +82,7 @@ extension ConnectionManager {
         connectionConfig.entry = entry
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setEntryPoint(entry))
+            try? await sendAfterPersistingConfig(.setEntryPoint(entry))
 #elseif os(macOS)
             try? await grpcManager.setEntryPoint(entry)
 #endif
@@ -94,7 +94,7 @@ extension ConnectionManager {
         connectionConfig.exit = exit
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setExitPoint(exit))
+            try? await sendAfterPersistingConfig(.setExitPoint(exit))
 #elseif os(macOS)
             try? await grpcManager.setExitPoint(exit)
 #endif
@@ -109,7 +109,7 @@ extension ConnectionManager {
         appSettings.isStealthApiEnabled = enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setFrontingModeEnabled(enabled))
+            try? await sendAfterPersistingConfig(.setFrontingModeEnabled(enabled))
 #elseif os(macOS)
             try? await grpcManager.setStealthApiEnabled(enabled)
 #endif
@@ -131,7 +131,7 @@ extension ConnectionManager {
         connectionConfig.disableIpv6 = !enabled
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setDisableIpv6(!enabled))
+            try? await sendAfterPersistingConfig(.setDisableIpv6(!enabled))
 #elseif os(macOS)
             try? await grpcManager.setDisableIpv6(!enabled)
 #endif
@@ -142,7 +142,7 @@ extension ConnectionManager {
         connectionConfig.mixnetTuningConfig = config
         Task {
 #if os(iOS)
-            await sendAfterPersistingConfig(.setMixnetTrafficConfig(config))
+            try? await sendAfterPersistingConfig(.setMixnetTrafficConfig(config))
 #elseif os(macOS)
             try? await grpcManager.setMixnetTrafficConfig(config)
 #endif
