@@ -194,6 +194,16 @@ pub struct TunnelSettings {
 
     /// Heuristics for what is accepted as independent entry and exit gateways
     pub gateway_independence: GatewayIndependence,
+
+    /// Android app-bypass (steering) configuration.
+    ///
+    /// `None` means steering is off, i.e. excluded apps are handled by
+    /// `VpnService.Builder.addDisallowedApplication` on the Kotlin side.
+    /// Set per connection by the platform layer, never persisted.
+    ///
+    /// Boxed to keep `TunnelSettings` small, like the entry and exit points above.
+    #[cfg(target_os = "android")]
+    pub app_bypass: Option<Box<crate::tunnel_provider::AppBypassConfig>>,
 }
 
 impl TunnelSettings {
@@ -413,6 +423,10 @@ impl TunnelSettings {
         if self.gateway_independence != other.gateway_independence {
             diff.add(TunnelSettingsDiffFields::GatewayIndependence);
         }
+        #[cfg(target_os = "android")]
+        if self.app_bypass != other.app_bypass {
+            diff.add(TunnelSettingsDiffFields::AppBypass);
+        }
 
         diff
     }
@@ -440,6 +454,8 @@ pub enum TunnelSettingsDiffFields {
     GeoLocationEnabled,
     GatewaySelectionAlgorithmConfig,
     GatewayIndependence,
+    #[cfg(target_os = "android")]
+    AppBypass,
 }
 
 impl TunnelSettingsDiffFields {
@@ -460,6 +476,12 @@ impl TunnelSettingsDiffFields {
                 // On android reconnect is necessary due to packet filtering used for adblocking.
                 cfg!(target_os = "android")
             }
+            // Steering configuration is captured when the tun device is created, so a change
+            // only takes effect on the next connect. Reconnecting here would tear down the
+            // tunnel whenever the platform layer re-sends the (possibly identical in intent)
+            // app bypass config, so it is deliberately not a reconnect trigger.
+            #[cfg(target_os = "android")]
+            Self::AppBypass => false,
             Self::AllowLan
             | Self::SplitTunnel
             | Self::GeoExclusion
@@ -1396,6 +1418,10 @@ pub enum Error {
     #[error("failed to configure tunnel provider: {}", _0)]
     ConfigureTunnelProvider(String),
 
+    #[cfg(target_os = "android")]
+    #[error("failed to start the app bypass steering engine")]
+    StartSteering(#[source] nym_wg_go::Error),
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[error("failed to obtain route handle")]
     GetRouteHandle(#[source] route_handler::Error),
@@ -1486,6 +1512,8 @@ impl Error {
             Self::Tunnel(e) => e.error_state_reason()?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
+            #[cfg(target_os = "android")]
+            Self::StartSteering(_) => ErrorStateReason::TunnelProvider,
             #[cfg(target_os = "ios")]
             Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]

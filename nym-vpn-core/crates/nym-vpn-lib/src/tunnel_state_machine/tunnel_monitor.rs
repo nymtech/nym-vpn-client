@@ -3,15 +3,16 @@
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
-#[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use std::ops::Deref;
+#[cfg(target_os = "linux")]
 use std::os::fd::BorrowedFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
-use std::os::fd::{AsRawFd, IntoRawFd};
+use std::os::fd::{AsFd, AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
 use std::{
     net::{IpAddr, SocketAddr},
-    ops::Deref,
     pin::pin,
     time::Duration,
 };
@@ -290,6 +291,11 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "android")]
     dns_filter: Option<crate::dns_filter::DnsFilter>,
+    /// Handle to the app bypass (steering) engine, set when the tun device is created with
+    /// app bypass enabled. It owns the real tun device, so it must outlive everything that
+    /// reads or writes the tunnel.
+    #[cfg(target_os = "android")]
+    steering: Option<nym_wg_go::steering::Steering>,
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
     bandwidth_command_tx: BandwidthControllerRequestSender,
@@ -297,6 +303,29 @@ pub struct TunnelMonitor {
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
+}
+
+/// Bridges the steering engine's callbacks to the Android `VpnService`.
+///
+/// Both callbacks are invoked from the engine's goroutines and must never panic or block for
+/// long: they forward straight to the tun provider, which fails closed (`-1` = unknown owner)
+/// on its side.
+#[cfg(target_os = "android")]
+#[derive(Debug)]
+struct TunProviderSteeringCallbacks {
+    tun_provider: Arc<dyn AndroidTunProvider>,
+}
+
+#[cfg(target_os = "android")]
+impl nym_wg_go::steering::SteeringCallbacks for TunProviderSteeringCallbacks {
+    fn protect(&self, fd: RawFd) {
+        self.tun_provider.bypass(fd);
+    }
+
+    fn owner_uid(&self, protocol: i32, src: &str, dst: &str) -> i32 {
+        self.tun_provider
+            .get_connection_owner_uid(protocol, src.to_owned(), dst.to_owned())
+    }
 }
 
 /// Outcome of waiting for a WireGuard handshake to complete.
@@ -409,6 +438,8 @@ impl TunnelMonitor {
             tun_provider,
             #[cfg(target_os = "android")]
             dns_filter,
+            #[cfg(target_os = "android")]
+            steering: None,
             account_controller_state,
             account_command_tx,
             bandwidth_command_tx,
@@ -1079,6 +1110,16 @@ impl TunnelMonitor {
             })
             .unwrap_or_default();
 
+        // The steering engine owns the real tun device, so it can only be stopped once
+        // everything that reads or writes the tunnel (wireguard-go, the mixnet processor, the
+        // dns filter proxy) has stopped, which the wait above guarantees.
+        // Error paths returning before this point stop the engine by dropping the monitor.
+        #[cfg(target_os = "android")]
+        if let Some(steering) = self.steering.take() {
+            tracing::info!("Stopping the app bypass steering engine");
+            steering.stop();
+        }
+
         tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
@@ -1184,7 +1225,7 @@ impl TunnelMonitor {
         .await?;
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
-        let tun_device = {
+        let (tun_device, tun_name) = {
             let mut interface_addresses = vec![IpNetwork::V4(Ipv4Network::from(
                 assigned_addresses.interface_addresses.ipv4,
             ))];
@@ -1211,12 +1252,6 @@ impl TunnelMonitor {
             .deref()
             .tun_name()
             .map_err(Error::GetTunDeviceName)?;
-
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        let tun_name = {
-            let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
-            tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?
-        };
 
         tracing::info!("Created tun device: {}", tun_name);
 
@@ -1876,7 +1911,7 @@ impl TunnelMonitor {
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn start_wireguard_netstack_tunnel(
-        &self,
+        &mut self,
         connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
@@ -1903,9 +1938,7 @@ impl TunnelMonitor {
             mtu,
         };
 
-        let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
-        let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
-        let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
+        let (tun_device, interface) = self.create_tun_device(packet_tunnel_settings).await?;
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
         if self.enable_ipv6() {
             ips.push(IpAddr::V6(conn_data.exit.private_ipv6));
@@ -2068,14 +2101,26 @@ impl TunnelMonitor {
         Ok(tun_device)
     }
 
+    /// Creates the device used for tunneled traffic, returning it together with the name of
+    /// the real tun interface.
+    ///
+    /// On Android with app bypass enabled the returned device is *not* the tun device: the
+    /// real tun device is handed over to the steering engine, which forwards the packets
+    /// that must be tunneled over a socketpair, and steers the excluded apps' flows directly
+    /// to the network. The interface name always refers to the real tun device, since that
+    /// is what in-tunnel sockets need to bind to.
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn create_tun_device(
-        &self,
+        &mut self,
         packet_tunnel_settings: crate::tunnel_provider::TunnelSettings,
-    ) -> Result<AsyncDevice> {
+    ) -> Result<(AsyncDevice, String)> {
         #[cfg(target_os = "ios")]
         let owned_tun_fd =
             crate::tunnel_provider::ios::get_tun_fd().map_err(Error::LocateTunDevice)?;
+
+        // Capture the mtu before the settings are moved into the tun provider.
+        #[cfg(target_os = "android")]
+        let tun_mtu = packet_tunnel_settings.mtu;
 
         #[cfg(target_os = "android")]
         let owned_tun_fd = {
@@ -2084,6 +2129,39 @@ impl TunnelMonitor {
                 .configure_tunnel(packet_tunnel_settings)
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
             unsafe { OwnedFd::from_raw_fd(raw_tun_fd) }
+        };
+
+        // Resolve the interface name while we still hold the real tun fd: with app bypass
+        // enabled the fd used for the device below is a socketpair, which has no interface.
+        let tun_name =
+            tun_name::get_tun_name(&owned_tun_fd.as_fd()).map_err(Error::GetTunDeviceName)?;
+
+        #[cfg(target_os = "android")]
+        let owned_tun_fd = match self.tunnel_parameters.tunnel_settings.app_bypass.clone() {
+            Some(app_bypass) => {
+                tracing::info!(
+                    "Starting the app bypass steering engine for {} uid(s)",
+                    app_bypass.excluded_uids.len()
+                );
+                let callbacks = Arc::new(TunProviderSteeringCallbacks {
+                    tun_provider: self.tun_provider.clone(),
+                });
+                // Note: `start` consumes the tun fd on every path, including failure, so
+                // there is no falling back to the tun device from here on.
+                let (steering, outer_fd) = nym_wg_go::steering::Steering::start(
+                    owned_tun_fd,
+                    nym_wg_go::steering::SteeringConfig {
+                        mtu: tun_mtu,
+                        excluded_uids: app_bypass.excluded_uids,
+                        underlying_dns: app_bypass.underlying_dns,
+                    },
+                    callbacks,
+                )
+                .map_err(Error::StartSteering)?;
+                self.steering = Some(steering);
+                outer_fd
+            }
+            None => owned_tun_fd,
         };
 
         let mut tun_config = tun::Configuration::default();
@@ -2105,7 +2183,7 @@ impl TunnelMonitor {
         // Consume the owned fd, since the device is now responsible for closing the underlying raw fd.
         let _ = owned_tun_fd.into_raw_fd();
 
-        Ok(device)
+        Ok((device, tun_name))
     }
 
     fn enable_ipv6(&self) -> bool {

@@ -6,6 +6,41 @@ use std::{fmt::Debug, os::fd::RawFd, sync::Arc};
 use super::tunnel_settings::TunnelNetworkSettings;
 use crate::VpnError;
 
+/// Per-connection app bypass ("steering") configuration.
+///
+/// Passing this to `NymVpnServiceCommandSender::set_app_bypass` turns on in-tunnel routing of
+/// the excluded apps' traffic, which is the only way to keep them connected under VPN
+/// lockdown. Passing `None` turns it off, leaving per-app exclusion to
+/// `VpnService.Builder.addDisallowedApplication`.
+#[derive(uniffi::Record, Clone, Debug)]
+pub struct AppBypassConfig {
+    /// UIDs of the apps that must bypass the tunnel.
+    pub excluded_uids: Vec<u32>,
+
+    /// DNS servers of the underlying (non-VPN) network, as IP address strings.
+    /// Unparseable entries are ignored.
+    pub underlying_dns: Vec<String>,
+}
+
+impl From<AppBypassConfig> for nym_vpn_lib::tunnel_provider::AppBypassConfig {
+    fn from(config: AppBypassConfig) -> Self {
+        Self {
+            excluded_uids: config.excluded_uids,
+            underlying_dns: config
+                .underlying_dns
+                .iter()
+                .filter_map(|addr| {
+                    addr.parse()
+                        .inspect_err(|e| {
+                            tracing::warn!("Ignoring unparseable underlying dns server {addr}: {e}")
+                        })
+                        .ok()
+                })
+                .collect(),
+        }
+    }
+}
+
 /// Abstract Android tunnel provider.
 #[uniffi::export(with_foreign)]
 pub trait AndroidTunProvider: Send + Sync + Debug {

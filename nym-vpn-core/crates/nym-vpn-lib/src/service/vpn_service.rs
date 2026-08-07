@@ -259,6 +259,11 @@ pub enum VpnServiceCommand {
     ClearSplitTunnelProcesses(oneshot::Sender<()>, ()),
     #[cfg(target_os = "macos")]
     NeedFullDiskPermissions(oneshot::Sender<bool>, ()),
+    #[cfg(target_os = "android")]
+    SetAppBypass(
+        oneshot::Sender<()>,
+        Option<crate::tunnel_provider::AppBypassConfig>,
+    ),
 }
 
 /// Type of service configuration storage used by the VPN service.
@@ -1332,6 +1337,11 @@ impl NymVpnService {
                 let has_fda = nym_split_tunnel::has_full_disk_access();
                 let _ = tx.send(!has_fda);
             }
+            #[cfg(target_os = "android")]
+            VpnServiceCommand::SetAppBypass(tx, app_bypass) => {
+                self.handle_set_app_bypass(app_bypass);
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetGeoExclusionEnabled(tx, enabled) => {
                 self.handle_set_geo_exclusion_enabled(enabled).await;
                 let _ = tx.send(());
@@ -1387,6 +1397,15 @@ impl NymVpnService {
 
     async fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config_manager.set_enable_two_hop(enable_two_hop).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    #[cfg(target_os = "android")]
+    fn handle_set_app_bypass(
+        &mut self,
+        app_bypass: Option<crate::tunnel_provider::AppBypassConfig>,
+    ) {
+        self.config_manager.set_app_bypass(app_bypass);
         self.update_tunnel_settings_with_throttle();
     }
 

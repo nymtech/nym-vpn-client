@@ -28,6 +28,25 @@ pub trait AndroidTunProvider: Send + Sync + std::fmt::Debug {
     fn get_connection_owner_uid(&self, protocol: i32, source: String, destination: String) -> i32;
 }
 
+/// Per-connection app-bypass ("steering") configuration for Android lockdown
+/// mode.
+///
+/// `None`/absent means steering is off and classic per-app exclusion
+/// (`VpnService.Builder.addDisallowedApplication`) is in effect. When present,
+/// the real TUN device is handed to the libwg steering engine, which routes
+/// flows owned by `excluded_uids` directly to the network (over `protect()`-ed
+/// sockets) instead of into the tunnel.
+#[cfg(target_os = "android")]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AppBypassConfig {
+    /// UIDs of the apps whose traffic must bypass the tunnel.
+    pub excluded_uids: Vec<u32>,
+
+    /// DNS servers of the underlying (non-VPN) network, used to answer DNS
+    /// queries of the bypassed apps.
+    pub underlying_dns: Vec<IpAddr>,
+}
+
 #[derive(Debug)]
 pub struct TunnelSettings {
     /// Tunnel interface addresses.

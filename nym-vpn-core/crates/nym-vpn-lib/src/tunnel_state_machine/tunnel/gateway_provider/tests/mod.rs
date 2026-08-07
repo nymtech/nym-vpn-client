@@ -208,6 +208,8 @@ pub fn default_tunnel_settings() -> TunnelSettings {
             different_subnet: false,
             ..Default::default()
         },
+        #[cfg(target_os = "android")]
+        app_bypass: None,
     }
 }
 

@@ -9,6 +9,9 @@ use nym_vpn_lib::service::{
 };
 use tokio::sync::{mpsc, oneshot};
 
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::android::AppBypassConfig;
+
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
     EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams,
@@ -445,5 +448,18 @@ impl NymVpnServiceCommandSender {
             .send_and_wait(VpnServiceCommand::GetRecentGateways, tunnel_type)
             .await?
             .map_err(NymVpnServiceCommandInnerError::ListGateway)?)
+    }
+}
+
+#[cfg(target_os = "android")]
+#[uniffi::export(async_runtime = "tokio")]
+impl NymVpnServiceCommandSender {
+    /// Set the app bypass ("steering") configuration used on the next connect.
+    ///
+    /// Pass `None` to turn app bypass off. The value is not persisted, so it must be sent on
+    /// every connect.
+    pub async fn set_app_bypass(&self, config: Option<AppBypassConfig>) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetAppBypass, config.map(Into::into))
+            .await
     }
 }

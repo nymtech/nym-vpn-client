@@ -35,6 +35,16 @@ pub struct VpnServiceConfigManager {
     json_config_path: Option<PathBuf>,
     config: Box<nym_vpn_lib_types::VpnServiceConfig>,
 
+    // Runtime-only Android app bypass (steering) configuration.
+    //
+    // Deliberately kept out of `config`: it is derived from platform state
+    // (lockdown flag, resolved UIDs, the underlying network's DNS servers) that
+    // is only valid for the lifetime of the process, and the platform layer
+    // re-sends it on every connect. Persisting it would resurrect stale UIDs
+    // and DNS servers on the next launch.
+    #[cfg(target_os = "android")]
+    app_bypass: Option<crate::tunnel_provider::AppBypassConfig>,
+
     // Used to send `ConfigChanged` events when the config is updated.
     // It's only optional to simplify testing.
     tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
@@ -49,6 +59,8 @@ impl VpnServiceConfigManager {
         Self {
             json_config_path: None,
             config: initial_config,
+            #[cfg(target_os = "android")]
+            app_bypass: None,
             tunnel_event_tx,
         }
     }
@@ -75,6 +87,8 @@ impl VpnServiceConfigManager {
         let config_manager = Self {
             json_config_path: Some(json_config_path),
             config: Box::new(config),
+            #[cfg(target_os = "android")]
+            app_bypass: None,
             tunnel_event_tx,
         };
 
@@ -134,6 +148,27 @@ impl VpnServiceConfigManager {
         if self.config.enable_two_hop != enable_two_hop {
             self.config.enable_two_hop = enable_two_hop;
             self.save_config_and_send_event().await;
+        }
+    }
+
+    /// Set the Android app bypass (steering) configuration.
+    ///
+    /// Unlike the other setters this one neither persists to disk nor emits a
+    /// `ConfigChanged` event: the value is runtime tunnel configuration that
+    /// isn't part of `VpnServiceConfig`, and the platform layer re-sends it on
+    /// every connect.
+    #[cfg(target_os = "android")]
+    pub fn set_app_bypass(&mut self, app_bypass: Option<crate::tunnel_provider::AppBypassConfig>) {
+        if self.app_bypass != app_bypass {
+            match app_bypass.as_ref() {
+                Some(config) => tracing::info!(
+                    "App bypass enabled for {} uid(s) with {} underlying dns server(s)",
+                    config.excluded_uids.len(),
+                    config.underlying_dns.len()
+                ),
+                None => tracing::info!("App bypass disabled"),
+            }
+            self.app_bypass = app_bypass;
         }
     }
 
@@ -548,6 +583,8 @@ impl VpnServiceConfigManager {
                 .gateway_selection_algorithm_config
                 .clone(),
             gateway_independence: self.config.gateway_independence,
+            #[cfg(target_os = "android")]
+            app_bypass: self.app_bypass.clone().map(Box::new),
         }
     }
 }
