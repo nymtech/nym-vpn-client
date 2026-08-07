@@ -10,8 +10,6 @@ import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
 import { NodeRow } from './NodeRow';
 
-export type FoldState = 0 | 1 | 2;
-
 const DURATION = 0.3;
 const easeOutQuart = [0.22, 1, 0.36, 1] as const;
 

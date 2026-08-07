@@ -4,7 +4,6 @@ import {
   ErrorKey,
   Gateway,
   MixnetData,
-  MixnetEvent,
   MixnetEventPayload,
   Region,
   SelectedNode,
@@ -87,16 +86,6 @@ export function isWireguardData(data: TunnelData): data is WireguardData {
     (data as WireguardData).entry !== undefined &&
     (data as WireguardData).exit !== undefined
   );
-}
-
-export type RemainingBandwidth = {
-  'remaining-bandwidth': bigint;
-};
-
-export function isRemainingBandwidth(
-  event: MixnetEvent,
-): event is RemainingBandwidth {
-  return (event as RemainingBandwidth)['remaining-bandwidth'] !== undefined;
 }
 
 export function isMixnetEventError(

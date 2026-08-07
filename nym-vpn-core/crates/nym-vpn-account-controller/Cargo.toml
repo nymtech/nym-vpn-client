@@ -28,7 +28,6 @@ nym-crypto = { workspace = true, features = ["asymmetric", "rand"] }
 nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-sdk.workspace = true
-nym-upgrade-mode-check.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-credential-fetcher.workspace = true
@@ -36,7 +35,6 @@ nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 rand.workspace = true
-serde.workspace = true
 sha2.workspace = true
 strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true

@@ -1,5 +1,3 @@
-import SwiftUI
-import Theme
 import TunnelStatus
 
 public enum StatusButtonConfig: String {
@@ -36,34 +34,6 @@ public enum StatusButtonConfig: String {
             self = .noInternetReconnect
         case .error:
             self = .error
-        }
-    }
-
-    public var title: String {
-        self.rawValue.localizedString
-    }
-
-    var textColor: Color {
-        switch self {
-        case .connected:
-            NymColor.action
-        case .connecting, .disconnecting, .noInternet, .noInternetReconnect:
-            NymColor.primary
-        case .disconnected:
-            NymColor.gray1
-        case .error, .subscriptionExpired:
-            NymColor.black
-        }
-    }
-
-    var backgroundColor: Color {
-        switch self {
-        case .connected:
-            NymColor.action.opacity(0.1)
-        case .connecting, .disconnecting, .disconnected:
-            NymColor.backgroundHover
-        case .noInternet, .noInternetReconnect, .error, .subscriptionExpired:
-            NymColor.error
         }
     }
 }

@@ -73,10 +73,6 @@ public enum LoginProcessingCarouselTimingPolicy: Sendable {
             + LoginProcessingUI.setupCarouselFinalPairDwell
     }
 
-    public static func usesUnifiedSegmentDwell() -> Bool {
-        LoginProcessingUI.setupCarouselStepAdvanceDelay == LoginProcessingUI.stepBarStepPause
-    }
-
     public static func textAdvanceSyncsWithStepBarTick() -> Bool {
         LoginProcessingUI.setupCarouselStepAdvanceDelay == 0
     }

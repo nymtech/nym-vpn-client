@@ -271,14 +271,6 @@ import GRPCManager
         }
     }
 
-    func noteAuthWillBegin(flow: AuthFlowKind, completesOnCredentialImport: Bool = false) {
-        handleSessionEvent(.authWillBegin(flow: flow, completesOnCredentialImport: completesOnCredentialImport))
-    }
-
-    func noteAuthHandoffCancelled() {
-        handleSessionEvent(.authHandoffCancelled)
-    }
-
     func handleAuthCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
         handleSessionEvent(.authCompleted(outcome: outcome, flow: flow))
     }

@@ -1,6 +1,4 @@
-import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
-import { StateAction } from '../store/slices/createMainSlice';
 import {
   AccountLinks,
   ConnectingState,
@@ -32,8 +30,6 @@ import {
   ProgressMsg,
   TunnelState,
 } from './util';
-
-export type StateDispatch = Dispatch<StateAction>;
 
 // early stage state used to initialize the main app-state
 export type InitState = {

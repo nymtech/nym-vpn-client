@@ -17,7 +17,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val theme = stringPreferencesKey("THEME")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
-	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val locale = stringPreferencesKey("LOCALE")
 	private val batteryDialogSkip = booleanPreferencesKey("BATTERY_DIALOG_SKIP")
@@ -25,8 +24,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
 	private val technicalOptScreenCompleted = booleanPreferencesKey("TECHNICAL_OPT_SCREEN_COMPLETE")
 	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
-	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
-	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
 	private val welcomeShown = booleanPreferencesKey("WELCOME_SHOWN")
 	private val panelCollapsed = booleanPreferencesKey("PANEL_COLLAPSED")
@@ -63,10 +60,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
 	}
 
-	override suspend fun setManualGatewayOverride(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(manualGatewayOverride, enabled)
-	}
-
 	override suspend fun setCredentialMode(enabled: Boolean?) {
 		if (enabled == null) return dataStoreManager.clear(credentialMode)
 		dataStoreManager.saveToDataStore(credentialMode, enabled)
@@ -84,15 +77,9 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(batteryDialogSkip, skip)
 	}
 
-	override suspend fun isBatteryDialogSkipped(): Boolean = dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
-
-	override suspend fun getStatisticsEnabled(): Boolean = dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
-
 	override suspend fun setStatisticsEnabled(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(statsEnabled, enabled)
 	}
-
-	override suspend fun isStatsDialogSkipped(): Boolean = dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
 
 	override suspend fun setStatsDialogSkipped(skip: Boolean) {
 		dataStoreManager.saveToDataStore(statsDialogSkip, skip)
@@ -110,21 +97,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(quicEnabled, enabled)
 	}
 
-	override suspend fun getIsStreamServerBannerDisplayed(): Boolean = dataStoreManager.getFromStore(isStreamingServerBannerDisplayed) ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED
-
-	override suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean) {
-		dataStoreManager.saveToDataStore(isStreamingServerBannerDisplayed, displayed)
-	}
-
-	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean = dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed)
-		?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED
-
-	override suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean) {
-		dataStoreManager.saveToDataStore(isPerAppSecurityBannerDisplayed, displayed)
-	}
-
-	override suspend fun getLogsEnabled(): Boolean = dataStoreManager.getFromStore(logsEnabled) ?: Settings.DEFAULT_LOGS_ENABLED
-
 	override suspend fun setLogsEnabled(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(logsEnabled, enabled)
 	}
@@ -134,8 +106,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	override suspend fun setWelcomeShown(shown: Boolean) {
 		dataStoreManager.saveToDataStore(welcomeShown, shown)
 	}
-
-	override suspend fun getPanelCollapsed(): Boolean = dataStoreManager.getFromStore(panelCollapsed) ?: Settings.DEFAULT_PANEL_COLLAPSED
 
 	override suspend fun setPanelCollapsed(collapsed: Boolean) {
 		dataStoreManager.saveToDataStore(panelCollapsed, collapsed)
@@ -206,8 +176,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
 						technicalOptCompleted = pref[technicalOptScreenCompleted] ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED,
 						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
-						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
-						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
 						mixnetTrafficConfig = mixnetConfig,
 						isWelcomeShown = pref[welcomeShown] ?: Settings.DEFAULT_WELCOME_SHOWN,

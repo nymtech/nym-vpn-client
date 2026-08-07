@@ -30,10 +30,6 @@ public final class PathManager {
         return dataFolderURL
     }
 
-    public nonisolated static func cacheFolderURL() throws -> URL {
-        try Self.dataFolderURL().appendingPathComponent("Cache")
-    }
-
     public nonisolated static func configFolderURL() throws -> URL {
         try Self.dataFolderURL().appendingPathComponent("Config")
     }

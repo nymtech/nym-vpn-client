@@ -7,11 +7,7 @@ data class SettingsValues(
 	val autoConnectEnabled: Boolean = false,
 	val bypassLanEnabled: Boolean = false,
 	val adBlockingEnabled: Boolean = false,
-	val supportIPv6Enabled: Boolean = false,
-	val autoselectServerEnabled: Boolean = false,
 	val appShortcutsEnabled: Boolean = false,
-	val appDeviceStartupEnabled: Boolean = false,
-	val appSystemTrayEnabled: Boolean = false,
 	val appVersion: String = "",
 	val subscription: SubscriptionUiState? = null,
 )

@@ -12,9 +12,6 @@ enum AuthLayout {
 
     static let verticalPadding: CGFloat = NymSpacing.large
 
-    /// Tighter vertical rhythm for the account-creation carousel inside a fixed-height drawer.
-    static let carouselStackSpacing: CGFloat = NymSpacing.medium
-    static let carouselTitleTopMinSpacing: CGFloat = NymSpacing.small
     /// Breathing room between WaveDots and carousel status copy (login + create flows).
     static let carouselLoaderBottomSpacing: CGFloat = NymSpacing.large
     /// Breathing room between the step progress bar and WaveDots (login + create flows).

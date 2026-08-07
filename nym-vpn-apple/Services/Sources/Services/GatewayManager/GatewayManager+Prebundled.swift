@@ -508,17 +508,6 @@ private extension KeyedDecodingContainer {
         }
     }
 
-    func decodeLossyInt(forKey key: K) -> Int? {
-        if let value = try? decode(Int.self, forKey: key) {
-            return value
-        } else if let value = try? decode(Double.self, forKey: key) {
-            return Int(value)
-        } else if let value = try? decode(String.self, forKey: key), let doubleValue = Double(value) {
-            return Int(doubleValue)
-        } else {
-            return nil
-        }
-    }
 }
 
 private enum Load: String, Codable, Sendable {

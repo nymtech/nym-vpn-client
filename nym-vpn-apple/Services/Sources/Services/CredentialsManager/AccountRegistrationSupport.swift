@@ -24,16 +24,6 @@ enum AccountRegistrationSupport {
         return error
     }
 
-    static func userFacingDescription(for error: Error) -> String {
-        if let reason = error as? VPNErrorReason {
-            return reason.localizedDescription
-        }
-        if let vpnError = error as? VpnError {
-            return VPNErrorReason(with: vpnError).localizedDescription
-        }
-        return error.localizedDescription
-    }
-
     static func environmentForCredentialImport(
         isRegistrationInFlight: Bool,
         registrationCapturedEnvironment: NymEnvironment?,

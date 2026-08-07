@@ -22,6 +22,4 @@ interface NotificationService {
 		lights: Boolean = true,
 		onlyAlertOnce: Boolean = true,
 	)
-
-	fun clearNotifications()
 }

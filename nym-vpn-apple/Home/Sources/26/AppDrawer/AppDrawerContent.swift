@@ -27,13 +27,6 @@ enum AppDrawerContent: Equatable {
         return false
     }
 
-    var isTechnicalOptIns: Bool {
-        if case .technicalOptIns = self {
-            return true
-        }
-        return false
-    }
-
     /// True when an imported credential should promote the drawer to
     /// `.processing` (and on completion to `.oneClick` or `.technicalOptIns`).
     /// Only `.welcome` qualifies; `.technicalOptIns` is reached after

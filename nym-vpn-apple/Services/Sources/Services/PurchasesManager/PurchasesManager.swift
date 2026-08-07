@@ -96,10 +96,6 @@ public enum PurchaseOutcome: Equatable, Sendable {
         }
     }
 
-    public func restorePurchases() async throws {
-        try await AppStore.sync()
-    }
-
 #if SANTA
     public func registerForEnvironmentChanges(configurationManager: ConfigurationManager) {
         configurationManager.addEnvironmentDidChangeObserver { [weak self] in

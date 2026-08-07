@@ -141,10 +141,6 @@ import PathManager
         environmentChangeObservers.add(handler)
     }
 
-    public func removeEnvironmentDidChangeObserver(_ id: UUID) {
-        environmentChangeObservers.remove(id)
-    }
-
 #if SANTA
     public func updateEnv(to env: Env) {
         let previous = environmentReconfigurationTask

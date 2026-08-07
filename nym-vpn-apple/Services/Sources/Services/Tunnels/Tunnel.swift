@@ -18,10 +18,6 @@ import TunnelStatus
     private var isPolling = false
     private var pollingTask: Task<Void, Never>?
 
-    public var onDemandEnabled: Bool {
-        tunnel.isEnabled && tunnel.isOnDemandEnabled
-    }
-
     public init(tunnel: NETunnelProviderManager) {
         self.name = tunnel.localizedDescription ?? "Unnamed"
         self.tunnel = tunnel

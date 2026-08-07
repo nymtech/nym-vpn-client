@@ -1,6 +1,5 @@
 import SwiftUI
 import AppSettings
-import Constants
 import CredentialsManager
 import ConnectionManager
 import ConfigurationManager
@@ -25,17 +24,8 @@ import Theme
     @Binding private var path: NavigationPath
 
     let appSettings: AppSettings
-    let scannerIconName = "qrcode.viewfinder"
     let navigationSource: AddCredentialsNavigationSource
     let createAccounAppLink = "app://createAccount"
-
-    var signUpLink: String {
-        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
-            link
-        } else {
-            Constants.pricingURL.rawValue
-        }
-    }
 
     @MainActor @Published var credentialText = "" {
         willSet(newText) {

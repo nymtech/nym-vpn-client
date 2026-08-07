@@ -230,14 +230,6 @@ import ConnectionTypes
         self.isPassphraseStoredPublisher = self.isPassphraseStored
         self.serverFamilyRemindersEnabledPublisher = self.serverFamilyRemindersEnabled
     }
-
-    public func resetUserDefaults() {
-        let defaults = UserDefaults.standard
-        let dictionary = defaults.dictionaryRepresentation()
-        dictionary.keys.forEach { key in
-            defaults.removeObject(forKey: key)
-        }
-    }
 }
 
 #if os(iOS)

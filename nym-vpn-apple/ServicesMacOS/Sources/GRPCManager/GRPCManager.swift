@@ -112,13 +112,3 @@ private extension GRPCManager {
         setup()
     }
 }
-
-// MARK: - Helpers
-private extension String {
-    /// Keep only the first three "."-separated segments (e.g. "1.9.0-beta")
-    var semVerCore: String {
-        let parts = split(separator: ".")
-        guard parts.count >= 3 else { return self }
-        return parts[0...2].joined(separator: ".")
-    }
-}

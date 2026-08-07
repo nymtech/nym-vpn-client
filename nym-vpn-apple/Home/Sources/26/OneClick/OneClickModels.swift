@@ -94,9 +94,4 @@ public struct OneClickServerInfo: Equatable {
 public enum OneClickSelectionPhase: Equatable {
     case selecting
     case selected(OneClickServerInfo)
-
-    var selectedInfo: OneClickServerInfo? {
-        if case let .selected(info) = self { return info }
-        return nil
-    }
 }

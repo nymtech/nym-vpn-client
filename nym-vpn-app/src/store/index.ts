@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import type { AppState, InitState } from '../types';
 import { createGatewaysSlice } from './slices/gateways/createGatewaysSlice';
-import type { GatewaysSlice, GatewaysState } from './slices/gateways/types';
+import type { GatewaysSlice } from './slices/gateways/types';
 import { createMainSlice } from './slices/createMainSlice';
 import type { MainSlice, StateAction } from './slices/createMainSlice';
 import { createSocks5Slice } from './slices/createSocks5Slice';
@@ -106,21 +106,6 @@ export const useMainState = (): AppState =>
     })),
   );
 
-// gateways state
-export const useGateways = (): GatewaysState =>
-  useAppStore(
-    useShallow((s) => ({
-      mxEntry: s.mxEntry,
-      mxExit: s.mxExit,
-      wg: s.wg,
-      mxEntryLoading: s.mxEntryLoading,
-      mxExitLoading: s.mxExitLoading,
-      wgLoading: s.wgLoading,
-      mxEntryError: s.mxEntryError,
-      mxExitError: s.mxExitError,
-      wgError: s.wgError,
-    })),
-  );
 export const useFetchGateways = () => useAppStore((s) => s.fetchGateways);
 
 export const useLookupGw = () => useAppStore((s) => s.lookupGw);

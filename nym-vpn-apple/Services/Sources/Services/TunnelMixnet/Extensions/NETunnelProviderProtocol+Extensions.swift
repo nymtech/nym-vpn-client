@@ -15,10 +15,6 @@ import NetworkExtension
         MixnetConfigStorage.delete()
     }
 
-    public func verifyConfigurationReference() -> Bool {
-        MixnetConfigStorage.exists()
-    }
-
     public func asMixnetConfig(called name: String? = nil) -> MixnetConfig? {
         MixnetConfigStorage.load()
     }

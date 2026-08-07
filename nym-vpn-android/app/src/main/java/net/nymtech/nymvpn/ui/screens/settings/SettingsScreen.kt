@@ -124,11 +124,7 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			autoConnectEnabled = appUiState.settings.autoStartEnabled,
 			bypassLanEnabled = appUiState.vpnConfig.bypassLan,
 			adBlockingEnabled = appUiState.vpnConfig.adBlockingEnabled,
-			supportIPv6Enabled = false,
-			autoselectServerEnabled = false,
 			appShortcutsEnabled = appUiState.settings.isShortcutsEnabled,
-			appDeviceStartupEnabled = false,
-			appSystemTrayEnabled = false,
 			appVersion = BuildConfig.VERSION_NAME,
 			subscription = appUiState.subscription,
 		),
@@ -145,12 +141,8 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			onSupportClick = {
 				navController.navigate(Route.Support)
 			},
-			onResetClick = {
-			},
 			onLegalClick = {
 				navController.navigate(Route.Legal)
-			},
-			onSystemStatusClick = {
 			},
 			onQuitClick = {
 				(context as Activity).finishAffinity()
@@ -173,10 +165,6 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 				}
 				viewModel.onAdBlockingSelected(it)
 			},
-			onSupportIPv6Enable = {
-			},
-			onAutoselectServerEnable = {
-			},
 			onShortcutsEnable = { enable ->
 				if (enable && !DeviceAuthHelper.isDeviceSecure(context)) {
 					Toast.makeText(
@@ -186,10 +174,6 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 					).show()
 				}
 				viewModel.onAppShortcutsSelected(enable)
-			},
-			onDeviceStartupEnable = {
-			},
-			onSystemTrayEnable = {
 			},
 			onKillSwitchClick = {
 				context.launchVpnSettings()
@@ -249,9 +233,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 			VpnSettingsSection(values, actions)
 			AppearanceSection(values, actions)
 			LogsSection(onPrivacyClick = actions.onPrivacyClick)
-			// ResetAppSection(actions.onResetClick)
 			LegalSection(actions.onLegalClick)
-			// SystemStatusSection(actions.onSystemStatusClick)
 			LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
 			QuitSection(actions.onQuitClick)
 			AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)

@@ -32,12 +32,7 @@ export const ToSUrl = 'https://nym.com/vpn-terms';
 export const PrivacyPolicyUrl = 'https://nym.com/vpn-privacy-statement';
 export const LocationDetailsArticle =
   'https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
-export const ModesDetailsArticle =
-  'https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode';
-export const SentryHomePage = 'https://sentry.io/';
 export const GatewaysCacheDuration = 120; // 2min
-export const NymVpnPricingUrl = 'https://nym.com/pricing';
-export const NymVpnAccountLoginUrl = 'https://nym.com/account/login';
 export const SentryPrivacyPolicyUrl = 'https://sentry.io/privacy/';
 export const AnonNetworkStatsUrl = 'https://nym.com/anonymous-stats';
 export const QuicUrl = 'https://nym.com/features/quic';
@@ -53,8 +48,6 @@ export const ResidentialIpServersUrl =
   'https://support.nym.com/hc/en-us/articles/35279486714641-Why-can-t-I-access-streaming-services-while-using-NymVPN';
 export const QuicSupportArticleUrl =
   'https://support.nym.com/hc/en-us/articles/39648047741457-QUIC-transport-mode';
-export const LocationAccuracyLink =
-  'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
 export const MixnetParametersLearnMoreUrl =
   'https://nym.com/features/mixnet-tuning';

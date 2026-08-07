@@ -9,9 +9,6 @@ import AcknowList
     private let externalLinkManager: ExternalLinkManager
     private let termsOfUseLink = Constants.termsOfUseURL.rawValue
     private let privacyPolicyLink = Constants.privacyPolicyURL.rawValue
-    #if os(iOS)
-    private let licencesLink = UIApplication.openSettingsURLString
-    #endif
     let title = "legal".localizedString
 
     @Binding var path: NavigationPath

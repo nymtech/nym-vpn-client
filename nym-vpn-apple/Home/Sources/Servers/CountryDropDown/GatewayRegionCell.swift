@@ -152,15 +152,6 @@ private extension GatewayRegionCell {
 }
 
 public extension GatewayRegionCell {
-    func updateIsRegionSelected() {
-        switch scrollToModel {
-        case let .region(countryCode: _, region: countryRegion):
-            isRegionSelected = countryRegion == region
-        default:
-            isRegionSelected = false
-        }
-    }
-
     func expandTapAction() {
         ImpactGenerator.shared.softImpact()
         withAnimation(.easeInOut(duration: 0.2)) {

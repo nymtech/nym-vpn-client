@@ -16,8 +16,6 @@ interface SettingsRepository {
 	suspend fun isApplicationShortcutsEnabled(): Boolean
 	suspend fun setApplicationShortcuts(enabled: Boolean)
 
-	suspend fun setManualGatewayOverride(enabled: Boolean)
-
 	suspend fun setCredentialMode(enabled: Boolean?)
 	suspend fun isCredentialMode(): Boolean?
 
@@ -25,12 +23,9 @@ interface SettingsRepository {
 	suspend fun setLocale(locale: String)
 
 	suspend fun setBatteryDialogSkipped(skip: Boolean)
-	suspend fun isBatteryDialogSkipped(): Boolean
 
-	suspend fun getStatisticsEnabled(): Boolean
 	suspend fun setStatisticsEnabled(enabled: Boolean)
 
-	suspend fun isStatsDialogSkipped(): Boolean
 	suspend fun setStatsDialogSkipped(skip: Boolean)
 
 	suspend fun setTechnicalOptScreenCompleted()
@@ -39,13 +34,6 @@ interface SettingsRepository {
 	suspend fun getQUICEnabled(): Boolean
 	suspend fun setQUICEnabled(enabled: Boolean)
 
-	suspend fun getIsStreamServerBannerDisplayed(): Boolean
-	suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean)
-
-	suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean
-	suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean)
-
-	suspend fun getLogsEnabled(): Boolean
 	suspend fun setLogsEnabled(enabled: Boolean)
 
 	suspend fun isWelcomeShown(): Boolean
@@ -59,6 +47,5 @@ interface SettingsRepository {
 	suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig
 	suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig)
 
-	suspend fun getPanelCollapsed(): Boolean
 	suspend fun setPanelCollapsed(collapsed: Boolean)
 }

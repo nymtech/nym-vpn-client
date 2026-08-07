@@ -20,10 +20,6 @@ extension IPAddressRange: Hashable {
 }
 
 extension IPAddressRange {
-    public var stringRepresentation: String {
-        "\(address)/\(networkPrefixLength)"
-    }
-
     public init?(from string: String) {
         guard let parsed = IPAddressRange.parseAddressString(string) else { return nil }
         address = parsed.0

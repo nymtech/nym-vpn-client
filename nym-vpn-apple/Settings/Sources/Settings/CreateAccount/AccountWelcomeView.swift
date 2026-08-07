@@ -300,13 +300,3 @@ private extension AccountWelcomeView {
         }
     }
 }
-
-// MARK: - Helpers -
-private extension AccountWelcomeView {
-    func loginAttributedString() -> AttributedString? {
-        let alreadyHaveAcccount = "createAccount.alreadyHaveAccount".localizedString
-        let login = "createAccount.login".localizedString
-        let loginLink = "login"
-        return try? AttributedString(markdown: "\(alreadyHaveAcccount) [\(login)](\(loginLink))")
-    }
-}

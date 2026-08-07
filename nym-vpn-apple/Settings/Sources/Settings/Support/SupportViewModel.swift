@@ -16,7 +16,6 @@ import UIComponents
     let title = "settings.supportAndFeedback".localizedString
 
     @Binding var path: NavigationPath
-    @Published var isResetVPNProfileDisplayed = false
 
     var sections: [SupportSection] {
         [
@@ -45,9 +44,6 @@ extension SupportViewModel {
         try? externalLinkManager.openExternalURL(urlString: urlString)
     }
 
-    func displayResetVPNProfileDialog() {
-        isResetVPNProfileDisplayed = true
-    }
 }
 
 // MARK: - Sections -

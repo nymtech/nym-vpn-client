@@ -11,22 +11,19 @@ license.workspace = true
 [lints]
 workspace = true
 
+[package.metadata.cargo-machete]
+# rustls is declared only to pin its feature set (std, ring, logging) for the
+# rustls instance used transitively by quinn/reqwest via feature unification.
+ignored = ["rustls"]
+
 [dependencies]
 adblock = { workspace = true, features = ["embedded-domain-resolver"] }
 anyhow.workspace = true
 async-stream.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
-base64.workspace = true
 bincode.workspace = true
-bs58.workspace = true
 bytes.workspace = true
-ed25519-dalek = { workspace = true, features = [
-    "pkcs8",
-    "alloc",
-    "pem",
-    "rand_core",
-] }
 futures.workspace = true
 geo.workspace = true
 hex.workspace = true
@@ -44,7 +41,6 @@ http-body-util = { workspace = true }
 ipnetwork.workspace = true
 itertools.workspace = true
 log-panics.workspace = true
-lazy_static.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
@@ -85,7 +81,6 @@ nym-favorites.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 quinn.workspace = true
-quinn-proto.workspace = true
 rand.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls", "stream"] }
 rustls = { workspace = true, default-features = false, features = [
@@ -106,7 +101,6 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
-sha2.workspace = true
 strum.workspace = true
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
 sysinfo = { workspace = true, features = ["network"] }
@@ -132,8 +126,6 @@ tracing-opentelemetry.workspace = true
 tun = { workspace = true, features = ["async"] }
 url.workspace = true
 urlencoding.workspace = true
-webpki-roots.workspace = true
-x509-parser = { workspace = true, features = ["verify"] }
 
 nym-bridges =  {workspace = true, features=["serde"] }
 

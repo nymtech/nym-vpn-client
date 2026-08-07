@@ -14,8 +14,6 @@ data class Settings(
 	val statsDialogSkip: Boolean = FLAG_STATS_DIALOG_SKIP,
 	val technicalOptCompleted: Boolean = FLAG_TECHNICAL_OPT_COMPLETED,
 	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
-	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
-	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 	val logsEnabled: Boolean = DEFAULT_LOGS_ENABLED,
 	val mixnetTrafficConfig: MixnetTrafficConfig = MIXNET_CONFIG_DEFAULT,
 	val isWelcomeShown: Boolean = DEFAULT_WELCOME_SHOWN,
@@ -30,8 +28,6 @@ data class Settings(
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_TECHNICAL_OPT_COMPLETED = false
-		const val DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED = false
-		const val DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED = false
 		const val DEFAULT_LOGS_ENABLED = false
 		const val DEFAULT_WELCOME_SHOWN = false
 		const val DEFAULT_PANEL_COLLAPSED = false

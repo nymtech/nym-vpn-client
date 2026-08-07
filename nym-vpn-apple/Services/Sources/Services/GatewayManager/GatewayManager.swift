@@ -199,27 +199,6 @@ import GRPCManager
         }
     }
 
-    public func containsQuic(with gateway: EntryGateway) -> Bool {
-        switch gateway {
-        case let .country(countryCode):
-            return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.isQuicAvailable }
-        case let .region(countryCode, region):
-            return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region }
-        case let .gateway(identifier):
-            return vpn.contains { $0.id == identifier && $0.isQuicAvailable }
-        case .random, .auto:
-            return false
-        }
-    }
-
-    public func containsStreaming(with gateway: ExitRouter) -> Bool {
-        switch gateway {
-        case .country, .region, .random, .auto:
-            false
-        case let .gateway(identifier):
-            vpn.contains { $0.id == identifier && $0.isResidentialAvailable }
-        }
-    }
 }
 
 // MARK: - Recents -

@@ -188,26 +188,17 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override suspend fun setAutoStart(enabled: Boolean) = Unit
 	override suspend fun isApplicationShortcutsEnabled(): Boolean = false
 	override suspend fun setApplicationShortcuts(enabled: Boolean) = Unit
-	override suspend fun setManualGatewayOverride(enabled: Boolean) = Unit
 	override suspend fun setCredentialMode(enabled: Boolean?) = Unit
 	override suspend fun isCredentialMode(): Boolean? = null
 	override suspend fun getLocale(): String? = null
 	override suspend fun setLocale(locale: String) = Unit
 	override suspend fun setBatteryDialogSkipped(skip: Boolean) = Unit
-	override suspend fun isBatteryDialogSkipped(): Boolean = false
-	override suspend fun getStatisticsEnabled(): Boolean = false
 	override suspend fun setStatisticsEnabled(enabled: Boolean) = Unit
-	override suspend fun isStatsDialogSkipped(): Boolean = false
 	override suspend fun setStatsDialogSkipped(skip: Boolean) = Unit
 	override suspend fun setTechnicalOptScreenCompleted() = Unit
 	override suspend fun isTechnicalOptScreenCompleted(): Boolean = technicalOptCompleted
 	override suspend fun getQUICEnabled(): Boolean = false
 	override suspend fun setQUICEnabled(enabled: Boolean) = Unit
-	override suspend fun getIsStreamServerBannerDisplayed(): Boolean = false
-	override suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean) = Unit
-	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean = false
-	override suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean) = Unit
-	override suspend fun getLogsEnabled(): Boolean = false
 	override suspend fun setLogsEnabled(enabled: Boolean) = Unit
 	override suspend fun isWelcomeShown(): Boolean = false
 	override suspend fun setWelcomeShown(shown: Boolean) = Unit
@@ -216,7 +207,6 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override val settingsFlow: Flow<Settings> = MutableStateFlow(Settings())
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig = unsupported()
 	override suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig) = Unit
-	override suspend fun getPanelCollapsed(): Boolean = false
 	override suspend fun setPanelCollapsed(collapsed: Boolean) = Unit
 
 	private fun unsupported(): Nothing = throw UnsupportedOperationException("not used in LoginProcessingViewModelTest")

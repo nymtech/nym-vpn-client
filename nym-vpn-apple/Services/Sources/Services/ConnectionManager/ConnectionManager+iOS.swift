@@ -158,8 +158,6 @@ extension ConnectionManager {
         }
     }
 
-    func fetchConnectionConfig() async {}
-
     @MainActor
     func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async throws {
         if let cfg = try? generateConfig() {

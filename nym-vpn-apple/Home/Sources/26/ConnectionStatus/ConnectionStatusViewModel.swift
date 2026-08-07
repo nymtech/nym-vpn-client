@@ -86,10 +86,6 @@ import UIKit
         }
     }
 
-    public func setMode(_ mode: ArcProgressMode) {
-        self.mode = mode
-    }
-
     public var isConnectingLike: Bool { status.isConnectingLike }
 }
 

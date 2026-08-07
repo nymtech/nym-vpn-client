@@ -108,10 +108,6 @@ private extension AddCredentialsView {
 
         HStack {
             loginButton()
-// #if os(iOS)
-//            qrScannerButton()
-//                .padding(.trailing, 16)
-// #endif
         }
         .padding(.vertical, 16)
 
@@ -156,11 +152,6 @@ private extension AddCredentialsView {
     func inputView() -> some View {
         LazyVStack(alignment: .leading) {
             TextField("addCredentials.placeholder".localizedString, text: $viewModel.credentialText, axis: .vertical)
-// https://stackoverflow.com/questions/74989806/how-to-dismiss-keyboard-in-swiftui-keyboard-when-pressing-done
-//                .onSubmit {
-//                    viewModel.importCredentials()
-//                    isFocused = false
-//                }
                 .onChange(of: viewModel.credentialText) { [weak viewModel] _, _ in
                     if viewModel?.credentialText.last?.isNewline == .some(true) {
                         login()
@@ -217,20 +208,6 @@ private extension AddCredentialsView {
                 login()
             }
     }
-
-//    @ViewBuilder
-//    func qrScannerButton() -> some View {
-//        GenericImage(systemImageName: viewModel.scannerIconName)
-//            .frame(width: 56, height: 56)
-//            .foregroundStyle(NymColor.connectTitle)
-//            .background(NymColor.primaryOrange)
-//            .cornerRadius(8)
-//            .onTapGesture {
-//                Task { @MainActor in
-//                    viewModel.isScannerDisplayed.toggle()
-//                }
-//            }
-//    }
 
     @ViewBuilder
     func createAccount() -> some View {

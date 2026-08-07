@@ -25,7 +25,6 @@ nym-compact-ecash.workspace = true
 nym-config.workspace = true
 nym-contracts-common.workspace = true
 nym-credential-proxy-requests.workspace = true
-nym-credentials.workspace = true
 nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
 nym-http-api-client.workspace = true
 nym-network-defaults = { workspace = true, optional = true }

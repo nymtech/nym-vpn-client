@@ -18,12 +18,4 @@ public struct NymCountry: Codable, Hashable {
             self.cities = cities
         }
     }
-
-    public var allCitiesWithRegions: [(city: String, region: String)] {
-        regions.flatMap { region in
-            region.cities.map { city in
-                (city: city, region: region.name)
-            }
-        }
-    }
 }

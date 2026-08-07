@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
@@ -31,7 +30,6 @@ class SplitTunnelingViewModel @Inject constructor(
 	@param:ApplicationContext private val context: Context,
 	private val splitTunnelingRepository: SplitTunnelingRepository,
 	private val backendManager: BackendManager,
-	private val settingsRepository: SettingsRepository,
 	private val helper: SplitTunnelingHelper,
 ) : ViewModel() {
 
@@ -68,7 +66,6 @@ class SplitTunnelingViewModel @Inject constructor(
 
 	fun loadData() {
 		getAllInstalledAppList()
-		onPerAppSecurityBannerDisplayed()
 	}
 
 	fun onQueryChange(query: String) {
@@ -145,10 +142,6 @@ class SplitTunnelingViewModel @Inject constructor(
 		if (isConnected) {
 			_events.tryEmit(UiEvent.ReconnectStarted)
 		}
-	}
-
-	private fun onPerAppSecurityBannerDisplayed() = viewModelScope.launch {
-		settingsRepository.setIsStreamServerBannerDisplayed(true)
 	}
 
 	private fun getAllInstalledAppList() {

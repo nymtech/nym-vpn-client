@@ -2,13 +2,6 @@ import org.gradle.api.Project
 import java.io.File
 import java.util.Properties
 
-fun Project.getBuildTaskName(): String {
-	val taskRequestsStr = gradle.startParameter.taskRequests[0].toString()
-	return taskRequestsStr.also {
-		project.logger.lifecycle("Build task: $it")
-	}
-}
-
 fun Project.getSigningProperties(): Properties {
 	return Properties().apply {
 		// created local file for signing details
