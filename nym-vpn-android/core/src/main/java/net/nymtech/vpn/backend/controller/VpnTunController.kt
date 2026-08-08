@@ -19,12 +19,18 @@ class VpnTunController(private val service: VpnService) {
 
 	@Volatile private var bypassLanFlag: Boolean = false
 
+	@Volatile private var appBypassActive: Boolean = false
+
 	fun setDisallowedApps(pkgs: List<String>) {
 		disallowedApps = pkgs
 	}
 
 	fun setBypassLan(value: Boolean) {
 		bypassLanFlag = value
+	}
+
+	fun setAppBypassActive(active: Boolean) {
+		appBypassActive = active
 	}
 
 	fun configureTunnel(config: TunnelNetworkSettings): Int {
@@ -34,8 +40,12 @@ class VpnTunController(private val service: VpnService) {
 		return try {
 			val builder = service.Builder()
 
-			disallowedApps.forEach { pkg ->
-				runCatching { builder.addDisallowedApplication(pkg) }
+			if (appBypassActive) {
+				Timber.tag(TAG).i("App bypass active (lockdown): steering excluded apps in-tunnel")
+			} else {
+				disallowedApps.forEach { pkg ->
+					runCatching { builder.addDisallowedApplication(pkg) }
+				}
 			}
 
 			config.ipv4Settings?.addresses.orEmpty().forEach { cidr ->

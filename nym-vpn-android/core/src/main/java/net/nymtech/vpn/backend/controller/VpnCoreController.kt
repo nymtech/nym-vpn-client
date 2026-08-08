@@ -1,6 +1,8 @@
 package net.nymtech.vpn.backend.controller
 
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.os.Build
 import android.os.UserManager
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
@@ -17,6 +19,7 @@ import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
+import net.nymtech.vpn.util.AppBypassResolver
 import net.nymtech.vpn.util.extensions.asTunnelState
 import nym_vpn_lib.LogLevel
 import nym_vpn_lib.NoHandle
@@ -384,10 +387,14 @@ class VpnCoreController(
 			prev?.bypassLan != cfg.bypassLan ||
 			prev.restrictedApps != cfg.restrictedApps
 
-		syncLocalFieldsFromConfig(cfg)
+		// Computed once per apply and reused for both the tun-controller flag and the
+		// sender call below, so the two decisions can never diverge within a single apply.
+		val appBypass = computeAppBypass(cfg)
+
+		syncLocalFieldsFromConfig(cfg, appBypass)
 
 		requireCoreSender { sender ->
-			applyConfigDiffToSender(sender, force, prev, cfg)
+			applyConfigDiffToSender(sender, force, prev, cfg, appBypass)
 		}
 
 		lastAppliedConfig = cfg
@@ -398,7 +405,31 @@ class VpnCoreController(
 		}
 	}
 
-	private suspend fun applyConfigDiffToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
+	/**
+	 * Whether excluded apps must be steered in-tunnel instead of via
+	 * `VpnService.Builder.addDisallowedApplication`, and if so, the data Rust needs to do it.
+	 *
+	 * Lockdown state can change outside our process (system settings), so this is re-evaluated
+	 * on every apply rather than cached. Toggling lockdown mid-connection is picked up on the
+	 * next apply/reconnect; Android itself restarts always-on VPNs when lockdown is toggled,
+	 * which covers the common path.
+	 */
+	private fun computeAppBypass(cfg: CoreVpnConfig): nym_vpn_lib.AppBypassConfig? {
+		val lockdown = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && service.isLockdownEnabled
+		if (!AppBypassResolver.shouldSteer(Build.VERSION.SDK_INT, lockdown, cfg.restrictedApps)) return null
+		return nym_vpn_lib.AppBypassConfig(
+			excludedUids = AppBypassResolver.resolveUids(service.packageManager, cfg.restrictedApps),
+			underlyingDns = AppBypassResolver.underlyingDnsServers(service.getSystemService(ConnectivityManager::class.java)),
+		)
+	}
+
+	private suspend fun applyConfigDiffToSender(
+		sender: NymVpnServiceCommandSender,
+		force: Boolean,
+		prev: CoreVpnConfig?,
+		cfg: CoreVpnConfig,
+		appBypass: nym_vpn_lib.AppBypassConfig?,
+	) {
 		if (force || prev?.mode?.isTwoHop() != cfg.mode.isTwoHop()) {
 			sender.setEnableTwoHop(cfg.mode.isTwoHop())
 		}
@@ -421,6 +452,9 @@ class VpnCoreController(
 			sender.setEnableAdBlocking(cfg.adBlockingEnabled)
 		}
 
+		// Always re-sent: lockdown state can change outside our process, and the call is cheap.
+		sender.setAppBypass(appBypass)
+
 		applyGeoExclusionToSender(sender, force, prev, cfg)
 	}
 
@@ -436,7 +470,7 @@ class VpnCoreController(
 		}
 	}
 
-	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig) {
+	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig, appBypass: nym_vpn_lib.AppBypassConfig?) {
 		bypassLanFlag = cfg.bypassLan
 		disallowedApps = cfg.restrictedApps
 		currentEntry = cfg.entryPoint
@@ -444,6 +478,7 @@ class VpnCoreController(
 
 		tun.setDisallowedApps(disallowedApps)
 		tun.setBypassLan(bypassLanFlag)
+		tun.setAppBypassActive(appBypass != null)
 	}
 
 	fun isAlwaysOnHeuristic(intent: Intent?): Boolean = intent == null || intent.component == null || intent.component?.packageName != service.packageName
