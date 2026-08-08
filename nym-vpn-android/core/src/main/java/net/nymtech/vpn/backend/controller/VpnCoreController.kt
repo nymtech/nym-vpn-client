@@ -391,6 +391,17 @@ class VpnCoreController(
 		val appBypass = computeAppBypass(cfg)
 		val appBypassActive = appBypass != null
 
+		// Logged before the apply so a field log shows the decision even if the sender call
+		// below throws: in-tunnel steering vs. addDisallowedApplication is the single most
+		// load-bearing branch for split tunneling under lockdown.
+		if (AppBypassResolver.steeringDecisionChanged(lastAppBypassActive, appBypassActive)) {
+			Timber.tag(TAG).i(
+				"App bypass steering decision changed: active=%s uids=%d",
+				appBypassActive,
+				appBypass?.excludedUids?.size ?: 0,
+			)
+		}
+
 		val tunSettingsChanged = force ||
 			prev?.bypassLan != cfg.bypassLan ||
 			prev.restrictedApps != cfg.restrictedApps ||

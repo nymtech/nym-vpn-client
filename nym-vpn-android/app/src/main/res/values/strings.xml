@@ -542,10 +542,10 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
 	<string name="split_tunneling_event_saved">Split tunneling settings saved</string>
 	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings…</string>
-	<string name="split_tunnel_lockdown_active_note">\"Block connections without VPN\" is on. Excluded apps connect directly to the internet outside the VPN tunnel, from your real IP address. Ping (ICMP) does not work for excluded apps.</string>
+	<string name="split_tunnel_lockdown_active_note">\"Block connections without VPN\" is on. Excluded apps connect directly to the internet outside the VPN tunnel, from your real IP address. Ping (ICMP) still goes through the VPN for all apps.</string>
 	<string name="split_tunnel_lockdown_legacy_warning">Your Android version blocks excluded apps when \"Block connections without VPN\" is enabled in system settings. Disable it there or remove exclusions.</string>
 	<string name="split_tunnel_open_vpn_settings">Open VPN settings</string>
-	<string name="split_tunnel_info_lockdown_privacy_note">When \"Block connections without VPN\" is on, excluded apps\' traffic leaves your device directly from your real IP address. It is relayed on-device by the NymVPN app itself, without entering the tunnel.</string>
+	<string name="split_tunnel_info_lockdown_privacy_note">Excluded apps\' traffic leaves your device directly from your real IP address. When \"Block connections without VPN\" is on, it is relayed on-device by the NymVPN app itself, without entering the tunnel.</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS customization</string>
 	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>

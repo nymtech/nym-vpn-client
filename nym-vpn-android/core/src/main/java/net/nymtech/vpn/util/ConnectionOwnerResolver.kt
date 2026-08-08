@@ -3,6 +3,7 @@ package net.nymtech.vpn.util
 import android.net.ConnectivityManager
 import android.net.InetAddresses
 import android.os.Build
+import androidx.annotation.RequiresApi
 import java.net.InetSocketAddress
 import timber.log.Timber
 
@@ -43,6 +44,7 @@ object ConnectionOwnerResolver {
 	 * Same parsing as [parseAddrPort] but guarantees no DNS lookup by rejecting anything
 	 * that isn't a literal numeric address. Only safe to call on API 29+.
 	 */
+	@RequiresApi(Build.VERSION_CODES.Q)
 	private fun parseNumericAddrPort(s: String): InetSocketAddress? {
 		return try {
 			val (host, port) = splitHostPort(s) ?: return null
