@@ -76,6 +76,9 @@ class VpnCoreController(
 	private var lastAppliedConfig: CoreVpnConfig? = null
 
 	@Volatile
+	private var lastAppBypassActive: Boolean? = null
+
+	@Volatile
 	private var bypassLanFlag: Boolean = false
 
 	@Volatile
@@ -383,21 +386,30 @@ class VpnCoreController(
 		val cfg = canonical ?: configRepo.get()
 		val prev = lastAppliedConfig
 
-		val tunSettingsChanged = force ||
-			prev?.bypassLan != cfg.bypassLan ||
-			prev.restrictedApps != cfg.restrictedApps
-
 		// Computed once per apply and reused for both the tun-controller flag and the
 		// sender call below, so the two decisions can never diverge within a single apply.
 		val appBypass = computeAppBypass(cfg)
+		val appBypassActive = appBypass != null
 
-		syncLocalFieldsFromConfig(cfg, appBypass)
+		val tunSettingsChanged = force ||
+			prev?.bypassLan != cfg.bypassLan ||
+			prev.restrictedApps != cfg.restrictedApps ||
+			AppBypassResolver.steeringDecisionChanged(lastAppBypassActive, appBypassActive)
+
+		syncLocalFieldsFromConfig(cfg)
 
 		requireCoreSender { sender ->
 			applyConfigDiffToSender(sender, force, prev, cfg, appBypass)
 		}
 
+		// Only commit the tun-controller's steering flag once the sender call above has
+		// actually succeeded: if it throws, the exception propagates out of this function
+		// (every caller wraps it in runCatching) and none of the lines below run, so local
+		// state never claims a config Rust never received (fail-closed).
+		tun.setAppBypassActive(appBypassActive)
+
 		lastAppliedConfig = cfg
+		lastAppBypassActive = appBypassActive
 
 		if (tunSettingsChanged && state != Tunnel.State.Down) {
 			Timber.tag(TAG).i("Routing changed, triggering reconnect")
@@ -410,9 +422,12 @@ class VpnCoreController(
 	 * `VpnService.Builder.addDisallowedApplication`, and if so, the data Rust needs to do it.
 	 *
 	 * Lockdown state can change outside our process (system settings), so this is re-evaluated
-	 * on every apply rather than cached. Toggling lockdown mid-connection is picked up on the
-	 * next apply/reconnect; Android itself restarts always-on VPNs when lockdown is toggled,
-	 * which covers the common path.
+	 * on every apply rather than cached. `applyCanonicalConfigToRustIfReady` compares the
+	 * result against `lastAppBypassActive` and reconnects when it changed, so a lockdown
+	 * toggle mid-connection is picked up on the next apply (any config apply, not just one
+	 * touching `restrictedApps`/`bypassLan`) rather than requiring the user to reconnect
+	 * manually; Android itself also restarts always-on VPNs when lockdown is toggled via
+	 * Settings, which covers the most common path independently.
 	 */
 	private fun computeAppBypass(cfg: CoreVpnConfig): nym_vpn_lib.AppBypassConfig? {
 		val lockdown = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && service.isLockdownEnabled
@@ -470,7 +485,7 @@ class VpnCoreController(
 		}
 	}
 
-	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig, appBypass: nym_vpn_lib.AppBypassConfig?) {
+	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig) {
 		bypassLanFlag = cfg.bypassLan
 		disallowedApps = cfg.restrictedApps
 		currentEntry = cfg.entryPoint
@@ -478,7 +493,6 @@ class VpnCoreController(
 
 		tun.setDisallowedApps(disallowedApps)
 		tun.setBypassLan(bypassLanFlag)
-		tun.setAppBypassActive(appBypass != null)
 	}
 
 	fun isAlwaysOnHeuristic(intent: Intent?): Boolean = intent == null || intent.component == null || intent.component?.packageName != service.packageName

@@ -12,6 +12,18 @@ object AppBypassResolver {
 	fun shouldSteer(sdkInt: Int, lockdownEnabled: Boolean, restrictedApps: List<String>): Boolean =
 		sdkInt >= Build.VERSION_CODES.Q && lockdownEnabled && restrictedApps.isNotEmpty()
 
+	/**
+	 * Whether the steering decision (in-tunnel vs. VpnService.Builder exclusion) differs from
+	 * the last one actually applied to the running tunnel. `previouslyActive == null` means
+	 * "no apply has happened yet", which always counts as a change.
+	 *
+	 * A caller must reconnect when this is true: the established TUN and the disallowed-apps
+	 * loop it was built with only reflect the decision made at the last apply, so a changed
+	 * decision (e.g. lockdown toggled mid-connection) needs a fresh connect to take effect.
+	 */
+	fun steeringDecisionChanged(previouslyActive: Boolean?, active: Boolean): Boolean =
+		previouslyActive != active
+
 	fun resolveUids(packageManager: PackageManager, packages: List<String>): List<UInt> =
 		packages.mapNotNull { pkg ->
 			runCatching { packageManager.getApplicationInfo(pkg, 0).uid.toUInt() }
