@@ -178,6 +178,17 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 	}
 
+	override suspend fun pushRestrictedApps() {
+		val restrictedApps = getRestrictedAppsPackages()
+		serviceConnectionManager.withApi { api ->
+			runCatching {
+				api.applyUpdates(listOf(CoreVpnConfigUpdate.SetRestrictedApps(restrictedApps)))
+			}.onFailure { t ->
+				Timber.tag(TAG).w(t, "push restricted apps failed")
+			}
+		}
+	}
+
 	override fun getState(): Tunnel.State = serviceConnectionManager.apiFlow.value?.getState() ?: Tunnel.State.Down
 
 	private fun observeVpnServiceEvents() {

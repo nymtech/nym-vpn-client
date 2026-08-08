@@ -25,6 +25,7 @@ interface BackendManager {
 	suspend fun stopTunnel()
 	suspend fun startTunnel(relaxGatewayIndependence: Boolean = false)
 	suspend fun requestReconnect(relaxGatewayIndependence: Boolean = false)
+	suspend fun pushRestrictedApps()
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()

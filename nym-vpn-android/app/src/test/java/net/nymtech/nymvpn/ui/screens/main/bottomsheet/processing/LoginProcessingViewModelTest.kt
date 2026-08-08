@@ -152,6 +152,7 @@ private class FakeBackendManager(initialAccountState: AccountControllerState = A
 	override suspend fun stopTunnel() = unsupported()
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) = unsupported()
 	override suspend fun requestReconnect(relaxGatewayIndependence: Boolean) = unsupported()
+	override suspend fun pushRestrictedApps() = unsupported()
 	override suspend fun storeMnemonic(mnemonic: String) = unsupported()
 	override suspend fun isMnemonicStored(): Boolean = false
 	override suspend fun removeMnemonic() = unsupported()

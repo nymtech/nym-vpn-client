@@ -116,6 +116,8 @@ class SplitTunnelingViewModel @Inject constructor(
 				val toSave = _uiState.value.systemApps + _uiState.value.normalApps
 				splitTunnelingRepository.saveAppInfoList(toSave)
 
+				backendManager.pushRestrictedApps()
+
 				initialAppInfoList = toSave
 
 				_uiState.update {
