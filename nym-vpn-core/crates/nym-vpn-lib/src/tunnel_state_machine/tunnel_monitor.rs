@@ -172,6 +172,13 @@ fn registration_rejected_due_to_timestamp(err: &RegistrationClientError) -> bool
     )
 }
 
+/// How often the app bypass (steering) engine is polled for liveness. The
+/// engine owns the real tun device, so once one of its packet pumps dies no
+/// traffic moves at all; polling turns that into a tunnel teardown instead of
+/// a silent blackhole behind a "Connected" state.
+#[cfg_attr(not(target_os = "android"), allow(dead_code))]
+const STEERING_HEALTH_POLL_INTERVAL: Duration = Duration::from_secs(5);
+
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
     /// Checking account
@@ -942,6 +949,18 @@ impl TunnelMonitor {
         let metadata_path_health = wg_tunnel_runtime
             .as_ref()
             .map(|runtime| runtime.metadata_path_health.clone());
+        // Liveness polling for the app bypass (steering) engine. The branch is
+        // disabled when there is no engine (every non-Android platform, and
+        // Android without app bypass), and a disabled select branch never
+        // polls its future, so no timer is armed in that case.
+        let mut steering_health_poll = tokio::time::interval(STEERING_HEALTH_POLL_INTERVAL);
+        #[cfg(target_os = "android")]
+        let monitor_steering = self.steering.is_some();
+        #[cfg(not(target_os = "android"))]
+        let monitor_steering = false;
+        #[cfg(target_os = "android")]
+        let mut steering_died = false;
+
         let connection_data = Box::new(ConnectionData {
             entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
             exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
@@ -1067,6 +1086,16 @@ impl TunnelMonitor {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
                 }
+                _ = steering_health_poll.tick(), if monitor_steering => {
+                    #[cfg(target_os = "android")]
+                    if self.steering.as_ref().is_some_and(|steering| !steering.is_alive()) {
+                        tracing::error!(
+                            "The app bypass steering engine died; no traffic is being forwarded. Tearing the tunnel down"
+                        );
+                        steering_died = true;
+                        break;
+                    }
+                }
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
@@ -1118,6 +1147,14 @@ impl TunnelMonitor {
         if let Some(steering) = self.steering.take() {
             tracing::info!("Stopping the app bypass steering engine");
             steering.stop();
+        }
+
+        // Reported only after the teardown above, so the engine and everything
+        // reading the tunnel are already stopped by the time this turns into an
+        // error state.
+        #[cfg(target_os = "android")]
+        if steering_died {
+            return Err(Error::SteeringEngineDied);
         }
 
         tracing::info!("Tunnel monitor finished");

@@ -27,6 +27,14 @@ use crate::{Error, LoggingCallback, Result, wireguard_go::wg_logger_callback};
 /// sockets from being routed back into the tunnel, and to resolve the
 /// originating UID of a flow so it can be matched against the excluded-UID
 /// set.
+///
+/// # Panics
+/// Implementations must not panic: they are invoked from Go goroutines through
+/// an `extern "C"` trampoline, and unwinding across that boundary is undefined
+/// behaviour. The trampolines do catch unwinds as a last-resort backstop (a
+/// caught panic degrades to "socket left unprotected" / "owner unknown"), but
+/// that safety net exists to avoid aborting the process, not as a supported
+/// error-reporting channel.
 #[cfg(target_os = "android")]
 pub trait SteeringCallbacks: Send + Sync + 'static {
     /// Protect `fd` (a raw socket owned by the steering engine) from the VPN,
@@ -80,8 +88,17 @@ struct CallbackCtx {
 /// the engine has not returned from `steeringTurnOff`.
 #[cfg(target_os = "android")]
 unsafe extern "C" fn protect_trampoline(ctx: *mut c_void, fd: i32) {
-    let ctx = unsafe { &*(ctx as *const CallbackCtx) };
-    ctx.callbacks.protect(fd);
+    // Unwinding out of an `extern "C"` function called from Go is UB, so a
+    // panicking implementation must be contained here. Failing to protect a
+    // socket is not fail-open: the dial then goes back into the tunnel (or
+    // fails), it never leaks around the VPN.
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let ctx = unsafe { &*(ctx as *const CallbackCtx) };
+        ctx.callbacks.protect(fd);
+    }));
+    if result.is_err() {
+        tracing::error!("steering protect callback panicked, socket left unprotected");
+    }
 }
 
 /// # Safety
@@ -94,10 +111,19 @@ unsafe extern "C" fn owner_uid_trampoline(
     src: *const c_char,
     dst: *const c_char,
 ) -> i32 {
-    let ctx = unsafe { &*(ctx as *const CallbackCtx) };
-    let src = unsafe { CStr::from_ptr(src) }.to_string_lossy();
-    let dst = unsafe { CStr::from_ptr(dst) }.to_string_lossy();
-    ctx.callbacks.owner_uid(protocol, &src, &dst)
+    // See `protect_trampoline`: a panic must never unwind into Go. -1 is the
+    // engine's "owner unknown" value, which fails closed (the flow stays in
+    // the tunnel).
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let ctx = unsafe { &*(ctx as *const CallbackCtx) };
+        let src = unsafe { CStr::from_ptr(src) }.to_string_lossy();
+        let dst = unsafe { CStr::from_ptr(dst) }.to_string_lossy();
+        ctx.callbacks.owner_uid(protocol, &src, &dst)
+    }));
+    result.unwrap_or_else(|_| {
+        tracing::error!("steering owner_uid callback panicked, treating owner as unknown");
+        -1
+    })
 }
 
 /// Handle to a running steering engine.
@@ -184,6 +210,21 @@ impl Steering {
         Ok((Self { handle, ctx }, OwnedFd::from(outer)))
     }
 
+    /// Whether the engine is still forwarding packets.
+    ///
+    /// Returns `false` once one of the engine's packet pumps has died for a
+    /// reason other than an orderly stop. That is unrecoverable: traffic no
+    /// longer moves in at least one direction, so the caller must tear the
+    /// tunnel down instead of leaving a silent blackhole behind a "Connected"
+    /// state.
+    pub fn is_alive(&self) -> bool {
+        // SAFETY: `handle` is a live engine handle for as long as `self`
+        // exists (`stop`/`Drop` are the only paths that retire it, and both
+        // consume/finalise `self`). The Go side looks the handle up under its
+        // own lock and returns 0 for an unknown handle.
+        unsafe { steeringIsAlive(self.handle) != 0 }
+    }
+
     /// Stop the steering engine.
     ///
     /// `steeringTurnOff` blocks until every goroutine of the engine
@@ -235,6 +276,10 @@ unsafe extern "C" {
         log_sink: LoggingCallback,
         log_context: *mut c_void,
     ) -> i32;
+
+    /// Report whether the engine behind `handle` is still forwarding packets:
+    /// 1 = alive, 0 = a packet pump died, or the handle is unknown.
+    unsafe fn steeringIsAlive(handle: i32) -> i32;
 
     /// Stop the steering engine started by `steeringTurnOn`. Blocks until
     /// all of the engine's goroutines (including any in-flight callback

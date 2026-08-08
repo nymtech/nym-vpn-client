@@ -1422,6 +1422,10 @@ pub enum Error {
     #[error("failed to start the app bypass steering engine")]
     StartSteering(#[source] nym_wg_go::Error),
 
+    #[cfg(target_os = "android")]
+    #[error("the app bypass steering engine died")]
+    SteeringEngineDied,
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[error("failed to obtain route handle")]
     GetRouteHandle(#[source] route_handler::Error),
@@ -1513,7 +1517,7 @@ impl Error {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
             #[cfg(target_os = "android")]
-            Self::StartSteering(_) => ErrorStateReason::TunnelProvider,
+            Self::StartSteering(_) | Self::SteeringEngineDied => ErrorStateReason::TunnelProvider,
             #[cfg(target_os = "ios")]
             Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
