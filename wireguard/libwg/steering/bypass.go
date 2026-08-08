@@ -34,6 +34,9 @@ const (
 	udpIdleTimeout       = 60 * time.Second
 	dnsPort              = 53
 	tcpForwarderInFlight = 1024
+	// defaultBypassMTU is the fallback when the caller supplies no usable MTU;
+	// 1280 is the IPv6 minimum link MTU, so it is always safe to send.
+	defaultBypassMTU = 1280
 )
 
 // Config configures the bypass netstack: which app UIDs get their flows
@@ -119,7 +122,15 @@ func newBypassStack(cfg Config, cb Callbacks, writeToTun func([]byte), logger *d
 		NetworkProtocols:   []stack.NetworkProtocolFactory{ipv4.NewProtocol, ipv6.NewProtocol},
 		TransportProtocols: []stack.TransportProtocolFactory{tcp.NewProtocol, udp.NewProtocol},
 	})
-	ep := channel.New(512, uint32(cfg.MTU), "")
+	// A zero/negative MTU (missing or bogus tunnel settings) would make gVisor
+	// compute a negative MSS and abort deep inside the TCP stack, so clamp it
+	// to the IPv6 minimum link MTU instead of trusting the caller.
+	mtu := cfg.MTU
+	if mtu <= 0 {
+		logger.Errorf("steering: invalid MTU %d, falling back to %d", cfg.MTU, defaultBypassMTU)
+		mtu = defaultBypassMTU
+	}
+	ep := channel.New(512, uint32(mtu), "")
 	if err := s.CreateNIC(bypassNICID, ep); err != nil {
 		s.Destroy()
 		return nil, fmt.Errorf("create NIC: %s", err)
@@ -260,35 +271,55 @@ func (b *bypassStack) handleTCP(r *tcp.ForwarderRequest) {
 }
 
 func (b *bypassStack) handleUDP(r *udp.ForwarderRequest) {
-	// See handleTCP: gVisor's udp.Forwarder also dispatches on a fresh,
-	// unmanaged goroutine, so this must go through tryAdd, not a bare Add.
+	// Unlike tcp.Forwarder, gVisor's udp.Forwarder invokes this handler
+	// SYNCHRONOUSLY, on whatever goroutine delivered the packet -- which here
+	// is the engine's upstream pump (InjectInbound -> DeliverNetworkPacket).
+	// Everything below blocks: the dial, and above all pumpUDP, which only
+	// returns once a relay direction errors (60s idle, or never while the flow
+	// is active). Running it inline would therefore stall the engine's only
+	// TUN reader for the entire lifetime of the first bypassed UDP flow (an
+	// excluded app's DNS query is enough), blackholing ALL device traffic. So
+	// dispatch onto our own goroutine, mirroring what tcp.Forwarder does for
+	// handleTCP.
+	//
+	// tryAdd is taken here, synchronously, BEFORE the goroutine starts: that
+	// keeps Close()'s "waits for every goroutine this stack started" contract
+	// intact (Close can never observe a zero counter while this flow is still
+	// being set up) and stops an in-flight handler from touching a NIC that
+	// stack.Destroy() has already torn down.
+	//
+	// The ForwarderRequest holds its own clone of the packet buffer, so it
+	// stays valid after this function returns. Two packets of the same new
+	// flow arriving back to back can each spawn a handler; the loser of the
+	// RegisterTransportEndpoint race bails out below, which costs one packet,
+	// exactly as in the TCP path.
 	if !b.tryAdd() {
 		return
 	}
-	defer b.waitGroup.Done()
+	go func() {
+		defer b.waitGroup.Done()
 
-	id := r.ID()
-	dst := forwarderDstAddr(id)
-	dialAddr := resolveBypassDialAddr(dst, b.cfg.UnderlyingDNS)
+		id := r.ID()
+		dst := forwarderDstAddr(id)
+		dialAddr := resolveBypassDialAddr(dst, b.cfg.UnderlyingDNS)
 
-	var wq waiter.Queue
-	ep, tcpErr := r.CreateEndpoint(&wq)
-	if tcpErr != nil {
-		b.logger.Errorf("steering: bypass udp endpoint: %s", tcpErr)
-		return
-	}
-	inbound := gonet.NewUDPConn(&wq, ep)
+		var wq waiter.Queue
+		ep, tcpErr := r.CreateEndpoint(&wq)
+		if tcpErr != nil {
+			b.logger.Errorf("steering: bypass udp endpoint: %s", tcpErr)
+			return
+		}
+		inbound := gonet.NewUDPConn(&wq, ep)
 
-	outbound, err := b.dialer.DialContext(b.ctx, "udp", dialAddr.String())
-	if err != nil {
-		b.logger.Errorf("steering: bypass udp dial %s failed: %s", dialAddr, err)
-		inbound.Close()
-		return
-	}
+		outbound, err := b.dialer.DialContext(b.ctx, "udp", dialAddr.String())
+		if err != nil {
+			b.logger.Errorf("steering: bypass udp dial %s failed: %s", dialAddr, err)
+			inbound.Close()
+			return
+		}
 
-	// Run synchronously (see handleTCP) so the whole flow's lifetime is
-	// covered by the Add above.
-	pumpUDP(b.ctx, inbound, outbound)
+		pumpUDP(b.ctx, inbound, outbound)
+	}()
 }
 
 func forwarderDstAddr(id stack.TransportEndpointID) netip.AddrPort {

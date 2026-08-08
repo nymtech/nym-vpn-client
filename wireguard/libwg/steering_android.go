@@ -106,6 +106,24 @@ func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 	return handle
 }
 
+// steeringIsAlive reports whether the engine behind handle is still forwarding
+// packets: 1 = alive, 0 = a packet pump has died (or the handle is unknown).
+// The platform layer polls this and tears the tunnel down on 0, so a dead
+// engine surfaces as an error state instead of a silent traffic blackhole
+// behind a "Connected" UI.
+//
+//export steeringIsAlive
+func steeringIsAlive(handle int32) int32 {
+	engine, err := steeringEngines.Get(handle)
+	if err != nil {
+		return 0
+	}
+	if (*engine).Failed() {
+		return 0
+	}
+	return 1
+}
+
 //export steeringTurnOff
 func steeringTurnOff(handle int32) {
 	engine, err := steeringEngines.Remove(handle)

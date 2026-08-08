@@ -39,6 +39,9 @@ type flowEntry struct {
 	key      FlowKey
 	decision Decision
 	seen     time.Time
+	// ttl is the per-entry idle timeout; it defaults to the table's ttl but
+	// can be shortened per flow (see FlowTable.InsertWithTTL).
+	ttl time.Duration
 }
 
 // FlowTable is a bounded LRU cache of per-flow routing decisions.
@@ -69,7 +72,7 @@ func (t *FlowTable) Lookup(key FlowKey) (Decision, bool) {
 		return DecisionTunnel, false
 	}
 	entry := el.Value.(*flowEntry)
-	if t.now().Sub(entry.seen) > t.ttl {
+	if t.now().Sub(entry.seen) > entry.ttl {
 		t.order.Remove(el)
 		delete(t.entries, key)
 		return DecisionTunnel, false
@@ -79,12 +82,21 @@ func (t *FlowTable) Lookup(key FlowKey) (Decision, bool) {
 	return entry.decision, true
 }
 
+// Insert caches a decision with the table's default TTL.
 func (t *FlowTable) Insert(key FlowKey, d Decision) {
+	t.InsertWithTTL(key, d, t.ttl)
+}
+
+// InsertWithTTL caches a decision with a per-entry idle timeout, for flows
+// whose 5-tuple becomes reusable sooner than the table default (e.g. UDP,
+// which has no connection teardown signal to re-classify on).
+func (t *FlowTable) InsertWithTTL(key FlowKey, d Decision, ttl time.Duration) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if el, ok := t.entries[key]; ok {
 		el.Value.(*flowEntry).decision = d
 		el.Value.(*flowEntry).seen = t.now()
+		el.Value.(*flowEntry).ttl = ttl
 		t.order.MoveToFront(el)
 		return
 	}
@@ -96,6 +108,6 @@ func (t *FlowTable) Insert(key FlowKey, d Decision) {
 		t.order.Remove(oldest)
 		delete(t.entries, oldest.Value.(*flowEntry).key)
 	}
-	el := t.order.PushFront(&flowEntry{key: key, decision: d, seen: t.now()})
+	el := t.order.PushFront(&flowEntry{key: key, decision: d, seen: t.now(), ttl: ttl})
 	t.entries[key] = el
 }

@@ -49,3 +49,23 @@ func TestFlowTableEvictsOldestWhenFull(t *testing.T) {
 		t.Fatal("expected newest entry present")
 	}
 }
+
+// TestFlowTablePerEntryTTL covers the shorter lifetime the engine gives UDP
+// entries: UDP has no SYN to re-classify on, so a cached decision must expire
+// with the bypass relay's idle timeout rather than linger for the table's
+// default TTL, after which another app could reuse the same 5-tuple.
+func TestFlowTablePerEntryTTL(t *testing.T) {
+	now := time.Unix(1000, 0)
+	clock := func() time.Time { return now }
+	ft := NewFlowTable(10, 5*time.Minute, clock)
+	ft.InsertWithTTL(key(1000), DecisionBypass, 60*time.Second)
+	ft.Insert(key(2000), DecisionBypass) // table default TTL
+
+	now = now.Add(61 * time.Second)
+	if _, ok := ft.Lookup(key(1000)); ok {
+		t.Fatal("expected short-TTL entry to expire after its own ttl, not the table's")
+	}
+	if _, ok := ft.Lookup(key(2000)); !ok {
+		t.Fatal("expected default-TTL entry to still be live")
+	}
+}
