@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
 import android.content.Context
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.events.UiEvent as CommonUiEvent
 import net.nymtech.nymvpn.util.SplitTunnelingHelper
+import net.nymtech.nymvpn.util.extensions.isVpnLockdownEnabled
 import net.nymtech.nymvpn.util.filterAllPassThroughValue
 import net.nymtech.nymvpn.util.totalAppCounts
 import net.nymtech.nymvpn.util.updatePassThroughValue
@@ -69,6 +71,7 @@ class SplitTunnelingViewModel @Inject constructor(
 	fun loadData() {
 		getAllInstalledAppList()
 		onPerAppSecurityBannerDisplayed()
+		updateLockdownState()
 	}
 
 	fun onQueryChange(query: String) {
@@ -149,6 +152,15 @@ class SplitTunnelingViewModel @Inject constructor(
 
 	private fun onPerAppSecurityBannerDisplayed() = viewModelScope.launch {
 		settingsRepository.setIsStreamServerBannerDisplayed(true)
+	}
+
+	private fun updateLockdownState() {
+		val lockdownState = when {
+			!isVpnLockdownEnabled(context) -> LockdownState.OFF
+			Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> LockdownState.ACTIVE_STEERING
+			else -> LockdownState.UNSUPPORTED_API
+		}
+		_uiState.update { it.copy(lockdownState = lockdownState) }
 	}
 
 	private fun getAllInstalledAppList() {

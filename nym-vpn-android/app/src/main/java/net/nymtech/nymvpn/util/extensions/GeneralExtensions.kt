@@ -23,11 +23,21 @@ fun String.truncateWithEllipsis(length: Int): String = if (this.length <= length
 fun NymGateway.toLocale(): Locale? = twoLetterCountryISO?.let { Locale(it, it) }
 
 private const val ALWAYS_ON_VPN_APP = "always_on_vpn_app"
+private const val ALWAYS_ON_VPN_LOCKDOWN = "always_on_vpn_lockdown"
 
 fun isVpnAlwaysOn(context: Context): Boolean = try {
 	val alwaysOn = Settings.Secure.getString(context.contentResolver, ALWAYS_ON_VPN_APP)
 	alwaysOn == context.packageName
 } catch (ex: SecurityException) {
+	false
+}
+
+// Display-only mirror of the service-side VpnService.isLockdownEnabled gate. Best-effort:
+// Settings.Secure reads may throw or return stale values on some OEMs, so failures are treated as OFF.
+fun isVpnLockdownEnabled(context: Context): Boolean = try {
+	Settings.Secure.getInt(context.contentResolver, ALWAYS_ON_VPN_LOCKDOWN, 0) == 1 &&
+		isVpnAlwaysOn(context)
+} catch (ex: Exception) {
 	false
 }
 

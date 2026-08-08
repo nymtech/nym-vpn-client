@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +45,7 @@ import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
+import net.nymtech.nymvpn.ui.screens.settings.geoexclusion.components.WarningCard
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.AppInfoRow
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.LoadingDialog
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
@@ -50,6 +53,7 @@ import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.StaticContent
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.vpn.backend.Tunnel
@@ -163,6 +167,45 @@ internal fun SplitTunnelingScreen(
 }
 
 @Composable
+private fun LockdownStateNotice(lockdownState: LockdownState) {
+	val context = LocalContext.current
+
+	when (lockdownState) {
+		LockdownState.ACTIVE_STEERING -> {
+			Card(
+				shape = RoundedCornerShape(8.dp),
+				colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+				modifier = Modifier.fillMaxWidth(),
+			) {
+				Text(
+					text = stringResource(R.string.split_tunnel_lockdown_active_note),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+					modifier = Modifier.padding(16.dp.scaledHeight()),
+				)
+			}
+		}
+		LockdownState.UNSUPPORTED_API -> {
+			WarningCard(stringResource(R.string.split_tunnel_lockdown_legacy_warning))
+			Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
+			MainStyledButton(
+				onClick = { context.launchVpnSettings() },
+				content = {
+					Text(
+						stringResource(R.string.split_tunnel_open_vpn_settings),
+						style = MaterialTheme.typography.titleMedium,
+					)
+				},
+				textColor = MaterialTheme.colorScheme.onPrimary,
+				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
+		}
+		LockdownState.OFF -> Unit
+	}
+}
+
+@Composable
 private fun SplitTunnelingContent(
 	uiState: SplitTunnelingUiState,
 	connectedForUi: Boolean,
@@ -189,6 +232,13 @@ private fun SplitTunnelingContent(
 				bottom = 120.dp.scaledHeight(),
 			),
 		) {
+			if (uiState.lockdownState != LockdownState.OFF) {
+				item {
+					LockdownStateNotice(lockdownState = uiState.lockdownState)
+					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
+				}
+			}
+
 			item {
 				StaticContent(
 					uiState = uiState,

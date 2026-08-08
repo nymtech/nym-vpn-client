@@ -108,6 +108,12 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 					style = MaterialTheme.typography.bodyMedium,
 					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
+				Text(
+					text = stringResource(R.string.split_tunnel_info_lockdown_privacy_note),
+					modifier = Modifier.padding(top = 16.dp),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+				)
 			}
 		},
 		confirmButton = {

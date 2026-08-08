@@ -16,6 +16,7 @@ data class SplitTunnelingUiState(
 	val hasUnsavedChanges: Boolean = false,
 	val showSaveChangesDialog: Boolean = false,
 	val navigateBack: Boolean = false,
+	val lockdownState: LockdownState = LockdownState.OFF,
 )
 
 @Serializable
@@ -25,6 +26,12 @@ enum class AppFilter {
 	None,
 	Direct,
 	VpnPassThrough,
+}
+
+enum class LockdownState {
+	OFF,
+	ACTIVE_STEERING,
+	UNSUPPORTED_API,
 }
 
 data class SplitTunnelingBackendUiState(val tunnelState: Tunnel.State = Tunnel.State.Down, val isRestarting: Boolean = false)
