@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.UserManager
+import android.provider.Settings
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -51,6 +52,12 @@ class VpnCoreController(
 ) {
 	companion object {
 		private const val TAG = "core-vpn"
+
+		// Settings.Secure keys mirroring the framework's always-on VPN lockdown state. Read as a
+		// fallback because VpnService.isLockdownEnabled can report false on an already-running
+		// service even when the user has lockdown enabled (see AppBypassResolver.isLockdownActive).
+		private const val ALWAYS_ON_VPN_LOCKDOWN = "always_on_vpn_lockdown"
+		private const val ALWAYS_ON_VPN_APP = "always_on_vpn_app"
 	}
 
 	private val configRepo: CoreVpnConfigRepository by lazy(LazyThreadSafetyMode.NONE) {
@@ -441,13 +448,28 @@ class VpnCoreController(
 	 * Settings, which covers the most common path independently.
 	 */
 	private fun computeAppBypass(cfg: CoreVpnConfig): nym_vpn_lib.AppBypassConfig? {
-		val lockdown = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && service.isLockdownEnabled
+		val frameworkLockdown = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && service.isLockdownEnabled
+		val lockdown = AppBypassResolver.isLockdownActive(
+			sdkInt = Build.VERSION.SDK_INT,
+			frameworkLockdown = frameworkLockdown,
+			secureLockdownFlag = readSecureInt(ALWAYS_ON_VPN_LOCKDOWN),
+			alwaysOnVpnApp = readSecureString(ALWAYS_ON_VPN_APP),
+			ourPackage = service.packageName,
+		)
 		if (!AppBypassResolver.shouldSteer(Build.VERSION.SDK_INT, lockdown, cfg.restrictedApps)) return null
 		return nym_vpn_lib.AppBypassConfig(
 			excludedUids = AppBypassResolver.resolveUids(service.packageManager, cfg.restrictedApps),
 			underlyingDns = AppBypassResolver.underlyingDnsServers(service.getSystemService(ConnectivityManager::class.java)),
 		)
 	}
+
+	// Best-effort Settings.Secure reads: they can throw (SecurityException on some OEMs) or be
+	// absent, in which case we treat the value as unset rather than letting the connect fail.
+	private fun readSecureInt(key: String): Int =
+		runCatching { Settings.Secure.getInt(service.contentResolver, key, 0) }.getOrDefault(0)
+
+	private fun readSecureString(key: String): String? =
+		runCatching { Settings.Secure.getString(service.contentResolver, key) }.getOrNull()
 
 	private suspend fun applyConfigDiffToSender(
 		sender: NymVpnServiceCommandSender,

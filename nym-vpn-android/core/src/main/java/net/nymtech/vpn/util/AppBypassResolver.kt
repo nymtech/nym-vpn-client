@@ -13,6 +13,27 @@ object AppBypassResolver {
 		sdkInt >= Build.VERSION_CODES.Q && lockdownEnabled && restrictedApps.isNotEmpty()
 
 	/**
+	 * Whether always-on VPN lockdown ("Block connections without VPN") is in effect for us.
+	 *
+	 * `frameworkLockdown` is `VpnService.isLockdownEnabled` — the live framework signal — but on
+	 * device it was observed to return false on an already-running service even when the user had
+	 * enabled lockdown, so steering never engaged and excluded apps stayed blocked (the exact bug
+	 * this feature fixes). We therefore also honour the persisted `Settings.Secure` config
+	 * (`always_on_vpn_lockdown == 1` AND `always_on_vpn_app` pointing at us), which reflects the
+	 * user's choice regardless of the running service's cached state. Either signal is sufficient;
+	 * a false positive is harmless (excluded flows are forwarded directly over protected sockets
+	 * whether or not lockdown is actually enforced).
+	 */
+	fun isLockdownActive(
+		sdkInt: Int,
+		frameworkLockdown: Boolean,
+		secureLockdownFlag: Int,
+		alwaysOnVpnApp: String?,
+		ourPackage: String,
+	): Boolean = sdkInt >= Build.VERSION_CODES.Q &&
+		(frameworkLockdown || (secureLockdownFlag == 1 && alwaysOnVpnApp == ourPackage))
+
+	/**
 	 * Whether the steering decision (in-tunnel vs. VpnService.Builder exclusion) differs from
 	 * the last one actually applied to the running tunnel. `previouslyActive == null` means
 	 * "no apply has happened yet", which always counts as a change.

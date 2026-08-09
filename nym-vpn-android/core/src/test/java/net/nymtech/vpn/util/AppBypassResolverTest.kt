@@ -44,4 +44,53 @@ class AppBypassResolverTest {
 		assertFalse(AppBypassResolver.steeringDecisionChanged(previouslyActive = true, active = true))
 		assertFalse(AppBypassResolver.steeringDecisionChanged(previouslyActive = false, active = false))
 	}
+
+	private val us = "net.nymtech.nymvpn"
+
+	@Test
+	fun `lockdown active when framework signal is true`() {
+		assertTrue(
+			AppBypassResolver.isLockdownActive(
+				sdkInt = 34, frameworkLockdown = true, secureLockdownFlag = 0, alwaysOnVpnApp = null, ourPackage = us,
+			),
+		)
+	}
+
+	@Test
+	fun `lockdown active from persisted setting when framework signal is stale-false`() {
+		// The on-device failure mode: VpnService.isLockdownEnabled returned false on an
+		// already-running service even though the user had configured always-on lockdown.
+		assertTrue(
+			AppBypassResolver.isLockdownActive(
+				sdkInt = 34, frameworkLockdown = false, secureLockdownFlag = 1, alwaysOnVpnApp = us, ourPackage = us,
+			),
+		)
+	}
+
+	@Test
+	fun `no lockdown when persisted always-on targets a different app`() {
+		assertFalse(
+			AppBypassResolver.isLockdownActive(
+				sdkInt = 34, frameworkLockdown = false, secureLockdownFlag = 1, alwaysOnVpnApp = "com.other.vpn", ourPackage = us,
+			),
+		)
+	}
+
+	@Test
+	fun `no lockdown when persisted flag is off and framework signal is false`() {
+		assertFalse(
+			AppBypassResolver.isLockdownActive(
+				sdkInt = 34, frameworkLockdown = false, secureLockdownFlag = 0, alwaysOnVpnApp = us, ourPackage = us,
+			),
+		)
+	}
+
+	@Test
+	fun `no lockdown below api 29 even with signals set`() {
+		assertFalse(
+			AppBypassResolver.isLockdownActive(
+				sdkInt = 28, frameworkLockdown = true, secureLockdownFlag = 1, alwaysOnVpnApp = us, ourPackage = us,
+			),
+		)
+	}
 }
