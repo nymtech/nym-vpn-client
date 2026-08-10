@@ -6,6 +6,7 @@ import { Button, Link, PageAnim } from '../../../ui';
 import { MixnetParametersLearnMoreUrl } from '../../../constants';
 import { MixnetTrafficConfigProvider, useMixnetTrafficConfig } from './context';
 import { ContinuousTrafficCard } from './ContinuousTrafficCard';
+import { BackgroundCoverCard } from './BackgroundCoverCard';
 import { MixingDelayCard } from './MixingDelayCard';
 import { PerformanceCard } from './PerformanceCard';
 
@@ -52,6 +53,7 @@ function MixnetTuning() {
 
         <PerformanceCard />
         <ContinuousTrafficCard />
+        <BackgroundCoverCard />
         <MixingDelayCard />
 
         <Link
