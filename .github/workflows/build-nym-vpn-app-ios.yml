@@ -179,7 +179,6 @@ jobs:
           brew install xcbeautify
           brew install crowdin
           brew install xmlstarlet
-          brew install jq
           brew install brotli
           brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
           brew install getsentry/tools/sentry-cli
@@ -350,35 +349,16 @@ jobs:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          APPLICATION_ID_RESOURCE_ID: 6471254143
         run: |
           set -euo pipefail
 
-          PROJECT="$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-          )"
-
           echo "🚜 Resolve build number (max across all TestFlight versions)"
-          LATEST="$(
-            app-store-connect builds list \
-              --app-id 6471254143 \
-              --platform IOS \
-              --silent \
-              --no-color \
-              --json 2>/dev/null \
-            | jq '[.[].attributes.version | tonumber] | max // 0'
-          )"
-          REQUIRED=$((LATEST + 1))
-          TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
+          LATEST="$(app-store-connect get-latest-testflight-build-number --all-versions --platform IOS --silent --no-color)"
+          TARGET=$((LATEST + 1))
 
-          if (( TARGET != PROJECT )); then
-            echo "🚜 Bump build: $PROJECT → $TARGET (TestFlight latest=$LATEST)"
-            fastlane mac bump_build build:"$TARGET"
-          else
-            echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
-          fi
+          echo "🚜 Set build number: $TARGET (TestFlight latest: $LATEST)"
+          fastlane mac bump_build build:"$TARGET"
 
           # Export for downstream steps (build, Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
