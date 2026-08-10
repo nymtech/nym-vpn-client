@@ -50,6 +50,7 @@ function ContinuousTrafficSlider({
         labels={items.map((item, index) => (
           <Button
             key={item.label}
+            disabled={disabled}
             className={clsx('flex flex-col text-sm', {
               'text-brand-primary': value === index,
               'text-text-secondary': value !== index,
