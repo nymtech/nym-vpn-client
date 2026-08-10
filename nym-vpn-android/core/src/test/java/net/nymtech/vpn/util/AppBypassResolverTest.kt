@@ -68,6 +68,17 @@ class AppBypassResolverTest {
 	}
 
 	@Test
+	fun `lockdown active from flag when always-on app is unreadable (null) on Android 16`() {
+		// On Android 16 the app can read always_on_vpn_lockdown (=1) but not always_on_vpn_app
+		// (returns null). A null app-name must not veto the lockdown flag.
+		assertTrue(
+			AppBypassResolver.isLockdownActive(
+				sdkInt = 34, frameworkLockdown = false, secureLockdownFlag = 1, alwaysOnVpnApp = null, ourPackage = us,
+			),
+		)
+	}
+
+	@Test
 	fun `no lockdown when persisted always-on targets a different app`() {
 		assertFalse(
 			AppBypassResolver.isLockdownActive(

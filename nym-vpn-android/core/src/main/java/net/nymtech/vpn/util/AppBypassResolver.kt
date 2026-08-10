@@ -18,11 +18,15 @@ object AppBypassResolver {
 	 * `frameworkLockdown` is `VpnService.isLockdownEnabled` — the live framework signal — but on
 	 * device it was observed to return false on an already-running service even when the user had
 	 * enabled lockdown, so steering never engaged and excluded apps stayed blocked (the exact bug
-	 * this feature fixes). We therefore also honour the persisted `Settings.Secure` config
-	 * (`always_on_vpn_lockdown == 1` AND `always_on_vpn_app` pointing at us), which reflects the
-	 * user's choice regardless of the running service's cached state. Either signal is sufficient;
-	 * a false positive is harmless (excluded flows are forwarded directly over protected sockets
-	 * whether or not lockdown is actually enforced).
+	 * this feature fixes). We therefore also honour the persisted `Settings.Secure` config.
+	 *
+	 * Two device facts shape the `Settings.Secure` branch (verified on Android 16): the app CAN
+	 * read `always_on_vpn_lockdown` (returns 1 when enabled) but CANNOT read `always_on_vpn_app`
+	 * (returns null — it's system-restricted). So a null `alwaysOnVpnApp` means "unknown", and we
+	 * trust the lockdown flag rather than failing closed on it; a non-null value that isn't us
+	 * means another app owns always-on, so we don't steer. A false positive here is harmless:
+	 * excluded flows are forwarded directly over protected sockets whether or not lockdown is
+	 * actually enforced.
 	 */
 	fun isLockdownActive(
 		sdkInt: Int,
@@ -31,7 +35,10 @@ object AppBypassResolver {
 		alwaysOnVpnApp: String?,
 		ourPackage: String,
 	): Boolean = sdkInt >= Build.VERSION_CODES.Q &&
-		(frameworkLockdown || (secureLockdownFlag == 1 && alwaysOnVpnApp == ourPackage))
+		(
+			frameworkLockdown ||
+				(secureLockdownFlag == 1 && (alwaysOnVpnApp == null || alwaysOnVpnApp == ourPackage))
+			)
 
 	/**
 	 * Whether the steering decision (in-tunnel vs. VpnService.Builder exclusion) differs from
