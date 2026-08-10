@@ -24,7 +24,7 @@ async function logToRust(level: Level, message: string) {
 }
 
 function forwardConsole(fnName: ConsoleFn, level: Level) {
-  const original = console[fnName];
+  const original = console[fnName].bind(console);
   console[fnName] = (message?: unknown, ...rest: unknown[]) => {
     original(message, ...rest);
     const messageStr =
