@@ -355,7 +355,7 @@ jobs:
           set -euo pipefail
 
           echo "🚜 Resolve build number (max across all TestFlight versions)"
-          LATEST="$(app-store-connect get-latest-testflight-build-number --all-versions --platform IOS --silent --no-color)"
+          LATEST="$(app-store-connect get-latest-testflight-build-number --all-versions --platform IOS --silent --no-color $APPLICATION_ID_RESOURCE_ID)"
           TARGET=$((LATEST + 1))
 
           echo "🚜 Set build number: $TARGET (TestFlight latest: $LATEST)"
