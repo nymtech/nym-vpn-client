@@ -43,7 +43,7 @@ import Theme
 #endif
 
     var versionTitle: String {
-        let base = "\("version".localizedString) \(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))"
+        let base = "\("version".localizedString) \(AppVersionProvider.realAppVersion())"
         let env = configurationManager.currentEnvString
         guard env != Env.mainnet.rawValue else { return base }
         return "\(base) - \(env)"
