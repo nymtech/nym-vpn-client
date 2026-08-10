@@ -258,7 +258,7 @@ impl Service for NymTestServer {
         self,
         _ctx: context::Context,
     ) -> Result<test_rpc::AmIMullvad, test_rpc::Error> {
-        unimplemented!()
+        test_rpc::net::ipinfo_lookup(Duration::from_secs(15)).await
     }
 
     async fn resolve_hostname(

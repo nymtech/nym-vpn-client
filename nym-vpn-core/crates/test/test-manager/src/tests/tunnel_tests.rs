@@ -604,6 +604,213 @@ async fn check_dns_leak_bash_ws(
     Ok(())
 }
 
+const IPINFO_URL: &str = "https://ipinfo.io/json";
+const RECONNECT_POLL_INTERVAL: Duration = Duration::from_millis(500);
+const RECONNECT_MAX_POLLS: u32 = 40;
+const RECONNECT_CURL_MAX_SECS: &str = "2";
+
+async fn fetch_guest_public_ip(
+    rpc: &NymServiceClient,
+    max_time_secs: &str,
+) -> Result<IpAddr, anyhow::Error> {
+    let output = rpc
+        .exec(
+            "curl",
+            ["-s", "--max-time", max_time_secs, IPINFO_URL],
+        )
+        .await
+        .context("oracle unreachable: curl ipinfo.io failed")?;
+    if !output.success() {
+        bail!(
+            "oracle unreachable: curl ipinfo.io exited {:?}; stderr={}",
+            output.code,
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    test_rpc::net::public_ip_from_ipinfo_json(&output.stdout).map_err(|err| {
+        anyhow::anyhow!("oracle error: failed to parse ipinfo public IP: {err}")
+    })
+}
+
+async fn fetch_guest_public_ip_via_rpc(rpc: &NymServiceClient) -> Result<IpAddr, anyhow::Error> {
+    let geo = rpc
+        .geoip_lookup()
+        .await
+        .context("oracle unreachable: geoip_lookup failed")?;
+    Ok(geo.ip)
+}
+
+fn tunnel_session_is_secured(state: &ObservedTunnelState) -> bool {
+    !matches!(
+        state,
+        ObservedTunnelState::Disconnected | ObservedTunnelState::Offline
+    )
+}
+
+async fn poll_no_isp_ip_during_reconnect(
+    rpc: &NymServiceClient,
+    isp_ip: IpAddr,
+) -> Result<(), anyhow::Error> {
+    for sample in 0..RECONNECT_MAX_POLLS {
+        let state = rpc
+            .get_observed_tunnel_state()
+            .await
+            .context("get_observed_tunnel_state during reconnect IP poll")?;
+
+        if !tunnel_session_is_secured(&state) {
+            bail!(
+                "unexpected unprotected tunnel state {state:?} during reconnect IP poll \
+                 (sample {sample}/{RECONNECT_MAX_POLLS}); intentional Disconnect is out of scope"
+            );
+        }
+
+        match fetch_guest_public_ip(rpc, RECONNECT_CURL_MAX_SECS).await {
+            Ok(egress) => {
+                ensure!(
+                    egress != isp_ip,
+                    "IP LEAK DETECTED during reconnect window (state={state:?}, sample={sample}): \
+                     egress {egress} equals pre-VPN ISP baseline {isp_ip}"
+                );
+                log::info!(
+                    "Reconnect poll sample {sample}: egress={egress} (≠ ISP {isp_ip}), state={state:?}"
+                );
+                if matches!(state, ObservedTunnelState::Connected { .. }) {
+                    return Ok(());
+                }
+            }
+            Err(err) => {
+                if matches!(state, ObservedTunnelState::Connected { .. }) {
+                    bail!(
+                        "oracle unreachable while Connected during reconnect window \
+                         (sample {sample}): {err:#}"
+                    );
+                }
+                log::info!(
+                    "Reconnect poll sample {sample}: oracle unavailable in {state:?} \
+                     (treated as non-leak): {err:#}"
+                );
+            }
+        }
+
+        tokio::time::sleep(RECONNECT_POLL_INTERVAL).await;
+    }
+
+    log::info!(
+        "Reconnect IP poll finished {RECONNECT_MAX_POLLS} samples without a Connected egress sample; \
+         deferring to wait_for_tunnel_state"
+    );
+    Ok(())
+}
+
+#[test_function_nym(priority = 16)]
+pub async fn test_ip_leak(
+    test_context: TestContext,
+    rpc: NymServiceClient,
+    nym_client: NymProxyClient,
+) -> Result<(), anyhow::Error> {
+    let nym_client =
+        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
+
+    let isp_ip = fetch_guest_public_ip(&rpc, "15")
+        .await
+        .context("baseline ISP IP while Disconnected")?;
+    log::info!("Pre-VPN ISP baseline IP: {isp_ip}");
+
+    let nym_client =
+        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
+            .await?;
+    log::info!("Connecting tunnel for IP leak check...");
+    let nym_client =
+        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
+    let (_, nym_client) = wait_for_tunnel_state(
+        &rpc,
+        nym_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
+
+    let helpers_nym::InTunnelDnsOutcome {
+        resolve,
+        client: nym_client,
+    } = helpers_nym::ensure_in_tunnel_hostname_resolves(
+        &rpc,
+        &test_context.rpc_provider,
+        nym_client,
+        "ipinfo.io",
+    )
+    .await;
+
+    let body = async {
+        let _ = resolve.context("in-tunnel DNS for ipinfo.io failed before IP leak check")?;
+
+        let connected_ip = fetch_guest_public_ip_via_rpc(&rpc)
+            .await
+            .context("Connected geoip_lookup after initial connect")?;
+        log::info!("Connected egress IP: {connected_ip}");
+        ensure!(
+            connected_ip != isp_ip,
+            "IP LEAK DETECTED while Connected: egress {connected_ip} equals pre-VPN ISP baseline {isp_ip}"
+        );
+
+        let nym_client = nym_client.ok_or_else(|| {
+            anyhow::anyhow!("lost nym client after in-tunnel DNS ensure; cannot reconnect")
+        })?;
+
+        log::info!("Reconnecting tunnel; polling egress for ISP IP leaks...");
+        let (_, nym_client) = helpers_nym::call_nym_with_transport_recovery(
+            &test_context.rpc_provider,
+            nym_client,
+            |mut client| async move {
+                let result = client.reconnect_tunnel().await;
+                (client, result)
+            },
+        )
+        .await
+        .context("reconnect_tunnel() failed")?;
+
+        poll_no_isp_ip_during_reconnect(&rpc, isp_ip).await?;
+
+        let (_, nym_client) = wait_for_tunnel_state(
+            &rpc,
+            nym_client,
+            &test_context.rpc_provider,
+            ExpectedTunnelState::Connected,
+        )
+        .await?;
+
+        let post_reconnect_ip = fetch_guest_public_ip_via_rpc(&rpc)
+            .await
+            .context("Connected geoip_lookup after reconnect")?;
+        log::info!("Post-reconnect Connected egress IP: {post_reconnect_ip}");
+        ensure!(
+            post_reconnect_ip != isp_ip,
+            "IP LEAK DETECTED after reconnect Connected: egress {post_reconnect_ip} \
+             equals pre-VPN ISP baseline {isp_ip}"
+        );
+
+        Ok(Some(nym_client))
+    }
+    .await;
+
+    let (body_result, cleanup_client) = match body {
+        Ok(client) => (Ok(()), client),
+        Err(err) => (Err(err), None),
+    };
+
+    log::info!("Disconnecting...");
+    let cleanup =
+        disconnect_after_in_tunnel_dns(&rpc, &test_context.rpc_provider, cleanup_client).await;
+    match (body_result, cleanup) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Ok(()), Err(cleanup_err)) => Err(cleanup_err),
+        (Err(body_err), Ok(())) => Err(body_err),
+        (Err(body_err), Err(cleanup_err)) => Err(body_err.context(format!(
+            "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
+        ))),
+    }
+}
+
 #[test_function_nym(priority = 20)]
 pub async fn test_country_exit_node(
     test_context: TestContext,
@@ -766,5 +973,52 @@ pub async fn test_reconnect_tunnel(
         (Err(body_err), Err(cleanup_err)) => Err(body_err.context(format!(
             "cleanup also failed (guest may be left degraded): {cleanup_err:#}"
         ))),
+    }
+}
+
+#[cfg(test)]
+mod ip_leak_tests {
+    use super::tunnel_session_is_secured;
+    use crate::tests::get_test_descriptions;
+    use test_rpc::nym_daemon::{ObservedTunnelState, ObservedTunnelType};
+
+    /// Must match `#[test_function_nym(priority = 16)]` on [`super::test_ip_leak`].
+    const IP_LEAK_TEST_PRIORITY: i32 = 16;
+
+    #[test]
+    fn ip_leak_priority_stays_in_tunnel_band_below_blocklist() {
+        const _: () = assert!(IP_LEAK_TEST_PRIORITY >= 16);
+        const _: () = assert!(IP_LEAK_TEST_PRIORITY <= 19);
+        const _: () = assert!(IP_LEAK_TEST_PRIORITY < 100);
+
+        let tests = get_test_descriptions();
+        let priority = tests
+            .iter()
+            .find(|t| t.name == "test_ip_leak")
+            .and_then(|t| t.priority)
+            .expect("test_ip_leak must be registered");
+        assert_eq!(priority, IP_LEAK_TEST_PRIORITY);
+        assert!(
+            priority < 100,
+            "test_ip_leak priority {priority} must stay below blocklist band 100-103"
+        );
+    }
+
+    #[test]
+    fn secured_session_excludes_disconnected_and_offline() {
+        assert!(tunnel_session_is_secured(&ObservedTunnelState::Connecting));
+        assert!(tunnel_session_is_secured(&ObservedTunnelState::Connected {
+            tunnel_type: ObservedTunnelType::Wireguard,
+        }));
+        assert!(tunnel_session_is_secured(
+            &ObservedTunnelState::Disconnecting
+        ));
+        assert!(tunnel_session_is_secured(&ObservedTunnelState::Error(
+            "x".into()
+        )));
+        assert!(!tunnel_session_is_secured(
+            &ObservedTunnelState::Disconnected
+        ));
+        assert!(!tunnel_session_is_secured(&ObservedTunnelState::Offline));
     }
 }

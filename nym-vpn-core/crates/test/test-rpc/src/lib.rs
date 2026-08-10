@@ -93,12 +93,11 @@ impl Error {
     }
 }
 
-/// Response from am.i.mullvad.net
+/// Payload for [`Service::geoip_lookup`]. Nym guests fill `ip` from ipinfo.io; other fields are unused.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AmIMullvad {
     pub ip: IpAddr,
     pub mullvad_exit_ip: bool,
-    /// Will be `None` when not connected via mullvad relay
     pub mullvad_exit_ip_hostname: Option<String>,
 }
 
@@ -216,7 +215,7 @@ mod service {
             size: usize,
         ) -> Result<(), Error>;
 
-        /// Fetch the current location.
+        /// Guest public egress IP (Nym: ipinfo.io → [`AmIMullvad::ip`]).
         async fn geoip_lookup() -> Result<AmIMullvad, Error>;
 
         /// Returns the IP of the given interface.
