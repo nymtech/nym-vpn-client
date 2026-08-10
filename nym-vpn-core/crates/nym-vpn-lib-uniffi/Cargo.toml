@@ -17,7 +17,6 @@ workspace = true
 # Common dependencies for all platforms
 [dependencies]
 async-trait.workspace = true
-cfg-if.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 tokio-util = { workspace = true, features = ["codec", "rt"] }
 thiserror.workspace = true
