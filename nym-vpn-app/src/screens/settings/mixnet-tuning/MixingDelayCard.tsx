@@ -3,11 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { CardNew, CardNewBody, CardNewHeader, Slider } from '../../../ui';
 import { useMixnetTrafficConfig } from './context';
 
-const MIXING_DELAY_LEVELS: { label: 'low' | 'high'; speed: string }[] = [
-  { label: 'low', speed: '0ms' },
-  { label: 'high', speed: '200ms' },
-];
-
 function MixingDelaySlider({
   value,
   setValue,
@@ -18,11 +13,17 @@ function MixingDelaySlider({
   const { t } = useTranslation('settings');
   const { mixingDelay } = useMixnetTrafficConfig();
 
+  // endpoints are the daemon's allowed range
+  const levels = [
+    { key: 'low', ms: mixingDelay.minValue },
+    { key: 'high', ms: mixingDelay.maxValue },
+  ] as const;
+
   return (
     <div className="mt-5 w-full space-y-5">
       <div className="text-text-secondary flex justify-between text-sm">
-        <span>{t('mixnet-tuning.mixing-delay.faster')}</span>
-        <span>{t('mixnet-tuning.mixing-delay.max-anonymity')}</span>
+        <span>{t('mixnet-tuning.slider.faster')}</span>
+        <span>{t('mixnet-tuning.slider.anonymity')}</span>
       </div>
 
       <Slider
@@ -34,20 +35,19 @@ function MixingDelaySlider({
         step={1}
         valueIndicator
         ariaLabel={t('mixnet-tuning.mixing-delay.title')}
-        labels={MIXING_DELAY_LEVELS.map((item, index) => (
+        labels={levels.map((level, index) => (
           <div
-            key={item.label}
+            key={level.key}
             className={clsx('flex flex-col text-sm', {
               'items-start': index === 0,
-              'items-end': index === MIXING_DELAY_LEVELS.length - 1,
-              'items-center':
-                index !== 0 && index !== MIXING_DELAY_LEVELS.length - 1,
+              'items-end': index === levels.length - 1,
+              'items-center': index !== 0 && index !== levels.length - 1,
             })}
           >
             <span className="whitespace-nowrap">
-              {t(`mixnet-tuning.mixing-delay.${item.label}.label`)}
+              {t(`mixnet-tuning.mixing-delay.${level.key}.label`)}
             </span>
-            <span className="whitespace-nowrap">{item.speed}</span>
+            <span className="whitespace-nowrap">{level.ms} ms</span>
           </div>
         ))}
       />
