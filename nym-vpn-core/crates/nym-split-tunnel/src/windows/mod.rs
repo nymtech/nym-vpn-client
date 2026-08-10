@@ -492,8 +492,14 @@ impl InitializedSplitTunnel {
                         result
                     }
                     Request::RegisterIps(mut ips) => {
-                        if ips.internet_ipv4.is_none() && ips.internet_ipv6.is_none() {
+                        // If there's no real (non-tunnel) route for a given address family,
+                        // don't register a tunnel address for it either: otherwise excluded
+                        // processes have nowhere to be redirected to for that family and their
+                        // traffic falls through to the tunnel's own default route, leaking it.
+                        if ips.internet_ipv4.is_none() {
                             ips.tunnel_ipv4 = None;
+                        }
+                        if ips.internet_ipv6.is_none() {
                             ips.tunnel_ipv6 = None;
                         }
                         if previous_addresses == ips {
