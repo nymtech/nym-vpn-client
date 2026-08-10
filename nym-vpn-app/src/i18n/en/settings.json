@@ -167,6 +167,7 @@
       "title": "Packet mixing",
       "description": "Adjust timing delays to change how well your packets are mixed.",
       "warning": "⚠️ Timing protection is currently turned off. This could put your privacy at risk.",
+      "ms-value": "{{value}} ms",
       "low": {
         "label": "Low"
       },
