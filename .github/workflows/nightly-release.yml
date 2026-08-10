@@ -18,7 +18,7 @@ jobs:
       fdroid: true
       linux: true
       windows: true
-      ios: true
+      ios: false
       macos: true
       publish-metadata: false
     secrets: inherit
