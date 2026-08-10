@@ -353,13 +353,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          PROJECT="$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-          )"
-
           echo "🚜 Resolve build number (max across all TestFlight versions)"
           LATEST="$(
             app-store-connect builds list \
@@ -370,15 +363,10 @@ jobs:
               --json 2>/dev/null \
             | jq '[.[].attributes.version | tonumber] | max // 0'
           )"
-          REQUIRED=$((LATEST + 1))
-          TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
+          TARGET=$((LATEST + 1))
 
-          if (( TARGET != PROJECT )); then
-            echo "🚜 Bump build: $PROJECT → $TARGET (TestFlight latest=$LATEST)"
-            fastlane mac bump_build build:"$TARGET"
-          else
-            echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
-          fi
+          echo "🚜 Set build number: $TARGET (TestFlight latest: $LATEST)"
+          fastlane mac bump_build build:"$TARGET"
 
           # Export for downstream steps (build, Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
