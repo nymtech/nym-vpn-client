@@ -69,6 +69,9 @@ class VpnService :
 
 	private val binder = LocalBinder()
 
+	// Serializes VpnService.protect() calls; see bypass() for why.
+	private val protectLock = Any()
+
 	private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 	// Fires when the default network changes; disconnects if another app's VPN took over.
@@ -221,7 +224,16 @@ class VpnService :
 	}
 
 	override fun bypass(socket: Int) {
-		protect(socket)
+		// Serialize all protect() calls. The steering bypass netstack dials one socket per
+		// excluded-app flow and protects it from a concurrent per-flow goroutine; running
+		// protectFromVpn (which opens/closes its own netd control fd) concurrently races with
+		// the Go runtime's fd churn and trips bionic fdsan (double-close / close-of-fd-owned-by-
+		// unique_fd), aborting the process. Protecting one socket at a time keeps at most one
+		// netd control fd alive and matches how the (never-crashing) entry-tunnel sockets are
+		// protected serially.
+		synchronized(protectLock) {
+			protect(socket)
+		}
 	}
 
 	override fun getConnectionOwnerUid(protocol: Int, source: String, destination: String): Int =
