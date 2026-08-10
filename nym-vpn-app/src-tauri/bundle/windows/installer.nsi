@@ -742,6 +742,8 @@ Section VCRedist
     ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
       DetailPrint "Visual C++ Redistributable installed successfully, a reboot is required"
       SetRebootFlag true
+    ${ElseIf} $5 = 1638 ; ERROR_PRODUCT_VERSION: a matching/newer version is already installed
+      DetailPrint "Visual C++ Redistributable is already installed"
     ${Else}
       DetailPrint "vc_redist.exe install failed: $5"
       Abort "Failed to install the Visual C++ Redistributable [$5]"
