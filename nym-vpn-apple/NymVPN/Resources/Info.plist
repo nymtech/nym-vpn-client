@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ApplicationVersion</key>
+	<string>2026.13.0-beta.1</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>net.nymtech.vpn.refresh</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -43,6 +49,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>We need access to the camera in order to scan credential QR code.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We use Face ID to unlock secure information.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -55,10 +63,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>net.nymtech.vpn.refresh</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>
@@ -73,8 +77,6 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-	<key>NSFaceIDUsageDescription</key>
-	<string>We use Face ID to unlock secure information.</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>

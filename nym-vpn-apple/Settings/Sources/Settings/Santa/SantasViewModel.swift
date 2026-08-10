@@ -64,7 +64,7 @@ import Theme
 
     var libVersion: String {
 #if os(iOS)
-        AppVersionProvider.libVersion
+        AppVersionProvider.realAppVersion()
 #elseif os(macOS)
         grpcManager.daemonVersion
 #endif
