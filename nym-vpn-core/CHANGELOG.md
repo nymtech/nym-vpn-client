@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ## [Unreleased]
 
 ### Added
@@ -13,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recents manager for storing successful gateway connections (https://github.com/nymtech/nym-vpn-client/pull/5903)
 - Favorites manager for storing UI favorites (https://github.com/nymtech/nym-vpn-client/pull/5914)
 - Geo-Exclusion now supports Russia (https://github.com/nymtech/nym-vpn-client/pull/5917)
+- If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052) 
 
 ### Changed
 
