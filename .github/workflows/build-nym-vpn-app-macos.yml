@@ -404,6 +404,12 @@ jobs:
 
           mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
 
+      - name: Set build number
+        working-directory: nym-vpn-apple
+        run: |
+          BUILD_NUMBER=$(date -u '+%Y%m%d%H%M')
+          fastlane mac bump_build build:$BUILD_NUMBER
+
       - name: Purge caches
         working-directory: nym-vpn-apple
         run: |
