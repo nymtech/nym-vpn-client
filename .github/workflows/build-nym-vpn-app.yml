@@ -113,7 +113,8 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
           crowdin download translations \
-            --config crowdin-configs/linux-windows.yml
+            --config crowdin-configs/linux-windows.yml \
+            --no-progress
 
       - name: Upload translations artifact
         uses: actions/upload-artifact@v7
