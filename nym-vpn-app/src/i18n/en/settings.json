@@ -114,13 +114,17 @@
     "title": "Mixnet tuning",
     "desc": "Customize traffic patterns of Mixnet mode",
     "top-description": "Customize your <strong>mixnet</strong> traffic patterns.",
-    "learn-more": "Learn more about mixnet parameters",
+    "learn-more": "Learn more about mixnet tuning",
     "save-custom-settings": "Save custom settings",
     "restore-default-settings": "Reset to default settings",
+    "slider": {
+      "faster": "Faster",
+      "anonymity": "+ Anonymity"
+    },
     "performance": {
-      "title": "Expected performance based on current settings",
+      "title": "Expected performance of current settings:",
       "speed": {
-        "title": "Packet Rate",
+        "title": "Packet rate",
         "value": "Up to {{value}}"
       },
       "privacy": {
@@ -130,47 +134,40 @@
       "footer": "Expected round-trip latency (RTT) on a standard network"
     },
     "continuous-traffic": {
-      "title": "Send traffic continuously",
-      "continuous": {
-        "title": "Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.",
-        "use-less-battery-and-data": "Use less battery & data",
-        "max-anonymity": "Max. anonymity",
-        "low": {
-          "label": "Low"
-        },
-        "balanced": {
-          "label": "Balanced"
-        },
-        "high": {
-          "label": "High"
-        }
+      "title": "Send continuous traffic",
+      "description": "Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.",
+      "warning": "⚠️ Your packets will be sent as they become available. This could reveal traffic patterns.",
+      "low": {
+        "label": "Low"
       },
-      "background-cover-traffic": {
-        "warning": "⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.",
-        "title": "Background cover traffic rate",
-        "description": "We’ll still send cover traffic independently of your real traffic. Choose how much cover you need.",
-        "use-less-battery-and-data": "Use less battery & data",
-        "max-anonymity": "Max. anonymity",
-        "base": {
-          "label": "Base"
-        },
-        "balanced": {
-          "label": "Balanced\n5x"
-        },
-        "medium": {
-          "label": "Medium\n10x"
-        },
-        "high": {
-          "label": "High\n20x"
-        }
+      "balanced": {
+        "label": "Balanced"
+      },
+      "high": {
+        "label": "High"
+      }
+    },
+    "background-cover": {
+      "title": "Background cover traffic rate",
+      "description": "Choose how much cover you need.",
+      "low": {
+        "label": "Low"
+      },
+      "balanced": {
+        "label": "Balanced\n5x"
+      },
+      "medium": {
+        "label": "Medium\n10x"
+      },
+      "high": {
+        "label": "High\n20x"
       }
     },
     "mixing-delay": {
-      "title": "Mixing delays",
-      "description": "Adjust timing delays to change how your packets are mixed.",
+      "title": "Packet mixing",
+      "description": "Adjust timing delays to change how well your packets are mixed.",
       "warning": "⚠️ Timing protection is currently turned off. This could put your privacy at risk.",
-      "faster": "Faster",
-      "max-anonymity": "Max. anonymity",
+      "ms-value": "{{value}} ms",
       "low": {
         "label": "Low"
       },

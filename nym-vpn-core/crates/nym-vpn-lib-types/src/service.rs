@@ -415,9 +415,9 @@ impl ContinuousTrafficSendingRate {
 
     pub fn throughput(&self) -> String {
         match self {
-            Self::Ms10 => "2 Mpbs",
-            Self::Ms20 => "1 Mpbs",
-            Self::Ms30 => "0.7 Mpbs",
+            Self::Ms10 => "2 Mbps",
+            Self::Ms20 => "1 Mbps",
+            Self::Ms30 => "0.7 Mbps",
         }
         .to_owned()
     }

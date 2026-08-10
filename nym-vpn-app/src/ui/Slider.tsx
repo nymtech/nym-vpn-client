@@ -18,6 +18,7 @@ export type SliderProps = {
   className?: string;
   valueIndicator?: boolean;
   ariaLabel?: string;
+  disabled?: boolean;
 };
 
 function Slider({
@@ -32,6 +33,7 @@ function Slider({
   valueIndicator,
   className,
   ariaLabel,
+  disabled,
 }: SliderProps) {
   const { t, i18n } = useTranslation('common');
 
@@ -69,9 +71,16 @@ function Slider({
   };
 
   return (
-    <div className={clsx('w-full', className)}>
+    <div
+      className={clsx(
+        'w-full',
+        disabled && 'pointer-events-none opacity-50',
+        className,
+      )}
+    >
       <DirectionProvider direction={i18n.dir()}>
         <HuSlider.Root
+          disabled={disabled}
           min={min}
           max={max}
           step={step}
