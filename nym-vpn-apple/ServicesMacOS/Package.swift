@@ -45,11 +45,7 @@ let package = Package(
             linkerSettings: [
                 // NymVPNLibUniffi static lib references SystemConfiguration/Network symbols
                 .linkedFramework("SystemConfiguration"),
-                .linkedFramework("Network"),
-                // nym-split-tunnel's endpoint-sec-sys/pcap crates reference EndpointSecurity/libbsm/libpcap symbols
-                .linkedLibrary("EndpointSecurity"),
-                .linkedLibrary("bsm"),
-                .linkedLibrary("pcap")
+                .linkedFramework("Network")
             ]
         ),
         .testTarget(

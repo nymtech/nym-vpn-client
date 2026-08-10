@@ -52,11 +52,7 @@ let package = Package(
             linkerSettings: [
                 // NymVPNLibUniffi static lib references SystemConfiguration/Network symbols
                 .linkedFramework("SystemConfiguration", .when(platforms: [.macOS])),
-                .linkedFramework("Network", .when(platforms: [.macOS])),
-                // nym-split-tunnel's endpoint-sec-sys/pcap crates reference EndpointSecurity/libbsm/libpcap symbols
-                .linkedLibrary("EndpointSecurity", .when(platforms: [.macOS])),
-                .linkedLibrary("bsm", .when(platforms: [.macOS])),
-                .linkedLibrary("pcap", .when(platforms: [.macOS]))
+                .linkedFramework("Network", .when(platforms: [.macOS]))
             ]
         ),
         .target(
