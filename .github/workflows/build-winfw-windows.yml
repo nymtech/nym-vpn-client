@@ -37,7 +37,7 @@ jobs:
           submodules: true
 
       - name: Cache winfw
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         id: cache
         with:
           path: nym-vpn-windows/winfw/bin

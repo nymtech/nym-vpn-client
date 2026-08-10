@@ -151,7 +151,7 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Cache NDK
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         id: cache-ndk
         with:
           path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}

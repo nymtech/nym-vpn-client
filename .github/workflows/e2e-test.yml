@@ -182,7 +182,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore cargo registry cache
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@v6.1.0
         with:
           path: |
             ~/.cargo/bin/
@@ -194,7 +194,7 @@ jobs:
             ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-
 
       - name: Restore cargo build cache
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@v6.1.0
         with:
           path: nym-vpn-core/target/
           key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
@@ -238,7 +238,7 @@ jobs:
 
       - name: Save cargo registry cache
         if: always()
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@v6.1.0
         with:
           path: |
             ~/.cargo/bin/
@@ -249,14 +249,14 @@ jobs:
 
       - name: Save cargo build cache
         if: always()
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@v6.1.0
         with:
           path: nym-vpn-core/target/
           key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
 
       - name: Save Go modules cache
         if: always() && needs.resolve.outputs.binary_source == 'zigbuild'
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@v6.1.0
         with:
           path: |
             ~/go/pkg/mod

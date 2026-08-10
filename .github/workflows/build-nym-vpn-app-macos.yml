@@ -207,7 +207,7 @@ jobs:
 
       - name: Cache virtual env
         id: cache-virtual-env
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: python-venv
           key: ${{ runner.os }}-${{ runner.arch }}-python-venv

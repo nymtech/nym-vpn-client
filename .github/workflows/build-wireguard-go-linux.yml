@@ -33,7 +33,7 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         id: cache
         with:
           path: build/lib
