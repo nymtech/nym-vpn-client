@@ -1,7 +1,7 @@
 # Android: split tunneling under always-on VPN lockdown
 
-**Date:** 2026-08-07
-**Status:** Draft — pending review
+**Date:** 2026-08-07 (design); updated 2026-08-10 with as-built findings
+**Status:** Implemented on branch `feat/android-split-tunnel-always-on`; validated end-to-end on a physical device (see "Implementation notes & on-device validation" below). Two runtime behaviours differ from the original design and are documented inline.
 **Scope:** nym-vpn-android + nym-vpn-core (Rust) + wireguard/libwg (Go)
 
 ## Problem
@@ -36,9 +36,13 @@ Two strategies, selected at TUN-establish time in `VpnTunController.configureTun
 |---|---|
 | No excluded apps | Current behavior, no change |
 | Excluded apps, lockdown **off** (or API < 29) | Current behavior: `addDisallowedApplication()` (kernel routing, zero overhead, excluded traffic never touches our process) |
-| Excluded apps, lockdown **on** (API 29+, `isLockdownEnabled()`) | **Flow steering:** no `addDisallowedApplication`; a steering layer owns the TUN fd and forwards excluded apps' flows directly over protected sockets |
+| Excluded apps, lockdown **on** (API 29+) | **Flow steering:** no `addDisallowedApplication`; a steering layer owns the TUN fd and forwards excluded apps' flows directly over protected sockets |
 
-On API 24–28 lockdown cannot be detected (`isLockdownEnabled()` is API 29); the split-tunneling screen shows a static informational note that lockdown will block excluded apps (see UI section).
+On API 24–28 lockdown cannot be detected (the detection below is API 29+); the split-tunneling screen shows a static informational note that lockdown will block excluded apps (see UI section).
+
+> **As-built correction — lockdown detection (2026-08-10).** The design assumed `VpnService.isLockdownEnabled()` alone is sufficient. On device it is **not reliable**: it returned `false` on an already-running `VpnService` even when the user had lockdown enabled (it appears to reflect the lockdown state captured when the service was started under the always-on path, so an app-initiated connect on a running process misses it). Relying on it alone meant steering never engaged and excluded apps stayed blocked — the exact bug this feature fixes.
+>
+> The shipped gate is `frameworkLockdown || persistedLockdown`, where `frameworkLockdown = isLockdownEnabled()` and `persistedLockdown` reads `Settings.Secure`. **Android-16 fact:** an app *can* read `always_on_vpn_lockdown` (returns `1` when enabled) but *cannot* read `always_on_vpn_app` (returns `null` — system-restricted). So the persisted check is `always_on_vpn_lockdown == 1 && (always_on_vpn_app == null || always_on_vpn_app == ourPackage)` — a `null` app-name is treated as "unknown → trust the flag"; only a readable *mismatch* vetoes. A false positive is harmless (excluded flows go direct over protected sockets whether or not lockdown is actually enforced). Implemented as the pure, unit-tested `AppBypassResolver.isLockdownActive(...)`. The same `always_on_vpn_app`-read bug affects the app-module display helper `GeneralExtensions.isVpnLockdownEnabled` (why the Task-9 lockdown card never rendered under lockdown) — it needs the same null-handling.
 
 ### The steering layer (Go, in `wireguard/libwg`)
 
@@ -50,7 +54,7 @@ A new Go component, following the pattern of the existing `dns_filter_proxy.rs` 
 1. Read raw IP packet from the real TUN fd.
 2. Look up the flow (5-tuple) in a flow table.
 3. **New flow:** classify — call the attribution callback (below) → UID → in excluded-UID set?
-   - *Excluded:* mark flow BYPASS; inject packet into a dedicated gVisor netstack instance. TCP is terminated there and bridged to a real socket dialed on the underlying network; UDP flows get a NAT-style relay socket. Every outbound socket fd is passed through the existing bypass callback (`AndroidTunProvider.bypass(fd)` → `VpnService.protect()`) before connect.
+   - *Excluded:* mark flow BYPASS; inject packet into a dedicated gVisor netstack instance. TCP is terminated there and bridged to a real socket dialed on the underlying network; UDP flows get a NAT-style relay socket. Every outbound socket fd is passed through the existing bypass callback (`AndroidTunProvider.bypass(fd)` → `VpnService.protect()`) before connect. **These `protect()` calls MUST be serialized (see the concurrency note under Error handling) — this is load-bearing, not optional.**
    - *Tunneled, unattributable (`INVALID_UID`), or lookup error:* mark flow TUNNEL (fail-closed) and write the packet to the socketpair.
 4. **Known flow:** route per the cached mark. No per-packet attribution calls.
 
@@ -63,7 +67,9 @@ A new Go component, following the pattern of the existing `dns_filter_proxy.rs` 
 The excluded-app list currently lives only in Kotlin and is applied only via the builder. New plumbing:
 
 - **Excluded UIDs → core:** Kotlin resolves package names to UIDs (`PackageManager.getApplicationInfo().uid`) at connect/reconnect time and sends the UID set plus a `steeringEnabled` flag to Rust via a new `NymVpnServiceCommandSender` setter, alongside the existing ones dispatched in `VpnCoreController.applyConfigDiffToSender()`. Rust stores it next to the other per-connection options and threads it into `TunnelSettings` (`nym-vpn-lib/src/tunnel_provider/mod.rs`) and from there into the steering layer's config.
-- **Connection-owner callback:** extend the `AndroidTunProvider` uniffi trait (`nym-vpn-lib-uniffi/src/tunnel_provider/android.rs`) with `get_connection_owner_uid(protocol: i32, source: SocketAddr, dest: SocketAddr) -> i32`, implemented in Kotlin via `ConnectivityManager.getConnectionOwnerUid()`. Called once per new flow from Go via the existing Rust↔Go boundary; result cached in the flow table. Clash Meta uses the identical call pattern without rate-limit issues.
+- **Connection-owner callback:** extend the `AndroidTunProvider` uniffi trait (`nym-vpn-lib-uniffi/src/tunnel_provider/android.rs`) with `get_connection_owner_uid(protocol: i32, source: String, destination: String) -> i32` (addresses are passed as strings in Go `netip.AddrPort` form — `"ip:port"` / `"[v6]:port"` — not `SocketAddr`, to keep the FFI simple), implemented in Kotlin via `ConnectivityManager.getConnectionOwnerUid()`. Called once per new flow from Go via the existing Rust↔Go boundary; result cached in the flow table. Clash Meta uses the identical call pattern without rate-limit issues. Fail-closed at every layer (bad address string / `SecurityException` / API < 29 → `-1`).
+
+> **As-built note — interface name via `TUNGETIFF` (2026-08-10).** `create_tun_device` (both Android modes) previously derived the tunnel interface name from the device fd with a `TUNGETIFF` ioctl. That ioctl fails on the steering socketpair fd, and the name is load-bearing — it's the `SO_BINDTODEVICE` target for the wg-metadata socket. Fix: resolve the interface name from the **real** TUN fd *before* handing it to the steering engine, then return `(AsyncDevice, name)` from `create_tun_device`. (Guard this resolution `#[cfg(target_os = "android")]`; on iOS the early-return path can otherwise close the system-owned utun fd.)
 
 ### DNS for excluded apps
 
@@ -79,6 +85,8 @@ The TUN already claims IPv6 routes (`compute_tunnel_networks`). Excluded v6 flow
 - Bypass dial failure → TCP RST / ICMP port-unreachable synthesized back to the app (netstack default), so apps fail fast instead of hanging.
 - Steering-layer fatal error → tear down the tunnel through the normal error path (fail-closed; lockdown then blocks everything, which is the user's chosen posture).
 - Flow table: LRU + idle timeouts (TCP by state, UDP ~60 s) to bound memory.
+
+> **As-built addition — serialize `protect()` (2026-08-10).** The bypass netstack dials one socket per excluded-app flow and protects it from a concurrent per-flow goroutine. Running `VpnService.protect()` → `protectFromVpn` concurrently (it opens/closes its own netd control fd via a libbase `unique_fd`) races with the Go runtime's fd churn on other goroutines, and bionic **fdsan aborts the process** ("double-close" / "close of fd owned by `unique_fd`"). On device this reliably crashed the steering-active connect, so the tunnel never completed. Fix: serialize all `protect()` calls — the shipped code wraps `VpnService.bypass()` in `synchronized(protectLock)`, keeping at most one `protectFromVpn` alive at a time (matching how the never-crashing 2-hop entry sockets are protected serially at startup). Verified: 10+ steering-active connect retries with zero `protectFromVpn` aborts where before it crashed on the first. (Unrelated: the device's Mali GPU driver, `libGLES_mali.so`, has its own fdsan double-close during UI rendering — not ours.)
 
 ### UI
 
@@ -98,8 +106,24 @@ The core's persisted copy of the exclusion list (`KEY_RESTRICTED_APPS`) is refre
 - **Leak check:** with steering active, packet capture on the underlying network shows only (a) tunnel-endpoint traffic and (b) excluded apps' flows — nothing else.
 - Maestro flow update for the split-tunneling screen states.
 
+## Implementation notes & on-device validation (2026-08-10)
+
+**End-to-end validation** (Volla Phone X23, Android 16 / API 36, WireGuard 2-hop, lockdown enabled via the system settings toggle, Firefox/Fennec excluded, uid 10072):
+
+- Steering activated on a normal app-initiated connect: `app_bypass: Some(excluded_uids: [10072], underlying_dns: [...])`, engine started, `addDisallowedApplication` skipped.
+- OS-level confirmation: the VPN `NetworkAgent` covered **`Uids: <{0-99999}>`** (no exclusion gap) — i.e. steering in-tunnel, not classic OS exclusion. (The classic path shows a single-uid gap.)
+- No `protectFromVpn` fdsan crash; process stable.
+- **Behavioural proof, simultaneously under lockdown:** the excluded browser egressed from the device's real cellular IP `178.197.161.237` (direct), while tunneled traffic (adb shell, uid 2000) egressed from the Nym exit `87.106.222.6`. The excluded app loaded pages *at all* under lockdown — impossible with plain `addDisallowedApplication`.
+
+**Build / packaging gotchas** (surface with the local `Android.mk` build; do a full `make -f Android.mk` + `assembleGeneralDebug`, not `-PbuildDeps=false`):
+- `libwg.so` must be present in `jniLibs/<abi>/` for all three ABIs. `build-wireguard-go.sh` output lands in `build/lib/<rust-triple>/`; the full `buildDeps` step places it — a `-PbuildDeps=false` shortcut ships an APK missing `libwg.so`, which crashes at load (`libnym_vpn_lib.so` has a DT_NEEDED on it, and `extractNativeLibs=false` makes a missing lib fatal).
+- Regenerate uniffi Kotlin bindings against the merged library (`uniffi-bindgen generate --library …/libnym_vpn_lib.so`), so every namespace loads from the single `libnym_vpn_lib.so`. A stale per-crate binding (e.g. `nym_bridges_types` loading a non-existent `libnym_bridges_types.so`) crashes core init.
+
+**Environmental note:** connect completion is independent of this feature — on a flaky cellular-roaming link the tunnel retries regardless of lockdown/steering; on a healthy link it connects in ~1 s. Earlier "stuck connecting" observations were the network, not steering.
+
 ## Risks / open questions
 
 - `getConnectionOwnerUid` misses sockets bound with `SO_BINDTODEVICE` (kernel lookup uses `idiag_if = 0`) — such flows fall back to the tunnel (safe, but the app stays "not excluded" for those sockets).
 - Battery/CPU cost of userspace TCP for excluded apps under heavy use (e.g., excluding a streaming app). Mitigated by scope (only excluded flows) and gVisor's maturity (Tailscale/sing-box in production).
 - Steering config changes (list edits) keep the existing semantics: applied on reconnect.
+- **Known follow-up — gVisor UDP packet-buffer leak.** The gVisor version pinned in `libwg` exposes no `Release()`/`DecRef` on `udp.ForwarderRequest`, so the bypass netstack leaks ~one `PacketBuffer` per bypassed UDP flow. DNS is the hot UDP path, so this accumulates over a long lockdown session. Needs a gVisor bump or a manual buffer-drop. Not a merge blocker, but a real leak to schedule.
