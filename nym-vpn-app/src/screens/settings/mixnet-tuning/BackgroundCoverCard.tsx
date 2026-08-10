@@ -51,6 +51,7 @@ function BackgroundCoverSlider({
           <Button
             onClick={() => setValue(index)}
             key={item.label}
+            disabled={disabled}
             className={clsx('flex flex-col text-sm whitespace-nowrap', {
               'items-start': index === 0,
               'items-end': index === backgroundCoverItems.length - 1,

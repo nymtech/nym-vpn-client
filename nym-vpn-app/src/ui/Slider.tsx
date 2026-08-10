@@ -74,7 +74,6 @@ function Slider({
     <div
       className={clsx(
         'w-full',
-        // also neutralizes the clickable labels, which call `onChange` themselves
         disabled && 'pointer-events-none opacity-50',
         className,
       )}
