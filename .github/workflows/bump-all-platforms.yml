@@ -284,10 +284,13 @@ jobs:
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"
           APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
+          CORE_VERSION: ${{ steps.version.outputs.core_version }}
           LC_ALL: "C.utf8"
           LANG: "C.utf8"
         run: |
           bundle exec fastlane mac bump_version "$APPLE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
 
       # --- Linux installer ---
       - name: Update Linux install script

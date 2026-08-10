@@ -92,7 +92,7 @@ jobs:
           cache-key: ${{ matrix.arch }}
 
       - name: Apply orchestrated version
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: core
