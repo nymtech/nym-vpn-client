@@ -47,7 +47,9 @@ function MixingDelaySlider({
             <span className="whitespace-nowrap">
               {t(`mixnet-tuning.mixing-delay.${level.key}.label`)}
             </span>
-            <span className="whitespace-nowrap">{level.ms} ms</span>
+            <span className="whitespace-nowrap">
+              {t('mixnet-tuning.mixing-delay.ms-value', { value: level.ms })}
+            </span>
           </div>
         ))}
       />
