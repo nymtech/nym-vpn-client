@@ -354,7 +354,8 @@ jobs:
           crowdin download translations \
             --config crowdin-configs/macos-ios.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN"
+            --token "$CROWDIN_PERSONAL_TOKEN" \
+            --no-progress
 
       - name: Handle santa menu
         working-directory: nym-vpn-apple
