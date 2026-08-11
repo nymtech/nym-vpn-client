@@ -230,6 +230,52 @@ FunctionEnd
 !insertmacro VPND_UNINSTALL ""
 !insertmacro VPND_UNINSTALL "un."
 
+; Clear the command line arguments of a .lnk shortcut, no-op if it doesn't exist
+;
+; Shortcuts created by installers up to 2026.10 pass `-l -Ldebug`. `-l` is not
+; a real flag: the app accepts it only as a hidden no-op (`Cli::log_file`) so
+; those shortcuts keep launching.
+;
+; Clearing them here does not make that shim removable. The updater relays the
+; old process's arguments to the new binary through /ARGS (see .onInstSuccess),
+; and taskbar and start menu pins are separate .lnk files this never sees, so
+; `-l` keeps reaching the binary from places the installer cannot reach.
+;
+; Outside WiX migration, an update skips shortcut creation altogether (see
+; $UpdateMode), so stale arguments are never overwritten by the normal path and
+; have to be cleared explicitly.
+;
+; `utils.nsh` has no equivalent: its SetShortcutTarget sets only the target
+; path (IShellLink::SetPath) and leaves the arguments alone.
+;
+; This clears every argument, not just `-l`. The app is not meant to be
+; launched from a shortcut with arguments, so anything found there is discarded.
+;
+; Note this modifies $0, $1 and $2
+!macro ClearShortcutArgs shortcut
+  ${If} ${FileExists} "${shortcut}"
+    !insertmacro ComHlpr_CreateInProcInstance ${CLSID_ShellLink} ${IID_IShellLink} r0 ""
+    ${If} $0 P<> 0
+      ${IUnknown::QueryInterface} $0 '("${IID_IPersistFile}",.r1)'
+      ${If} $1 P<> 0
+        ; STGM_READWRITE asks for exclusive access, so Load fails if anything
+        ; else holds the .lnk. Saving anyway would write an empty shortcut over
+        ; a working one, since nothing has set a target on this IShellLink.
+        ${IPersistFile::Load} $1 '("${shortcut}", ${STGM_READWRITE})i.r2'
+        ${If} $2 >= 0
+          ${IShellLink::SetArguments} $0 '(w "")'
+          ${IPersistFile::Save} $1 '("${shortcut}",1)'
+          DetailPrint "cleared shortcut arguments: ${shortcut}"
+        ${Else}
+          DetailPrint "could not open shortcut [$2]: ${shortcut}"
+        ${EndIf}
+        ${IUnknown::Release} $1 ""
+      ${EndIf}
+      ${IUnknown::Release} $0 ""
+    ${EndIf}
+  ${EndIf}
+!macroend
+
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
@@ -869,6 +915,11 @@ Section Install
     Call CreateOrUpdateStartMenuShortcut
   !insertmacro MUI_STARTMENU_WRITE_END
 
+  ; CreateOrUpdateDesktopShortcut runs only in passive/silent mode or when the
+  ; user ticks the finish page checkbox, so clearing from inside it would leave
+  ; interactive updates broken. The desktop shortcut has to be cleared here.
+  !insertmacro ClearShortcutArgs "$DESKTOP\${PRODUCTNAME}.lnk"
+
   ; Create desktop shortcut for silent and passive installers
   ; because finish page will be skipped
   ${If} $PassiveMode = 1
@@ -1089,6 +1140,10 @@ Function un.SkipIfPassive
 FunctionEnd
 
 Function CreateOrUpdateStartMenuShortcut
+  ; Must come first: every branch below can return early
+  !insertmacro ClearShortcutArgs "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk"
+  !insertmacro ClearShortcutArgs "$SMPROGRAMS\${PRODUCTNAME}.lnk"
+
   ; We used to use product name as MAINBINARYNAME
   ; migrate old shortcuts to target the new MAINBINARYNAME
   StrCpy $R0 0
