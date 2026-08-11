@@ -31,20 +31,22 @@ impl ResolverOverrides {
 
         tracing::debug!("getting overrides for {urls:?}");
 
-        // Track, for each unique domain, whether it is a primary endpoint for at least one
-        // candidate, as opposed to only ever appearing as a fronting decoy.
-        let mut candidates: HashMap<url::Url, bool> = HashMap::new();
-        for url in urls {
-            candidates.insert(url.inner_url().clone(), true);
-        }
-        for url in urls {
-            for front in url.fronts().unwrap_or_default() {
-                candidates.entry(front.clone()).or_insert(false);
-            }
-        }
+        // A domain counts as primary if it's the primary URL for at least one candidate,
+        // as opposed to only ever appearing as a fronting decoy.
+        let primaries: HashSet<url::Url> = urls.iter().map(|url| url.inner_url().clone()).collect();
+
+        let candidates: HashSet<url::Url> = urls
+            .iter()
+            .flat_map(|url| {
+                [url.inner_url().clone()]
+                    .into_iter()
+                    .chain(url.fronts().unwrap_or_default().iter().cloned())
+            })
+            .collect();
 
         let mut spawned_any = false;
-        for (url, is_primary) in candidates {
+        for url in candidates {
+            let is_primary = primaries.contains(&url);
             let Some(domain) = url.domain().map(|s| s.to_owned()) else {
                 tracing::warn!(
                     "Ignoring API URL '{}' for resolver overrides as it does not have a valid domain",
