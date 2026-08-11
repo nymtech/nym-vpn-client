@@ -19,9 +19,20 @@ private enum Bootstrap {
     static func once(using manager: LogFileManager) {
         lock.sync {
             guard !didBootstrap else { return }
+
             LoggingSystem.bootstrap { label in
-                FileLogHandler(label: label, logFileManager: manager)
+                let fileLogger = FileLogHandler(label: label, logFileManager: manager)
+
+#if DEBUG
+                return MultiplexLogHandler([
+                    StreamLogHandler.standardOutput(label: label),
+                    fileLogger
+                ])
+#else
+                return fileLogger
+#endif
             }
+
             didBootstrap = true
         }
     }

@@ -5,57 +5,6 @@ import ErrorReason
 import TunnelStatus
 
 extension GRPCManager {
-    func startDaemonInitialStatusPingerIfNeeded() {
-        guard versionPingTask == nil || versionPingTask?.isCancelled == true else { return }
-
-        versionPingTask = Task { [weak self] in
-            guard let self else { return }
-            await self.pingDaemonInitialStatus()
-        }
-    }
-
-    func stopInitialStatusPinger() {
-        versionPingTask?.cancel()
-        versionPingTask = nil
-    }
-
-    func pingDaemonInitialStatus() async {
-        var retryCount = 0
-        while !isServing {
-            do {
-                try await version()
-                guard let tunnelState = try await rpcClient?.getTunnelState() else { return }
-                await MainActor.run {
-                    updateTunnelStatus(with: tunnelState)
-                }
-            } catch is CancellationError {
-                return
-            } catch {
-                 logger.debug("pingDaemonInitialStatus error: \(error)")
-            }
-
-            if !isServing {
-                retryCount += 1
-                if retryCount == 2 {
-                    daemonVersion = "update"
-                }
-                do {
-                    try await Task.sleep(for: .seconds(5))
-                } catch is CancellationError {
-                    logger.debug("pingDaemonInitialStatus cancelled during sleep")
-                    return
-                } catch {
-                    logger.debug("Ping Daemon initial status: \(error)")
-                }
-            }
-            if isServing {
-                stopInitialStatusPinger()
-            }
-        }
-    }
-}
-
-extension GRPCManager {
     func updateTunnelStatus(with state: TunnelState) {
         switch state {
         case let .connected(details):
@@ -98,9 +47,6 @@ extension GRPCManager {
                 tunnelStatus = .offline
             }
         }
-
-        guard !isServing else { return }
-        isServing = true
     }
 }
 
