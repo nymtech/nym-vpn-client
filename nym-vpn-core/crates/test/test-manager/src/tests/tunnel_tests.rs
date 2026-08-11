@@ -20,6 +20,7 @@ use std::{
 use test_macro::test_function_nym;
 use test_rpc::{
     NymServiceClient,
+    net::{IPINFO_HTTP_TIMEOUT_SECS, IPINFO_JSON_URL},
     nym_daemon::{ObservedTunnelState, ObservedTunnelType},
 };
 
@@ -604,17 +605,20 @@ async fn check_dns_leak_bash_ws(
     Ok(())
 }
 
-const IPINFO_URL: &str = "https://ipinfo.io/json";
 const RECONNECT_POLL_INTERVAL: Duration = Duration::from_millis(500);
 const RECONNECT_MAX_POLLS: u32 = 40;
-const RECONNECT_CURL_MAX_SECS: &str = "2";
+/// Per-sample curl `--max-time` during reconnect poll (shorter than baseline/RPC timeout).
+const RECONNECT_CURL_MAX_SECS: u32 = 5;
+/// Bail only after this many consecutive Connected samples with unreachable oracle.
+const RECONNECT_ORACLE_FAIL_STREAK: u32 = 2;
 
 async fn fetch_guest_public_ip(
     rpc: &NymServiceClient,
-    max_time_secs: &str,
+    max_time_secs: u32,
 ) -> Result<IpAddr, anyhow::Error> {
+    let max_time = max_time_secs.to_string();
     let output = rpc
-        .exec("curl", ["-s", "--max-time", max_time_secs, IPINFO_URL])
+        .exec("curl", ["-s", "--max-time", &max_time, IPINFO_JSON_URL])
         .await
         .context("oracle unreachable: curl ipinfo.io failed")?;
     if !output.success() {
@@ -663,10 +667,20 @@ fn classify_reconnect_ip_sample(
     }
 }
 
+fn note_reconnect_oracle_unreachable(streak: &mut u32) -> bool {
+    *streak = streak.saturating_add(1);
+    *streak >= RECONNECT_ORACLE_FAIL_STREAK
+}
+
+fn clear_reconnect_oracle_unreachable(streak: &mut u32) {
+    *streak = 0;
+}
+
 async fn poll_no_isp_ip_during_reconnect(
     rpc: &NymServiceClient,
     isp_ip: IpAddr,
 ) -> Result<(), anyhow::Error> {
+    let mut oracle_fail_streak = 0u32;
     for sample in 0..RECONNECT_MAX_POLLS {
         let state = rpc
             .get_observed_tunnel_state()
@@ -687,6 +701,7 @@ async fn poll_no_isp_ip_during_reconnect(
             isp_ip,
         ) {
             ReconnectIpSampleVerdict::Ignore => {
+                clear_reconnect_oracle_unreachable(&mut oracle_fail_streak);
                 log::info!(
                     "Reconnect poll sample {sample}: state={state:?} (non-Connected or ignored)"
                 );
@@ -704,12 +719,19 @@ async fn poll_no_isp_ip_during_reconnect(
                 let Err(err) = lookup else {
                     bail!("internal: OracleUnreachableWhileConnected without oracle error");
                 };
-                bail!(
-                    "oracle unreachable while Connected during reconnect window \
-                     (sample {sample}): {err}"
+                if note_reconnect_oracle_unreachable(&mut oracle_fail_streak) {
+                    bail!(
+                        "oracle unreachable while Connected during reconnect window \
+                         ({oracle_fail_streak} consecutive samples, last sample {sample}): {err}"
+                    );
+                }
+                log::warn!(
+                    "Reconnect poll sample {sample}: oracle unreachable while Connected \
+                     (streak {oracle_fail_streak}/{RECONNECT_ORACLE_FAIL_STREAK}): {err}"
                 );
             }
             ReconnectIpSampleVerdict::ConnectedProtected => {
+                clear_reconnect_oracle_unreachable(&mut oracle_fail_streak);
                 let Ok(egress) = lookup else {
                     bail!("internal: ConnectedProtected without egress IP");
                 };
@@ -739,7 +761,7 @@ pub async fn test_ip_leak(
     let nym_client =
         dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    let isp_ip = fetch_guest_public_ip(&rpc, "15")
+    let isp_ip = fetch_guest_public_ip(&rpc, IPINFO_HTTP_TIMEOUT_SECS as u32)
         .await
         .context("baseline ISP IP while Disconnected")?;
     log::info!("Pre-VPN ISP baseline IP: {isp_ip}");
@@ -894,8 +916,9 @@ pub async fn test_country_exit_node(
         let addrs = resolve.context("DNS resolution of ipinfo.io failed inside VM")?;
         log::info!("Resolved ipinfo.io inside VM: {:?}", addrs);
 
+        let max_time = IPINFO_HTTP_TIMEOUT_SECS.to_string();
         let ip_output = rpc
-            .exec("curl", ["-s", "--max-time", "15", "https://ipinfo.io/json"])
+            .exec("curl", ["-s", "--max-time", &max_time, IPINFO_JSON_URL])
             .await
             .context("Failed to curl ipinfo.io from VM")?;
         let ip_str = String::from_utf8_lossy(&ip_output.stdout);
@@ -1006,9 +1029,14 @@ pub async fn test_reconnect_tunnel(
 
 #[cfg(test)]
 mod ip_leak_tests {
-    use super::{ReconnectIpSampleVerdict, classify_reconnect_ip_sample};
+    use super::{
+        RECONNECT_CURL_MAX_SECS, RECONNECT_ORACLE_FAIL_STREAK, ReconnectIpSampleVerdict,
+        classify_reconnect_ip_sample, clear_reconnect_oracle_unreachable,
+        note_reconnect_oracle_unreachable,
+    };
     use crate::tests::get_test_descriptions;
     use std::net::{IpAddr, Ipv4Addr};
+    use test_rpc::net::IPINFO_HTTP_TIMEOUT_SECS;
     use test_rpc::nym_daemon::{ObservedTunnelState, ObservedTunnelType};
 
     /// Must match `#[test_function_nym(priority = 16)]` on [`super::test_ip_leak`].
@@ -1060,6 +1088,35 @@ mod ip_leak_tests {
         assert_eq!(
             classify_reconnect_ip_sample(&connected(), Err(()), isp()),
             ReconnectIpSampleVerdict::OracleUnreachableWhileConnected
+        );
+    }
+
+    #[test]
+    fn reconnect_oracle_unreachable_requires_consecutive_streak() {
+        assert_eq!(RECONNECT_ORACLE_FAIL_STREAK, 2);
+        assert_eq!(RECONNECT_CURL_MAX_SECS, 5);
+        assert_eq!(IPINFO_HTTP_TIMEOUT_SECS, 15);
+
+        let mut streak = 0;
+        assert!(
+            !note_reconnect_oracle_unreachable(&mut streak),
+            "first Connected oracle failure must not bail"
+        );
+        assert_eq!(streak, 1);
+        assert!(
+            note_reconnect_oracle_unreachable(&mut streak),
+            "second consecutive Connected oracle failure must bail"
+        );
+        assert_eq!(streak, 2);
+
+        clear_reconnect_oracle_unreachable(&mut streak);
+        assert_eq!(streak, 0);
+        assert!(!note_reconnect_oracle_unreachable(&mut streak));
+        clear_reconnect_oracle_unreachable(&mut streak);
+        assert!(!note_reconnect_oracle_unreachable(&mut streak));
+        assert!(
+            note_reconnect_oracle_unreachable(&mut streak),
+            "streak must restart after clear (Ignore / ConnectedProtected)"
         );
     }
 

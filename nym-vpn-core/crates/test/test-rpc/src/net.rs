@@ -77,6 +77,11 @@ impl Drop for SockHandle {
     }
 }
 
+/// Default HTTP timeout (seconds) for guest/host ipinfo.io lookups in the e2e harness.
+pub const IPINFO_HTTP_TIMEOUT_SECS: u64 = 15;
+
+pub const IPINFO_JSON_URL: &str = "https://ipinfo.io/json";
+
 pub async fn geoip_lookup(mullvad_host: String, timeout: Duration) -> Result<AmIMullvad, Error> {
     let uri = Uri::try_from(format!("https://ipv4.am.i.{mullvad_host}/json"))
         .map_err(|_| Error::InvalidUrl)?;
@@ -84,7 +89,7 @@ pub async fn geoip_lookup(mullvad_host: String, timeout: Duration) -> Result<AmI
 }
 
 pub async fn ipinfo_lookup(timeout: Duration) -> Result<AmIMullvad, Error> {
-    let uri = Uri::try_from("https://ipinfo.io/json").map_err(|_| Error::InvalidUrl)?;
+    let uri = Uri::try_from(IPINFO_JSON_URL).map_err(|_| Error::InvalidUrl)?;
     let body: serde_json::Value = http_get_with_timeout(uri, timeout).await?;
     geoip_lookup_from_ipinfo_value(&body)
 }
@@ -121,9 +126,18 @@ fn geoip_lookup_from_ipinfo_value(value: &serde_json::Value) -> Result<AmIMullva
 
 #[cfg(test)]
 mod ipinfo_tests {
-    use super::{geoip_lookup_from_ipinfo_json, public_ip_from_ipinfo_json};
+    use super::{
+        IPINFO_HTTP_TIMEOUT_SECS, IPINFO_JSON_URL, geoip_lookup_from_ipinfo_json,
+        public_ip_from_ipinfo_json,
+    };
     use crate::Error;
     use std::net::{IpAddr, Ipv4Addr};
+
+    #[test]
+    fn ipinfo_http_timeout_secs_is_shared_default() {
+        assert_eq!(IPINFO_HTTP_TIMEOUT_SECS, 15);
+        assert_eq!(IPINFO_JSON_URL, "https://ipinfo.io/json");
+    }
 
     #[test]
     fn parses_ipinfo_ip_field() {
