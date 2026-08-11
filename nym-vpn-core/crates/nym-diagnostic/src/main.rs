@@ -26,6 +26,7 @@ async fn main() -> anyhow::Result<()> {
         Network::mainnet_default().with_context(|| "Missing network config")?
     } else if let Some(discovery) = Discovery::default_discovery(&args.network) {
         let fetcher = Fetcher::new(discovery.clone(), None)
+            .await
             .context("Failed to build non mainnet env : fetcher")?;
         let network_details = fetcher
             .fetch_network_details()

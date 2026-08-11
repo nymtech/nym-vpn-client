@@ -236,6 +236,7 @@ async fn build_vpn_api_clients(network: &Network) -> Result<Vec<VpnApiClient>> {
         let plain_url =
             Url::new(url.inner_url().clone(), None).map_err(|_| Error::MissingApiUrl)?;
         let mut plain_client = VpnApiClient::new(vec![plain_url], Some(new_user_agent!()))
+            .await
             .map_err(|_| Error::MissingApiUrl)?;
 
         plain_client.as_mut().set_front_policy(FrontPolicy::Off);
@@ -249,6 +250,7 @@ async fn build_vpn_api_clients(network: &Network) -> Result<Vec<VpnApiClient>> {
 
                 let mut fronted_client =
                     VpnApiClient::new(vec![fronted_url], Some(new_user_agent!()))
+                        .await
                         .map_err(|_| Error::MissingApiUrl)?;
                 fronted_client
                     .as_mut()

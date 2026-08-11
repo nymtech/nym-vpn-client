@@ -86,17 +86,18 @@ impl VpnApiClient {
     /// dedicated HTTP client. Useful for constructing a `SkewManager` before any `VpnApiClient`
     /// exists, so it can be shared (injected via `new`/`from_network`) rather than owned solely
     /// by the client.
-    pub fn health_endpoint_time_provider(
+    pub async fn health_endpoint_time_provider(
         urls: Vec<Url>,
         user_agent: Option<UserAgent>,
     ) -> Result<impl RemoteTimeProvider + Send + Sync + 'static> {
-        let inner = fronted_http_client(urls, user_agent, Some(NYM_VPN_API_TIMEOUT))?;
+        let inner = fronted_http_client(urls, user_agent, Some(NYM_VPN_API_TIMEOUT)).await?;
         Ok(VpnApiRemoteTimeProvider::new(inner))
     }
 
-    pub fn new(urls: Vec<Url>, user_agent: Option<UserAgent>) -> Result<Self> {
+    pub async fn new(urls: Vec<Url>, user_agent: Option<UserAgent>) -> Result<Self> {
         let inner =
-            fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
+            fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))
+                .await?;
 
         let skew_manager = SkewManager::new(VpnApiRemoteTimeProvider::new(inner.clone()));
 
@@ -122,7 +123,8 @@ impl VpnApiClient {
         let urls = api_urls_to_urls(api_urls)?;
 
         let inner =
-            fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
+            fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))
+                .await?;
 
         let skew_manager = SkewManager::new(VpnApiRemoteTimeProvider::new(inner.clone()));
 
@@ -1630,7 +1632,7 @@ mod tests {
 
     // Returns a client that never makes real network requests: the device clock is fixed and
     // remote time requests are counted and answered with `remote_time`.
-    fn test_client(remote_time: OffsetDateTime) -> (VpnApiClient, Arc<AtomicUsize>) {
+    async fn test_client(remote_time: OffsetDateTime) -> (VpnApiClient, Arc<AtomicUsize>) {
         let calls = Arc::new(AtomicUsize::new(0));
         let remote_time_provider = CountingRemoteTimeProvider {
             calls: calls.clone(),
@@ -1643,6 +1645,7 @@ mod tests {
             None,
             Some(NYM_VPN_API_TIMEOUT),
         )
+        .await
         .unwrap();
         (
             VpnApiClient {
@@ -1674,7 +1677,7 @@ mod tests {
 
     #[tokio::test]
     async fn date_header_skew_avoids_remote_time_request() {
-        let (client, remote_calls) = test_client(device_time());
+        let (client, remote_calls) = test_client(device_time()).await;
         // Remote time is 2 hours behind the device time
         let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
 
@@ -1701,7 +1704,7 @@ mod tests {
 
     #[tokio::test]
     async fn date_header_negligible_skew_retries_with_local_time() {
-        let (client, remote_calls) = test_client(device_time());
+        let (client, remote_calls) = test_client(device_time()).await;
         // Remote time is only 30 seconds ahead of the device time: below the threshold
         let headers = headers_with_date("Thu, 16 Jul 2026 12:00:30 GMT");
 
@@ -1715,7 +1718,7 @@ mod tests {
 
     #[tokio::test]
     async fn aligned_date_header_corrects_stale_cached_skew_and_retries() {
-        let (client, remote_calls) = test_client(device_time());
+        let (client, remote_calls) = test_client(device_time()).await;
 
         // Seed the cache with a stale skew: the device clock used to be 2 hours ahead
         client
@@ -1748,7 +1751,7 @@ mod tests {
 
     #[tokio::test]
     async fn missing_date_header_falls_back_to_remote_time_request() {
-        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2)).await;
 
         let RemoteTimeRetry::Retry(Some(jwt)) = client
             .remote_time_for_retry(&HeaderMap::new(), device_time(), device_time())
@@ -1763,7 +1766,7 @@ mod tests {
 
     #[tokio::test]
     async fn malformed_date_header_falls_back_to_remote_time_request() {
-        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2)).await;
         let headers = headers_with_date("not a date");
 
         let RemoteTimeRetry::Retry(Some(jwt)) = client
@@ -1779,7 +1782,7 @@ mod tests {
 
     #[tokio::test]
     async fn untrustworthy_request_time_falls_back_to_remote_time_request() {
-        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2)).await;
         let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
 
         // The request appears to have finished before it started, so the Date header

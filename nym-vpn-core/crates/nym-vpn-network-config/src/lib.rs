@@ -248,7 +248,7 @@ impl NetworkCache {
                     }
                 })?;
 
-        let fetcher = Fetcher::new(persistent_discovery.value().clone(), user_agent)?;
+        let fetcher = Fetcher::new(persistent_discovery.value().clone(), user_agent).await?;
 
         Ok(Self {
             cache_dir,
@@ -273,7 +273,7 @@ impl NetworkCache {
 
             // Update fetcher discovery so that it could pick up new API endpoints if they changed.
             if new_discovery != *self.persistent_discovery.value()
-                && let Err(err) = self.fetcher.set_discovery(new_discovery.clone())
+                && let Err(err) = self.fetcher.set_discovery(new_discovery.clone()).await
             {
                 trace_err_chain!(err, "failed to update fetcher discovery");
             }

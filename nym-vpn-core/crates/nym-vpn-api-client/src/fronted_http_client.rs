@@ -1,15 +1,15 @@
 use std::time::Duration;
 
-use crate::error::VpnApiClientError;
+use crate::{error::VpnApiClientError, types::ResolverOverrides};
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
 
-pub fn fronted_http_client(
+pub async fn fronted_http_client(
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
 ) -> Result<Client, VpnApiClientError> {
-    let builder = fronted_http_client_builder(urls, user_agent, timeout)?;
+    let builder = fronted_http_client_builder(urls, user_agent, timeout).await?;
 
     let client = builder
         .build()
@@ -19,11 +19,12 @@ pub fn fronted_http_client(
     Ok(client)
 }
 
-pub fn fronted_http_client_builder(
+pub async fn fronted_http_client_builder(
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
 ) -> Result<ClientBuilder, VpnApiClientError> {
+    let urls = ResolverOverrides::resolve_and_prune(&urls).await;
     let has_front = urls.iter().any(|url| url.has_front());
 
     let mut builder = ClientBuilder::new_with_urls(urls)

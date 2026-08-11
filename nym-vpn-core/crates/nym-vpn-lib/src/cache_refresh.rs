@@ -75,7 +75,7 @@ pub async fn update_caches_for_network(
         }
     };
 
-    let new_gateway_client = match GatewayClient::new(gateway_config, user_agent.clone()) {
+    let new_gateway_client = match GatewayClient::new(gateway_config, user_agent.clone()).await {
         Ok(client) => client,
         Err(e) => {
             tracing::error!(

@@ -23,24 +23,24 @@ pub struct Fetcher {
 
 impl Fetcher {
     /// Create an instance of `Fetcher` using HTTP API endpoints from the given discovery.
-    pub fn new(discovery: Discovery, user_agent: Option<UserAgent>) -> Result<Self> {
+    pub async fn new(discovery: Discovery, user_agent: Option<UserAgent>) -> Result<Self> {
         Ok(Self {
             user_agent: user_agent.clone(),
-            api_client: build_api_client(&discovery, user_agent.clone())?,
-            vpn_api_client: build_vpn_api_client(&discovery, user_agent)?,
+            api_client: build_api_client(&discovery, user_agent.clone()).await?,
+            vpn_api_client: build_vpn_api_client(&discovery, user_agent).await?,
             discovery: Box::new(discovery),
         })
     }
 
     /// Update internal discovery used by the fetcher.
     /// This causes recreation of the underlying HTTP API clients.
-    pub(crate) fn set_discovery(&mut self, new_discovery: Discovery) -> Result<()> {
+    pub(crate) async fn set_discovery(&mut self, new_discovery: Discovery) -> Result<()> {
         if *self.discovery == new_discovery {
             return Ok(());
         }
 
-        self.api_client = build_api_client(&new_discovery, self.user_agent.clone())?;
-        self.vpn_api_client = build_vpn_api_client(&new_discovery, self.user_agent.clone())?;
+        self.api_client = build_api_client(&new_discovery, self.user_agent.clone()).await?;
+        self.vpn_api_client = build_vpn_api_client(&new_discovery, self.user_agent.clone()).await?;
         *self.discovery = new_discovery;
 
         Ok(())
@@ -79,22 +79,28 @@ impl Fetcher {
     }
 }
 
-fn build_api_client(discovery: &Discovery, user_agent: Option<UserAgent>) -> Result<HttpApiClient> {
+async fn build_api_client(
+    discovery: &Discovery,
+    user_agent: Option<UserAgent>,
+) -> Result<HttpApiClient> {
     let api_urls =
         api_urls_to_urls(&discovery.nym_api_urls()).map_err(Error::CreateVpnApiClient)?;
 
     fronted_http_client::fronted_http_client(api_urls, user_agent, Some(NETWORK_TIMEOUT))
+        .await
         .map_err(Error::CreateVpnApiClient)
 }
 
-fn build_vpn_api_client(
+async fn build_vpn_api_client(
     discovery: &Discovery,
     user_agent: Option<UserAgent>,
 ) -> Result<VpnApiClient> {
     let vpn_api_urls =
         api_urls_to_urls(&discovery.nym_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
 
-    VpnApiClient::new(vpn_api_urls, user_agent).map_err(Error::CreateVpnApiClient)
+    VpnApiClient::new(vpn_api_urls, user_agent)
+        .await
+        .map_err(Error::CreateVpnApiClient)
 }
 
 #[cfg(test)]
@@ -104,7 +110,9 @@ mod tests {
     #[tokio::test]
     async fn test_discovery_fetch() {
         let network_name = "mainnet";
-        let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None)
+            .await
+            .unwrap();
         let discovery = fetcher.fetch_discovery(network_name).await.unwrap();
         assert_eq!(discovery.network_name, network_name);
     }
