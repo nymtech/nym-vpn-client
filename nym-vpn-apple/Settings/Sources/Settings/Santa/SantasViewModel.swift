@@ -172,16 +172,5 @@ import Theme
         }
         return ByteCountFormatter.string(fromByteCount: Int64(totalSize), countStyle: .file)
     }
-
-#if os(macOS)
-    func updateDaemonInfo() {
-        Task {
-            try? await grpcManager.version()
-            Task { @MainActor in
-                objectWillChange.send()
-            }
-        }
-    }
-#endif
 }
 #endif
