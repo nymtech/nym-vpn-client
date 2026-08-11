@@ -105,7 +105,7 @@ private extension GeoExclusionView {
                         .foregroundStyle(Color.Nym.textSecondary)
                         .nymTextStyle(.bodyDefault)
                     Spacer()
-                    Text("\(viewModel.listenPort)")
+                    Text(String(viewModel.listenPort))
                         .foregroundStyle(Color.Nym.textPrimary)
                         .font(Font.custom("Courier New", size: 15))
                         .kerning(0.3)
