@@ -46,15 +46,14 @@ extension ConnectionManager {
     func setupGRPCManagerObservers() {
         updateWidgetState(for: currentTunnelStatus)
 
-        grpcManager.$isServing.dropFirst()
-            .sink { [weak self] isConnectedToDaemon in
-                guard isConnectedToDaemon else { return }
+        grpcManager.$isServing.sink { [weak self] isConnectedToDaemon in
+            guard isConnectedToDaemon else { return }
 
-                Task { @MainActor [weak self] in
-                    await self?.fetchDaemonConfig()
-                }
+            Task { @MainActor [weak self] in
+                await self?.fetchDaemonConfig()
             }
-            .store(in: &cancellables)
+        }
+        .store(in: &cancellables)
 
         grpcManager.$tunnelStatus.sink { [weak self] status in
             Task { @MainActor [weak self] in
