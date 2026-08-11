@@ -96,6 +96,7 @@ env:
   RELEASE_ASSETS: release-assets.txt
   RELEASE_PAYLOAD_ARTIFACT: release-payload
   RELEASE_PAYLOAD: release-payload.json
+  CHECKSUM_FILE: checksums.txt
 
 jobs:
   resolve:
@@ -449,12 +450,16 @@ jobs:
           cp -v "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}" "${{ env.OUTPUT_DIR }}"
 
       - name: Generate checksums
+        working-directory: ${{ env.OUTPUT_DIR }}
         run: |
-          cd "${{ env.OUTPUT_DIR }}"
+          if [ -f "$CHECKSUM_FILE" ]; then
+            rm "$CHECKSUM_FILE"
+          fi
+
           for file in *; do
-            if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
-              echo "#️⃣ Generating SHA: $file > ${file}.sha256sum"
-              sha256sum "$file" > "${file}.sha256sum"
+            if [ -f "$file" ] ; then
+              echo "#️⃣ Generating SHA: $file"
+              sha256sum "$file" >> "$CHECKSUM_FILE"
             fi
           done
 
@@ -487,64 +492,45 @@ jobs:
           if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
             FILES+=(
               "${ARCHIVE_LINUX_X86_64}"
-              "${ARCHIVE_LINUX_X86_64}.sha256sum"
               "${ARCHIVE_LINUX_AARCH64}"
-              "${ARCHIVE_LINUX_AARCH64}.sha256sum"
               "${LINUX_INSTALL}"
-              "${LINUX_INSTALL}.sha256sum"
               "${LINUX_APP_X64_BIN}"
-              "${LINUX_APP_X64_BIN}.sha256sum"
               "${LINUX_APP_ARM64_BIN}"
-              "${LINUX_APP_ARM64_BIN}.sha256sum"
               "${LINUX_APP_DEB_X64}"
-              "${LINUX_APP_DEB_X64}.sha256sum"
               "${LINUX_APP_DEB_ARM64}"
-              "${LINUX_APP_DEB_ARM64}.sha256sum"
               "${LINUX_APP_APPIMAGE_X64}"
-              "${LINUX_APP_APPIMAGE_X64}.sha256sum"
               "${LINUX_APP_APPIMAGE_ARM64}"
-              "${LINUX_APP_APPIMAGE_ARM64}.sha256sum"
               "${VPNC_DEB_X86_64}"
-              "${VPNC_DEB_X86_64}.sha256sum"
               "${VPNC_DEB_AARCH64}"
-              "${VPNC_DEB_AARCH64}.sha256sum"
               "${VPND_DEB_X86_64}"
-              "${VPND_DEB_X86_64}.sha256sum"
               "${VPND_DEB_AARCH64}"
-              "${VPND_DEB_AARCH64}.sha256sum"
             )
           fi
 
           if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
             FILES+=(
               "${ARCHIVE_WINDOWS_X64}"
-              "${ARCHIVE_WINDOWS_X64}.sha256sum"
               "${ARCHIVE_WINDOWS_ARM64}"
-              "${ARCHIVE_WINDOWS_ARM64}.sha256sum"
               "${WINDOWS_APP_INSTALLER_X64}"
-              "${WINDOWS_APP_INSTALLER_X64}.sha256sum"
               "${WINDOWS_APP_INSTALLER_ARM64}"
-              "${WINDOWS_APP_INSTALLER_ARM64}.sha256sum"
             )
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
             FILES+=(
               "${MACOS_INSTALLER_NAME}"
-              "${MACOS_INSTALLER_NAME}.sha256sum"
               "${VPNC_MACOS_INSTALLER_NAME}"
-              "${VPNC_MACOS_INSTALLER_NAME}.sha256sum"
             )
           fi
 
           if [[ "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
             FILES+=(
               "${ANDROID_APK}"
-              "${ANDROID_APK}.sha256sum"
             )
           fi
 
           if [ ${#FILES[@]} -gt 0 ]; then
+            FILES+=("$CHECKSUM_FILE")
             printf "%s\n" "${FILES[@]}" > "${{ env.RELEASE_ASSETS }}"
           else
             echo "::error::No files to upload"
