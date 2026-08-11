@@ -42,9 +42,6 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
 
-    @AppStorage(AppSettingKey.didCompleteFirstLaunch.rawValue)
-    public var didCompleteFirstLaunch = false
-
     // Technical opt ins
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
@@ -237,7 +234,6 @@ public enum AppSettingKey: String {
     case errorReporting
     case credenitalExists
     case smallScreen
-    case didCompleteFirstLaunch
     case welcomeScreenDidDisplay
     case onboardingDidDisplay
     case lastConnectionIntent
