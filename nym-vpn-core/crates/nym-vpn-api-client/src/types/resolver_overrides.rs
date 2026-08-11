@@ -132,6 +132,73 @@ impl ResolverOverrides {
         Self::from_urls(&urls).await
     }
 
+    /// Resolve the given URLs and return a pruned copy with every front that failed to
+    /// resolve removed, and any candidate whose primary and every front failed to resolve
+    /// dropped entirely.
+    ///
+    /// This lets an HTTP client built from the result never attempt a host we already know
+    /// is unreachable, instead of finding out at request time (DNS lookup, then most likely
+    /// a firewall-blocked connection attempt).
+    ///
+    /// Never errors: if resolution fails so completely that pruning would leave nothing at
+    /// all, the original, unpruned list is returned so callers still have something to try.
+    pub async fn resolve_and_prune(urls: &[Url]) -> Vec<Url> {
+        match Self::from_urls(urls).await {
+            Ok(overrides) => {
+                let pruned = Self::prune(urls, &overrides);
+                if pruned.is_empty() && !urls.is_empty() {
+                    tracing::warn!(
+                        "Pruning unresolvable API URLs would leave none usable; keeping the original list instead"
+                    );
+                    urls.to_vec()
+                } else {
+                    pruned
+                }
+            }
+            Err(_) => urls.to_vec(),
+        }
+    }
+
+    /// Filter out fronts (and whole candidates) that `overrides` couldn't resolve.
+    pub fn prune(urls: &[Url], overrides: &ResolverOverrides) -> Vec<Url> {
+        urls.iter()
+            .filter_map(|url| {
+                let primary_resolved = url
+                    .inner_url()
+                    .domain()
+                    .is_some_and(|domain| overrides.addresses(domain).is_some());
+
+                let resolved_fronts: Vec<url::Url> = url
+                    .fronts()
+                    .unwrap_or_default()
+                    .iter()
+                    .filter(|front| {
+                        front
+                            .domain()
+                            .is_some_and(|domain| overrides.addresses(domain).is_some())
+                    })
+                    .cloned()
+                    .collect();
+
+                if !primary_resolved && resolved_fronts.is_empty() {
+                    tracing::warn!(
+                        "Dropping unusable API URL '{url}': neither its primary domain nor any of its fronts could be resolved"
+                    );
+                    return None;
+                }
+
+                Url::new(
+                    url.inner_url().clone(),
+                    (!resolved_fronts.is_empty()).then_some(resolved_fronts),
+                )
+                .inspect_err(|err| {
+                    tracing::warn!("Failed to rebuild pruned URL for '{url}': {err}")
+                })
+                .ok()
+            })
+            .collect()
+    }
+
     /// Extend the current overrides with another set of overrides.
     pub fn extend(&mut self, other: &ResolverOverrides) {
         for (domain, addresses) in other.overrides.iter() {
@@ -255,5 +322,63 @@ mod test {
             Err(e) => panic!("unexpected err: {e}"),
         }
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn prune_drops_unresolvable_front_but_keeps_working_candidates() {
+        let urls: Vec<Url> = vec![
+            Url::new("https://nymvpn.com", None).unwrap(),
+            Url::new(
+                "https://validator.nymtech.net",
+                Some(vec!["https://non-existent.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), 2);
+
+        let validator = pruned
+            .iter()
+            .find(|url| url.inner_url().domain() == Some("validator.nymtech.net"))
+            .expect("validator.nymtech.net should still be present");
+        assert!(validator.fronts().unwrap_or_default().is_empty());
+
+        let nymvpn = pruned
+            .iter()
+            .find(|url| url.inner_url().domain() == Some("nymvpn.com"))
+            .expect("nymvpn.com should still be present");
+        assert!(nymvpn.fronts().unwrap_or_default().is_empty());
+    }
+
+    #[tokio::test]
+    async fn prune_drops_candidate_with_no_resolvable_route() {
+        let urls: Vec<Url> = vec![
+            Url::new("https://nymvpn.com", None).unwrap(),
+            Url::new(
+                "https://non-existent-1.nymtech.net",
+                Some(vec!["https://non-existent-2.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), 1);
+        assert_eq!(pruned[0].inner_url().domain(), Some("nymvpn.com"));
+    }
+
+    #[tokio::test]
+    async fn resolve_and_prune_falls_back_to_original_when_nothing_resolves() {
+        let urls: Vec<Url> = vec![
+            Url::new("https://non-existent-1.nymtech.net", None).unwrap(),
+            Url::new(
+                "https://non-existent-2.nymtech.net",
+                Some(vec!["https://non-existent-3.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), urls.len());
     }
 }

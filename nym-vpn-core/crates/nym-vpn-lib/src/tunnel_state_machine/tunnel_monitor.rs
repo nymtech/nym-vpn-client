@@ -434,6 +434,7 @@ impl TunnelMonitor {
         let user_agent = self.tunnel_parameters.user_agent.clone();
         let gateway_directory_client =
             GatewayClient::new(gateway_config.clone(), user_agent.clone())
+                .await
                 .map_err(Error::GatewayDirectoryClient)?;
 
         self.gateway_provider

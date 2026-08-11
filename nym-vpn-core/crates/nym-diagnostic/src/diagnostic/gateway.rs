@@ -137,7 +137,7 @@ impl GatewayDiagnostic {
             None,
         )?;
 
-        GatewayClient::new(config, new_user_agent!())
+        GatewayClient::new(config, new_user_agent!()).await
     }
 
     async fn lookup_gateway(

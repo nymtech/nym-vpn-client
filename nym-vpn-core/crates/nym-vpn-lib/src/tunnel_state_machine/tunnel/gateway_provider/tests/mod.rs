@@ -180,9 +180,9 @@ fn new_mainnet() -> Config {
     .unwrap()
 }
 
-fn mainnet_gateway_client() -> GatewayClient {
+async fn mainnet_gateway_client() -> GatewayClient {
     let config = new_mainnet();
-    GatewayClient::new(config, user_agent()).unwrap()
+    GatewayClient::new(config, user_agent()).await.unwrap()
 }
 
 pub fn default_tunnel_settings() -> TunnelSettings {

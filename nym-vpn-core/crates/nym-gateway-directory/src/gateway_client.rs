@@ -177,13 +177,15 @@ pub struct GatewayClient {
 }
 
 impl GatewayClient {
-    pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
+    pub async fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
         let nym_urls = api_urls_to_urls(config.nym_api_urls())?;
+        let nym_urls = ResolverOverrides::resolve_and_prune(&nym_urls).await;
 
         let api_client = fronted_http_client(nym_urls, Some(user_agent.clone()), None)
             .map_err(Error::VpnApiClientError)?;
 
         let nym_vpn_urls = api_urls_to_urls(config.nym_vpn_api_urls())?;
+        let nym_vpn_urls = ResolverOverrides::resolve_and_prune(&nym_vpn_urls).await;
 
         let vpn_api_client =
             nym_vpn_api_client::VpnApiClient::new(nym_vpn_urls, Some(user_agent.clone()))
@@ -206,8 +208,8 @@ impl GatewayClient {
         user_agent: UserAgent,
     ) -> Result<Self> {
         let nym_urls = api_urls_to_urls(&config.nym_api_urls)?;
+        let nym_urls = ResolverOverrides::resolve_and_prune(&nym_urls).await;
 
-        // No resolver overrides for this client?
         let api_client = fronted_http_client(nym_urls, Some(user_agent.clone()), None)
             .map_err(Error::VpnApiClientError)?;
 
@@ -604,21 +606,21 @@ mod test {
         }
     }
 
-    fn mainnet_gateway_client() -> GatewayClient {
+    async fn mainnet_gateway_client() -> GatewayClient {
         let config = new_mainnet();
-        GatewayClient::new(config, user_agent()).unwrap()
+        GatewayClient::new(config, user_agent()).await.unwrap()
     }
 
     #[tokio::test]
     async fn lookup_described_gateways() {
-        let client = mainnet_gateway_client();
+        let client = mainnet_gateway_client().await;
         let gateways = client.lookup_described_nodes().await.unwrap();
         assert!(!gateways.is_empty());
     }
 
     #[tokio::test]
     async fn lookup_gateways_in_nym_vpn_api() {
-        let client = mainnet_gateway_client();
+        let client = mainnet_gateway_client().await;
         let gateways = client
             .lookup_gateways(GatewayType::MixnetExit)
             .await
