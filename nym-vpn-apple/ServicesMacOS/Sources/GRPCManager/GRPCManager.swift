@@ -11,18 +11,16 @@ import Constants
 import ConnectionTypes
 import TunnelStatus
 
-let RPC_RECONNECT_DELAY = Duration.seconds(5)
+let kRpcReconnectDelay = Duration.seconds(5)
 
 @MainActor public final class GRPCManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
-    private var listenToEventsObserver: StreamObserver?
+    private var eventObserver: StreamObserver?
 
     public static let shared = GRPCManager()
 
     let logger = Logger(label: "GRPC Manager")
-    // TODO: create actor
     var rpcClient: RpcClient?
-    var versionPingTask: Task<Void, Never>?
 
     @Published public var isServing = false
     @Published public var tunnelStatus: TunnelStatus = .unknown
@@ -44,72 +42,79 @@ let RPC_RECONNECT_DELAY = Duration.seconds(5)
     }
 
     private init() {
-        setup()
+        startConnectionLoop()
     }
 
-    func setup() {
+    func startConnectionLoop() {
         Task { @MainActor in
-            try? await configureRpcClient()
-            await pingDaemonInitialStatus()
+            while !Task.isCancelled {
+                do {
+                    try await connectRpcAndHandleEvents()
+                } catch {
+                    let error = (error as? RpcError)?.displayChain() ?? error.localizedDescription
+                    logger.error("RPC error: \(error)")
+                }
+
+                try await Task.sleep(for: kRpcReconnectDelay)
+            }
         }
     }
 }
 
 private extension GRPCManager {
-    func configureRpcClient() async throws {
-        do {
-            let rpcClient = try await RpcClient()
-            self.rpcClient = rpcClient
+    func connectRpcAndHandleEvents() async throws {
+        let rpcClient = try await RpcClient()
+        let newRpcObserver = RPCTunnelObserver()
 
-            let newRpcObserver = RPCTunnelObserver()
-            listenToEventsObserver = try await rpcClient.listenToEvents(observer: newRpcObserver)
+        eventObserver = try await rpcClient.listenToEvents(observer: newRpcObserver)
+        self.rpcClient = rpcClient
 
-            Task { [weak self] in
-                for await event in newRpcObserver.stream {
-                    self?.didReceive(event: event)
-                }
+        try await onConnect(rpcClient: rpcClient)
 
-                await self?.onDisconnect()
-            }
-
-            stopInitialStatusPinger()
-            startDaemonInitialStatusPingerIfNeeded()
-        } catch {
-            let error = (error as? RpcError)?.displayChain() ?? error.localizedDescription
-            logger.error("Failed to connect RpcClient: \(error)")
-            try? await Task.sleep(for: RPC_RECONNECT_DELAY)
-            setup()
+        for await event in newRpcObserver.stream {
+            didReceive(event: event)
         }
+
+        await onDisconnect()
     }
 
     func didReceive(event: TunnelEvent) {
         switch event {
         case let .newState(tunnelState):
-            Task { @MainActor in
-                updateTunnelStatus(with: tunnelState)
-            }
+            updateTunnelStatus(with: tunnelState)
         case .mixnetState:
             break
         case .configChanged:
             break
         case .accountState:
             break
-        case .diagnosticsSuggested(_):
+        case .diagnosticsSuggested:
             break
         }
     }
 
+    func onConnect(rpcClient: RpcClient) async throws {
+        logger.info("RPC connected")
+
+        let serviceInfo = try await rpcClient.getInfo()
+        let tunnelState = try await rpcClient.getTunnelState()
+
+        daemonVersion = serviceInfo.version
+        networkName = serviceInfo.nymNetwork.networkName
+        logger.info("🛜 \(serviceInfo.nymNetwork.networkName)")
+
+        updateTunnelStatus(with: tunnelState)
+
+        isServing = true
+    }
+
     func onDisconnect() async {
-        logger.warning("🛩️ RPC connection closed")
+        logger.info("RPC disconnected")
 
         isServing = false
         tunnelStatus = .unknown
-        listenToEventsObserver = nil
-        stopInitialStatusPinger()
+        eventObserver = nil
         rpcClient = nil
-
-        try? await Task.sleep(for: RPC_RECONNECT_DELAY)
-        setup()
     }
 }
 
