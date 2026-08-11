@@ -614,10 +614,7 @@ async fn fetch_guest_public_ip(
     max_time_secs: &str,
 ) -> Result<IpAddr, anyhow::Error> {
     let output = rpc
-        .exec(
-            "curl",
-            ["-s", "--max-time", max_time_secs, IPINFO_URL],
-        )
+        .exec("curl", ["-s", "--max-time", max_time_secs, IPINFO_URL])
         .await
         .context("oracle unreachable: curl ipinfo.io failed")?;
     if !output.success() {
@@ -627,9 +624,8 @@ async fn fetch_guest_public_ip(
             String::from_utf8_lossy(&output.stderr)
         );
     }
-    test_rpc::net::public_ip_from_ipinfo_json(&output.stdout).map_err(|err| {
-        anyhow::anyhow!("oracle error: failed to parse ipinfo public IP: {err}")
-    })
+    test_rpc::net::public_ip_from_ipinfo_json(&output.stdout)
+        .map_err(|err| anyhow::anyhow!("oracle error: failed to parse ipinfo public IP: {err}"))
 }
 
 async fn fetch_guest_public_ip_via_rpc(rpc: &NymServiceClient) -> Result<IpAddr, anyhow::Error> {
@@ -640,11 +636,31 @@ async fn fetch_guest_public_ip_via_rpc(rpc: &NymServiceClient) -> Result<IpAddr,
     Ok(geo.ip)
 }
 
-fn tunnel_session_is_secured(state: &ObservedTunnelState) -> bool {
-    !matches!(
-        state,
-        ObservedTunnelState::Disconnected | ObservedTunnelState::Offline
-    )
+#[derive(Debug, PartialEq, Eq)]
+enum ReconnectIpSampleVerdict {
+    IspLeakWhileConnected,
+    OracleUnreachableWhileConnected,
+    ConnectedProtected,
+    Ignore,
+}
+
+fn classify_reconnect_ip_sample(
+    state: &ObservedTunnelState,
+    lookup: Result<IpAddr, ()>,
+    isp_ip: IpAddr,
+) -> ReconnectIpSampleVerdict {
+    match state {
+        ObservedTunnelState::Connected { .. } => match lookup {
+            Ok(egress) if egress == isp_ip => ReconnectIpSampleVerdict::IspLeakWhileConnected,
+            Ok(_) => ReconnectIpSampleVerdict::ConnectedProtected,
+            Err(()) => ReconnectIpSampleVerdict::OracleUnreachableWhileConnected,
+        },
+        ObservedTunnelState::Connecting
+        | ObservedTunnelState::Disconnecting
+        | ObservedTunnelState::Disconnected
+        | ObservedTunnelState::Offline
+        | ObservedTunnelState::Error(_) => ReconnectIpSampleVerdict::Ignore,
+    }
 }
 
 async fn poll_no_isp_ip_during_reconnect(
@@ -657,38 +673,50 @@ async fn poll_no_isp_ip_during_reconnect(
             .await
             .context("get_observed_tunnel_state during reconnect IP poll")?;
 
-        if !tunnel_session_is_secured(&state) {
-            bail!(
-                "unexpected unprotected tunnel state {state:?} during reconnect IP poll \
-                 (sample {sample}/{RECONNECT_MAX_POLLS}); intentional Disconnect is out of scope"
-            );
-        }
+        let lookup = if matches!(state, ObservedTunnelState::Connected { .. }) {
+            fetch_guest_public_ip(rpc, RECONNECT_CURL_MAX_SECS)
+                .await
+                .map_err(|err| err.to_string())
+        } else {
+            Err(String::new())
+        };
 
-        match fetch_guest_public_ip(rpc, RECONNECT_CURL_MAX_SECS).await {
-            Ok(egress) => {
-                ensure!(
-                    egress != isp_ip,
+        match classify_reconnect_ip_sample(
+            &state,
+            lookup.as_ref().map(|ip| *ip).map_err(|_| ()),
+            isp_ip,
+        ) {
+            ReconnectIpSampleVerdict::Ignore => {
+                log::info!(
+                    "Reconnect poll sample {sample}: state={state:?} (non-Connected or ignored)"
+                );
+            }
+            ReconnectIpSampleVerdict::IspLeakWhileConnected => {
+                let Ok(egress) = lookup else {
+                    bail!("internal: IspLeakWhileConnected without egress IP");
+                };
+                bail!(
                     "IP LEAK DETECTED during reconnect window (state={state:?}, sample={sample}): \
                      egress {egress} equals pre-VPN ISP baseline {isp_ip}"
                 );
+            }
+            ReconnectIpSampleVerdict::OracleUnreachableWhileConnected => {
+                let Err(err) = lookup else {
+                    bail!("internal: OracleUnreachableWhileConnected without oracle error");
+                };
+                bail!(
+                    "oracle unreachable while Connected during reconnect window \
+                     (sample {sample}): {err}"
+                );
+            }
+            ReconnectIpSampleVerdict::ConnectedProtected => {
+                let Ok(egress) = lookup else {
+                    bail!("internal: ConnectedProtected without egress IP");
+                };
                 log::info!(
                     "Reconnect poll sample {sample}: egress={egress} (≠ ISP {isp_ip}), state={state:?}"
                 );
-                if matches!(state, ObservedTunnelState::Connected { .. }) {
-                    return Ok(());
-                }
-            }
-            Err(err) => {
-                if matches!(state, ObservedTunnelState::Connected { .. }) {
-                    bail!(
-                        "oracle unreachable while Connected during reconnect window \
-                         (sample {sample}): {err:#}"
-                    );
-                }
-                log::info!(
-                    "Reconnect poll sample {sample}: oracle unavailable in {state:?} \
-                     (treated as non-leak): {err:#}"
-                );
+                return Ok(());
             }
         }
 
@@ -978,12 +1006,27 @@ pub async fn test_reconnect_tunnel(
 
 #[cfg(test)]
 mod ip_leak_tests {
-    use super::tunnel_session_is_secured;
+    use super::{ReconnectIpSampleVerdict, classify_reconnect_ip_sample};
     use crate::tests::get_test_descriptions;
+    use std::net::{IpAddr, Ipv4Addr};
     use test_rpc::nym_daemon::{ObservedTunnelState, ObservedTunnelType};
 
     /// Must match `#[test_function_nym(priority = 16)]` on [`super::test_ip_leak`].
     const IP_LEAK_TEST_PRIORITY: i32 = 16;
+
+    fn isp() -> IpAddr {
+        IpAddr::V4(Ipv4Addr::new(203, 0, 113, 10))
+    }
+
+    fn tun() -> IpAddr {
+        IpAddr::V4(Ipv4Addr::new(198, 51, 100, 20))
+    }
+
+    fn connected() -> ObservedTunnelState {
+        ObservedTunnelState::Connected {
+            tunnel_type: ObservedTunnelType::Wireguard,
+        }
+    }
 
     #[test]
     fn ip_leak_priority_stays_in_tunnel_band_below_blocklist() {
@@ -1005,20 +1048,44 @@ mod ip_leak_tests {
     }
 
     #[test]
-    fn secured_session_excludes_disconnected_and_offline() {
-        assert!(tunnel_session_is_secured(&ObservedTunnelState::Connecting));
-        assert!(tunnel_session_is_secured(&ObservedTunnelState::Connected {
-            tunnel_type: ObservedTunnelType::Wireguard,
-        }));
-        assert!(tunnel_session_is_secured(
-            &ObservedTunnelState::Disconnecting
-        ));
-        assert!(tunnel_session_is_secured(&ObservedTunnelState::Error(
-            "x".into()
-        )));
-        assert!(!tunnel_session_is_secured(
-            &ObservedTunnelState::Disconnected
-        ));
-        assert!(!tunnel_session_is_secured(&ObservedTunnelState::Offline));
+    fn reconnect_poll_fails_only_on_isp_while_connected() {
+        assert_eq!(
+            classify_reconnect_ip_sample(&connected(), Ok(isp()), isp()),
+            ReconnectIpSampleVerdict::IspLeakWhileConnected
+        );
+        assert_eq!(
+            classify_reconnect_ip_sample(&connected(), Ok(tun()), isp()),
+            ReconnectIpSampleVerdict::ConnectedProtected
+        );
+        assert_eq!(
+            classify_reconnect_ip_sample(&connected(), Err(()), isp()),
+            ReconnectIpSampleVerdict::OracleUnreachableWhileConnected
+        );
+    }
+
+    #[test]
+    fn reconnect_poll_ignores_non_connected_samples_including_isp() {
+        let non_connected = [
+            ObservedTunnelState::Connecting,
+            ObservedTunnelState::Disconnecting,
+            ObservedTunnelState::Disconnected,
+            ObservedTunnelState::Offline,
+            ObservedTunnelState::Error("x".into()),
+        ];
+        for state in non_connected {
+            assert_eq!(
+                classify_reconnect_ip_sample(&state, Ok(isp()), isp()),
+                ReconnectIpSampleVerdict::Ignore,
+                "ISP while {state:?} must not fail the reconnect poll"
+            );
+            assert_eq!(
+                classify_reconnect_ip_sample(&state, Ok(tun()), isp()),
+                ReconnectIpSampleVerdict::Ignore
+            );
+            assert_eq!(
+                classify_reconnect_ip_sample(&state, Err(()), isp()),
+                ReconnectIpSampleVerdict::Ignore
+            );
+        }
     }
 }
