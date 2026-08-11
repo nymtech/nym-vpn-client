@@ -84,6 +84,19 @@ fun NavController.navigateAndForget(route: Route) {
 	}
 }
 
+fun NavController.navigateAndForgetToMain(route: Route) {
+	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
+	try {
+		navigate(route) {
+			popUpTo<Route.Main> { inclusive = route is Route.Main }
+			launchSingleTop = true
+		}
+	} catch (e: Exception) {
+		Timber.e("Navigation failed: ${e.message}")
+		goFromRoot(Route.Main())
+	}
+}
+
 fun NavController.replaceCurrentWith(route: Route) {
 	val currentRoute = currentBackStackEntry?.destination?.route ?: return
 	try {
