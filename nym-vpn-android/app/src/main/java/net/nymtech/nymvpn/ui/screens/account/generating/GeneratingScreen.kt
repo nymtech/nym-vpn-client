@@ -28,6 +28,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.theme.*
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -47,7 +48,7 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 
 	LaunchedEffect(animationEnded, readyForSelectPlan) {
 		if (!readyForSelectPlan || !animationEnded) return@LaunchedEffect
-		navController.navigateAndForget(Route.SelectPlan)
+		navController.navigateAndForgetToMain(Route.SelectPlan)
 	}
 
 	GeneratingContent(
