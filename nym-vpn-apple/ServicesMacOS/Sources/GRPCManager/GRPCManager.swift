@@ -69,7 +69,12 @@ private extension GRPCManager {
         eventObserver = try await rpcClient.listenToEvents(observer: newRpcObserver)
         self.rpcClient = rpcClient
 
-        try await onConnect(rpcClient: rpcClient)
+        do {
+            try await onConnect(rpcClient: rpcClient)
+        } catch {
+            await onDisconnect()
+            throw error
+        }
 
         for await event in newRpcObserver.stream {
             didReceive(event: event)
