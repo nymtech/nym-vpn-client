@@ -16,9 +16,9 @@ use nym_vpn_lib_types::{
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent,
-    TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport, Socks5Settings,
+    Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -1026,6 +1026,19 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
+    }
+
+    pub async fn set_profile(&mut self, profile_options: ProfileOptions) -> Result<()> {
+        let profile_options_proto =
+            proto::ProfileOptions::try_from(profile_options).map_err(Error::InvalidRequest)?;
+
+        self.0
+            .set_profile(profile_options_proto)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(())
     }
 }
 

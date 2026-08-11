@@ -10,6 +10,7 @@ mod geo_exclusion_settings;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
+mod profile;
 mod split_tunnel_settings;
 mod v1;
 mod v10;
@@ -28,6 +29,7 @@ mod v9;
 mod tests;
 
 pub use config_manager::VpnServiceConfigManager;
+pub use profile::ProfileSpecifics;
 
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{

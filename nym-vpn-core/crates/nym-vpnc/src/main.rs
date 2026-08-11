@@ -156,6 +156,7 @@ pub enum Command {
         subcommand: nym_diagnostic::cli::Command,
     },
 
+    /// Favorites management
     Favorites {
         #[command(subcommand)]
         subcommand: commands::favorites::Command,
@@ -166,6 +167,12 @@ pub enum Command {
     SplitTunnel {
         #[command(subcommand)]
         subcommand: commands::split_tunnel::Command,
+    },
+
+    /// Profiles management.
+    Profile {
+        #[command(subcommand)]
+        subcommand: commands::profile::Command,
     },
 }
 
@@ -209,6 +216,7 @@ impl Command {
             Command::Favorites { subcommand } => subcommand.execute().await,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Profile { subcommand } => subcommand.execute(rpc_client).await,
         }
     }
 

@@ -12,7 +12,7 @@ use tokio::sync::{mpsc, oneshot};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
     EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams,
-    ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility, ParsedAccountLinks,
+    ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility, ParsedAccountLinks, Profile,
     RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
     VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -445,5 +445,11 @@ impl NymVpnServiceCommandSender {
             .send_and_wait(VpnServiceCommand::GetRecentGateways, tunnel_type)
             .await?
             .map_err(NymVpnServiceCommandInnerError::ListGateway)?)
+    }
+
+    pub async fn set_profile(&self, profile: Profile) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetProfile, profile)
+            .await?;
+        Ok(())
     }
 }

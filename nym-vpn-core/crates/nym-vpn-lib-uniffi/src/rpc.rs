@@ -19,7 +19,7 @@ use nym_vpn_lib_types::{
     VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(target_os = "macos")]
-use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
+use nym_vpn_lib_types::{Profile, SplitApp, SplitTunnelExcludedProcessList};
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -496,6 +496,12 @@ impl RpcClient {
             skip_hybrid_transport: false,
         };
         Ok(self.inner.clone().run_diagnostic_raw(params).await?)
+    }
+
+    pub async fn set_profile(&self, profile: Profile) -> Result<()> {
+        let profile_options = nym_vpn_lib_types::ProfileOptions { profile };
+        self.inner.clone().set_profile(profile_options).await?;
+        Ok(())
     }
 }
 

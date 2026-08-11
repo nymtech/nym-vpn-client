@@ -20,7 +20,7 @@ use tonic::{Request, Response, Status, transport::Server};
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
-    LookupGatewayFilters, TargetState, TunnelEvent,
+    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -1365,6 +1365,21 @@ impl NymVpnService for CommandInterface {
 
         #[cfg(not(target_os = "linux"))]
         Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn set_profile(
+        &self,
+        request: tonic::Request<proto::ProfileOptions>,
+    ) -> Result<tonic::Response<()>> {
+        let profile_options = ProfileOptions::try_from(request.into_inner())
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid profile: {e}")))?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetProfile, profile_options.profile)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set profile: {e}")))?;
+
+        Ok(tonic::Response::new(()))
     }
 }
 
