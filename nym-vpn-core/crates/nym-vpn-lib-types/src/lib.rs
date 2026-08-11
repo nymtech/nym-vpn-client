@@ -43,6 +43,7 @@ mod network;
 mod network_stats;
 mod paths;
 mod privy;
+mod profile;
 mod rpc_requests;
 mod service;
 mod socks5;
@@ -95,6 +96,7 @@ pub use network::{
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use paths::LogPath;
 pub use privy::PrivyDerivationMessage;
+pub use profile::{Profile, ProfileOptions};
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, ListGatewaysOptions, StoreAccountRequest,
 };
