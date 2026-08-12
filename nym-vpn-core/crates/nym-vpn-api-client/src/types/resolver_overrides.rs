@@ -203,6 +203,14 @@ impl ResolverOverrides {
                     return None;
                 }
 
+                // Nothing was actually pruned: keep the original `Url` rather than rebuilding
+                // it. `Url::new` starts a fresh `current_front` index, which would silently
+                // reset an in-progress fronting fallback back to the first front even though
+                // nothing about resolvability changed.
+                if resolved_fronts.len() == url.fronts().unwrap_or_default().len() {
+                    return Some(url.clone());
+                }
+
                 Url::new(
                     url.inner_url().clone(),
                     (!resolved_fronts.is_empty()).then_some(resolved_fronts),
@@ -426,5 +434,30 @@ mod test {
                 .collect::<Vec<_>>(),
             vec![Some("nymvpn.com")]
         );
+    }
+
+    #[tokio::test]
+    async fn prune_preserves_current_front_when_nothing_is_pruned() {
+        // Everything here resolves, so `prune` shouldn't need to drop anything.
+        let url = Url::new(
+            "https://nymvpn.com",
+            Some(vec!["https://validator.nymtech.net", "https://example.com"]),
+        )
+        .unwrap();
+
+        // Simulate an in-progress fronting fallback: a prior request already advanced past
+        // the first front.
+        url.update();
+        assert_eq!(url.front_str(), Some("example.com"));
+
+        let overrides = ResolverOverrides::from_urls(std::slice::from_ref(&url))
+            .await
+            .unwrap();
+        let pruned = ResolverOverrides::prune(std::slice::from_ref(&url), &overrides);
+
+        assert_eq!(pruned.len(), 1);
+        // Nothing was pruned, so the advanced front index should have carried over instead of
+        // resetting to the first front.
+        assert_eq!(pruned[0].front_str(), Some("example.com"));
     }
 }
