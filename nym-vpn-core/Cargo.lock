@@ -7517,7 +7517,6 @@ dependencies = [
  "log",
  "ndk-context",
  "nym-bandwidth-controller",
- "nym-bridges-types",
  "nym-common 2026.13.0-beta.1",
  "nym-diagnostic",
  "nym-favorites",
