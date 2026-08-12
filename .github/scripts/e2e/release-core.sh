@@ -92,7 +92,7 @@ fetch() {
 
   local version archive archive_dir work src bin checksum
   load_archive_vars "$tag"
-  checksum="${archive}.sha256sum"
+  checksum="checksums.txt"
 
   mkdir -p "$dest"
   work="$(mktemp -d)"
@@ -106,7 +106,7 @@ fetch() {
   }
   (
     cd "$work"
-    sha256sum -c "$checksum"
+    sha256sum --ignore-missing -c "$checksum"
   )
 
   tar -xzf "${work}/${archive}" -C "$work"
