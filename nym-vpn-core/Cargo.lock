@@ -5343,8 +5343,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges"
-version = "0.2.1-rc.1"
-source = "git+https://github.com/nymtech/nym-bridges?branch=fix-nym-bridges-types#11bcbdf5f42d60e455cd66e2d2ed52c2084f9624"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-2#9613c71076217b65277223a13c65151b5dd1b044"
 dependencies = [
  "anyhow",
  "base64 0.23.0",
@@ -5355,7 +5355,7 @@ dependencies = [
  "getrandom 0.4.2",
  "lazy_static",
  "lru-slab",
- "nym-bridges-types",
+ "nym-bridges-types 0.2.0 (git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-2)",
  "once_cell",
  "pin-project-lite",
  "quinn",
@@ -5384,11 +5384,20 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges-types"
-version = "0.2.1-rc.1"
-source = "git+https://github.com/nymtech/nym-bridges?branch=fix-nym-bridges-types#11bcbdf5f42d60e455cd66e2d2ed52c2084f9624"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#9613c71076217b65277223a13c65151b5dd1b044"
 dependencies = [
  "serde",
  "ts-rs",
+ "uniffi",
+]
+
+[[package]]
+name = "nym-bridges-types"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-2#9613c71076217b65277223a13c65151b5dd1b044"
+dependencies = [
+ "serde",
  "uniffi",
 ]
 
@@ -7293,7 +7302,7 @@ dependencies = [
  "bs58",
  "hex",
  "itertools 0.14.0",
- "nym-bridges-types",
+ "nym-bridges-types 0.2.0 (git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1)",
  "nym-common 2026.13.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
@@ -7479,7 +7488,7 @@ dependencies = [
  "bip39",
  "ipnetwork",
  "nym-bandwidth-controller",
- "nym-bridges-types",
+ "nym-bridges-types 0.2.0 (git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1)",
  "nym-crypto",
  "nym-gateway-directory",
  "nym-network-defaults",
@@ -7518,7 +7527,7 @@ dependencies = [
  "log",
  "ndk-context",
  "nym-bandwidth-controller",
- "nym-bridges-types",
+ "nym-bridges-types 0.2.0 (git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1)",
  "nym-common 2026.13.0-beta.1",
  "nym-diagnostic",
  "nym-favorites",

@@ -318,8 +318,8 @@ nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym"
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 
-nym-bridges = { git = "https://github.com/nymtech/nym-bridges", branch = "fix-nym-bridges-types" }
-nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", branch = "fix-nym-bridges-types" }
+nym-bridges = { git = "https://github.com/nymtech/nym-bridges", branch = "v0.2.0-2" }
+nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", branch = "v0.2.0-1" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
