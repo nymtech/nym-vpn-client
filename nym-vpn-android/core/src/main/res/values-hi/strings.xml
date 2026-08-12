@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">एंट्री गेटवे प्रतिक्रिया नहीं दे रहा है।</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">एग्ज़िट गेटवे प्रतिक्रिया नहीं दे रहा है।</string>
 	<string name="error_reason_bandwidth_exceeded">बैंडविड्थ सीमा पार हो गई है।</string>
+	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
+	<string name="error_reason_no_credential_available">No credentials available.</string>
 	<string name="error_reason_inactive_account">आपका अकाउंट निष्क्रिय है।</string>
 	<string name="error_reason_inactive_subscription">आपकी सब्स्क्रिप्शन निष्क्रिय है।</string>
 	<string name="error_reason_max_devices_reached">अधिकतम डिवाइस सीमा पूरी हो गई है।</string>

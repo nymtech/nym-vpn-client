@@ -1,0 +1,13 @@
+Novo recurso beta: O AJUSTE DA MIXNET permite personalizar os padrões de tráfego pela mixnet para aumentar o anonimato ou o desempenho.
+
+Apresentando as FAMÍLIAS DE SERVIDORES: agora o NymVPN alerta você quando os servidores escolhidos podem pertencer à mesma família de operadores, garantindo a descentralização no uso da rede.
+
+Melhor acesso em regiões restritas e conectividade aprimorada em redes fortemente filtradas.
+
+Novo limite de dados diário: os limites de uso justo agora são diários em vez de mensais.
+
+Correção do Android Auto: o Android Auto não é mais roteado pela VPN, então as conexões no carro funcionam normalmente.
+
+Melhorias de confiabilidade e desempenho da conexão.
+
+Disfarce o aplicativo: mude para um ícone de aplicativo alternativo para manter o NymVPN discreto.

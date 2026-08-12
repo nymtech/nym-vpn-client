@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Gateway de entrada no responde.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Gateway de salida no responde.</string>
 	<string name="error_reason_bandwidth_exceeded">Límite de ancho de banda excedido.</string>
+	<string name="error_reason_credential_fetching_failed">Error al recuperar las credenciales.</string>
+	<string name="error_reason_no_credential_available">No hay credenciales disponibles.</string>
 	<string name="error_reason_inactive_account">Tu cuenta está inactiva.</string>
 	<string name="error_reason_inactive_subscription">Tu suscripción está inactiva.</string>
 	<string name="error_reason_max_devices_reached">Número máximo de dispositivos alcanzado.</string>

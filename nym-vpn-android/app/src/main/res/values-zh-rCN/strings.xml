@@ -87,6 +87,8 @@
 	<string name="credential_modal_description">要添加此设备，请进入账号的\"设备\"页面，删除其中一个现有设备，然后使用助记词重新登录此设备。</string>
 	<string name="manage_devices">管理您的设备</string>
 	<string name="close">关闭</string>
+	<string name="previous">返回</string>
+	<string name="next">下一步</string>
 	<string name="enter_access_code">请输入或粘贴您的助记词：请使用空格分开 24 个单词</string>
 	<string name="get_in_touch">联系支持人员</string>
 	<string name="loading">正在加载</string>
@@ -94,8 +96,8 @@
 	<string name="two_hop_explanation">通过两跳路由连接享受高速浏览（250+Mbps）。 该模式采用 AmneziaWG 协议，这是一种抗审查版本的 WireGuard。快速模式是快速浏览、流媒体和文件共享的理想选择。</string>
 	<string name="two_hop_title">快速模式（WireGuard）</string>
 	<string name="disabled_while_connecting">连接 VPN 时禁用</string>
-	<string name="exit_location">出口位置</string>
-	<string name="entry_location">入口位置</string>
+	<string name="exit_location">出口服务器</string>
+	<string name="entry_location">入口服务器</string>
 	<string name="no_results_found">未找到任何结果。</string>
 	<string name="how_to_run_gateway">如何运行一台服务器。</string>
 	<string name="or_learn">或学习</string>
@@ -149,6 +151,8 @@
 	<string name="error_invalid_entry_gateway_country">当前国家没有入口服务器。请选择其他国家然后重新连接。</string>
 	<string name="error_invalid_exit_gateway_country">当前国家没有出口服务器。请选择其他国家然后重新连接。</string>
 	<string name="bandwidth_error">本月带宽已达上限。请联系支持人员重置您的带宽。</string>
+	<string name="error_credential_fetching_failed">建立 VPN 连接所需的匿名凭证获取失败，请重试。</string>
+	<string name="error_no_credential_available">没有可用凭证用来建立 VPN 连接，请重试。</string>
 	<string name="max_devices_error">设备数量已达上限，请从账号中移除一个设备然后重新连接。</string>
 	<string name="device_time_out_of_sync">设备时间未同步</string>
 	<string name="error_ipv6_unavailable">IPv6 不可用</string>
@@ -170,9 +174,15 @@
 	<string name="error_expired_subscription_title">您的订阅已过期</string>
 	<string name="error_expired_subscription_description">重复的支付已被拒绝</string>
 	<string name="error_expired_subscription_button">立即续订</string>
+	<string name="error_no_subscription_title">没有有效订阅</string>
+	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
+	<string name="error_no_subscription_button">Select Plan</string>
+	<string name="account_subscription_pending_title">Subscription pending</string>
+	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">正在初始化 NymVPN（1/7）</string>
-	<string name="connection_state_awaiting_readiness">正在设置您的帐户 (2/7)</string>
+	<string name="connection_state_awaiting_readiness">正在设置您的账号 (2/7)</string>
+	<string name="connection_state_awaiting_credentials">正在准备凭证（3/7）</string>
 	<string name="connection_state_refreshing_gateways">正在更新服务器列表（4/7）</string>
 	<string name="connection_state_selecting_gateways">正在选择最佳服务器（5/7）</string>
 	<string name="connection_state_connecting_mixnet_client">正在匿名注册服务器（6/7）</string>
@@ -186,8 +196,25 @@
 	<string name="connection_status_not_protected">不受保护</string>
 	<string name="connection_status_fast_mode">快速模式保护</string>
 	<string name="connection_status_anonymous">混合网络保护</string>
-	<!-- Hop Screen -->
+	<!-- Server Screen -->
+	<string name="gateway_safest">最安全的服务器</string>
 	<string name="gateway_random">随机服务器</string>
+	<string name="server_entry_tab">入口</string>
+	<string name="server_exit_tab">出口</string>
+	<string name="server_search_text">搜索位置或者服务器名称</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="other">%1$s countries</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="other">%1$s nodes</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
+	<string name="server_favorite_icon">收藏</string>
+	<string name="server_favorites_tab">收藏</string>
+	<string name="server_recent_tab">最近使用</string>
+	<string name="server_all_tab">所有服务器</string>
+	<string name="server_no_favorites_text">暂无收藏</string>
+	<string name="server_no_recents_text">暂无最近使用的服务器</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">欢迎！</string>
 	<string name="auth_welcome_description">世界上最私密的 VPN</string>
@@ -213,7 +240,7 @@
 	<string name="settings_reset_app_title">重置应用数据</string>
 	<string name="settings_system_status_title">系统状态</string>
 	<string name="settings_mixnet_tuning_title">自定义混合网络参数</string>
-	<string name="settings_mixnet_tuning_description">自定义匿名模式的流量模式</string>
+	<string name="settings_mixnet_tuning_description">微调您的混合网络参数</string>
 	<string name="settings_quit_title">退出 NymVPN</string>
 	<string name="settings_app_version_line">应用版本: %1$s</string>
 	<string name="settings_daemon_version_line">守护进程版本: %1$s</string>
@@ -221,7 +248,7 @@
 	<string name="settings_language_help_description">让应用程序支持您的本地语言。</string>
 	<string name="settings_event_lan_reconnecting">正在重新连接以应用局域网设置…</string>
 	<string name="settings_ad_blocking_title">广告拦截</string>
-	<string name="settings_kill_switch_title">终止开关（Kill Switch）</string>
+	<string name="settings_kill_switch_title">断网保护</string>
 	<string name="settings_kill_switch_description">如果 VPN 断开连接，则会断开互联网连接</string>
 	<string name="settings_bypass_lan_title">访问本地网络</string>
 	<string name="settings_bypass_lan_description">允许直接访问本地网络</string>
@@ -276,6 +303,26 @@
 	<string name="welcome_usage_description">帮助我们改善 Nym 网络。请放心，我们不会收集您的个人信息。</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">创建账号</string>
+	<string name="onboarding_welcome_title">欢迎使用 NymVPN</string>
+	<string name="onboarding_welcome_description">您通向\n**隐私互联网**的大门</string>
+	<string name="onboarding_modes_title_dvpn">您的 dVPN</string>
+	<string name="onboarding_modes_description_dvpn">为您的数字生活增添一份隐私保障\n**去中心化**两跳 VPN\n**AmneziaWG** 协议：WireGuard 的抗审查版本</string>
+	<string name="onboarding_modes_title_mixnet">您的混合网络</string>
+	<string name="onboarding_modes_description_mixnet">体验最**匿名**的互联网\n带有**噪音技术 **的五跳 **混合网络**\n自定义您的混合网络参数。</string>
+	<string name="onboarding_modes_tagline_dvpn">无法记录用户数据——从设计上我们就没有办法记录用户数据。</string>
+	<string name="onboarding_modes_tagline_mixnet">保护元数据指纹。</string>
+	<string name="onboarding_around_title">Nym 助您安心上网</string>
+	<string name="onboarding_around_description">先进的 **AmneziaWG** 协议隐藏您的 WireGuard 流量\n使用 **QUIC** 绕过严苛的互联网审查\n**Stealth API** 让您轻松绕开 VPN 封锁\n**后量子加密**安全</string>
+	<string name="onboarding_plan_title">哪个订阅方案最适合您？</string>
+	<string name="onboarding_plan_community_favorite">NYM 社区最受欢迎</string>
+	<string name="onboarding_plan_year_plan_prefix">一年订阅方案 </string>
+	<string name="onboarding_plan_save_percent">节省 %1$s</string>
+	<string name="onboarding_plan_free_trial">外加 %1$d 天免费试用</string>
+	<string name="onboarding_plan_starting_at_prefix">开始于 </string>
+	<string name="onboarding_plan_price_per_month">%1$s / 月</string>
+	<string name="onboarding_plan_try_prefix">或先开始免费试用 </string>
+	<string name="onboarding_plan_one_month">一个月</string>
+	<string name="onboarding_plan_try_suffix">，无需长期承诺。</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">选择您的\n订阅方案</string>
 	<string name="select_plan_line_0">7 天免费试用</string>
@@ -287,28 +334,38 @@
 	<string name="select_plan_modal_free_trial">今天开始 7 天免费试用</string>
 	<!-- Server Details screen -->
 	<string name="details_title">服务器详细信息</string>
-	<string name="details_select_server_button">选择服务器</string>
+	<string name="details_features_title">节点功能</string>
+	<string name="details_performance_title">性能指标</string>
+	<string name="details_connection_title">连接详情</string>
+	<string name="details_build_info_title">服务端软件版本信息</string>
+	<string name="details_select_server_button">选择节点</string>
 	<string name="details_advanced_privacy">高级隐私</string>
-	<string name="details_with_mixnet">使用混合网络</string>
-	<string name="details_streaming_content">流媒体优化</string>
+	<string name="details_with_mixnet">混合网络</string>
+	<string name="details_streaming_content">流媒体</string>
 	<string name="details_residental_ip">住宅 IP</string>
 	<string name="details_datacenter_ip">数据中心 IP</string>
+	<string name="details_post_quantum_secure_keys">后量子加密算法</string>
+	<string name="details_lewes_protocol">Lewes 协议</string>
+	<string name="details_standard_key_exchange">标准密钥交换</string>
+	<string name="details_family_membership">家庭成员</string>
 	<string name="details_anti_censorship">抗审查</string>
 	<string name="details_quic_protocol">QUIC 协议</string>
 	<string name="details_standard_protocol">标准协议</string>
 	<string name="details_enable_quic_start">启用“QUIC协议\"</string>
-	<string name="details_enable_quic_end">在反审查设置中开启 QUIC 协议</string>
+	<string name="details_enable_quic_end">在抗审查设置中开启 QUIC 协议</string>
 	<string name="details_overall_performance">整体性能</string>
 	<string name="details_server_load">服务器负载</string>
 	<string name="details_uptime">正常运行时间</string>
-	<string name="not_applicable">不适用</string>
-	<string name="details_performance_calculated">性能指标根据服务器的负载和正常运行时间计算得出。正常运行时间取最近 24 小时的平均值。最近一次更新于 %1$s。</string>
+	<string name="not_applicable">没有数据</string>
+	<string name="details_performance_calculated">性能得分由服务器的负载和正常运行时间计算得出。正常运行时间取最近 24 小时的平均值。最近一次更新于 %1$s。</string>
 	<string name="details_exit_ipv4">IPv4</string>
 	<string name="details_exit_ipv6">IPv6</string>
 	<string name="details_ip_link">https://ipinfo.io/%1$s</string>
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">ASN 名称</string>
 	<string name="details_build_version">Nym 构建版本</string>
+	<string name="details_identity_key">身份密钥：</string>
+	<string name="details_copy_identity">复制身份密钥</string>
 	<string name="details_missing_incorrect_info">为什么有些信息缺失或者不准确</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start"></string>
@@ -352,14 +409,14 @@
 	<string name="account_generating_error">注册账号失败。请稍后再试</string>
 	<string name="account_generating_deeplink_title">正在登录……</string>
 	<string name="account_generating_deeplink_description">请稍等，我们正在验证您的账号</string>
-	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
-	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
-	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
-	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
-	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
-	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
-	<string name="account_login_processing_almost_ready">Finishing up…</string>
-	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
+	<string name="account_login_processing_setting_up">正在设置您的匿名账号</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">验证您的登录</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">正在为此设备准备您的账号</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">正在完成账号设置</string>
+	<string name="account_login_processing_loading_credentials">正在加载您的匿名凭证……</string>
+	<string name="account_login_processing_loading_credentials_subtitle">首次登录可能需要花费一些时间完成这些配置</string>
+	<string name="account_login_processing_almost_ready">正在完成……</string>
+	<string name="account_login_processing_almost_ready_subtitle">还需要几秒钟时间</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">正在处理您的付款…</string>
 	<string name="account_payment_verifying">我们正在验证您的订阅——我们的零知识证明技术确保您的付款信息和线上活动永远不会关联</string>
@@ -413,7 +470,7 @@
 	<string name="account_info_no_plan">没有有效订阅</string>
 	<string name="account_info_contact_support_action">联系支持人员</string>
 	<string name="account_info_contact_support_suffix"> 如果您的带宽已达上限。</string>
-	<string name="account_info_confirming_payment">Confirming payment</string>
+	<string name="account_info_confirming_payment">正在确认付款</string>
 	<string name="account_info_autologin_fetching">正在读取助记词…</string>
 	<string name="account_info_autologin_error">助记词读取失败。请稍后重试。</string>
 	<string name="account_info_add_social_action">绑定社交账号</string>
@@ -485,30 +542,32 @@
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">自定义您的混合网络流量模式</string>
 	<string name="mixnet_tuning_current_title">当前设置的预期性能：</string>
-	<string name="mixnet_tuning_current_speed">Packet rate</string>
+	<string name="mixnet_tuning_current_speed">数据包速率</string>
 	<string name="mixnet_tuning_current_latency">延迟</string>
 	<string name="mixnet_tuning_internet_speed">网络速度最高可达</string>
 	<string name="mixnet_tuning_current_description">标准网络上的预期往返延迟（RTT）</string>
-	<string name="mixnet_tuning_traffic_title">连续发送流量</string>
+	<string name="mixnet_tuning_traffic_title">发送连续流量</string>
 	<string name="mixnet_tuning_traffic_off_title">掩护流量传输速率</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ 连续流量发送机制已关闭。您的数据包将会立即发送。这可能会暴露流量模式。</string>
 	<string name="mixnet_tuning_traffic_on_description">掩护流量会一直发送以确保流量特征的一致性。调整数据包的发送速率。</string>
-	<string name="mixnet_tuning_traffic_off_description">我们仍然会发送独立于您的真实流量的掩护流量。选择您需要多少掩护流量。 </string>
-    <string name="mixnet_tuning_traffic_on_low">低\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_off_description">选择您需要多少掩护流量。</string>
+	<string name="mixnet_tuning_traffic_on_low">低\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">高\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">平衡\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">基准</string>
+	<string name="mixnet_tuning_traffic_off_low">低</string>
 	<string name="mixnet_tuning_traffic_off_high">高\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">平衡\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">中等\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ 将延迟调整为 0 会移除数据包混合，降低您的匿名性</string>
 	<string name="mixnet_tuning_delays_title">数据包延迟</string>
 	<string name="mixnet_tuning_delays_description">调整时间延迟以改变您的数据包混合的程度。</string>
-    <string name="mixnet_tuning_delays_low">低\n0m</string>
+	<string name="mixnet_tuning_delays_low">低\n0 毫秒</string>
 	<string name="mixnet_tuning_delays_high">高\n200 毫秒</string>
 	<string name="mixnet_tuning_delays_default">默认\n15 毫秒</string>
-	<string name="mixnet_tuning_delays_current">当前\n%1$s</string>
-    <string name="mixnet_tuning_link_text">了解更多关于混合网络的参数</string>
+	<string name="mixnet_tuning_delays_current">当前\n%1$s 毫秒</string>
+	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ 匿名性</string>
+	<string name="mixnet_tuning_link_text">了解更多关于自定义混合网络参数的信息</string>
 	<string name="mixnet_tuning_save_button">保存自定义设置</string>
 	<string name="mixnet_tuning_restore_button">恢复默认设置</string>
 	<!-- Diagnostic screen -->
@@ -519,7 +578,7 @@
 	<string name="diagnostic_copied">已复制到剪贴板</string>
 	<string name="diagnostic_error">诊断失败</string>
 	<!-- Support screen -->
-	<string name="support_protect_title">⚠️ 保护您自己免遭诈骗</string>
+	<string name="support_protect_title">⚠️  保护您自己免遭诈骗</string>
 	<string name="support_protect_description">请使用以下列出的渠道联系 Nym 支持团队。我们从来不会索要您的助记词或者主动通过私信联系您。\n\n收到预料之外的消息？很有可能是诈骗。</string>
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">关闭私有 DNS 功能以使用广告拦截器。</string>
@@ -534,7 +593,7 @@
 	<string name="node_families_description_text">禁用提醒 </string>
 	<string name="node_families_description_link">通知设置。</string>
 	<string name="node_families_connect_button">仍要连接</string>
-	<string name="node_families_error_message">Selected servers share a family. Choose a different pair or connect anyway.</string>
+	<string name="node_families_error_message">所选的服务器共享一个家族。请选择一组不同的出入口服务器或者继续连接。</string>
 	<!-- Geo Exclusion -->
 	<string name="geo_exclusion_enable_title">启用地理隧道分流功能</string>
 	<string name="geo_exclusion_description">将特定区域的流量排除在 VPN 隧道之外，从而使国内应用程序直连互联网，同时其他所有流量均保持安全。</string>
@@ -562,13 +621,22 @@
 	<string name="setup_instructions_per_app_description">Android 没有系统级的 SOCKS5 设置。</string>
 	<string name="setup_instructions_pert_app_step">请确保应用程序支持 SOCKS5 代理。</string>
 	<string name="setup_instructions_browser_title">浏览器配置</string>
-	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
+	<string name="setup_instructions_browser_description">任何兼容 SOCKS5 代理的软件均支持。以 Firefox 为例：</string>
 	<string name="setup_instructions_browser_step_1">设置 → 启用 SOCKS 代理 - 主机</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
 	<string name="setup_instructions_browser_step_3">，端口</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5。</string>
-	<string name="setup_instructions_wallet_title">Web3 wallet</string>
+	<string name="setup_instructions_wallet_title">Web3 钱包</string>
 	<string name="setup_instructions_wallet_step_1">将 RPC URL 设置为</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
 	<string name="setup_instructions_proxy_title">代理地址</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">应用程序图标</string>
+	<string name="app_icon_label_default">默认设置</string>
+	<string name="app_icon_label_dark">深色</string>
+	<string name="app_icon_label_light">浅色</string>
+	<string name="app_icon_disconnect_first">请断开 VPN 连接以更改应用程序图标。</string>
+	<string name="app_icon_change_title">更改应用图标？</string>
+	<string name="app_icon_change_body">NymVPN 会暂时退出以应用新的应用程序图标。只有您的主屏幕的应用图标会更改——系统通知以及搜索仍会显示 NymVPN。</string>
+	<string name="app_icon_change_confirm">更改图标</string>
 </resources>
