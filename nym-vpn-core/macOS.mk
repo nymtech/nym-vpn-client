@@ -24,7 +24,7 @@ LIPO  ?= lipo
 MKDIR ?= mkdir -p
 
 # ---- Paths ----
-RPC_CRATE_DIR := $(CURDIR)/crates/nym-vpn-rpc-uniffi
+LIB_CRATE_DIR := $(CURDIR)/crates/nym-vpn-lib-uniffi
 
 # Output dir for the final universal binary
 UPLOAD_DIR_MAC ?= $(CURDIR)/upload/mac
@@ -48,17 +48,17 @@ ifeq ($(ARCH), x86_64)
     LIBWG_OBJS := $(LIBWG_X86_64_BUILD_DIR)/libwg.a
     BUILD_X86  := true
     BUILD_ARM  := false
-    RPC_BUILD_TARGET := --target x86_64-apple-darwin
+    LIB_BUILD_TARGET := --target x86_64-apple-darwin
 else ifeq ($(ARCH), arm64)
     LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a
     BUILD_X86  := false
     BUILD_ARM  := true
-    RPC_BUILD_TARGET := --target aarch64-apple-darwin
+    LIB_BUILD_TARGET := --target aarch64-apple-darwin
 else ifeq ($(ARCH), fat)
     LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a $(LIBWG_X86_64_BUILD_DIR)/libwg.a
     BUILD_X86  := true
     BUILD_ARM  := true
-    RPC_BUILD_TARGET :=
+    LIB_BUILD_TARGET :=
 else
     $(error Unknown ARCH: $(ARCH). Please use 'x86_64', 'arm64', or 'fat')
 endif
@@ -75,20 +75,20 @@ build-dev:
 	cargo build -p $(DAEMON_BIN) -p nym-vpnc -p nym-socks5-proxy
 	codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - target/debug/$(DAEMON_BIN)
 
-build-all: libwg $(BIN_TARGETS) rpc-swift-package
+build-all: libwg $(BIN_TARGETS) swift-package
 
 libwg: $(LIBWG_OBJS)
 
 $(LIBWG_OBJS): $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
-rpc-swift-package:
-	cd $(RPC_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RPC_BUILD_TARGET) $(RELEASE_FLAG)
+swift-package: $(LIBWG_OBJS)
+	cd $(LIB_CRATE_DIR); \
+	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNLib --xcframework-name NymVPNLibUniffi $(LIB_BUILD_TARGET) $(RELEASE_FLAG)
 
 	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
-	cd $(RPC_CRATE_DIR); \
-	for HEADERS_DIR in NymVPNRpc/NymVPNRpcUniffi.xcframework/*/Headers ; do \
+	cd $(LIB_CRATE_DIR); \
+	for HEADERS_DIR in NymVPNLib/NymVPNLibUniffi.xcframework/*/Headers ; do \
 		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
 			[[ -d "$${SUBDIR}" ]] || continue; \
 			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
@@ -141,6 +141,6 @@ endif
 ifeq ($(BUILD_ARM), true)
 	cargo clean --target aarch64-apple-darwin
 endif
-	rm -rf $(RPC_CRATE_DIR)/NymVPNRpc
-	rm -rf $(RPC_CRATE_DIR)/generated
+	rm -rf $(LIB_CRATE_DIR)/NymVPNLib
+	rm -rf $(LIB_CRATE_DIR)/generated
 	rm -rf $(UPLOAD_DIR_MAC)

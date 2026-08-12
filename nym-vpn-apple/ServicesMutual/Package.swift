@@ -30,7 +30,6 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "NymVPNLib", path: "../NymVPNLib"),
-        .package(path: "../NymVPNRpc"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
@@ -45,14 +44,13 @@ let package = Package(
         .target(
             name: "ConnectionTypes",
             dependencies: [
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
-                .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS, .macOS])),
                 "Theme"
             ],
             path: "Sources/ConnectionTypes",
             swiftSettings: santaSwiftSettings,
             linkerSettings: [
-                // NymVPNRpcUniffi static lib references SystemConfiguration/Network symbols
+                // NymVPNLibUniffi static lib references SystemConfiguration/Network symbols
                 .linkedFramework("SystemConfiguration", .when(platforms: [.macOS])),
                 .linkedFramework("Network", .when(platforms: [.macOS]))
             ]

@@ -1,8 +1,4 @@
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 public struct MixnetTuningConfig: Codable, Equatable {
     // 'background cover traffic' slider

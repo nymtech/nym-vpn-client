@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_http_api_client::HttpClientError;
-use nym_vpn_lib::tunnel_state_machine;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerError};
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
@@ -143,8 +142,9 @@ impl From<AccountCommandError> for VpnError {
     }
 }
 
-impl From<tunnel_state_machine::Error> for VpnError {
-    fn from(value: tunnel_state_machine::Error) -> Self {
+#[cfg(not(target_os = "macos"))]
+impl From<nym_vpn_lib::tunnel_state_machine::Error> for VpnError {
+    fn from(value: nym_vpn_lib::tunnel_state_machine::Error) -> Self {
         Self::InternalError {
             details: value.to_string(),
         }

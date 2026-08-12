@@ -1,8 +1,4 @@
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 public struct GatewayBridgeInformation: Codable, Hashable {
     public var version: String

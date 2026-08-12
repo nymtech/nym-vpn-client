@@ -323,16 +323,6 @@ jobs:
             --token "$CROWDIN_PERSONAL_TOKEN" \
             --no-progress
 
-      - name: Add stubs for unused packages
-        working-directory: nym-vpn-apple
-        run: |
-          echo "📦 Adding stubs for unused packages..."
-          rm -rf NymVPNRpc || true
-          mkdir NymVPNRpc || true
-          cd NymVPNRpc
-          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
-          echo "✅ Stubs added successfully."
-
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:

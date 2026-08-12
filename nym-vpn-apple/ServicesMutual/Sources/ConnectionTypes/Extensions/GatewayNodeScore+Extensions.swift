@@ -1,8 +1,4 @@
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 extension GatewayNodeScore {
     public init(with score: Score?) {

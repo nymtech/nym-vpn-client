@@ -3,7 +3,7 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import Constants
-import NymVPNRpc
+import NymVPNLib
 import GRPCManager
 import Theme
 import UIComponents

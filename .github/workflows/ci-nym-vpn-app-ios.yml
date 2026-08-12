@@ -75,16 +75,6 @@ jobs:
           echo "✅ Updated Info.plist contents:"
           /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
 
-      - name: Add stubs for unused packages
-        working-directory: nym-vpn-apple
-        run: |
-          echo "📦 Adding stubs for unused packages..."
-          rm -rf NymVPNRpc || true
-          mkdir NymVPNRpc || true
-          cd NymVPNRpc
-          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
-          echo "✅ Stubs added successfully."
-
       - name: Build core
         run: |
           ARCH=$(uname -m)

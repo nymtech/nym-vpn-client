@@ -8,11 +8,7 @@ import ImpactGenerator
 import SnackbarManager
 import Theme
 import UIComponents
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 struct MixnetTuningView: View {
     private let mixnetDefaults = MixnetTrafficDefaults()

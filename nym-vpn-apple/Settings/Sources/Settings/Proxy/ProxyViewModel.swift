@@ -6,7 +6,7 @@ import GRPCManager
 import ImpactGenerator
 import NymLogger
 import SnackbarManager
-import NymVPNRpc
+import NymVPNLib
 import Theme
 
 @MainActor public final class ProxyViewModel: ObservableObject {

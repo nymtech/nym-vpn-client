@@ -1,9 +1,5 @@
 import Foundation
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 extension GatewayNodePerformance {
     public init(with performance: Performance?) {

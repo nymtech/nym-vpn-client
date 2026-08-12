@@ -10,6 +10,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
   build:
@@ -42,6 +43,12 @@ jobs:
           components: rustfmt, clippy
           targets: x86_64-apple-darwin aarch64-apple-darwin
 
+      - name: Install Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache-dependency-path: wireguard/libwg/go.sum
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -65,15 +72,13 @@ jobs:
           touch nym-vpn-apple/NymVPND/nym-socks5-proxy
           touch nym-vpn-apple/NymVPND/nym-diagnostic
 
-      - name: Add stubs for unused packages
-        working-directory: nym-vpn-apple
+      - name: Purge caches
         run: |
-          echo "📦 Adding stubs for unused packages..."
-          rm -rf NymVPNLib || true
-          mkdir NymVPNLib || true
-          cd NymVPNLib
-          swift package init --type library --name NymVPNLib --disable-xctest --disable-swift-testing
-          echo "✅ Stubs added successfully."
+          # This runner is persistent (self-hosted), so stale SPM/DerivedData state from
+          # packages removed/renamed between runs (e.g. the old NymVPNRpc package) survives
+          # the workspace checkout and corrupts module resolution for later builds.
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/" || true
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData/" || true
 
       - name: Purge caches
         run: |
@@ -83,10 +88,10 @@ jobs:
           rm -rf "$HOME/Library/Caches/org.swift.swiftpm/" || true
           rm -rf "$HOME/Library/Developer/Xcode/DerivedData/" || true
 
-      - name: Build rpc-swift-package
+      - name: Build swift-package
         run: |
-          make -C nym-vpn-core -f macOS.mk rpc-swift-package RELEASE="false"
-          mv "nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc" "nym-vpn-apple/NymVPNRpc"
+          make -C nym-vpn-core -f macOS.mk swift-package RELEASE="false"
+          mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "nym-vpn-apple/NymVPNLib"
 
       - name: Apple unit tests
         uses: ./.github/workflows/apple/tests

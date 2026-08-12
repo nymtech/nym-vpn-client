@@ -1,15 +1,10 @@
 import Foundation
 import ConnectionTypes
 import PathManager
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 // Favorites are a client-side file (`favorites.json` in the group data folder), not daemon
-// state — both platforms drive `FavoritesController` directly, iOS through NymVPNLib and
-// macOS through NymVPNRpc.
+// state — both platforms drive `FavoritesController` directly, through NymVPNLib
 extension GatewayWorker {
     func fetchFavorites() async throws -> (entry: [ServerFavorite], exit: [ServerFavorite]) {
         let selectors = try await controller().getFavorites()

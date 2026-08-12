@@ -1,8 +1,4 @@
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 public struct NymGatewaySelectionAlgorithmConfig: Codable, Equatable, Sendable {
     public var enableGeoLocation: Bool
