@@ -1,10 +1,14 @@
 import SwiftUI
+#if os(iOS)
 import PurchasesManager
+#endif
 import Theme
 import UIComponents
 
 struct OnboardingStepView: View {
+    #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
+    #endif
 
     let step: OnboardingStep
 
@@ -95,8 +99,18 @@ private extension OnboardingStepView {
             .padding(.horizontal, NymSpacing.section)
     }
 
+    var pricing: OnboardingPlanPricing? {
+        #if os(iOS)
+        OnboardingPlanPricing(purchasesManager: purchasesManager)
+        #elseif os(macOS)
+        OnboardingPlanPricing()
+        #else
+        #error("unsupported platform")
+        #endif
+    }
+
     var subtitle: some View {
-        Text(step.subtitle(pricing: OnboardingPlanPricing(purchasesManager: purchasesManager)))
+        Text(step.subtitle(pricing: pricing))
             .nymTextStyle(.bodyDefault)
             .foregroundStyle(Color.Nym.textSecondary)
             .multilineTextAlignment(.center)
@@ -117,8 +131,16 @@ private extension OnboardingStepView {
 
 #if DEBUG
 #Preview {
-    OnboardingStepView(step: .plan)
-        .background(Color.Nym.background)
-        .environmentObject(PurchasesManager())
+    {
+        let view = OnboardingStepView(step: .plan)
+            .background(Color.Nym.background)
+
+        #if os(iOS)
+        return view.environmentObject(PurchasesManager())
+        #else
+        return view
+        #endif
+    }()
 }
 #endif
+

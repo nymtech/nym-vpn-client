@@ -8,7 +8,9 @@ import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
+#if os(iOS)
 import PurchasesManager
+#endif
 import SnackbarManager
 import TunnelStatus
 import UIComponents

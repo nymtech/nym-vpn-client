@@ -17,7 +17,9 @@ import KeyboardManager
 import Migrations
 import NymLogger
 import NotificationsManager
+#if os(iOS)
 import PurchasesManager
+#endif
 import SentryManager
 import Theme
 #if os(iOS)
