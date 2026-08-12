@@ -4,12 +4,29 @@ on:
   workflow_dispatch:
     inputs:
       short_code:
+        type: string
         description: "Shlink short code to update"
         required: true
       long_url:
+        type: string
         description: "New long URL target"
         required: true
       title:
+        type: string
+        description: "Description/title for short URL"
+        required: false
+  workflow_call:
+    inputs:
+      short_code:
+        type: string
+        description: "Shlink short code to update"
+        required: true
+      long_url:
+        type: string
+        description: "New long URL target"
+        required: true
+      title:
+        type: string
         description: "Description/title for short URL"
         required: false
 
