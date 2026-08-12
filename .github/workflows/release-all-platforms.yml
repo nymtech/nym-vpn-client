@@ -555,6 +555,19 @@ jobs:
       github_sha: ${{ github.sha }}
     secrets: inherit
 
+  update_beta_shortlink:
+    needs: [resolve, release]
+    if: |
+      !cancelled() && needs.release.result == 'success' &&
+      needs.resolve.outputs.gh_release_type == 'prerelease' &&
+      needs.resolve.outputs.channel == 'beta' && needs.release.outputs.github_release_url != ''
+    uses: ./.github/workflows/update-shortlink.yml
+    with:
+      short_code: beta
+      long_url: ${{ needs.release.outputs.github_release_url }}
+      title: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
   zulip:
     needs: [resolve, release, build-outputs, distribute]
     if: |
