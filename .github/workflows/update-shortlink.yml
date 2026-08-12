@@ -1,5 +1,7 @@
 name: Update Shlink Short URL
 
+permissions: {}
+
 on:
   workflow_dispatch:
     inputs:
