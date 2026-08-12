@@ -34,7 +34,7 @@ on:
 
 jobs:
   update-shortlink:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
       - name: Patch short URL via Shlink API
         env:
