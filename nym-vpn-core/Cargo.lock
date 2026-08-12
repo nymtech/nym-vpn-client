@@ -5343,8 +5343,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges"
-version = "0.2.1-rc.1"
-source = "git+https://github.com/nymtech/nym-bridges?branch=fix-nym-bridges-types#11bcbdf5f42d60e455cd66e2d2ed52c2084f9624"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-2#9613c71076217b65277223a13c65151b5dd1b044"
 dependencies = [
  "anyhow",
  "base64 0.23.0",
@@ -5384,8 +5384,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges-types"
-version = "0.2.1-rc.1"
-source = "git+https://github.com/nymtech/nym-bridges?branch=fix-nym-bridges-types#11bcbdf5f42d60e455cd66e2d2ed52c2084f9624"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-2#9613c71076217b65277223a13c65151b5dd1b044"
 dependencies = [
  "serde",
  "ts-rs",
