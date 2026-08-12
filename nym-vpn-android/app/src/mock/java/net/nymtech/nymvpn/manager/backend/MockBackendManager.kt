@@ -291,8 +291,6 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 
 	override suspend fun getAccountState(): AccountControllerState = AccountControllerState.ReadyToConnect
 
-	override suspend fun getDaemonVersion(): String = "mock-1.0.0"
-
 	override suspend fun getDeviceId(): String = "mock-device-id"
 
 	override suspend fun getAccountId(): String = "mock-account-id"
