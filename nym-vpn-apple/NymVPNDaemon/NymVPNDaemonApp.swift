@@ -18,6 +18,7 @@ import ImpactGenerator
 import NotificationsManager
 import NymLogger
 import Migrations
+import PurchasesManager
 import SentryManager
 import Theme
 import TunnelStatus
@@ -49,6 +50,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
+    @ObservedObject private var purchasesManager = PurchasesManager()
     @State private var deeplinkManager = DeeplinkManager(
         credentialsManager: CredentialsManager.shared,
         connectionManager: ConnectionManager.shared
@@ -121,6 +123,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(gatewayManager)
             .environmentObject(grpcManager)
             .environmentObject(impactGenerator)
+            .environmentObject(purchasesManager)
             .environmentObject(nymLogger.logFileManager)
             .environment(deeplinkManager)
             .environment(appDiscoveryService)
