@@ -191,6 +191,7 @@ impl VpnTopologyService {
             Some(self.user_agent.clone()),
             None,
         )
+        .await
         .map_err(VpnTopologyServiceError::CreateHttpClient)?;
 
         let mut topology_provider = NymApiTopologyProvider::new(

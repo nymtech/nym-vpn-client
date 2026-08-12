@@ -85,6 +85,7 @@ async fn account_summary_with_device_round_trips_data_unavailable() {
         vec![url],
         Some(UserAgent::from_str("nym-test/0.1.0/ci/wiremock").expect("user agent")),
     )
+    .await
     .expect("vpn api client");
 
     let account = VpnAccount::new(

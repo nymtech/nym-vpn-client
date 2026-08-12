@@ -529,6 +529,7 @@ impl NymVpnService {
             api_urls_to_urls(&skew_time_provider_urls).map_err(Error::ConvertApiUrls)?,
             Some(parameters.user_agent.clone()),
         )
+        .await
         .map_err(Error::CreateApiClient)?;
         let skew_manager = nym_vpn_api_client::SkewManager::new(skew_time_provider);
 

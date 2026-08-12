@@ -201,7 +201,9 @@ mod tests {
     }
 
     async fn test_discovery_equality(discovery: Discovery) {
-        let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None)
+            .await
+            .unwrap();
         let fetched = fetcher
             .fetch_discovery(&discovery.network_name)
             .await
