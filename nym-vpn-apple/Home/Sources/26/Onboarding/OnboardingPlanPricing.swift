@@ -1,4 +1,6 @@
+#if os(iOS)
 import PurchasesManager
+#endif
 
 /// Pricing shown on the onboarding plan screen.
 /// iOS derives it from StoreKit; macOS purchases happen on the web, so it uses the Figma values.
@@ -7,19 +9,23 @@ struct OnboardingPlanPricing: Equatable {
     let savings: String?
     let freeTrialPeriod: String?
 
+#if os(iOS)
+
     @MainActor
     init?(purchasesManager: PurchasesManager) {
-#if os(macOS)
-        monthlyPrice = Constants.monthlyPrice
-        savings = Constants.savings
-        freeTrialPeriod = Constants.freeTrialPeriod
-#else
         guard let monthlyPrice = purchasesManager.yearlyPlanMonthlyPriceText else { return nil }
         self.monthlyPrice = monthlyPrice
         savings = purchasesManager.yearlyPlanSavingsText
         freeTrialPeriod = purchasesManager.yearlyPlanFreeTrialPeriodText
-#endif
     }
+#elseif os(macOS)
+    @MainActor
+    init?() {
+        monthlyPrice = Constants.monthlyPrice
+        savings = Constants.savings
+        freeTrialPeriod = Constants.freeTrialPeriod
+    }
+#endif
 }
 
 #if os(macOS)
