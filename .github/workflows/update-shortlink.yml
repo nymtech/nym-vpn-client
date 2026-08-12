@@ -1,0 +1,58 @@
+name: Update Shlink Short URL
+
+permissions: {}
+
+on:
+  workflow_dispatch:
+    inputs:
+      short_code:
+        type: string
+        description: "Shlink short code to update"
+        required: true
+      long_url:
+        type: string
+        description: "New long URL target"
+        required: true
+      title:
+        type: string
+        description: "Description/title for short URL"
+        required: false
+  workflow_call:
+    inputs:
+      short_code:
+        type: string
+        description: "Shlink short code to update"
+        required: true
+      long_url:
+        type: string
+        description: "New long URL target"
+        required: true
+      title:
+        type: string
+        description: "Description/title for short URL"
+        required: false
+    secrets:
+      SHLINK_BASE_URL:
+        required: true
+      SHLINK_API_KEY:
+        required: true
+
+jobs:
+  update-shortlink:
+    runs-on: arc-linux-latest
+    steps:
+      - name: Patch short URL via Shlink API
+        env:
+          SHLINK_BASE_URL: ${{ secrets.SHLINK_BASE_URL }}
+          SHLINK_API_KEY: ${{ secrets.SHLINK_API_KEY }}
+          SHORT_CODE: ${{ inputs.short_code }}
+          LONG_URL: ${{ inputs.long_url }}
+          TITLE: ${{ inputs.title }}
+        run: |
+          curl -sf -X PATCH \
+            "${SHLINK_BASE_URL}/rest/v3/short-urls/${SHORT_CODE}" \
+            -H "X-Api-Key: ${SHLINK_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg url "$LONG_URL" --arg title "$TITLE" '{longUrl: $url} + (if $title != "" then {title: $title} else {} end)')" \
+            --connect-timeout 10 \
+            --max-time 60
