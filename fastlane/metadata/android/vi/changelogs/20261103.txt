@@ -1,0 +1,14 @@
+2026.11.3: Sửa lỗi nhân hệ điều hành và bổ sung hỗ trợ kiến ​​trúc 32-bit để giải quyết các sự cố kết nối được báo cáo với máy chủ thoát trên các thiết bị Android 7-14.
+
+2026.11:
+- Tính năng beta mới: MIXNET TUNING cho phép tùy chỉnh các mô hình lưu lượng truy cập qua mixnet để tăng cường tính ẩn danh hoặc hiệu suất.
+
+- Giới thiệu tính năng NHÓM MÁY CHỦ: NymVPN sẽ thông báo nếu các máy chủ bạn chọn thuộc cùng một nhà điều hành, giúp đảm bảo tính phi tập trung khi sử dụng mạng.
+
+- Cải thiện khả năng truy cập tại các khu vực bị hạn chế và tăng cường kết nối trên các mạng có cơ chế lọc dữ liệu gắt gao.
+
+- Hạn mức dữ liệu hàng ngày mới: giới hạn sử dụng hợp lý hiện được tính theo ngày thay vì theo tháng.
+
+- Khắc phục lỗi Android Auto: lưu lượng truy cập Android Auto sẽ không còn đi qua VPN, nhờ đó các kết nối trên xe hoạt động bình thường.
+
+- Cải thiện độ ổn định của kết nối và hiệu suất tổng thể.

@@ -1,11 +1,11 @@
-New beta feature: MIXNET TUNING allows for customizing traffic patterns over the mixnet to increase anonymity or performance.
+Нова бета-функція: MIXNET TUNING дає змогу налаштовувати схеми трафіку в мережі Mixnet для підвищення анонімності або продуктивності.
 
-Introducing SERVER FAMILIES: NymVPN now alerts you to when the servers you’ve chosen may belong to the same operator family to ensure decentralization in your use of the network.
+Представляємо «СІМ’Ї СЕРВЕРІВ»: тепер NymVPN повідомляє вас, коли обрані вами сервери можуть належати до однієї сімейної групи операторів, щоб забезпечити децентралізацію під час користування мережею.
 
-Better access in restricted regions and improved connectivity on heavily filtered networks.
+Кращий доступ у регіонах з обмеженим доступом та покращена зв’язність у мережах із жорсткою фільтрацією.
 
-New daily data allowance: fair-usage limits are now a daily allowance instead of a monthly one.
+Новий щоденний ліміт передачі даних: обмеження щодо справедливого використання тепер встановлюються у вигляді щоденного ліміту, а не щомісячного.
 
-Android Auto fix: Android Auto is no longer routed through the VPN, so in-car connections work normally.
+Виправлення для Android Auto: Android Auto більше не проходить через VPN, тому підключення в автомобілі працюють у звичайному режимі.
 
-Connection reliability and performance improvements.
+Підвищення надійності з'єднання та продуктивності.

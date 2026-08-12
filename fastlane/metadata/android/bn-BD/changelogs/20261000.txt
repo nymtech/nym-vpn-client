@@ -1,4 +1,4 @@
 নতুন কি আছে:
-- DoH (DNS over HTTPS) and DoT (DNS over TLS) to enhance ad blocking 
-- De-googled Android in-app account creation 
-- Fixed Hickory system resolver panicking
+- বিজ্ঞাপন ব্লক করার ক্ষমতা বাড়াতে DoH (DNS over HTTPS) এবং DoT (DNS over TLS) ব্যবহার করা হয়। 
+- ডি-গুগলড অ্যান্ড্রয়েড ইন-অ্যাপ অ্যাকাউন্ট তৈরি 
+- Hickory সিস্টেম রিজলভার আতঙ্ক সমাধান করা হয়েছে

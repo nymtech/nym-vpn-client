@@ -87,6 +87,8 @@
 	<string name="credential_modal_description">Để thêm thiết bị này, hãy vào trang \'Thiết bị\' trong tài khoản của bạn, xóa một trong các thiết bị hiện có, sau đó đăng nhập vào thiết bị này bằng cụm từ khôi phục của bạn.</string>
 	<string name="manage_devices">Quản lý thiết bị</string>
 	<string name="close">Đóng</string>
+	<string name="previous">Trước</string>
+	<string name="next">Tiếp theo</string>
 	<string name="enter_access_code">Nhập hoặc dán cụm từ mật khẩu của bạn: 24 từ, cách nhau bởi dấu cách</string>
 	<string name="get_in_touch">Liên hệ</string>
 	<string name="loading">Đang tải</string>
@@ -94,8 +96,8 @@
 	<string name="two_hop_explanation">Trải nghiệm tốc độ duyệt web nhanh (250+ Mbps) với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho phát trực tuyến, việc duyệt web và tải xuống nhanh.</string>
 	<string name="two_hop_title">Nhanh (WireGuard)</string>
 	<string name="disabled_while_connecting">Đã tắt trong khi đang kết nối đến VPN</string>
-	<string name="exit_location">Vị trí thoát</string>
-	<string name="entry_location">Vị trí vào</string>
+	<string name="exit_location">Máy chủ thoát</string>
+	<string name="entry_location">Máy chủ vào</string>
 	<string name="no_results_found">Không tìm thấy kết quả nào.</string>
 	<string name="how_to_run_gateway">cách chạy một máy chủ.</string>
 	<string name="or_learn">hoặc tìm hiểu</string>
@@ -147,6 +149,8 @@
 	<string name="error_invalid_entry_gateway_country">Vị trí node vào không hợp lệ. Vui lòng thay đổi vị trí node vào và kết nối lại.</string>
 	<string name="error_invalid_exit_gateway_country">Vị trí node thoát không hợp lệ. Vui lòng thay đổi vị trí node thoát và kết nối lại.</string>
 	<string name="bandwidth_error">Đã vượt quá băng thông hàng ngày. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng.</string>
+	<string name="error_credential_fetching_failed">Không thể lấy được thông tin xác thực cần thiết để kết nối. Vui lòng thử lại.</string>
+	<string name="error_no_credential_available">Không có thông tin xác thực nào để kết nối. Vui lòng thử lại.</string>
 	<string name="max_devices_error">Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.</string>
 	<string name="device_time_out_of_sync">Thời gian thiết bị không đồng bộ</string>
 	<string name="error_ipv6_unavailable">Ipv6 không khả dụng</string>
@@ -168,9 +172,15 @@
 	<string name="error_expired_subscription_title">Gói đăng ký của bạn đã hết hạn</string>
 	<string name="error_expired_subscription_description">Phương thức thanh toán định kỳ đã bị từ chối</string>
 	<string name="error_expired_subscription_button">Gia hạn ngay</string>
+	<string name="error_no_subscription_title">Không phát hiện gói đăng ký đang hoạt động</string>
+	<string name="error_no_subscription_description">Chọn gói dịch vụ để bắt đầu sử dụng NymVPN</string>
+	<string name="error_no_subscription_button">Chọn Gói</string>
+	<string name="account_subscription_pending_title">Đang chờ xử lý đăng ký</string>
+	<string name="account_subscription_pending_description">Chúng tôi đang chờ xác nhận thanh toán của bạn. Quá trình này có thể mất một chút thời gian đối với một số phương thức thanh toán.</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/7)</string>
 	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/7)</string>
+	<string name="connection_state_awaiting_credentials">Đang chuẩn bị thông tin xác thực (3/7)</string>
 	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (4/7)</string>
 	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (5/7)</string>
 	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (6/7)</string>
@@ -184,8 +194,25 @@
 	<string name="connection_status_not_protected">Không được bảo vệ</string>
 	<string name="connection_status_fast_mode">Bảo vệ bởi chế độ Nhanh</string>
 	<string name="connection_status_anonymous">Bảo vệ từ mixnet</string>
-	<!-- Hop Screen -->
+	<!-- Server Screen -->
+	<string name="gateway_safest">Máy chủ an toàn nhất</string>
 	<string name="gateway_random">Máy chủ ngẫu nhiên</string>
+	<string name="server_entry_tab">Vào</string>
+	<string name="server_exit_tab">Thoát</string>
+	<string name="server_search_text">Tìm kiếm vị trí hoặc máy chủ</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="other">%1$s quốc gia</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="other">%1$s node</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
+	<string name="server_favorite_icon">Máy chủ yêu thích</string>
+	<string name="server_favorites_tab">Máy chủ yêu thích</string>
+	<string name="server_recent_tab">Gần đây</string>
+	<string name="server_all_tab">Tất cả các máy chủ</string>
+	<string name="server_no_favorites_text">Chưa có máy chủ yêu thích nào</string>
+	<string name="server_no_recents_text">Chưa có máy chủ nào được cập nhật gần đây</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Chào mừng!</string>
 	<string name="auth_welcome_description">Vào VPN riêng tư nhất thế giới</string>
@@ -211,7 +238,7 @@
 	<string name="settings_reset_app_title">Đặt lại dữ liệu ứng dụng</string>
 	<string name="settings_system_status_title">Trạng thái hệ thống</string>
 	<string name="settings_mixnet_tuning_title">Điều chỉnh mixnet</string>
-	<string name="settings_mixnet_tuning_description">Tùy chỉnh mô hình lưu lượng truy cập của Chế độ ẩn danh</string>
+	<string name="settings_mixnet_tuning_description">Tinh chỉnh các thông số mixnet của bạn</string>
 	<string name="settings_quit_title">Thoát NymVPN</string>
 	<string name="settings_app_version_line">Phiên bản ứng dụng: %1$s</string>
 	<string name="settings_daemon_version_line">Phiên bản daemon: %1$s</string>
@@ -274,6 +301,26 @@
 	<string name="welcome_usage_description">Giúp chúng tôi cải thiện mạng lưới Nym. Không có nhật ký hay hoạt động nào bị theo dõi.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">Tạo tài khoản</string>
+	<string name="onboarding_welcome_title">Chào mừng đến với NymVPN</string>
+	<string name="onboarding_welcome_description">Truy cập riêng tư của bạn vào \nan **internet không giới hạn.**</string>
+	<string name="onboarding_modes_title_dvpn">dVPN của bạn</string>
+	<string name="onboarding_modes_description_dvpn">Bảo mật cho mọi hoạt động trực tuyến của bạn \n**Mạng lưới phi tập trung** 2 bước nhảy \n**AmneziaWG** là phiên bản phát triển từ WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Mixnet của bạn</string>
+	<string name="onboarding_modes_description_mixnet">Cách **ẩn danh** nhất để trực tuyến \n5 bước nhảy **mixnet** với **nhiễu** \ntùy chỉnh mô hình lưu lượng truy cập của bạn.</string>
+	<string name="onboarding_modes_tagline_dvpn">Không thể tiết lộ - sẽ không tiết lộ thiết kế mạng.</string>
+	<string name="onboarding_modes_tagline_mixnet">Bảo vệ dấu vân tay siêu dữ liệu.</string>
+	<string name="onboarding_around_title">Nym sẽ đưa bạn đi khắp nơi</string>
+	<string name="onboarding_around_description">Che giấu WireGuard với **AmneziaWG** \nvượt qua tường lửa với **QUIC** \ntránh bị chặn VPN với **Kết Nối Ẩn** \nBảo mật **hậu lượng tử**</string>
+	<string name="onboarding_plan_title">Gói nào phù hợp với bạn?</string>
+	<string name="onboarding_plan_community_favorite">PHẦN YÊU THÍCH CỦA CỘNG ĐỒNG NYM</string>
+	<string name="onboarding_plan_year_plan_prefix">Gói 1 năm &amp; </string>
+	<string name="onboarding_plan_save_percent">tiết kiệm %1$s</string>
+	<string name="onboarding_plan_free_trial">+ %1$d ngày dùng thử miễn phí</string>
+	<string name="onboarding_plan_starting_at_prefix">Bắt đầu với </string>
+	<string name="onboarding_plan_price_per_month">%1$s / tháng</string>
+	<string name="onboarding_plan_try_prefix">Hoặc thử </string>
+	<string name="onboarding_plan_one_month">1 tháng</string>
+	<string name="onboarding_plan_try_suffix">, không cần cam kết.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Chọn gói đăng ký \ncủa bạn</string>
 	<string name="select_plan_line_0">7 ngày dùng thử miễn phí</string>
@@ -285,12 +332,20 @@
 	<string name="select_plan_modal_free_trial">7 ngày dùng thử miễn phí ngay hôm nay</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Thông tin máy chủ</string>
-	<string name="details_select_server_button">Chọn máy chủ</string>
+	<string name="details_features_title">Tính năng node</string>
+	<string name="details_performance_title">Thông số Hiệu suất</string>
+	<string name="details_connection_title">Chi tiết kết nối</string>
+	<string name="details_build_info_title">Tạo thông tin</string>
+	<string name="details_select_server_button">Chọn node</string>
 	<string name="details_advanced_privacy">Quyền riêng tư nâng cao</string>
-	<string name="details_with_mixnet">Với mixnet (5 bước nhảy)</string>
-	<string name="details_streaming_content">Phát trực tuyến &amp; nội dung</string>
+	<string name="details_with_mixnet">Mixnet</string>
+	<string name="details_streaming_content">Phát trực tuyến &amp; IP</string>
 	<string name="details_residental_ip">Địa chỉ IP dân cư</string>
 	<string name="details_datacenter_ip">IP trung tâm dữ liệu</string>
+	<string name="details_post_quantum_secure_keys">Các khóa bảo mật hậu lượng tử</string>
+	<string name="details_lewes_protocol">Giao thức Lewes</string>
+	<string name="details_standard_key_exchange">Trao đổi khóa tiêu chuẩn</string>
+	<string name="details_family_membership">Thành viên trong nhóm máy chủ</string>
 	<string name="details_anti_censorship">Chống kiểm duyệt</string>
 	<string name="details_quic_protocol">Giao thức QUIC</string>
 	<string name="details_standard_protocol">Giao thức tiêu chuẩn</string>
@@ -299,7 +354,7 @@
 	<string name="details_overall_performance">Hiệu suất tổng thể</string>
 	<string name="details_server_load">Tải máy chủ</string>
 	<string name="details_uptime">Thời gian hoạt động</string>
-	<string name="not_applicable">Không có</string>
+	<string name="not_applicable">Không có dữ liệu</string>
 	<string name="details_performance_calculated">Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua. Cập nhật lần cuối %1$s.</string>
 	<string name="details_exit_ipv4">Thoát IPv4</string>
 	<string name="details_exit_ipv6">Thoát IPv6</string>
@@ -307,6 +362,8 @@
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">Tên ASN</string>
 	<string name="details_build_version">Phiên bản build Nym</string>
+	<string name="details_identity_key">Khóa xác thực:</string>
+	<string name="details_copy_identity">Sao chép khóa định danh</string>
 	<string name="details_missing_incorrect_info">Tại sao lại thiếu hoặc sai thông tin</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">Xem chi tiết trong</string>
@@ -351,13 +408,13 @@
 	<string name="account_generating_deeplink_title">Đang đăng nhập...</string>
 	<string name="account_generating_deeplink_description">Vui lòng chờ trong khi chúng tôi xác minh tài khoản của bạn</string>
 	<string name="account_login_processing_setting_up">Thiết lập tài khoản ẩn danh của bạn</string>
-	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
-	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
-	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
-	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
-	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
-	<string name="account_login_processing_almost_ready">Finishing up…</string>
-	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Đang xác minh thông tin đăng nhập của bạn</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Chuẩn bị tài khoản của bạn cho thiết bị này</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Hoàn tất thiết lập tài khoản</string>
+	<string name="account_login_processing_loading_credentials">Đang tải thông tin xác thực ẩn danh của bạn…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">Quá trình này có thể mất một chút thời gian trong lần đăng nhập đầu tiên</string>
+	<string name="account_login_processing_almost_ready">Đang hoàn tất…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Chỉ còn vài giây nữa</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Đang xử lý thanh toán của bạn một cách an toàn…</string>
 	<string name="account_payment_verifying">Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn</string>
@@ -488,25 +545,27 @@
 	<string name="mixnet_tuning_internet_speed">Lên đến tốc độ internet</string>
 	<string name="mixnet_tuning_current_description">Độ trễ khứ hồi (RTT) dự kiến ​​trên mạng tiêu chuẩn</string>
 	<string name="mixnet_tuning_traffic_title">Gửi lưu lượng truy cập liên tục</string>
-	<string name="mixnet_tuning_traffic_off_title">Tỷ lệ lưu lượng truy cập che phủ chạy nền</string>
+	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ Chế độ lưu lượng truy cập liên tục đã bị tắt. Gói dữ liệu của bạn sẽ được gửi đi khi khả dụng. Điều này có thể tiết lộ các mô hình lưu lượng truy cập.</string>
-	<string name="mixnet_tuning_traffic_on_description">Lưu lượng truy cập bao phủ luôn được gửi đi để duy trì mô hình đồng nhất. Điều chỉnh tốc độ gửi gói tin của bạn.</string>
-	<string name="mixnet_tuning_traffic_off_description">Chúng tôi vẫn sẽ gửi lưu lượng truy cập che phủ độc lập với lưu lượng truy cập thực của bạn. Hãy chọn mức độ che phủ mà bạn cần. </string>
-    <string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
+	<string name="mixnet_tuning_traffic_off_description">Hãy chọn mức độ bảo vệ bạn cần.</string>
+	<string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Cao\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Cân bằng\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">Cơ bản</string>
+	<string name="mixnet_tuning_traffic_off_low">Thấp</string>
 	<string name="mixnet_tuning_traffic_off_high">Cao\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Cân bằng\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Trung bình\n10x</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Đặt độ trễ về 0 sẽ loại bỏ quá trình trộn, làm giảm tính ẩn danh</string>
 	<string name="mixnet_tuning_delays_title">Độ trễ xáo trộn dữ liệu</string>
 	<string name="mixnet_tuning_delays_description">Điều chỉnh độ trễ thời gian để thay đổi cách các gói dữ liệu được trộn.</string>
-    <string name="mixnet_tuning_delays_low">Thấp\n0m</string>
+	<string name="mixnet_tuning_delays_low">Thấp\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Cao\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Mặc định\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Hiện tại\n%1$s</string>
-    <string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
+	<string name="mixnet_tuning_delays_current">Hiện tại\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Tính ẩn danh</string>
+	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số tinh chỉnh mixnet</string>
 	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>
 	<string name="mixnet_tuning_restore_button">Khôi phục các cài đặt mặc định</string>
 	<!-- Diagnostic screen -->
@@ -569,4 +628,13 @@
 	<string name="setup_instructions_wallet_step_1">Đặt URL RPC thành</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
 	<string name="setup_instructions_proxy_title">ĐỊA CHỈ PROXY</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">Biểu tượng ứng dụng</string>
+	<string name="app_icon_label_default">Mặc định</string>
+	<string name="app_icon_label_dark">Tối</string>
+	<string name="app_icon_label_light">Sáng</string>
+	<string name="app_icon_disconnect_first">Ngắt kết nối VPN để thay đổi biểu tượng ứng dụng.</string>
+	<string name="app_icon_change_title">Đổi biểu tượng?</string>
+	<string name="app_icon_change_body">Ứng dụng sẽ đóng lại trong giây lát để cập nhật biểu tượng mới. Chỉ biểu tượng và tên hiển thị trên màn hình chính là thay đổi — thông báo và tính năng tìm kiếm của hệ thống vẫn hiển thị tên NymVPN.</string>
+	<string name="app_icon_change_confirm">Đổi biểu tượng</string>
 </resources>

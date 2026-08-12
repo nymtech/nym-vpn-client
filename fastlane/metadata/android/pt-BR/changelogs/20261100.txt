@@ -1,11 +1,11 @@
-New beta feature: MIXNET TUNING allows for customizing traffic patterns over the mixnet to increase anonymity or performance.
+Novo recurso beta: O AJUSTE DA MIXNET permite personalizar os padrões de tráfego pela mixnet para aumentar o anonimato ou o desempenho.
 
-Introducing SERVER FAMILIES: NymVPN now alerts you to when the servers you’ve chosen may belong to the same operator family to ensure decentralization in your use of the network.
+Apresentando as FAMÍLIAS DE SERVIDORES: agora o NymVPN alerta você quando os servidores escolhidos podem pertencer à mesma família de operadores, garantindo a descentralização no uso da rede.
 
-Better access in restricted regions and improved connectivity on heavily filtered networks.
+Melhor acesso em regiões restritas e conectividade aprimorada em redes fortemente filtradas.
 
-New daily data allowance: fair-usage limits are now a daily allowance instead of a monthly one.
+Novo limite de dados diário: os limites de uso justo agora são diários em vez de mensais.
 
-Android Auto fix: Android Auto is no longer routed through the VPN, so in-car connections work normally.
+Correção do Android Auto: o Android Auto não é mais roteado pela VPN, então as conexões no carro funcionam normalmente.
 
-Connection reliability and performance improvements.
+Melhorias de confiabilidade e desempenho da conexão.

@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Вхідний шлюз не відповідає.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Вихідний шлюз не відповідає.</string>
 	<string name="error_reason_bandwidth_exceeded">Перевищено ліміт пропускної здатності.</string>
+	<string name="error_reason_credential_fetching_failed">Не вдалося отримати облікові дані.</string>
+	<string name="error_reason_no_credential_available">Повноважень немає.</string>
 	<string name="error_reason_inactive_account">Ваш обліковий запис неактивний.</string>
 	<string name="error_reason_inactive_subscription">Ваша підписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Досягнуто максимальної кількості пристроїв.</string>

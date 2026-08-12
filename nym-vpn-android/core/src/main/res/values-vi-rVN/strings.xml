@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Cổng Vào không phản hồi.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Cổng Thoát không phản hồi.</string>
 	<string name="error_reason_bandwidth_exceeded">Đã vượt quá giới hạn băng thông.</string>
+	<string name="error_reason_credential_fetching_failed">Không thể lấy thông tin xác thực.</string>
+	<string name="error_reason_no_credential_available">Không có thông tin xác thực nào.</string>
 	<string name="error_reason_inactive_account">Tài khoản không hoạt động.</string>
 	<string name="error_reason_inactive_subscription">Gói đăng ký của bạn đã bị hủy kích hoạt.</string>
 	<string name="error_reason_max_devices_reached">Đã đạt số lượng thiết bị tối đa.</string>
