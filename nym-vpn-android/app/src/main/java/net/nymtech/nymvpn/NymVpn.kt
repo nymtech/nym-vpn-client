@@ -46,7 +46,7 @@ import javax.inject.Inject
 
 object NymVpnLib {
 	init {
-		System.loadLibrary("nym_vpn_lib")
+		System.loadLibrary("nym_vpn_lib_uniffi")
 	}
 	external fun initContext(context: Context)
 }
