@@ -39,8 +39,13 @@ impl Fetcher {
             return Ok(());
         }
 
-        self.api_client = build_api_client(&new_discovery, self.user_agent.clone()).await?;
-        self.vpn_api_client = build_vpn_api_client(&new_discovery, self.user_agent.clone()).await?;
+        // Build both clients before touching any state, so a failure here leaves the fetcher
+        // on its previous, known-good discovery and clients rather than a mix of old and new.
+        let api_client = build_api_client(&new_discovery, self.user_agent.clone()).await?;
+        let vpn_api_client = build_vpn_api_client(&new_discovery, self.user_agent.clone()).await?;
+
+        self.api_client = api_client;
+        self.vpn_api_client = vpn_api_client;
         *self.discovery = new_discovery;
 
         Ok(())

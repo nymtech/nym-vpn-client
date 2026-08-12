@@ -11,7 +11,7 @@ use std::fmt;
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url};
 use nym_platform_metadata::new_user_agent;
 use nym_validator_client::nym_api::NymApiClientExt;
-use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls};
+use nym_vpn_api_client::{ResolverOverrides, VpnApiClient, api_urls_to_urls};
 use nym_vpn_lib_types::{
     ApiTimeSkew, ApiUrl, DiagnosticEndpointResponse, DiagnosticResult, HttpReport,
 };
@@ -247,6 +247,17 @@ async fn build_vpn_api_clients(network: &Network) -> Result<Vec<VpnApiClient>> {
             for front in fronts {
                 let fronted_url = Url::new(url.inner_url().clone(), Some(vec![front.clone()]))
                     .map_err(|_e| Error::MissingApiUrl)?;
+
+                // `VpnApiClient::new` prunes an unresolvable front internally and falls back
+                // to the plain primary URL. Skip this entry rather than reporting a misleading
+                // "front" result that's actually just probing the primary under
+                // `FrontPolicy::Always`.
+                let pruned =
+                    ResolverOverrides::resolve_and_prune(std::slice::from_ref(&fronted_url)).await;
+                if !pruned.first().is_some_and(Url::has_front) {
+                    tracing::warn!("Skipping unreachable front diagnostic for '{front}'");
+                    continue;
+                }
 
                 let mut fronted_client =
                     VpnApiClient::new(vec![fronted_url], Some(new_user_agent!()))

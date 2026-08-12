@@ -1640,8 +1640,10 @@ mod tests {
         };
         let skew_manager =
             SkewManager::new_for_testing(FixedDeviceTimeProvider, remote_time_provider);
+        // A literal address, rather than a hostname, so `fronted_http_client`'s resolver
+        // pruning has nothing to look up and this test never performs real DNS I/O.
         let inner = fronted_http_client(
-            vec![Url::new("https://nymvpn.test/api/", None).unwrap()],
+            vec![Url::new("https://127.0.0.1/api/", None).unwrap()],
             None,
             Some(NYM_VPN_API_TIMEOUT),
         )

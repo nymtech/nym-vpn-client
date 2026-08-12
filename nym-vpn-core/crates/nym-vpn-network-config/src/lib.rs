@@ -271,14 +271,21 @@ impl NetworkCache {
             let network_name = self.persistent_discovery.network_name();
             let new_discovery = self.fetcher.fetch_discovery(network_name).await?;
 
-            // Update fetcher discovery so that it could pick up new API endpoints if they changed.
-            if new_discovery != *self.persistent_discovery.value()
-                && let Err(err) = self.fetcher.set_discovery(new_discovery.clone()).await
-            {
-                trace_err_chain!(err, "failed to update fetcher discovery");
+            if new_discovery == *self.persistent_discovery.value() {
+                self.persistent_discovery.update(new_discovery).await?;
+            } else {
+                // Only persist the new discovery once the fetcher has actually adopted it, so a
+                // failure here leaves both the fetcher and the cache on the last known-good
+                // discovery instead of a cache that has moved on without the live client.
+                match self.fetcher.set_discovery(new_discovery.clone()).await {
+                    Ok(()) => {
+                        self.persistent_discovery.update(new_discovery).await?;
+                    }
+                    Err(err) => {
+                        trace_err_chain!(err, "failed to update fetcher discovery");
+                    }
+                }
             }
-
-            self.persistent_discovery.update(new_discovery).await?;
         }
 
         // Refresh network details
