@@ -38,12 +38,11 @@ nym-bandwidth-controller = { workspace = true }
 nym-sdk.workspace = true
 nym-offline-monitor.workspace = true
 nym-diagnostic.workspace = true
-nym-vpn-lib = { workspace = true, features = ["uniffi-bindings"] }
+nym-vpn-lib.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [
     "uniffi-bindings",
     "nym-type-conversions",
 ] }
-nym-bridges-types = { workspace = true, features = ["uniffi-bindings", "serde"] }
 nym-vpn-account-controller.workspace = true
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true

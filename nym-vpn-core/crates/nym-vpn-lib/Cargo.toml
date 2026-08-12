@@ -135,7 +135,7 @@ urlencoding.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
 
-nym-bridges =  {workspace = true, features = ["serde"] }
+nym-bridges = {workspace = true, features = ["serde"] }
 
 # UNIX-specific dependencies
 [target.'cfg(unix)'.dependencies]
@@ -218,7 +218,6 @@ vergen-gitcl = { workspace = true, default-features = false, features = [
 default = ["cgroup2"]
 metrics-server = ["nym-client-core/metrics-server"]
 cgroup2 = ["nym-split-tunnel/cgroup2", "nym-firewall/cgroup2"]
-uniffi-bindings = ["nym-bridges/uniffi-bindings"]
 
 [package.metadata.cargo-machete]
 ignored = ["vergen"]
