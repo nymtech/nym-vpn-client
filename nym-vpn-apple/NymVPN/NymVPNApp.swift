@@ -20,9 +20,7 @@ import NotificationsManager
 import PurchasesManager
 import SentryManager
 import Theme
-#if os(iOS)
 import NymVPNLib
-#endif
 
 @main
 struct NymVPNApp: App {

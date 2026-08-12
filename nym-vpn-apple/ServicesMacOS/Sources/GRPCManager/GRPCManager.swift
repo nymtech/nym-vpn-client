@@ -93,8 +93,6 @@ private extension GRPCManager {
             break
         case .accountState:
             break
-        case .diagnosticsSuggested:
-            break
         }
     }
 
