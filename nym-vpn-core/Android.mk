@@ -71,7 +71,7 @@ clippy:
 
 strip: build
 	for dir in $(ARM64_V8_BUILD_DIR) $(ARMEABI_V7_BUILD_DIR) $(X86_64_BUILD_DIR); do \
-		pushd $$dir ; \
+		cd $$dir ; \
 		for file in *.so; do \
 			if [ -f "$$file" ]; then \
 				echo "Stripping $$file in $$dir" ; \
@@ -79,7 +79,7 @@ strip: build
 				mv "stripped_$$file" "$$file" ; \
 			fi ; \
 		done ; \
-		popd ; \
+		cd - ; \
 	done
 
 uniffi: build
