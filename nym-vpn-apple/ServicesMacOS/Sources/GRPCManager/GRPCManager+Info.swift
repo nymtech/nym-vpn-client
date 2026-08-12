@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 
 extension GRPCManager {
     public func updateErrorReportingIfNeeded(with isEnabled: Bool) async throws {
