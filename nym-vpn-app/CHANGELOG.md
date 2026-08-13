@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Allow marking specific server, country or region as favorite
-- Add Safest server option for entry and exit
+- New quick connect with “safest” servers. NymVPN automatically picks the most optimal server for you which is safely located in a country next door, not your own. Safest connection is currently set at default.
+- Save favourite servers and jump back to recent ones from the server list.
+- A redesigned onboarding flow walks you through NymVPN features, plan selection, and account creation.
+- Traffic sent through a SOCKS5 proxy is no longer allowed out while the VPN is disconnected.
+- Windows: the required Visual C++ runtime is now installed with the app, so first launch works on a clean machine.
+- Linux: added aarch64 support on Arch Linux.
+- Fixed a case where the app returned an empty response instead of an error when a hostname could not be resolved.
+- Fixed file permissions on the log directory.
+- Updated Mixnet Tuning wording
+- Account details now refresh more reliably.
+- Clearer error messages when a server selection can't meet the network's independence requirements.
+- Linux & Windows: Fixes for DNS resolution and network connectivity errors
 
 ## [2026.11.0] - 2026-07-10
 
