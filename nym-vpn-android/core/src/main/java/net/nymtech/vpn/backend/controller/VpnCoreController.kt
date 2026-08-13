@@ -336,6 +336,12 @@ class VpnCoreController(
 	private suspend fun migrateLegacyConfigIfNeeded() {
 		if (configRepo.isMigratedToRustConfig()) return
 
+		if (!configRepo.hasLegacyConfig()) {
+			// Fresh install: the vpn service's own defaults are authoritative.
+			configRepo.markMigratedToRustConfig()
+			return
+		}
+
 		runCatching {
 			val legacy = configRepo.readLegacyFullConfigForMigration()
 			requireCoreSender { sender ->

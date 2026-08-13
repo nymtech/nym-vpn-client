@@ -67,12 +67,14 @@ class CoreVpnConfigStore(private val context: Context) {
 
 	suspend fun getLocalPrefs(): LocalVpnPrefs = localPrefsFlow.first()
 
-	suspend fun updateLocalPrefs(transform: (LocalVpnPrefs) -> LocalVpnPrefs) {
+	suspend fun updateLocalPrefs(transform: (LocalVpnPrefs) -> LocalVpnPrefs): LocalVpnPrefs {
+		var updated = LocalVpnPrefs()
 		context.coreVpnDataStore.edit { prefs ->
 			val current = prefs.toLocalPrefs()
-			val updated = transform(current)
+			updated = transform(current)
 			prefs.fromLocalPrefs(updated)
 		}
+		return updated
 	}
 
 	suspend fun isMigratedToRustConfig(): Boolean =
@@ -82,6 +84,17 @@ class CoreVpnConfigStore(private val context: Context) {
 		context.coreVpnDataStore.edit { prefs ->
 			prefs[KEY_MIGRATED_TO_RUST_CONFIG] = true
 		}
+	}
+
+	/**
+	 * True if any pre-existing (pre-vpn-service-persistence) config value is present. Used to
+	 * skip migration on a fresh install, where an empty store would otherwise read back as
+	 * Kotlin defaults and overwrite the vpn service's own (possibly different) defaults - see
+	 * [readLegacyFullConfigForMigration].
+	 */
+	suspend fun hasLegacyConfig(): Boolean {
+		val prefs = context.coreVpnDataStore.data.first()
+		return prefs.contains(KEY_ENTRY) || prefs.contains(KEY_EXIT) || prefs.contains(KEY_MODE)
 	}
 
 	/**
@@ -99,7 +112,7 @@ class CoreVpnConfigStore(private val context: Context) {
 
 		return LocalVpnPrefs(
 			network = network,
-			debugLog = this[KEY_ENV_DEBUG] ?: true,
+			debugLog = this[KEY_ENV_DEBUG] ?: false,
 			sentry = this[KEY_ENV_SENTRY] ?: false,
 			bypassLan = this[KEY_BYPASS_LAN] ?: false,
 			restrictedApps = decodeList(this[KEY_RESTRICTED_APPS]),

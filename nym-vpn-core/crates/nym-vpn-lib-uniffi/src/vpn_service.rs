@@ -53,12 +53,9 @@ impl NymVpnService {
                 // Export environment first!
                 environment.export_to_env();
 
-                // On Android the vpn service persists its own configuration to disk, so it
-                // doesn't need (and Android doesn't provide) an explicit initial config.
-                // Other platforms still boot the service with a caller-supplied config kept
-                // only in memory.
                 #[cfg(target_os = "android")]
                 let service_storage_type = ServiceConfigStorageType::Persistent;
+
                 #[cfg(not(target_os = "android"))]
                 let service_storage_type =
                     ServiceConfigStorageType::Ephemeral(config.as_vpn_service_config());
