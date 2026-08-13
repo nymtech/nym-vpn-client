@@ -6083,7 +6083,7 @@ dependencies = [
 [[package]]
 name = "nym-bridges-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-1#9e0aba059940050fd165db3190eb03e47aabd4c7"
+source = "git+https://github.com/nymtech/nym-bridges?branch=v0.2.0-2#9613c71076217b65277223a13c65151b5dd1b044"
 dependencies = [
  "serde",
  "uniffi",

@@ -13,6 +13,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.VpnServiceEvent
 import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
+import net.nymtech.vpn.model.config.LocalVpnPrefs
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import net.nymtech.vpn.backend.service.VpnService
@@ -29,15 +30,12 @@ import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
-
 import nym_vpn_lib_types.FrontingMode
-import nym_vpn_lib_types.GatewayIndependence
 import nym_vpn_lib_types.MixnetEvent
-import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib_types.UserAgent
+import nym_vpn_lib_types.VpnServiceConfig
 import timber.log.Timber
 
 class VpnCoreController(
@@ -70,15 +68,6 @@ class VpnCoreController(
 	var currentExit: ExitPoint? = null
 		private set
 
-	@Volatile
-	private var lastAppliedConfig: CoreVpnConfig? = null
-
-	@Volatile
-	private var bypassLanFlag: Boolean = false
-
-	@Volatile
-	private var disallowedApps: List<String> = emptyList()
-
 	@get:Synchronized
 	@set:Synchronized
 	private var nymEnvironment: NymEnvironment? = null
@@ -93,42 +82,31 @@ class VpnCoreController(
 
 	suspend fun ensureReadyForManagementBestEffort() = coreMutex.withLock {
 		runCatching {
-			val savedConfig = configRepo.get()
-			val currentUserAgent = appConfigProvider.getUserAgent()
-			val network = savedConfig.network
+			val prefs = configRepo.getLocalPrefs()
 			ensureCoreInitialized(
-				network = network,
-				enableDebugLog = savedConfig.debugLog,
-				sentry = savedConfig.sentry,
-				userAgent = currentUserAgent,
+				network = prefs.network,
+				enableDebugLog = prefs.debugLog,
+				sentry = prefs.sentry,
+				userAgent = appConfigProvider.getUserAgent(),
 				useMainnetFallback = false,
-				mixnetParamConfig = null,
-				adBlockingEnabled = savedConfig.adBlockingEnabled,
-				stealthMode = savedConfig.stealthMode,
-				nodeFamiliesNotificationsEnabled = savedConfig.nodeFamiliesNotificationsEnabled,
 			)
-			applyCanonicalConfigToRustIfReady(force = false, canonical = savedConfig)
 		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed") }
 	}
 
 	suspend fun init(req: ConnectInitRequest): ConnectResult = coreMutex.withLock {
 		runCatching {
-			val config = configRepo.get()
-			val ua = appConfigProvider.getUserAgent()
-			val net = config.network
+			val prefs = configRepo.getLocalPrefs()
 			ensureCoreInitialized(
-				network = net,
-				enableDebugLog = config.debugLog,
-				sentry = config.sentry,
-				userAgent = ua,
+				network = prefs.network,
+				enableDebugLog = prefs.debugLog,
+				sentry = prefs.sentry,
+				userAgent = appConfigProvider.getUserAgent(),
 				useMainnetFallback = false,
-				mixnetParamConfig = req.mixnetParamConfig,
-				adBlockingEnabled = config.adBlockingEnabled,
-				stealthMode = config.stealthMode,
-				nodeFamiliesNotificationsEnabled = config.nodeFamiliesNotificationsEnabled,
 			)
-
-			applyCanonicalConfigToRustIfReady(force = true, canonical = config)
+			req.mixnetParamConfig?.let { mixnetParamConfig ->
+				requireCoreSender { it.setMixnetTrafficConfig(mixnetParamConfig) }
+			}
+			syncLocalTunSettings(prefs)
 			ConnectResult.Ok
 		}.getOrElse { t ->
 			Timber.tag(TAG).e(t, "InitCoreFailed")
@@ -136,24 +114,18 @@ class VpnCoreController(
 		}
 	}
 
-	suspend fun getConfig(): CoreVpnConfig = configRepo.get()
-
-	suspend fun applyUpdate(patch: CoreVpnConfigUpdate): ConfigResult = coreMutex.withLock {
-		runCatching {
-			val updated = configRepo.applyUpdate(patch)
-			applyCanonicalConfigToRustIfReady(force = false, canonical = updated)
-			ConfigResult.Ok(updated)
-		}.getOrElse { t ->
-			Timber.tag(TAG).e(t, "ApplyPatchFailed")
-			ConfigResult.Failed("Apply patch failed", t::class.java.name)
-		}
+	suspend fun getConfig(): CoreVpnConfig {
+		val prefs = configRepo.getLocalPrefs()
+		val rustConfig = requireCoreSender { it.getConfig() }
+		return rustConfig.asCoreVpnConfig(prefs)
 	}
+
+	suspend fun applyUpdate(patch: CoreVpnConfigUpdate): ConfigResult = applyUpdates(listOf(patch))
 
 	suspend fun applyUpdates(patches: List<CoreVpnConfigUpdate>): ConfigResult = coreMutex.withLock {
 		runCatching {
-			val updated = configRepo.applyUpdates(patches)
-			applyCanonicalConfigToRustIfReady(force = false, canonical = updated)
-			ConfigResult.Ok(updated)
+			patches.forEach { applyUpdateLocked(it) }
+			ConfigResult.Ok(getConfig())
 		}.getOrElse { t ->
 			Timber.tag(TAG).e(t, "ApplyPatchesFailed")
 			ConfigResult.Failed("Apply patches failed", t::class.java.name)
@@ -172,31 +144,19 @@ class VpnCoreController(
 		foreground.promoteMinimal("connect")
 
 		runCatching {
-			val cfg = configRepo.get()
-			val ua = appConfigProvider.getUserAgent()
-			val net = cfg.network
-
+			val prefs = configRepo.getLocalPrefs()
 			ensureCoreInitialized(
-				network = net,
-				enableDebugLog = cfg.debugLog,
-				sentry = cfg.sentry,
-				userAgent = ua,
+				network = prefs.network,
+				enableDebugLog = prefs.debugLog,
+				sentry = prefs.sentry,
+				userAgent = appConfigProvider.getUserAgent(),
 				useMainnetFallback = false,
-				mixnetParamConfig = null,
-				adBlockingEnabled = cfg.adBlockingEnabled,
-				stealthMode = cfg.stealthMode,
-				nodeFamiliesNotificationsEnabled = cfg.nodeFamiliesNotificationsEnabled,
 			)
+			syncLocalTunSettings(prefs)
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "CoreInitFailed")
 			return ConnectResult.Failed("Failed to init core", t::class.java.name)
 		}
-
-		runCatching { applyCanonicalConfigToRustIfReady(force = false, canonical = null) }
-			.onFailure { t ->
-				Timber.tag(TAG).e(t, "ApplyConfigBeforeConnectFailed")
-				return ConnectResult.Failed("Failed to apply config", t::class.java.name)
-			}
 
 		return runCatching {
 			publishState(Tunnel.State.InitializingClient)
@@ -228,8 +188,6 @@ class VpnCoreController(
 	}
 
 	suspend fun reconnectLocked(): ConnectResult = runCatching {
-		applyCanonicalConfigToRustIfReady(force = false, canonical = null)
-
 		val wasReconnected = requireCoreSender { it.reconnectTunnel() }
 
 		if (wasReconnected) {
@@ -256,7 +214,11 @@ class VpnCoreController(
 			is TunnelEvent.NewState -> handleTunnelState(event)
 			is TunnelEvent.MixnetState -> handleMixnetEvent(event)
 			is TunnelEvent.AccountState -> events.tryEmit(AccountStateChanged(event.v1))
-			is TunnelEvent.ConfigChanged -> events.tryEmit(Log("TunnelEvent config_changed"))
+			is TunnelEvent.ConfigChanged -> {
+				currentEntry = event.v1.entryPoint
+				currentExit = event.v1.exitPoint
+				events.tryEmit(Log("TunnelEvent config_changed"))
+			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 		}
 	}
@@ -315,10 +277,6 @@ class VpnCoreController(
 		sentry: Boolean,
 		userAgent: UserAgent,
 		useMainnetFallback: Boolean,
-		mixnetParamConfig: MixnetTrafficConfig?,
-		adBlockingEnabled: Boolean,
-		stealthMode: Boolean,
-		nodeFamiliesNotificationsEnabled: Boolean,
 	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
@@ -347,25 +305,16 @@ class VpnCoreController(
 
 		nymEnvironment = env
 
+		// The vpn service persists its own configuration to disk (config.json under configDir)
+		// and loads it on startup, so no tunnel settings need to be passed in here - see
+		// `VPNConfig` in nym-vpn-lib-uniffi/src/mobile.rs.
 		val initialConfig = VpnConfig(
 			configDir = storagePath,
 			dataDir = storagePath,
 			logDir = logPath,
-			entryGateway = EntryPoint.Random,
-			exitRouter = ExitPoint.Random,
-			enableTwoHop = false,
-			enableBridges = false,
-			frontingMode = if (stealthMode) FrontingMode.ALWAYS else FrontingMode.ON_RETRY,
-			customDns = emptyList(),
-			residentialExit = false,
-			enableAdBlocking = adBlockingEnabled,
-			mixnetTraffic = mixnetParamConfig,
-			networkStats = null,
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
-			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(true),
-			gatewayIndependence = GatewayIndependence(enableNotifications = nodeFamiliesNotificationsEnabled, differentNodeFamily = true, differentAsn = true, differentSubnet = true),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
@@ -374,79 +323,115 @@ class VpnCoreController(
 
 		if (!initialized.isCompleted) initialized.complete(Unit)
 		events.tryEmit(VpnServiceEvent.Log("core initialized"))
+
+		migrateLegacyConfigIfNeeded()
+		refreshCurrentGateways()
 	}
 
-	private suspend fun applyCanonicalConfigToRustIfReady(force: Boolean, canonical: CoreVpnConfig?) {
-		if (!initialized.isCompleted) return
+	/**
+	 * One-time migration for installs that pre-date the vpn service persisting its own config:
+	 * pushes the settings previously kept in [CoreVpnConfigRepository]'s local store into the
+	 * vpn service so they aren't silently reset to defaults.
+	 */
+	private suspend fun migrateLegacyConfigIfNeeded() {
+		if (configRepo.isMigratedToRustConfig()) return
 
-		val cfg = canonical ?: configRepo.get()
-		val prev = lastAppliedConfig
+		runCatching {
+			val legacy = configRepo.readLegacyFullConfigForMigration()
+			requireCoreSender { sender ->
+				sender.setEntryPoint(legacy.entryPoint)
+				sender.setExitPoint(legacy.exitPoint)
+				sender.setEnableTwoHop(legacy.mode.isTwoHop())
+				sender.setEnableBridges(legacy.enableBridges)
+				sender.setEnableCustomDns(legacy.customDnsEnabled)
+				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns)
+				sender.setEnableAdBlocking(legacy.adBlockingEnabled)
+				sender.setFrontingMode(if (legacy.stealthMode) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
+				sender.setGatewayIndependenceNotifications(legacy.nodeFamiliesNotificationsEnabled)
+				sender.setGeoExclusionEnabled(legacy.geoExclusionEnabled)
+				sender.setGeoExclusionListenPort(legacy.geoExclusionPort.toUShortClamped())
+				sender.setGeoExclusionExcludedCountries(legacy.geoExclusionCountries)
+			}
+			configRepo.markMigratedToRustConfig()
+		}.onFailure { Timber.tag(TAG).e(it, "Legacy config migration failed") }
+	}
 
-		val tunSettingsChanged = force ||
-			prev?.bypassLan != cfg.bypassLan ||
-			prev.restrictedApps != cfg.restrictedApps
+	private suspend fun refreshCurrentGateways() {
+		runCatching {
+			val cfg = requireCoreSender { it.getConfig() }
+			currentEntry = cfg.entryPoint
+			currentExit = cfg.exitPoint
+		}.onFailure { Timber.tag(TAG).w(it, "refreshCurrentGateways failed") }
+	}
 
-		syncLocalFieldsFromConfig(cfg)
+	private fun syncLocalTunSettings(prefs: LocalVpnPrefs) {
+		tun.setDisallowedApps(prefs.restrictedApps)
+		tun.setBypassLan(prefs.bypassLan)
+	}
 
-		requireCoreSender { sender ->
-			applyConfigDiffToSender(sender, force, prev, cfg)
+	private suspend fun applyUpdateLocked(update: CoreVpnConfigUpdate) {
+		when (update) {
+			is CoreVpnConfigUpdate.SetNetwork -> configRepo.updateLocalPrefs { it.copy(network = update.value) }
+			is CoreVpnConfigUpdate.SetDebugLog -> configRepo.updateLocalPrefs { it.copy(debugLog = update.value) }
+			is CoreVpnConfigUpdate.SetSentry -> configRepo.updateLocalPrefs { it.copy(sentry = update.value) }
+			is CoreVpnConfigUpdate.SetBypassLan -> {
+				configRepo.updateLocalPrefs { it.copy(bypassLan = update.value) }
+				tun.setBypassLan(update.value)
+				reconnectIfConnected()
+			}
+			is CoreVpnConfigUpdate.SetRestrictedApps -> {
+				configRepo.updateLocalPrefs { it.copy(restrictedApps = update.value) }
+				tun.setDisallowedApps(update.value)
+				reconnectIfConnected()
+			}
+			is CoreVpnConfigUpdate.SetEntryPoint -> requireCoreSender { it.setEntryPoint(update.value) }
+			is CoreVpnConfigUpdate.SetExitPoint -> requireCoreSender { it.setExitPoint(update.value) }
+			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
+			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setEnableBridges(update.value) }
+			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
+			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }
+			is CoreVpnConfigUpdate.SetAdBlockingEnabled -> requireCoreSender { it.setEnableAdBlocking(update.value) }
+			is CoreVpnConfigUpdate.SetStealthMode -> requireCoreSender {
+				it.setFrontingMode(if (update.value) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
+			}
+			is CoreVpnConfigUpdate.SetNodeFamiliesNotificationsEnabled ->
+				requireCoreSender { it.setGatewayIndependenceNotifications(update.value) }
+			is CoreVpnConfigUpdate.SetGeoExclusionEnabled -> requireCoreSender { it.setGeoExclusionEnabled(update.value) }
+			is CoreVpnConfigUpdate.SetGeoExclusionPort ->
+				requireCoreSender { it.setGeoExclusionListenPort(update.value.toUShortClamped()) }
+			is CoreVpnConfigUpdate.SetGeoExclusionCountries ->
+				requireCoreSender { it.setGeoExclusionExcludedCountries(update.value) }
 		}
+	}
 
-		lastAppliedConfig = cfg
-
-		if (tunSettingsChanged && state != Tunnel.State.Down) {
+	private suspend fun reconnectIfConnected() {
+		if (state != Tunnel.State.Down) {
 			Timber.tag(TAG).i("Routing changed, triggering reconnect")
 			reconnectLocked()
 		}
 	}
 
-	private suspend fun applyConfigDiffToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
-		if (force || prev?.mode?.isTwoHop() != cfg.mode.isTwoHop()) {
-			sender.setEnableTwoHop(cfg.mode.isTwoHop())
-		}
-		if (force || prev?.enableBridges != cfg.enableBridges) {
-			sender.setEnableBridges(cfg.enableBridges)
-		}
-		if (force || prev?.customDnsEnabled != cfg.customDnsEnabled) {
-			sender.setEnableCustomDns(cfg.customDnsEnabled)
-		}
-		if (cfg.customDnsEnabled && (force || prev?.customDns != cfg.customDns)) {
-			sender.setCustomDns(cfg.customDns.toList())
-		}
-		if (force || prev?.entryPoint != cfg.entryPoint) {
-			sender.setEntryPoint(cfg.entryPoint)
-		}
-		if (force || prev?.exitPoint != cfg.exitPoint) {
-			sender.setExitPoint(cfg.exitPoint)
-		}
-		if (force || prev?.adBlockingEnabled != cfg.adBlockingEnabled) {
-			sender.setEnableAdBlocking(cfg.adBlockingEnabled)
-		}
-
-		applyGeoExclusionToSender(sender, force, prev, cfg)
-	}
-
-	private suspend fun applyGeoExclusionToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
-		if (force || prev?.geoExclusionEnabled != cfg.geoExclusionEnabled) {
-			sender.setGeoExclusionEnabled(cfg.geoExclusionEnabled)
-		}
-		if (force || prev?.geoExclusionPort != cfg.geoExclusionPort) {
-			sender.setGeoExclusionListenPort(cfg.geoExclusionPort.coerceIn(UShort.MIN_VALUE.toInt(), UShort.MAX_VALUE.toInt()).toUShort())
-		}
-		if (force || prev?.geoExclusionCountries != cfg.geoExclusionCountries) {
-			sender.setGeoExclusionExcludedCountries(cfg.geoExclusionCountries)
-		}
-	}
-
-	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig) {
-		bypassLanFlag = cfg.bypassLan
-		disallowedApps = cfg.restrictedApps
-		currentEntry = cfg.entryPoint
-		currentExit = cfg.exitPoint
-
-		tun.setDisallowedApps(disallowedApps)
-		tun.setBypassLan(bypassLanFlag)
-	}
-
 	fun isAlwaysOnHeuristic(intent: Intent?): Boolean = intent == null || intent.component == null || intent.component?.packageName != service.packageName
 }
+
+private fun Int.toUShortClamped(): UShort = coerceIn(UShort.MIN_VALUE.toInt(), UShort.MAX_VALUE.toInt()).toUShort()
+
+private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpnConfig = CoreVpnConfig(
+	entryPoint = entryPoint,
+	exitPoint = exitPoint,
+	mode = if (enableTwoHop) Tunnel.Mode.TWO_HOP_MIXNET else Tunnel.Mode.FIVE_HOP_MIXNET,
+	bypassLan = localPrefs.bypassLan,
+	enableBridges = enableBridges,
+	customDnsEnabled = enableCustomDns,
+	customDns = customDns,
+	restrictedApps = localPrefs.restrictedApps,
+	network = localPrefs.network,
+	debugLog = localPrefs.debugLog,
+	sentry = localPrefs.sentry,
+	adBlockingEnabled = enableAdBlocking,
+	stealthMode = frontingMode == FrontingMode.ALWAYS,
+	nodeFamiliesNotificationsEnabled = gatewayIndependence.enableNotifications,
+	geoExclusionEnabled = geoExclusion.enabled,
+	geoExclusionPort = geoExclusion.listenPort.toInt(),
+	geoExclusionCountries = geoExclusion.excludedCountries,
+)

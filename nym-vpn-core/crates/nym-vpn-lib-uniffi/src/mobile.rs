@@ -1,8 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(target_os = "android"))]
+use std::net::IpAddr;
 use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    net::{Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     sync::{Arc, LazyLock},
 };
@@ -10,11 +12,12 @@ use std::{
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
+use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
+#[cfg(not(target_os = "android"))]
 use nym_vpn_lib_types::{
-    DiagnosticRunParams, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
-    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
-    NetworkStatisticsConfig, PrivyDerivationMessage, Profile, SplitTunnelSettings, UserAgent,
-    VpnServiceConfig,
+    EntryPoint, ExitPoint, FrontingMode, GatewayIndependence, GatewaySelectionAlgorithmConfig,
+    GeoExclusionSettings, MixnetTrafficConfig, NetworkStatisticsConfig, Profile,
+    SplitTunnelSettings, VpnServiceConfig,
 };
 
 #[cfg(target_os = "android")]
@@ -63,6 +66,7 @@ pub async fn runDiagnostic(
 }
 
 #[allow(non_snake_case)]
+#[cfg(not(target_os = "android"))]
 #[uniffi::export]
 pub fn applyProfileToConfig(mut config: VPNConfig, profile: Profile) -> VPNConfig {
     let profile_specifics = nym_vpn_lib::service::ProfileSpecifics::from(profile);
@@ -88,22 +92,38 @@ pub struct VPNConfig {
     /// Path to log directory on disk
     pub log_dir: PathBuf,
 
+    // On Android the vpn service persists its own configuration to disk
+    // (`ServiceConfigStorageType::Persistent`), so these are only meaningful
+    // on platforms that still boot the service with an explicit,
+    // caller-supplied configuration (i.e. iOS).
+    #[cfg(not(target_os = "android"))]
     pub entry_gateway: EntryPoint,
+    #[cfg(not(target_os = "android"))]
     pub exit_router: ExitPoint,
+    #[cfg(not(target_os = "android"))]
     pub enable_two_hop: bool,
+    #[cfg(not(target_os = "android"))]
     pub enable_bridges: bool,
+    #[cfg(not(target_os = "android"))]
     pub residential_exit: bool,
+    #[cfg(not(target_os = "android"))]
     pub enable_ad_blocking: bool,
 
+    #[cfg(not(target_os = "android"))]
     pub fronting_mode: FrontingMode,
 
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
+    #[cfg(not(target_os = "android"))]
     pub custom_dns: Vec<IpAddr>,
 
+    #[cfg(not(target_os = "android"))]
     pub mixnet_traffic: Option<MixnetTrafficConfig>,
+    #[cfg(not(target_os = "android"))]
     pub network_stats: Option<NetworkStatisticsConfig>,
+    #[cfg(not(target_os = "android"))]
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    #[cfg(not(target_os = "android"))]
     pub gateway_independence: GatewayIndependence,
     pub user_agent: UserAgent,
     #[cfg(target_os = "ios")]
@@ -114,6 +134,7 @@ pub struct VPNConfig {
     pub(crate) connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
 }
 
+#[cfg(not(target_os = "android"))]
 impl VPNConfig {
     pub(crate) fn as_vpn_service_config(&self) -> Box<VpnServiceConfig> {
         Box::new(VpnServiceConfig {

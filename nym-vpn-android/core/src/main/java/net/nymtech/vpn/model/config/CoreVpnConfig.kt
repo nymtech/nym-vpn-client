@@ -5,7 +5,23 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
 /**
- * Persistent VPN configuration model.
+ * Settings that have no equivalent in the vpn service's persisted config, either because
+ * they're needed to boot the service itself (network/debugLog/sentry) or because they're
+ * handled entirely locally on Android (bypassLan/restrictedApps - split tunneling isn't
+ * modeled by the vpn service on mobile).
+ */
+data class LocalVpnPrefs(
+	val network: Tunnel.Environment = Tunnel.Environment.MAINNET,
+	val debugLog: Boolean = false,
+	val sentry: Boolean = false,
+	val bypassLan: Boolean = false,
+	val restrictedApps: List<String> = emptyList(),
+)
+
+/**
+ * Aggregate VPN configuration model exposed to the UI. Tunnel-related fields are backed by the
+ * vpn service's own persisted config (the single source of truth); the rest come from
+ * [LocalVpnPrefs].
  */
 data class CoreVpnConfig(
 	val entryPoint: EntryPoint = EntryPoint.Auto(excludeUserCountry = true),
