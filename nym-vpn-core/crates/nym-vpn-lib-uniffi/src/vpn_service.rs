@@ -53,6 +53,10 @@ impl NymVpnService {
                 // Export environment first!
                 environment.export_to_env();
 
+                #[cfg(target_os = "android")]
+                let service_storage_type = ServiceConfigStorageType::Persistent;
+
+                #[cfg(not(target_os = "android"))]
                 let service_storage_type =
                     ServiceConfigStorageType::Ephemeral(config.as_vpn_service_config());
 
