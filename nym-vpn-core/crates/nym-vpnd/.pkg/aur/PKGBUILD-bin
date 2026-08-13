@@ -29,4 +29,5 @@ package() {
   popd
 
   install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"
+  install -Dm644 "../sysusers.d/nym-vpn.conf" "$pkgdir/usr/lib/sysusers.d/nym-vpn.conf"
 }
