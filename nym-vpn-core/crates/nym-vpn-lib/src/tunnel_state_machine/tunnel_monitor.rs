@@ -84,7 +84,10 @@ use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
     bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
-    tunnel_health::{METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown},
+    tunnel_health::{
+        METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown,
+        should_treat_metadata_as_connect_viable,
+    },
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
@@ -872,6 +875,21 @@ impl TunnelMonitor {
                                         "Probe declared tunnel down but in-tunnel metadata path recently succeeded; deferring teardown"
                                     );
                                     last_connection_status = None;
+                                } else if should_treat_metadata_as_connect_viable(
+                                    uses_metadata_endpoint,
+                                    metadata_path_health.as_ref(),
+                                    METADATA_PATH_HEALTH_GRACE,
+                                ) {
+                                    if !has_sent_up_event {
+                                        tracing::info!(
+                                            "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
+                                        );
+                                        has_sent_up_event = true;
+                                        self.send_event(TunnelMonitorEvent::Up {
+                                            tunnel_interface: tunnel_interface.clone(),
+                                            connection_data: connection_data.clone(),
+                                        });
+                                    }
                                 } else {
                                     tracing::info!("Tunnel connection is down. Exiting");
                                     self.send_event(TunnelMonitorEvent::ConnectionFailed {
@@ -899,7 +917,12 @@ impl TunnelMonitor {
                     } else {
                         metadata_endpoint_viable = true;
                         consecutive_deferred_probe_failures = 0;
-                        if !has_sent_up_event && ping_viable {
+                        let metadata_connect_viable = should_treat_metadata_as_connect_viable(
+                            uses_metadata_endpoint,
+                            metadata_path_health.as_ref(),
+                            METADATA_PATH_HEALTH_GRACE,
+                        );
+                        if !has_sent_up_event && (ping_viable || metadata_connect_viable) {
                             tracing::info!("Tunnel connection is viable");
                             has_sent_up_event = true;
                             self.send_event(TunnelMonitorEvent::Up {
