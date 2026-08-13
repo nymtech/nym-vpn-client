@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
-import net.nymtech.vpn.util.extensions.asString
 import androidx.datastore.preferences.core.Preferences
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.config.LocalVpnPrefs
@@ -77,8 +76,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		return updated
 	}
 
-	suspend fun isMigratedToRustConfig(): Boolean =
-		context.coreVpnDataStore.data.first()[KEY_MIGRATED_TO_RUST_CONFIG] ?: false
+	suspend fun isMigratedToRustConfig(): Boolean = context.coreVpnDataStore.data.first()[KEY_MIGRATED_TO_RUST_CONFIG] ?: false
 
 	suspend fun markMigratedToRustConfig() {
 		context.coreVpnDataStore.edit { prefs ->
@@ -102,8 +100,7 @@ class CoreVpnConfigStore(private val context: Context) {
 	 * persisted config. Only meant to be called once, to migrate a pre-existing install - see
 	 * [isMigratedToRustConfig].
 	 */
-	suspend fun readLegacyFullConfigForMigration(): CoreVpnConfig =
-		context.coreVpnDataStore.data.first().toLegacyFullConfig()
+	suspend fun readLegacyFullConfigForMigration(): CoreVpnConfig = context.coreVpnDataStore.data.first().toLegacyFullConfig()
 
 	private fun Preferences.toLocalPrefs(): LocalVpnPrefs {
 		val network = this[KEY_ENV_NETWORK]?.let {

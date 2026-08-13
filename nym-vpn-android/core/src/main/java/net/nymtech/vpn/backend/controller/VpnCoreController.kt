@@ -271,13 +271,7 @@ class VpnCoreController(
 		return runCatching { block(sender) }.getOrNull()
 	}
 
-	private suspend fun ensureCoreInitialized(
-		network: Tunnel.Environment,
-		enableDebugLog: Boolean,
-		sentry: Boolean,
-		userAgent: UserAgent,
-		useMainnetFallback: Boolean,
-	) {
+	private suspend fun ensureCoreInitialized(network: Tunnel.Environment, enableDebugLog: Boolean, sentry: Boolean, userAgent: UserAgent, useMainnetFallback: Boolean) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
 		val userManager = service.getSystemService(UserManager::class.java)

@@ -10,8 +10,7 @@ class CoreVpnConfigRepository(context: Context) {
 
 	suspend fun getLocalPrefs(): LocalVpnPrefs = store.getLocalPrefs()
 
-	suspend fun updateLocalPrefs(transform: (LocalVpnPrefs) -> LocalVpnPrefs): LocalVpnPrefs =
-		store.updateLocalPrefs(transform)
+	suspend fun updateLocalPrefs(transform: (LocalVpnPrefs) -> LocalVpnPrefs): LocalVpnPrefs = store.updateLocalPrefs(transform)
 
 	suspend fun isMigratedToRustConfig(): Boolean = store.isMigratedToRustConfig()
 
