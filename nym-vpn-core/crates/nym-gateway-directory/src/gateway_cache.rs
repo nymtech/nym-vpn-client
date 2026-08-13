@@ -33,14 +33,6 @@ impl GatewayCacheHandle {
         Self { tx }
     }
 
-    /// Refresh all gateways and countries without blocking until the operation is complete.
-    pub async fn refresh_all(&self) -> Result<()> {
-        self.tx.send(Command::RefreshAll).map_err(|_| {
-            tracing::error!("Gateway cache command channel closed (RefreshAll)");
-            Error::Cancelled
-        })
-    }
-
     /// Lookup gateways waiting for any pending fetch request or initiating one if needed.
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         let (tx, rx) = tokio::sync::oneshot::channel();
@@ -190,7 +182,6 @@ impl GatewayCacheHandle {
 }
 
 enum Command {
-    RefreshAll,
     LookupGateways(
         GatewayType,
         tokio::sync::oneshot::Sender<Result<GatewayList>>,
@@ -281,9 +272,6 @@ impl GatewayCache {
             tokio::select! {
                 Some(cmd) = self.command_rx.recv() => {
                     match cmd {
-                        Command::RefreshAll => {
-                            self.refresh_all().await;
-                        }
                         Command::LookupGateways(gw_type, tx) => {
                             tx.send(self.lookup_gateways(gw_type).await).ok();
                         }
