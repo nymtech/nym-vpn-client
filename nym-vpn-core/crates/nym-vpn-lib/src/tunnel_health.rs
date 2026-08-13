@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Shared signals used to correlate ICMP health probes with in-tunnel metadata paths.
+//! Shared signals used to correlate connectivity health probes with in-tunnel metadata paths.
 
 use std::{
     sync::{Arc, Mutex},
@@ -59,7 +59,18 @@ impl MetadataPathHealth {
     }
 }
 
-/// Returns true when an ICMP probe failure should not tear the tunnel down yet.
+/// Returns true when dual-leg metadata recently succeeded on a wireguard netstack path
+/// (`uses_metadata_endpoint`) and the tunnel should be treated as connect-viable despite
+/// connectivity probe failure.
+pub fn should_treat_metadata_as_connect_viable(
+    uses_metadata_endpoint: bool,
+    health: Option<&MetadataPathHealth>,
+    grace: Duration,
+) -> bool {
+    uses_metadata_endpoint && health.is_some_and(|h| h.is_recently_healthy(grace))
+}
+
+/// Returns true when a connectivity probe failure should not tear the tunnel down yet.
 pub fn should_defer_probe_teardown(
     uses_metadata_endpoint: bool,
     health: Option<&MetadataPathHealth>,
@@ -196,6 +207,23 @@ mod tests {
             Some(&health),
             METADATA_PATH_HEALTH_GRACE,
             0,
+        ));
+    }
+
+    #[test]
+    fn connect_viable_after_defer_cap_when_metadata_healthy() {
+        let health = MetadataPathHealth::new();
+        health.record_success();
+        assert!(!should_defer_probe_teardown(
+            true,
+            Some(&health),
+            METADATA_PATH_HEALTH_GRACE,
+            MAX_CONSECUTIVE_DEFERRED_PROBE_FAILURES,
+        ));
+        assert!(should_treat_metadata_as_connect_viable(
+            true,
+            Some(&health),
+            METADATA_PATH_HEALTH_GRACE,
         ));
     }
 }
