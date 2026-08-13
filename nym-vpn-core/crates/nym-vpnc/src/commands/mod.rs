@@ -12,6 +12,7 @@ pub mod geo_exclusion;
 pub mod lan;
 pub mod network;
 pub mod network_stats;
+pub mod profile;
 pub mod sentry;
 pub mod session;
 pub mod socks5;

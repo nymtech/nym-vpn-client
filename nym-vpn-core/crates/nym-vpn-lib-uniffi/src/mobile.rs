@@ -13,7 +13,7 @@ use tokio::runtime::Runtime;
 use nym_vpn_lib_types::{
     DiagnosticRunParams, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
     GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
-    NetworkStatisticsConfig, PrivyDerivationMessage, SplitTunnelSettings, UserAgent,
+    NetworkStatisticsConfig, PrivyDerivationMessage, Profile, SplitTunnelSettings, UserAgent,
     VpnServiceConfig,
 };
 
@@ -60,6 +60,21 @@ pub async fn runDiagnostic(
         .await
         .map_err(VpnError::internal)?;
     serde_json::to_string_pretty(&report).map_err(VpnError::internal)
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn applyProfileToConfig(mut config: VPNConfig, profile: Profile) -> VPNConfig {
+    let profile_specifics = nym_vpn_lib::service::ProfileSpecifics::from(profile);
+    config.entry_gateway = profile_specifics.entry_point;
+    config.exit_router = profile_specifics.exit_point;
+    config.enable_two_hop = matches!(
+        profile_specifics.tunnel_type,
+        nym_vpn_lib_types::TunnelType::Wireguard
+    );
+    config.fronting_mode = profile_specifics.fronting_mode;
+
+    config
 }
 
 #[derive(uniffi::Record)]

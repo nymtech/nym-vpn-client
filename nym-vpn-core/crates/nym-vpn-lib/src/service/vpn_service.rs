@@ -55,9 +55,9 @@ use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
     ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, RecentGateways, RegistrationReport, StorableAccount, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState,
-    TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -259,6 +259,7 @@ pub enum VpnServiceCommand {
     ClearSplitTunnelProcesses(oneshot::Sender<()>, ()),
     #[cfg(target_os = "macos")]
     NeedFullDiskPermissions(oneshot::Sender<bool>, ()),
+    SetProfile(oneshot::Sender<()>, Profile),
 }
 
 /// Type of service configuration storage used by the VPN service.
@@ -1349,6 +1350,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetRecentGateways(tx, gateway_type) => {
                 let _ = tx.send(self.handle_get_recent_gateways(gateway_type).await);
+            }
+            VpnServiceCommand::SetProfile(tx, profile) => {
+                self.handle_set_profile(profile).await;
+                let _ = tx.send(());
             }
         }
     }
@@ -2474,5 +2479,10 @@ impl NymVpnService {
             .get_recent(tunnel_type)
             .await
             .map_err(ListGatewaysError::GetRecentGateways)
+    }
+
+    async fn handle_set_profile(&mut self, profile: Profile) {
+        self.config_manager.set_profile(profile).await;
+        self.update_tunnel_settings_with_throttle();
     }
 }

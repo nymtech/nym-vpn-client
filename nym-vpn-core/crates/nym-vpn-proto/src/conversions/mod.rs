@@ -10,6 +10,7 @@ pub mod gateway_independence;
 pub mod gateway_selection_algorithm;
 pub mod network_config;
 pub mod network_stats;
+pub mod profile;
 pub mod prost;
 pub mod recents;
 pub mod service;

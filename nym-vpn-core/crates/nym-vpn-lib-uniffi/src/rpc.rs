@@ -14,12 +14,10 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
     FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
     MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RecentGateways, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings, Socks5Status, SplitApp,
+    SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
-#[cfg(target_os = "macos")]
-use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -450,7 +448,6 @@ impl RpcClient {
     }
 }
 
-#[cfg(target_os = "macos")]
 #[uniffi::export(async_runtime = "tokio")]
 impl RpcClient {
     pub async fn set_enable_split_tunnel(&self, enable: bool) -> Result<()> {
@@ -496,6 +493,12 @@ impl RpcClient {
             skip_hybrid_transport: false,
         };
         Ok(self.inner.clone().run_diagnostic_raw(params).await?)
+    }
+
+    pub async fn set_profile(&self, profile: Profile) -> Result<()> {
+        let profile_options = nym_vpn_lib_types::ProfileOptions { profile };
+        self.inner.clone().set_profile(profile_options).await?;
+        Ok(())
     }
 }
 

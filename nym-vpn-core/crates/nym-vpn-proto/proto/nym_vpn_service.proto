@@ -450,6 +450,17 @@ message Performance {
   float uptime_percentage_last_24_hours = 4;
 }
 
+message ProfileOptions {
+  Profile profile = 1;
+}
+
+enum Profile {
+  SAFEST = 0;
+  MOST_PRIVATE = 1;
+  FASTEST = 2;
+  RANDOM = 3;
+}
+
 enum Score {
   OFFLINE = 0;
   LOW = 1;
@@ -1371,4 +1382,7 @@ service NymVpnService {
 
   // Get recent gateways
   rpc GetRecentGateways(GetRecentGatewaysParams) returns (RecentGateways) {}
+
+  // Set a pre-configured batch of settings following a certain profile
+  rpc SetProfile(ProfileOptions) returns (google.protobuf.Empty) {}
 }

@@ -20,7 +20,7 @@ use crate::{
     service::{
         config::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
-            VpnServiceConfigVersion, geo_exclusion_settings, legacy,
+            VpnServiceConfigVersion, geo_exclusion_settings, legacy, profile::ProfileSpecifics,
         },
         error::{Error, GeoExclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
@@ -343,6 +343,42 @@ impl VpnServiceConfigManager {
         }
 
         Ok(())
+    }
+
+    pub async fn set_profile(&mut self, profile: nym_vpn_lib_types::Profile) {
+        let profile_specifics = ProfileSpecifics::from(profile);
+        let mut changed = false;
+        if self.config.entry_point != profile_specifics.entry_point {
+            self.config.entry_point = profile_specifics.entry_point;
+            changed = true;
+        }
+        if self.config.exit_point != profile_specifics.exit_point {
+            self.config.exit_point = profile_specifics.exit_point;
+            changed = true;
+        }
+        let enable_two_hop = matches!(
+            profile_specifics.tunnel_type,
+            nym_vpn_lib_types::TunnelType::Wireguard
+        );
+        if self.config.enable_two_hop != enable_two_hop {
+            self.config.enable_two_hop = enable_two_hop;
+            changed = true;
+        }
+        if self.config.fronting_mode != profile_specifics.fronting_mode {
+            // Change the shared fronting policy
+            let front_policy = match profile_specifics.fronting_mode {
+                nym_vpn_lib_types::FrontingMode::Off => FrontPolicy::Off,
+                nym_vpn_lib_types::FrontingMode::OnRetry => FrontPolicy::OnRetry,
+                nym_vpn_lib_types::FrontingMode::Always => FrontPolicy::Always,
+            };
+            Client::set_shared_front_policy(front_policy);
+
+            self.config.fronting_mode = profile_specifics.fronting_mode;
+            changed = true;
+        }
+        if changed {
+            self.save_config_and_send_event().await;
+        }
     }
 
     async fn save_config_and_send_event(&self) {
