@@ -2,13 +2,13 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::vm::ssh::SSHSession;
 use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
     summary::SummaryLogger,
     tests::{TestContext, TestMetadata, TestWrapperFunctionNym},
     vm,
+    vm::ssh::SSHSession,
 };
 use anyhow::{Context, Result};
 use futures::FutureExt;
