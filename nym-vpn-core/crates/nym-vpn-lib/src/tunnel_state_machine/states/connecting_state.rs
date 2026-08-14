@@ -92,12 +92,6 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         shared_state.allow_networking().await;
 
-        // Disallow geolocating while connected to prevent incorrect data from being queried
-        shared_state
-            .gateway_provider
-            .set_active_geo_location(false)
-            .await;
-
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver");
