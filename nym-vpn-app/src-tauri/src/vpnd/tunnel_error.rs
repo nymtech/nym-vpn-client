@@ -31,6 +31,7 @@ pub enum TunnelError {
     NeedFullDiskPermissions,
     SplitTunnel,
     NeedsRelaxedIndependenceCriteria,
+    NeedsDeviceLocation,
     CredentialFetchingFailed,
     NoCredentialAvailable,
 }
@@ -73,6 +74,7 @@ impl From<lib::ErrorStateReason> for TunnelError {
             lib::ErrorStateReason::NeedsRelaxedIndependenceCriteria => {
                 TunnelError::NeedsRelaxedIndependenceCriteria
             }
+            lib::ErrorStateReason::NeedsDeviceLocation => TunnelError::NeedsDeviceLocation,
             lib::ErrorStateReason::CredentialFetchingFailed => {
                 TunnelError::CredentialFetchingFailed
             }

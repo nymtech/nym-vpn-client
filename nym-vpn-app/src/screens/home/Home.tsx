@@ -3,7 +3,10 @@ import { type } from '@tauri-apps/plugin-os';
 
 import { motion } from 'motion/react';
 import { useAppStore } from '../../store';
-import { useGatewayIndependenceWatcher } from '../../hooks';
+import {
+  useDeviceLocationErrorToast,
+  useGatewayIndependenceWatcher,
+} from '../../hooks';
 import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
@@ -17,6 +20,7 @@ let compatChecked = false;
 function Home() {
   const networkCompat = useAppStore((s) => s.networkCompat);
   useGatewayIndependenceWatcher();
+  useDeviceLocationErrorToast();
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
