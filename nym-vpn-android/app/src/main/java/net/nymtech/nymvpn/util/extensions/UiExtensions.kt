@@ -85,7 +85,7 @@ fun NavController.navigateAndForget(route: Route) {
 }
 
 fun NavController.navigateAndForgetToMain(route: Route) {
-	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
+	if (route !is Route.Main && currentBackStackEntry?.isCurrentRoute(route::class) == true) return
 	try {
 		navigate(route) {
 			popUpTo<Route.Main> { inclusive = route is Route.Main }
