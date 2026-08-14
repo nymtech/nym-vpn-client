@@ -1566,6 +1566,9 @@ impl tunnel::Error {
                 GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
                     Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
                 }
+                GatewayProviderError::NeedsDeviceLocation => {
+                    Some(ErrorStateReason::NeedsDeviceLocation)
+                }
                 _ => None,
             },
             Self::BandwidthMonitor(BandwidthMonitorError::EntryGateway(error)) => {
