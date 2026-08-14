@@ -61,6 +61,8 @@ function useI18nTunnelError() {
           return t('tunnel.performant-exit-gw-unavailable');
         case 'needs-relaxed-independence-criteria':
           return t('tunnel.needs-relaxed-independence-criteria');
+        case 'needs-device-location':
+          return t('tunnel.needs-device-location');
         case 'credential-fetching-failed':
           return t('tunnel.credential-fetching-failed');
         case 'no-credential-available':
