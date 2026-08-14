@@ -30,4 +30,7 @@ pub enum GatewayProviderError {
 
     #[error("gateway pair can be found if user agrees to relax the gateway independence criteria")]
     NeedsRelaxedIndependenceCriteria,
+
+    #[error("auto is not possible when device geo location information is missing")]
+    NeedsDeviceLocation,
 }
