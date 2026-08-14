@@ -1,10 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::Duration;
+
 mod config;
 mod error;
 mod socks5;
 mod vpn_service;
+
+/// Maximum time to wait for the VPN tunnel to disconnect during teardown.
+pub const VPN_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub use config::{
     ConfigSetupError, DEFAULT_GLOBAL_CONFIG_FILE_JSON, DEFAULT_GLOBAL_CONFIG_FILE_TOML,

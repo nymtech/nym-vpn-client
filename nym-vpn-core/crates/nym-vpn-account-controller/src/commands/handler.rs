@@ -125,8 +125,6 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
 ) -> Result<(), AccountCommandError> {
     tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
 
-    // Tunnel state is checked before sending the command here. We're in Disconnected state
-
     if let Err(err) = handle_unregister_device(shared_state).await {
         tracing::error!("Failed to unregister device: {err}");
     } else {
