@@ -9775,6 +9775,17 @@
         }
       }
     },
+    "errorReason.needsDeviceLocation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Safest routing isn't available right now. Try again later or choose your own servers."
+          }
+        }
+      }
+    },
     "errorReason.needsRelaxedIndependenceCriteria" : {
       "extractionState" : "manual",
       "localizations" : {
