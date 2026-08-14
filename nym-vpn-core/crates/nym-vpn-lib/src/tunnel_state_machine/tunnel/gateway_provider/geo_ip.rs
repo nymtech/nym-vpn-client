@@ -16,6 +16,7 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 const GEO_IP_UPDATE_INTERVAL: Duration = Duration::from_hours(1);
+const TIMEOUT_INITIAL_LOCATION: Duration = Duration::from_secs(5);
 
 #[async_trait::async_trait]
 pub trait GeoIpClient: Send + Sync + 'static {
@@ -112,7 +113,7 @@ pub(crate) struct GeoIpFetcher {
     query_control: Arc<RwLock<QueryControl>>,
     client: Box<dyn GeoIpClient>,
     command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
-    update_location_tx: mpsc::UnboundedSender<Location>,
+    update_location_tx: mpsc::UnboundedSender<Option<Location>>,
     shutdown_token: CancellationToken,
 }
 
@@ -121,7 +122,7 @@ impl GeoIpFetcher {
         enable_geo_location: bool,
         client: Box<dyn GeoIpClient>,
         command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
-        update_location_tx: mpsc::UnboundedSender<Location>,
+        update_location_tx: mpsc::UnboundedSender<Option<Location>>,
         shutdown_token: CancellationToken,
     ) -> Self {
         let state = if enable_geo_location {
@@ -170,11 +171,15 @@ impl GeoIpFetcher {
                         Ok(geo_ip_location) => {
                             let Ok(location) = geo_ip_location.location.try_into() else {
                                 tracing::warn!("Failed to convert geo ip location response into location");
+                                let _ = self.update_location_tx.send(None);
                                 continue;
                             };
-                            let _ = self.update_location_tx.send(location);
+                            let _ = self.update_location_tx.send(Some(location));
                         }
-                        Err(err) => tracing::warn!("Failed to query VPN API: {err:?}"),
+                        Err(err) => {
+                            let _ = self.update_location_tx.send(None);
+                            tracing::warn!("Failed to query VPN API: {err:?}");
+                        }
                     }
                 }
                 Some(command) = self.command_rx.recv() => {
@@ -192,16 +197,31 @@ impl GeoIpFetcher {
 }
 
 pub(crate) struct GeoIpProvider {
-    update_location_rx: UnboundedReceiver<Location>,
+    update_location_rx: UnboundedReceiver<Option<Location>>,
     latest_known_location: Option<Location>,
 }
 
 impl GeoIpProvider {
-    pub(crate) fn new(update_location_rx: UnboundedReceiver<Location>) -> Self {
+    pub(crate) fn new(update_location_rx: UnboundedReceiver<Option<Location>>) -> Self {
         Self {
             update_location_rx,
             latest_known_location: None,
         }
+    }
+
+    /// Get the initial location, or timeout early to not disrupt too much the connecting phase.
+    pub(crate) async fn initial_location(&mut self) -> Option<Location> {
+        self.latest_known_location =
+            tokio::time::timeout(TIMEOUT_INITIAL_LOCATION, self.update_location_rx.recv())
+                .await
+                .inspect_err(|_| {
+                    tracing::warn!(
+                        "No location for {} seconds, considering random location",
+                        TIMEOUT_INITIAL_LOCATION.as_secs()
+                    )
+                })
+                .ok()??;
+        self.latest_known_location.clone()
     }
 
     /// Return whenever there is a new location available, different to what we've already returned
@@ -209,10 +229,15 @@ impl GeoIpProvider {
     pub(crate) async fn new_location(&mut self) -> Option<Location> {
         loop {
             // if recv() returns None, there will never be a new location because the fetcher is gone
-            // So we should skip the loop
-            let latest_location = Some(self.update_location_rx.recv().await?);
-            if self.latest_known_location != latest_location {
-                self.latest_known_location = latest_location;
+            // So we should return from the loop
+            let Some(latest_location) = self.update_location_rx.recv().await? else {
+                tracing::debug!(
+                    "Received empty location, because of an API error, not updating it as new location"
+                );
+                continue;
+            };
+            if self.latest_known_location.as_ref() != Some(&latest_location) {
+                self.latest_known_location = Some(latest_location);
                 return self.latest_known_location.clone();
             }
         }

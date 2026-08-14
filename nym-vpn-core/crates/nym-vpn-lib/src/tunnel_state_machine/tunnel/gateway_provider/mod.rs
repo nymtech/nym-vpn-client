@@ -104,7 +104,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 .enable_geo_location
             {
                 shutdown_token
-                    .run_until_cancelled(geo_ip_provider.new_location())
+                    .run_until_cancelled(geo_ip_provider.initial_location())
                     .await
                     .flatten()
             } else {
