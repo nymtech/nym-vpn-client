@@ -38,6 +38,7 @@
 	<string name="error_reason_max_devices_reached">Maximum number of devices reached.</string>
 	<string name="error_reason_device_time_out_of_sync">Device time is out of sync.</string>
 	<string name="error_reason_device_logged_out">Device is logged out.</string>
+	<string name="error_reason_needs_device_location">Safest routing is unavailable; device location could not be determined.</string>
 
 	<string name="error_reason_internal">Internal error: %1$s</string>
 
