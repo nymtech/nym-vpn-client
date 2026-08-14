@@ -310,6 +310,9 @@ pub enum ErrorStateReason {
     /// Gateway pair can be found if user agrees to relax the gateway independence criteria
     NeedsRelaxedIndependenceCriteria,
 
+    /// Selector chosen needs device location data
+    NeedsDeviceLocation,
+
     /// Program errors that must not happen.
     Internal(String),
 }
@@ -349,6 +352,7 @@ impl std::fmt::Display for ErrorStateReason {
             Self::NeedsRelaxedIndependenceCriteria => {
                 f.write_str("NeedsRelaxedIndependenceCriteria")
             }
+            Self::NeedsDeviceLocation => f.write_str("NeedsDeviceLocation"),
             Self::Internal(str) => write!(f, "Internal({str})"),
         }
     }
