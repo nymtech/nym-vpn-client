@@ -254,9 +254,7 @@ pub(crate) async fn is_authenticated(
     auth_material: AuthenticationMaterial,
 ) -> Result<(), AuthenticationError> {
     let cred = getsockopt(stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
-    if let Some(gid) = auth_material.nym_vpn_gid
-        && user_in_group(cred.uid().into(), gid)
-    {
+    if user_in_group(cred.uid().into(), auth_material.nym_vpn_gid) {
         tracing::debug!("User is part of the nym-vpn group");
         Ok(())
     } else {
@@ -264,7 +262,7 @@ pub(crate) async fn is_authenticated(
     }
 }
 
-fn user_in_group(uid: Uid, gid: Gid) -> bool {
+fn user_in_group(uid: Uid, gid: Option<Gid>) -> bool {
     if uid.is_root() {
         tracing::trace!("User is root");
         return true;
@@ -272,6 +270,10 @@ fn user_in_group(uid: Uid, gid: Gid) -> bool {
 
     let Ok(Some(user)) = User::from_uid(uid) else {
         tracing::debug!("User {uid} could not be parsed or it disappeared");
+        return false;
+    };
+    let Some(gid) = gid else {
+        tracing::debug!("No nym-vpn group");
         return false;
     };
     if user.gid == gid {
