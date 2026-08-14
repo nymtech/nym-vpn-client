@@ -85,7 +85,7 @@ fun NavController.navigateAndForget(route: Route) {
 }
 
 fun NavController.navigateAndForgetToMain(route: Route) {
-	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
+	if (route !is Route.Main && currentBackStackEntry?.isCurrentRoute(route::class) == true) return
 	try {
 		navigate(route) {
 			popUpTo<Route.Main> { inclusive = route is Route.Main }
@@ -182,6 +182,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 
 	is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
 	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> context.getString(R.string.node_families_error_message)
+	ErrorStateReason.NeedsDeviceLocation -> context.getString(R.string.error_needs_device_location)
 }
 
 fun VpnException.toUserMessage(context: Context): String = when (this) {

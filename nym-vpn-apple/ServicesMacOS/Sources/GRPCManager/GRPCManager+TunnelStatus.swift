@@ -103,6 +103,8 @@ extension GRPCManager {
             ErrorReason.splitTunnel
         case .needsRelaxedIndependenceCriteria:
             ErrorReason.needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            ErrorReason.needsDeviceLocation
         case .credentialFetchingFailed:
             ErrorReason.credentialFetchingFailed
         case .noCredentialAvailable:
@@ -165,6 +167,8 @@ extension ErrorReason {
             self = .splitTunnel
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
         case .credentialFetchingFailed:
             self = .credentialFetchingFailed
         case .noCredentialAvailable:
