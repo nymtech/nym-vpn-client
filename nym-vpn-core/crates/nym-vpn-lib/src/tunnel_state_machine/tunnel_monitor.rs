@@ -643,6 +643,9 @@ impl TunnelMonitor {
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
         let (bridge_close_tx, mut bridge_close_rx) = mpsc::unbounded_channel();
 
+        // We have to stop querying for location before starting the tunnels, to prevent incorrect data.
+        self.gateway_provider.set_active_geo_location(false).await;
+
         // todo: refactor
         let (
             StartTunnelResult {
