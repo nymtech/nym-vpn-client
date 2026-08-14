@@ -186,6 +186,7 @@
 	<string name="error_gateway_unavailable_exit">Can\'t reach exit server. Try another!</string>
 	<string name="error_invalid_entry_gateway_identity">Entry server offline. Choose another and reconnect.</string>
 	<string name="error_invalid_exit_gateway_identity">Exit server offline. Choose another and reconnect.</string>
+	<string name="error_needs_device_location">Safest routing isn\'t available right now. Try again later or choose your own servers.</string>
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
