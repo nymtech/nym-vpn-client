@@ -87,6 +87,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
+import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import timber.log.Timber
@@ -412,17 +413,13 @@ class MainActivity : AppCompatActivity() {
 		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
 			lifecycleScope.launch {
 				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
-				navControllerRef?.navigate(routeAfterDeepLinkAuth(storeSucceeded)) {
-					popUpTo(Route.Splash) { inclusive = true }
-				}
+				navControllerRef?.navigateAndForgetToMain(routeAfterDeepLinkAuth(storeSucceeded))
 			}
 		} else if (host == "account" && path?.startsWith("/response") == true) {
 			lifecycleScope.launch {
 				appViewModel.handleDeepLinkAuth(uri.toString())
 				appViewModel.dismissAutologin()
-				navControllerRef?.navigate(Route.Main(autoStart = false)) {
-					popUpTo(Route.Splash) { inclusive = true }
-				}
+				navControllerRef?.navigateAndForgetToMain(Route.Main(autoStart = false))
 			}
 		}
 	}
