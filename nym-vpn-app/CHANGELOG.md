@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow marking specific server, country or region as favorite
 - Add Safest server option for entry and exit
 
+### Fixed
+
+- Handle `NeedsDeviceLocation` error state
+
 ## [2026.11.0] - 2026-07-10
 
 ### Added
