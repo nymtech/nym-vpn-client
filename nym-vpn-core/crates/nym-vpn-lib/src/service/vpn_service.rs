@@ -326,20 +326,44 @@ async fn wait_for_tunnel_teardown(
     }
 }
 
-fn forget_account_after_tunnel_teardown<RequestDisconnect, Wipe, WipeFuture>(
+/// Forget account by first calling API to unregister device (while tunnel is up),
+/// then disconnecting the tunnel, then wiping local data.
+///
+/// API calls happen while the tunnel is still up so they can route through it.
+/// If the tunnel is not connected or the unregister call fails, we proceed anyway.
+/// The local wipe always happens - failing to unregister from the server just means
+/// the device may remain registered there.
+fn forget_account_with_unregister_then_teardown<
+    TryUnregister,
+    UnregisterFuture,
+    RequestDisconnect,
+    WipeLocal,
+    WipeLocalFuture,
+>(
     tunnel_state_rx: watch::Receiver<TunnelState>,
     disconnect_timeout: Duration,
+    try_unregister: TryUnregister,
     request_disconnect: RequestDisconnect,
-    wipe: Wipe,
+    wipe_local: WipeLocal,
 ) -> impl std::future::Future<Output = Result<(), AccountCommandError>> + Send + 'static
 where
-    RequestDisconnect: FnOnce(),
-    Wipe: FnOnce() -> WipeFuture + Send + 'static,
-    WipeFuture: std::future::Future<Output = Result<(), AccountCommandError>> + Send + 'static,
+    TryUnregister: FnOnce() -> UnregisterFuture + Send + 'static,
+    UnregisterFuture: std::future::Future<Output = Result<(), AccountCommandError>> + Send + 'static,
+    RequestDisconnect: FnOnce() + Send + 'static,
+    WipeLocal: FnOnce() -> WipeLocalFuture + Send + 'static,
+    WipeLocalFuture: std::future::Future<Output = Result<(), AccountCommandError>> + Send + 'static,
 {
-    request_disconnect();
-
     async move {
+        // Step 1: Try to unregister device from the API while tunnel may still be up.
+        // This is best-effort - we log but continue on failure.
+        if let Err(err) = try_unregister().await {
+            tracing::warn!("Failed to unregister device from API: {err}; proceeding with local wipe");
+        }
+
+        // Step 2: Request tunnel disconnect
+        request_disconnect();
+
+        // Step 3: Wait for tunnel to settle
         let teardown_result = wait_for_tunnel_teardown(tunnel_state_rx, disconnect_timeout).await;
 
         if let Err(failure) = teardown_result {
@@ -348,7 +372,8 @@ where
             );
         }
 
-        let wipe_result = wipe().await;
+        // Step 4: Wipe local data
+        let wipe_result = wipe_local().await;
 
         match (teardown_result, wipe_result) {
             (Ok(()), wipe_result) => wipe_result,
@@ -2084,10 +2109,14 @@ impl NymVpnService {
         let data_dir = self.paths.network_data_dir.clone();
         let stats_control_commands_sender = self.stats_control_commands_sender.clone();
         let account_command_tx = self.account_command_tx.clone();
+        let account_command_tx_for_wipe = self.account_command_tx.clone();
 
-        let task = tokio::spawn(forget_account_after_tunnel_teardown(
+        let task = tokio::spawn(forget_account_with_unregister_then_teardown(
             self.tunnel_state_tx.subscribe(),
             VPN_DISCONNECT_TIMEOUT,
+            // Step 1: Try to unregister device from API while tunnel may still be up
+            move || async move { account_command_tx.unregister_device().await },
+            // Step 2: Request disconnect
             move || {
                 if target_state_updated {
                     send_target_state_request(
@@ -2097,6 +2126,7 @@ impl NymVpnService {
                     );
                 }
             },
+            // Step 3 (after tunnel settles): Wipe local data
             move || async move {
                 tracing::info!(
                     "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
@@ -2108,7 +2138,7 @@ impl NymVpnService {
                     .await
                     .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
-                account_command_tx.forget_account().await
+                account_command_tx_for_wipe.wipe_local_account_data().await
             },
         ))
         .fuse();
@@ -2601,14 +2631,20 @@ mod tests {
 
     async fn assert_forget_wipes_immediately(initial_state: TunnelState) {
         let (_state_tx, state_rx) = watch::channel(initial_state);
+        let unregister_count = Arc::new(AtomicUsize::new(0));
+        let unregister_count_clone = unregister_count.clone();
         let wipe_count = Arc::new(AtomicUsize::new(0));
         let wipe_count_clone = wipe_count.clone();
 
         let result = tokio::time::timeout(
             Duration::from_millis(100),
-            forget_account_after_tunnel_teardown(
+            forget_account_with_unregister_then_teardown(
                 state_rx,
                 VPN_DISCONNECT_TIMEOUT,
+                move || async move {
+                    unregister_count_clone.fetch_add(1, Ordering::SeqCst);
+                    Ok(())
+                },
                 || {},
                 move || async move {
                     wipe_count_clone.fetch_add(1, Ordering::SeqCst);
@@ -2620,6 +2656,7 @@ mod tests {
         .expect("forget account waited in an inactive tunnel state");
 
         assert_eq!(result, Ok(()));
+        assert_eq!(unregister_count.load(Ordering::SeqCst), 1);
         assert_eq!(wipe_count.load(Ordering::SeqCst), 1);
     }
 
@@ -2634,18 +2671,25 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn forget_while_connected_requests_disconnect_then_wipes_after_settling() {
+    async fn forget_while_connected_unregisters_first_then_requests_disconnect_then_wipes_after_settling(
+    ) {
         let (state_tx, state_rx) = watch::channel(connected_tunnel_state());
         let (command_sender, mut command_receiver) = mpsc::unbounded_channel();
         let (statistics_tx, _statistics_rx) = mpsc::unbounded_channel();
         let statistics_event_sender =
             StatisticsSender::new(statistics_tx, CancellationToken::new());
+        let unregister_count = Arc::new(AtomicUsize::new(0));
+        let unregister_count_clone = unregister_count.clone();
         let wipe_count = Arc::new(AtomicUsize::new(0));
         let wipe_count_clone = wipe_count.clone();
 
-        let forget = forget_account_after_tunnel_teardown(
+        let forget = forget_account_with_unregister_then_teardown(
             state_rx,
             VPN_DISCONNECT_TIMEOUT,
+            move || async move {
+                unregister_count_clone.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            },
             move || {
                 send_target_state_request(
                     &statistics_event_sender,
@@ -2659,12 +2703,19 @@ mod tests {
             },
         );
 
+        let forget_task = tokio::spawn(forget);
+        tokio::task::yield_now().await;
+
+        // Unregister should have been called, but disconnect not sent until after
+        assert_eq!(unregister_count.load(Ordering::SeqCst), 1);
+
+        // Disconnect should be sent after unregister completes
         assert!(matches!(
             command_receiver.try_recv(),
             Ok(TunnelCommand::Disconnect)
         ));
-        let forget_task = tokio::spawn(forget);
-        tokio::task::yield_now().await;
+
+        // Wipe should not have happened yet (waiting for tunnel to settle)
         assert_eq!(wipe_count.load(Ordering::SeqCst), 0);
 
         state_tx.send_replace(TunnelState::Disconnected);
@@ -2678,14 +2729,20 @@ mod tests {
         let (_state_tx, state_rx) = watch::channel(TunnelState::Disconnecting {
             after_disconnect: ActionAfterDisconnect::Nothing,
         });
+        let unregister_count = Arc::new(AtomicUsize::new(0));
+        let unregister_count_clone = unregister_count.clone();
         let wipe_count = Arc::new(AtomicUsize::new(0));
         let wipe_count_clone = wipe_count.clone();
 
         let result = tokio::time::timeout(
             Duration::from_secs(1),
-            forget_account_after_tunnel_teardown(
+            forget_account_with_unregister_then_teardown(
                 state_rx,
                 Duration::from_millis(10),
+                move || async move {
+                    unregister_count_clone.fetch_add(1, Ordering::SeqCst);
+                    Ok(())
+                },
                 || {},
                 move || async move {
                     wipe_count_clone.fetch_add(1, Ordering::SeqCst);
@@ -2702,6 +2759,7 @@ mod tests {
                 "Tunnel teardown timed out; local account data was wiped"
             ))
         );
+        assert_eq!(unregister_count.load(Ordering::SeqCst), 1);
         assert_eq!(wipe_count.load(Ordering::SeqCst), 1);
     }
 }

@@ -131,6 +131,16 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
         tracing::info!("Device has been unregistered");
     }
 
+    handle_wipe_local_account_data(shared_state).await
+}
+
+/// Wipe local account data without attempting to unregister the device from the API.
+/// Use this when the unregister has already been attempted or when only local cleanup is needed.
+pub(crate) async fn handle_wipe_local_account_data<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
+    tracing::info!("WIPING LOCAL ACCOUNT DATA");
+
     shared_state
         .credential_storage
         .reset()
@@ -191,6 +201,19 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
         )));
     }
 
+    Ok(())
+}
+
+/// Try to unregister the device from the API. This is best-effort and logs errors
+/// but returns Ok(()) even on failure to allow the caller to proceed with local cleanup.
+pub(crate) async fn handle_try_unregister_device<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
+    if let Err(err) = handle_unregister_device(shared_state).await {
+        tracing::error!("Failed to unregister device: {err}");
+    } else {
+        tracing::info!("Device has been unregistered");
+    }
     Ok(())
 }
 

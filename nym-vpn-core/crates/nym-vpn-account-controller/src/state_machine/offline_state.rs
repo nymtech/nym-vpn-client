@@ -68,6 +68,20 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                             NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
+                    AccountCommand::UnregisterDevice(return_sender) => {
+                        // Best-effort: we're offline, can't reach the API anyway
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::WipeLocalAccountData(return_sender) => {
+                        let res = handler::handle_wipe_local_account_data(shared_state).await;
+                        let error = res.is_err();
+                        return_sender.send(res);
+                        return if error {
+                            NextAccountControllerState::SameState(self)
+                        } else {
+                            NextAccountControllerState::NewState(LoggedOutState::enter())
+                        }
+                    },
                     AccountCommand::LinkAccount(return_sender, _) => return_no_connectivity(return_sender),
                     AccountCommand::RotateKeys(return_sender) => {
                         return_sender.send(handler::handle_rotate_keys(shared_state).await)

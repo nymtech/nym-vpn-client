@@ -34,6 +34,12 @@ pub enum AccountCommand {
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
+    /// Unregister the device from the API (best-effort, silently continues on failure)
+    UnregisterDevice(ReturnSender<(), AccountCommandError>),
+
+    /// Wipe local account data without attempting to unregister from the API
+    WipeLocalAccountData(ReturnSender<(), AccountCommandError>),
+
     /// Link another account with the currently logged-on API account
     LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
@@ -72,6 +78,8 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::UnregisterDevice(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::WipeLocalAccountData(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),

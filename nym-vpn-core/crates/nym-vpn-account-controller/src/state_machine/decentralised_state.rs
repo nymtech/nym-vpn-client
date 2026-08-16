@@ -68,6 +68,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             return NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
+                    AccountCommand::UnregisterDevice(return_sender) => {
+                        return_sender.send(handler::handle_try_unregister_device(shared_state).await);
+                    },
+                    AccountCommand::WipeLocalAccountData(return_sender) => {
+                        let res = handler::handle_wipe_local_account_data(shared_state).await;
+                        let error = res.is_err();
+                        return_sender.send(res);
+                        if !error {
+                            return NextAccountControllerState::NewState(LoggedOutState::enter())
+                        }
+                    },
                     AccountCommand::RotateKeys(return_sender) => {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);

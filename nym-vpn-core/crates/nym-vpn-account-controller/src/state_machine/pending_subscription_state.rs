@@ -80,6 +80,19 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                    AccountCommand::UnregisterDevice(return_sender) => {
+                        return_sender.send(handler::handle_try_unregister_device(shared_state).await);
+                    },
+                    AccountCommand::WipeLocalAccountData(return_sender) => {
+                        let res = handler::handle_wipe_local_account_data(shared_state).await;
+                        let error = res.is_err();
+                        return_sender.send(res);
+                        if error {
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                        } else {
+                            return NextAccountControllerState::NewState(LoggedOutState::enter());
+                        }
+                    },
                     AccountCommand::LinkAccount(return_sender, privy_account) => {
                         let res = handler::handle_link_account(shared_state, privy_account).await;
                         return_sender.send(res);

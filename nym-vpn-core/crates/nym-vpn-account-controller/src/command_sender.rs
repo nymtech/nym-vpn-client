@@ -125,6 +125,28 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    /// Try to unregister the device from the API. This is best-effort and returns Ok
+    /// even if the unregister fails, allowing the caller to proceed with local cleanup.
+    #[instrument(skip(self))]
+    pub async fn unregister_device(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::UnregisterDevice(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    /// Wipe local account data without attempting to unregister from the API.
+    /// Use this when the unregister has already been attempted separately.
+    #[instrument(skip(self))]
+    pub async fn wipe_local_account_data(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::WipeLocalAccountData(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     #[instrument(skip(self))]
     pub async fn rotate_keys(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
