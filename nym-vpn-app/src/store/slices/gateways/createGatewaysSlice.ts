@@ -57,26 +57,30 @@ export const createGatewaysSlice: StateCreator<
     mixnet: { entry: [], exit: [] },
     wg: { entry: [], exit: [] },
   },
-  recentsLoading: false,
-  recentsError: null,
+  recentsLoading: { mixnet: false, wg: false },
+  recentsError: { mixnet: null, wg: null },
 
   fetchRecents: async (vpnMode) => {
-    if (get().recentsLoading) return;
+    if (get().recentsLoading[vpnMode]) return;
 
-    set({ recentsLoading: true });
+    set((s) => ({ recentsLoading: { ...s.recentsLoading, [vpnMode]: true } }));
     try {
       const recents = await invoke<RecentGateways>('get_recent_gateways', {
         vpnMode,
       });
       set((s) => ({
         recents: { ...s.recents, [vpnMode]: recents },
-        recentsError: null,
+        recentsError: { ...s.recentsError, [vpnMode]: null },
       }));
     } catch (e) {
       console.error('failed to get recent gateways', e);
-      set({ recentsError: e as BackendError });
+      set((s) => ({
+        recentsError: { ...s.recentsError, [vpnMode]: e as BackendError },
+      }));
     } finally {
-      set({ recentsLoading: false });
+      set((s) => ({
+        recentsLoading: { ...s.recentsLoading, [vpnMode]: false },
+      }));
     }
   },
 

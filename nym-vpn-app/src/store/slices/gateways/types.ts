@@ -40,8 +40,8 @@ export type RecentsState = {
    * gateway they just used.
    */
   recents: Record<VpnMode, RecentGateways>;
-  recentsLoading: boolean;
-  recentsError: AppError | null;
+  recentsLoading: Record<VpnMode, boolean>;
+  recentsError: Record<VpnMode, AppError | null>;
 };
 
 export type GatewaysState = GatewayListsState & RecentsState;

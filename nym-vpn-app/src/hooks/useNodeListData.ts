@@ -192,8 +192,8 @@ export function useNodeListData(hop: NodeHop) {
       mxExitError: s.mxExitError,
       wgError: s.wgError,
       recents: s.recents,
-      recentsLoading: s.recentsLoading,
-      recentsError: s.recentsError,
+      recentsLoading: s.recentsLoading[s.vpnMode],
+      recentsError: s.recentsError[s.vpnMode],
     })),
   );
 
