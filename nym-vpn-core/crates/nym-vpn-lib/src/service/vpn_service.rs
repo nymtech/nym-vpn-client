@@ -277,6 +277,7 @@ pub struct NymVpnServiceParameters {
     pub sentry_enabled: bool,
     pub user_agent: UserAgent,
     pub service_storage_type: ServiceConfigStorageType,
+    pub endpoint_health: Arc<nym_endpoint_health::EndpointHealthTracker>,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
@@ -403,6 +404,12 @@ pub struct NymVpnService {
 
     #[cfg(target_os = "linux")]
     split_tunnel_pid_manager: nym_split_tunnel::PidManager,
+
+    // Tracks per-endpoint health for nyxd/nym-api rotation.
+    endpoint_health: Arc<nym_endpoint_health::EndpointHealthTracker>,
+
+    // Endpoint prober join handle
+    endpoint_prober_join_handle: JoinHandle<()>,
 }
 
 impl NymVpnService {
@@ -541,7 +548,32 @@ impl NymVpnService {
         .map_err(Error::CreateApiClient)?
         .with_skew_manager(skew_manager.clone());
 
-        let nyxd_client = NyxdClient::new(&network_env);
+        let endpoint_health = parameters.endpoint_health.clone();
+        endpoint_health.register(
+            nym_endpoint_health::EndpointClass::NyxdRpc,
+            network_env.nyxd_urls(),
+        );
+        let nyxd_client = NyxdClient::new(&network_env, endpoint_health.clone());
+
+        {
+            let endpoint_health = endpoint_health.clone();
+            let network_env = *network_env.clone();
+            tokio::spawn(async move {
+                match nym_vpn_account_controller::discover_ecash_signer_apis(
+                    &network_env,
+                    &endpoint_health,
+                )
+                .await
+                {
+                    Ok(count) => {
+                        tracing::info!("registered {count} on-chain nym-api signer endpoints")
+                    }
+                    Err(err) => tracing::warn!(
+                        "nym-api signer discovery failed (will retry on network refresh): {err}"
+                    ),
+                }
+            });
+        }
 
         let account_controller = AccountController::new(
             nym_vpn_api_client.clone(),
@@ -660,6 +692,13 @@ impl NymVpnService {
             network_cache,
             discovery_refresher_command_rx,
             discovery_refresher_event_tx,
+            connectivity_handle.clone(),
+            services_shutdown_token.child_token(),
+        );
+
+        let endpoint_prober_join_handle = nym_endpoint_health::EndpointProber::spawn(
+            endpoint_health.clone(),
+            network_env.expected_chain_id(),
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
         );
@@ -795,6 +834,8 @@ impl NymVpnService {
             recents_manager,
             #[cfg(target_os = "linux")]
             split_tunnel_pid_manager,
+            endpoint_health,
+            endpoint_prober_join_handle,
         })
     }
 
@@ -877,6 +918,10 @@ impl NymVpnService {
 
         if let Err(e) = self.discovery_refresher_join_handle.await {
             tracing::error!("Failed to join on discovery refresher handle: {e}");
+        }
+
+        if let Err(e) = self.endpoint_prober_join_handle.await {
+            tracing::error!("Failed to join on endpoint prober handle: {e}");
         }
 
         if let Err(e) = self.topology_service_join_handle.await {
@@ -1007,12 +1052,38 @@ impl NymVpnService {
         tracing::info!("Network environment updated");
         let _ = self.network_tx.send_replace(new_network.clone());
 
+        self.endpoint_health.register(
+            nym_endpoint_health::EndpointClass::NyxdRpc,
+            new_network.nyxd_urls(),
+        );
+
+        {
+            let endpoint_health = self.endpoint_health.clone();
+            let network_env = *new_network.clone();
+            tokio::spawn(async move {
+                match nym_vpn_account_controller::discover_ecash_signer_apis(
+                    &network_env,
+                    &endpoint_health,
+                )
+                .await
+                {
+                    Ok(count) => {
+                        tracing::info!("registered {count} on-chain nym-api signer endpoints")
+                    }
+                    Err(err) => tracing::warn!(
+                        "nym-api signer discovery failed (will retry on network refresh): {err}"
+                    ),
+                }
+            });
+        }
+
         // Update gateway cache and topology cache for new environment
         crate::cache_refresh::update_caches_for_network(
             &new_network,
             &self.gateway_cache_handle,
             &self.topology_service_handle,
             &self.user_agent,
+            Some(&self.endpoint_health),
         )
         .await;
     }

@@ -103,7 +103,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_envs_default_same_as_fetched() {
-        let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None, None).unwrap();
         let default_envs = RegisteredNetworks::default();
         let fetched_envs = fetcher.fetch_registered_networks().await.unwrap();
 

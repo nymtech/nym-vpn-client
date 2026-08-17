@@ -22,9 +22,11 @@ use std::{
     net::SocketAddr,
     path::{Path, PathBuf},
     str::FromStr,
+    sync::Arc,
     time::Duration,
 };
 
+use nym_endpoint_health::EndpointHealthTracker;
 use serde::{Deserialize, Serialize};
 use time::UtcDateTime;
 
@@ -33,7 +35,7 @@ pub use discovery::Discovery;
 pub use discovery_refresher::{DiscoveryRefresher, DiscoveryRefresherCommand};
 pub use envs::RegisteredNetworks;
 pub use feature_flags::{FeatureFlags, FlagValue};
-pub use fetcher::Fetcher;
+pub use fetcher::{Fetcher, merge_and_order_api_urls_by_health, order_api_urls_by_health};
 pub use nym_network_defaults::NymNetworkDetails;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
@@ -62,6 +64,7 @@ pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
 pub struct Network {
     pub nym_network: NymNetworkDetails,
     pub nyxd_url: url::Url,
+    pub nyxd_urls: Vec<url::Url>,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
@@ -91,16 +94,23 @@ impl Network {
 
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration.clone();
-        let endpoint = network_details
+        let mut nyxd_urls: Vec<url::Url> = network_details
             .endpoints
-            .first()
-            .ok_or(Error::NoEndpointsFound)?;
-        let nyxd_url = endpoint.nyxd_url();
+            .iter()
+            .map(|endpoint| endpoint.nyxd_url())
+            .collect();
+        for url in discovery.nyxd_urls() {
+            if !nyxd_urls.contains(&url) {
+                nyxd_urls.push(url);
+            }
+        }
+        let nyxd_url = nyxd_urls.first().cloned().ok_or(Error::NoEndpointsFound)?;
         let nym_vpn_network = NymVpnNetwork::from(discovery);
 
         Ok(Self {
             nym_network: network_details,
             nyxd_url,
+            nyxd_urls,
             nym_vpn_network,
             feature_flags,
             system_configuration,
@@ -118,6 +128,15 @@ impl Network {
 
     pub fn nyxd_url(&self) -> url::Url {
         self.nyxd_url.clone()
+    }
+
+    pub fn nyxd_urls(&self) -> Vec<url::Url> {
+        self.nyxd_urls.clone()
+    }
+
+    /// Chain-id the nyxd pool must serve; used to reject endpoints on the wrong chain.
+    pub fn expected_chain_id(&self) -> Option<String> {
+        (self.nym_network.network_name == "mainnet").then(|| "nyx".to_string())
     }
 
     pub fn nym_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
@@ -230,6 +249,7 @@ impl NetworkCache {
         cache_dir: PathBuf,
         network_name: &str,
         user_agent: Option<UserAgent>,
+        tracker: Option<Arc<EndpointHealthTracker>>,
     ) -> Result<Self> {
         Self::clean_up_change_introduced_in_pr4226(&cache_dir).await;
 
@@ -248,7 +268,7 @@ impl NetworkCache {
                     }
                 })?;
 
-        let fetcher = Fetcher::new(persistent_discovery.value().clone(), user_agent)?;
+        let fetcher = Fetcher::new(persistent_discovery.value().clone(), user_agent, tracker)?;
 
         Ok(Self {
             cache_dir,
@@ -531,9 +551,10 @@ mod tests {
 
         let _ = tokio::fs::File::create(cache_dir.path().join("test.txt")).await;
 
-        let _network_cache = NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None)
-            .await
-            .unwrap();
+        let _network_cache =
+            NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None, None)
+                .await
+                .unwrap();
 
         // ensure network cache removed old directories
         for env in envs {
@@ -552,5 +573,23 @@ mod tests {
                 .await
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn mainnet_network_has_deduped_nyxd_pool_with_primary_first() {
+        let network = Network::mainnet_default().unwrap();
+        let urls = network.nyxd_urls();
+        // network_details endpoint (rpc.nymtech.net) + 3 curated extras, deduped
+        assert_eq!(urls.len(), 4);
+        assert_eq!(urls[0].as_str(), "https://rpc.nymtech.net/");
+        assert_eq!(network.nyxd_url(), urls[0]);
+        let unique: std::collections::HashSet<_> = urls.iter().collect();
+        assert_eq!(unique.len(), urls.len());
+    }
+
+    #[test]
+    fn expected_chain_id_only_for_mainnet() {
+        let network = Network::mainnet_default().unwrap();
+        assert_eq!(network.expected_chain_id().as_deref(), Some("nyx"));
     }
 }

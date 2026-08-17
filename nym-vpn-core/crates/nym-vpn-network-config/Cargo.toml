@@ -15,6 +15,7 @@ workspace = true
 thiserror.workspace = true
 itertools.workspace = true
 nym-common.workspace = true
+nym-endpoint-health.workspace = true
 nym-http-api-client.workspace = true
 nym-network-defaults.workspace = true
 nym-sdk.workspace = true

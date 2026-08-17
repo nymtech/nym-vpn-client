@@ -3,19 +3,27 @@
 
 //! Helper functions for refreshing caches when network environment changes.
 
+use std::sync::Arc;
+
+use nym_endpoint_health::EndpointHealthTracker;
 use nym_gateway_directory::{Config as GatewayConfig, GatewayClient};
 use nym_http_api_client::UserAgent;
-use nym_vpn_network_config::Network;
+use nym_vpn_network_config::{Network, merge_and_order_api_urls_by_health};
 
 use crate::{VpnTopologyServiceHandle, gateway_directory::GatewayCacheHandle};
 
 /// Update gateway cache and topology cache for a new network environment.
 /// This is called when the discovery refresher detects an environment change.
+///
+/// `endpoint_health` orders the nym-api URL list by health before the
+/// gateway-directory client is built from it; pass `None` only for call
+/// paths that genuinely have no tracker available.
 pub async fn update_caches_for_network(
     network: &Network,
     gateway_cache_handle: &GatewayCacheHandle,
     topology_service_handle: &VpnTopologyServiceHandle,
     user_agent: &UserAgent,
+    endpoint_health: Option<&Arc<EndpointHealthTracker>>,
 ) {
     let network_name = &network.nym_network.network_name;
     tracing::info!(
@@ -37,7 +45,10 @@ pub async fn update_caches_for_network(
 
     // Create new gateway client for the new environment
     let nyxd_url = network.nyxd_url();
-    let nym_api_urls = network.nym_api_urls().unwrap_or_default();
+    let mut nym_api_urls = network.nym_api_urls().unwrap_or_default();
+    if let Some(tracker) = endpoint_health {
+        nym_api_urls = merge_and_order_api_urls_by_health(nym_api_urls, tracker);
+    }
     let nym_vpn_api_urls = network.nym_vpn_api_urls().unwrap_or_default();
 
     // Validate that we have the necessary URLs

@@ -121,10 +121,13 @@ async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
+    let endpoint_health = std::sync::Arc::new(nym_endpoint_health::EndpointHealthTracker::new());
+
     let network_cache = crate::environment::setup_environment(
         &run_params.paths.config_dir,
         &service_state.global_config.network_name,
         run_params.user_agent.clone(),
+        endpoint_health.clone(),
     )
     .await
     .or_else(|err| {
@@ -145,6 +148,7 @@ async fn run_service() -> anyhow::Result<()> {
         run_params,
         network_cache,
         service_state.log_file_remover_handle,
+        endpoint_health,
         shutdown_token.child_token(),
     )
     .await

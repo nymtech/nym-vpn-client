@@ -21,10 +21,12 @@ bs58.workspace = true
 pbkdf2.workspace = true
 futures.workspace = true
 hkdf.workspace = true
+nym-coconut-dkg-common.workspace = true
 nym-common.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bandwidth-fetcher.workspace = true
 nym-crypto = { workspace = true, features = ["asymmetric", "rand"] }
+nym-endpoint-health.workspace = true
 nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-sdk.workspace = true

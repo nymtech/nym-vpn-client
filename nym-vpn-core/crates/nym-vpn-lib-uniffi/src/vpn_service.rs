@@ -95,9 +95,14 @@ impl NymVpnService {
                     config.config_dir.to_path_buf(),
                     &environment.current().nym_network.network_name,
                     Some(config.user_agent.clone().into()),
+                    None,
                 )
                 .await
                 .map_err(VpnError::internal)?;
+
+                // Mobile platforms don't share a tracker with a vpnd process, so each service
+                // instance gets its own.
+                let endpoint_health = Arc::new(nym_endpoint_health::EndpointHealthTracker::new());
 
                 let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
                     paths,
@@ -105,6 +110,7 @@ impl NymVpnService {
                     sentry_enabled: crate::logging::is_sentry_enabled(),
                     user_agent: config.user_agent.clone().into(),
                     service_storage_type,
+                    endpoint_health,
                     #[cfg(any(target_os = "android", target_os = "ios"))]
                     tun_provider,
                     #[cfg(target_os = "android")]

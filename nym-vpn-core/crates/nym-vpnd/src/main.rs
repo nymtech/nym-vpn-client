@@ -174,10 +174,13 @@ async fn run_standalone(
         .await
         .context("failed to create base directories")?;
 
+    let endpoint_health = std::sync::Arc::new(nym_endpoint_health::EndpointHealthTracker::new());
+
     let network_cache = environment::setup_environment(
         &parameters.paths.config_dir,
         &global_config_file.network_name,
         parameters.user_agent.clone(),
+        endpoint_health.clone(),
     )
     .await?;
 
@@ -187,6 +190,7 @@ async fn run_standalone(
         parameters,
         network_cache,
         log_file_remover_handle,
+        endpoint_health,
         shutdown_token,
     )
     .await?;
@@ -204,6 +208,7 @@ async fn spawn_vpn_service(
     parameters: RunParameters,
     network_cache: NetworkCache,
     log_file_remover_handle: Option<LogFileRemoverHandle>,
+    endpoint_health: std::sync::Arc<nym_endpoint_health::EndpointHealthTracker>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<JoinHandle<()>> {
     let vpn_service_params = NymVpnServiceParameters {
@@ -212,6 +217,7 @@ async fn spawn_vpn_service(
         sentry_enabled: parameters.sentry_enabled,
         user_agent: parameters.user_agent,
         service_storage_type: ServiceConfigStorageType::Persistent,
+        endpoint_health,
     };
 
     let command_shutdown_token = CancellationToken::new();

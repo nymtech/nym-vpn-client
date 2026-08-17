@@ -26,6 +26,7 @@ nym-bridges-types = { workspace = true, features = [
     "uniffi-bindings",
     "serde",
 ] }
+nym-endpoint-health.workspace = true
 nym-gateway-directory.workspace = true
 nym-http-api-client.workspace = true
 nym-offline-monitor.workspace = true
