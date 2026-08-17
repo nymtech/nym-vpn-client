@@ -277,7 +277,6 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.gateway_cache
             .replace_gateway_client(gateway_client)
             .ok();
-        self.gateway_cache.refresh_all().await.ok();
     }
 
     pub fn set_gateway_cache_paused(&self, paused: bool) {
