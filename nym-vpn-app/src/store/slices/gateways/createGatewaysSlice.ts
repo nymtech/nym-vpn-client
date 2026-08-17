@@ -68,17 +68,17 @@ export const createGatewaysSlice: StateCreator<
       const recents = await invoke<RecentGateways>('get_recent_gateways', {
         vpnMode,
       });
+      const next: RecentGateways = {
+        entry: recents?.entry ?? [],
+        exit: recents?.exit ?? [],
+      };
       set((s) => ({
-        // Normalised on the way in: consumers index straight into
-        // `recents[mode][hop]`, so a payload without both hops would take the
-        // whole node list screen down rather than just emptying recents.
-        recents: {
-          ...s.recents,
-          [vpnMode]: {
-            entry: recents?.entry ?? [],
-            exit: recents?.exit ?? [],
-          },
-        },
+        // This runs on every visit to the node list and usually returns the
+        // same gateways. `recents` is selected whole, so handing back a new
+        // object re-renders every consumer; reuse the old one when it matches.
+        recents: dequal(next, s.recents[vpnMode])
+          ? s.recents
+          : { ...s.recents, [vpnMode]: next },
         recentsError: { ...s.recentsError, [vpnMode]: null },
       }));
     } catch (e) {

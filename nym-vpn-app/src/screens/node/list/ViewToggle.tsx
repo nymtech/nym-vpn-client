@@ -34,7 +34,12 @@ function ViewToggle({
       data-testid="node-list-view-toggle"
     >
       {/*
-        The buttons are `flex-1`, so each is (row - padding - gaps) / count wide.
+        The buttons are `flex-1` and `min-w-0`, so each is exactly
+        (row - padding - gaps) / count wide. The `min-w-0` is load-bearing: a
+        flex item otherwise refuses to shrink below its own label, and buttons
+        wider than an equal share overflow the row and leave this indicator —
+        which is sized off the container — pointing between them.
+
         The percentage in `translateX` resolves against the indicator's own width
         rather than the container's, so stepping by that width plus one gap lands
         it on the nth button at any count.
@@ -56,7 +61,7 @@ function ViewToggle({
             aria-pressed={isSelected}
             data-testid={`node-list-view-${item.id}`}
             className={clsx(
-              'relative z-10 flex flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-sm font-bold transition-colors',
+              'relative z-10 flex min-w-0 flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-sm font-bold transition-colors',
               isSelected
                 ? 'text-primary'
                 : 'text-text-secondary hover:bg-surface-elev',
@@ -65,9 +70,9 @@ function ViewToggle({
             <MsIcon
               icon={item.icon}
               filled={item.id === 'favorites' && isSelected}
-              className="h-4 w-auto text-base! leading-none"
+              className="h-4 w-auto shrink-0 text-base! leading-none"
             />
-            <span>{t(item.label)}</span>
+            <span className="truncate">{t(item.label)}</span>
           </button>
         );
       })}

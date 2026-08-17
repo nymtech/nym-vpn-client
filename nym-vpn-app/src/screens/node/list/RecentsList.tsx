@@ -56,7 +56,10 @@ const RecentsList = memo(function RecentsList({
   }
 
   return (
-    <div className="pt-2" data-testid="recents-list">
+    <div
+      className="divide-surface-hair divide-y pt-2"
+      data-testid="recents-list"
+    >
       {gateways.map((gateway) => (
         <PanelContent animate key={gateway.id}>
           <GatewayItem

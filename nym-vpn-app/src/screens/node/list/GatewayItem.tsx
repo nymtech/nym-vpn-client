@@ -87,7 +87,7 @@ const GatewayItem = ({
         'hover:bg-surface-hair',
         'last:border-illustration-accent',
         'group-last/region:last:rounded-b-2xl',
-        'border-surface-hair border-b',
+        'border-surface-hair border-b last:border-b-0',
       )}
     >
       <Button
