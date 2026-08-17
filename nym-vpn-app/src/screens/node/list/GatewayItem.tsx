@@ -81,6 +81,7 @@ const GatewayItem = ({
   return (
     <div
       ref={scrollToGatewayRef}
+      data-testid="gateway-row"
       className={clsx(
         'flex flex-row items-center justify-between p-2 select-none',
         'hover:bg-surface-hair',

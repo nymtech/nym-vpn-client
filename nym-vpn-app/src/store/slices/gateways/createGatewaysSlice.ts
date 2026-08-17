@@ -69,7 +69,16 @@ export const createGatewaysSlice: StateCreator<
         vpnMode,
       });
       set((s) => ({
-        recents: { ...s.recents, [vpnMode]: recents },
+        // Normalised on the way in: consumers index straight into
+        // `recents[mode][hop]`, so a payload without both hops would take the
+        // whole node list screen down rather than just emptying recents.
+        recents: {
+          ...s.recents,
+          [vpnMode]: {
+            entry: recents?.entry ?? [],
+            exit: recents?.exit ?? [],
+          },
+        },
         recentsError: { ...s.recentsError, [vpnMode]: null },
       }));
     } catch (e) {

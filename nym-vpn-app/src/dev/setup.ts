@@ -5,14 +5,17 @@ import {
   Cli,
   DbKey,
   FeatureFlags,
+  Gateway,
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
+  RecentGateways,
   TAccountMode,
   TAccountState,
   TTunnelState,
   UiTheme,
   UpdateMetadata,
+  VpnMode,
   VpndStatus,
 } from '../types';
 import { AccountStateEvent, TunnelStateEvent } from '../constants';
@@ -57,6 +60,36 @@ const featureFlags: FeatureFlags = {
   quic: true,
   domainFronting: true,
   zknymCredential: true,
+};
+
+/**
+ * Takes the first gateway of each named country, in the order given.
+ *
+ * Recents reuse the gateways the list already serves so selecting one behaves
+ * the same from either view, and the argument order stands in for the daemon's
+ * most-recent-first ordering.
+ */
+function pickGateways(
+  source: GatewaysByCountry[],
+  countryCodes: string[],
+): Gateway[] {
+  return countryCodes.flatMap((code) => {
+    const country = source.find((c) => c.country.code === code);
+    return country?.gateways[0] ? [country.gateways[0]] : [];
+  });
+}
+
+// The mixnet lists are empty fixtures, so mixnet recents come out empty too —
+// which is how the empty state gets exercised in dev-browser mode.
+const recents: Record<VpnMode, RecentGateways> = {
+  wg: {
+    entry: pickGateways(wgGwJson as GatewaysByCountry[], ['US', 'FR', 'RU']),
+    exit: pickGateways(wgGwJson as GatewaysByCountry[], ['RU', 'US']),
+  },
+  mixnet: {
+    entry: pickGateways(mxEntryGwJson, ['FR']),
+    exit: pickGateways(mxExitGwJson, ['US']),
+  },
 };
 
 export function mockTauriIPC() {
@@ -125,6 +158,12 @@ export function mockTauriIPC() {
               return;
           }
         });
+      }
+
+      if (cmd === 'get_recent_gateways') {
+        return new Promise<RecentGateways>((resolve) =>
+          resolve(recents[(args as ArgsObj<VpnMode>).vpnMode]),
+        );
       }
 
       if (cmd === 'db_get') {
