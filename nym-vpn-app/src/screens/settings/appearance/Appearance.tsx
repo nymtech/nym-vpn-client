@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { routes } from '../../../router';
-import { PageAnim, SettingsMenuCard } from '../../../ui';
+import { PageAnim } from '../../../ui';
+import SettingsGroup from '../SettingsGroup';
 
 function Appearance() {
   const navigate = useNavigate();
@@ -9,17 +10,21 @@ function Appearance() {
 
   return (
     <PageAnim className="mt-2 flex h-full flex-col gap-6">
-      <SettingsMenuCard
-        title={t('language', { ns: 'common' })}
-        onClick={() => navigate(routes.lang)}
-        leadingIcon="translate"
-        trailingIcon="arrow_right"
-      />
-      <SettingsMenuCard
-        title={t('display-theme')}
-        onClick={() => navigate(routes.display)}
-        leadingIcon="contrast"
-        trailingIcon="arrow_right"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('language', { ns: 'common' }),
+            leadingIcon: 'translate',
+            onClick: () => navigate(routes.lang),
+            trailingIcon: 'arrow_right',
+          },
+          {
+            title: t('display-theme'),
+            leadingIcon: 'contrast',
+            onClick: () => navigate(routes.display),
+            trailingIcon: 'arrow_right',
+          },
+        ]}
       />
     </PageAnim>
   );
