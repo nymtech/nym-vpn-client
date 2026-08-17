@@ -81,11 +81,12 @@ This package contains the nym-vpnd daemon binary, which runs as a background ser
 End-users should use either the CLI client, nym-vpnc, or the GUI client, nym-vpn-app.'''
 maintainer-scripts = "linux/scripts"
 recommends = "nym-vpnc"
-depends = "$auto, policykit-1 | polkit | polkitd"
+depends = "$auto, adduser, policykit-1 | polkit | polkitd"
 assets = [
     "$auto",
     { source = "target/release/nym-exclude", dest = "usr/bin/nym-exclude", mode = "755" },
     { source = "target/release/nym-socks5-proxy", dest = "usr/bin/nym-socks5-proxy", mode = "755" },
+    { source = ".pkg/sysusers.d/nym-vpn.conf", dest = "usr/lib/sysusers.d/nym-vpn.conf", mode = "644" },
 ]
 revision = ""
 

@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { useLang } from '../../../../hooks';
 import { LngTag, languages } from '../../../../i18n';
 import { kvGet } from '../../../../kvStore';
-import { PageAnim, SettingsMenuCard } from '../../../../ui';
+import { PageAnim } from '../../../../ui';
 import { TranslationHelpUrl } from '../../../../constants';
+import SettingsGroup from '../../SettingsGroup';
 
 function Lang() {
   const { t, i18n } = useTranslation();
@@ -40,12 +41,15 @@ function Lang() {
           'bg-surface-bg sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
         )}
       >
-        <SettingsMenuCard
-          title={t('support.help.title', { ns: 'settings' })}
-          onClick={() => openUrl(TranslationHelpUrl)}
-          description={t('support.help.description', { ns: 'settings' })}
-          leadingIcon="language"
-          trailingIcon="open_in_new"
+        <SettingsGroup
+          settings={[
+            {
+              title: t('support.help.title', { ns: 'settings' }),
+              leadingIcon: 'language',
+              onClick: () => openUrl(TranslationHelpUrl),
+              trailingIcon: 'open_in_new',
+            },
+          ]}
         />
       </div>
 
@@ -91,9 +95,9 @@ function Lang() {
                 'flex w-full flex-row items-center justify-between',
                 'hover:bg-text-secondary/10 dark:hover:bg-text-tertiary/10',
                 'cursor-default rounded-lg px-3 py-1 transition duration-75',
-                !isSystemLang &&
-                  i18n.language === lang.code &&
-                  'border-brand-primary border',
+                !isSystemLang && i18n.language === lang.code
+                  ? 'border-brand-primary border'
+                  : 'border border-transparent',
               ])}
               onClick={() => handleLangSelect(lang.code)}
               data-testid={`language-button-${lang.code}`}

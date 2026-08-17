@@ -7,7 +7,6 @@ use nym_gateway_directory::{Error, GatewayCacheHandle, GatewayClient, GatewayLis
 pub trait GatewayCache: Clone + Send + Sync + 'static {
     async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList, Error>;
     fn replace_gateway_client(&self, gateway_client: GatewayClient) -> Result<(), Error>;
-    async fn refresh_all(&self) -> Result<(), Error>;
     fn set_paused(&self, paused: bool) -> Result<(), Error>;
 }
 
@@ -19,10 +18,6 @@ impl GatewayCache for GatewayCacheHandle {
 
     fn replace_gateway_client(&self, gateway_client: GatewayClient) -> Result<(), Error> {
         self.replace_gateway_client(gateway_client)
-    }
-
-    async fn refresh_all(&self) -> Result<(), Error> {
-        self.refresh_all().await
     }
 
     fn set_paused(&self, paused: bool) -> Result<(), Error> {
@@ -79,10 +74,6 @@ pub mod tests {
         }
 
         fn replace_gateway_client(&self, _gateway_client: GatewayClient) -> Result<(), Error> {
-            Ok(())
-        }
-
-        async fn refresh_all(&self) -> Result<(), Error> {
             Ok(())
         }
 

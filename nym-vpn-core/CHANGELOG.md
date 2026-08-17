@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006)
 - Persist gateway list to disk, seeded from a built-in list (https://github.com/nymtech/nym-vpn-client/pull/6015)
 - If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052) 
+- [Linux] Authenticate also via UNIX group "nym-vpn" membership, or root (https://github.com/nymtech/nym-vpn-client/pull/6100)
 
 ### Changed
 

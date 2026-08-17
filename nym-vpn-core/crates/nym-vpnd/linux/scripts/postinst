@@ -4,6 +4,13 @@ set -e
 
 if [ "$1" = "configure" ] ; then
     chmod u+s /usr/bin/nym-exclude
+    
+    if command -v systemd-sysusers >/dev/null 2>&1; then
+      systemd-sysusers /usr/lib/sysusers.d/nym-vpn.conf
+    elif ! getent group nym-vpn >/dev/null; then
+      addgroup --system nym-vpn
+    fi
+
 fi
 
 #DEBHELPER#
