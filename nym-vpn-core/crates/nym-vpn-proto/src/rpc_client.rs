@@ -1066,7 +1066,14 @@ pub enum Error {
     #[error("Failed to parse rpc response: {0}")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
 
-    #[error("Authentication is required to access the daemon")]
+    #[cfg(target_os = "linux")]
+    #[error(
+        "Authentication is required to access the daemon. Consider adding your user to the nym-vpn group: usermod -aG nym-vpn \"$USER\" (needs root permissions)"
+    )]
+    AuthenticationRequired,
+
+    #[cfg(not(target_os = "linux"))]
+    #[error("Authentication is required to access the daemon.")]
     AuthenticationRequired,
 }
 
