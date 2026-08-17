@@ -19,7 +19,12 @@ type GatewayRowProps = {
   node: NodeHop;
   vpnMode: VpnMode;
   quicLabel: boolean;
-  inSearchResult?: boolean;
+  /**
+   * Show the country (and region, where applicable) alongside the city. Needed
+   * wherever a row is shown outside its country grouping — search results and
+   * the recents list — since nothing else supplies that context.
+   */
+  fullLocation?: boolean;
 };
 
 const GatewayItem = ({
@@ -29,7 +34,7 @@ const GatewayItem = ({
   onSelect,
   onNodeDetails,
   quicLabel,
-  inSearchResult,
+  fullLocation,
 }: GatewayRowProps) => {
   const { exit: exitNodeList, entry: entryNodeList } = useNodeListState();
   const focused =
@@ -49,7 +54,7 @@ const GatewayItem = ({
   };
 
   const location = () => {
-    if (inSearchResult) {
+    if (fullLocation) {
       const countryName =
         getCountryName(gateway.country.code) || gateway.country.name;
       if (countriesWithRegions.includes(gateway.country.code)) {
@@ -81,7 +86,7 @@ const GatewayItem = ({
         'hover:bg-surface-hair',
         'last:border-illustration-accent',
         'group-last/region:last:rounded-b-2xl',
-        'border-surface-hair border-b last:border-b-0',
+        'border-surface-hair border-b',
       )}
     >
       <Button

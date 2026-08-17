@@ -5,8 +5,14 @@ import { ListView } from '../../../store/nodeListState';
 
 const VIEWS = [
   { id: 'favorites', icon: 'star', label: 'favorites.tab-favorites' },
+  { id: 'recents', icon: 'history', label: 'favorites.tab-recents' },
   { id: 'all', icon: 'format_list_bulleted', label: 'favorites.tab-all' },
 ] as const;
+
+// Must match the container's `gap-2` and `p-0.5` for the indicator to line up
+// with the buttons it tracks.
+const GAP = '0.5rem';
+const PADDING = '0.25rem'; // 0.125rem on each side
 
 function ViewToggle({
   view,
@@ -17,15 +23,27 @@ function ViewToggle({
 }) {
   const { t } = useTranslation('node-location');
 
+  const selectedIndex = Math.max(
+    0,
+    VIEWS.findIndex((item) => item.id === view),
+  );
+
   return (
     <div
       className="bg-surface-bg relative flex items-center gap-2 rounded-full p-0.5"
       data-testid="node-list-view-toggle"
     >
+      {/*
+        The buttons are `flex-1`, so each is (row - padding - gaps) / count wide.
+        The percentage in `translateX` resolves against the indicator's own width
+        rather than the container's, so stepping by that width plus one gap lands
+        it on the nth button at any count.
+      */}
       <div
-        className="bg-surface-elev absolute inset-y-0.5 w-[calc(50%-0.375rem)] rounded-full transition-[left] duration-300 ease-out"
+        className="bg-surface-elev absolute inset-y-0.5 left-0.5 rounded-full transition-transform duration-300 ease-out"
         style={{
-          left: view === 'favorites' ? '0.125rem' : 'calc(50% + 0.25rem)',
+          width: `calc((100% - ${PADDING} - ${GAP} * ${VIEWS.length - 1}) / ${VIEWS.length})`,
+          transform: `translateX(calc(${selectedIndex} * (100% + ${GAP})))`,
         }}
       />
       {VIEWS.map((item) => {

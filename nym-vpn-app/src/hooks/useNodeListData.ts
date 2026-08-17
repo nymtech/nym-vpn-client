@@ -172,6 +172,9 @@ export function useNodeListData(hop: NodeHop) {
     mxEntryError,
     mxExitError,
     wgError,
+    recents,
+    recentsLoading,
+    recentsError,
   } = useAppStore(
     useShallow((s) => ({
       vpnMode: s.vpnMode,
@@ -188,6 +191,9 @@ export function useNodeListData(hop: NodeHop) {
       mxEntryError: s.mxEntryError,
       mxExitError: s.mxExitError,
       wgError: s.wgError,
+      recents: s.recents,
+      recentsLoading: s.recentsLoading,
+      recentsError: s.recentsError,
     })),
   );
 
@@ -228,6 +234,20 @@ export function useNodeListData(hop: NodeHop) {
     return flat.sort((a, b) => compare(a.name, b.name));
   }, [nodes, compare]);
 
+  // The daemon returns these most-recent-first and they render as a flat list,
+  // so the order is passed through untouched — sorting here destroys it.
+  const recentGateways = useMemo(
+    () =>
+      gatewaysToUi(
+        recents[vpnMode][hop],
+        entryNode,
+        exitNode,
+        quicFilter,
+        favoriteKeys,
+      ),
+    [recents, vpnMode, hop, entryNode, exitNode, quicFilter, favoriteKeys],
+  );
+
   const loading = useMemo(() => {
     if (nodes.length > 0) return false;
     if (vpnMode === 'mixnet' && hop === 'entry') return mxEntryLoading;
@@ -241,5 +261,15 @@ export function useNodeListData(hop: NodeHop) {
     return wgError;
   }, [vpnMode, hop, mxEntryError, mxExitError, wgError]);
 
-  return { nodes, gateways, loading, error, vpnMode, quicFilter };
+  return {
+    nodes,
+    gateways,
+    recentGateways,
+    loading,
+    recentsLoading,
+    error,
+    recentsError,
+    vpnMode,
+    quicFilter,
+  };
 }

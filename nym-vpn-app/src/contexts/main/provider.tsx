@@ -43,7 +43,11 @@ function MainStateProvider({ children, init }: Props) {
       return;
     }
     gatewaysInit = true;
-    const { fetchGateways } = useAppStore.getState();
+    const { fetchGateways, fetchRecents } = useAppStore.getState();
+    // Warm the recents list so the first visit to the node list has it in hand.
+    // Fire-and-forget: a failure here is stored on `recentsError` for the
+    // recents view alone and must never hold up init or surface a toast.
+    fetchRecents(vpnMode);
     if (vpnMode === 'wg') {
       await fetchGateways('wg');
       console.info('[wg] gateways initialized');

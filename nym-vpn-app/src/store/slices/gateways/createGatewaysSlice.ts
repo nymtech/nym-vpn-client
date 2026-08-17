@@ -1,7 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import { dequal } from 'dequal';
 import { StateCreator } from 'zustand';
-import { BackendError, Gateway, GatewaysByCountry } from '../../../types';
+import {
+  BackendError,
+  Gateway,
+  GatewaysByCountry,
+  RecentGateways,
+} from '../../../types';
 import { CCache } from '../../../cache';
 import { GatewaysCacheDuration } from '../../../constants';
 import {
@@ -48,6 +53,32 @@ export const createGatewaysSlice: StateCreator<
   mxEntryError: null,
   mxExitError: null,
   wgError: null,
+  recents: {
+    mixnet: { entry: [], exit: [] },
+    wg: { entry: [], exit: [] },
+  },
+  recentsLoading: false,
+  recentsError: null,
+
+  fetchRecents: async (vpnMode) => {
+    if (get().recentsLoading) return;
+
+    set({ recentsLoading: true });
+    try {
+      const recents = await invoke<RecentGateways>('get_recent_gateways', {
+        vpnMode,
+      });
+      set((s) => ({
+        recents: { ...s.recents, [vpnMode]: recents },
+        recentsError: null,
+      }));
+    } catch (e) {
+      console.error('failed to get recent gateways', e);
+      set({ recentsError: e as BackendError });
+    } finally {
+      set({ recentsLoading: false });
+    }
+  },
 
   fetchGateways: async (nodeType) => {
     const {

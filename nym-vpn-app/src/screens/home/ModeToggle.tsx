@@ -7,7 +7,12 @@ import {
   GatewayAnonymousIcon,
   GatewayFastIcon,
 } from '../../assets/icons/gateway-mode';
-import { dispatch, useAppStore, useFetchGateways } from '../../store';
+import {
+  dispatch,
+  useAppStore,
+  useFetchGateways,
+  useFetchRecents,
+} from '../../store';
 import { useToast } from '../../hooks';
 import { VpnMode } from '../../types';
 
@@ -22,6 +27,7 @@ export const ModeToggle = () => {
   const { t } = useTranslation('home');
   const { add } = useToast();
   const fetchGateways = useFetchGateways();
+  const fetchRecents = useFetchRecents();
 
   const { vpnMode } = useAppStore(
     useShallow((s) => ({
@@ -42,6 +48,7 @@ export const ModeToggle = () => {
       } else {
         fetchGateways('wg');
       }
+      fetchRecents(mode);
       return true;
     } catch (error: unknown) {
       console.error(`failed to set vpn mode to [${mode}]`, error);

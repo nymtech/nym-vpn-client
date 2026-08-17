@@ -81,6 +81,7 @@
   },
   "favorites": {
     "tab-favorites": "Favorites",
+    "tab-recents": "Recents",
     "tab-all": "All servers",
     "add": "Add to favorites",
     "remove": "Remove from favorites",
@@ -91,6 +92,13 @@
       "unavailable": "None of your favorites are available here.",
       "unavailable-description": "Your favorites aren't in this mode's server list. Switch mode or pick another server."
     }
+  },
+  "recents": {
+    "empty": {
+      "title": "No recent servers yet.",
+      "description": "Servers you connect to will show up here."
+    },
+    "error": "Failed to load recent servers."
   },
   "search-other-nodes": "Servers",
   "no-results-found": {
