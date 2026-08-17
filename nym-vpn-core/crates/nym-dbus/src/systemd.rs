@@ -14,6 +14,9 @@ pub enum Error {
 
     #[error("failed to read SystemState property")]
     ReadSystemStateError(#[source] dbus::Error),
+
+    #[error("failed to read Version property")]
+    ReadVersionError(#[source] dbus::Error)
 }
 
 const SYSTEMD_BUS: &str = "org.freedesktop.systemd1";
@@ -24,27 +27,29 @@ const SYSTEM_STATE_STARTING: &str = "starting";
 const SYSTEM_STATE_INITIALIZING: &str = "initializing";
 const SYSTEM_STATE_RUNNING: &str = "running";
 const SYSTEM_STATE_DEGRADED: &str = "degraded";
+const VERSION: &str = "Version";
 
 const RPC_TIMEOUT: Duration = Duration::from_secs(1);
 
-/// Returns true if the host is not shutting down or entering maintenance mode or some other weird
-/// state.
-pub fn is_host_running() -> Result<bool> {
-    Systemd::new()?.system_is_running()
-}
-
-struct Systemd {
+pub struct Systemd {
     pub dbus_connection: Arc<SyncConnection>,
 }
 
 impl Systemd {
-    fn new() -> Result<Self> {
+    pub fn new() -> Result<Self> {
         Ok(Self {
             dbus_connection: crate::get_connection().map_err(Error::ConnectError)?,
         })
     }
 
-    fn system_is_running(&self) -> Result<bool> {
+    pub fn version(&self) -> Result<String> {
+        self.as_manager_object().get::<String>(MANAGER_INTERFACE, VERSION)
+            .map_err(Error::ReadVersionError)
+    }
+
+    /// Returns true if the host is not shutting down or entering maintenance mode or some other weird
+    /// state.
+    pub fn system_is_running(&self) -> Result<bool> {
         self.as_manager_object()
             .get(MANAGER_INTERFACE, SYSTEM_STATE)
             .map(|state: String| {
@@ -66,5 +71,19 @@ impl Systemd {
             RPC_TIMEOUT,
             &self.dbus_connection,
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_version() {
+        let version = Systemd::new()
+            .expect("failed to create Systemd")
+            .version()
+            .expect("failed to get systemd version");
+        println!("Version is {version}");
     }
 }
