@@ -8,7 +8,7 @@
   },
   "conflict-detection": {
     "title": "Detect conflicting software",
-    "desc": "Warn when conflicting software detected",
+    "desc": "Warn when conflicting software is detected",
     "errors": {
       "failed": "Failed to change conflict detection setting"
     }

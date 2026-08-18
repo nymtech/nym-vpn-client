@@ -107,7 +107,7 @@ static ALLOWED_DOMAINS: LazyLock<Vec<LowerName>> = LazyLock::new(|| {
 
 /// [`nym_conflict::PROBE_DOMAIN`] as consumed by hickory. Answered directly
 /// with [`nym_conflict::PROBE_ADDR`], independent of ad-block/filter state,
-/// so `nym_conflict::scan` can tell whether DNS queries from other
+/// so `nym_conflict::detect` can tell whether DNS queries from other
 /// applications are actually reaching this resolver unaltered.
 static CONFLICT_PROBE_DOMAIN: LazyLock<LowerName> = LazyLock::new(|| {
     LowerName::from(Name::from_str(nym_conflict::PROBE_DOMAIN).expect("Failed to parse domain"))

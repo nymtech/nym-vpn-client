@@ -18,11 +18,11 @@
 //! (something else being installed doesn't mean it's the actual cause) that
 //! costs ongoing per-vendor maintenance for little real benefit.
 
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    time::Duration,
-};
+use std::net::Ipv4Addr;
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+use std::{net::IpAddr, time::Duration};
 
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 use crate::Conflict;
 
 /// Canary domain resolved by [`scan`] to detect DNS interception. Callers
@@ -36,6 +36,7 @@ pub const PROBE_DOMAIN: &str = "nym-conflict-probe.invalid.";
 /// never be a real, independently-routable answer.
 pub const PROBE_ADDR: Ipv4Addr = Ipv4Addr::new(192, 0, 2, 53);
 
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 const PROBE_TIMEOUT: Duration = Duration::from_secs(2);
 
 /// Scan for DNS interception.
@@ -45,6 +46,7 @@ const PROBE_TIMEOUT: Duration = Duration::from_secs(2);
 /// reports a conflict if that resolution doesn't come back the way NymVPN's
 /// own resolver would answer it - so nothing is reported merely because some
 /// other DNS-capable software is installed or running.
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 pub(crate) async fn scan() -> Vec<Conflict> {
     if probe_dns_interception().await {
         vec![Conflict::InterceptedDns]
@@ -56,6 +58,7 @@ pub(crate) async fn scan() -> Vec<Conflict> {
 /// Resolve [`PROBE_DOMAIN`] via the OS resolver and check whether the answer
 /// matches [`PROBE_ADDR`]. Returns `true` if it doesn't - i.e. if DNS
 /// resolution failed, timed out, or came back with an unexpected address.
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 async fn probe_dns_interception() -> bool {
     let target = format!("{PROBE_DOMAIN}:0");
     match tokio::time::timeout(PROBE_TIMEOUT, tokio::net::lookup_host(target)).await {
@@ -74,7 +77,10 @@ async fn probe_dns_interception() -> bool {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(
+    test,
+    any(target_os = "windows", target_os = "linux", target_os = "macos")
+))]
 mod tests {
     use super::*;
 
