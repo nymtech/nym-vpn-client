@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{collections::HashMap, net::IpAddr};
+
 use crate::{
-    AccountManagement, FeatureFlags, Result, SystemMessages,
-    system_configuration::SystemConfiguration,
+    AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
 };
 use nym_vpn_api_client::response::{ApiUrl, NymWellknownDiscoveryItemResponse};
 
@@ -17,10 +18,7 @@ pub struct Discovery {
     pub network_name: String,
 
     // Use the getters!
-    nym_api_url: url::Url,
-    nym_api_urls: Vec<ApiUrl>,
-    nym_vpn_api_url: url::Url,
-    nym_vpn_api_urls: Vec<ApiUrl>,
+    pub networking: NetworkingSpecifics,
 
     // Additional context
     pub account_management: Option<AccountManagement>,
@@ -29,6 +27,33 @@ pub struct Discovery {
 
     #[serde(default)]
     pub system_messages: SystemMessages,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct NetworkingSpecifics {
+    pub nym_api_urls: Vec<ApiUrl>,
+    pub nym_vpn_api_urls: Vec<ApiUrl>,
+    pub dns_fallbacks: Vec<DnsFallback>,
+    // pub internal_nameservers: std::any::Any,
+    // pub covert channels: std::any::Any,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct DnsFallback {
+    pub url: String,
+    pub addresses: Vec<String>,
+}
+
+pub(crate) fn dns_fallbacks(raw: HashMap<String, Vec<IpAddr>>) -> Vec<DnsFallback> {
+    let mut fallbacks: Vec<DnsFallback> = raw
+        .into_iter()
+        .map(|(url, addresses)| DnsFallback {
+            url,
+            addresses: addresses.iter().map(ToString::to_string).collect(),
+        })
+        .collect();
+    fallbacks.sort_by(|a, b| a.url.cmp(&b.url));
+    fallbacks
 }
 
 impl Discovery {
@@ -63,59 +88,33 @@ impl Discovery {
     }
 
     pub fn nym_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
-        if self.nym_api_urls.is_empty() {
-            vec![nym_network_defaults::ApiUrl {
-                url: self.nym_api_url.to_string(),
-                front_hosts: None,
-            }]
-        } else {
-            self.nym_api_urls
-                .iter()
-                .map(|api_url| nym_network_defaults::ApiUrl {
-                    url: api_url.url.clone(),
-                    front_hosts: api_url.fronts.clone(),
-                })
-                .collect()
-        }
+        self.networking
+            .nym_api_urls
+            .iter()
+            .map(|api_url| nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            })
+            .collect()
     }
 
     pub fn nym_vpn_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
-        if self.nym_vpn_api_urls.is_empty() {
-            vec![nym_network_defaults::ApiUrl {
-                url: self.nym_vpn_api_url.to_string(),
-                front_hosts: None,
-            }]
-        } else {
-            self.nym_vpn_api_urls
-                .iter()
-                .map(|api_url| nym_network_defaults::ApiUrl {
-                    url: api_url.url.clone(),
-                    front_hosts: api_url.fronts.clone(),
-                })
-                .collect()
-        }
+        self.networking
+            .nym_vpn_api_urls
+            .iter()
+            .map(|api_url| nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            })
+            .collect()
     }
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum DiscoveryFromNymWellknownDiscoveryError {
-    #[error("Failed to parse nym api url: {value}")]
-    ParseNymApiUrl {
-        value: String,
-        source: url::ParseError,
-    },
+pub enum DiscoveryFromNymWellknownDiscoveryError {}
 
-    #[error("Failed to parse nym vpn api url: {value}")]
-    ParseNymVpnApiUrl {
-        value: String,
-        source: url::ParseError,
-    },
-}
-
-impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
-    type Error = DiscoveryFromNymWellknownDiscoveryError;
-
-    fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> Result<Self, Self::Error> {
+impl From<NymWellknownDiscoveryItemResponse> for Discovery {
+    fn from(discovery: NymWellknownDiscoveryItemResponse) -> Self {
         let account_management = discovery.account_management.and_then(|am| {
             AccountManagement::try_from(am)
                 .inspect_err(|err| tracing::warn!("Failed to parse account management: {err}"))
@@ -137,34 +136,33 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
-        let nym_api_url = discovery.nym_api_url.parse().map_err(|source| {
-            DiscoveryFromNymWellknownDiscoveryError::ParseNymApiUrl {
-                value: discovery.nym_api_url,
-                source,
-            }
-        })?;
+        let networking = discovery
+            .networking
+            .map(|networking| NetworkingSpecifics {
+                nym_api_urls: networking.nym_api_urls,
+                nym_vpn_api_urls: networking.nym_vpn_api_urls,
+                dns_fallbacks: networking
+                    .dns_fallbacks
+                    .into_iter()
+                    .map(|fallback| DnsFallback {
+                        url: fallback.url,
+                        addresses: fallback.addresses,
+                    })
+                    .collect(),
+            })
+            .unwrap_or_else(|| {
+                tracing::warn!("Discovery response is missing the networking section");
+                NetworkingSpecifics::default()
+            });
 
-        let nym_api_urls = discovery.nym_api_urls.clone();
-
-        let nym_vpn_api_url = discovery.nym_vpn_api_url.parse().map_err(|source| {
-            DiscoveryFromNymWellknownDiscoveryError::ParseNymVpnApiUrl {
-                value: discovery.nym_vpn_api_url,
-                source,
-            }
-        })?;
-        let nym_vpn_api_urls = discovery.nym_vpn_api_urls.clone();
-
-        Ok(Self {
+        Self {
             network_name: discovery.network_name,
-            nym_api_url,
-            nym_api_urls,
-            nym_vpn_api_url,
-            nym_vpn_api_urls,
+            networking,
             account_management,
             feature_flags,
             system_configuration,
             system_messages,
-        })
+        }
     }
 }
 
@@ -200,6 +198,44 @@ mod tests {
         test_discovery_equality(Discovery::default_canary()).await;
     }
 
+    fn assert_valid_dns_fallbacks(dns_fallbacks: &[DnsFallback]) {
+        assert!(
+            !dns_fallbacks.is_empty(),
+            "expected at least one dns fallback entry"
+        );
+        for fallback in dns_fallbacks {
+            assert!(
+                !fallback.url.is_empty(),
+                "dns fallback url must not be empty"
+            );
+            assert!(
+                !fallback.addresses.is_empty(),
+                "dns fallback for '{}' must have at least one address",
+                fallback.url
+            );
+            for address in &fallback.addresses {
+                address.parse::<std::net::IpAddr>().unwrap_or_else(|err| {
+                    panic!(
+                        "invalid dns fallback address '{address}' for '{}': {err}",
+                        fallback.url
+                    )
+                });
+            }
+        }
+    }
+
+    #[test]
+    fn test_default_mainnet_has_valid_dns_fallbacks() {
+        assert_valid_dns_fallbacks(&Discovery::default_mainnet().networking.dns_fallbacks);
+    }
+
+    #[tokio::test]
+    async fn test_mainnet_live_discovery_has_valid_dns_fallbacks() {
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
+        let discovery = fetcher.fetch_discovery("mainnet").await.unwrap();
+        assert_valid_dns_fallbacks(&discovery.networking.dns_fallbacks);
+    }
+
     async fn test_discovery_equality(discovery: Discovery) {
         let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
         let fetched = fetcher
@@ -209,28 +245,32 @@ mod tests {
 
         // Only compare the base fields
         assert_eq!(discovery.network_name, fetched.network_name);
-        assert_eq!(discovery.nym_api_url, fetched.nym_api_url);
-        assert_eq!(discovery.nym_vpn_api_url, fetched.nym_vpn_api_url);
     }
 
     #[test]
     fn test_parse_discovery_response() {
         let json = r#"{
             "network_name": "qa",
-            "nym_api_url": "https://foo.ch/api/",
-            "nym_api_urls": [
-                {
-                    "url": "https://foo.ch/api/",
-                    "fronts": ["foobar.ch", "qux.baz"]
-                }
-            ],
-            "nym_vpn_api_url": "https://bar.ch/api/",
-            "nym_vpn_api_urls": [
-                {
-                    "url": "https://bar.ch/api/",
-                    "fronts": ["quxbar.ch", "qux.baz"]
-                }
-            ],
+            "networking": {
+                "nym_api_urls": [
+                    {
+                        "url": "https://foo.ch/api/",
+                        "fronts": ["foobar.ch", "qux.baz"]
+                    }
+                ],
+                "nym_vpn_api_urls": [
+                    {
+                        "url": "https://bar.ch/api/",
+                        "fronts": ["quxbar.ch", "qux.baz"]
+                    }
+                ],
+                "dns_fallbacks": [
+                    {
+                        "url": "foo.ch",
+                        "addresses": ["1.2.3.4"]
+                    }
+                ]
+            },
             "account_management": {
                 "url": "https://foobar.ch/",
                 "paths": {
@@ -271,20 +311,24 @@ mod tests {
             ]
         }"#;
         let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
-        let network: Discovery = discovery.try_into().unwrap();
+        let network: Discovery = discovery.into();
 
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
-            nym_api_url: "https://foo.ch/api/".parse().unwrap(),
-            nym_api_urls: vec![ApiUrl {
-                url: "https://foo.ch/api/".parse().unwrap(),
-                fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
-            }],
-            nym_vpn_api_url: "https://bar.ch/api/".parse().unwrap(),
-            nym_vpn_api_urls: vec![ApiUrl {
-                url: "https://bar.ch/api/".parse().unwrap(),
-                fronts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),
-            }],
+            networking: NetworkingSpecifics {
+                nym_api_urls: vec![ApiUrl {
+                    url: "https://foo.ch/api/".to_owned(),
+                    fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
+                }],
+                nym_vpn_api_urls: vec![ApiUrl {
+                    url: "https://bar.ch/api/".to_owned(),
+                    fronts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),
+                }],
+                dns_fallbacks: vec![DnsFallback {
+                    url: "foo.ch".to_owned(),
+                    addresses: vec!["1.2.3.4".to_owned()],
+                }],
+            },
             account_management: Some(AccountManagement {
                 url: "https://foobar.ch/".parse().unwrap(),
                 paths: AccountManagementPaths {
