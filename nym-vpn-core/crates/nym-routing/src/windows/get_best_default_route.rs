@@ -134,7 +134,7 @@ fn get_default_route_interfaces_blocking(
     let mut result = crate::DefaultRouteInterfaces::default();
 
     for row in &table {
-        if !is_default_route_prefix(row) || !route_has_gateway(row) {
+        if !is_default_route_prefix(row) {
             continue;
         }
 

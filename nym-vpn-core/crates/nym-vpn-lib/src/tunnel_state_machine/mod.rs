@@ -73,7 +73,7 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConflictDetected, ConnectionData,
     DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
     GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
@@ -353,6 +353,9 @@ impl TunnelSettings {
         if self.enable_ad_blocking != other.enable_ad_blocking {
             diff.add(TunnelSettingsDiffFields::EnableAdBlocking);
         }
+        if self.enable_conflict_detection != other.enable_conflict_detection {
+            diff.add(TunnelSettingsDiffFields::EnableConflictDetection);
+        }
         if self.residential_exit != other.residential_exit {
             diff.add(TunnelSettingsDiffFields::ResidentialExit);
         }
@@ -427,6 +430,7 @@ pub enum TunnelSettingsDiffFields {
     TunnelType,
     AllowLan,
     EnableAdBlocking,
+    EnableConflictDetection,
     ResidentialExit,
     MixnetTunnelOptions,
     WireguardTunnelOptions,
@@ -464,6 +468,7 @@ impl TunnelSettingsDiffFields {
                 cfg!(target_os = "android")
             }
             Self::AllowLan
+            | Self::EnableConflictDetection
             | Self::SplitTunnel
             | Self::GeoExclusion
             | Self::GeoExclusionEnabled
@@ -500,6 +505,10 @@ impl TunnelSettingsDiff {
 
     pub fn enable_ad_blocking_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
+    }
+
+    pub fn enable_conflict_detection_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EnableConflictDetection)
     }
 
     pub fn entry_point_changed(&self) -> bool {
@@ -798,7 +807,6 @@ pub struct SharedState {
     resolved_api_endpoints: Option<ResolvedConfig>,
     #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
-    event_sender: mpsc::UnboundedSender<TunnelEvent>,
 }
 
 impl SharedState {
@@ -1143,12 +1151,52 @@ impl DiagnosticsSuggestionTracker {
     }
 }
 
+/// Tracks when to run each `nym_conflict` check exactly once per connection
+/// attempt, so a finding can be surfaced to the user as a `ConflictDetected`
+/// event. Never changes connection behavior.
+///
+/// The two checks fire at different points because they're only meaningful
+/// at different points: DNS interception can only be observed once actually
+/// connected and routing traffic through NymVPN's own resolver, so it's
+/// checked on first entry to `Connected`. A competing VPN's evidence, on the
+/// other hand, can be destroyed by NymVPN's own connection attempt (e.g. it
+/// can force the competing tunnel to disconnect) before ever reaching
+/// `Connected`, so that check instead runs on first entry to `Error`.
+#[derive(Default)]
+struct ConflictTracker {
+    checked_dns: bool,
+    checked_vpn: bool,
+}
+
+impl ConflictTracker {
+    /// Returns which check (if any) should run now that `state` has been entered.
+    fn on_new_state(&mut self, state: &TunnelState) -> Option<nym_conflict::ConflictCheck> {
+        match state {
+            TunnelState::Connected { .. } if !self.checked_dns => {
+                self.checked_dns = true;
+                Some(nym_conflict::ConflictCheck::InterceptedDns)
+            }
+            TunnelState::Error(_) if !self.checked_vpn => {
+                self.checked_vpn = true;
+                Some(nym_conflict::ConflictCheck::CompetingVpn)
+            }
+            TunnelState::Disconnected => {
+                self.checked_dns = false;
+                self.checked_vpn = false;
+                None
+            }
+            _ => None,
+        }
+    }
+}
+
 pub struct TunnelStateMachine {
     current_state_handler: Box<dyn TunnelStateHandler>,
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
     diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker,
+    conflict_tracker: ConflictTracker,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(target_os = "android"))]
@@ -1266,7 +1314,6 @@ impl TunnelStateMachine {
             resolved_api_endpoints: None,
             #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
-            event_sender: event_sender.clone(),
         };
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -1296,6 +1343,7 @@ impl TunnelStateMachine {
             command_receiver,
             event_sender,
             diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker::default(),
+            conflict_tracker: ConflictTracker::default(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(target_os = "android"))]
@@ -1330,12 +1378,33 @@ impl TunnelStateMachine {
                         .report_tunnel_state(state.clone());
                     let diagnostics_suggestion =
                         self.diagnostics_suggestion_tracker.observe(&state);
+                    let conflict_check = self.conflict_tracker.on_new_state(&state);
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
                     if let Some(reason) = diagnostics_suggestion {
                         tracing::info!("Suggesting diagnostics: {reason}");
                         let _ = self
                             .event_sender
                             .send(TunnelEvent::DiagnosticsSuggested(reason));
+                    }
+                    if let Some(check) = conflict_check
+                        && self.shared_state.tunnel_settings.enable_conflict_detection
+                    {
+                        let event_sender = self.event_sender.clone();
+                        tokio::spawn(async move {
+                            let conflicts = nym_conflict::detect(check).await;
+                            for conflict in conflicts {
+                                let conflict = match conflict {
+                                    nym_conflict::Conflict::InterceptedDns => {
+                                        ConflictDetected::InterceptedDns
+                                    }
+                                    nym_conflict::Conflict::CompetingVpn => {
+                                        ConflictDetected::CompetingVpn
+                                    }
+                                };
+                                tracing::info!("{conflict}");
+                                let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
+                            }
+                        });
                     }
                 }
                 NextTunnelState::SameState(same_state) => {

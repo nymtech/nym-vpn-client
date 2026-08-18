@@ -18,19 +18,14 @@
 //! OS itself only allows one active VPN configuration at a time, so this is
 //! a no-op there.
 
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 use crate::Conflict;
 
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 pub(crate) async fn scan() -> Vec<Conflict> {
-    #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
-    {
-        if tunnel_interfaces_with_default_route().await >= 2 {
-            vec![Conflict::CompetingVpn]
-        } else {
-            Vec::new()
-        }
-    }
-    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
-    {
+    if tunnel_interfaces_with_default_route().await >= 2 {
+        vec![Conflict::CompetingVpn]
+    } else {
         Vec::new()
     }
 }
@@ -100,9 +95,9 @@ mod synthesize_competing_vpn {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     const SYNTHETIC_TUNNEL_INTERFACE_ALIASES: [&str; 2] = ["wg0", "wg1"];
 
-    // Arbitrary, does not need to be reachable - real VPN clients always
-    // install their default route with a gateway (not on-link), which is
-    // what the detector actually checks for.
+    // Arbitrary, does not need to be reachable - the detector doesn't
+    // require a gateway (some VPN clients, e.g. WireGuard-based ones,
+    // install an on-link default route with no gateway at all).
     const SYNTHETIC_GATEWAY: IpAddr = IpAddr::V4(Ipv4Addr::new(10, 99, 99, 1));
 
     #[tokio::test]
