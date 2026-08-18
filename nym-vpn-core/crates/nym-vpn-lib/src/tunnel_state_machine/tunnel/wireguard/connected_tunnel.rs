@@ -719,3 +719,14 @@ impl TunnelHandle {
         self.wintun_exit_interface.as_ref()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::should_bump_entry_sockets_on_path_change;
+
+    #[test]
+    fn skip_entry_socket_bump_when_bridged_on_loopback() {
+        assert!(!should_bump_entry_sockets_on_path_change(true));
+        assert!(should_bump_entry_sockets_on_path_change(false));
+    }
+}
