@@ -64,6 +64,14 @@ use crate::{
 #[cfg(target_os = "ios")]
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
+/// Bridged netstack entry peers listen on loopback. Rebinding that socket on
+/// iOS path updates delays the first handshake until after the bridge forwarder
+/// used to abort, which never reaches Connected.
+#[cfg(any(test, target_os = "ios"))]
+pub(crate) fn should_bump_entry_sockets_on_path_change(entry_is_loopback: bool) -> bool {
+    !entry_is_loopback
+}
+
 pub struct ConnectedTunnel {
     entry_wg_keypair: Arc<x25519::KeyPair>,
     exit_wg_keypair: Arc<x25519::KeyPair>,
@@ -484,7 +492,11 @@ impl ConnectedTunnel {
 
                             // Rebind wireguard-go on tun device.
                             exit_tunnel.bump_sockets();
-                            entry_tunnel.bump_sockets();
+                            if should_bump_entry_sockets_on_path_change(
+                                entry_peer_update.is_loopback(),
+                            ) {
+                                entry_tunnel.bump_sockets();
+                            }
                         }
                         _ = child_shutdown_token.cancelled() => {
                             tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
