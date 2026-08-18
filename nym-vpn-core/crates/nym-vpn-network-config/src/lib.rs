@@ -17,9 +17,9 @@ mod serialization;
 mod system_configuration;
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fmt::Debug,
-    net::SocketAddr,
+    net::{IpAddr, SocketAddr},
     path::{Path, PathBuf},
     str::FromStr,
     time::Duration,
@@ -65,6 +65,35 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
+    dns_fallbacks: HashMap<String, Vec<IpAddr>>,
+}
+
+fn dns_fallback_addr_map(fallbacks: &[discovery::DnsFallback]) -> HashMap<String, Vec<IpAddr>> {
+    fallbacks
+        .iter()
+        .filter_map(|fallback| {
+            let addrs: Vec<IpAddr> = fallback
+                .addresses
+                .iter()
+                .filter_map(|addr| {
+                    addr.parse()
+                        .inspect_err(|err| {
+                            tracing::warn!(
+                                "Invalid dns fallback address '{addr}' for '{}': {err}",
+                                fallback.url
+                            );
+                        })
+                        .ok()
+                })
+                .collect();
+
+            if addrs.is_empty() {
+                None
+            } else {
+                Some((fallback.url.clone(), addrs))
+            }
+        })
+        .collect()
 }
 
 impl Network {
@@ -91,6 +120,7 @@ impl Network {
 
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration.clone();
+        let dns_fallbacks = dns_fallback_addr_map(&discovery.networking.dns_fallbacks);
         let endpoint = network_details
             .endpoints
             .first()
@@ -104,7 +134,14 @@ impl Network {
             nym_vpn_network,
             feature_flags,
             system_configuration,
+            dns_fallbacks,
         })
+    }
+
+    /// Map of hostname to fallback IP addresses to use for DNS resolution when the primary
+    /// resolver fails, as configured by discovery.
+    pub fn dns_fallback_addr_map(&self) -> HashMap<String, Vec<IpAddr>> {
+        self.dns_fallbacks.clone()
     }
 
     pub fn nym_network_details(&self) -> &NymNetworkDetails {
@@ -552,5 +589,37 @@ mod tests {
                 .await
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn test_mainnet_default_network_has_dns_fallback_addrs() {
+        let network = Network::mainnet_default().unwrap();
+        let fallbacks = network.dns_fallback_addr_map();
+
+        assert!(!fallbacks.is_empty());
+        for (host, addrs) in &fallbacks {
+            assert!(!host.is_empty());
+            assert!(!addrs.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_dns_fallback_addr_map_skips_invalid_addresses() {
+        let addrs = dns_fallback_addr_map(&[
+            discovery::DnsFallback {
+                url: "good.example.com".to_owned(),
+                addresses: vec!["1.2.3.4".to_owned(), "not-an-ip".to_owned()],
+            },
+            discovery::DnsFallback {
+                url: "all-bad.example.com".to_owned(),
+                addresses: vec!["not-an-ip".to_owned()],
+            },
+        ]);
+
+        assert_eq!(
+            addrs.get("good.example.com"),
+            Some(&vec!["1.2.3.4".parse().unwrap()])
+        );
+        assert!(!addrs.contains_key("all-bad.example.com"));
     }
 }

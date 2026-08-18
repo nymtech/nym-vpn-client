@@ -33,6 +33,7 @@ use tokio_util::sync::CancellationToken;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
+use nym_http_api_client::HickoryDnsResolver;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -453,6 +454,8 @@ impl NymVpnService {
         let network_env = network_cache
             .network()
             .map_err(|_| Error::NetworkEnvNotInitialized)?;
+
+        HickoryDnsResolver::shared().set_fallback_addrs(network_env.dns_fallback_addr_map());
 
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -1027,6 +1030,8 @@ impl NymVpnService {
         if self.network_tx.borrow().as_ref() == new_network {
             return false;
         }
+
+        HickoryDnsResolver::shared().set_fallback_addrs(new_network.dns_fallback_addr_map());
 
         let _ = self.network_tx.send_replace(Box::new(new_network.clone()));
         true
