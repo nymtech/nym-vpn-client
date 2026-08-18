@@ -1013,11 +1013,7 @@ impl NymVpnService {
     }
 
     async fn handle_network_change(&mut self, new_network: Box<Network>) {
-<<<<<<< HEAD
         if !update_active_network(&self.network_tx, &new_network) {
-=======
-        if !self.maybe_update_active_network_details(&new_network) {
->>>>>>> 7c9fc29cc (add dns-fallback information from updated discovery)
             tracing::debug!("Network environment unchanged, skipping cache refresh");
             return;
         }

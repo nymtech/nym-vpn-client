@@ -69,8 +69,9 @@ pub struct Network {
     dns_fallbacks: HashMap<String, HashSet<IpAddr>>,
 }
 
-fn dns_fallback_addr_map(fallbacks: &[DnsFallback]) -> HashMap<String, HashSet<IpAddr>> {
+fn dns_fallback_addr_map(fallbacks: impl AsRef<[DnsFallback]>) -> HashMap<String, HashSet<IpAddr>> {
     fallbacks
+        .as_ref()
         .iter()
         .filter_map(|fallback| {
             let addrs: HashSet<IpAddr> = fallback
@@ -121,7 +122,9 @@ impl Network {
 
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration.clone();
-        let dns_fallbacks = dns_fallback_addr_map(&network_details.networking.dns_fallbacks);
+        let mut dns_fallbacks = dns_fallback_addr_map(&network_details.networking.dns_fallbacks);
+        dns_fallbacks.extend(dns_fallback_addr_map(&discovery.networking.dns_fallbacks));
+
         let endpoint = network_details
             .endpoints
             .first()
@@ -587,5 +590,37 @@ mod tests {
                 .await
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn test_mainnet_default_network_has_dns_fallback_addrs() {
+        let network = Network::mainnet_default().unwrap();
+        let fallbacks = network.dns_fallback_addr_map();
+
+        assert!(!fallbacks.is_empty());
+        for (host, addrs) in &fallbacks {
+            assert!(!host.is_empty());
+            assert!(!addrs.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_dns_fallback_addr_map_skips_invalid_addresses() {
+        let addrs = dns_fallback_addr_map(&[
+            discovery::DnsFallback {
+                url: "good.example.com".to_owned(),
+                addresses: vec!["1.2.3.4".to_owned(), "not-an-ip".to_owned()],
+            },
+            discovery::DnsFallback {
+                url: "all-bad.example.com".to_owned(),
+                addresses: vec!["not-an-ip".to_owned()],
+            },
+        ]);
+
+        assert_eq!(
+            addrs.get("good.example.com"),
+            Some(&vec!["1.2.3.4".parse().unwrap()])
+        );
+        assert!(!addrs.contains_key("all-bad.example.com"));
     }
 }
