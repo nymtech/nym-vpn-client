@@ -10,7 +10,7 @@ export type Focused = {
 };
 
 /** Which subset of the node list is shown. */
-export type ListView = 'all' | 'favorites';
+export type ListView = 'all' | 'favorites' | 'recents';
 
 type HopState = {
   expanded: string[];

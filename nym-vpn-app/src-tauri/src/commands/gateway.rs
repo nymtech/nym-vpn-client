@@ -8,8 +8,9 @@ use ts_rs::TS;
 
 use crate::country::Country;
 use crate::error::{BackendError, ErrorKey};
+use crate::state::app::VpnMode;
 use crate::vpnd::client::VpndClient;
-use crate::vpnd::gateway::{Gateway, GatewayType};
+use crate::vpnd::gateway::{Gateway, GatewayType, RecentGateways};
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export, export_to = "tauri.ts")]
@@ -170,6 +171,31 @@ pub async fn get_gateways(
                     .iter()
                     .for_each(|region| trace!("{}", region));
             }
+        })
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn get_recent_gateways(
+    vpn_mode: VpnMode,
+    vpnd: State<'_, VpndClient>,
+) -> Result<RecentGateways, BackendError> {
+    info!("fetching recent gateways");
+    vpnd.recent_gateways(&vpn_mode)
+        .await
+        .map_err(|e| {
+            BackendError::with_detail(
+                &format!("failed to get recent gateways for {vpn_mode}"),
+                ErrorKey::Internal,
+                e.to_string(),
+            )
+        })
+        .inspect(|recents| {
+            info!(
+                "recent gateways: entry #{}, exit #{}",
+                recents.entry.len(),
+                recents.exit.len()
+            );
         })
 }
 

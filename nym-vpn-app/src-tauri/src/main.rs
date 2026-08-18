@@ -365,6 +365,7 @@ async fn main() -> Result<()> {
             cmd_db::db_del,
             cmd_db::db_flush,
             cmd_gw::get_gateways,
+            cmd_gw::get_recent_gateways,
             cmd_favorites::get_favorites,
             cmd_favorites::add_favorite,
             cmd_favorites::remove_favorite,

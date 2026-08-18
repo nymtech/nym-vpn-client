@@ -18,6 +18,16 @@ class NodeListPage {
   readonly locationAccuracyHeading: Locator;
   readonly closeModalButton: Locator;
 
+  readonly viewToggle: Locator;
+  readonly favoritesView: Locator;
+  readonly recentsView: Locator;
+  readonly allView: Locator;
+  readonly recentsList: Locator;
+  readonly recentRows: Locator;
+  readonly recentsEmpty: Locator;
+  readonly recentsNoResults: Locator;
+  readonly recentsError: Locator;
+
   constructor(private readonly page: Page) {
     this.backButton = page.getByRole('button', { name: 'keyboard_arrow_left' });
     this.infoButton = page.getByRole('button', { name: 'info' }).first();
@@ -41,6 +51,16 @@ class NodeListPage {
       name: 'Location accuracy',
     });
     this.closeModalButton = page.getByRole('button', { name: 'Ok' });
+
+    this.viewToggle = page.getByTestId('node-list-view-toggle');
+    this.favoritesView = page.getByTestId('node-list-view-favorites');
+    this.recentsView = page.getByTestId('node-list-view-recents');
+    this.allView = page.getByTestId('node-list-view-all');
+    this.recentsList = page.getByTestId('recents-list');
+    this.recentRows = this.recentsList.getByTestId('gateway-row');
+    this.recentsEmpty = page.getByTestId('recents-empty');
+    this.recentsNoResults = page.getByTestId('recents-no-results');
+    this.recentsError = page.getByTestId('recents-error');
   }
 
   async goto() {
@@ -86,6 +106,17 @@ class NodeListPage {
 
   async clickNodeDetailsButton(index: number) {
     await this.nodeDetailsButtons.nth(index).click();
+  }
+
+  async showRecents() {
+    await this.recentsView.click();
+  }
+
+  /** Recent server names, in the order the list renders them. */
+  async recentNames(): Promise<string[]> {
+    // A row renders its name then its location as sibling paragraphs, so the
+    // name is the one that is first in its container.
+    return await this.recentRows.locator('p:first-child').allTextContents();
   }
 
   async openInfoModal() {

@@ -89,6 +89,27 @@ pub struct Gateway {
     pub node_family_name: Option<String>,
 }
 
+/// Convert daemon gateways into their app representation, dropping any that
+/// cannot be parsed (a missing location makes a gateway unusable to the UI).
+pub fn parse_gateways(gateways: Vec<lib::Gateway>, gw_type: GatewayType) -> Vec<Gateway> {
+    gateways
+        .into_iter()
+        .filter_map(|gateway| {
+            Gateway::from_lib(gateway, gw_type)
+                .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
+                .ok()
+        })
+        .collect()
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TS, Default)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct RecentGateways {
+    pub entry: Vec<Gateway>,
+    pub exit: Vec<Gateway>,
+}
+
 impl Gateway {
     #[instrument]
     pub fn from_lib(gateway: lib::Gateway, gw_type: GatewayType) -> Result<Self> {

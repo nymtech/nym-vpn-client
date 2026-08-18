@@ -12,7 +12,7 @@ pub use super::{
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::{ConflictDetected, DiagnosticsSuggestedReason, MixnetEvent},
-    gateway::{Gateway, GatewayType},
+    gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
     tunnel::{FrontingMode, SplitApp, TunnelState},
 };
@@ -37,7 +37,7 @@ pub use crate::vpnd::network::NetworkCompatVersions;
 use crate::{
     error::BackendError,
     events::AppHandleEventEmitter,
-    state::SharedAppState,
+    state::{SharedAppState, app::VpnMode},
     vpnd::account::{AccountState, log_account_state},
 };
 
@@ -668,17 +668,46 @@ impl VpndClient {
 
         debug!("vpnd gateways count: {}", gateways.len());
 
-        let gateways: Vec<Gateway> = gateways
-            .into_iter()
-            .filter_map(|gateway| {
-                Gateway::from_lib(gateway, gw_type)
-                    .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
-                    .ok()
-            })
-            .collect();
+        let gateways = parse_gateways(gateways, gw_type);
 
         debug!("parsed gateway #{}", gateways.len());
         Ok(gateways)
+    }
+
+    /// Get the gateways of the most recent successful connections for the given
+    /// mode, most-recent-first.
+    #[instrument(skip(self))]
+    pub async fn recent_gateways(&self, mode: &VpnMode) -> Result<RecentGateways, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let params = lib::GetRecentGatewaysParams {
+            tunnel_type: match mode {
+                VpnMode::Mixnet => lib::TunnelType::Mixnet,
+                VpnMode::Wg => lib::TunnelType::Wireguard,
+            },
+        };
+
+        let recents = vpnd
+            .get_recent_gateways(params)
+            .or_else(async |e| self.handle_rpc_error("get_recent_gateways", e).await)
+            .await?;
+
+        let (entry_type, exit_type) = match mode {
+            VpnMode::Mixnet => (GatewayType::MxEntry, GatewayType::MxExit),
+            VpnMode::Wg => (GatewayType::Wg, GatewayType::Wg),
+        };
+
+        let recents = RecentGateways {
+            entry: parse_gateways(recents.entry, entry_type),
+            exit: parse_gateways(recents.exit, exit_type),
+        };
+
+        debug!(
+            "parsed recent gateways: entry #{}, exit #{}",
+            recents.entry.len(),
+            recents.exit.len()
+        );
+        Ok(recents)
     }
 
     #[instrument(skip(self, app))]

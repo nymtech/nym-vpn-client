@@ -19,7 +19,9 @@ class MainPage {
     this.themeButton = page.getByTestId('top-bar-left-button-container');
     this.settingsButton = page.getByRole('button', { name: 'settings' });
     this.statusText = page.getByTestId('connection-status-text');
-    this.fastMode = page.getByRole('button', { name: 'Fast', exact: true });
+    // Fast mode (`wg`) is labelled "dVPN" in the UI; the mode names stay
+    // internal so a copy change only touches this locator.
+    this.fastMode = page.getByRole('button', { name: 'dVPN', exact: true });
     this.mixnetMode = page.getByRole('button', { name: 'Mixnet', exact: true });
     this.entryServerLabel = page.getByText('Entry server', { exact: true });
     this.exitServerLabel = page.getByText('Exit server', { exact: true });
