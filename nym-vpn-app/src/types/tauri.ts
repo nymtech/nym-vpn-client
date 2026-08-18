@@ -52,6 +52,8 @@ export type Cli = {
   cleanLocalFiles: boolean;
 };
 
+export type ConflictDetected = 'intercepted-dns' | 'competing-vpn';
+
 export type ConnectingProgress =
   | 'resolving-api-addresses'
   | 'awaiting-account-readiness'
@@ -580,6 +582,7 @@ export type VpndConfig = {
   enableCustomDns: boolean;
   allowLan: boolean;
   enableAdBlocking: boolean;
+  enableConflictDetection: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
   bridges: boolean;

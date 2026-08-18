@@ -1,0 +1,21 @@
+[package]
+name = "nym-conflict"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+tracing.workspace = true
+tokio = { workspace = true, features = ["net", "time", "rt"] }
+nym-routing.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+ipnetwork.workspace = true

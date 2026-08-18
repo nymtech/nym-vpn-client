@@ -31,6 +31,25 @@ impl DiagnosticsSuggestedReason {
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "snake_case")]
+pub enum ConflictDetected {
+    InterceptedDns,
+    CompetingVpn,
+}
+
+impl ConflictDetected {
+    #[instrument(skip(conflict))]
+    pub fn from_lib(conflict: lib::ConflictDetected) -> Self {
+        match conflict {
+            lib::ConflictDetected::InterceptedDns => Self::InterceptedDns,
+            lib::ConflictDetected::CompetingVpn => Self::CompetingVpn,
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS, strum::AsRefStr)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "snake_case")]
 pub enum MixnetEvent {
     EntryGwDown,
     ExitGwDownIpv4,

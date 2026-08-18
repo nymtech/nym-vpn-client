@@ -146,6 +146,18 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_conflict_detection(
+        &mut self,
+        enable_conflict_detection: bool,
+    ) -> Result<()> {
+        self.0
+            .set_enable_conflict_detection(enable_conflict_detection)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
         self.0
             .set_netstack(netstack)

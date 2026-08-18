@@ -310,6 +310,7 @@ message VpnServiceConfig {
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
   bool enable_ad_blocking = 27;
+  bool enable_conflict_detection = 33;
   bool residential_exit = 15;
   bool netstack = 13;
   bool enable_custom_dns = 17;
@@ -634,6 +635,7 @@ message TunnelEvent {
     ConfigChangedEvent config_changed_event = 3;
     AccountControllerState account_state = 4;
     DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
+    ConflictDetectedEvent conflict_detected_event = 6;
   }
 }
 
@@ -646,6 +648,16 @@ message DiagnosticsSuggestedEvent {
     RepeatedConnectionRetries repeated_connection_retries = 1;
     TunnelState.Error ambiguous_error = 2;
   }
+}
+
+// A conflicting application was found on the system that may interfere with
+// NymVPN's own network filtering. Does not change TunnelState.
+message ConflictDetectedEvent {
+  enum Conflict {
+    INTERCEPTED_DNS = 0;
+    COMPETING_VPN = 1;
+  }
+  Conflict conflict = 1;
 }
 
 message MixnetEvent {
@@ -1187,6 +1199,7 @@ service NymVpnService {
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableAdBlocking(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableConflictDetection(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

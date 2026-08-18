@@ -158,6 +158,10 @@ pub struct TunnelSettings {
     /// Enable Ad blocking
     pub enable_ad_blocking: bool,
 
+    /// Detect other software on the system that may conflict with NymVPN's
+    /// own network filtering (e.g. AdGuard's DNS protection).
+    pub enable_conflict_detection: bool,
+
     /// Select residential exit gateways only.
     pub residential_exit: bool,
 
@@ -797,6 +801,7 @@ pub struct SharedState {
     resolved_api_endpoints: Option<ResolvedConfig>,
     #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
+    event_sender: mpsc::UnboundedSender<TunnelEvent>,
 }
 
 impl SharedState {
@@ -1265,6 +1270,7 @@ impl TunnelStateMachine {
             resolved_api_endpoints: None,
             #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
+            event_sender: event_sender.clone(),
         };
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
