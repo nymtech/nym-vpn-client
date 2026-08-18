@@ -587,6 +587,7 @@ impl LocalResolver {
 
         let mut resolver_opts = ResolverOpts::default();
         resolver_opts.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
+        resolver_opts.num_concurrent_reqs = 4;
 
         let resolver = TokioResolver::builder_with_config(forward_config, connection_provider)
             .with_options(resolver_opts)
