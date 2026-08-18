@@ -719,21 +719,15 @@ impl TunnelHandle {
 #[cfg(test)]
 mod tests {
     use super::should_bump_entry_sockets_on_path_change;
-    use std::net::{Ipv4Addr, SocketAddr};
+    use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
     #[test]
     fn skip_entry_socket_bump_when_bridged_on_loopback() {
-        let loopback = SocketAddr::from((Ipv4Addr::LOCALHOST, 1));
+        let loopback_v4 = SocketAddr::from((Ipv4Addr::LOCALHOST, 1));
+        let loopback_v6 = SocketAddr::from((Ipv6Addr::LOCALHOST, 1));
         let routed = SocketAddr::from((Ipv4Addr::new(203, 0, 113, 8), 51820));
-        assert!(!should_bump_entry_sockets_on_path_change(loopback));
+        assert!(!should_bump_entry_sockets_on_path_change(loopback_v4));
+        assert!(!should_bump_entry_sockets_on_path_change(loopback_v6));
         assert!(should_bump_entry_sockets_on_path_change(routed));
-        assert_eq!(
-            should_bump_entry_sockets_on_path_change(loopback),
-            !loopback.ip().is_loopback()
-        );
-        assert_eq!(
-            should_bump_entry_sockets_on_path_change(routed),
-            !routed.ip().is_loopback()
-        );
     }
 }
