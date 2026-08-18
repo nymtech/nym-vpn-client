@@ -65,6 +65,10 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
 
+      - name: Validate Play Store changelog lengths
+        if: ${{ inputs.publish_metadata }}
+        run: bash .github/scripts/release/check-changelog-length.sh
+
       - name: Distribute app to fastlane track ${{ inputs.track }} 🚀
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"
