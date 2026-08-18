@@ -50,7 +50,7 @@ pub(super) fn get_default_route_interfaces(
     let mut result = crate::DefaultRouteInterfaces::default();
 
     for route in parse_dump(&buffer)? {
-        if !route.is_default || !route.has_gateway {
+        if !route.is_default {
             continue;
         }
 
@@ -142,7 +142,6 @@ fn dump_routing_table(address_family: c_int) -> Result<Vec<u8>, Error> {
 
 struct DumpedRoute {
     interface_index: u16,
-    has_gateway: bool,
     is_default: bool,
 }
 
@@ -172,7 +171,6 @@ fn parse_dump(buffer: &[u8]) -> Result<Vec<DumpedRoute>, Error> {
 
         let mut destination = None;
         let mut netmask = None;
-        let mut has_gateway = false;
 
         for sockaddr in RouteSockAddrIterator::new(payload, address_flags) {
             let Ok(sockaddr) = sockaddr else {
@@ -182,7 +180,6 @@ fn parse_dump(buffer: &[u8]) -> Result<Vec<DumpedRoute>, Error> {
                 RouteSocketAddress::Destination(addr) => {
                     destination = addr.as_ref().and_then(sockaddr_to_ip);
                 }
-                RouteSocketAddress::Gateway(addr) => has_gateway = addr.is_some(),
                 RouteSocketAddress::Netmask(addr) => {
                     netmask = Some(addr.as_ref().and_then(sockaddr_to_ip));
                 }
@@ -192,7 +189,6 @@ fn parse_dump(buffer: &[u8]) -> Result<Vec<DumpedRoute>, Error> {
 
         routes.push(DumpedRoute {
             interface_index: header.rtm_index,
-            has_gateway,
             is_default: is_default_route(destination, netmask),
         });
     }

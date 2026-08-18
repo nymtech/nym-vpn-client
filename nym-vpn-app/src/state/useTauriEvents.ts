@@ -6,8 +6,8 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
   BackendError,
-  DiagnosticsSuggestedReason,
   ConflictDetected,
+  DiagnosticsSuggestedReason,
   FeatureFlags,
   MixnetEventPayload,
   TAccountState,
@@ -20,9 +20,9 @@ import {
 } from '../types';
 import {
   AccountStateEvent,
+  ConflictDetectedEvent,
   DaemonEvent,
   DiagnosticsSuggestedEvent,
-  ConflictDetectedEvent,
   MixnetEvent,
   TunnelStateEvent,
   UpdatePendingEvent,

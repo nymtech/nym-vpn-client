@@ -948,16 +948,13 @@ pub(crate) async fn get_default_route_interfaces(
                 }
 
                 let mut oif = None;
-                let mut has_gateway = false;
                 for attribute in &route.attributes {
-                    match attribute {
-                        RouteAttribute::Oif(idx) => oif = Some(*idx),
-                        RouteAttribute::Gateway(_) | RouteAttribute::Via(_) => has_gateway = true,
-                        _ => {}
+                    if let RouteAttribute::Oif(idx) = attribute {
+                        oif = Some(*idx);
                     }
                 }
 
-                let (Some(oif), true) = (oif, has_gateway) else {
+                let Some(oif) = oif else {
                     continue;
                 };
 
