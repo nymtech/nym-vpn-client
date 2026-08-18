@@ -30,10 +30,10 @@ pub use nym_vpn_api_client::response::{BridgeInformation, BridgeParameters, Quic
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
-/// How often to log while waiting for the first WG datagram. Must not abort the
-/// forwarder: iOS LTE path churn can delay that datagram past 10s, and closing
-/// the bridge then kills a still-viable QUIC session.
-const INITIAL_DATAGRAM_WAIT_LOG_INTERVAL: Duration = Duration::from_secs(10);
+/// Log interval only; do not treat as a give-up timeout.
+const INITIAL_DATAGRAM_LOG_INTERVAL: Duration = Duration::from_secs(10);
+/// Give up if no first WG datagram arrives (aligned with QUIC idle).
+const INITIAL_DATAGRAM_MAX_WAIT: Duration = Duration::from_secs(60);
 const QUIC_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(thiserror::Error, Debug)]
@@ -152,18 +152,24 @@ impl UdpForwarder {
     }
 }
 
-/// Wait until the first UDP datagram arrives, or the forwarder is cancelled / hits a socket error.
-/// Recv timeouts only log; they must not close the bridge.
 async fn recv_first_peer_datagram(
     sock: &UdpSocket,
     dn_buf: &mut BytesMut,
     token: &CancellationToken,
     wait_log_interval: Duration,
+    max_wait: Duration,
 ) -> Option<(usize, SocketAddr)> {
+    let deadline = Instant::now() + max_wait;
     loop {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            debug!("gave up waiting for first wg datagram on bridge forwarder");
+            return None;
+        }
+        let this_wait = wait_log_interval.min(remaining);
         match token
             .run_until_cancelled(tokio::time::timeout(
-                wait_log_interval,
+                this_wait,
                 sock.recv_buf_from(&mut *dn_buf),
             ))
             .await
@@ -174,6 +180,10 @@ async fn recv_first_peer_datagram(
                 return None;
             }
             Some(Err(_)) => {
+                if Instant::now() >= deadline {
+                    debug!("gave up waiting for first wg datagram on bridge forwarder");
+                    return None;
+                }
                 debug!("still waiting for first wg datagram on bridge forwarder");
             }
             None => {
@@ -211,7 +221,8 @@ pub async fn process_udp<R, W>(
         &sock,
         &mut dn_buf,
         &token,
-        INITIAL_DATAGRAM_WAIT_LOG_INTERVAL,
+        INITIAL_DATAGRAM_LOG_INTERVAL,
+        INITIAL_DATAGRAM_MAX_WAIT,
     )
     .await
     else {
@@ -225,7 +236,7 @@ pub async fn process_udp<R, W>(
         close_tx.send(()).ok();
         return;
     }
-    trace!("[tr] <- wrote {len}B");
+    trace!(" [tr]<- wrote {len}B");
     let fwd_addr = src;
 
     if let Err(e) = sock.connect(fwd_addr).await {
@@ -576,7 +587,8 @@ mod tests {
             let token = token.clone();
             async move {
                 let mut buf = BytesMut::with_capacity(1280);
-                recv_first_peer_datagram(&sock, &mut buf, &token, wait).await
+                recv_first_peer_datagram(&sock, &mut buf, &token, wait, Duration::from_secs(2))
+                    .await
             }
         });
 
@@ -597,6 +609,27 @@ mod tests {
             .expect("recv task join");
         let (len, _src) = got.expect("first datagram");
         assert_eq!(len, b"hello-wg".len());
+    }
+
+    #[tokio::test]
+    async fn max_wait_without_datagram_gives_up() {
+        let (sock, _listen) = bind_forwarder_socket().await;
+        let token = CancellationToken::new();
+        let log_interval = Duration::from_millis(15);
+        let max_wait = Duration::from_millis(45);
+        let started = Instant::now();
+        let mut buf = BytesMut::with_capacity(1280);
+        let got = recv_first_peer_datagram(&sock, &mut buf, &token, log_interval, max_wait).await;
+        assert!(got.is_none());
+        let elapsed = started.elapsed();
+        assert!(
+            elapsed >= max_wait,
+            "gave up too early: {elapsed:?} < {max_wait:?}"
+        );
+        assert!(
+            elapsed < Duration::from_secs(1),
+            "hung after max wait: {elapsed:?}"
+        );
     }
 
     #[tokio::test]

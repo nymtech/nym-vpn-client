@@ -64,12 +64,10 @@ use crate::{
 #[cfg(target_os = "ios")]
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
-/// Bridged netstack entry peers listen on loopback. Rebinding that socket on
-/// iOS path updates delays the first handshake until after the bridge forwarder
-/// used to abort, which never reaches Connected.
+/// Skip rebind on loopback entry (QUIC local forwarder).
 #[cfg(any(test, target_os = "ios"))]
-pub(crate) fn should_bump_entry_sockets_on_path_change(entry_is_loopback: bool) -> bool {
-    !entry_is_loopback
+pub(crate) fn should_bump_entry_sockets_on_path_change(entry_endpoint: SocketAddr) -> bool {
+    !entry_endpoint.ip().is_loopback()
 }
 
 pub struct ConnectedTunnel {
@@ -492,9 +490,7 @@ impl ConnectedTunnel {
 
                             // Rebind wireguard-go on tun device.
                             exit_tunnel.bump_sockets();
-                            if should_bump_entry_sockets_on_path_change(
-                                entry_peer_update.is_loopback(),
-                            ) {
+                            if should_bump_entry_sockets_on_path_change(entry_peer_update.endpoint) {
                                 entry_tunnel.bump_sockets();
                             }
                         }
@@ -723,10 +719,21 @@ impl TunnelHandle {
 #[cfg(test)]
 mod tests {
     use super::should_bump_entry_sockets_on_path_change;
+    use std::net::{Ipv4Addr, SocketAddr};
 
     #[test]
     fn skip_entry_socket_bump_when_bridged_on_loopback() {
-        assert!(!should_bump_entry_sockets_on_path_change(true));
-        assert!(should_bump_entry_sockets_on_path_change(false));
+        let loopback = SocketAddr::from((Ipv4Addr::LOCALHOST, 1));
+        let routed = SocketAddr::from((Ipv4Addr::new(203, 0, 113, 8), 51820));
+        assert!(!should_bump_entry_sockets_on_path_change(loopback));
+        assert!(should_bump_entry_sockets_on_path_change(routed));
+        assert_eq!(
+            should_bump_entry_sockets_on_path_change(loopback),
+            !loopback.ip().is_loopback()
+        );
+        assert_eq!(
+            should_bump_entry_sockets_on_path_change(routed),
+            !routed.ip().is_loopback()
+        );
     }
 }
