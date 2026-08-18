@@ -341,6 +341,7 @@ async fn main() -> Result<()> {
             tunnel::set_no_ipv6,
             tunnel::set_allow_lan,
             tunnel::set_ad_block,
+            tunnel::set_conflict_detection,
             tunnel::get_privy_derivation_message,
             tunnel::set_mixnet_traffic_config,
             tunnel::calculate_traffic_latency,

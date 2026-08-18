@@ -109,6 +109,7 @@ pub enum VpnServiceCommand {
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
+    SetEnableConflictDetection(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
@@ -1058,6 +1059,11 @@ impl NymVpnService {
                 self.handle_set_enable_ad_blocking(enable_ad_blocking).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetEnableConflictDetection(tx, enable_conflict_detection) => {
+                self.handle_set_enable_conflict_detection(enable_conflict_detection)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetFrontingMode(tx, fronting_mode) => {
                 self.handle_set_fronting_mode(fronting_mode).await;
                 let _ = tx.send(());
@@ -1415,6 +1421,13 @@ impl NymVpnService {
     async fn handle_set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
         self.config_manager
             .set_enable_ad_blocking(enable_ad_blocking)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_conflict_detection(&mut self, enable_conflict_detection: bool) {
+        self.config_manager
+            .set_enable_conflict_detection(enable_conflict_detection)
             .await;
         self.update_tunnel_settings_with_throttle();
     }

@@ -34,6 +34,7 @@ pub enum TunnelEvent {
     ConfigChanged(Box<VpnServiceConfig>),
     AccountState(AccountControllerState),
     DiagnosticsSuggested(DiagnosticsSuggestionReason),
+    ConflictDetected(ConflictDetected),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -46,6 +47,47 @@ impl fmt::Display for TunnelEvent {
             Self::DiagnosticsSuggested(reason) => {
                 write!(f, "Diagnostics suggested: {reason}")
             }
+            Self::ConflictDetected(conflict) => {
+                write!(f, "Conflict detected: {conflict}")
+            }
+        }
+    }
+}
+
+/// A conflicting application was found on the system that may interfere with
+/// NymVPN's own network filtering. Does not change `TunnelState` - the
+/// tunnel connects and operates normally regardless.
+#[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum ConflictDetected {
+    /// Something is intercepting or rerouting DNS queries before they reach
+    /// NymVPN's own resolver.
+    InterceptedDns,
+
+    /// Another VPN client's tunnel appears to be competing for the default
+    /// route alongside NymVPN's own.
+    CompetingVpn,
+}
+
+impl fmt::Display for ConflictDetected {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InterceptedDns => write!(
+                f,
+                "Something on this system appears to be intercepting DNS queries, which may interfere with connectivity"
+            ),
+            Self::CompetingVpn => write!(
+                f,
+                "Another VPN client's tunnel appears to be active alongside NymVPN's, which may interfere with connectivity"
+            ),
         }
     }
 }

@@ -7,7 +7,7 @@ use std::net::SocketAddr;
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 use nym_dns::DnsConfig;
 
-use nym_vpn_lib_types::ErrorStateReason;
+use nym_vpn_lib_types::{ConflictDetected, ErrorStateReason, TunnelEvent};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -153,6 +153,8 @@ impl ConnectedState {
                     .interface
                     .clone(),
             ));
+
+        ConflictTracker::scan_if_enabled(shared_state);
 
         (
             Box::new(connected_state),
@@ -521,6 +523,34 @@ impl ConnectedPolicyParameters {
             #[cfg(target_os = "macos")]
             redirect_interface: self.redirect_interface.clone(),
         }
+    }
+}
+
+/// Runs `nym_conflict::scan()` for other software on the system that may
+/// interfere with NymVPN's own network filtering (e.g. AdGuard's system-wide
+/// DNS protection), so a finding can be surfaced to the user as a
+/// `ConflictDetected` event. Never changes connection behavior.
+struct ConflictTracker;
+
+impl ConflictTracker {
+    /// Scans for conflicts once, in the background, if enabled in settings.
+    fn scan_if_enabled(shared_state: &SharedState) {
+        if !shared_state.tunnel_settings.enable_conflict_detection {
+            return;
+        }
+
+        let event_sender = shared_state.event_sender.clone();
+        tokio::spawn(async move {
+            let conflicts = nym_conflict::scan().await;
+            for conflict in conflicts {
+                let conflict = match conflict {
+                    nym_conflict::Conflict::InterceptedDns => ConflictDetected::InterceptedDns,
+                    nym_conflict::Conflict::CompetingVpn => ConflictDetected::CompetingVpn,
+                };
+                tracing::info!("{conflict}");
+                let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
+            }
+        });
     }
 }
 

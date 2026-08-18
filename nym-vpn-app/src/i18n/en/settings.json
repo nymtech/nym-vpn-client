@@ -6,6 +6,13 @@
       "failed": "Failed to enable ad blocking"
     }
   },
+  "conflict-detection": {
+    "title": "Detect conflicting software",
+    "desc": "Warn when conflicting software detected",
+    "errors": {
+      "failed": "Failed to change conflict detection setting"
+    }
+  },
   "ipv6-support": {
     "title": "Support IPv6",
     "desc": "Allow IPv6 connections",
