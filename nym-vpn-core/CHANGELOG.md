@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persist gateway list to disk, seeded from a built-in list (https://github.com/nymtech/nym-vpn-client/pull/6015)
 - If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052) 
 - [Linux] Authenticate also via UNIX group "nym-vpn" membership, or root (https://github.com/nymtech/nym-vpn-client/pull/6100)
-
+- [Desktop] Detect conflicting software and report it to the user (https://github.com/nymtech/nym-vpn-client/pull/6122)
+- 
 ### Changed
 
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
