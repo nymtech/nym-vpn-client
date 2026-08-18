@@ -39,11 +39,11 @@ pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 /// hickory resolver when configured for use with client traffic can log DNS lookups at the DEBUG
 /// level. We do not want information related to client traffic logged except in controlled trace
 /// situations (away from platform apps).
-static TRACE_ONLY_LOGGING: [&str; 3] = [
-    "hickory_resolver",
+static TRACE_ONLY_LOGGING: [&str; 0] = [
+    //"hickory_resolver",
     // proto is probably okay, but disabling for now.
-    "hickory_proto",
-    "hickory_net",
+    //"hickory_proto",
+    //"hickory_net",
 ];
 
 static INFO_TARGETS: [&str; 13] = [
