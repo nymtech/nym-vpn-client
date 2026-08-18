@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, net::IpAddr};
-
 use crate::{
     AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
 };
@@ -42,18 +40,6 @@ pub struct NetworkingSpecifics {
 pub struct DnsFallback {
     pub url: String,
     pub addresses: Vec<String>,
-}
-
-pub(crate) fn dns_fallbacks(raw: HashMap<String, Vec<IpAddr>>) -> Vec<DnsFallback> {
-    let mut fallbacks: Vec<DnsFallback> = raw
-        .into_iter()
-        .map(|(url, addresses)| DnsFallback {
-            url,
-            addresses: addresses.iter().map(ToString::to_string).collect(),
-        })
-        .collect();
-    fallbacks.sort_by(|a, b| a.url.cmp(&b.url));
-    fallbacks
 }
 
 impl Discovery {
