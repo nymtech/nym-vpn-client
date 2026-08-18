@@ -1,26 +1,27 @@
 {
   "network_name": "sandbox",
-  "nym_api_url": "https://sandbox-nym-api1.nymtech.net/api/",
-  "nym_api_urls": [
-    {
-      "url": "https://sandbox-nym-api1.nymtech.net/api/"
-    },
-    {
-      "url": "https://nym-frontdoor.vercel.app/sandbox/nym-api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    }
-  ],
-  "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-sandbox-nyx-network-staging.vercel.app/api/",
-  "nym_vpn_api_urls": [
-    {
-      "url": "https://nym-vpn-api-git-deploy-sandbox-nyx-network-staging.vercel.app/api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    },
-    {
-      "url": "https://nym-frontdoor.vercel.app/sandbox/nym-vpn-api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    }
-  ],
+  "networking": {
+    "nym_api_urls": [
+      {
+        "url": "https://sandbox-nym-api1.nymtech.net/api/"
+      },
+      {
+        "url": "https://nym-frontdoor.vercel.app/sandbox/nym-api/",
+        "fronts": ["vercel.app", "vercel.com"]
+      }
+    ],
+    "nym_vpn_api_urls": [
+      {
+        "url": "https://nym-vpn-api-git-deploy-sandbox-nyx-network-staging.vercel.app/api/",
+        "fronts": ["vercel.app", "vercel.com"]
+      },
+      {
+        "url": "https://nym-frontdoor.vercel.app/sandbox/nym-vpn-api/",
+        "fronts": ["vercel.app", "vercel.com"]
+      }
+    ],
+    "dns_fallbacks": []
+  },
   "account_management": {
     "url": "https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app/",
     "paths": {

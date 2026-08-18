@@ -1,26 +1,27 @@
 {
   "network_name": "canary",
-  "nym_api_url": "https://canary-nym-api.le.nymte.ch/api/",
-  "nym_api_urls": [
-    {
-      "url": "https://canary-nym-api.le.nymte.ch/api/"
-    },
-    {
-      "url": "https://nym-frontdoor.vercel.app/canary/nym-api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    }
-  ],
-  "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-canary-nyx-network-staging.vercel.app/api/",
-  "nym_vpn_api_urls": [
-    {
-      "url": "https://nym-vpn-api-git-deploy-canary-nyx-network-staging.vercel.app/api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    },
-    {
-      "url": "https://nym-frontdoor.vercel.app/canary/nym-vpn-api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    }
-  ],
+  "networking": {
+    "nym_api_urls": [
+      {
+        "url": "https://canary-nym-api.le.nymte.ch/api/"
+      },
+      {
+        "url": "https://nym-frontdoor.vercel.app/canary/nym-api/",
+        "fronts": ["vercel.app", "vercel.com"]
+      }
+    ],
+    "nym_vpn_api_urls": [
+      {
+        "url": "https://nym-vpn-api-git-deploy-canary-nyx-network-staging.vercel.app/api/",
+        "fronts": ["vercel.app", "vercel.com"]
+      },
+      {
+        "url": "https://nym-frontdoor.vercel.app/canary/nym-vpn-api/",
+        "fronts": ["vercel.app", "vercel.com"]
+      }
+    ],
+    "dns_fallbacks": []
+  },
   "account_management": {
     "url": "https://nymcom-git-deploy-canary-nyx-network-staging.vercel.app/",
     "paths": {

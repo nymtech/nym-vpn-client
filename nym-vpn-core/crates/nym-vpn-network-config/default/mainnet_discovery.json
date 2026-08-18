@@ -1,25 +1,92 @@
 {
   "network_name": "mainnet",
-  "nym_api_url": "https://validator.nymtech.net/api/",
-  "nym_api_urls": [
-    {
-      "url": "https://validator.nymtech.net/api/"
-    },
-    {
-      "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
-      "fronts": ["yelp.global.ssl.fastly.net"]
-    }
-  ],
-  "nym_vpn_api_url": "https://nymvpn.com/api/",
-  "nym_vpn_api_urls": [
-    {
-      "url": "https://nymvpn.com/api/"
-    },
-    {
-      "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
-      "fronts": ["yelp.global.ssl.fastly.net"]
-    }
-  ],
+  "networking": {
+    "nym_api_urls": [
+      {
+        "url": "https://validator.nymtech.net/api/"
+      },
+      {
+        "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
+        "fronts": ["yelp.global.ssl.fastly.net"]
+      }
+    ],
+    "nym_vpn_api_urls": [
+      {
+        "url": "https://nymvpn.com/api/"
+      },
+      {
+        "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
+        "fronts": ["yelp.global.ssl.fastly.net"]
+      }
+    ],
+    "dns_fallbacks": [
+      {
+        "url": "cdn1.media-platform.net",
+        "addresses": ["172.104.178.252"]
+      },
+      {
+        "url": "edge1.streaming-gateway.com",
+        "addresses": ["139.162.57.231"]
+      },
+      {
+        "url": "fastly-support.global.ssl.fastly.net",
+        "addresses": ["151.101.193.194", "151.101.129.194", "151.101.1.194", "151.101.65.194"]
+      },
+      {
+        "url": "nym-frontdoor.global.ssl.fastly.net",
+        "addresses": ["151.101.193.194", "151.101.129.194", "151.101.1.194", "151.101.65.194"]
+      },
+      {
+        "url": "nym-frontdoor.vercel.app",
+        "addresses": ["64.29.17.195", "216.198.79.195"]
+      },
+      {
+        "url": "nym-statistics-api.nymtech.cc",
+        "addresses": ["185.19.29.32"]
+      },
+      {
+        "url": "nym.com",
+        "addresses": ["76.76.21.22"]
+      },
+      {
+        "url": "nymvpn-frontdoor.global.ssl.fastly.net",
+        "addresses": ["151.101.193.194", "151.101.129.194", "151.101.1.194", "151.101.65.194"]
+      },
+      {
+        "url": "nymvpn.com",
+        "addresses": ["76.76.21.21"]
+      },
+      {
+        "url": "pypi.global.ssl.fastly.net",
+        "addresses": ["199.232.65.194", "151.101.65.194"]
+      },
+      {
+        "url": "rpc.nymtech.net",
+        "addresses": [
+          "194.182.169.49",
+          "91.92.200.116",
+          "2a04:c43:e00:6f28:400:d8ff:fe00:1483",
+          "2a04:c46:e00:6f28:4b3:68ff:fe00:460"
+        ]
+      },
+      {
+        "url": "validator.nymtech.net",
+        "addresses": ["92.39.63.14"]
+      },
+      {
+        "url": "vercel.app",
+        "addresses": ["64.29.17.195", "216.198.79.195"]
+      },
+      {
+        "url": "vercel.com",
+        "addresses": ["198.169.2.129", "198.169.1.193"]
+      },
+      {
+        "url": "yelp.global.ssl.fastly.net",
+        "addresses": ["151.101.193.194", "151.101.129.194", "151.101.1.194", "151.101.65.194"]
+      }
+    ]
+  },
   "account_management": {
     "url": "https://nym.com/",
     "paths": {
