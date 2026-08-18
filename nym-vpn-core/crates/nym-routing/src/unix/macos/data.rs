@@ -1000,7 +1000,7 @@ pub struct RouteSockAddrIterator<'a> {
 }
 
 impl<'a> RouteSockAddrIterator<'a> {
-    fn new(buffer: &'a [u8], flags: AddressFlag) -> Self {
+    pub(crate) fn new(buffer: &'a [u8], flags: AddressFlag) -> Self {
         Self {
             buffer,
             flags_iter: flags.iter(),

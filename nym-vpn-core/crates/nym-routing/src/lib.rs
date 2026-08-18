@@ -24,6 +24,47 @@ pub use imp::{Callback, CallbackHandle, EventType, InterfaceAndGateway, get_best
 #[path = "unix/mod.rs"]
 mod imp;
 
+/// Address family for [`get_default_route_interfaces`].
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AddressFamily {
+    /// IPv4 address family.
+    Ipv4,
+    /// IPv6 address family.
+    Ipv6,
+}
+
+/// The set of distinct interfaces (identified by OS interface index) that
+/// currently hold a default-route-shaped entry - either a literal default
+/// route, or the `0.0.0.0/1` + `128.0.0.0/1` split some VPN clients install
+/// instead of replacing the default route directly - split into physical
+/// and virtual/tunnel interfaces.
+///
+/// Unlike [`get_best_default_route`] (Windows-only), this doesn't pick a
+/// single "best" route or filter out virtual interfaces - it's meant for
+/// callers that need to know about *every* interface competing for
+/// default-route ownership, e.g. to detect whether more than one VPN tunnel
+/// is active at once.
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+#[derive(Debug, Default, Clone)]
+pub struct DefaultRouteInterfaces {
+    /// Physical (non-tunnel) interfaces holding a default-route-shaped entry.
+    pub physical: std::collections::HashSet<u32>,
+    /// Virtual/tunnel interfaces holding a default-route-shaped entry.
+    pub virtual_: std::collections::HashSet<u32>,
+}
+
+/// Get every interface currently holding a default-route-shaped entry, for
+/// the given address family. See [`DefaultRouteInterfaces`]. Implemented for
+/// Windows, Linux, and macOS - not available on mobile platforms, where the
+/// OS itself only allows one active VPN configuration at a time.
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+pub async fn get_default_route_interfaces(
+    family: AddressFamily,
+) -> std::result::Result<DefaultRouteInterfaces, Error> {
+    imp::get_default_route_interfaces(family).await
+}
+
 #[cfg(target_os = "linux")]
 use rtnetlink::packet_route::route::RouteHeader;
 

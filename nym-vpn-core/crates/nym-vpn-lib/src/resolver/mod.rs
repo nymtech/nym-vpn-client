@@ -105,6 +105,14 @@ static ALLOWED_DOMAINS: LazyLock<Vec<LowerName>> = LazyLock::new(|| {
         .collect()
 });
 
+/// [`nym_conflict::PROBE_DOMAIN`] as consumed by hickory. Answered directly
+/// with [`nym_conflict::PROBE_ADDR`], independent of ad-block/filter state,
+/// so `nym_conflict::scan` can tell whether DNS queries from other
+/// applications are actually reaching this resolver unaltered.
+static CONFLICT_PROBE_DOMAIN: LazyLock<LowerName> = LazyLock::new(|| {
+    LowerName::from(Name::from_str(nym_conflict::PROBE_DOMAIN).expect("Failed to parse domain"))
+});
+
 const TTL_SECONDS: u32 = 3;
 
 /// An IP address to be used in the DNS response to the captive domain query. The address itself
@@ -255,12 +263,44 @@ impl Resolver {
         ALLOWED_RECORD_TYPES.contains(&query.query_type()) && ALLOWED_DOMAINS.contains(query.name())
     }
 
+    /// Determines whether a DNS query is for the conflict-detection probe
+    /// domain (see [`nym_conflict`]).
+    fn is_conflict_probe_domain(query: &LowerQuery) -> bool {
+        ALLOWED_RECORD_TYPES.contains(&query.query_type())
+            && query.name() == &*CONFLICT_PROBE_DOMAIN
+    }
+
+    /// Always answers the conflict-detection probe domain with
+    /// [`nym_conflict::PROBE_ADDR`], independent of ad-block/filter state.
+    fn spoof_conflict_probe_response(
+        return_query: &hickory_server::proto::op::Query,
+    ) -> AuthLookup {
+        let return_record = Record::from_rdata(
+            return_query.name().clone(),
+            TTL_SECONDS,
+            RData::A(rdata::A(nym_conflict::PROBE_ADDR)),
+        );
+
+        let lookup = Lookup::new_with_deadline(
+            return_query.clone(),
+            [return_record],
+            Instant::now() + Duration::from_secs(u64::from(TTL_SECONDS)),
+        );
+        AuthLookup::from(lookup)
+    }
+
     async fn resolve_forward(
         resolver: TokioResolver,
         query: LowerQuery,
         dns_filter: DnsFilter,
     ) -> Result<AuthLookup, NetError> {
         let return_query = query.original().clone();
+
+        if Self::is_conflict_probe_domain(&query) {
+            tracing::trace!("Answering conflict-detection probe query");
+            return Ok(Self::spoof_conflict_probe_response(&return_query));
+        }
+
         let qname = return_query.name().to_ascii();
         let decision = dns_filter.should_block(&qname).await;
         if decision != DnsFilterDecision::Pass {

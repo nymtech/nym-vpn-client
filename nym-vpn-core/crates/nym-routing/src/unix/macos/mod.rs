@@ -32,6 +32,7 @@ mod data;
 mod default_routes;
 mod interface;
 mod ip_map;
+mod route_dump;
 mod routing_socket;
 mod watch;
 
@@ -70,6 +71,20 @@ pub enum Error {
     /// Failed to create SCDynamicStore
     #[error("failed to create SCDynamicStore")]
     CreateDynamicStore,
+
+    /// Failed to dump the routing table
+    #[error("failed to dump the routing table")]
+    RouteDump(#[source] route_dump::Error),
+}
+
+/// Get every interface currently holding a default-route-shaped entry, for
+/// the given address family. See [`crate::DefaultRouteInterfaces`].
+pub(crate) async fn get_default_route_interfaces(
+    family: crate::AddressFamily,
+) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
+    route_dump::get_default_route_interfaces(family)
+        .map_err(Error::RouteDump)
+        .map_err(Into::into)
 }
 
 /// Route manager can be in 1 of 4 states -

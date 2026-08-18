@@ -47,6 +47,7 @@ export type InitState = {
   noIpv6: boolean;
   allowLan: boolean;
   enableAdBlocking: boolean;
+  enableConflictDetection: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
   mixnetTrafficConfig: MixnetTrafficConfig;
@@ -107,6 +108,7 @@ export type AppState = {
   ipv6Support: boolean;
   allowLan: boolean;
   enableAdBlocking: boolean;
+  enableConflictDetection: boolean;
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   technicalOptinSeen: boolean;

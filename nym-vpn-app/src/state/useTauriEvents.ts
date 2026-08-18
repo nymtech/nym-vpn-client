@@ -7,6 +7,7 @@ import {
   AccountLinks,
   BackendError,
   DiagnosticsSuggestedReason,
+  ConflictDetected,
   FeatureFlags,
   MixnetEventPayload,
   TAccountState,
@@ -21,6 +22,7 @@ import {
   AccountStateEvent,
   DaemonEvent,
   DiagnosticsSuggestedEvent,
+  ConflictDetectedEvent,
   MixnetEvent,
   TunnelStateEvent,
   UpdatePendingEvent,
@@ -143,6 +145,17 @@ export function useTauriEvents(
     );
   }, []);
 
+  const registerConflictDetectedListener = useCallback(() => {
+    return listen<ConflictDetected>(ConflictDetectedEvent, ({ payload }) => {
+      console.info('conflict detected', payload);
+      add({
+        id: `conflict-detected-${payload}`,
+        title: i18n.t(`conflict-detected.${payload}`, { ns: 'notifications' }),
+        type: 'warn',
+      });
+    });
+  }, [add]);
+
   // register/unregister event listeners
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -153,6 +166,7 @@ export function useTauriEvents(
     const unlistenVpnConfig = registerVpnConfigListener();
     const unlistenUpdatePending = registerUpdatePendingListener();
     const unlistenDiagnosticsSuggested = registerDiagnosticsSuggestedListener();
+    const unlistenConflictDetected = registerConflictDetectedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -163,6 +177,7 @@ export function useTauriEvents(
       unlistenVpnConfig.then((f) => f());
       unlistenUpdatePending.then((f) => f());
       unlistenDiagnosticsSuggested.then((f) => f());
+      unlistenConflictDetected.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -173,5 +188,6 @@ export function useTauriEvents(
     registerVpnConfigListener,
     registerUpdatePendingListener,
     registerDiagnosticsSuggestedListener,
+    registerConflictDetectedListener,
   ]);
 }
