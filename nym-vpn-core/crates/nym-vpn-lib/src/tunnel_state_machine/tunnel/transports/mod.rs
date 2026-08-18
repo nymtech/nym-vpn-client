@@ -30,10 +30,8 @@ pub use nym_vpn_api_client::response::{BridgeInformation, BridgeParameters, Quic
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
-/// Log interval only; do not treat as a give-up timeout.
-const INITIAL_DATAGRAM_LOG_INTERVAL: Duration = Duration::from_secs(10);
-/// Give up if no first WG datagram arrives (aligned with QUIC idle).
-const INITIAL_DATAGRAM_MAX_WAIT: Duration = Duration::from_secs(60);
+/// First WG datagram wait: five handshake attempts at RekeyTimeout (5s).
+const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(21);
 const QUIC_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(thiserror::Error, Debug)]
@@ -156,40 +154,27 @@ async fn recv_first_peer_datagram(
     sock: &UdpSocket,
     dn_buf: &mut BytesMut,
     token: &CancellationToken,
-    wait_log_interval: Duration,
-    max_wait: Duration,
+    timeout: Duration,
 ) -> Option<(usize, SocketAddr)> {
-    let deadline = Instant::now() + max_wait;
-    loop {
-        let remaining = deadline.saturating_duration_since(Instant::now());
-        if remaining.is_zero() {
-            debug!("gave up waiting for first wg datagram on bridge forwarder");
-            return None;
+    match token
+        .run_until_cancelled(tokio::time::timeout(
+            timeout,
+            sock.recv_buf_from(&mut *dn_buf),
+        ))
+        .await
+    {
+        Some(Ok(Ok((len, src)))) => Some((len, src)),
+        Some(Ok(Err(e))) => {
+            debug!("error receiving from egress socket: {e}");
+            None
         }
-        let this_wait = wait_log_interval.min(remaining);
-        match token
-            .run_until_cancelled(tokio::time::timeout(
-                this_wait,
-                sock.recv_buf_from(&mut *dn_buf),
-            ))
-            .await
-        {
-            Some(Ok(Ok((len, src)))) => return Some((len, src)),
-            Some(Ok(Err(e))) => {
-                debug!("error receiving from egress socket: {e}");
-                return None;
-            }
-            Some(Err(_)) => {
-                if Instant::now() >= deadline {
-                    debug!("gave up waiting for first wg datagram on bridge forwarder");
-                    return None;
-                }
-                debug!("still waiting for first wg datagram on bridge forwarder");
-            }
-            None => {
-                debug!("forwarder cancelled before initial receive");
-                return None;
-            }
+        Some(Err(_)) => {
+            debug!("forwarder timed out");
+            None
+        }
+        None => {
+            debug!("forwarder cancelled before initial receive");
+            None
         }
     }
 }
@@ -217,14 +202,8 @@ pub async fn process_udp<R, W>(
         .length_field_length(LENGTH_DELIMITER_BYTELEN)
         .new_read(reader);
 
-    let Some((len, src)) = recv_first_peer_datagram(
-        &sock,
-        &mut dn_buf,
-        &token,
-        INITIAL_DATAGRAM_LOG_INTERVAL,
-        INITIAL_DATAGRAM_MAX_WAIT,
-    )
-    .await
+    let Some((len, src)) =
+        recv_first_peer_datagram(&sock, &mut dn_buf, &token, INITIAL_CONNECTION_TIMEOUT).await
     else {
         close_tx.send(()).ok();
         return;
@@ -578,23 +557,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn late_first_datagram_does_not_give_up() {
+    async fn first_datagram_arrives_before_timeout() {
         let (sock, listen) = bind_forwarder_socket().await;
         let token = CancellationToken::new();
-        let wait = Duration::from_millis(20);
+        let timeout = Duration::from_millis(200);
         let recv = tokio::spawn({
             let sock = sock.clone();
             let token = token.clone();
             async move {
                 let mut buf = BytesMut::with_capacity(1280);
-                recv_first_peer_datagram(&sock, &mut buf, &token, wait, Duration::from_secs(2))
-                    .await
+                recv_first_peer_datagram(&sock, &mut buf, &token, timeout).await
             }
         });
 
-        tokio::time::sleep(wait.saturating_mul(2) + Duration::from_millis(10)).await;
-        assert!(!recv.is_finished());
-
+        tokio::time::sleep(Duration::from_millis(20)).await;
         let client = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0))
             .await
             .expect("bind client");
@@ -612,23 +588,22 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn max_wait_without_datagram_gives_up() {
+    async fn timeout_without_datagram_gives_up() {
         let (sock, _listen) = bind_forwarder_socket().await;
         let token = CancellationToken::new();
-        let log_interval = Duration::from_millis(15);
-        let max_wait = Duration::from_millis(45);
+        let timeout = Duration::from_millis(40);
         let started = Instant::now();
         let mut buf = BytesMut::with_capacity(1280);
-        let got = recv_first_peer_datagram(&sock, &mut buf, &token, log_interval, max_wait).await;
+        let got = recv_first_peer_datagram(&sock, &mut buf, &token, timeout).await;
         assert!(got.is_none());
         let elapsed = started.elapsed();
         assert!(
-            elapsed >= max_wait,
-            "gave up too early: {elapsed:?} < {max_wait:?}"
+            elapsed >= timeout,
+            "gave up too early: {elapsed:?} < {timeout:?}"
         );
         assert!(
             elapsed < Duration::from_secs(1),
-            "hung after max wait: {elapsed:?}"
+            "hung after timeout: {elapsed:?}"
         );
     }
 

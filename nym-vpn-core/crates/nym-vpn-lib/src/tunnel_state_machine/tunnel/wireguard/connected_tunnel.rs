@@ -64,12 +64,6 @@ use crate::{
 #[cfg(target_os = "ios")]
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
-/// Skip rebind on loopback entry (QUIC local forwarder).
-#[cfg(any(test, target_os = "ios"))]
-pub(crate) fn should_bump_entry_sockets_on_path_change(entry_endpoint: SocketAddr) -> bool {
-    !entry_endpoint.ip().is_loopback()
-}
-
 pub struct ConnectedTunnel {
     entry_wg_keypair: Arc<x25519::KeyPair>,
     exit_wg_keypair: Arc<x25519::KeyPair>,
@@ -490,9 +484,7 @@ impl ConnectedTunnel {
 
                             // Rebind wireguard-go on tun device.
                             exit_tunnel.bump_sockets();
-                            if should_bump_entry_sockets_on_path_change(entry_peer_update.endpoint) {
-                                entry_tunnel.bump_sockets();
-                            }
+                            entry_tunnel.bump_sockets();
                         }
                         _ = child_shutdown_token.cancelled() => {
                             tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
@@ -713,21 +705,5 @@ impl TunnelHandle {
     #[cfg(windows)]
     pub fn exit_wintun_interface(&self) -> Option<&WintunInterface> {
         self.wintun_exit_interface.as_ref()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::should_bump_entry_sockets_on_path_change;
-    use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
-
-    #[test]
-    fn skip_entry_socket_bump_when_bridged_on_loopback() {
-        let loopback_v4 = SocketAddr::from((Ipv4Addr::LOCALHOST, 1));
-        let loopback_v6 = SocketAddr::from((Ipv6Addr::LOCALHOST, 1));
-        let routed = SocketAddr::from((Ipv4Addr::new(203, 0, 113, 8), 51820));
-        assert!(!should_bump_entry_sockets_on_path_change(loopback_v4));
-        assert!(!should_bump_entry_sockets_on_path_change(loopback_v6));
-        assert!(should_bump_entry_sockets_on_path_change(routed));
     }
 }
