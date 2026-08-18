@@ -1,7 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import { dequal } from 'dequal';
 import { StateCreator } from 'zustand';
-import { BackendError, Gateway, GatewaysByCountry } from '../../../types';
+import {
+  BackendError,
+  Gateway,
+  GatewaysByCountry,
+  RecentGateways,
+} from '../../../types';
 import { CCache } from '../../../cache';
 import { GatewaysCacheDuration } from '../../../constants';
 import {
@@ -48,6 +53,45 @@ export const createGatewaysSlice: StateCreator<
   mxEntryError: null,
   mxExitError: null,
   wgError: null,
+  recents: {
+    mixnet: { entry: [], exit: [] },
+    wg: { entry: [], exit: [] },
+  },
+  recentsLoading: { mixnet: false, wg: false },
+  recentsError: { mixnet: null, wg: null },
+
+  fetchRecents: async (vpnMode) => {
+    if (get().recentsLoading[vpnMode]) return;
+
+    set((s) => ({ recentsLoading: { ...s.recentsLoading, [vpnMode]: true } }));
+    try {
+      const recents = await invoke<RecentGateways>('get_recent_gateways', {
+        vpnMode,
+      });
+      const next: RecentGateways = {
+        entry: recents?.entry ?? [],
+        exit: recents?.exit ?? [],
+      };
+      set((s) => ({
+        // This runs on every visit to the node list and usually returns the
+        // same gateways. `recents` is selected whole, so handing back a new
+        // object re-renders every consumer; reuse the old one when it matches.
+        recents: dequal(next, s.recents[vpnMode])
+          ? s.recents
+          : { ...s.recents, [vpnMode]: next },
+        recentsError: { ...s.recentsError, [vpnMode]: null },
+      }));
+    } catch (e) {
+      console.error('failed to get recent gateways', e);
+      set((s) => ({
+        recentsError: { ...s.recentsError, [vpnMode]: e as BackendError },
+      }));
+    } finally {
+      set((s) => ({
+        recentsLoading: { ...s.recentsLoading, [vpnMode]: false },
+      }));
+    }
+  },
 
   fetchGateways: async (nodeType) => {
     const {

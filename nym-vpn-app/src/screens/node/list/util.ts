@@ -1,5 +1,5 @@
 import { Score } from '../../../types';
-import { UiGatewaysByCountry, UiRegion } from '../../../types/node';
+import { UiGateway, UiGatewaysByCountry, UiRegion } from '../../../types/node';
 
 const scoreOrder: Record<Score, number> = {
   offline: 0,
@@ -13,6 +13,30 @@ export function sortByScore(a: Score, b: Score): number {
     return 0;
   }
   return scoreOrder[b] - scoreOrder[a];
+}
+
+/**
+ * Narrows a flat gateway list to those matching a search term, testing gateway
+ * name, city, country name and id. Input order is preserved, so a recency-ordered
+ * list stays recency-ordered.
+ */
+export function searchGateways(
+  gateways: UiGateway[],
+  search: string,
+  getCountryName: (code: string) => string | null | undefined,
+): UiGateway[] {
+  const term = search.trim().toLowerCase();
+  if (term.length === 0) return gateways;
+
+  return gateways.filter((gw) => {
+    const country = getCountryName(gw.country.code) || gw.country.name;
+    return (
+      gw.name.toLowerCase().includes(term) ||
+      gw.location.city.toLowerCase().includes(term) ||
+      country.toLowerCase().includes(term) ||
+      gw.id.toLowerCase().includes(term)
+    );
+  });
 }
 
 function regionToFavorites(
