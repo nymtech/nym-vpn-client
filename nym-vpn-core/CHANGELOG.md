@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- QUIC bridges wait 21s for the first WireGuard packet (was 10s).
+
 ## [2026.12.0] - 2026-08-18
 
 ### Added

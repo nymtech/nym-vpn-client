@@ -30,7 +30,8 @@ pub use nym_vpn_api_client::response::{BridgeInformation, BridgeParameters, Quic
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
-const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
+/// First WG datagram wait: five handshake attempts at RekeyTimeout (5s).
+const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(21);
 const QUIC_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(thiserror::Error, Debug)]
