@@ -705,7 +705,7 @@ impl ResolverImpl {
                         })
                 } else {
                     trace_err_chain!(resolve_err, "failed to resolve hostname");
-                    return resolve_err;
+                    Err(resolve_err)
                 }
             }
             Err(_error) => Err(NetError::Message("channel is closed")),
