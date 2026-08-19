@@ -1166,38 +1166,75 @@ impl DiagnosticsSuggestionTracker {
 /// `Connecting` for a fresh attempt (`retry_attempt == 0`), before NymVPN has
 /// touched routing at all - at that point any tunnel interface already
 /// holding a default route can only belong to something else.
+///
+/// [`Self::poll`] must be called on every iteration of the state machine
+/// loop, not just on state transitions: enabling the setting while already
+/// `Connected` isn't itself a state transition, but should still trigger the
+/// DNS check exactly once. The competing-VPN check has no such retroactive
+/// case - once its one opportunity (the start of a fresh connection attempt)
+/// has passed with the setting disabled, there's nothing meaningful left to
+/// check later - so it's consumed unconditionally at that point.
 #[derive(Default)]
 struct ConflictTracker {
     checked_dns: bool,
     checked_vpn: bool,
+    /// Cancellation for whichever scan is currently in flight, so it can be
+    /// abandoned - and a stale `ConflictDetected` suppressed - if the
+    /// setting is disabled, or [`Self::poll`] observes `Disconnected`,
+    /// before the scan finishes.
+    pending_scan_cancellation: Option<CancellationToken>,
 }
 
 impl ConflictTracker {
-    /// Returns which check (if any) should run now that `state` has been entered.
-    fn on_new_state(&mut self, state: &TunnelState) -> Option<nym_conflict::ConflictCheck> {
+    /// Returns which check (if any) should run now, given the current state
+    /// and whether conflict detection is currently enabled.
+    fn poll(&mut self, state: &TunnelState, enabled: bool) -> Option<nym_conflict::ConflictCheck> {
+        if !enabled {
+            self.cancel_pending_scan();
+        }
         match state {
             TunnelState::Connecting {
                 retry_attempt: 0, ..
             } if !self.checked_vpn => {
                 self.checked_vpn = true;
-                Some(nym_conflict::ConflictCheck::CompetingVpn)
+                enabled.then_some(nym_conflict::ConflictCheck::CompetingVpn)
             }
-            TunnelState::Connected { .. } if !self.checked_dns => {
+            TunnelState::Connected { .. } if enabled && !self.checked_dns => {
                 self.checked_dns = true;
                 Some(nym_conflict::ConflictCheck::InterceptedDns)
             }
             TunnelState::Disconnected => {
                 self.checked_dns = false;
                 self.checked_vpn = false;
+                self.cancel_pending_scan();
                 None
             }
             _ => None,
+        }
+    }
+
+    /// Registers `token` as covering the scan about to be spawned for the
+    /// check [`Self::poll`] just returned, cancelling whatever scan (if any)
+    /// was previously in flight - there should only ever be one at a time.
+    fn set_pending_scan(&mut self, token: CancellationToken) {
+        self.cancel_pending_scan();
+        self.pending_scan_cancellation = Some(token);
+    }
+
+    fn cancel_pending_scan(&mut self) {
+        if let Some(token) = self.pending_scan_cancellation.take() {
+            token.cancel();
         }
     }
 }
 
 pub struct TunnelStateMachine {
     current_state_handler: Box<dyn TunnelStateHandler>,
+    /// Mirrors the tunnel state most recently reported to `event_sender`.
+    /// Kept up to date across `SameState` iterations too, so
+    /// `conflict_tracker.poll` has a state to check against even on
+    /// iterations that didn't themselves produce a new one.
+    current_state: TunnelState,
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
@@ -1332,7 +1369,7 @@ impl TunnelStateMachine {
             shared_state.start_socks5_proxy().await;
         }
 
-        let (current_state_handler, _) = if shared_state
+        let (current_state_handler, initial_tunnel_state) = if shared_state
             .connectivity_handle
             .connectivity()
             .await
@@ -1345,6 +1382,7 @@ impl TunnelStateMachine {
 
         let tunnel_state_machine = Self {
             current_state_handler,
+            current_state: TunnelState::from(initial_tunnel_state),
             shared_state,
             command_receiver,
             event_sender,
@@ -1384,7 +1422,7 @@ impl TunnelStateMachine {
                         .report_tunnel_state(state.clone());
                     let diagnostics_suggestion =
                         self.diagnostics_suggestion_tracker.observe(&state);
-                    let conflict_check = self.conflict_tracker.on_new_state(&state);
+                    self.current_state = state.clone();
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
                     if let Some(reason) = diagnostics_suggestion {
                         tracing::info!("Suggesting diagnostics: {reason}");
@@ -1392,31 +1430,43 @@ impl TunnelStateMachine {
                             .event_sender
                             .send(TunnelEvent::DiagnosticsSuggested(reason));
                     }
-                    if let Some(check) = conflict_check
-                        && self.shared_state.tunnel_settings.enable_conflict_detection
-                    {
-                        let event_sender = self.event_sender.clone();
-                        tokio::spawn(async move {
-                            let conflicts = nym_conflict::detect(check).await;
-                            for conflict in conflicts {
-                                let conflict = match conflict {
-                                    nym_conflict::Conflict::InterceptedDns => {
-                                        ConflictDetected::InterceptedDns
-                                    }
-                                    nym_conflict::Conflict::CompetingVpn => {
-                                        ConflictDetected::CompetingVpn
-                                    }
-                                };
-                                tracing::info!("{conflict}");
-                                let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
-                            }
-                        });
-                    }
                 }
                 NextTunnelState::SameState(same_state) => {
                     self.current_state_handler = same_state;
                 }
                 NextTunnelState::Finished => break,
+            }
+
+            // Checked every iteration, not just on state transitions, so
+            // that enabling the setting while already `Connected` (which
+            // isn't itself a state transition) still triggers the DNS
+            // check.
+            if let Some(check) = self.conflict_tracker.poll(
+                &self.current_state,
+                self.shared_state.tunnel_settings.enable_conflict_detection,
+            ) {
+                let event_sender = self.event_sender.clone();
+                let shutdown_token = self.shutdown_token.clone();
+                let scan_cancellation = CancellationToken::new();
+                self.conflict_tracker
+                    .set_pending_scan(scan_cancellation.clone());
+                tokio::spawn(async move {
+                    let conflicts = tokio::select! {
+                        conflicts = nym_conflict::detect(check) => conflicts,
+                        _ = shutdown_token.cancelled() => return,
+                        _ = scan_cancellation.cancelled() => return,
+                    };
+                    for conflict in conflicts {
+                        let conflict = match conflict {
+                            nym_conflict::Conflict::InterceptedDns => {
+                                ConflictDetected::InterceptedDns
+                            }
+                            nym_conflict::Conflict::CompetingVpn => ConflictDetected::CompetingVpn,
+                        };
+                        tracing::info!("{conflict}");
+                        let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
+                    }
+                });
             }
         }
 

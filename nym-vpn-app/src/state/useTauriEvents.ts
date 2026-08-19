@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import i18n from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
@@ -38,6 +39,8 @@ export function useTauriEvents(
   add: (data: ToastAddData) => string,
   close: (id: string) => void,
 ) {
+  const { t } = useTranslation('notifications');
+
   const registerDaemonListener = useCallback(() => {
     return listen<VpndStatus>(
       DaemonEvent,
@@ -150,11 +153,11 @@ export function useTauriEvents(
       console.info('conflict detected', payload);
       add({
         id: `conflict-detected-${payload}`,
-        title: i18n.t(`conflict-detected.${payload}`, { ns: 'notifications' }),
+        title: t(`conflict-detected.${payload}`),
         type: 'warn',
       });
     });
-  }, [add]);
+  }, [add, t]);
 
   // register/unregister event listeners
   useEffect(() => {
