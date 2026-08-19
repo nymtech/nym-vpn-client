@@ -30,3 +30,15 @@ jobs:
     steps:
       - if: github.event.pull_request.milestone == null && contains( env.LABELS, 'no-milestone' ) == false
         run: exit 1
+
+  check-changelog-length:
+    name: Play Store changelog length
+    runs-on: arc-linux-latest
+    # Only run on real code changes, not label/milestone toggles.
+    if: contains( fromJSON('["opened","reopened","synchronize"]'), github.event.action )
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - name: Check release-notes length (<= 500 chars)
+        run: bash .github/scripts/release/check-changelog-length.sh
