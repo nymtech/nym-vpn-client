@@ -319,6 +319,7 @@ class VpnCoreController(
 		events.tryEmit(VpnServiceEvent.Log("core initialized"))
 
 		migrateLegacyConfigIfNeeded()
+		ensureGeoLocationEnabled()
 		refreshCurrentGateways()
 	}
 
@@ -356,6 +357,15 @@ class VpnCoreController(
 		}.onFailure { Timber.tag(TAG).e(it, "Legacy config migration failed") }
 	}
 
+	private suspend fun ensureGeoLocationEnabled() {
+		runCatching {
+			val config = requireCoreSender { it.getConfig() }
+			if (!config.gatewaySelectionAlgorithmConfig.enableGeoLocation) {
+				requireCoreSender { it.setEnableGeoLocation(true) }
+			}
+		}.onFailure { Timber.tag(TAG).e(it, "EnsureGeoLocationEnabledFailed") }
+	}
+
 	private suspend fun refreshCurrentGateways() {
 		runCatching {
 			val cfg = requireCoreSender { it.getConfig() }
@@ -387,6 +397,8 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetEntryPoint -> requireCoreSender { it.setEntryPoint(update.value) }
 			is CoreVpnConfigUpdate.SetExitPoint -> requireCoreSender { it.setExitPoint(update.value) }
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
+			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
+			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
 			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setEnableBridges(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }

@@ -206,7 +206,8 @@ class MainActivity : AppCompatActivity() {
 									onNavBarEvent = { navBarEvent = it },
 									serverLocationIsExit = serverLocationIsExit,
 									logsEnabled = appState.settings.logsEnabled,
-									onMainThemeClick = { navController.goFromRoot(Route.Display) },
+									selectedProfile = appState.currentProfile,
+									onProfileSelect = appViewModel::onProfileSelected,
 									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
 								)
 							},

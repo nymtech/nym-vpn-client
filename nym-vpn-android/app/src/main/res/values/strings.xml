@@ -664,4 +664,14 @@
 	<string name="app_icon_change_title">Change app icon?</string>
 	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Only the home-screen icon and label change — notifications and system search still show NymVPN.</string>
 	<string name="app_icon_change_confirm">Change icon</string>
+	<!-- Profiles -->
+	<string name="profiles_title">Profiles</string>
+	<string name="profiles_safest_title">Safest</string>
+	<string name="profiles_safest_description">Optimal for censorship circumvention</string>
+	<string name="profiles_random_title">Random</string>
+	<string name="profiles_random_description">Results vary, may cause slow speed</string>
+	<string name="profiles_most_private_title">Most private</string>
+	<string name="profiles_most_private_description">Metadata resistance and mixnet tuning</string>
+	<string name="profiles_fastest_title">Fastest</string>
+	<string name="profiles_fastest_description">Chooses the closest, best for streaming</string>
 </resources>

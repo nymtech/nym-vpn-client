@@ -42,6 +42,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.navigation.profile.Profile
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
@@ -358,6 +359,16 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	)
 }
 
+private fun nodeSelectionType(isAuto: Boolean, isRandom: Boolean, currentProfile: Profile?): NodeSelectionType = when {
+	isRandom -> NodeSelectionType.RANDOM
+	isAuto -> when (currentProfile) {
+		Profile.MOST_PRIVATE -> NodeSelectionType.MOST_PRIVATE
+		Profile.FASTEST -> NodeSelectionType.FASTEST
+		else -> NodeSelectionType.SAFEST
+	}
+	else -> NodeSelectionType.NODE
+}
+
 @Composable
 private fun MainScreenContent(
 	connectionState: ConnectionState,
@@ -387,22 +398,22 @@ private fun MainScreenContent(
 			countryCode = appUiState.exitPointCountry,
 			location = appUiState.exitPointLocation,
 			score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
-			selectionType = when (appUiState.vpnConfig.exitPoint) {
-				is ExitPoint.Random -> NodeSelectionType.RANDOM
-				is ExitPoint.Auto -> NodeSelectionType.AUTO
-				else -> NodeSelectionType.NODE
-			},
+			selectionType = nodeSelectionType(
+				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
+				isRandom = appUiState.vpnConfig.exitPoint is ExitPoint.Random,
+				currentProfile = appUiState.currentProfile,
+			),
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
 			name = appUiState.entryPointName,
 			countryCode = appUiState.entryPointCountry,
 			location = appUiState.entryPointLocation,
-			selectionType = when (appUiState.vpnConfig.entryPoint) {
-				is EntryPoint.Random -> NodeSelectionType.RANDOM
-				is EntryPoint.Auto -> NodeSelectionType.AUTO
-				else -> NodeSelectionType.NODE
-			},
+			selectionType = nodeSelectionType(
+				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
+				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,
+				currentProfile = appUiState.currentProfile,
+			),
 			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
 		),
 		initialPanelState = initialPanelState,

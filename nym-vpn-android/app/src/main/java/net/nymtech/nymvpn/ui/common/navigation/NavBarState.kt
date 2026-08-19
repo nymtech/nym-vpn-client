@@ -1,12 +1,13 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
 import androidx.annotation.StringRes
+import net.nymtech.nymvpn.ui.common.navigation.profile.Profile
 
 sealed class NavBarState {
 	data object Hidden : NavBarState()
 	data object Empty : NavBarState()
 
-	class Main(val onThemeClick: () -> Unit, val onSettingsClick: () -> Unit) : NavBarState()
+	class Main(val selectedProfile: Profile?, val onProfileClick: () -> Unit, val onProfileSelect: (Profile) -> Unit, val onSettingsClick: () -> Unit) : NavBarState()
 
 	class WithClose(@StringRes val titleRes: Int?, val showClose: Boolean = true, val onClose: () -> Unit = {}) : NavBarState()
 

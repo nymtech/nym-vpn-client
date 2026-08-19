@@ -12,6 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.navigation.profile.Profile
 import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
@@ -33,9 +34,19 @@ fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSe
 				null,
 			)
 		} ?: when (selectionType) {
-			NodeSelectionType.AUTO -> Triple(
-				painterResource(R.drawable.ic_safest),
-				stringResource(R.string.gateway_safest),
+			NodeSelectionType.SAFEST -> Triple(
+				painterResource(Profile.SAFEST.icon),
+				stringResource(Profile.SAFEST.titleRes),
+				null,
+			)
+			NodeSelectionType.MOST_PRIVATE -> Triple(
+				painterResource(Profile.MOST_PRIVATE.icon),
+				stringResource(Profile.MOST_PRIVATE.titleRes),
+				null,
+			)
+			NodeSelectionType.FASTEST -> Triple(
+				painterResource(Profile.FASTEST.icon),
+				stringResource(Profile.FASTEST.titleRes),
 				null,
 			)
 			NodeSelectionType.RANDOM -> Triple(
