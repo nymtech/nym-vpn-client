@@ -40,6 +40,7 @@ import PathManager
     private var accountRegistrationTask: Task<Void, Error>?
     var accountControllerShutdown: (() async -> Void)?
     private(set) var isLoggingOut = false
+    var hasPreparedRegisteredAccountThisSession = false
 #endif
 
     public static let shared = CredentialsManager()
@@ -265,6 +266,9 @@ import PathManager
     }
 
     public func ensureDeviceRegisteredForLogin() async throws {
+        if hasPreparedRegisteredAccountThisSession {
+            return
+        }
         let env = try resolvedRegistrationEnvironment()
         _ = try await AccountRegistrationSupport.withAccountStoreRetry(
             operation: "ensureDeviceRegisteredForLogin",
@@ -279,6 +283,10 @@ import PathManager
         onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
     ) async throws {
 #if os(iOS)
+        if hasPreparedRegisteredAccountThisSession {
+            onAccountPhaseChange?(.readyToConnect)
+            return
+        }
         let env = try resolvedNetworkEnvironment()
         try await prepareRegisteredAccount(
             environment: env,
@@ -323,6 +331,7 @@ import PathManager
     public func beginLogout() async {
 #if os(iOS)
         isLoggingOut = true
+        hasPreparedRegisteredAccountThisSession = false
         accountSummaryUpdateTask?.cancel()
         accountSummaryUpdateTask = nil
         await shutdownControllersAndWait()
@@ -337,6 +346,7 @@ import PathManager
 
     public func removeCredential() async throws {
 #if os(iOS)
+        hasPreparedRegisteredAccountThisSession = false
         let envOpt = configurationManager.networkEnv
         try await Task {
             let dataDir = try PathManager.dataFolderURL().path()
