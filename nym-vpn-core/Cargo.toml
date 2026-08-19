@@ -193,7 +193,7 @@ strum = "0.28.0"
 strum_macros = "0.28.0"
 syn = "=1.0"
 sysinfo = { version = "0.39.1", default-features = false }
-system-configuration = "0.7.0"
+system-configuration = "0.8.0"
 tun = "0.8.9"
 tabled = "0.20"
 tap = "1.0.1"

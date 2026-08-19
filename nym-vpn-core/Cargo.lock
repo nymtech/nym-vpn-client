@@ -5369,7 +5369,7 @@ dependencies = [
  "serde",
  "serde_json",
  "slab",
- "socket2 0.5.10",
+ "socket2 0.6.3",
  "thiserror 2.0.18",
  "tinyvec",
  "tokio",
@@ -5817,7 +5817,7 @@ dependencies = [
  "nym-windows",
  "once_cell",
  "resolv-conf",
- "system-configuration 0.7.0",
+ "system-configuration 0.8.0",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -6609,7 +6609,7 @@ dependencies = [
  "nym-common 2026.13.0-beta.1",
  "nym-windows",
  "rtnetlink",
- "system-configuration 0.7.0",
+ "system-configuration 0.8.0",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -8107,7 +8107,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.36.1",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -10909,6 +10909,17 @@ checksum = "a13f3d0daba03132c0aa9767f98351b3488edc2c100cda2d2ec2b04f3d8d3c8b"
 dependencies = [
  "bitflags 2.11.0",
  "core-foundation 0.9.4",
+ "system-configuration-sys 0.6.0",
+]
+
+[[package]]
+name = "system-configuration"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "501336eb7ba9e417300a6a0fa985721065467aa83a6dcf0422a8e43e4c0328fa"
+dependencies = [
+ "bitflags 2.11.0",
+ "core-foundation 0.10.1",
  "system-configuration-sys 0.6.0",
 ]
 
