@@ -1162,9 +1162,13 @@ impl DiagnosticsSuggestionTracker {
 /// at different points: DNS interception can only be observed once actually
 /// connected and routing traffic through NymVPN's own resolver, so it's
 /// checked on first entry to `Connected`. A competing VPN's evidence, on the
-/// other hand, can be destroyed by NymVPN's own connection attempt (e.g. it
-/// can force the competing tunnel to disconnect) before ever reaching
-/// `Connected`, so that check instead runs on first entry to `Error`.
+/// other hand, is destroyed by NymVPN's own connection attempt: many VPN
+/// clients tear their own tunnel down the moment they lose ownership of the
+/// default route, which is exactly what happens as soon as NymVPN's route
+/// manager installs its own. So that check instead runs on first entry to
+/// `Connecting` for a fresh attempt (`retry_attempt == 0`), before NymVPN has
+/// touched routing at all - at that point any tunnel interface already
+/// holding a default route can only belong to something else.
 #[derive(Default)]
 struct ConflictTracker {
     checked_dns: bool,
@@ -1175,13 +1179,15 @@ impl ConflictTracker {
     /// Returns which check (if any) should run now that `state` has been entered.
     fn on_new_state(&mut self, state: &TunnelState) -> Option<nym_conflict::ConflictCheck> {
         match state {
+            TunnelState::Connecting {
+                retry_attempt: 0, ..
+            } if !self.checked_vpn => {
+                self.checked_vpn = true;
+                Some(nym_conflict::ConflictCheck::CompetingVpn)
+            }
             TunnelState::Connected { .. } if !self.checked_dns => {
                 self.checked_dns = true;
                 Some(nym_conflict::ConflictCheck::InterceptedDns)
-            }
-            TunnelState::Error(_) if !self.checked_vpn => {
-                self.checked_vpn = true;
-                Some(nym_conflict::ConflictCheck::CompetingVpn)
             }
             TunnelState::Disconnected => {
                 self.checked_dns = false;
