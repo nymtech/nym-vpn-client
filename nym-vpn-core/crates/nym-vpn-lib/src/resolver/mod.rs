@@ -661,7 +661,7 @@ impl ResolverImpl {
 
         let Some(query) = message.queries.queries().first() else {
             tracing::error!("Received a message without query");
-            return Ok(serve_failed(message));
+            return send_error_response(message, response_handler, ResponseCode::ServFail).await;
         };
 
         // BIND does not support multiple questions.
@@ -679,12 +679,13 @@ impl ResolverImpl {
             .is_err()
         {
             tracing::error!("Failed to send query to resolver");
-            return Ok(serve_failed(message));
+            return send_error_response(message, response_handler, ResponseCode::ServFail).await;
         };
 
         match response_rx.await {
             Ok(Ok(ref lookup)) => {
                 let response = Self::build_response(message, lookup);
+
                 response_handler
                     .send_response(response)
                     .await
@@ -694,9 +695,9 @@ impl ResolverImpl {
             }
             Ok(Err(resolve_err)) => {
                 if let NetError::Dns(DnsError::NoRecordsFound(no_records)) = resolve_err {
-                    let response_code = no_records.response_code;
                     let response = MessageResponseBuilder::from_message_request(message)
-                        .error_msg(&message.metadata, response_code);
+                        .error_msg(&message.metadata, no_records.response_code);
+
                     response_handler
                         .send_response(response)
                         .await
@@ -704,15 +705,8 @@ impl ResolverImpl {
                             trace_err_chain!(err, "failed to send response");
                         })
                 } else {
-                    let response = MessageResponseBuilder::from_message_request(message)
-                        .error_msg(&message.metadata, ResponseCode::ServFail);
                     trace_err_chain!(resolve_err, "failed to resolve hostname");
-                    response_handler
-                        .send_response(response)
-                        .await
-                        .inspect_err(|err| {
-                            trace_err_chain!(err, "failed to send response");
-                        })
+                    send_error_response(message, response_handler, ResponseCode::ServFail).await
                 }
             }
             Err(_error) => Err(NetError::Message("channel is closed")),
@@ -729,7 +723,10 @@ impl RequestHandler for ResolverImpl {
     ) -> ResponseInfo {
         if !request.src().ip().is_loopback() {
             tracing::error!("Dropping a stray request from outside: {}", request.src());
-            refused(request)
+
+            send_error_response(request, response_handle, ResponseCode::Refused)
+                .await
+                .unwrap_or_else(|_| refused(request))
         } else if request.metadata.message_type == MessageType::Query
             && request.metadata.op_code == OpCode::Query
         {
@@ -738,7 +735,10 @@ impl RequestHandler for ResolverImpl {
                 .unwrap_or_else(|_err| serve_failed(request))
         } else {
             tracing::trace!("Dropping non-query request: {:?}", request);
-            refused(request)
+
+            send_error_response(request, response_handle, ResponseCode::Refused)
+                .await
+                .unwrap_or_else(|_| refused(request))
         }
     }
 }
@@ -775,4 +775,23 @@ fn response_from(request: &Request, response_code: ResponseCode) -> ResponseInfo
         metadata,
         counts: HeaderCounts::default(),
     })
+}
+
+async fn send_error_response<R: ResponseHandler>(
+    request: &Request,
+    mut response_handler: R,
+    response_code: ResponseCode,
+) -> Result<ResponseInfo, NetError> {
+    let mut metadata = Metadata::response_from_request(&request.metadata);
+    metadata.response_code = response_code;
+
+    let response =
+        MessageResponseBuilder::from_message_request(request).error_msg(&metadata, response_code);
+
+    response_handler
+        .send_response(response)
+        .await
+        .inspect_err(|err| {
+            trace_err_chain!(err, "failed to send response");
+        })
 }
