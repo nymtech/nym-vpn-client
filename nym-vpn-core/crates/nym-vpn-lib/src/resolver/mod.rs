@@ -709,7 +709,9 @@ impl ResolverImpl {
                     send_error_response(message, response_handler, ResponseCode::ServFail).await
                 }
             }
-            Err(_error) => Err(NetError::Message("channel is closed")),
+            Err(_error) => {
+                send_error_response(message, response_handler, ResponseCode::ServFail).await
+            }
         }
     }
 }
