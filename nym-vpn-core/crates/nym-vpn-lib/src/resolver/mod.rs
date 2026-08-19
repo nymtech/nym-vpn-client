@@ -657,7 +657,7 @@ impl ResolverImpl {
 
         let Some(query) = message.queries.queries().first() else {
             tracing::error!("Received a message without query");
-            return Ok(make_response_info(message, ResponseCode::ServFail));
+            return send_error_response(message, response_handler, ResponseCode::ServFail).await;
         };
 
         // BIND does not support multiple questions.
@@ -675,12 +675,13 @@ impl ResolverImpl {
             .is_err()
         {
             tracing::error!("Failed to send query to resolver");
-            return Ok(make_response_info(message, ResponseCode::ServFail));
+            return send_error_response(message, response_handler, ResponseCode::ServFail).await;
         };
 
         match response_rx.await {
             Ok(Ok(ref lookup)) => {
                 let response = Self::build_response(message, lookup);
+
                 response_handler
                     .send_response(response)
                     .await
@@ -690,9 +691,9 @@ impl ResolverImpl {
             }
             Ok(Err(resolve_err)) => {
                 if let NetError::Dns(DnsError::NoRecordsFound(no_records)) = resolve_err {
-                    let response_code = no_records.response_code;
                     let response = MessageResponseBuilder::from_message_request(message)
-                        .error_msg(&message.metadata, response_code);
+                        .error_msg(&message.metadata, no_records.response_code);
+
                     response_handler
                         .send_response(response)
                         .await
@@ -701,22 +702,14 @@ impl ResolverImpl {
                         })
                 } else {
                     trace_err_chain!(resolve_err, "failed to resolve hostname");
-                    Err(resolve_err)
+                    send_error_response(message, response_handler, ResponseCode::ServFail).await
                 }
             }
-            Err(_error) => Err(NetError::Message("channel is closed")),
+            Err(_error) => {
+                send_error_response(message, response_handler, ResponseCode::ServFail).await
+            }
         }
     }
-}
-
-fn make_response_info(message: &Request, response_code: ResponseCode) -> ResponseInfo {
-    let mut metadata = Metadata::response_from_request(&message.metadata);
-    metadata.response_code = response_code;
-    let header = Header {
-        metadata,
-        counts: HeaderCounts::default(),
-    };
-    ResponseInfo::from(header)
 }
 
 #[async_trait::async_trait]
@@ -728,16 +721,22 @@ impl RequestHandler for ResolverImpl {
     ) -> ResponseInfo {
         if !request.src().ip().is_loopback() {
             tracing::error!("Dropping a stray request from outside: {}", request.src());
-            make_response_info(request, ResponseCode::Refused)
+
+            send_error_response(request, response_handle, ResponseCode::Refused)
+                .await
+                .unwrap_or_else(|_| refused(request))
         } else if request.metadata.message_type == MessageType::Query
             && request.metadata.op_code == OpCode::Query
         {
             self.lookup(request, response_handle)
                 .await
-                .unwrap_or_else(|_err| make_response_info(request, ResponseCode::ServFail))
+                .unwrap_or_else(|_err| serve_failed(request))
         } else {
             tracing::trace!("Dropping non-query request: {:?}", request);
-            make_response_info(request, ResponseCode::Refused)
+
+            send_error_response(request, response_handle, ResponseCode::Refused)
+                .await
+                .unwrap_or_else(|_| refused(request))
         }
     }
 }
@@ -753,4 +752,44 @@ pub fn random_loopback_ipv4() -> IpAddr {
         // keep last octet in the range of 1-254 to avoid special addresses
         rand::thread_rng().gen_range(1..=254),
     ))
+}
+
+fn serve_failed(request: &Request) -> ResponseInfo {
+    response_from(request, ResponseCode::ServFail)
+}
+
+fn refused(request: &Request) -> ResponseInfo {
+    response_from(request, ResponseCode::Refused)
+}
+
+fn response_from(request: &Request, response_code: ResponseCode) -> ResponseInfo {
+    let mut metadata = Metadata::new(
+        request.metadata.id,
+        MessageType::Response,
+        request.metadata.op_code,
+    );
+    metadata.response_code = response_code;
+    ResponseInfo::from(Header {
+        metadata,
+        counts: HeaderCounts::default(),
+    })
+}
+
+async fn send_error_response<R: ResponseHandler>(
+    request: &Request,
+    mut response_handler: R,
+    response_code: ResponseCode,
+) -> Result<ResponseInfo, NetError> {
+    let mut metadata = Metadata::response_from_request(&request.metadata);
+    metadata.response_code = response_code;
+
+    let response =
+        MessageResponseBuilder::from_message_request(request).error_msg(&metadata, response_code);
+
+    response_handler
+        .send_response(response)
+        .await
+        .inspect_err(|err| {
+            trace_err_chain!(err, "failed to send response");
+        })
 }
