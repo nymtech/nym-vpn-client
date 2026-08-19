@@ -1,11 +1,11 @@
-New quick connect with “safest” servers. NymVPN automatically picks the most optimal server for you which is safely located in a country next door, not your own. Safest connection is currently set at default.
+Quick connect now defaults to "safest" servers: NymVPN picks an optimal server in a neighbouring country, not your own.
 
-A redesigned onboarding flow walks you through NymVPN features, plan selection, and account creation.
+Redesigned onboarding covers features, plan selection, and account creation.
 
-Camouflage icon: Hide your NymVPN app with a set of discreet alternative icons in Settings → Appearance.
+Camouflage icon: hide the app behind discreet alternative icons in Settings > Appearance.
 
-Updated Mixnet Tuning screen with clearer wording and a set of interface fixes.
+Mixnet Tuning screen updated with clearer wording and interface fixes.
 
-Fixed auto-connect getting stuck after restarting your device.
+Fixed auto-connect getting stuck after a device restart.
 
-Clearer error messages when a server selection can't meet the network's independence requirements.
+Clearer errors when a server can't meet the network's independence rules.
