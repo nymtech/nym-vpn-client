@@ -661,7 +661,7 @@ impl ResolverImpl {
 
         let Some(query) = message.queries.queries().first() else {
             tracing::error!("Received a message without query");
-            return Ok(make_response_info(message, ResponseCode::ServFail));
+            return Ok(serve_failed(message));
         };
 
         // BIND does not support multiple questions.
@@ -679,7 +679,7 @@ impl ResolverImpl {
             .is_err()
         {
             tracing::error!("Failed to send query to resolver");
-            return Ok(make_response_info(message, ResponseCode::ServFail));
+            return Ok(serve_failed(message));
         };
 
         match response_rx.await {
@@ -705,22 +705,12 @@ impl ResolverImpl {
                         })
                 } else {
                     trace_err_chain!(resolve_err, "failed to resolve hostname");
-                    Err(resolve_err)
+                    return resolve_err;
                 }
             }
             Err(_error) => Err(NetError::Message("channel is closed")),
         }
     }
-}
-
-fn make_response_info(message: &Request, response_code: ResponseCode) -> ResponseInfo {
-    let mut metadata = Metadata::response_from_request(&message.metadata);
-    metadata.response_code = response_code;
-    let header = Header {
-        metadata,
-        counts: HeaderCounts::default(),
-    };
-    ResponseInfo::from(header)
 }
 
 #[async_trait::async_trait]
@@ -732,16 +722,16 @@ impl RequestHandler for ResolverImpl {
     ) -> ResponseInfo {
         if !request.src().ip().is_loopback() {
             tracing::error!("Dropping a stray request from outside: {}", request.src());
-            make_response_info(request, ResponseCode::Refused)
+            refused(request)
         } else if request.metadata.message_type == MessageType::Query
             && request.metadata.op_code == OpCode::Query
         {
             self.lookup(request, response_handle)
                 .await
-                .unwrap_or_else(|_err| make_response_info(request, ResponseCode::ServFail))
+                .unwrap_or_else(|_err| serve_failed(request))
         } else {
             tracing::trace!("Dropping non-query request: {:?}", request);
-            make_response_info(request, ResponseCode::Refused)
+            refused(request)
         }
     }
 }
@@ -757,4 +747,25 @@ pub fn random_loopback_ipv4() -> IpAddr {
         // keep last octet in the range of 1-254 to avoid special addresses
         rand::thread_rng().gen_range(1..=254),
     ))
+}
+
+fn serve_failed(request: &Request) -> ResponseInfo {
+    response_from(request, ResponseCode::ServFail)
+}
+
+fn refused(request: &Request) -> ResponseInfo {
+    response_from(request, ResponseCode::Refused)
+}
+
+fn response_from(request: &Request, response_code: ResponseCode) -> ResponseInfo {
+    let mut metadata = Metadata::new(
+        request.metadata.id,
+        MessageType::Response,
+        request.metadata.op_code,
+    );
+    metadata.response_code = response_code;
+    ResponseInfo::from(Header {
+        metadata,
+        counts: HeaderCounts::default(),
+    })
 }
