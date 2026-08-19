@@ -19,8 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
 - Merge rpc-uniffi crate into lib-uniffi (https://github.com/nymtech/nym-vpn-client/pull/6010)
+- Local DNS resolver will respond with `serv_fail` on timeout from upstream DNS server (https://github.com/nymtech/nym-vpn-client/pull/6132)
+- Remove IPv6 DNS addresses from default DNS configuration due to reliability issues (https://github.com/nymtech/nym-vpn-client/pull/6132)
 
-## [2026.12.0] - TBD
+
+## [2026.12.0] - 2026-08-18
 
 ### Added
 
