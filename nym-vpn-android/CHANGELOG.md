@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
+
 ### Changed
 - Improved account signup and subscription flow (https://github.com/nymtech/nym-vpn-client/pull/6014)
 
