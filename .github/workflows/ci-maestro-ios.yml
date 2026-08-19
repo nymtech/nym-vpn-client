@@ -2,22 +2,29 @@ name: ci-maestro-ios
 
 on:
   schedule:
-    - cron: "0 4 * * *"
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/ci-maestro-ios.yml"
-      - "nym-vpn-apple/**"
-      - "nym-vpn-core/**"
-      - "wireguard/**"
+    # Three hours ahead of the earliest e2e cron (0 2 * * *), so a run that
+    # consumes its full timeout still finishes before e2e starts.
+    - cron: "0 23 * * *"
   workflow_dispatch:
+
+# The AppleSilicon runner is shared with the Apple build workflows and has a
+# persistent $HOME. Two concurrent runs would collide over simulators and the
+# staged NymVPNLib; queue instead, and never discard a nightly run in progress.
+concurrency:
+  group: ci-maestro-ios
+  cancel-in-progress: false
+
+env:
+  UI_SCRIPTS_DIR: .github/scripts/ui
 
 jobs:
   maestro-ui-tests:
-    if: github.actor != 'dependabot[bot]'
     # Self-hosted Apple Silicon: builds the Rust core (sim slice) the mock app links.
     runs-on: AppleSilicon
     timeout-minutes: 90
+    outputs:
+      report_url: ${{ steps.upload-report.outputs.artifact-url }}
+      debug_url: ${{ steps.upload-debug.outputs.artifact-url }}
 
     steps:
       - name: Checkout
@@ -247,6 +254,7 @@ jobs:
             --debug-output maestro-debug
 
       - name: Upload Maestro report
+        id: upload-report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -256,6 +264,7 @@ jobs:
 
       # Screenshots and per-command logs for failed flows.
       - name: Upload Maestro debug artifacts
+        id: upload-debug
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -265,3 +274,78 @@ jobs:
             nym-vpn-apple/launch-diagnostics
           retention-days: 14
           if-no-files-found: warn
+
+  # Runs on ubuntu-latest, not AppleSilicon: the notification must never queue
+  # behind the self-hosted runner it is reporting on.
+  notify-zulip:
+    name: Zulip UI status
+    needs: [maestro-ui-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout notify scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/ui
+
+      # The report travels as an artifact, not a job output: a JUnit file with
+      # failure traces can exceed the 1MB job-output cap. A missing artifact is
+      # not fatal - the composer degrades to a "(no test report)" message.
+      - name: Download Maestro report
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: maestro-ios-report
+          path: downloaded-report
+
+      - name: Compose message
+        id: msg
+        env:
+          NEEDS_RESULT: ${{ needs.maestro-ui-tests.result }}
+          UI_BRANCH: ${{ github.ref_name }}
+          UI_SHA: ${{ github.sha }}
+          UI_EVENT_NAME: ${{ github.event_name }}
+          UI_SCHEDULE_CRON: ${{ github.event.schedule }}
+          UI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          UI_REPORT_URL: ${{ needs.maestro-ui-tests.outputs.report_url }}
+          UI_DEBUG_URL: ${{ needs.maestro-ui-tests.outputs.debug_url }}
+        run: |
+          case "$NEEDS_RESULT" in
+            success) UI_STATUS="passed" ;;
+            failure) UI_STATUS="failed" ;;
+            cancelled) UI_STATUS="cancelled" ;;
+            skipped) UI_STATUS="skipped" ;;
+            *) UI_STATUS="$NEEDS_RESULT" ;;
+          esac
+          export UI_STATUS UI_PLATFORM="ios"
+
+          REPORT_ARGS=()
+          REPORT_FILE="$(find downloaded-report -name '*.xml' -type f 2>/dev/null | head -1)"
+          if [ -n "$REPORT_FILE" ]; then
+            REPORT_ARGS=(--report "$REPORT_FILE")
+          fi
+
+          chmod +x "${UI_SCRIPTS_DIR}/compose_zulip_ui_message.sh"
+          {
+            echo "content<<MSG_EOF"
+            "${UI_SCRIPTS_DIR}/compose_zulip_ui_message.sh" "${REPORT_ARGS[@]}"
+            echo "MSG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Deliberately not continue-on-error: a missing TEST_UI_ZULIP_TOPIC must
+      # go red, because an absent message looks identical to a night with no run.
+      - name: Send Zulip notification
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
+          email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.TEST_HARNESS_ZULIP_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.TEST_UI_ZULIP_TOPIC }}
+          content: ${{ steps.msg.outputs.content }}
