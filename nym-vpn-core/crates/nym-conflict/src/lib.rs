@@ -36,17 +36,19 @@ pub enum Conflict {
 ///
 /// - [`Self::InterceptedDns`] can only be observed once NymVPN is actually
 ///   connected and routing traffic through its own resolver.
-/// - [`Self::CompetingVpn`] is often best checked right after a connection
-///   attempt fails, rather than once connected - NymVPN's own attempt to
-///   take over the default route can itself force a competing VPN's tunnel
-///   to disconnect, destroying the routing evidence for it before NymVPN
-///   ever reaches a connected state.
+/// - [`Self::CompetingVpn`] must be checked *before* NymVPN starts a
+///   connection attempt, rather than after connecting or after a failure -
+///   NymVPN's own attempt to take over the default route can itself force a
+///   competing VPN's tunnel to disconnect, destroying the routing evidence
+///   for it before NymVPN ever reaches a connected (or failed) state.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConflictCheck {
     /// Check for [`Conflict::InterceptedDns`].
     InterceptedDns,
 
-    /// Check for [`Conflict::CompetingVpn`].
+    /// Check for [`Conflict::CompetingVpn`]. Must only be run before NymVPN
+    /// installs any of its own routes for the attempt - see the enum-level
+    /// docs.
     CompetingVpn,
 }
 
