@@ -17,6 +17,7 @@ use futures::{FutureExt, future::Fuse};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
+    response::NymVpnDeviceStatus,
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{
@@ -162,12 +163,24 @@ impl SyncingLocalState {
         vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
-        vpn_api_client
+        if let Err(err) = vpn_api_client
             .register_device(vpn_api_account, device)
             .await
-            .map_err(|err| SyncError::UnregisteredDevice {
+        {
+            if let Ok(registered) = vpn_api_client
+                .get_device_by_id(vpn_api_account, device)
+                .await
+                && registered.status == NymVpnDeviceStatus::Active
+            {
+                tracing::info!(
+                    "Device register request failed, but GET-by-id reports Active; treating as registered"
+                );
+                return Ok(true);
+            }
+            return Err(SyncError::UnregisteredDevice {
                 details: err.to_string(),
-            })?;
+            });
+        }
         Ok(true) // We just registered the device, we must update the summary (no need for a full refetch)
     }
 }

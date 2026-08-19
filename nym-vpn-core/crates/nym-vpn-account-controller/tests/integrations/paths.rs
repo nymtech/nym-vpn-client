@@ -354,6 +354,31 @@ async fn e2e_new_device_test() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
+async fn e2e_register_device_conflict_already_active_succeeds() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_with_unregistered_device()),
+        endpoints::register_account_403(unrelated_error()),
+        endpoints::get_device_by_id_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    Ok(())
+}
+
+#[tokio::test]
 async fn decentralised_account_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;

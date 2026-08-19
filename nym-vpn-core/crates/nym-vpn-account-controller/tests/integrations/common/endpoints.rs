@@ -81,6 +81,22 @@ pub fn register_account_200(response: NymVpnDevice) -> Mock {
         .respond_with(ResponseTemplate::new(200).set_body_json(response))
 }
 
+pub fn register_account_403(error_response: NymErrorResponse) -> Mock {
+    Mock::given(method("POST"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/device$"
+        )))
+        .respond_with(ResponseTemplate::new(403).set_body_json(error_response))
+}
+
+pub fn get_device_by_id_200(response: NymVpnDevice) -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/device/{DEVICE_REGEX}$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response))
+}
+
 // ZK-Nyms endpoints. They need a MockCredentialProxy
 
 pub fn zknym_id(credential_proxy: MockCredentialProxy) -> Mock {
