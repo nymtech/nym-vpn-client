@@ -704,8 +704,15 @@ impl ResolverImpl {
                             trace_err_chain!(err, "failed to send response");
                         })
                 } else {
+                    let response = MessageResponseBuilder::from_message_request(message)
+                        .error_msg(&message.metadata, ResponseCode::ServFail);
                     trace_err_chain!(resolve_err, "failed to resolve hostname");
-                    Err(resolve_err)
+                    response_handler
+                        .send_response(response)
+                        .await
+                        .inspect_err(|err| {
+                            trace_err_chain!(err, "failed to send response");
+                        })
                 }
             }
             Err(_error) => Err(NetError::Message("channel is closed")),
