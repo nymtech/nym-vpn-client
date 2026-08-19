@@ -1165,22 +1165,18 @@ impl DiagnosticsSuggestionTracker {
 /// other hand, is destroyed by NymVPN's own connection attempt: many VPN
 /// clients tear their own tunnel down the moment they lose ownership of the
 /// default route, which is exactly what happens as soon as NymVPN's route
-/// manager installs its own. So that check instead runs on first entry to
-/// `Connecting` for a fresh attempt (`retry_attempt == 0`), before NymVPN has
+/// manager installs its own. So that check instead runs at the very start of
+/// a fresh `Connecting` attempt (`retry_attempt == 0`), before NymVPN has
 /// touched routing at all - at that point any tunnel interface already
 /// holding a default route can only belong to something else.
 ///
 /// [`Self::poll`] must be called on every iteration of the state machine
 /// loop, not just on state transitions: enabling the setting while already
 /// `Connected` isn't itself a state transition, but should still trigger the
-/// DNS check exactly once. The competing-VPN check has no such retroactive
-/// case - once its one opportunity (the start of a fresh connection attempt)
-/// has passed with the setting disabled, there's nothing meaningful left to
-/// check later - so it's consumed unconditionally at that point.
+/// DNS check exactly once.
 #[derive(Default)]
 struct ConflictTracker {
     checked_dns: bool,
-    checked_vpn: bool,
     /// Cancellation for whichever scan is currently in flight, so it can be
     /// abandoned - and a stale `ConflictDetected` suppressed - if the
     /// setting is disabled, or [`Self::poll`] observes `Disconnected`,
@@ -1193,13 +1189,34 @@ impl ConflictTracker {
     /// and whether conflict detection is currently enabled.
     fn poll(&mut self, state: &TunnelState, enabled: bool) -> Option<nym_conflict::ConflictCheck> {
         if !enabled {
+            // Forget any already-completed DNS check too: if the setting
+            // gets turned back on while still `Connected`, that should
+            // re-arm the check rather than silently staying dormant for the
+            // rest of the session. The competing-VPN check has no such
+            // retroactive case - once its one opportunity (the start of a
+            // fresh connection attempt) has passed, there's nothing
+            // meaningful left to check later - so it needs no such reset.
+            self.checked_dns = false;
             self.cancel_pending_scan();
         }
         match state {
+            // `ResolvingApiAddresses` is the very first sub-state
+            // `ConnectingState::enter` ever reports, so seeing it with
+            // `retry_attempt == 0` reliably marks the start of a fresh
+            // (non-retry) connection attempt, however it was reached -
+            // including straight from `Error`, `Offline`, or
+            // `Disconnecting`, none of which pass back through
+            // `Disconnected`. Matching on this exact combination, rather
+            // than gating on a "not yet checked" latch, means a flag left
+            // over from a previous attempt can't leak into this one and
+            // silently suppress it.
             TunnelState::Connecting {
-                retry_attempt: 0, ..
-            } if !self.checked_vpn => {
-                self.checked_vpn = true;
+                retry_attempt: 0,
+                state: EstablishConnectionState::ResolvingApiAddresses,
+                ..
+            } => {
+                self.checked_dns = false;
+                self.cancel_pending_scan();
                 enabled.then_some(nym_conflict::ConflictCheck::CompetingVpn)
             }
             TunnelState::Connected { .. } if enabled && !self.checked_dns => {
@@ -1208,7 +1225,6 @@ impl ConflictTracker {
             }
             TunnelState::Disconnected => {
                 self.checked_dns = false;
-                self.checked_vpn = false;
                 self.cancel_pending_scan();
                 None
             }
