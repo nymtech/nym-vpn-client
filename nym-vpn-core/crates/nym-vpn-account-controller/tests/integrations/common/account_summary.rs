@@ -157,6 +157,17 @@ pub fn unrelated_error() -> NymErrorResponse {
     }
 }
 
+pub fn register_device_unique_constraint_error() -> NymErrorResponse {
+    NymErrorResponse {
+        message: "Device registration failed".to_string(),
+        message_id: Some("nym-vpn-website.public-api.register-device.failed".to_string()),
+        code_reference_id: Some(
+            nym_vpn_api_client::error::REGISTER_DEVICE_FAILED_CODE_ID.to_string(),
+        ),
+        status: "access_denied".to_string(),
+    }
+}
+
 pub fn mock_usage_response() -> NymVpnUsagesResponse {
     NymVpnUsagesResponse {
         total_items: 1,

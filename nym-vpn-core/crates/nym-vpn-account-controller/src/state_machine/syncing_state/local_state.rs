@@ -17,7 +17,8 @@ use futures::{FutureExt, future::Fuse};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
-    response::NymVpnDeviceStatus,
+    error::REGISTER_DEVICE_FAILED_CODE_ID,
+    response::{NymVpnDeviceStatus, extract_error_response},
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{
@@ -174,6 +175,14 @@ impl SyncingLocalState {
             {
                 tracing::info!(
                     "Device register request failed, but GET-by-id reports Active; treating as registered"
+                );
+                return Ok(true);
+            }
+            if extract_error_response(&err).is_some_and(|api_err| {
+                api_err.code_reference_id.as_deref() == Some(REGISTER_DEVICE_FAILED_CODE_ID)
+            }) {
+                tracing::info!(
+                    "Device register unique-constraint 403 and GET missed replica; treating as registered"
                 );
                 return Ok(true);
             }
