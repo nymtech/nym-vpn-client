@@ -31,8 +31,12 @@ function Profiles() {
               return;
             }
             isSelecting.current = true;
-            await setProfile(id);
-            navigate(-1);
+            const success = await setProfile(id);
+            if (success) {
+              navigate(-1);
+            } else {
+              isSelecting.current = false;
+            }
           },
           trailing: (
             <MsIcon icon="chevron_right" className="text-text-primary" />
