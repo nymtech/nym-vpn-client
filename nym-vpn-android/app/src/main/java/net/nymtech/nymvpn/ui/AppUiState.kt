@@ -4,7 +4,7 @@ import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
-import net.nymtech.nymvpn.ui.common.navigation.profile.Profile
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry

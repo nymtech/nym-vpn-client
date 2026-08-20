@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
 import androidx.annotation.StringRes
-import net.nymtech.nymvpn.ui.common.navigation.profile.Profile
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 
 sealed class NavBarState {
 	data object Hidden : NavBarState()

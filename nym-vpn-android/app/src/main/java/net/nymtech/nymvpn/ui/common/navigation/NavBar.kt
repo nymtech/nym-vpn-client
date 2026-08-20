@@ -33,8 +33,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.navigation.profile.Profile
-import net.nymtech.nymvpn.ui.common.navigation.profile.ProfilesPanel
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
+import net.nymtech.nymvpn.ui.screens.main.profiles.ProfilesPanel
 import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
