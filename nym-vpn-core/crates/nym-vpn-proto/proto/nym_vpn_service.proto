@@ -656,6 +656,7 @@ message ConflictDetectedEvent {
   enum Conflict {
     INTERCEPTED_DNS = 0;
     COMPETING_VPN = 1;
+    COMPETING_FIREWALL = 2;
   }
   Conflict conflict = 1;
 }

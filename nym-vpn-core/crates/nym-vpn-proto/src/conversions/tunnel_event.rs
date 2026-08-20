@@ -85,6 +85,7 @@ impl TryFrom<proto::ConflictDetectedEvent> for ConflictDetected {
         Ok(match conflict {
             proto::conflict_detected_event::Conflict::InterceptedDns => Self::InterceptedDns,
             proto::conflict_detected_event::Conflict::CompetingVpn => Self::CompetingVpn,
+            proto::conflict_detected_event::Conflict::CompetingFirewall => Self::CompetingFirewall,
         })
     }
 }
@@ -97,6 +98,9 @@ impl From<ConflictDetected> for proto::ConflictDetectedEvent {
             }
             ConflictDetected::CompetingVpn => {
                 proto::conflict_detected_event::Conflict::CompetingVpn
+            }
+            ConflictDetected::CompetingFirewall => {
+                proto::conflict_detected_event::Conflict::CompetingFirewall
             }
         };
         Self {

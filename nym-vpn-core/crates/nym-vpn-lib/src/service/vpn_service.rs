@@ -2371,7 +2371,7 @@ impl NymVpnService {
         self.gateway_provider.tentative_gateways().await
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn handle_is_split_tunnel_supported(&mut self) -> bool {
         #[cfg(target_os = "linux")]
         {

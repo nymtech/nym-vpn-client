@@ -68,13 +68,9 @@ impl fmt::Display for TunnelEvent {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum ConflictDetected {
-    /// Something is intercepting or rerouting DNS queries before they reach
-    /// NymVPN's own resolver.
     InterceptedDns,
-
-    /// Another VPN client's tunnel appears to be competing for the default
-    /// route alongside NymVPN's own.
     CompetingVpn,
+    CompetingFirewall,
 }
 
 impl fmt::Display for ConflictDetected {
@@ -87,6 +83,10 @@ impl fmt::Display for ConflictDetected {
             Self::CompetingVpn => write!(
                 f,
                 "Another VPN client's tunnel appears to be active alongside NymVPN's, which may interfere with connectivity"
+            ),
+            Self::CompetingFirewall => write!(
+                f,
+                "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity"
             ),
         }
     }
