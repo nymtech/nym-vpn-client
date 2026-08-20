@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>ApplicationVersion</key>
-	<string>2026.12.1-beta.1</string>
+	<string>2026.12.1-beta.2</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
