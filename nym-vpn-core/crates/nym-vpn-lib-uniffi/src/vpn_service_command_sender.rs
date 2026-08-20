@@ -213,14 +213,11 @@ impl NymVpnServiceCommandSender {
     }
 
     pub async fn set_enable_geo_location(&self, enable_geo_location: bool) -> Result<()> {
-        self.send_and_wait(
-            VpnServiceCommand::SetEnableGeoLocation,
-            enable_geo_location,
-        )
-        .await?
-        .map_err(|_| {
-            NymVpnServiceCommandInnerError::Internal("Failed to set enable geo location")
-        })?;
+        self.send_and_wait(VpnServiceCommand::SetEnableGeoLocation, enable_geo_location)
+            .await?
+            .map_err(|_| {
+                NymVpnServiceCommandInnerError::Internal("Failed to set enable geo location")
+            })?;
         Ok(())
     }
 
