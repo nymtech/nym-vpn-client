@@ -9,6 +9,7 @@ import { NodeHop, isAuto, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
+  isSafestAuto,
   uiNodeToSelectedNode,
 } from '../../types/node';
 import { PROFILE_ICONS } from '../../constants';
@@ -180,10 +181,10 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const randomActive = storedNode === 'random';
-  // "Safest" is the daemon's `Auto` selection. Ignore the stored flag values —
-  // a selection round-tripped from the daemon still highlights correctly
-  // whatever it reports back.
-  const safestActive = isAuto(storedNode);
+  // "Safest" is the daemon's `Auto` selection with the Safest profile's
+  // exclusion flags set — a bare `Auto` (no exclusions) is the Fastest
+  // profile and must not light up this quick pick.
+  const safestActive = isAuto(storedNode) && isSafestAuto(storedNode, node);
 
   const handleNodeDetails = (gateway: UiGateway) => {
     navigate(routes.nodeDetails, {

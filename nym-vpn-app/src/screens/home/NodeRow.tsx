@@ -21,6 +21,7 @@ import {
   isCountry,
   isGateway,
   isRegion,
+  isSafestAuto,
 } from '../../types';
 import { PROFILE_ICONS, countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
@@ -41,25 +42,13 @@ type NodeRowProps = {
   type: 'entry' | 'exit';
 };
 
-// Maps an `Auto` node's exclude flags to a display label. The daemon sets
-// these flags per the active connection profile:
-// - Safest: entry excludes the user's country; exit excludes both the
-//   user's country and the entry point's country.
-// - Fastest: no exclusions.
-// For entry, `exclude_entry_point_country` isn't meaningful (there is no
-// prior hop to exclude), so only `exclude_user_country` is considered.
-// Mixed exit flag combinations can't arise from a profile switch (only from
-// manual daemon config) and are labeled Fastest-style.
 function autoSelectionLabelKey(
   node: SelectedAuto,
   type: 'entry' | 'exit',
 ): 'safest-server-selection' | 'fastest-server-selection' {
-  const { exclude_user_country, exclude_entry_point_country } = node.auto;
-  const isSafest =
-    type === 'entry'
-      ? exclude_user_country
-      : exclude_user_country && exclude_entry_point_country;
-  return isSafest ? 'safest-server-selection' : 'fastest-server-selection';
+  return isSafestAuto(node, type)
+    ? 'safest-server-selection'
+    : 'fastest-server-selection';
 }
 
 export type SelectedNodeDisplayProps = {
