@@ -126,7 +126,7 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 		}
 
 		Column(
-			verticalArrangement = Arrangement.spacedBy(2.dp),
+			verticalArrangement = Arrangement.spacedBy(4.dp),
 			modifier = Modifier
 				.weight(1f)
 				.clickable(interactionSource = remember { MutableInteractionSource() }, indication = indication) {
@@ -138,12 +138,13 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 				modifier = Modifier.offset(y = nameOffset),
 			) {
-				CountryFlag(node.countryCode, 22.dp, node.selectionType)
+				val titleColor = if (isClickable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+				CountryFlag(node.countryCode, 22.dp, node.selectionType, tint = titleColor)
 
 				Text(
 					text = node.name.orEmpty(),
 					style = MaterialTheme.typography.bodyLarge,
-					color = if (isClickable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+					color = titleColor,
 					maxLines = 1,
 					overflow = TextOverflow.Ellipsis,
 					modifier = Modifier.weight(1f),
