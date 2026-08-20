@@ -767,12 +767,15 @@ jobs:
           LATEST_MANIFEST: ${{ env.S3_LATEST_MANIFEST }}
           BRANCH_MANIFEST: ${{ env.OUTPUT_DIR }}/${{ env.S3_BRANCH_MANIFEST }}
         run: |
-          echo "::notice:: Create S3 manifest at $LATEST_MANIFEST"
+          PARENT_DIR=$(dirname "$OUTPUT_DIR")
+          LATEST_MANIFEST_PATH="$PARENT_DIR/$LATEST_MANIFEST"
+
+          echo "::notice:: Create S3 manifest at $LATEST_MANIFEST_PATH"
           jq -R -s --arg ts "$BUILD_TIMESTAMP" \
-            '{timestamp: $ts, files: (split("\n") | map(select(length > 0)))}' "$RELEASE_ASSETS" > "$LATEST_MANIFEST"
+            '{timestamp: $ts, files: (split("\n") | map(select(length > 0)))}' "$RELEASE_ASSETS" > "$LATEST_MANIFEST_PATH"
 
           echo "::notice:: Copy S3 manifest to $BRANCH_MANIFEST"
-          cp "$LATEST_MANIFEST" "$BRANCH_MANIFEST"
+          cp "$LATEST_MANIFEST_PATH" "$BRANCH_MANIFEST"
 
       - name: Publish release to S3
         if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' }}
