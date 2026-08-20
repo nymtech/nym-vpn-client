@@ -369,6 +369,18 @@ export default function TopBar() {
     return <div data-testid="top-bar-title-empty"></div>;
   };
 
+  const {
+    title,
+    leftIcon,
+    leftComponent,
+    handleLeftNav,
+    rightIcon,
+    rightComponent,
+    rightIconClassName,
+    handleRightNav,
+    noBackground,
+  } = currentNavLocation;
+
   return (
     <motion.nav
       initial={{
@@ -385,29 +397,25 @@ export default function TopBar() {
         'text-text-primary',
         'z-30 h-16 cursor-default text-xl select-none',
         'px-4 py-2',
-        currentNavLocation.noBackground ? 'bg-surface-bg' : 'bg-surface-elev',
+        noBackground ? 'bg-surface-bg' : 'bg-surface-elev',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}
-      data-test-no-background={
-        currentNavLocation.noBackground ? 'true' : 'false'
-      }
+      data-test-no-background={noBackground ? 'true' : 'false'}
     >
-      {currentNavLocation.leftIcon || currentNavLocation.leftComponent ? (
+      {leftIcon || leftComponent ? (
         <motion.div
           initial={{ translateX: -4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          {currentNavLocation.leftComponent}
-          {currentNavLocation.leftIcon && (
+          {leftComponent}
+          {leftIcon && (
             <ButtonIconNew
-              icon={currentNavLocation.leftIcon}
+              icon={leftIcon}
               onClick={
-                customLeftNavHandler ??
-                currentNavLocation.handleLeftNav ??
-                defaultLeftNavHandler
+                customLeftNavHandler ?? handleLeftNav ?? defaultLeftNavHandler
               }
             />
           )}
@@ -416,22 +424,21 @@ export default function TopBar() {
         <div className="mx-4 w-6" data-testid="top-bar-left-spacer" />
       )}
       <div data-testid="top-bar-title-container" className="text-xl">
-        {renderTitle(currentNavLocation.title)}
+        {renderTitle(title)}
       </div>
-      {currentNavLocation.rightIcon || currentNavLocation.rightComponent ? (
+      {rightIcon || rightComponent ? (
         <motion.div
           initial={{ translateX: 4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-right-button-container"
         >
-          {currentNavLocation.rightComponent &&
-            currentNavLocation.rightComponent}
-          {currentNavLocation.rightIcon && (
+          {rightComponent}
+          {rightIcon && (
             <ButtonIconNew
-              icon={currentNavLocation.rightIcon}
-              onClick={currentNavLocation.handleRightNav!}
-              className={currentNavLocation.rightIconClassName}
+              icon={rightIcon}
+              onClick={handleRightNav!}
+              className={rightIconClassName}
             />
           )}
         </motion.div>
