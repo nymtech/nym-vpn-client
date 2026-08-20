@@ -302,6 +302,7 @@ let package = Package(
                 "AccountPrefetchGates",
                 "AppSettings",
                 "CredentialsManager",
+                "SnackbarManager",
                 .product(name: "ErrorHandler", package: "ServicesIOS"),
                 .product(name: "NymVPNLib", package: "NymVPNLib"),
                 .product(name: "Theme", package: "Theme"),
