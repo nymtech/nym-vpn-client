@@ -758,7 +758,7 @@ jobs:
             '{timestamp: $ts, files: (split("\n") | map(select(length > 0)))}' "$RELEASE_ASSETS" > "$LATEST_MANIFEST"
 
           echo "::notice:: Copy S3 manifest to $BRANCH_MANIFEST"
-          cp "${{ env.S3_LATEST_MANIFEST }}" "$BRANCH_MANIFEST"
+          cp "$LATEST_MANIFEST" "$BRANCH_MANIFEST"
 
       - name: Publish release to S3
         if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' }}
