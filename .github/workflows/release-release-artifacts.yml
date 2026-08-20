@@ -71,24 +71,34 @@ on:
     outputs:
       github_release_url:
         value: ${{ jobs.create-release.outputs.github_release_url }}
+        description: "GitHub release page link"
       linux_app_deb_x64_url:
         value: ${{ jobs.create-release.outputs.linux_app_deb_x64_url }}
+        description: "GitHub download link for nym-vpn-app (deb, x64)"
       linux_app_deb_arm64_url:
         value: ${{ jobs.create-release.outputs.linux_app_deb_arm64_url }}
+        description: "GitHub download link for nym-vpn-app (deb, arm64)"
       linux_app_appimage_x64_url:
         value: ${{ jobs.create-release.outputs.linux_app_appimage_x64_url }}
+        description: "GitHub download link for nym-vpn-app (AppImage, x64)"
       linux_app_appimage_arm64_url:
         value: ${{ jobs.create-release.outputs.linux_app_appimage_arm64_url }}
+        description: "GitHub download link for nym-vpn-app (AppImage, arm64)"
       windows_installer_x64_url:
         value: ${{ jobs.create-release.outputs.windows_installer_x64_url }}
+        description: "GitHub download link for windows installer (x64)"
       windows_installer_arm64_url:
         value: ${{ jobs.create-release.outputs.windows_installer_arm64_url }}
+        description: "GitHub download link for windows installer (arm64)"
       macos_installer_url:
         value: ${{ jobs.create-release.outputs.macos_installer_url }}
+        description: "GitHub download link for macOS installer"
       vpnc_macos_installer_url:
         value: ${{ jobs.create-release.outputs.vpnc_macos_installer_url }}
+        description: "GitHub download link for macOS nym-vpnc installer"
       android_apk_url:
         value: ${{ jobs.create-release.outputs.android_apk_url }}
+        description: "GitHub download link for Android APK"
     secrets:
       GARAGE_AWS_ACCESS_KEY_ID:
         required: true
