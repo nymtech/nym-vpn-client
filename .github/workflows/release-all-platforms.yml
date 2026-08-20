@@ -132,6 +132,7 @@ jobs:
     runs-on: arc-linux-latest
     outputs:
       gh_release_type: ${{ steps.flags.outputs.gh_release_type }}
+      build_timestamp: ${{ steps.v.outputs.build_timestamp }}
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
       nightly_timestamp: ${{ steps.v.outputs.nightly_timestamp || '' }}
@@ -225,9 +226,9 @@ jobs:
           fi
 
           if [[ "$GH_RELEASE" = "none" ]]; then
-            PUBLISH_GITHUB="false"
+            PUBLISH_GITHUB=false
           else
-            PUBLISH_GITHUB="true"
+            PUBLISH_GITHUB=true
           fi
 
           PUBLISH_S3="${IN_PUBLISH_S3:-false}"
