@@ -400,6 +400,30 @@ impl NymVpnAccountStorage {
             .ok_or(VpnError::NoDeviceIdentity)?;
         Ok(device_id.device_keypair().public_key().to_string())
     }
+
+    /// POST `/device` with the identity keys already on disk. Does not mint a new
+    /// identity or unregister. Caller must ensure the account controller is not running.
+    pub async fn register_device(&self) -> Result<String, VpnError> {
+        let device = self.load_device().await?;
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let vpn_api_client = self.create_vpn_api_client().await?;
+        let registered = vpn_api_client
+            .register_device(&account, &device)
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: err.to_string(),
+            })?;
+        tracing::info!("device '{}' registered", registered.device_identity_key);
+        Ok(registered.device_identity_key)
+    }
 }
 
 impl NymVpnAccountStorage {

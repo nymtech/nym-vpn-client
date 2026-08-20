@@ -8,6 +8,7 @@ import ConnectionTypes
 import CredentialsManager
 import AccountPrefetchGates
 import NymLogger
+import SnackbarManager
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -34,6 +35,8 @@ import Theme
     @Published var fakeAutoRenew = false {
         didSet { reapplyAccountSummaryOverrideIfNeeded() }
     }
+
+    @Published var isReregisteringDevice = false
 
     /// The preset currently faked, so a `fakeAutoRenew` flip can re-apply it.
     private var appliedPreset: AccountSummaryPreset?
@@ -158,6 +161,41 @@ import Theme
 
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    func reregisterCurrentDevice() {
+        guard !isReregisteringDevice else { return }
+        isReregisteringDevice = true
+        Task {
+            defer { isReregisteringDevice = false }
+#if os(iOS)
+            do {
+                let deviceId = try await CredentialsManager.shared.reregisterCurrentDevice()
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .confirmation,
+                        title: "Device re-registered",
+                        message: deviceId
+                    )
+                )
+            } catch {
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .negative,
+                        title: "Device re-register failed",
+                        message: error.localizedDescription
+                    )
+                )
+            }
+#else
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(
+                    style: .warning,
+                    title: "Device re-register is iOS only"
+                )
+            )
+#endif
+        }
     }
 
     var logFilesSize: String {

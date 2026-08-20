@@ -24,6 +24,8 @@ public struct SantasView: View {
                     santasSpacer()
                     environmentSection()
                     santasSpacer()
+                    deviceSection()
+                    santasSpacer()
                     togglesSection()
                     santasSpacer()
                     snackbarSection()
@@ -100,6 +102,24 @@ private extension SantasView {
                 }
             }
         }
+    }
+
+    func deviceSection() -> some View {
+        VStack(spacing: 8) {
+            Text("Device register:")
+                .foregroundStyle(Color.Nym.primary)
+                .bold()
+                .padding(4)
+            Text("POST /device with the keys already on this phone. Does not log out. Disconnect first. Same Device id in logs means the idempotent API path ran.")
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+            Button("Re-register this device") {
+                viewModel.reregisterCurrentDevice()
+            }
+            .disabled(viewModel.isReregisteringDevice)
+        }
+        .padding(16)
     }
 
     @ViewBuilder
