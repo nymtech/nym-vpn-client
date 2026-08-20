@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow marking specific server, country or region as favorite
 - Add Safest server option for entry and exit
 - Add support for Recents - recently connected servers
+- Add support for Profiles - tailored settings configuration
 
 ### Fixed
 
