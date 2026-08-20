@@ -19,7 +19,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 
 @Composable
-fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSelectionType = NodeSelectionType.NODE, tint: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
+fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSelectionType = NodeSelectionType.NODE, tint: Color = MaterialTheme.colorScheme.onBackground) {
 	val context = LocalContext.current
 	val (painter, description, colorFilter) = if (LocalInspectionMode.current) {
 		Triple(

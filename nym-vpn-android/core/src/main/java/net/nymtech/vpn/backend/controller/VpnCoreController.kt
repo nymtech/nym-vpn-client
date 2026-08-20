@@ -319,8 +319,7 @@ class VpnCoreController(
 		events.tryEmit(VpnServiceEvent.Log("core initialized"))
 
 		migrateLegacyConfigIfNeeded()
-		ensureGeoLocationEnabled()
-		refreshCurrentGateways()
+		refreshCoreStateAfterInit()
 	}
 
 	/**
@@ -357,21 +356,19 @@ class VpnCoreController(
 		}.onFailure { Timber.tag(TAG).e(it, "Legacy config migration failed") }
 	}
 
-	private suspend fun ensureGeoLocationEnabled() {
+	private suspend fun refreshCoreStateAfterInit() {
 		runCatching {
-			val config = requireCoreSender { it.getConfig() }
-			if (!config.gatewaySelectionAlgorithmConfig.enableGeoLocation) {
-				requireCoreSender { it.setEnableGeoLocation(true) }
-			}
-		}.onFailure { Timber.tag(TAG).e(it, "EnsureGeoLocationEnabledFailed") }
-	}
+			val rustConfig = requireCoreSender { it.getConfig() }
+			currentEntry = rustConfig.entryPoint
+			currentExit = rustConfig.exitPoint
 
-	private suspend fun refreshCurrentGateways() {
-		runCatching {
-			val cfg = requireCoreSender { it.getConfig() }
-			currentEntry = cfg.entryPoint
-			currentExit = cfg.exitPoint
-		}.onFailure { Timber.tag(TAG).w(it, "refreshCurrentGateways failed") }
+			if (!configRepo.hasEnsuredGeoLocationDefault()) {
+				if (!rustConfig.gatewaySelectionAlgorithmConfig.enableGeoLocation) {
+					requireCoreSender { it.setEnableGeoLocation(true) }
+				}
+				configRepo.markGeoLocationDefaultEnsured()
+			}
+		}.onFailure { Timber.tag(TAG).w(it, "refreshCoreStateAfterInit failed") }
 	}
 
 	private fun syncLocalTunSettings(prefs: LocalVpnPrefs) {

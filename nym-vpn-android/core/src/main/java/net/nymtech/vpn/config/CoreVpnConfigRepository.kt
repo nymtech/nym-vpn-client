@@ -16,6 +16,10 @@ class CoreVpnConfigRepository(context: Context) {
 
 	suspend fun markMigratedToRustConfig() = store.markMigratedToRustConfig()
 
+	suspend fun hasEnsuredGeoLocationDefault(): Boolean = store.hasEnsuredGeoLocationDefault()
+
+	suspend fun markGeoLocationDefaultEnsured() = store.markGeoLocationDefaultEnsured()
+
 	suspend fun hasLegacyConfig(): Boolean = store.hasLegacyConfig()
 
 	/** Legacy, pre-vpn-service-persistence config - only used once, to migrate an existing install. */

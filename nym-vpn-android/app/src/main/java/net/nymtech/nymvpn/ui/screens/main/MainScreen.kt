@@ -362,9 +362,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 private fun nodeSelectionType(isAuto: Boolean, isRandom: Boolean, currentProfile: Profile?): NodeSelectionType = when {
 	isRandom -> NodeSelectionType.RANDOM
 	isAuto -> when (currentProfile) {
+		Profile.SAFEST, null -> NodeSelectionType.SAFEST
 		Profile.MOST_PRIVATE -> NodeSelectionType.MOST_PRIVATE
 		Profile.FASTEST -> NodeSelectionType.FASTEST
-		else -> NodeSelectionType.SAFEST
+		Profile.RANDOM -> NodeSelectionType.RANDOM
 	}
 	else -> NodeSelectionType.NODE
 }

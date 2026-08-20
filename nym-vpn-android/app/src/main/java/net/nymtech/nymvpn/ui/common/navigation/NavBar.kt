@@ -257,8 +257,10 @@ fun NavBar(
 							description = stringResource(R.string.profiles_title),
 							tint = MaterialTheme.colorScheme.primary,
 							onClick = {
-								profilesExpanded = !profilesExpanded
-								state.onProfileClick()
+								if (!profilesExpanded) {
+									profilesExpanded = true
+									state.onProfileClick()
+								}
 							},
 						)
 						is NavBarState.WithBack -> state.onBack?.let { onBack ->
