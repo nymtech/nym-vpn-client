@@ -21,7 +21,7 @@ on:
         required: true
       github_branch:
         description: "Github branch"
-        type: boolean
+        type: string
         required: true
       build_timestamp:
         description: "Build timestamp (format: YYYYMMDDHHmm)"

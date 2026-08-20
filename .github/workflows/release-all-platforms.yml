@@ -541,8 +541,8 @@ jobs:
     with:
       tag: ${{ needs.resolve.outputs.tag }}
       github_release_type: ${{ needs.resolve.outputs.gh_release_type }}
-      publish_github: ${{ needs.resolve.outputs.publish_github }}
-      publish_s3: ${{ needs.resolve.outputs.publish_s3 }}
+      publish_github: ${{ needs.resolve.outputs.publish_github == 'true' }}
+      publish_s3: ${{ needs.resolve.outputs.publish_s3 == 'true' }}
       github_branch: ${{ github.ref_name }}
       build_timestamp: ${{ needs.resolve.outputs.build_timestamp }}
       version: ${{ needs.resolve.outputs.version }}
