@@ -176,3 +176,33 @@ impl FetcherError for VpnApiFetcherError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use nym_vpn_lib_types::VpnApiErrorResponse;
+
+    use super::*;
+
+    fn api_error(message_id: Option<&str>) -> VpnApiFetcherError {
+        VpnApiFetcherError::ApiErrorResponse {
+            endpoint: "zknym".into(),
+            source: VpnApiErrorResponse {
+                message: "denied".into(),
+                message_id: message_id.map(str::to_owned),
+                code_reference_id: None,
+            },
+        }
+    }
+
+    #[test]
+    fn is_retryable_device_not_authenticated() {
+        assert!(api_error(Some(DEVICE_NOT_AUTHENTICATED_MESSAGE_ID)).is_retryable());
+    }
+
+    #[test]
+    fn is_retryable_other_api_response_is_not() {
+        assert!(!api_error(Some("other")).is_retryable());
+        assert!(!api_error(None).is_retryable());
+        assert!(!VpnApiFetcherError::IssuanceError.is_retryable());
+    }
+}
