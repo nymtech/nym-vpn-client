@@ -400,7 +400,7 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          {currentNavLocation.leftComponent && currentNavLocation.leftComponent}
+          {currentNavLocation.leftComponent}
           {currentNavLocation.leftIcon && (
             <ButtonIconNew
               icon={currentNavLocation.leftIcon}
