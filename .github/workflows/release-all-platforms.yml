@@ -534,7 +534,7 @@ jobs:
   release:
     needs: [resolve, build-outputs]
     if: |
-      !cancelled() && needs.build-outputs.result == 'success' && (needs.resolve.outputs.publish_github || needs.resolve.outputs.publish_s3)
+      !cancelled() && needs.build-outputs.result == 'success' && (needs.resolve.outputs.publish_github == 'true' || needs.resolve.outputs.publish_s3 == 'true')
     uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
