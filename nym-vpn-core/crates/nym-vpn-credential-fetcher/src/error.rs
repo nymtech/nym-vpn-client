@@ -3,7 +3,9 @@
 
 use nym_bandwidth_controller::{FetcherError, error::FetcherErrorKind};
 use nym_credentials_interface::CompactEcashError;
-use nym_vpn_api_client::error::{FAIR_USAGE_DEPLETED_CODE_ID, VpnApiClientError};
+use nym_vpn_api_client::error::{
+    DEVICE_NOT_AUTHENTICATED_MESSAGE_ID, FAIR_USAGE_DEPLETED_CODE_ID, VpnApiClientError,
+};
 use nym_vpn_lib_types::{VpnApiError, VpnApiErrorResponse};
 
 use crate::{credential_request::ZkNymId, storage::error::PendingCredentialRequestsStorageError};
@@ -100,10 +102,15 @@ impl VpnApiFetcherError {
     /// Whether this error is worth retrying: a transient network/availability failure rather than a
     /// definitive protocol, cryptographic, or server-side rejection.
     pub(crate) fn is_retryable(&self) -> bool {
-        matches!(
-            self,
-            Self::Timeout { .. } | Self::Transport { .. } | Self::PollingTimeout { .. }
-        )
+        match self {
+            Self::Timeout { .. } | Self::Transport { .. } | Self::PollingTimeout { .. } => true,
+            Self::ApiErrorResponse { source, .. }
+                if source.message_id.as_deref() == Some(DEVICE_NOT_AUTHENTICATED_MESSAGE_ID) =>
+            {
+                true
+            }
+            _ => false,
+        }
     }
 
     // Returning a closure that takes the error as input, to simplify callsite

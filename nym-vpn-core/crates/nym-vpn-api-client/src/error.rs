@@ -13,6 +13,10 @@ pub const UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID: &str = "235ba475-8c64-4c46-814
 // https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/zknym/route.ts#L255
 pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
 
+// PocketBase replica lag: device POST succeeded, zk-nym replica has no row yet.
+pub const DEVICE_NOT_AUTHENTICATED_MESSAGE_ID: &str =
+    "nym-vpn-website.public-api.device.zk-nym.request_failed.device_not_authenticated";
+
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
     #[error("failed to create vpn api client")]
