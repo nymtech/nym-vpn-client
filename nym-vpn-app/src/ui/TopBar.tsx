@@ -7,7 +7,9 @@ import { NymVpnTextLogo } from '../assets';
 import { useDialog, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes, UiTheme } from '../types';
+import { useSetProfile } from '../hooks';
 import { ActionMenu } from '../screens';
+import ProfilesMenu from '../screens/home/ProfilesMenu';
 import { useSystemTheme } from '../state';
 import { useAppStore } from '../store';
 import BetaPill from './BetaPill';
@@ -17,6 +19,7 @@ import { StaggeredText } from './StaggeredText';
 type NavLocation = {
   title?: string | ReactNode;
   leftIcon?: string;
+  leftComponent?: ReactNode;
   handleLeftNav?: () => void;
   rightIcon?: string;
   rightComponent?: ReactNode;
@@ -48,6 +51,7 @@ export default function TopBar() {
   const { customLeftNavHandler } = useTopBar();
 
   const { handleThemeChange } = useSystemTheme();
+  const setProfile = useSetProfile();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -90,10 +94,7 @@ export default function TopBar() {
       },
       '/home': {
         title: <TopNymLogo uiTheme={uiTheme} />,
-        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
-        handleLeftNav: () => {
-          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
-        },
+        leftComponent: <ProfilesMenu onSelect={setProfile} />,
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
@@ -211,6 +212,7 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/profiles': backNav(t('profiles.title')),
       '/settings/socks5': {
         title: t('app-proxy.title', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',
@@ -341,7 +343,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, show, uiTheme, handleThemeChange]);
+  }, [t, navigate, show, uiTheme, handleThemeChange, setProfile]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -391,21 +393,24 @@ export default function TopBar() {
         currentNavLocation.noBackground ? 'true' : 'false'
       }
     >
-      {currentNavLocation.leftIcon ? (
+      {currentNavLocation.leftIcon || currentNavLocation.leftComponent ? (
         <motion.div
           initial={{ translateX: -4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          <ButtonIconNew
-            icon={currentNavLocation.leftIcon}
-            onClick={
-              customLeftNavHandler ??
-              currentNavLocation.handleLeftNav ??
-              defaultLeftNavHandler
-            }
-          />
+          {currentNavLocation.leftComponent && currentNavLocation.leftComponent}
+          {currentNavLocation.leftIcon && (
+            <ButtonIconNew
+              icon={currentNavLocation.leftIcon}
+              onClick={
+                customLeftNavHandler ??
+                currentNavLocation.handleLeftNav ??
+                defaultLeftNavHandler
+              }
+            />
+          )}
         </motion.div>
       ) : (
         <div className="mx-4 w-6" data-testid="top-bar-left-spacer" />

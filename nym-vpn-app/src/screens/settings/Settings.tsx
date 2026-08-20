@@ -82,6 +82,14 @@ function Settings() {
       <SettingsGroup
         settings={[
           {
+            title: t('profiles.title', { ns: 'common' }),
+            leadingIcon: 'local_fire_department',
+            onClick: () => navigate(routes.profiles),
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
+          },
+          {
             title: t('killswitch.title'),
             desc: t('killswitch.desc'),
             leadingIcon: 'remove_moderator',

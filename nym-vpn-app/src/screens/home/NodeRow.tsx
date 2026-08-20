@@ -8,7 +8,6 @@ import {
   FlagIcon,
   MsIcon,
   Skeleton,
-  SmileyIcon,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
@@ -16,13 +15,14 @@ import { useLang } from '../../hooks';
 import {
   Gateway,
   Score,
+  SelectedAuto,
   SelectedNode,
   isAuto,
   isCountry,
   isGateway,
   isRegion,
 } from '../../types';
-import { countriesWithRegions } from '../../constants';
+import { PROFILE_ICONS, countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
@@ -40,6 +40,27 @@ const TEXT_VARIANTS = {
 type NodeRowProps = {
   type: 'entry' | 'exit';
 };
+
+// Maps an `Auto` node's exclude flags to a display label. The daemon sets
+// these flags per the active connection profile:
+// - Safest: entry excludes the user's country; exit excludes both the
+//   user's country and the entry point's country.
+// - Fastest: no exclusions.
+// For entry, `exclude_entry_point_country` isn't meaningful (there is no
+// prior hop to exclude), so only `exclude_user_country` is considered.
+// Mixed exit flag combinations can't arise from a profile switch (only from
+// manual daemon config) and are labeled Fastest-style.
+function autoSelectionLabelKey(
+  node: SelectedAuto,
+  type: 'entry' | 'exit',
+): 'safest-server-selection' | 'fastest-server-selection' {
+  const { exclude_user_country, exclude_entry_point_country } = node.auto;
+  const isSafest =
+    type === 'entry'
+      ? exclude_user_country
+      : exclude_user_country && exclude_entry_point_country;
+  return isSafest ? 'safest-server-selection' : 'fastest-server-selection';
+}
 
 export type SelectedNodeDisplayProps = {
   countryCode?: countryCode;
@@ -192,7 +213,7 @@ export function NodeRow({ type }: NodeRowProps) {
       }
       if (isAuto(selected)) {
         return {
-          name: t('safest-server-selection'),
+          name: t(autoSelectionLabelKey(selected, type)),
           ip: '',
           ...gwFlags(gw),
         };
@@ -216,7 +237,7 @@ export function NodeRow({ type }: NodeRowProps) {
         ...gwFlags(gw),
       };
     },
-    [getGatewayInfo, getLocationInfo, gwFlags, t],
+    [getGatewayInfo, getLocationInfo, gwFlags, t, type],
   );
 
   // `lookupGw` is a stable store function — depending on it alone won't re-run
@@ -286,12 +307,23 @@ export function NodeRow({ type }: NodeRowProps) {
       : nodeDetails.name;
   }, [gateway?.name, nodeDetails.name, state]);
 
-  // A 'safest' hop carries no gateway id of its own, so `gateway` is null until
-  // the daemon reports the one it picked. Gate on that rather than on the
-  // tunnel state: at the moment the state flips to 'connecting' the gateway is
-  // still unknown, and ScoreIndicator maps an undefined score to a
-  // full-strength bar — i.e. a confident signal reading for no server.
-  const showSafestPlaceholder = isAuto(userSelectedNode) && !gateway;
+  // An auto or 'random' hop carries no gateway id of its own, so `gateway` is
+  // null until the daemon reports the one it picked. Gate on that rather than
+  // on the tunnel state: at the moment the state flips to 'connecting' the
+  // gateway is still unknown, and ScoreIndicator maps an undefined score to a
+  // full-strength bar — i.e. a confident signal reading for no server. Until
+  // then show the icon of the matching profile flavor instead.
+  const placeholderIcon = useMemo(() => {
+    if (gateway) return null;
+    if (userSelectedNode === 'random') return PROFILE_ICONS.random;
+    if (isAuto(userSelectedNode)) {
+      return autoSelectionLabelKey(userSelectedNode, type) ===
+        'safest-server-selection'
+        ? PROFILE_ICONS.safest
+        : PROFILE_ICONS.fastest;
+    }
+    return null;
+  }, [gateway, type, userSelectedNode]);
 
   const descriptionLabel = useMemo(() => {
     if (showLoading) return null;
@@ -320,8 +352,11 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
-              {showSafestPlaceholder ? (
-                <SmileyIcon className="h-6 w-6" />
+              {placeholderIcon ? (
+                <MsIcon
+                  icon={placeholderIcon}
+                  className="text-text-secondary text-2xl"
+                />
               ) : (
                 <ScoreIndicator score={nodeDetails.score} />
               )}
