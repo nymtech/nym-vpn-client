@@ -1,32 +1,25 @@
 name: nightly-release
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 4 * * *"
 
-permissions:
-  contents: read
-
 jobs:
   release-nightly:
-    runs-on: arc-linux-latest
+    name: Publish nightly release
+    uses: ./.github/workflows/release-all-platforms.yml
     permissions:
       contents: write
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-
-      - name: Publish nightly release
-        uses: ./.github/workflows/release-all-platforms.yml
-        with:
-          gh_release: auto
-          release_channel: nightly
-          android: false
-          fdroid: true
-          linux: true
-          windows: true
-          ios: true
-          macos: true
-          publish-metadata: false
+    with:
+      gh_release: none
+      publish_s3: true
+      release_channel: nightly
+      android: false
+      fdroid: true
+      linux: true
+      windows: true
+      ios: false
+      macos: true
+      publish-metadata: false
+    secrets: inherit
