@@ -25,7 +25,7 @@ pub use imp::{Callback, CallbackHandle, EventType, InterfaceAndGateway, get_best
 mod imp;
 
 /// Address family for [`get_default_route_interfaces`].
-#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AddressFamily {
     /// IPv4 address family.
@@ -45,7 +45,7 @@ pub enum AddressFamily {
 /// callers that need to know about *every* interface competing for
 /// default-route ownership, e.g. to detect whether more than one VPN tunnel
 /// is active at once.
-#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[derive(Debug, Default, Clone)]
 pub struct DefaultRouteInterfaces {
     /// Physical (non-tunnel) interfaces holding a default-route-shaped entry.
@@ -58,7 +58,7 @@ pub struct DefaultRouteInterfaces {
 /// the given address family. See [`DefaultRouteInterfaces`]. Implemented for
 /// Windows, Linux, and macOS - not available on mobile platforms, where the
 /// OS itself only allows one active VPN configuration at a time.
-#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub async fn get_default_route_interfaces(
     family: AddressFamily,
 ) -> std::result::Result<DefaultRouteInterfaces, Error> {

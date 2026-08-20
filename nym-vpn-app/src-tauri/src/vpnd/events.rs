@@ -34,6 +34,7 @@ impl DiagnosticsSuggestedReason {
 pub enum ConflictDetected {
     InterceptedDns,
     CompetingVpn,
+    CompetingFirewall,
 }
 
 impl ConflictDetected {
@@ -42,6 +43,7 @@ impl ConflictDetected {
         match conflict {
             lib::ConflictDetected::InterceptedDns => Self::InterceptedDns,
             lib::ConflictDetected::CompetingVpn => Self::CompetingVpn,
+            lib::ConflictDetected::CompetingFirewall => Self::CompetingFirewall,
         }
     }
 }

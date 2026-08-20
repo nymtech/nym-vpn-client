@@ -1151,62 +1151,21 @@ impl DiagnosticsSuggestionTracker {
     }
 }
 
-/// Tracks when to run each `nym_conflict` check exactly once per connection
-/// attempt, so a finding can be surfaced to the user as a `ConflictDetected`
-/// event. Never changes connection behavior.
-///
-/// The two checks fire at different points because they're only meaningful
-/// at different points: DNS interception can only be observed once actually
-/// connected and routing traffic through NymVPN's own resolver, so it's
-/// checked on first entry to `Connected`. A competing VPN's evidence, on the
-/// other hand, is destroyed by NymVPN's own connection attempt: many VPN
-/// clients tear their own tunnel down the moment they lose ownership of the
-/// default route, which is exactly what happens as soon as NymVPN's route
-/// manager installs its own. So that check instead runs at the very start of
-/// a fresh `Connecting` attempt (`retry_attempt == 0`), before NymVPN has
-/// touched routing at all - at that point any tunnel interface already
-/// holding a default route can only belong to something else.
-///
 /// [`Self::poll`] must be called on every iteration of the state machine
-/// loop, not just on state transitions: enabling the setting while already
-/// `Connected` isn't itself a state transition, but should still trigger the
-/// DNS check exactly once.
+/// loop, not just on state transitions.
 #[derive(Default)]
 struct ConflictTracker {
     checked_dns: bool,
-    /// Cancellation for whichever scan is currently in flight, so it can be
-    /// abandoned - and a stale `ConflictDetected` suppressed - if the
-    /// setting is disabled, or [`Self::poll`] observes `Disconnected`,
-    /// before the scan finishes.
     pending_scan_cancellation: Option<CancellationToken>,
 }
 
 impl ConflictTracker {
-    /// Returns which check (if any) should run now, given the current state
-    /// and whether conflict detection is currently enabled.
-    fn poll(&mut self, state: &TunnelState, enabled: bool) -> Option<nym_conflict::ConflictCheck> {
+    fn poll(&mut self, state: &TunnelState, enabled: bool) -> Vec<nym_conflict::ConflictCheck> {
         if !enabled {
-            // Forget any already-completed DNS check too: if the setting
-            // gets turned back on while still `Connected`, that should
-            // re-arm the check rather than silently staying dormant for the
-            // rest of the session. The competing-VPN check has no such
-            // retroactive case - once its one opportunity (the start of a
-            // fresh connection attempt) has passed, there's nothing
-            // meaningful left to check later - so it needs no such reset.
             self.checked_dns = false;
             self.cancel_pending_scan();
         }
         match state {
-            // `ResolvingApiAddresses` is the very first sub-state
-            // `ConnectingState::enter` ever reports, so seeing it with
-            // `retry_attempt == 0` reliably marks the start of a fresh
-            // (non-retry) connection attempt, however it was reached -
-            // including straight from `Error`, `Offline`, or
-            // `Disconnecting`, none of which pass back through
-            // `Disconnected`. Matching on this exact combination, rather
-            // than gating on a "not yet checked" latch, means a flag left
-            // over from a previous attempt can't leak into this one and
-            // silently suppress it.
             TunnelState::Connecting {
                 retry_attempt: 0,
                 state: EstablishConnectionState::ResolvingApiAddresses,
@@ -1214,24 +1173,28 @@ impl ConflictTracker {
             } => {
                 self.checked_dns = false;
                 self.cancel_pending_scan();
-                enabled.then_some(nym_conflict::ConflictCheck::CompetingVpn)
+                if enabled {
+                    vec![
+                        nym_conflict::ConflictCheck::CompetingVpn,
+                        nym_conflict::ConflictCheck::CompetingFirewall,
+                    ]
+                } else {
+                    Vec::new()
+                }
             }
             TunnelState::Connected { .. } if enabled && !self.checked_dns => {
                 self.checked_dns = true;
-                Some(nym_conflict::ConflictCheck::InterceptedDns)
+                vec![nym_conflict::ConflictCheck::InterceptedDns]
             }
             TunnelState::Disconnected => {
                 self.checked_dns = false;
                 self.cancel_pending_scan();
-                None
+                Vec::new()
             }
-            _ => None,
+            _ => Vec::new(),
         }
     }
 
-    /// Registers `token` as covering the scan about to be spawned for the
-    /// check [`Self::poll`] just returned, cancelling whatever scan (if any)
-    /// was previously in flight - there should only ever be one at a time.
     fn set_pending_scan(&mut self, token: CancellationToken) {
         self.cancel_pending_scan();
         self.pending_scan_cancellation = Some(token);
@@ -1453,36 +1416,41 @@ impl TunnelStateMachine {
                 NextTunnelState::Finished => break,
             }
 
-            // Checked every iteration, not just on state transitions, so
-            // that enabling the setting while already `Connected` (which
-            // isn't itself a state transition) still triggers the DNS
-            // check.
-            if let Some(check) = self.conflict_tracker.poll(
+            let checks = self.conflict_tracker.poll(
                 &self.current_state,
                 self.shared_state.tunnel_settings.enable_conflict_detection,
-            ) {
-                let event_sender = self.event_sender.clone();
-                let shutdown_token = self.shutdown_token.clone();
+            );
+            if !checks.is_empty() {
                 let scan_cancellation = CancellationToken::new();
                 self.conflict_tracker
                     .set_pending_scan(scan_cancellation.clone());
-                tokio::spawn(async move {
-                    let conflicts = tokio::select! {
-                        conflicts = nym_conflict::detect(check) => conflicts,
-                        _ = shutdown_token.cancelled() => return,
-                        _ = scan_cancellation.cancelled() => return,
-                    };
-                    for conflict in conflicts {
-                        let conflict = match conflict {
-                            nym_conflict::Conflict::InterceptedDns => {
-                                ConflictDetected::InterceptedDns
-                            }
-                            nym_conflict::Conflict::CompetingVpn => ConflictDetected::CompetingVpn,
+                for check in checks {
+                    let event_sender = self.event_sender.clone();
+                    let shutdown_token = self.shutdown_token.clone();
+                    let scan_cancellation = scan_cancellation.clone();
+                    tokio::spawn(async move {
+                        let conflicts = tokio::select! {
+                            conflicts = nym_conflict::detect(check) => conflicts,
+                            _ = shutdown_token.cancelled() => return,
+                            _ = scan_cancellation.cancelled() => return,
                         };
-                        tracing::info!("{conflict}");
-                        let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
-                    }
-                });
+                        for conflict in conflicts {
+                            let conflict = match conflict {
+                                nym_conflict::Conflict::InterceptedDns => {
+                                    ConflictDetected::InterceptedDns
+                                }
+                                nym_conflict::Conflict::CompetingVpn => {
+                                    ConflictDetected::CompetingVpn
+                                }
+                                nym_conflict::Conflict::CompetingFirewall => {
+                                    ConflictDetected::CompetingFirewall
+                                }
+                            };
+                            tracing::info!("{conflict}");
+                            let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
+                        }
+                    });
+                }
             }
         }
 
@@ -1734,10 +1702,10 @@ impl tunnel::Error {
             }
             Self::BandwidthController(BandwidthControllerError::TicketbookFetchFailed { .. }) => {
                 Some(ErrorStateReason::CredentialFetchingFailed)
-            },
+            }
             Self::BandwidthController(BandwidthControllerError::TicketbooksUnavailable) => {
                 Some(ErrorStateReason::NoCredentialAvailable)
-            },
+            }
 
             Self::RegistrationClient(e) => match *e {
                 nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),

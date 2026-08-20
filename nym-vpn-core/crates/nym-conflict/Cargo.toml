@@ -16,6 +16,9 @@ tracing.workspace = true
 tokio = { workspace = true, features = ["net", "time", "rt"] }
 nym-routing.workspace = true
 
+[target.'cfg(target_os = "linux")'.dependencies]
+mnl = { workspace = true, features = ["mnl-1-0-4"] }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }
 ipnetwork.workspace = true
