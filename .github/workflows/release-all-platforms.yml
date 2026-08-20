@@ -20,6 +20,10 @@ on:
           - none
           - draft
           - auto
+      publish_s3:
+        description: "Publish to S3 (Garage)"
+        type: boolean
+        default: true
       release_channel:
         description: "Release channel"
         type: choice
@@ -127,7 +131,6 @@ jobs:
   resolve:
     runs-on: arc-linux-latest
     outputs:
-      gh_release: ${{ steps.flags.outputs.gh_release }}
       gh_release_type: ${{ steps.flags.outputs.gh_release_type }}
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
@@ -140,6 +143,8 @@ jobs:
       ios: ${{ steps.flags.outputs.ios }}
       macos: ${{ steps.flags.outputs.macos }}
       publish_metadata: ${{ steps.flags.outputs.publish_metadata }}
+      publish_github: ${{ steps.flags.outputs.publish_github }}
+      publish_s3: ${{ steps.flags.outputs.publish_s3 }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -167,6 +172,7 @@ jobs:
           IN_MACOS: ${{ inputs.macos }}
           IN_PUBLISH_METADATA: ${{ inputs.publish-metadata }}
           IN_GH_RELEASE: ${{ inputs.gh_release }}
+          IN_PUBLISH_S3: ${{ inputs.publish_s3 }}
         run: |
           set -euo pipefail
 
@@ -218,15 +224,26 @@ jobs:
             GH_RELEASE_TYPE="draft"
           fi
 
+          if [[ "$GH_RELEASE" = "none" ]]; then
+            PUBLISH_GITHUB="false"
+          else
+            PUBLISH_GITHUB="true"
+          fi
+
+          PUBLISH_S3="${IN_PUBLISH_S3:-false}"
+
+          echo "::notice:: Publish to Github?: $PUBLISH_GITHUB"
           echo "::notice:: Github release type: $GH_RELEASE_TYPE"
+          echo "::notice:: Publish to S3?: $PUBLISH_S3"
 
           {
             echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
             echo "publish_metadata=$PUBLISH_METADATA"
-            echo "gh_release=$GH_RELEASE"
             echo "gh_release_type=$GH_RELEASE_TYPE"
+            echo "publish_github=$PUBLISH_GITHUB"
+            echo "publish_s3=$PUBLISH_S3"
           } >> "$GITHUB_OUTPUT"
 
       - uses: baptiste0928/cargo-install@v3
@@ -516,13 +533,17 @@ jobs:
   release:
     needs: [resolve, build-outputs]
     if: |
-      !cancelled() && needs.build-outputs.result == 'success' && needs.resolve.outputs.gh_release != 'none'
+      !cancelled() && needs.build-outputs.result == 'success' && (needs.resolve.outputs.publish_github || needs.resolve.outputs.publish_s3)
     uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
     with:
       tag: ${{ needs.resolve.outputs.tag }}
       github_release_type: ${{ needs.resolve.outputs.gh_release_type }}
+      publish_github: ${{ needs.resolve.outputs.publish_github }}
+      publish_s3: ${{ needs.resolve.outputs.publish_s3 }}
+      github_branch: ${{ github.ref_name }}
+      build_timestamp: ${{ needs.resolve.outputs.build_timestamp }}
       version: ${{ needs.resolve.outputs.version }}
       android: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
@@ -539,7 +560,8 @@ jobs:
     needs: [resolve, build-outputs, release]
     # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
-      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' && needs.resolve.outputs.gh_release_type != 'draft'
+      !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' &&
+      needs.resolve.outputs.publish_github && needs.resolve.outputs.gh_release_type != 'draft'
     uses: ./.github/workflows/distribute-release.yml
     permissions:
       contents: read
@@ -559,7 +581,7 @@ jobs:
     needs: [resolve, release]
     if: |
       !cancelled() && needs.release.result == 'success' &&
-      needs.resolve.outputs.gh_release_type == 'prerelease' &&
+      needs.resolve.outputs.publish_github && needs.resolve.outputs.gh_release_type == 'prerelease' &&
       needs.resolve.outputs.channel == 'beta' && needs.release.outputs.github_release_url != ''
     uses: ./.github/workflows/update-shortlink.yml
     with:
@@ -572,7 +594,7 @@ jobs:
     needs: [resolve, release, build-outputs, distribute]
     if: |
       !cancelled() && needs.release.result == 'success' && needs.build-outputs.result == 'success' &&
-      needs.resolve.outputs.gh_release_type != 'draft'
+      needs.resolve.outputs.publish_github && needs.resolve.outputs.gh_release_type != 'draft'
     uses: ./.github/workflows/zulip-notify-release.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
