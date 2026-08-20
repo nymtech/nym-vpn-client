@@ -378,6 +378,10 @@ jobs:
         vpnc_macos_installer_url: ${{ steps.extract_urls.outputs.vpnc_macos_installer_url }}
         android_apk_url: ${{ steps.extract_urls.outputs.android_apk_url }}
     steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
       - name: Download artifacts
         uses: actions/download-artifact@v8
 
