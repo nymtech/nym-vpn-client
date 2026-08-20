@@ -152,12 +152,6 @@ impl CredentialRequestTask {
                 return Err(VpnApiFetcherError::ZkNymRevoked);
             }
             NymVpnZkNymStatus::Error => {
-                tracing::warn!(
-                    "zk-nym issuance error for {pending_request_id}; dropping pending request"
-                );
-                self.pending_storage
-                    .remove_pending_request(&pending_request_id)
-                    .await?;
                 return Err(VpnApiFetcherError::IssuanceError);
             }
             NymVpnZkNymStatus::Active => {
