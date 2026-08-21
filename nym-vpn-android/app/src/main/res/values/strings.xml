@@ -210,7 +210,7 @@
 	<string name="one_click_nym_entry_node">Entry server</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Not protected</string>
-	<string name="connection_status_fast_mode">Fast mode protection</string>
+	<string name="connection_status_fast_mode">dVPN mode protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Safest server</string>
@@ -285,7 +285,7 @@
 	<string name="shortcut_title">Confirm action</string>
 	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start dVPN mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -401,7 +401,7 @@
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Disguises WireGuard traffic with decoy packets to prevent VPN blocking. \n\nNote: Only implemented client-side.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
