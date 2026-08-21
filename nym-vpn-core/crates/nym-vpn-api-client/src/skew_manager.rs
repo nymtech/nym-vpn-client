@@ -151,12 +151,12 @@ impl SkewManager {
     /// between. A mismatch beyond [`CLOCK_JUMP_THRESHOLD`] means something changed the clock -
     /// the user, the OS, an NTP step correction - so the cached VPN API clock-skew estimate,
     /// which was computed against the old wall clock, is evicted instead of being left to expire
-    /// on its own over the next few hours. Called from [`Self::cached_skew`], so it piggybacks on
-    /// however often callers already ask for the current skew rather than needing a timer of its
-    /// own.
+    /// on its own over the next few hours. Called from every skew read path ([`Self::cached_skew`]
+    /// and [`Self::skew_status`]), so it piggybacks on however often callers already ask for the
+    /// current skew rather than needing a timer of its own.
     ///
     /// Non-blocking: skips the check entirely if the watch state is momentarily contended, same
-    /// as a missed check just waits for the next call to `cached_skew`.
+    /// as a missed check just waits for the next call to read the skew.
     fn check_for_clock_jump(&self) {
         let Ok(mut watch) = self.inner.clock_jump_watch.try_lock() else {
             return;
@@ -170,9 +170,13 @@ impl SkewManager {
             let monotonic_elapsed =
                 TimeDuration::try_from(monotonic - last_monotonic).unwrap_or(TimeDuration::ZERO);
 
-            if is_clock_jump(wall_elapsed, monotonic_elapsed)
-                && let Ok(mut state) = self.inner.skew_state.try_write()
-            {
+            if is_clock_jump(wall_elapsed, monotonic_elapsed) {
+                // If the write lock is contended, leave the watch at its pre-jump baseline
+                // rather than advancing past the jump - otherwise the next check would compare
+                // against post-jump readings and never notice this jump to retry the eviction.
+                let Ok(mut state) = self.inner.skew_state.try_write() else {
+                    return;
+                };
                 state.take();
                 tracing::info!(
                     "Detected a system clock change (wall elapsed {wall_elapsed}, monotonic elapsed {monotonic_elapsed}); invalidating cached VPN API time skew"
@@ -288,6 +292,11 @@ impl SkewManager {
     }
 
     async fn skew_status(&self, now: Instant) -> Option<SkewStatus> {
+        // `cached_skew` isn't the only read path - route this one through the same check so
+        // `current_remote_time`/`refresh_skew` don't keep serving a skew known to be stale
+        // for up to the full cache TTL after a clock jump.
+        self.check_for_clock_jump();
+
         self.inner
             .skew_state
             .read()
@@ -486,13 +495,18 @@ mod tests {
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_time_travel() {
-        let device_time_provider = MockDeviceTimeProvider::new(
+        // The first two readings are consumed by `check_for_clock_jump`'s own device-time
+        // sampling (once via `current_remote_time`'s `skew_status` call, once via
+        // `refresh_skew`'s), before the alternating sequence below reaches `get_remote_time`.
+        let mut timestamps = vec![OffsetDateTime::now_utc(), OffsetDateTime::now_utc()];
+        timestamps.extend(
             [
                 OffsetDateTime::now_utc(),
                 OffsetDateTime::now_utc() - Duration::from_hours(1),
             ]
             .repeat(3),
         );
+        let device_time_provider = MockDeviceTimeProvider::new(timestamps);
         let skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
         let time_result = skew_manager.current_remote_time().await;
         assert!(matches!(
@@ -504,13 +518,18 @@ mod tests {
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_device_sleep() {
-        let device_time_provider = MockDeviceTimeProvider::new(
+        // The first two readings are consumed by `check_for_clock_jump`'s own device-time
+        // sampling (once via `current_remote_time`'s `skew_status` call, once via
+        // `refresh_skew`'s), before the alternating sequence below reaches `get_remote_time`.
+        let mut timestamps = vec![OffsetDateTime::now_utc(), OffsetDateTime::now_utc()];
+        timestamps.extend(
             [
                 OffsetDateTime::now_utc(),
                 OffsetDateTime::now_utc() + NYM_VPN_API_TIMEOUT + Duration::from_secs(1),
             ]
             .repeat(3),
         );
+        let device_time_provider = MockDeviceTimeProvider::new(timestamps);
         let skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
         let time_result = skew_manager.current_remote_time().await;
         assert!(matches!(
