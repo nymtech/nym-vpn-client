@@ -8,7 +8,6 @@ import {
   FlagIcon,
   MsIcon,
   Skeleton,
-  SmileyIcon,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
@@ -321,7 +320,7 @@ export function NodeRow({ type }: NodeRowProps) {
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
               {showSafestPlaceholder ? (
-                <SmileyIcon className="h-6 w-6" />
+                <MsIcon icon="explore" className="text-text-primary" />
               ) : (
                 <ScoreIndicator score={nodeDetails.score} />
               )}
