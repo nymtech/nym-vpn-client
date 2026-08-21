@@ -91,7 +91,7 @@ private extension OneClickView {
         Group {
             switch viewModel.selectionPhase {
             case .selecting:
-                selectingRowCompact(score: .offline)
+                selectingRowCompact
             case let .selected(info):
                 selectedRowCompact(info: info, showCarets: true)
             }
@@ -101,9 +101,8 @@ private extension OneClickView {
         .accessibilityAddTraits(.isButton)
     }
 
-    func selectingRowCompact(score: OneClickServerScore) -> some View {
+    var selectingRowCompact: some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: score)
             randomGlyph
             Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)
@@ -132,7 +131,9 @@ private extension OneClickView {
         let primaryText = info.title
         let secondaryText: String? = (info.subtitle?.isEmpty ?? true) ? nil : info.subtitle
         return HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: info.score)
+            if info.showsScore {
+                scoreBars(score: info.score)
+            }
             flagImage(
                 countryCode: info.countryCode,
                 isRandomSelection: info.isRandomSelection,
@@ -279,7 +280,6 @@ private extension OneClickView {
 
     var selectingEntryRowCompact: some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: .offline)
             randomGlyph
             Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)
