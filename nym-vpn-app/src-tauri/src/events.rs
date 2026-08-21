@@ -141,7 +141,10 @@ impl AppHandleEventEmitter for tauri::AppHandle {
     }
 
     fn emit_conflict_detected(&self, conflict: ConflictDetected) {
-        debug!("sending event [{}]: {:?}", EVENT_CONFLICT_DETECTED, conflict);
+        debug!(
+            "sending event [{}]: {:?}",
+            EVENT_CONFLICT_DETECTED, conflict
+        );
         self.emit(EVENT_CONFLICT_DETECTED, conflict).ok();
     }
 }

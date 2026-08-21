@@ -454,7 +454,10 @@ impl VpndClient {
         let mut vpnd = self.vpnd().await?;
 
         vpnd.set_enable_conflict_detection(enabled)
-            .or_else(async |e| self.handle_rpc_error("set_enable_conflict_detection", e).await)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_enable_conflict_detection", e)
+                    .await
+            })
             .await
     }
 

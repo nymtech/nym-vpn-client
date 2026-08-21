@@ -68,7 +68,7 @@ impl MixnetClientRegistration {
             Duration::from_secs(10),
             disconnected_mixnet_client.connect_to_mixnet(),
         ))
-        .await
+            .await
         {
             Ok(Ok(client)) => {
                 registration_report.mixnet_client_start = Some(DiagnosticResult::<()>::SUCCESS);
@@ -177,6 +177,7 @@ impl MixnetClientRegistration {
         builder.build().map_err(Box::new)
     }
 
+    #[allow(clippy::result_large_err)]
     async fn wireguard_registration(
         mixnet_client: MixnetClient,
         wg_registration_config: &WgRegistrationConfig,
