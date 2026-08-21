@@ -1,7 +1,7 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-	const val VERSION_NAME = "2026.12.1-beta.2"
+	const val VERSION_NAME = "2026.12.1-beta.3"
     const val VERSION_CODE = 20261201
     const val TARGET_SDK = 36
     const val COMPILE_SDK = 37
