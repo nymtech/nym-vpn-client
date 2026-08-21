@@ -170,6 +170,7 @@ extension OneClickViewModel {
             scoreGateway: scoreGateway,
             hopType: .entry,
             showsInfoButton: isExplicitGateway,
+            showsScore: !(isRandomSelection || isSafestSelection),
             isRandomSelection: isRandomSelection,
             isSafestSelection: isSafestSelection
         )
@@ -203,6 +204,7 @@ extension OneClickViewModel {
             scoreGateway: scoreGateway,
             hopType: .exit,
             showsInfoButton: isExplicitGateway,
+            showsScore: !(isRandomSelection || isSafestSelection),
             isRandomSelection: isRandomSelection,
             isSafestSelection: isSafestSelection
         )
@@ -233,6 +235,7 @@ extension OneClickViewModel {
         scoreGateway: GatewayNode?,
         hopType: HopType,
         showsInfoButton: Bool = false,
+        showsScore: Bool = true,
         isRandomSelection: Bool = false,
         isSafestSelection: Bool = false
     ) -> OneClickSelectionPhase {
@@ -247,6 +250,7 @@ extension OneClickViewModel {
             gateway: scoreGateway,
             hopType: hopType,
             showsInfoButton: showsInfoButton,
+            showsScore: showsScore,
             isRandomSelection: isRandomSelection,
             isSafestSelection: isSafestSelection
         ))
