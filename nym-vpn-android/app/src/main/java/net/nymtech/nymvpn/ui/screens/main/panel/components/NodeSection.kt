@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.screens.details.components.CountryFlag
+import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
@@ -112,12 +113,17 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 		horizontalArrangement = Arrangement.spacedBy(8.dp),
 		modifier = modifier.fillMaxWidth(),
 	) {
-		val (icon, description) = getScoreIcon(node.score)
-		Image(
-			icon,
-			contentDescription = description,
-			modifier = Modifier.size(iconSize).padding(2.dp),
-		)
+		// 'Safest' and 'Random' carry no gateway of their own — until the daemon
+		// reports the one it picked (score arrives with it), CountryFlag's
+		// selection icon stands alone instead of an unknown-score indicator.
+		if (node.score != null || node.selectionType == NodeSelectionType.NODE) {
+			val (icon, description) = getScoreIcon(node.score)
+			Image(
+				icon,
+				contentDescription = description,
+				modifier = Modifier.size(iconSize).padding(2.dp),
+			)
+		}
 
 		Column(
 			verticalArrangement = Arrangement.spacedBy(2.dp),
