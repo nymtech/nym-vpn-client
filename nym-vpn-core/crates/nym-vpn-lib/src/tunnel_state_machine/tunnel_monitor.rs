@@ -45,8 +45,9 @@ use nym_connection_monitor::{
     TcpProbe, TcpProbeConfig, TimingConfig,
 };
 use nym_registration_client::{
-    MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
-    RegistrationMode, RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
+    LpClientError, MixnetRegistrationResult, RegistrationClientBuilder,
+    RegistrationClientBuilderConfig, RegistrationClientError, RegistrationMode,
+    RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
@@ -152,6 +153,23 @@ const TICKETBOOK_READINESS_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// Whether LP registration is enabled
 const ENABLE_LP_REGISTRATION: bool = true;
+
+/// Whether a failed LP registration was rejected specifically because the gateway considered our
+/// skew-corrected timestamp invalid, as opposed to any other rejection reason (banned, rate
+/// limited, etc). Used to decide whether it's worth force-refreshing the cached clock-skew
+/// estimate before the next registration attempt.
+fn registration_rejected_due_to_timestamp(err: &RegistrationClientError) -> bool {
+    let lp_error = match err {
+        RegistrationClientError::EntryGatewayRegisterLp { source, .. }
+        | RegistrationClientError::ExitGatewayRegisterLp { source, .. } => Some(source.as_ref()),
+        _ => None,
+    };
+
+    matches!(
+        lp_error,
+        Some(LpClientError::RegistrationRejected { reason }) if reason.to_lowercase().contains("timestamp")
+    )
+}
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
@@ -588,14 +606,30 @@ impl TunnelMonitor {
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
         let registration_client = Box::pin(rc_builder.build()).await?;
-        let registration_result =
-            Box::pin(registration_client.register())
-                .await
-                .inspect_err(|_| {
-                    self.send_event(TunnelMonitorEvent::RegistrationFailed {
-                        gateway_id: selected_gateways.entry_gateway().identity(),
-                    })
-                })?;
+        let registration_result = Box::pin(registration_client.register()).await;
+
+        if let Err(err) = &registration_result
+            && registration_rejected_due_to_timestamp(err)
+        {
+            // The cached clock-skew estimate we just handed to the registration client
+            // (`spend_time_skew` above) was apparently wrong, so a stale correction, not just a
+            // bad device clock, may be to blame. Force a fresh measurement now rather than
+            // letting the next attempt reuse the same stale value for up to the cache's TTL.
+            tracing::info!(
+                "Gateway rejected registration due to a timestamp mismatch; refreshing VPN API clock-skew estimate"
+            );
+            if let Err(resync_err) = self.skew_manager.force_resync().await {
+                tracing::warn!(
+                    "Failed to refresh clock skew after a timestamp-related registration rejection: {resync_err}"
+                );
+            }
+        }
+
+        let registration_result = registration_result.inspect_err(|_| {
+            self.send_event(TunnelMonitorEvent::RegistrationFailed {
+                gateway_id: selected_gateways.entry_gateway().identity(),
+            })
+        })?;
 
         // Send event upon successful gateway registration
         // The receiver should handle the event and add firewall exceptions for entry gateway

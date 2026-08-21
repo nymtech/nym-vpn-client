@@ -3,6 +3,8 @@
 
 use std::{sync::Arc, time::Duration};
 
+use std::sync::Mutex as StdMutex;
+
 use time::{Duration as TimeDuration, OffsetDateTime};
 use tokio::{
     sync::{Mutex, RwLock},
@@ -22,6 +24,10 @@ const REMOTE_TIME_MAX_RETRIES: u8 = 2;
 const REMOTE_TIME_WAIT_DELAY: Duration = Duration::from_secs(1);
 
 const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
+
+// Minimum discrepancy between elapsed wall-clock time and elapsed monotonic time, between two
+// clock-jump checks, before it's treated as a manual clock change rather than ordinary jitter.
+const CLOCK_JUMP_THRESHOLD: TimeDuration = TimeDuration::seconds(5);
 
 /// Type providing access to the current device time.
 pub trait DeviceTimeProvider: std::fmt::Debug {
@@ -66,6 +72,9 @@ struct SkewManagerInner {
     refresh_lock: Mutex<()>,
     device_time_provider: Box<dyn DeviceTimeProvider + Send + Sync>,
     remote_time_provider: Box<dyn RemoteTimeProvider + Send + Sync>,
+    // (wall, monotonic) snapshot as of the last clock-jump check, used to detect the system clock
+    // being stepped between one call to `cached_skew` and the next.
+    clock_jump_watch: StdMutex<Option<(OffsetDateTime, Instant)>>,
 }
 
 impl SkewManager {
@@ -90,6 +99,7 @@ impl SkewManager {
                 refresh_lock: Mutex::new(()),
                 device_time_provider: Box::new(device_time_provider),
                 remote_time_provider: Box::new(remote_time_provider),
+                clock_jump_watch: StdMutex::new(None),
             }),
         }
     }
@@ -122,6 +132,55 @@ impl SkewManager {
         } else {
             Ok(None)
         }
+    }
+
+    /// Discards any cached clock-skew value and immediately measures a fresh one, regardless of
+    /// whether the existing entry has hit its TTL yet.
+    ///
+    /// Unlike [`Self::sync_with_remote_time`], which reuses a cached value as-is if it hasn't
+    /// expired, this always talks to the remote time provider. Use it when there's concrete
+    /// evidence the cached skew is stale - e.g. the system clock was just corrected, or a gateway
+    /// rejected a skew-corrected timestamp as invalid - rather than waiting out the full TTL.
+    pub async fn force_resync(&self) -> Result<VpnApiTime> {
+        self.inner.skew_state.write().await.take();
+        self.refresh_skew().await
+    }
+
+    /// Checks whether the system clock has been stepped (as opposed to gradually drifting) since
+    /// the last call, by comparing elapsed wall-clock time against elapsed monotonic time in
+    /// between. A mismatch beyond [`CLOCK_JUMP_THRESHOLD`] means something changed the clock -
+    /// the user, the OS, an NTP step correction - so the cached VPN API clock-skew estimate,
+    /// which was computed against the old wall clock, is evicted instead of being left to expire
+    /// on its own over the next few hours. Called from [`Self::cached_skew`], so it piggybacks on
+    /// however often callers already ask for the current skew rather than needing a timer of its
+    /// own.
+    ///
+    /// Non-blocking: skips the check entirely if the watch state is momentarily contended, same
+    /// as a missed check just waits for the next call to `cached_skew`.
+    fn check_for_clock_jump(&self) {
+        let Ok(mut watch) = self.inner.clock_jump_watch.try_lock() else {
+            return;
+        };
+
+        let wall = self.device_time();
+        let monotonic = Instant::now();
+
+        if let Some((last_wall, last_monotonic)) = *watch {
+            let wall_elapsed = wall - last_wall;
+            let monotonic_elapsed =
+                TimeDuration::try_from(monotonic - last_monotonic).unwrap_or(TimeDuration::ZERO);
+
+            if is_clock_jump(wall_elapsed, monotonic_elapsed)
+                && let Ok(mut state) = self.inner.skew_state.try_write()
+            {
+                state.take();
+                tracing::info!(
+                    "Detected a system clock change (wall elapsed {wall_elapsed}, monotonic elapsed {monotonic_elapsed}); invalidating cached VPN API time skew"
+                );
+            }
+        }
+
+        *watch = Some((wall, monotonic));
     }
 
     pub async fn sync_with_response_timestamp(
@@ -288,6 +347,8 @@ impl SkewManager {
     /// before, which would let unrelated async work (network round-trips, retries, ...) make the
     /// correction stale before it's used.
     pub fn cached_skew(&self) -> Option<TimeDuration> {
+        self.check_for_clock_jump();
+
         match self
             .inner
             .skew_state
@@ -300,6 +361,10 @@ impl SkewManager {
             SkewStatus::Expired => None,
         }
     }
+}
+
+fn is_clock_jump(wall_elapsed: TimeDuration, monotonic_elapsed: TimeDuration) -> bool {
+    (wall_elapsed - monotonic_elapsed).abs() > CLOCK_JUMP_THRESHOLD
 }
 
 #[derive(Debug)]
@@ -521,6 +586,83 @@ mod tests {
             .sync_with_response_timestamp(time_before, time_before, time_after)
             .await;
         assert!(matches!(result, Err(VpnApiClientError::TimeTravelTooMuch)));
+    }
+
+    #[test]
+    fn test_is_clock_jump() {
+        // Ordinary scheduling jitter: elapsed wall-clock time and elapsed monotonic time agree
+        // closely enough
+        assert!(!is_clock_jump(
+            TimeDuration::seconds(30),
+            TimeDuration::seconds(30)
+        ));
+        assert!(!is_clock_jump(
+            TimeDuration::seconds(32),
+            TimeDuration::seconds(30)
+        ));
+
+        // Clock stepped backward by an hour partway through the poll interval
+        assert!(is_clock_jump(
+            TimeDuration::seconds(30) - TimeDuration::hours(1),
+            TimeDuration::seconds(30)
+        ));
+
+        // Clock stepped forward by an hour partway through the poll interval
+        assert!(is_clock_jump(
+            TimeDuration::seconds(30) + TimeDuration::hours(1),
+            TimeDuration::seconds(30)
+        ));
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_force_resync_bypasses_unexpired_cache() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let remote_time_provider = CountingDelayedTimeProvider {
+            calls: calls.clone(),
+            delay: Duration::ZERO,
+        };
+        let skew_manager =
+            SkewManager::new_for_testing(MockDeviceTimeProvider::new(vec![]), remote_time_provider);
+
+        skew_manager.current_remote_time().await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+
+        // The cache is still fresh (far from its 4h TTL), so an ordinary lookup must not hit the
+        // remote time provider again...
+        skew_manager.current_remote_time().await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+
+        // ...but force_resync must, regardless of the cache still being valid.
+        skew_manager.force_resync().await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_cached_skew_evicted_on_clock_jump() {
+        let t0 = OffsetDateTime::now_utc();
+        // The first `cached_skew` call just seeds the watch with `t0`. The second simulates the
+        // wall clock having jumped backward by an hour in between, while only a negligible amount
+        // of real (monotonic) time actually elapsed between the two calls.
+        let device_time_provider =
+            MockDeviceTimeProvider::new(vec![t0, t0 - Duration::from_hours(1)]);
+        let skew_manager =
+            SkewManager::new_for_testing(device_time_provider, PanickingTimeProvider);
+
+        // Seed a valid cached skew directly - doesn't touch the device time provider, so it
+        // doesn't consume either of the two queued readings above.
+        skew_manager
+            .sync_with_response_timestamp(t0, t0 + Duration::from_secs(10), t0)
+            .await
+            .unwrap();
+
+        // First call: no prior watch state, so nothing looks like a jump yet.
+        assert!(skew_manager.cached_skew().is_some());
+
+        // Second call: the simulated clock jump is detected and the cache is evicted - if it
+        // instead tried to talk to the remote time provider, `PanickingTimeProvider` would panic.
+        assert!(skew_manager.cached_skew().is_none());
     }
 
     #[derive(Debug)]
