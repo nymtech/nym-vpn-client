@@ -102,6 +102,12 @@ fun GeoExclusionScreen(appUiState: AppUiState, viewModel: GeoExclusionViewModel 
 				clipboard.setClipEntry(ClipData.newPlainText(address, address).toClipEntry())
 			}
 		},
+		onCopyServer = {
+			val server = "127.0.0.1"
+			scope.launch {
+				clipboard.setClipEntry(ClipData.newPlainText(server, server).toClipEntry())
+			}
+		},
 		onSetupClick = {
 			navController.navigate(Route.Setup)
 		},
@@ -115,10 +121,12 @@ fun GeoExclusionScreen(
 	portInput: String,
 	@StringRes portError: Int?,
 	proxyAddress: String,
+	serverAddress: String = "127.0.0.1",
 	onGeoExclusionEnable: (Boolean) -> Unit,
 	onPortChange: (String) -> Unit,
 	onPortCommit: () -> Unit,
 	onCopyAddress: () -> Unit,
+	onCopyServer: () -> Unit = {},
 	onSetupClick: () -> Unit,
 ) {
 	Column(
@@ -155,6 +163,8 @@ fun GeoExclusionScreen(
 			WarningCard(stringResource(R.string.geo_exclusion_traffic_bypass_text))
 
 			Socks5AddressCard(
+				serverAddress = serverAddress,
+				onCopyServer = onCopyServer,
 				proxyAddress = proxyAddress,
 				onCopy = onCopyAddress,
 				portInput = portInput,

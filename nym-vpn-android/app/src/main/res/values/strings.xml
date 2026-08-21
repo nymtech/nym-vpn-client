@@ -622,6 +622,7 @@
 	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>
 	<string name="geo_exclusion_beta_text">Beta version:  China only for now. More regions coming.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Traffic to excluded regions bypasses the VPN.</string>
+	<string name="geo_exclusion_server_title">Server</string>
 	<string name="geo_exclusion_sock55_title">SOCKS5 port</string>
 	<string name="geo_exclusion_custom_port_title">Custom port</string>
 	<string name="geo_exclusion_ports_text">1024–65535</string>
@@ -639,7 +640,12 @@
 	<string name="geo_exclusion_copy_proxy_label">Copy proxy address</string>
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Setup instructions</string>
-	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
+	<string name="setup_instructions_step_manual">Settings → Network Settings → Manual proxy.</string>
+	<string name="setup_instructions_step_socks_host">SOCKS Host</string>
+	<string name="setup_instructions_step_socks_port">, Port</string>
+	<string name="setup_instructions_step_socks_suffix">, select SOCKS v5.</string>
+	<string name="setup_instructions_step_dns">Check Proxy DNS when using SOCKS v5 (prevents DNS leaks).</string>
+	<string name="setup_instructions_description">On Firefox or browsers that permit SOCKS5 configurations.</string>
 	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
 	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
 	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>

@@ -32,7 +32,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 
 @Composable
-fun Socks5AddressCard(proxyAddress: String, onCopy: () -> Unit, portInput: String, @StringRes portError: Int?, onPortChange: (String) -> Unit, onPortCommit: () -> Unit) {
+fun Socks5AddressCard(serverAddress: String, onCopyServer: () -> Unit, proxyAddress: String, onCopy: () -> Unit, portInput: String, @StringRes portError: Int?, onPortChange: (String) -> Unit, onPortCommit: () -> Unit) {
 	Card(
 		shape = RoundedCornerShape(14.dp),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -40,6 +40,35 @@ fun Socks5AddressCard(proxyAddress: String, onCopy: () -> Unit, portInput: Strin
 			.fillMaxWidth()
 			.wrapContentHeight(),
 	) {
+		Column(modifier = Modifier.padding(16.dp)) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = stringResource(R.string.geo_exclusion_server_title),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier.weight(1f),
+				)
+				Text(
+					text = serverAddress,
+					style = MaterialTheme.typography.bodyLarge,
+					color = MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier.clickable { onCopyServer() },
+				)
+				Spacer(Modifier.width(8.dp))
+				Icon(
+					imageVector = Icons.Outlined.ContentCopy,
+					contentDescription = stringResource(R.string.geo_exclusion_copy_proxy_label),
+					modifier = Modifier
+						.size(16.dp)
+						.clickable { onCopyServer() },
+					tint = MaterialTheme.colorScheme.onBackground,
+				)
+			}
+		}
+		HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 		Column(modifier = Modifier.padding(16.dp)) {
 			Row(
 				modifier = Modifier.fillMaxWidth(),
