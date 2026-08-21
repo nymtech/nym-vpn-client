@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.1] - 2026-08-21
+
 ### Changed
 
 - Local DNS resolver will respond with `serv_fail` on timeout from upstream DNS server (https://github.com/nymtech/nym-vpn-client/pull/6132)
