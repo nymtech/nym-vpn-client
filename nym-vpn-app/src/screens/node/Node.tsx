@@ -12,7 +12,7 @@ import {
   UiGateway,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, MsIcon, PageAnim, SmileyIcon, TextInput } from '../../ui';
+import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
 import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
@@ -270,7 +270,10 @@ function Node({ node }: { node: NodeHop }) {
                     })}
                     data-testid="node-quick-pick-safest"
                   >
-                    <SmileyIcon className="h-6 w-6" />
+                    <MsIcon
+                      icon="explore"
+                      className="text-text-primary text-3xl leading-none"
+                    />
                     <span className="text-text-primary text-base">
                       {t('quick-pick.safest')}
                     </span>
@@ -281,7 +284,10 @@ function Node({ node }: { node: NodeHop }) {
                       'border-brand-primary-active border-2': randomActive,
                     })}
                   >
-                    <MsIcon icon="shuffle" className="text-text-primary" />
+                    <MsIcon
+                      icon="shuffle"
+                      className="text-text-primary text-3xl leading-none"
+                    />
                     <span className="text-text-primary text-base">
                       {t('quick-pick.random')}
                     </span>
