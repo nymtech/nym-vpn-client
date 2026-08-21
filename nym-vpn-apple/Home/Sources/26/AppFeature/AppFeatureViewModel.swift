@@ -228,6 +228,33 @@ import GRPCManager
         }
     }
 
+    /// Moves the drawer to a pre-auth state (`.welcome` / `.technicalOptIns`).
+    ///
+    /// `.welcome`, `.technicalOptIns` and `.processing` share one `slideID`
+    /// (`.preauth`), so a transition among them doesn't change `drawerSlideID`.
+    /// `DrawerView` only slides — and `drawerTransitionCompleted()`, the sole
+    /// committer of `pendingDrawerContent` and the only place a finished
+    /// `processingViewModel` is freed, only runs — on a slideID change. Staging
+    /// a pre-auth state via `pendingDrawerContent` alone therefore never
+    /// commits: `drawerTag` renders the staged state while `drawerContent`
+    /// stays stale. When the slide identity won't change we commit directly (as
+    /// `startProcessingTransition` does); otherwise stage and let the slide
+    /// commit it, preserving the slide animation.
+    func stagePreauthDrawer(_ content: AppDrawerContent) {
+        // Compare against `drawerTag` (`pendingDrawerContent ?? drawerContent`) —
+        // the exact value `drawerSlideID` observes — so this predicts whether a
+        // slide will actually fire, leaving no guard/trigger divergence.
+        guard (pendingDrawerContent ?? drawerContent ?? .welcome).slideID == content.slideID else {
+            pendingDrawerContent = content
+            return
+        }
+        pendingDrawerContent = nil
+        if drawerContent?.isProcessing == true {
+            processingViewModel = nil
+        }
+        drawerContent = content
+    }
+
     func handleSceneBecameActive() {
         guard !connectionStatus.isConnectingLike, !isFamilyWarningModalDisplayed else { return }
 
@@ -675,30 +702,6 @@ private extension AppFeatureViewModel {
         default:
             break
         }
-    }
-
-    /// Moves the drawer to a pre-auth state (`.welcome` / `.technicalOptIns`).
-    ///
-    /// `.welcome`, `.technicalOptIns` and `.processing` share one `slideID`
-    /// (`.preauth`), so a transition among them doesn't change `drawerSlideID`.
-    /// `DrawerView` only slides — and `drawerTransitionCompleted()`, the sole
-    /// committer of `pendingDrawerContent` and the only place a finished
-    /// `processingViewModel` is freed, only runs — on a slideID change. Staging
-    /// a pre-auth state via `pendingDrawerContent` alone therefore never
-    /// commits: `drawerTag` renders the staged state while `drawerContent`
-    /// stays stale. When the slide identity won't change we commit directly (as
-    /// `startProcessingTransition` does); otherwise stage and let the slide
-    /// commit it, preserving the slide animation.
-    private func stagePreauthDrawer(_ content: AppDrawerContent) {
-        guard (drawerContent ?? .welcome).slideID == content.slideID else {
-            pendingDrawerContent = content
-            return
-        }
-        pendingDrawerContent = nil
-        if drawerContent?.isProcessing == true {
-            processingViewModel = nil
-        }
-        drawerContent = content
     }
 
     func beginCheckoutDrawerTransition(deferNavigationUntilDrawerHidden: Bool) {
