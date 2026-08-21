@@ -51,6 +51,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 private const val DEFAULT_PORT = "1081"
+private const val LOOPBACK_ADDRESS = "127.0.0.1"
 private const val PORT_MIN = 1024
 private const val PORT_MAX = 65535
 private const val FORBIDDEN_PORT = 1080
@@ -60,6 +61,11 @@ fun GeoExclusionScreen(appUiState: AppUiState, viewModel: GeoExclusionViewModel 
 	val navController = LocalNavController.current
 	val clipboard = LocalClipboard.current
 	val scope = rememberCoroutineScope()
+	fun copyToClipboard(text: String) {
+		scope.launch {
+			clipboard.setClipEntry(ClipData.newPlainText(text, text).toClipEntry())
+		}
+	}
 	val failedToStart by viewModel.failedToStart.collectAsStateWithLifecycle()
 	val initialPort = remember(appUiState.vpnConfig.geoExclusionPort) {
 		appUiState.vpnConfig.geoExclusionPort.toString()
@@ -96,12 +102,8 @@ fun GeoExclusionScreen(appUiState: AppUiState, viewModel: GeoExclusionViewModel 
 				}
 			}
 		},
-		onCopyAddress = {
-			val address = "127.0.0.1:$lastValidPort"
-			scope.launch {
-				clipboard.setClipEntry(ClipData.newPlainText(address, address).toClipEntry())
-			}
-		},
+		onCopyAddress = { copyToClipboard("$LOOPBACK_ADDRESS:$lastValidPort") },
+		onCopyServer = { copyToClipboard(LOOPBACK_ADDRESS) },
 		onSetupClick = {
 			navController.navigate(Route.Setup)
 		},
@@ -119,6 +121,7 @@ fun GeoExclusionScreen(
 	onPortChange: (String) -> Unit,
 	onPortCommit: () -> Unit,
 	onCopyAddress: () -> Unit,
+	onCopyServer: () -> Unit = {},
 	onSetupClick: () -> Unit,
 ) {
 	Column(
@@ -155,6 +158,7 @@ fun GeoExclusionScreen(
 			WarningCard(stringResource(R.string.geo_exclusion_traffic_bypass_text))
 
 			Socks5AddressCard(
+				onCopyServer = onCopyServer,
 				proxyAddress = proxyAddress,
 				onCopy = onCopyAddress,
 				portInput = portInput,
@@ -221,7 +225,7 @@ internal fun PreviewGeoExclusionScreenOff() {
 			failedToStart = false,
 			portInput = DEFAULT_PORT,
 			portError = null,
-			proxyAddress = "127.0.0.1:$DEFAULT_PORT",
+			proxyAddress = "$LOOPBACK_ADDRESS:$DEFAULT_PORT",
 			onGeoExclusionEnable = {},
 			onPortChange = {},
 			onPortCommit = {},

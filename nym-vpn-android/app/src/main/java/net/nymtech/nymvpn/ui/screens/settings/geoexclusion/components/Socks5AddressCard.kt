@@ -31,8 +31,10 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 
+private const val LOOPBACK_ADDRESS = "127.0.0.1"
+
 @Composable
-fun Socks5AddressCard(proxyAddress: String, onCopy: () -> Unit, portInput: String, @StringRes portError: Int?, onPortChange: (String) -> Unit, onPortCommit: () -> Unit) {
+fun Socks5AddressCard(onCopyServer: () -> Unit, proxyAddress: String, onCopy: () -> Unit, portInput: String, @StringRes portError: Int?, onPortChange: (String) -> Unit, onPortCommit: () -> Unit) {
 	Card(
 		shape = RoundedCornerShape(14.dp),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -40,34 +42,17 @@ fun Socks5AddressCard(proxyAddress: String, onCopy: () -> Unit, portInput: Strin
 			.fillMaxWidth()
 			.wrapContentHeight(),
 	) {
-		Column(modifier = Modifier.padding(16.dp)) {
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				verticalAlignment = Alignment.CenterVertically,
-			) {
-				Text(
-					text = stringResource(R.string.geo_exclusion_sock55_title),
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
-					modifier = Modifier.weight(1f),
-				)
-				Text(
-					text = proxyAddress,
-					style = MaterialTheme.typography.bodyLarge,
-					color = MaterialTheme.colorScheme.onBackground,
-					modifier = Modifier.clickable { onCopy() },
-				)
-				Spacer(Modifier.width(8.dp))
-				Icon(
-					imageVector = Icons.Outlined.ContentCopy,
-					contentDescription = stringResource(R.string.geo_exclusion_copy_proxy_label),
-					modifier = Modifier
-						.size(16.dp)
-						.clickable { onCopy() },
-					tint = MaterialTheme.colorScheme.onBackground,
-				)
-			}
-		}
+		AddressRow(
+			label = stringResource(R.string.geo_exclusion_server_title),
+			value = LOOPBACK_ADDRESS,
+			onCopy = onCopyServer,
+		)
+		HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
+		AddressRow(
+			label = stringResource(R.string.geo_exclusion_sock55_title),
+			value = proxyAddress,
+			onCopy = onCopy,
+		)
 		HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 		Column(modifier = Modifier.padding(16.dp)) {
 			Text(
@@ -97,6 +82,38 @@ fun Socks5AddressCard(proxyAddress: String, onCopy: () -> Unit, portInput: Strin
 				style = MaterialTheme.typography.bodySmall,
 				color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
 				modifier = Modifier.padding(top = 6.dp),
+			)
+		}
+	}
+}
+
+@Composable
+private fun AddressRow(label: String, value: String, onCopy: () -> Unit) {
+	Column(modifier = Modifier.padding(16.dp)) {
+		Row(
+			modifier = Modifier.fillMaxWidth(),
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Text(
+				text = label,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier.weight(1f),
+			)
+			Text(
+				text = value,
+				style = MaterialTheme.typography.bodyLarge,
+				color = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier.clickable { onCopy() },
+			)
+			Spacer(Modifier.width(8.dp))
+			Icon(
+				imageVector = Icons.Outlined.ContentCopy,
+				contentDescription = stringResource(R.string.geo_exclusion_copy_proxy_label),
+				modifier = Modifier
+					.size(16.dp)
+					.clickable { onCopy() },
+				tint = MaterialTheme.colorScheme.onBackground,
 			)
 		}
 	}
