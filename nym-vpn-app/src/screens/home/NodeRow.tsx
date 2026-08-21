@@ -320,7 +320,10 @@ export function NodeRow({ type }: NodeRowProps) {
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
               {showSafestPlaceholder ? (
-                <MsIcon icon="explore" className="text-text-primary" />
+                <MsIcon
+                  icon="explore"
+                  className="text-text-primary text-3xl leading-none"
+                />
               ) : (
                 <ScoreIndicator score={nodeDetails.score} />
               )}
