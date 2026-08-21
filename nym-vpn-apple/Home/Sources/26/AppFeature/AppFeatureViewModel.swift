@@ -643,7 +643,7 @@ private extension AppFeatureViewModel {
         case .none:
             break
         case .setWelcome:
-            pendingDrawerContent = .welcome
+            stagePreauthDrawer(.welcome)
         case .setOneClick:
             pendingDrawerContent = .oneClick
             drawerContent = .oneClick
@@ -651,7 +651,7 @@ private extension AppFeatureViewModel {
             pendingDrawerContent = nil
             drawerContent = .oneClick
         case .setTechnicalOptIns:
-            pendingDrawerContent = .technicalOptIns
+            stagePreauthDrawer(.technicalOptIns)
         case .stageOneClickForCheckout:
             beginCheckoutDrawerTransition(
                 deferNavigationUntilDrawerHidden: result.navigationIntent == .pushPlanPurchase
@@ -675,6 +675,30 @@ private extension AppFeatureViewModel {
         default:
             break
         }
+    }
+
+    /// Moves the drawer to a pre-auth state (`.welcome` / `.technicalOptIns`).
+    ///
+    /// `.welcome`, `.technicalOptIns` and `.processing` share one `slideID`
+    /// (`.preauth`), so a transition among them doesn't change `drawerSlideID`.
+    /// `DrawerView` only slides — and `drawerTransitionCompleted()`, the sole
+    /// committer of `pendingDrawerContent` and the only place a finished
+    /// `processingViewModel` is freed, only runs — on a slideID change. Staging
+    /// a pre-auth state via `pendingDrawerContent` alone therefore never
+    /// commits: `drawerTag` renders the staged state while `drawerContent`
+    /// stays stale. When the slide identity won't change we commit directly (as
+    /// `startProcessingTransition` does); otherwise stage and let the slide
+    /// commit it, preserving the slide animation.
+    private func stagePreauthDrawer(_ content: AppDrawerContent) {
+        guard (drawerContent ?? .welcome).slideID == content.slideID else {
+            pendingDrawerContent = content
+            return
+        }
+        pendingDrawerContent = nil
+        if drawerContent?.isProcessing == true {
+            processingViewModel = nil
+        }
+        drawerContent = content
     }
 
     func beginCheckoutDrawerTransition(deferNavigationUntilDrawerHidden: Bool) {
