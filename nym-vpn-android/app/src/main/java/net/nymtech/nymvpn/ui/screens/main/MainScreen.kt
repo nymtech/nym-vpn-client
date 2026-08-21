@@ -65,13 +65,13 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.Score
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, loginProcessing: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -386,7 +386,7 @@ private fun MainScreenContent(
 			name = appUiState.exitPointName,
 			countryCode = appUiState.exitPointCountry,
 			location = appUiState.exitPointLocation,
-			score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
+			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 			selectionType = when (appUiState.vpnConfig.exitPoint) {
 				is ExitPoint.Random -> NodeSelectionType.RANDOM
 				is ExitPoint.Auto -> NodeSelectionType.AUTO
@@ -403,7 +403,7 @@ private fun MainScreenContent(
 				is EntryPoint.Auto -> NodeSelectionType.AUTO
 				else -> NodeSelectionType.NODE
 			},
-			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
+			score = appUiState.entryPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 		),
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
