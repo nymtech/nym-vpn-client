@@ -344,6 +344,7 @@
     "beta-note": "Beta version: China and Russia only for now. More regions coming.",
     "warning": "Traffic to excluded regions bypasses the VPN.",
     "port": {
+      "server": "Server",
       "socks5-port": "SOCKS5 port",
       "custom-port": "Custom port",
       "range": "1024–65535",
@@ -363,65 +364,31 @@
       "sections": {
         "macos": [
           {
-            "intro": "Works with any app that supports SOCKS5 in its network settings:",
+            "intro": "On Firefox or browsers that permit SOCKS5 configurations.",
             "steps": [
-              "Copy the SOCKS5 port.",
-              "Open your app's proxy or network settings.",
-              "Set proxy to 127.0.0.1 with the copied port."
+              "Settings → Network Settings → Manual proxy.",
+              "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
+              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
             ]
           }
         ],
         "windows": [
           {
-            "heading": "System-wide (Proxifier)",
-            "intro": "Windows' built-in proxy settings don't support SOCKS5. Use a tool like Proxifier:",
-            "steps": [
-              "Add a proxy: host 127.0.0.1, port {{port}}, type SOCKS5.",
-              "Leave authentication empty.",
-              "Add a rule to route the apps you want through it."
-            ]
-          },
-          {
-            "heading": "App (e.g. browser)",
-            "intro": "Any app with SOCKS5 support. Firefox example:",
+            "intro": "On Firefox or browsers that permit SOCKS5 configurations.",
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
               "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
-            ],
-            "note": "Chrome and Edge do not have built-in SOCKS5 UI on Windows. Use Firefox, a browser extension that supports SOCKS5, or route the browser through Proxifier instead."
-          },
-          {
-            "heading": "Web3 wallet",
-            "steps": [
-              "Open your wallet's network / RPC settings.",
-              "Set the RPC URL to http://127.0.0.1:8545."
             ]
           }
         ],
         "linux": [
           {
-            "heading": "System-wide (proxychains)",
-            "intro": "Use proxychains-ng:",
-            "steps": [
-              "In /etc/proxychains.conf, set the last line to socks5 127.0.0.1 {{port}}.",
-              "Launch an app through it: proxychains4 <command>."
-            ]
-          },
-          {
-            "heading": "App (e.g. browser)",
-            "intro": "Any app with SOCKS5 support. Firefox example:",
+            "intro": "On Firefox or browsers that permit SOCKS5 configurations.",
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
               "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
-            ]
-          },
-          {
-            "heading": "Web3 wallet",
-            "steps": [
-              "Open your wallet's network / RPC settings.",
-              "Set the RPC URL to http://127.0.0.1:8545."
             ]
           }
         ]
