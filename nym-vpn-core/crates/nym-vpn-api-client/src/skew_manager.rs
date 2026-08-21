@@ -170,15 +170,13 @@ impl SkewManager {
             let monotonic_elapsed =
                 TimeDuration::try_from(monotonic - last_monotonic).unwrap_or(TimeDuration::ZERO);
 
-            if is_clock_jump(wall_elapsed, monotonic_elapsed) {
+            if is_clock_jump(wall_elapsed, monotonic_elapsed)
+                && let Ok(mut state) = self.inner.skew_state.try_write()
+            {
+                state.take();
                 tracing::info!(
-                    wall_elapsed = %wall_elapsed,
-                    monotonic_elapsed = %monotonic_elapsed,
-                    "Detected a system clock change; invalidating cached VPN API time skew"
+                    "Detected a system clock change (wall elapsed {wall_elapsed}, monotonic elapsed {monotonic_elapsed}); invalidating cached VPN API time skew"
                 );
-                if let Ok(mut state) = self.inner.skew_state.try_write() {
-                    state.take();
-                }
             }
         }
 
