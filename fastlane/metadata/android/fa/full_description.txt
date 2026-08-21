@@ -16,7 +16,7 @@ While other VPNs promise not to keep logs, with NymVPN there is no point on the 
 
 ### CHOOSE YOUR PRIVACY LEVEL
 
-Fast Mode
+dVPN Mode
 
 - High-speed browsing and streaming
 - 2-hop decentralized VPN

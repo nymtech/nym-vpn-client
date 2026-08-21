@@ -94,7 +94,7 @@
 	<string name="loading">Chargement</string>
 	<string name="offline">Pas d\'accès à internet</string>
 	<string name="two_hop_explanation">Navigation haute vitesse (plus de 250 Mbps) avec routage à 2 sauts. Utilise AmneziaWG, une version résistante à la censure de WireGuard, idéale pour le streaming, la navigation rapide et le téléchargement.</string>
-	<string name="two_hop_title">Rapide (WireGuard)</string>
+	<string name="two_hop_title">dVPN (WireGuard)</string>
 	<string name="disabled_while_connecting">Désactivé lors de la connexion au VPN</string>
 	<string name="exit_location">Serveur de sortie</string>
 	<string name="entry_location">Serveur d\'entrée</string>
@@ -186,13 +186,13 @@
 	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_mode_fast">Rapide</string>
+	<string name="one_click_mode_fast">dVPN</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Serveur de sortie</string>
 	<string name="one_click_nym_entry_node">Serveur d\'entrée</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Non protégé</string>
-	<string name="connection_status_fast_mode">Protection du mode Rapide</string>
+	<string name="connection_status_fast_mode">Protection du mode dVPN</string>
 	<string name="connection_status_anonymous">Protection du mixnet</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Safest server</string>
@@ -266,7 +266,7 @@
 	<string name="shortcut_title">Confirmer l\'action</string>
 	<string name="shortcut_subtitle_stop">Déverrouiller pour déconnecter le VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Déverrouiller pour lancer le Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Déverrouiller pour lancer le mode Rapide</string>
+	<string name="shortcut_subtitle_start_wg">Déverrouiller pour lancer le mode dVPN</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Pour une meilleure connexion</string>
 	<string name="battery_opt_descr">Désactivez les optimisations de batterie de NymVPN pour des connexions VPN plus stables.</string>
@@ -561,13 +561,13 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">Délais de mixage</string>
 	<string name="mixnet_tuning_delays_description">Ajustez les délais pour modifier la qualité du mixage de vos paquets.</string>
-	<string name="mixnet_tuning_delays_low">Low\n0 ms</string>
+	<string name="mixnet_tuning_delays_low">Bas\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Élevé\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Par défaut\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
-	<string name="mixnet_tuning_slider_faster_label">Faster</string>
-	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
-	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
+	<string name="mixnet_tuning_delays_current">Actuel\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Plus rapide</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymat</string>
+	<string name="mixnet_tuning_link_text">En savoir plus sur le paramétrage du mixnet</string>
 	<string name="mixnet_tuning_save_button">Enregistrer les paramètres personnalisés</string>
 	<string name="mixnet_tuning_restore_button">Restaurer les paramètres par défaut</string>
 	<!-- Diagnostic screen -->
