@@ -192,11 +192,13 @@ fun VpnException.toUserMessage(context: Context): String = when (this) {
 	else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
 }
 
+fun NymGateway.scoreFor(mode: Tunnel.Mode): Score? = when (mode) {
+	Tunnel.Mode.FIVE_HOP_MIXNET -> mixnetScore
+	Tunnel.Mode.TWO_HOP_MIXNET -> wgScore
+}
+
 fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> = this.sortedBy {
-	when (mode) {
-		Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore ?: Score.OFFLINE
-		Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore ?: Score.OFFLINE
-	}
+	it.scoreFor(mode) ?: Score.OFFLINE
 }
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
@@ -217,17 +219,16 @@ fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String>
 		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> mixnetScore
 		GatewayType.WG -> wgScore
 	}
-	return score?.let {
-		getScoreIcon(score)
-	} ?: Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+	return getScoreIcon(score)
 }
 
 @Composable
-fun getScoreIcon(score: Score): Pair<ImageVector, String> = when (score) {
+fun getScoreIcon(score: Score?): Pair<ImageVector, String> = when (score) {
 	Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
 	Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 	Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
 	Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
+	null -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
 }
 
 @Composable
