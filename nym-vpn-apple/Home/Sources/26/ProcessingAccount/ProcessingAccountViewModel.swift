@@ -75,7 +75,8 @@ public final class ProcessingAccountViewModel {
         guard let keys = LoginProcessingProgressPolicy.credentialsCopyKeys(
             isSyncing: phase == .syncing,
             isPrefetching: phase == .prefetching,
-            holdsPrefetchCopyThroughAdvance: holdsPrefetchCopyThroughAdvance
+            holdsPrefetchCopyThroughAdvance: holdsPrefetchCopyThroughAdvance,
+            didFinishSetupCarousel: didFinishSetupCarousel
         ) else { return nil }
         return (keys.title.localizedString, keys.subtitle.localizedString)
     }
@@ -100,7 +101,6 @@ public final class ProcessingAccountViewModel {
     func start() {
         switch phase {
         case .awaitingAdvance:
-            latchSetupCarouselIfNeeded()
             updateAnimationReady()
             evaluateAdvance()
             return
@@ -259,15 +259,8 @@ public final class ProcessingAccountViewModel {
         }
         phase = .awaitingAdvance
         syncProgressStep()
-        latchSetupCarouselIfNeeded()
         workCompleted = true
         updateAnimationReady()
-    }
-
-    private func latchSetupCarouselIfNeeded() {
-        guard !usesStaticCopy, !didFinishSetupCarousel else { return }
-        didFinishSetupCarousel = true
-        syncProgressStep()
     }
 
     private func updateAnimationReady() {

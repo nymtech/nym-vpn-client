@@ -196,7 +196,8 @@ private extension ProcessingAccountView {
             isSyncing: viewModel.phase == .syncing,
             isPrefetching: viewModel.phase == .prefetching,
             holdsPrefetchCopyThroughAdvance: viewModel.phase == .awaitingAdvance
-                && viewModel.hasReachedPrefetchPhase
+                && viewModel.hasReachedPrefetchPhase,
+            didFinishSetupCarousel: viewModel.didFinishSetupCarousel
         )
     }
 
