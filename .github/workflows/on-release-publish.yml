@@ -95,6 +95,7 @@ jobs:
           done
 
   aur-vpnd:
+    if: false
     needs: setup
     uses: ./.github/workflows/publish-aur-nym-vpnd.yml
     secrets: inherit
@@ -105,6 +106,7 @@ jobs:
       commit_msg: "release ${{ needs.setup.outputs.tag }}"
 
   aur-vpnc:
+    if: false
     needs: setup
     uses: ./.github/workflows/publish-aur-nym-vpnc.yml
     secrets: inherit
@@ -115,6 +117,7 @@ jobs:
       commit_msg: "release ${{ needs.setup.outputs.tag }}"
 
   aur-app:
+    if: false
     needs: setup
     uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
     secrets: inherit
@@ -125,6 +128,7 @@ jobs:
       commit_msg: "v${{ needs.setup.outputs.version }}"
 
   post-release:
+    if: false
     needs: setup
     uses: ./.github/workflows/tauri-post-release.yml
     permissions:
@@ -182,7 +186,7 @@ jobs:
 
   windows-updater:
     needs: [setup, win-sigs]
-    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    #if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
     uses: ./.github/workflows/tauri-updater.yml
     permissions:
       contents: write
@@ -191,8 +195,10 @@ jobs:
       channel: stable
       version: ${{ needs.win-sigs.outputs.app_version }}
       base_url: https://github.com/${{ github.repository }}/releases/download/${{ needs.setup.outputs.tag }}
-      signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
-      signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
+      signature_x64: dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjJlNGJDcWhYV1FUY0diQnNaSGg5VEw0eW5tb24wS2FLZ3hDZVRGUVNhaHNmbkRublpOa1NSNVBZTk9ZTktRZFluditXejR5cUVackFVc2RJZzZzeUFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MzU1NDk2CWZpbGU6TnltVlBOXzIwMjYuMTIuMV94NjQtc2V0dXAuZXhlCkh2dWZEdWhBb1JWZTBWd3JjMW56aksyb3NxVkdzVFZUcjU1QmxHYTJXY1IzYytSU3Y3dkhCb01CNGxaNk1Ud0lXenZ0QTV3T3l6eGp5UmlOWVk2UUR3PT0K
+      #${{ needs.win-sigs.outputs.sig_x64 }}
+      signature_arm64: dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VndtRUJ5Q2JaZEJsWXpKczdQL3cwTUV2M3lNeUJqQzE2cW9DNTV1UXBTQ3pHNjVxRGl3MFBoWTlqYkZnSEtpY0d6a3pHeEdWbWE0M1FINWt6dU03RVFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MzU1NDgxCWZpbGU6TnltVlBOXzIwMjYuMTIuMV9hcm02NC1zZXR1cC5leGUKVkZGSEdrQzg2Z2dDbFpjMUN2MGYvV1lvRDdHaUdzMFUwcWFjWVFqa0F6MGxvR2c2R3RPeGFXZTNoaXVJQkI5Y3c0TEx2ZXhDK1BHQ2VaR2IwcUtDQlE9PQo=
+      #${{ needs.win-sigs.outputs.sig_arm64 }}
 
   macos-updater:
     needs: [setup]
@@ -205,6 +211,7 @@ jobs:
       version_tag: ${{ needs.setup.outputs.tag }}
 
   update-nym-fdroid:
+    if: false
     runs-on: arc-linux-latest
     needs: setup
     steps:
