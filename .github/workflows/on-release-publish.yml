@@ -193,7 +193,7 @@ jobs:
       pull-requests: write
     with:
       channel: stable
-      version: ${{ needs.win-sigs.outputs.app_version }}
+      version: 2026.12.1 # ${{ needs.win-sigs.outputs.app_version }}
       base_url: https://github.com/${{ github.repository }}/releases/download/${{ needs.setup.outputs.tag }}
       signature_x64: dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjJlNGJDcWhYV1FUY0diQnNaSGg5VEw0eW5tb24wS2FLZ3hDZVRGUVNhaHNmbkRublpOa1NSNVBZTk9ZTktRZFluditXejR5cUVackFVc2RJZzZzeUFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MzU1NDk2CWZpbGU6TnltVlBOXzIwMjYuMTIuMV94NjQtc2V0dXAuZXhlCkh2dWZEdWhBb1JWZTBWd3JjMW56aksyb3NxVkdzVFZUcjU1QmxHYTJXY1IzYytSU3Y3dkhCb01CNGxaNk1Ud0lXenZ0QTV3T3l6eGp5UmlOWVk2UUR3PT0K
       #${{ needs.win-sigs.outputs.sig_x64 }}
