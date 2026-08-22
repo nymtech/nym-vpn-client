@@ -37,7 +37,7 @@ func wgTurnOn(settings *C.char, tunFd int32, logSink LogSink, logContext LogCont
 	logger.Verbosef("Attaching to interface")
 	dev := device.NewDevice(tun, conn.NewStdNetBind(), logger)
 
-	err = dev.IpcSet(C.GoString(settings))
+	err = dev.IpcSet(goStringFixed(settings))
 	if err != nil {
 		logger.Errorf("Unable to set IPC settings: %v", err)
 		unix.Close(int(tunFd))

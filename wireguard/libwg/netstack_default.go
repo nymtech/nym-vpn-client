@@ -26,14 +26,14 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 	logger := logging.NewLogger(logSink, logContext)
 
 	// Parse comma separated list of IP addresses
-	tunAddrs, err := parseIPAddrs(C.GoString(localAddresses))
+	tunAddrs, err := parseIPAddrs(goStringFixed(localAddresses))
 	if err != nil {
 		logger.Errorf("Failed to parse local addresses: %v", err)
 		return ERROR_GENERAL_FAILURE
 	}
 
 	// Parse comma separated list of DNS addresses
-	dnsAddrs, err := parseIPAddrs(C.GoString(dnsAddresses))
+	dnsAddrs, err := parseIPAddrs(goStringFixed(dnsAddresses))
 	if err != nil {
 		logger.Errorf("Failed to parse dns addresses: %v", err)
 		return ERROR_GENERAL_FAILURE
@@ -55,7 +55,7 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 		return ERROR_GENERAL_FAILURE
 	}
 
-	err = dev.IpcSet(C.GoString(settings))
+	err = dev.IpcSet(goStringFixed(settings))
 	if err != nil {
 		logger.Errorf("Unable to set IPC settings: %v", err)
 		dev.Close()
@@ -87,7 +87,7 @@ func wgNetSetConfig(netTunnelHandle int32, settings *C.char) int64 {
 	if err != nil {
 		return 0
 	}
-	err = dev.IpcSet(C.GoString(settings))
+	err = dev.IpcSet(goStringFixed(settings))
 	if err != nil {
 		dev.Errorf("Unable to set IPC settings: %v", err)
 		if ipcErr, ok := err.(*device.IPCError); ok {

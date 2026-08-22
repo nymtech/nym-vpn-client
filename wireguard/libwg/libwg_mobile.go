@@ -25,7 +25,7 @@ func wgSetConfig(tunnelHandle int32, cSettings *C.char) int32 {
 		tunnel.Logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
 	}
-	settings := C.GoString(cSettings)
+	settings := goStringFixed(cSettings)
 
 	err = tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
 	if err != nil {

@@ -56,10 +56,10 @@ func wgTurnOn(cIfaceName *C.char, cRequestedGUID *C.char, cWintunTunnelType *C.c
 		return ERROR_GENERAL_FAILURE
 	}
 
-	settings := C.GoString(cSettings)
-	ifaceName := C.GoString(cIfaceName)
-	requestedGUID := C.GoString(cRequestedGUID)
-	wintunTunnelType := C.GoString(cWintunTunnelType)
+	settings := goStringFixed(cSettings)
+	ifaceName := goStringFixed(cIfaceName)
+	requestedGUID := goStringFixed(cRequestedGUID)
+	wintunTunnelType := goStringFixed(cWintunTunnelType)
 
 	networkId, err := windows.GUIDFromString(requestedGUID)
 	if err != nil {
@@ -134,7 +134,7 @@ func wgSetConfig(tunnelHandle int32, cSettings *C.char) int32 {
 		tunnel.Logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
 	}
-	settings := C.GoString(cSettings)
+	settings := goStringFixed(cSettings)
 
 	setError := tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
 	if setError != nil {

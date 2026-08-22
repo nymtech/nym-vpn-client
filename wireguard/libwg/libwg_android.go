@@ -37,7 +37,7 @@ func wgTurnOn(cSettings *C.char, fd int, logSink LogSink, logContext LogContext)
 		logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
 	}
-	settings := C.GoString(cSettings)
+	settings := goStringFixed(cSettings)
 
 	tunDevice, _, err := tun.CreateUnmonitoredTUNFromFD(fd)
 	if err != nil {
@@ -148,7 +148,7 @@ func wgTurnOnWithProxyFd(cSettings *C.char, fd int, mtu int32, logSink LogSink, 
 		logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
 	}
-	settings := C.GoString(cSettings)
+	settings := goStringFixed(cSettings)
 
 	tunDevice, err := newSocketTunFromFD(fd, int(mtu))
 	if err != nil {

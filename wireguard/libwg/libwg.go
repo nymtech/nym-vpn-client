@@ -30,6 +30,25 @@ type TunnelContext struct {
 	Logger *device.Logger
 }
 
+// goStringFixed converts a NUL-terminated C string to a Go string without
+// reading outside the string's allocation. The standard C.GoString locates
+// the terminator with vectorized scans that read up to 31 bytes beyond it and
+// before the start of the string; under ARM MTE (16-byte tag granules) those
+// out-of-bounds reads hit differently-tagged granules and kill the process
+// with SEGV_MTESERR. See https://github.com/mullvad/mullvadvpn-app/pull/6727.
+func goStringFixed(cString *C.char) string {
+	if cString == nil {
+		return ""
+	}
+	ptr := unsafe.Pointer(cString)
+	length := 0
+	for *(*byte)(unsafe.Pointer(uintptr(ptr) + uintptr(length))) != 0 {
+		length++
+	}
+	// C.GoStringN copies exactly length bytes and never reads past them.
+	return C.GoStringN(cString, C.int(length))
+}
+
 var tunnels container.Container[TunnelContext]
 
 func init() {

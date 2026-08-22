@@ -72,7 +72,7 @@ func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clie
 		return ERROR_GENERAL_FAILURE
 	}
 
-	addr, err := netip.ParseAddrPort(C.GoString(endpoint))
+	addr, err := netip.ParseAddrPort(goStringFixed(endpoint))
 	if err != nil {
 		dev.Errorf("Failed to parse endpoint: %v", err)
 		return ERROR_GENERAL_FAILURE
@@ -126,7 +126,7 @@ func wgNetStartTCPConnectionProxy(netTunnelHandle int32, endpoint *C.char, outLi
 		return ERROR_GENERAL_FAILURE
 	}
 
-	addr, err := netip.ParseAddrPort(C.GoString(endpoint))
+	addr, err := netip.ParseAddrPort(goStringFixed(endpoint))
 	if err != nil {
 		dev.Errorf("Failed to parse endpoint: %v", err)
 		return ERROR_GENERAL_FAILURE

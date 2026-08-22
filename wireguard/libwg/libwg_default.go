@@ -37,7 +37,7 @@ func wgTurnOn(mtu int, cSettings *C.char, fd int, logSink LogSink, logContext Lo
 		logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
 	}
-	settings := C.GoString(cSettings)
+	settings := goStringFixed(cSettings)
 
 	file := os.NewFile(uintptr(fd), "")
 	tunDevice, err := tun.CreateTUNFromFile(file, mtu)
@@ -85,7 +85,7 @@ func wgSetConfig(tunnelHandle int32, cSettings *C.char) int32 {
 		tunnel.Logger.Errorf("cSettings is null\n")
 		return ERROR_GENERAL_FAILURE
 	}
-	settings := C.GoString(cSettings)
+	settings := goStringFixed(cSettings)
 
 	setError := tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
 	if setError != nil {
