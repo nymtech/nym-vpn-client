@@ -27,7 +27,7 @@ on:
     inputs:
       tag_name:
         type: string
-        required: true
+        description: Release tag
   release:
     types: [released]
 
