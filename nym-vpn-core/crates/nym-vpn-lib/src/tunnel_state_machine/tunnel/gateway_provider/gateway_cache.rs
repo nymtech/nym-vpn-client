@@ -27,7 +27,13 @@ impl GatewayCache for GatewayCacheHandle {
 
 #[cfg(test)]
 pub mod tests {
-    use std::{sync::Arc, time::Duration};
+    use std::{
+        sync::{
+            Arc,
+            atomic::{AtomicBool, AtomicUsize, Ordering},
+        },
+        time::Duration,
+    };
 
     use nym_gateway_directory::Gateway;
     use tokio::sync::RwLock;
@@ -40,6 +46,8 @@ pub mod tests {
         /// Artificial delay applied to every `lookup_gateways` call, used to
         /// model a fresh selection that hasn't landed a value in the stream yet.
         lookup_delay: Duration,
+        offline: Arc<AtomicBool>,
+        lookups: Arc<AtomicUsize>,
     }
 
     impl MockGatewayCache {
@@ -47,6 +55,8 @@ pub mod tests {
             Self {
                 gateways,
                 lookup_delay: Duration::ZERO,
+                offline: Arc::new(AtomicBool::new(false)),
+                lookups: Arc::new(AtomicUsize::new(0)),
             }
         }
 
@@ -57,7 +67,17 @@ pub mod tests {
             Self {
                 gateways,
                 lookup_delay,
+                offline: Arc::new(AtomicBool::new(false)),
+                lookups: Arc::new(AtomicUsize::new(0)),
             }
+        }
+
+        pub fn offline_flag(&self) -> Arc<AtomicBool> {
+            self.offline.clone()
+        }
+
+        pub fn lookup_count(&self) -> usize {
+            self.lookups.load(Ordering::SeqCst)
         }
     }
 
@@ -66,6 +86,10 @@ pub mod tests {
         async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList, Error> {
             if !self.lookup_delay.is_zero() {
                 tokio::time::sleep(self.lookup_delay).await;
+            }
+            self.lookups.fetch_add(1, Ordering::SeqCst);
+            if self.offline.load(Ordering::SeqCst) {
+                return Err(Error::Offline);
             }
             Ok(GatewayList::new(
                 Some(gw_type),
