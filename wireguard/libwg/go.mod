@@ -1,6 +1,6 @@
 module github.com/nymtech/nym-vpn-client/wireguard/libwg
 
-go 1.25.0
+go 1.27.0
 
 require (
 	// golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173
