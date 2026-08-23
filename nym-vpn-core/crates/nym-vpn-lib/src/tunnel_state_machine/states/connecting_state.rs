@@ -242,17 +242,33 @@ impl ConnectingState {
 
     async fn reconnect(self, shared_state: &mut SharedState) -> NextTunnelState {
         let next_attempt = self.retry_attempt.saturating_add(1);
-        let next_gateways = if next_attempt.is_multiple_of(2) {
-            None
-        } else {
-            self.selected_gateways
-        };
 
-        tracing::info!("Reconnecting, attempt {next_attempt}");
+        match reconnect_decision(next_attempt) {
+            ReconnectDecision::Retry { reset_gateways } => {
+                let next_gateways = if reset_gateways {
+                    None
+                } else {
+                    self.selected_gateways
+                };
 
-        NextTunnelState::NewState(
-            ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
-        )
+                tracing::info!("Reconnecting, attempt {next_attempt}");
+
+                NextTunnelState::NewState(
+                    ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
+                )
+            }
+            ReconnectDecision::Abort => {
+                tracing::error!(
+                    "Giving up after {} reconnect attempts, entering error state",
+                    self.retry_attempt
+                );
+
+                NextTunnelState::NewState(
+                    ErrorState::enter(ErrorStateReason::ConnectionAttemptsExceeded, shared_state)
+                        .await,
+                )
+            }
+        }
     }
 
     async fn disconnect(
@@ -1047,6 +1063,29 @@ impl ConnectingPolicyParameters {
     }
 }
 
+/// Maximum number of consecutive reconnect attempts before transitioning to the error
+/// state instead of silently retrying forever.
+const MAX_RECONNECT_ATTEMPTS: u32 = 10;
+
+/// Decision on what to do for the given reconnect attempt.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ReconnectDecision {
+    /// Keep retrying; when `reset_gateways` is set, the gateway selection is redone.
+    Retry { reset_gateways: bool },
+    /// Give up and surface an error to the user.
+    Abort,
+}
+
+fn reconnect_decision(next_attempt: u32) -> ReconnectDecision {
+    if next_attempt >= MAX_RECONNECT_ATTEMPTS {
+        ReconnectDecision::Abort
+    } else {
+        ReconnectDecision::Retry {
+            reset_gateways: next_attempt.is_multiple_of(2),
+        }
+    }
+}
+
 fn wait_delay(retry_attempt: u32) -> Duration {
     // Use fast retries for the first FAST_RETRY_ATTEMPTS to handle network recovery
     // where the network reports as "online" before DNS/routing are ready.
@@ -1065,6 +1104,43 @@ fn wait_delay(retry_attempt: u32) -> Duration {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn reconnect_keeps_gateways_on_odd_attempts_and_resets_on_even() {
+        assert_eq!(
+            reconnect_decision(1),
+            ReconnectDecision::Retry {
+                reset_gateways: false
+            }
+        );
+        assert_eq!(
+            reconnect_decision(2),
+            ReconnectDecision::Retry {
+                reset_gateways: true
+            }
+        );
+    }
+
+    #[test]
+    fn reconnect_retries_below_max_attempts() {
+        assert!(matches!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1),
+            ReconnectDecision::Retry { .. }
+        ));
+    }
+
+    #[test]
+    fn reconnect_aborts_once_max_attempts_reached() {
+        assert_eq!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS),
+            ReconnectDecision::Abort,
+            "the reconnect loop must not retry silently forever"
+        );
+        assert_eq!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS + 5),
+            ReconnectDecision::Abort
+        );
+    }
 
     #[test]
     fn wait_delay_sequence() {
