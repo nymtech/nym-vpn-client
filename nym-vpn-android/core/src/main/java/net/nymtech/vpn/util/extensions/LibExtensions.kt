@@ -18,7 +18,7 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State = when (this.v1) {
 	is TunnelState.Disconnected -> Tunnel.State.Down
 	is TunnelState.Disconnecting -> Tunnel.State.Disconnecting
 	is TunnelState.Error -> Tunnel.State.Error(this.v1.v1)
-	is TunnelState.Offline -> Tunnel.State.Offline
+	is TunnelState.Offline -> Tunnel.State.Offline((this.v1 as TunnelState.Offline).reconnect)
 }
 
 enum class GatewaySelectionMode(val value: String) {
