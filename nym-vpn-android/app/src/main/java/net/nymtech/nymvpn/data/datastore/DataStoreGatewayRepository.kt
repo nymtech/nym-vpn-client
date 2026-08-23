@@ -1,7 +1,9 @@
 package net.nymtech.nymvpn.data.datastore
 
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.domain.Gateways
@@ -42,4 +44,8 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 				}
 			} ?: Gateways()
 		}
+			// Deserializing the (potentially large) cached gateway directory is
+			// CPU-bound; keep it off the collector's thread so a big gateway list
+			// never blocks the main thread and ANRs the app.
+			.flowOn(Dispatchers.Default)
 }
