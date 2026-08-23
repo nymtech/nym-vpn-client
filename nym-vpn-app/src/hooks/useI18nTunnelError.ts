@@ -67,6 +67,8 @@ function useI18nTunnelError() {
           return t('tunnel.credential-fetching-failed');
         case 'no-credential-available':
           return t('tunnel.no-credential-available');
+        case 'connection-attempts-exceeded':
+          return t('tunnel.connection-attempts-exceeded');
       }
 
       console.warn('unhandled tunnel error', error);

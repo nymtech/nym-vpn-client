@@ -554,7 +554,8 @@ export type TunnelError =
   | 'needs-relaxed-independence-criteria'
   | 'needs-device-location'
   | 'credential-fetching-failed'
-  | 'no-credential-available';
+  | 'no-credential-available'
+  | 'connection-attempts-exceeded';
 
 export type TunnelStateEvent = {
   state: TTunnelState;
