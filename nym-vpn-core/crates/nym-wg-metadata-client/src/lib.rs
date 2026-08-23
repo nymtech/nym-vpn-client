@@ -66,7 +66,11 @@ impl LazyMetadataClient {
         sent_data: TunUpSendData,
     ) -> Result<Self> {
         let mut interface_name = None;
-
+        // Seed from the registry-configured builder (not `ReqwestClientBuilder::new()`)
+        // so platform-specific TLS overrides (e.g. Android's webpki-roots backend, needed
+        // because rustls-platform-verifier isn't initialized in this process) still apply
+        // even though `with_reqwest_builder` below bypasses `nym_http_api_client`'s own
+        // client construction.
         let reqwest_builder = nym_http_api_client::registry::default_builder();
         let reqwest_builder = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {

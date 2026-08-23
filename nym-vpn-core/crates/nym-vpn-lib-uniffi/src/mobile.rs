@@ -192,6 +192,22 @@ pub extern "C" fn Java_net_nymtech_nymvpn_NymVpnLib_initContext<'caller>(
                     global_ctx.as_raw() as *mut std::ffi::c_void,
                 );
             }
+
+            // `rustls-platform-verifier` keeps its own global JNI state, built against an
+            // older `jni` crate major version than the one used above, so it needs its own
+            // explicit init here. Without it, any TLS handshake on Android that isn't
+            // routed through the webpki-roots override in `android_tls` below panics with
+            // "Expect rustls-platform-verifier to be initialized". `ctx` is still a valid
+            // local reference for the remainder of this call, so it's safe to hand its raw
+            // pointer to the other `jni` crate's `JObject::from_raw`.
+            let raw_env = env.get_raw() as *mut jni_0_21::sys::JNIEnv;
+            let raw_ctx = ctx.as_raw() as jni_0_21::sys::jobject;
+            let mut verifier_env = unsafe { jni_0_21::JNIEnv::from_raw(raw_env) }
+                .expect("valid JNIEnv pointer from the Android runtime");
+            let verifier_ctx = unsafe { jni_0_21::objects::JObject::from_raw(raw_ctx) };
+            rustls_platform_verifier::android::init_with_env(&mut verifier_env, verifier_ctx)
+                .expect("failed to initialize rustls-platform-verifier");
+
             Ok(())
         })
         .resolve::<jni::errors::ThrowRuntimeExAndDefault>();
