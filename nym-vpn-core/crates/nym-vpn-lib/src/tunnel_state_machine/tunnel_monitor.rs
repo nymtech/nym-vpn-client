@@ -2001,6 +2001,10 @@ impl TunnelMonitor {
             dns: dns_servers,
             #[cfg(target_os = "android")]
             dns_filter: self.dns_filter.clone(),
+            // When steering is active the tun device above is the steering socketpair, not a
+            // real TUN; it must be wired to wireguard-go via the proxy-fd path.
+            #[cfg(target_os = "android")]
+            exit_tun_is_proxy: self.steering.is_some(),
         });
 
         let tunnel_handle = connected_tunnel

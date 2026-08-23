@@ -369,6 +369,16 @@ impl ConnectedTunnel {
 
                 let builder = builder.tun_fd(TunnelFd::Proxy(proxy.wg_fd));
                 (builder, Some(proxy.join_handle), None)
+            } else if options.exit_tun_is_proxy {
+                // Steering (split-tunnel) hands us a socketpair as the exit tun, not a real
+                // TUN device. It must go through the proxy-fd path (socketTun), which skips
+                // the TUNGETIFF ioctl NativeTun runs on start-up -- that ioctl fails with
+                // EPERM on a non-TUN fd and aborts tunnel start ("failed to get name of TUN
+                // device: permission denied").
+                let proxy_fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
+                let builder = builder.tun_fd(TunnelFd::Proxy(proxy_fd));
+
+                (builder, None, Some(options.exit_tun))
             } else {
                 let tun_fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
                 let builder = builder.tun_fd(TunnelFd::Tun(tun_fd));
@@ -664,6 +674,14 @@ pub struct NetstackTunnelOptions {
     /// DNS filter for ad-blocking (Android only).
     #[cfg(target_os = "android")]
     pub dns_filter: Option<DnsFilter>,
+
+    /// Whether `exit_tun` is a steering socketpair rather than a real TUN device
+    /// (Android split-tunnel / app-bypass under lockdown). A socketpair must be handed
+    /// to wireguard-go via the proxy-fd path, which skips the `TUNGETIFF` ioctl that
+    /// `NativeTun` performs on start-up and that fails with EPERM on a non-TUN fd,
+    /// aborting tunnel start.
+    #[cfg(target_os = "android")]
+    pub exit_tun_is_proxy: bool,
 }
 
 pub struct TunnelHandle {
