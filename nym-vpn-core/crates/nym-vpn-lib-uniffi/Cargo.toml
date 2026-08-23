@@ -73,11 +73,13 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 iprange.workspace = true
 ipnet.workspace = true
 jni.workspace = true
+jni-0-21.workspace = true
 log.workspace = true
 ndk-context.workspace = true
 rand.workspace = true
 tracing-android.workspace = true
 nym-firewall-config.workspace = true
+rustls-platform-verifier.workspace = true
 webpki-roots.workspace = true
 rustls = { workspace = true, default-features = false, features = [
     "ring",

@@ -129,7 +129,10 @@ pub struct FileUpdater {
 impl FileUpdater {
     /// Create a new `FileUpdater` with a default HTTP client, returning the updater and a handle.
     pub fn new() -> Result<(Self, FileUpdaterHandle), FileUpdaterError> {
-        let http_client = reqwest::Client::builder()
+        // Built from the registry-configured builder (not `reqwest::Client::builder()`)
+        // so platform-specific TLS overrides (e.g. Android's webpki-roots backend, needed
+        // because rustls-platform-verifier isn't initialized in this process) still apply.
+        let http_client = nym_http_api_client::registry::default_builder()
             .connect_timeout(Duration::from_secs(10))
             .build()
             .map_err(|error| FileUpdaterError::BuildHttpClient { error })?;

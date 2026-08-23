@@ -5907,6 +5907,7 @@ name = "nym-file-updater"
 version = "2026.13.0-beta.1"
 dependencies = [
  "futures",
+ "nym-http-api-client",
  "reqwest 0.13.3",
  "tempfile",
  "thiserror 2.0.18",
@@ -6111,6 +6112,13 @@ dependencies = [
  "serde",
  "serde_json",
  "tracing",
+]
+
+[[package]]
+name = "nym-http-client-lint"
+version = "2026.13.0-beta.1"
+dependencies = [
+ "regex",
 ]
 
 [[package]]
