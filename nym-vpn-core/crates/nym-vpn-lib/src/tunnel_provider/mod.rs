@@ -50,6 +50,11 @@ pub struct AppBypassConfig {
     /// Under the kill switch the usual route-based LAN exemption is blocked, so
     /// the steering engine must bypass local-network destinations instead.
     pub bypass_lan: bool,
+
+    /// The underlying network's real local subnet(s) as CIDR strings. Used
+    /// (only when `bypass_lan` is set) as the exact ranges to bypass, so the
+    /// tunnel's own in-tunnel RFC1918 addresses are not mistaken for LAN.
+    pub lan_prefixes: Vec<String>,
 }
 
 #[derive(Debug)]

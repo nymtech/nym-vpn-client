@@ -353,7 +353,7 @@ func TestEngineTCPSynForcesReclassification(t *testing.T) {
 	var owner int32 = 10123
 	e := &Engine{
 		flows:     NewFlowTable(flowTableSize, flowTTL, time.Now),
-		classify:  NewClassifier([]uint32{10123}, func(Proto, netip.AddrPort, netip.AddrPort) int32 { return owner }, false),
+		classify:  NewClassifier([]uint32{10123}, func(Proto, netip.AddrPort, netip.AddrPort) int32 { return owner }, nil),
 		hasBypass: true,
 		logger:    device.NewLogger(device.LogLevelError, "test"),
 	}

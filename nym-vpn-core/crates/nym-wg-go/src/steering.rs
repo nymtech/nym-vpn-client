@@ -55,6 +55,12 @@ pub struct SteeringConfig {
     /// Forward flows destined for local-network ranges directly (LAN bypass),
     /// so they survive the kill switch that blocks the route-based exemption.
     pub bypass_lan: bool,
+    /// The underlying network's real local subnet(s) as CIDR strings (e.g.
+    /// "10.223.228.0/24"). Only meaningful when `bypass_lan` is set: these are
+    /// the exact unicast ranges bypassed, instead of the whole RFC1918 space,
+    /// so the tunnel's own in-tunnel RFC1918 addresses (e.g. the exit gateway
+    /// at 10.1.0.1) are never mistaken for LAN and diverted off the tunnel.
+    pub lan_prefixes: Vec<String>,
 }
 
 /// Convert the underlying-DNS list into the comma-separated C string that
@@ -76,6 +82,18 @@ fn dns_servers_csv(dns: &[IpAddr]) -> Option<CString> {
     // ASCII letters, '.', ':', and '%', never a NUL byte, so `CString::new`
     // cannot fail here.
     Some(CString::new(csv).expect("IP address strings never contain NUL"))
+}
+
+/// Convert the LAN-prefix CIDR list into the comma-separated C string that
+/// `steeringTurnOn`'s `lan_prefixes` parameter expects, or `None` (NULL) when
+/// empty. Entries containing a NUL byte are dropped rather than aborting.
+#[cfg_attr(not(target_os = "android"), allow(dead_code))]
+fn lan_prefixes_csv(prefixes: &[String]) -> Option<CString> {
+    if prefixes.is_empty() {
+        return None;
+    }
+    let csv = prefixes.join(",");
+    CString::new(csv).ok()
 }
 
 /// Heap-allocated context handed to the Go side as an opaque `void*`, and
@@ -177,6 +195,11 @@ impl Steering {
             .as_ref()
             .map_or(std::ptr::null(), |c| c.as_ptr());
 
+        let lan_cstring = lan_prefixes_csv(&config.lan_prefixes);
+        let lan_ptr = lan_cstring
+            .as_ref()
+            .map_or(std::ptr::null(), |c| c.as_ptr());
+
         let ctx = Box::into_raw(Box::new(CallbackCtx { callbacks }));
 
         // SAFETY: `tun_fd`/`inner` are valid, open fds whose ownership is
@@ -194,6 +217,7 @@ impl Steering {
                 config.excluded_uids.as_ptr(),
                 config.excluded_uids.len() as i32,
                 dns_ptr,
+                lan_ptr,
                 i32::from(config.bypass_lan),
                 protect_trampoline,
                 owner_uid_trampoline,
@@ -274,6 +298,7 @@ unsafe extern "C" {
         excluded_uids: *const u32,
         uid_count: i32,
         dns_servers: *const c_char,
+        lan_prefixes: *const c_char,
         bypass_lan: i32,
         protect_cb: unsafe extern "C" fn(*mut c_void, i32),
         owner_uid_cb: unsafe extern "C" fn(*mut c_void, i32, *const c_char, *const c_char) -> i32,

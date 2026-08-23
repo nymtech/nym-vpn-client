@@ -2196,6 +2196,7 @@ impl TunnelMonitor {
                         excluded_uids: app_bypass.excluded_uids,
                         underlying_dns: app_bypass.underlying_dns,
                         bypass_lan: app_bypass.bypass_lan,
+                        lan_prefixes: app_bypass.lan_prefixes,
                     },
                     callbacks,
                 )

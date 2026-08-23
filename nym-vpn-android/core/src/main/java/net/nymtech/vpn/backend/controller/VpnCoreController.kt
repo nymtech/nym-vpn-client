@@ -457,10 +457,14 @@ class VpnCoreController(
 			ourPackage = service.packageName,
 		)
 		if (!AppBypassResolver.shouldSteer(Build.VERSION.SDK_INT, lockdown, cfg.restrictedApps, cfg.bypassLan)) return null
+		val connectivityManager = service.getSystemService(ConnectivityManager::class.java)
 		return nym_vpn_lib.AppBypassConfig(
 			excludedUids = AppBypassResolver.resolveUids(service.packageManager, cfg.restrictedApps),
-			underlyingDns = AppBypassResolver.underlyingDnsServers(service.getSystemService(ConnectivityManager::class.java)),
+			underlyingDns = AppBypassResolver.underlyingDnsServers(connectivityManager),
 			bypassLan = cfg.bypassLan,
+			// Only the device's real local subnet(s), so the tunnel's own in-tunnel
+			// RFC1918 addresses are never mistaken for LAN and bypassed off-tunnel.
+			lanPrefixes = if (cfg.bypassLan) AppBypassResolver.underlyingLanPrefixes(connectivityManager) else emptyList(),
 		)
 	}
 

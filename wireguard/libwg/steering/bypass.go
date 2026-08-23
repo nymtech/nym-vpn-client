@@ -46,10 +46,17 @@ type Config struct {
 	ExcludedUIDs  []uint32
 	UnderlyingDNS []netip.Addr
 	MTU           int
-	// BypassLan forwards flows destined for local-network ranges directly,
+	// BypassLan enables forwarding flows destined for the local network directly,
 	// regardless of owning UID. Needed under Android's kill switch, where the
 	// usual route-based LAN exemption would otherwise be blocked.
 	BypassLan bool
+	// LanPrefixes are the underlying network's real local subnet(s) to bypass
+	// when BypassLan is set. They are the device's actual local network as
+	// reported by the OS, NOT the whole RFC1918 space, so the tunnel's own
+	// in-tunnel RFC1918 addresses (e.g. the exit gateway at 10.1.0.1) are never
+	// mistaken for LAN and diverted off the tunnel. May be empty (then only
+	// SpecialLocalPrefixes — link-local/multicast/broadcast — are bypassed).
+	LanPrefixes []netip.Prefix
 }
 
 // Callbacks lets the bypass stack reach back into the platform layer.

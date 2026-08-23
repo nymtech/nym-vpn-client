@@ -78,7 +78,7 @@ func Start(tunFd int, innerFd int, cfg Config, cb Callbacks, logger *device.Logg
 		tunFile:   tunFile,
 		innerFile: innerFile,
 		flows:     NewFlowTable(flowTableSize, flowTTL, time.Now),
-		classify:  NewClassifier(cfg.ExcludedUIDs, cb.OwnerUID, cfg.BypassLan),
+		classify:  NewClassifier(cfg.ExcludedUIDs, cb.OwnerUID, LanBypassPrefixes(cfg.BypassLan, cfg.LanPrefixes)),
 		hasBypass: len(cfg.ExcludedUIDs) > 0 || cfg.BypassLan,
 		dnsDirect: len(cfg.UnderlyingDNS) > 0,
 		logger:    logger,

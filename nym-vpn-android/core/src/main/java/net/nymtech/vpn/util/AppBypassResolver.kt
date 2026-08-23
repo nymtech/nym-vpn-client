@@ -74,4 +74,33 @@ object AppBypassResolver {
 			?.filter { it.isNotEmpty() }
 			.orEmpty()
 	}
+
+	/**
+	 * Real local subnet(s) of a non-VPN network with validated internet, as CIDR
+	 * strings (e.g. "10.223.228.187/24"). These are the device's ACTUAL local
+	 * network(s), used to scope LAN bypass — as opposed to blanket-bypassing all
+	 * of RFC1918, which would divert the Nym tunnel's own in-tunnel RFC1918
+	 * addresses (e.g. the exit gateway at 10.1.0.1) off the tunnel and break the
+	 * connection. Loopback, link-local and multicast are omitted (the steering
+	 * engine already treats link-local/multicast/broadcast as always-local).
+	 */
+	@Suppress("DEPRECATION")
+	fun underlyingLanPrefixes(connectivityManager: ConnectivityManager): List<String> {
+		return connectivityManager.allNetworks.asSequence()
+			.mapNotNull { network ->
+				val caps = connectivityManager.getNetworkCapabilities(network) ?: return@mapNotNull null
+				if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return@mapNotNull null
+				if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return@mapNotNull null
+				connectivityManager.getLinkProperties(network)?.linkAddresses
+			}
+			.firstOrNull { it.isNotEmpty() }
+			?.mapNotNull { linkAddress ->
+				val addr = linkAddress.address ?: return@mapNotNull null
+				if (addr.isLoopbackAddress || addr.isLinkLocalAddress || addr.isMulticastAddress) return@mapNotNull null
+				// Drop any IPv6 scope id ("fe80::1%wlan0"); the parser rejects it.
+				val host = (addr.hostAddress ?: return@mapNotNull null).substringBefore('%')
+				"$host/${linkAddress.prefixLength}"
+			}
+			.orEmpty()
+	}
 }

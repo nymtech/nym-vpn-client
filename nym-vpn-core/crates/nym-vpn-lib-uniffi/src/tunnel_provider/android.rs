@@ -24,6 +24,11 @@ pub struct AppBypassConfig {
     /// Route local-network destinations directly (LAN bypass) instead of over
     /// the tunnel, so "allow local network access" keeps working under lockdown.
     pub bypass_lan: bool,
+
+    /// The underlying network's real local subnet(s) as CIDR strings (e.g.
+    /// "10.223.228.0/24"). Only the device's actual local network(s), not the
+    /// whole RFC1918 space, so the tunnel's own in-tunnel addresses stay tunneled.
+    pub lan_prefixes: Vec<String>,
 }
 
 impl From<AppBypassConfig> for nym_vpn_lib::tunnel_provider::AppBypassConfig {
@@ -42,6 +47,7 @@ impl From<AppBypassConfig> for nym_vpn_lib::tunnel_provider::AppBypassConfig {
                 })
                 .collect(),
             bypass_lan: config.bypass_lan,
+            lan_prefixes: config.lan_prefixes,
         }
     }
 }

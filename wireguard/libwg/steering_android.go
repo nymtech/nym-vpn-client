@@ -40,7 +40,7 @@ var steeringEngines = container.New[*steering.Engine]()
 //export steeringTurnOn
 func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 	excludedUids *C.uint32_t, uidCount int32,
-	dnsServers *C.char, bypassLan int32,
+	dnsServers *C.char, lanPrefixes *C.char, bypassLan int32,
 	protectCb C.steering_protect_fn, ownerUidCb C.steering_owner_uid_fn, cbCtx unsafe.Pointer,
 	logSink LogSink, logContext LogContext) int32 {
 
@@ -74,6 +74,23 @@ func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 		}
 	}
 
+	// The underlying network's real local subnet(s) to bypass, as CIDR strings.
+	// Masked to their network address so Contains checks are exact.
+	var lanPfx []netip.Prefix
+	if lanPrefixes != nil {
+		for _, s := range strings.Split(C.GoString(lanPrefixes), ",") {
+			s = strings.TrimSpace(s)
+			if s == "" {
+				continue
+			}
+			if p, err := netip.ParsePrefix(s); err == nil {
+				lanPfx = append(lanPfx, p.Masked())
+			} else {
+				logger.Errorf("steeringTurnOn: ignoring unparseable LAN prefix %q: %s", s, err)
+			}
+		}
+	}
+
 	cb := steering.Callbacks{
 		Protect: func(fd int32) {
 			C.call_steering_protect(protectCb, cbCtx, C.int32_t(fd))
@@ -92,6 +109,7 @@ func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 		UnderlyingDNS: dns,
 		MTU:           int(mtu),
 		BypassLan:     bypassLan != 0,
+		LanPrefixes:   lanPfx,
 	}, cb, logger)
 	if err != nil {
 		logger.Errorf("steeringTurnOn: %s", err)
