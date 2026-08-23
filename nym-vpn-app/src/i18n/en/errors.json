@@ -32,7 +32,8 @@
     "needs-relaxed-independence-criteria": "Needs relaxed independence criteria",
     "needs-device-location": "Safest routing isn't available right now. Try again later or choose your own servers.",
     "credential-fetching-failed": "Couldn't obtain the credentials needed to connect. Please try again.",
-    "no-credential-available": "No credentials available to connect. Please try again."
+    "no-credential-available": "No credentials available to connect. Please try again.",
+    "connection-attempts-exceeded": "Couldn't establish the connection after several attempts. Please try again."
   },
   "account": {
     "internal": "Internal account error",

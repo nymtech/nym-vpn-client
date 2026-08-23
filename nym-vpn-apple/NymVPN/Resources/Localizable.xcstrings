@@ -1,6 +1,17 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "errorReason.connectionAttemptsExceeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't establish the connection after several attempts. Please try again."
+          }
+        }
+      }
+    },
     "onboarding26.censorship.amneziaBold" : {
       "extractionState" : "manual",
       "localizations" : {
