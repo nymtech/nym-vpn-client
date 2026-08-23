@@ -456,10 +456,11 @@ class VpnCoreController(
 			alwaysOnVpnApp = readSecureString(ALWAYS_ON_VPN_APP),
 			ourPackage = service.packageName,
 		)
-		if (!AppBypassResolver.shouldSteer(Build.VERSION.SDK_INT, lockdown, cfg.restrictedApps)) return null
+		if (!AppBypassResolver.shouldSteer(Build.VERSION.SDK_INT, lockdown, cfg.restrictedApps, cfg.bypassLan)) return null
 		return nym_vpn_lib.AppBypassConfig(
 			excludedUids = AppBypassResolver.resolveUids(service.packageManager, cfg.restrictedApps),
 			underlyingDns = AppBypassResolver.underlyingDnsServers(service.getSystemService(ConnectivityManager::class.java)),
+			bypassLan = cfg.bypassLan,
 		)
 	}
 

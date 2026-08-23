@@ -78,8 +78,8 @@ func Start(tunFd int, innerFd int, cfg Config, cb Callbacks, logger *device.Logg
 		tunFile:   tunFile,
 		innerFile: innerFile,
 		flows:     NewFlowTable(flowTableSize, flowTTL, time.Now),
-		classify:  NewClassifier(cfg.ExcludedUIDs, cb.OwnerUID),
-		hasBypass: len(cfg.ExcludedUIDs) > 0,
+		classify:  NewClassifier(cfg.ExcludedUIDs, cb.OwnerUID, cfg.BypassLan),
+		hasBypass: len(cfg.ExcludedUIDs) > 0 || cfg.BypassLan,
 		dnsDirect: len(cfg.UnderlyingDNS) > 0,
 		logger:    logger,
 	}
@@ -95,7 +95,7 @@ func Start(tunFd int, innerFd int, cfg Config, cb Callbacks, logger *device.Logg
 	e.waitGroup.Add(2)
 	go e.runUpstream()
 	go e.runDownstream()
-	logger.Verbosef("steering: engine started (excluded UIDs: %d, direct DNS: %v)", len(cfg.ExcludedUIDs), e.dnsDirect)
+	logger.Verbosef("steering: engine started (excluded UIDs: %d, LAN bypass: %v, direct DNS: %v)", len(cfg.ExcludedUIDs), cfg.BypassLan, e.dnsDirect)
 	return e, nil
 }
 
@@ -198,6 +198,13 @@ func (e *Engine) decide(pkt []byte) Decision {
 	info, ok := ParsePacket(pkt)
 	if !ok {
 		return DecisionTunnel // non-TCP/UDP (e.g. ICMP): fail closed
+	}
+	// LAN-destination bypass is dest-based and takes precedence over everything
+	// below, including the DNS-to-tunnel fallback: a DNS query to a LAN resolver
+	// must also go direct. It's a pure function of the destination, so it's not
+	// cached in the flow table.
+	if e.classify.IsLanDestBypass(info.Key) {
+		return DecisionBypass
 	}
 	// Without underlying resolvers, excluded DNS must use the tunnel resolver.
 	if info.Key.Proto == ProtoUDP && info.Key.Dst.Port() == dnsPort && !e.dnsDirect {

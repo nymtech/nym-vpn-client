@@ -9,8 +9,8 @@ import timber.log.Timber
 object AppBypassResolver {
 	private const val TAG = "core-vpn"
 
-	fun shouldSteer(sdkInt: Int, lockdownEnabled: Boolean, restrictedApps: List<String>): Boolean =
-		sdkInt >= Build.VERSION_CODES.Q && lockdownEnabled && restrictedApps.isNotEmpty()
+	fun shouldSteer(sdkInt: Int, lockdownEnabled: Boolean, restrictedApps: List<String>, bypassLan: Boolean): Boolean =
+		sdkInt >= Build.VERSION_CODES.Q && lockdownEnabled && (restrictedApps.isNotEmpty() || bypassLan)
 
 	/**
 	 * Whether always-on VPN lockdown ("Block connections without VPN") is in effect for us.

@@ -34,14 +34,19 @@ class VpnTunController(private val service: VpnService) {
 	}
 
 	fun configureTunnel(config: TunnelNetworkSettings): Int {
-		val allowLan = bypassLanFlag
+		// When steering is active (lockdown), LAN traffic must stay routed INTO the tun so the
+		// steering engine can see it and forward it directly. The route-based LAN exemption
+		// (allowLan excludes LAN CIDRs from the tun routes) would otherwise send LAN traffic to
+		// the system network, where the kill switch blocks it. The engine is told to bypass LAN
+		// destinations via AppBypassConfig.bypassLan instead.
+		val allowLan = bypassLanFlag && !appBypassActive
 		val mtu = config.mtu.toInt()
 
 		return try {
 			val builder = service.Builder()
 
 			if (appBypassActive) {
-				Timber.tag(TAG).i("App bypass active (lockdown): steering excluded apps in-tunnel")
+				Timber.tag(TAG).i("App bypass active (lockdown): steering excluded apps and LAN in-tunnel")
 			} else {
 				disallowedApps.forEach { pkg ->
 					runCatching { builder.addDisallowedApplication(pkg) }

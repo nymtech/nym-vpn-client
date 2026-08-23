@@ -46,6 +46,10 @@ type Config struct {
 	ExcludedUIDs  []uint32
 	UnderlyingDNS []netip.Addr
 	MTU           int
+	// BypassLan forwards flows destined for local-network ranges directly,
+	// regardless of owning UID. Needed under Android's kill switch, where the
+	// usual route-based LAN exemption would otherwise be blocked.
+	BypassLan bool
 }
 
 // Callbacks lets the bypass stack reach back into the platform layer.

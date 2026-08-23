@@ -20,6 +20,10 @@ pub struct AppBypassConfig {
     /// DNS servers of the underlying (non-VPN) network, as IP address strings.
     /// Unparseable entries are ignored.
     pub underlying_dns: Vec<String>,
+
+    /// Route local-network destinations directly (LAN bypass) instead of over
+    /// the tunnel, so "allow local network access" keeps working under lockdown.
+    pub bypass_lan: bool,
 }
 
 impl From<AppBypassConfig> for nym_vpn_lib::tunnel_provider::AppBypassConfig {
@@ -37,6 +41,7 @@ impl From<AppBypassConfig> for nym_vpn_lib::tunnel_provider::AppBypassConfig {
                         .ok()
                 })
                 .collect(),
+            bypass_lan: config.bypass_lan,
         }
     }
 }

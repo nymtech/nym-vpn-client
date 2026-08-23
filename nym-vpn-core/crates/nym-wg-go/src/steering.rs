@@ -52,6 +52,9 @@ pub struct SteeringConfig {
     pub mtu: u16,
     pub excluded_uids: Vec<u32>,
     pub underlying_dns: Vec<IpAddr>,
+    /// Forward flows destined for local-network ranges directly (LAN bypass),
+    /// so they survive the kill switch that blocks the route-based exemption.
+    pub bypass_lan: bool,
 }
 
 /// Convert the underlying-DNS list into the comma-separated C string that
@@ -191,6 +194,7 @@ impl Steering {
                 config.excluded_uids.as_ptr(),
                 config.excluded_uids.len() as i32,
                 dns_ptr,
+                i32::from(config.bypass_lan),
                 protect_trampoline,
                 owner_uid_trampoline,
                 ctx as *mut c_void,
@@ -270,6 +274,7 @@ unsafe extern "C" {
         excluded_uids: *const u32,
         uid_count: i32,
         dns_servers: *const c_char,
+        bypass_lan: i32,
         protect_cb: unsafe extern "C" fn(*mut c_void, i32),
         owner_uid_cb: unsafe extern "C" fn(*mut c_void, i32, *const c_char, *const c_char) -> i32,
         cb_ctx: *mut c_void,

@@ -40,7 +40,7 @@ var steeringEngines = container.New[*steering.Engine]()
 //export steeringTurnOn
 func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 	excludedUids *C.uint32_t, uidCount int32,
-	dnsServers *C.char,
+	dnsServers *C.char, bypassLan int32,
 	protectCb C.steering_protect_fn, ownerUidCb C.steering_owner_uid_fn, cbCtx unsafe.Pointer,
 	logSink LogSink, logContext LogContext) int32 {
 
@@ -91,6 +91,7 @@ func steeringTurnOn(tunFd int32, innerFd int32, mtu int32,
 		ExcludedUIDs:  uids,
 		UnderlyingDNS: dns,
 		MTU:           int(mtu),
+		BypassLan:     bypassLan != 0,
 	}, cb, logger)
 	if err != nil {
 		logger.Errorf("steeringTurnOn: %s", err)

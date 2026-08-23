@@ -9,22 +9,27 @@ class AppBypassResolverTest {
 
 	@Test
 	fun `steers when lockdown and exclusions on Q+`() {
-		assertTrue(AppBypassResolver.shouldSteer(sdkInt = 29, lockdownEnabled = true, restrictedApps = apps))
+		assertTrue(AppBypassResolver.shouldSteer(sdkInt = 29, lockdownEnabled = true, restrictedApps = apps, bypassLan = false))
+	}
+
+	@Test
+	fun `steers when lockdown and LAN bypass on, even with no excluded apps`() {
+		assertTrue(AppBypassResolver.shouldSteer(sdkInt = 29, lockdownEnabled = true, restrictedApps = emptyList(), bypassLan = true))
 	}
 
 	@Test
 	fun `no steering without lockdown`() {
-		assertFalse(AppBypassResolver.shouldSteer(sdkInt = 34, lockdownEnabled = false, restrictedApps = apps))
+		assertFalse(AppBypassResolver.shouldSteer(sdkInt = 34, lockdownEnabled = false, restrictedApps = apps, bypassLan = true))
 	}
 
 	@Test
-	fun `no steering with empty exclusion list`() {
-		assertFalse(AppBypassResolver.shouldSteer(sdkInt = 34, lockdownEnabled = true, restrictedApps = emptyList()))
+	fun `no steering with no exclusions and no LAN bypass`() {
+		assertFalse(AppBypassResolver.shouldSteer(sdkInt = 34, lockdownEnabled = true, restrictedApps = emptyList(), bypassLan = false))
 	}
 
 	@Test
 	fun `no steering below api 29`() {
-		assertFalse(AppBypassResolver.shouldSteer(sdkInt = 28, lockdownEnabled = true, restrictedApps = apps))
+		assertFalse(AppBypassResolver.shouldSteer(sdkInt = 28, lockdownEnabled = true, restrictedApps = apps, bypassLan = true))
 	}
 
 	@Test

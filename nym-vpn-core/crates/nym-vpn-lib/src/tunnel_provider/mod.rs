@@ -45,6 +45,11 @@ pub struct AppBypassConfig {
     /// DNS servers of the underlying (non-VPN) network, used to answer DNS
     /// queries of the bypassed apps.
     pub underlying_dns: Vec<IpAddr>,
+
+    /// Forward flows destined for local-network ranges directly (LAN bypass).
+    /// Under the kill switch the usual route-based LAN exemption is blocked, so
+    /// the steering engine must bypass local-network destinations instead.
+    pub bypass_lan: bool,
 }
 
 #[derive(Debug)]
