@@ -712,6 +712,7 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
+                        shared_state.entry_blame.clear();
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
                             *connection_data,
@@ -742,10 +743,19 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
+                    TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id, exit_handshake_completed } => {
                         // WG handshake timed out or connectivity probe failed without a healthy
                         // metadata path; blacklist the exit so a different one is selected.
                         shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                        // A failure before the exit handshake ever completed may equally be the
+                        // entry gateway's fault. Once the same entry accumulates enough
+                        // pre-handshake failures while exits rotate, blacklist it too.
+                        if shared_state.entry_blame.record_failure(entry_gateway_id, exit_handshake_completed) {
+                            tracing::warn!(
+                                "Blacklisted entry gateway {entry_gateway_id} after repeated connection failures without a completed exit handshake"
+                            );
+                            shared_state.gateway_provider.add_blacklisted_gateway(entry_gateway_id).await;
+                        }
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }

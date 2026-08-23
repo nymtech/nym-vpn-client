@@ -237,7 +237,14 @@ pub enum TunnelMonitorEvent {
     },
 
     /// Connection has failed
-    ConnectionFailed { exit_gateway_id: NodeIdentity },
+    ConnectionFailed {
+        /// Entry gateway used during the failed attempt.
+        entry_gateway_id: NodeIdentity,
+        /// Exit gateway used during the failed attempt.
+        exit_gateway_id: NodeIdentity,
+        /// Whether the exit WireGuard handshake completed at least once before the failure.
+        exit_handshake_completed: bool,
+    },
 }
 
 pub struct TunnelMonitorHandle {
@@ -817,9 +824,14 @@ impl TunnelMonitor {
         }
 
         // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
-        if let Some(wg_handle) = tunnel_handle.as_wireguard() {
-            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
-        }
+        let exit_handshake_completed = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
+            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await
+                == HandshakeWaitOutcome::Completed
+        } else {
+            // Mixnet tunnels have no WireGuard handshake to observe, so failures are
+            // never attributed to the entry gateway based on it.
+            true
+        };
 
         let (entry_metadata_endpoint_reachable_tx, entry_metadata_endpoint_reachable_rx) =
             tokio::sync::oneshot::channel::<bool>();
@@ -967,9 +979,13 @@ impl TunnelMonitor {
                                 } else {
                                     tracing::info!("Tunnel connection is down. Exiting");
                                     self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                                        entry_gateway_id: selected_gateways
+                                            .entry_gateway()
+                                            .identity(),
                                         exit_gateway_id: selected_gateways
                                             .exit_gateway()
                                             .identity(),
+                                        exit_handshake_completed,
                                     });
                                     break;
                                 }
@@ -985,7 +1001,9 @@ impl TunnelMonitor {
                         }
                         tracing::info!("Metadata endpoints not reachable. Exiting");
                         self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                            entry_gateway_id: selected_gateways.entry_gateway().identity(),
                             exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                            exit_handshake_completed,
                         });
                         break;
                     } else {
