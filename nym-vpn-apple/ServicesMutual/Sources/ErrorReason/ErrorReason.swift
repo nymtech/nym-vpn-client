@@ -48,6 +48,7 @@ public enum ErrorReason: LocalizedError, Codable {
     case splitTunnel
     case needsRelaxedIndependenceCriteria
     case needsDeviceLocation
+    case connectionAttemptsExceeded
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -113,6 +114,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .needsRelaxedIndependenceCriteria
         case .needsDeviceLocation:
             self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 #endif
@@ -207,6 +210,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .needsRelaxedIndependenceCriteria
         case .needsDeviceLocation:
             self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 
@@ -311,6 +316,8 @@ private extension ErrorReason {
             "errorReason.needsRelaxedIndependenceCriteria".localizedString
         case .needsDeviceLocation:
             "errorReason.needsDeviceLocation".localizedString
+        case .connectionAttemptsExceeded:
+            "errorReason.connectionAttemptsExceeded".localizedString
         case .credentialFetchingFailed:
             "errorReason.credentialFetchingFailed".localizedString
         case .noCredentialAvailable:
@@ -367,6 +374,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case splitTunnel
     case needsRelaxedIndependenceCriteria
     case needsDeviceLocation
+    case connectionAttemptsExceeded
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -450,6 +458,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .needsRelaxedIndependenceCriteria
         case .needsDeviceLocation:
             self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 }

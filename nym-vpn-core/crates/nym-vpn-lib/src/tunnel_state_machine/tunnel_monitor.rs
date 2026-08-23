@@ -237,7 +237,14 @@ pub enum TunnelMonitorEvent {
     },
 
     /// Connection has failed
-    ConnectionFailed { exit_gateway_id: NodeIdentity },
+    ConnectionFailed {
+        /// Entry gateway used during the failed attempt.
+        entry_gateway_id: NodeIdentity,
+        /// Exit gateway used during the failed attempt.
+        exit_gateway_id: NodeIdentity,
+        /// Whether the exit WireGuard handshake completed at least once before the failure.
+        exit_handshake_completed: bool,
+    },
 }
 
 pub struct TunnelMonitorHandle {
@@ -292,24 +299,31 @@ pub struct TunnelMonitor {
     shutdown_token: CancellationToken,
 }
 
-/// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
-async fn wait_for_exit_handshake(
-    tunnel_handle: &connected_tunnel::TunnelHandle,
+/// Outcome of waiting for a WireGuard handshake to complete.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HandshakeWaitOutcome {
+    /// All peers completed the handshake.
+    Completed,
+    /// The handshake did not complete within the timeout.
+    TimedOut,
+    /// Shutdown was requested while waiting; the handshake never completed.
+    Cancelled,
+}
+
+/// Poll WireGuard peer stats until the handshake completes, the timeout elapses
+/// or shutdown is requested.
+async fn wait_for_handshake_outcome(
+    mut get_stats: impl FnMut() -> nym_wg_go::Result<nym_wg_go::wireguard_go::TunnelStats>,
     shutdown_token: &CancellationToken,
-) {
-    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
-    const POLL_INTERVAL: Duration = Duration::from_millis(500);
-
-    tracing::debug!("Waiting for exit WireGuard handshake to complete");
-
-    let started = std::time::Instant::now();
-
-    let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
+    handshake_timeout: Duration,
+    poll_interval: Duration,
+) -> HandshakeWaitOutcome {
+    let result = tokio::time::timeout(handshake_timeout, async {
         loop {
-            match tunnel_handle.get_exit_stats() {
+            match get_stats() {
                 Ok(stats) => {
                     if stats.all_peers_connected() {
-                        return;
+                        return HandshakeWaitOutcome::Completed;
                     }
                 }
                 Err(err) => {
@@ -318,25 +332,55 @@ async fn wait_for_exit_handshake(
             }
 
             tokio::select! {
-                _ = tokio::time::sleep(POLL_INTERVAL) => {}
-                _ = shutdown_token.cancelled() => return,
+                _ = tokio::time::sleep(poll_interval) => {}
+                _ = shutdown_token.cancelled() => return HandshakeWaitOutcome::Cancelled,
             }
         }
     })
     .await;
 
+    result.unwrap_or(HandshakeWaitOutcome::TimedOut)
+}
+
+/// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
+async fn wait_for_exit_handshake(
+    tunnel_handle: &connected_tunnel::TunnelHandle,
+    shutdown_token: &CancellationToken,
+) -> HandshakeWaitOutcome {
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+    const POLL_INTERVAL: Duration = Duration::from_millis(500);
+
+    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+
+    let started = std::time::Instant::now();
+
+    let outcome = wait_for_handshake_outcome(
+        || tunnel_handle.get_exit_stats(),
+        shutdown_token,
+        HANDSHAKE_TIMEOUT,
+        POLL_INTERVAL,
+    )
+    .await;
+
     let elapsed = started.elapsed();
-    match result {
-        Ok(()) => {
+    match outcome {
+        HandshakeWaitOutcome::Completed => {
             tracing::debug!("Exit WireGuard handshake completed in {elapsed:.2?}");
         }
-        Err(_) => {
+        HandshakeWaitOutcome::TimedOut => {
             tracing::warn!(
                 "Exit WireGuard handshake did not complete within {:.1}s, proceeding",
                 elapsed.as_secs_f32()
             );
         }
+        HandshakeWaitOutcome::Cancelled => {
+            tracing::debug!(
+                "Shutdown requested while waiting for exit WireGuard handshake after {elapsed:.2?}"
+            );
+        }
     }
+
+    outcome
 }
 
 impl TunnelMonitor {
@@ -780,9 +824,14 @@ impl TunnelMonitor {
         }
 
         // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
-        if let Some(wg_handle) = tunnel_handle.as_wireguard() {
-            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
-        }
+        let exit_handshake_completed = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
+            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await
+                == HandshakeWaitOutcome::Completed
+        } else {
+            // Mixnet tunnels have no WireGuard handshake to observe, so failures are
+            // never attributed to the entry gateway based on it.
+            true
+        };
 
         let (entry_metadata_endpoint_reachable_tx, entry_metadata_endpoint_reachable_rx) =
             tokio::sync::oneshot::channel::<bool>();
@@ -930,9 +979,13 @@ impl TunnelMonitor {
                                 } else {
                                     tracing::info!("Tunnel connection is down. Exiting");
                                     self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                                        entry_gateway_id: selected_gateways
+                                            .entry_gateway()
+                                            .identity(),
                                         exit_gateway_id: selected_gateways
                                             .exit_gateway()
                                             .identity(),
+                                        exit_handshake_completed,
                                     });
                                     break;
                                 }
@@ -948,7 +1001,9 @@ impl TunnelMonitor {
                         }
                         tracing::info!("Metadata endpoints not reachable. Exiting");
                         self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                            entry_gateway_id: selected_gateways.entry_gateway().identity(),
                             exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                            exit_handshake_completed,
                         });
                         break;
                     } else {
@@ -2183,5 +2238,77 @@ impl WgTunnelRuntime {
         self.authenticator_listener_handle
             .as_ref()
             .map(|handle| handle.mixnet_cancel_token())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nym_wg_go::wireguard_go::{PeerStats, TunnelStats};
+
+    fn stats_with_handshake(completed: bool) -> TunnelStats {
+        TunnelStats {
+            listen_port: Some(51820),
+            peers: vec![PeerStats {
+                public_key: [0u8; 32],
+                endpoint: None,
+                last_handshake_time: completed.then(std::time::SystemTime::now),
+                rx_bytes: 0,
+                tx_bytes: 0,
+            }],
+        }
+    }
+
+    const TEST_TIMEOUT: Duration = Duration::from_secs(10);
+    const TEST_POLL_INTERVAL: Duration = Duration::from_millis(500);
+
+    #[tokio::test(start_paused = true)]
+    async fn handshake_wait_returns_completed_when_all_peers_connected() {
+        let shutdown_token = CancellationToken::new();
+
+        let outcome = wait_for_handshake_outcome(
+            || Ok(stats_with_handshake(true)),
+            &shutdown_token,
+            TEST_TIMEOUT,
+            TEST_POLL_INTERVAL,
+        )
+        .await;
+
+        assert_eq!(outcome, HandshakeWaitOutcome::Completed);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn handshake_wait_returns_timed_out_when_handshake_never_completes() {
+        let shutdown_token = CancellationToken::new();
+
+        let outcome = wait_for_handshake_outcome(
+            || Ok(stats_with_handshake(false)),
+            &shutdown_token,
+            TEST_TIMEOUT,
+            TEST_POLL_INTERVAL,
+        )
+        .await;
+
+        assert_eq!(outcome, HandshakeWaitOutcome::TimedOut);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn handshake_wait_returns_cancelled_when_shutdown_requested() {
+        let shutdown_token = CancellationToken::new();
+        shutdown_token.cancel();
+
+        let outcome = wait_for_handshake_outcome(
+            || Ok(stats_with_handshake(false)),
+            &shutdown_token,
+            TEST_TIMEOUT,
+            TEST_POLL_INTERVAL,
+        )
+        .await;
+
+        assert_eq!(
+            outcome,
+            HandshakeWaitOutcome::Cancelled,
+            "shutdown while waiting must not be reported as a completed handshake"
+        );
     }
 }
