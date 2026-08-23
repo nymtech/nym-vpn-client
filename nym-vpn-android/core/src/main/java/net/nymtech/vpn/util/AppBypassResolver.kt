@@ -2,6 +2,7 @@ package net.nymtech.vpn.util
 
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
 import timber.log.Timber
@@ -52,6 +53,23 @@ object AppBypassResolver {
 	fun steeringDecisionChanged(previouslyActive: Boolean?, active: Boolean): Boolean =
 		previouslyActive != active
 
+	/**
+	 * Whether the underlying-network-derived inputs to steering changed: the DNS resolvers
+	 * excluded apps use, and the local subnets LAN bypass targets. The Go steering engine
+	 * captures these only at start, so a change means the running engine holds stale values
+	 * and the tunnel must reconnect to refresh them. Without this, after a Wi-Fi<->cellular
+	 * switch excluded apps' DNS points at the old (now unreachable) resolver and LAN bypass
+	 * targets the old subnet. Compared order-insensitively so OS reordering alone doesn't
+	 * force a reconnect.
+	 */
+	fun underlyingNetworkChanged(
+		previousDns: List<String>?,
+		previousLanPrefixes: List<String>?,
+		currentDns: List<String>,
+		currentLanPrefixes: List<String>,
+	): Boolean = previousDns.orEmpty().toSet() != currentDns.toSet() ||
+		previousLanPrefixes.orEmpty().toSet() != currentLanPrefixes.toSet()
+
 	fun resolveUids(packageManager: PackageManager, packages: List<String>): List<UInt> =
 		packages.mapNotNull { pkg ->
 			runCatching { packageManager.getApplicationInfo(pkg, 0).uid.toUInt() }
@@ -59,16 +77,37 @@ object AppBypassResolver {
 				.getOrNull()
 		}.distinct()
 
-	/** DNS servers of a non-VPN network with validated internet, as IP strings. */
+	/**
+	 * Non-VPN, internet-capable networks ordered the way Android routes around-the-VPN
+	 * (protect()-ed) traffic: validated before unvalidated, then Wi-Fi/Ethernet before
+	 * cellular. Picking the preferred network rather than an arbitrary first keeps
+	 * excluded-app DNS and LAN bypass tracking the network the bypassed traffic actually
+	 * egresses over — including when both Wi-Fi and cellular are up at once (e.g. right
+	 * after returning to Wi-Fi, where the first network in the list could still be
+	 * cellular and would otherwise pin steering to the stale resolver/subnet).
+	 */
 	@Suppress("DEPRECATION")
-	fun underlyingDnsServers(connectivityManager: ConnectivityManager): List<String> {
-		return connectivityManager.allNetworks.asSequence()
+	private fun preferredUnderlyingNetworks(connectivityManager: ConnectivityManager): Sequence<Network> =
+		connectivityManager.allNetworks.asSequence()
 			.mapNotNull { network ->
 				val caps = connectivityManager.getNetworkCapabilities(network) ?: return@mapNotNull null
 				if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return@mapNotNull null
 				if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return@mapNotNull null
-				connectivityManager.getLinkProperties(network)?.dnsServers
+				network to caps
 			}
+			.sortedWith(
+				compareBy(
+					{ (_, caps) -> if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) 0 else 1 },
+					{ (_, caps) -> if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) 1 else 0 },
+				),
+			)
+			.map { it.first }
+
+	/** DNS servers of the preferred non-VPN network, as IP strings. */
+	@Suppress("DEPRECATION")
+	fun underlyingDnsServers(connectivityManager: ConnectivityManager): List<String> {
+		return preferredUnderlyingNetworks(connectivityManager)
+			.mapNotNull { connectivityManager.getLinkProperties(it)?.dnsServers }
 			.firstOrNull { it.isNotEmpty() }
 			?.map { it.hostAddress ?: "" }
 			?.filter { it.isNotEmpty() }
@@ -86,13 +125,8 @@ object AppBypassResolver {
 	 */
 	@Suppress("DEPRECATION")
 	fun underlyingLanPrefixes(connectivityManager: ConnectivityManager): List<String> {
-		return connectivityManager.allNetworks.asSequence()
-			.mapNotNull { network ->
-				val caps = connectivityManager.getNetworkCapabilities(network) ?: return@mapNotNull null
-				if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return@mapNotNull null
-				if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return@mapNotNull null
-				connectivityManager.getLinkProperties(network)?.linkAddresses
-			}
+		return preferredUnderlyingNetworks(connectivityManager)
+			.mapNotNull { connectivityManager.getLinkProperties(it)?.linkAddresses }
 			.firstOrNull { it.isNotEmpty() }
 			?.mapNotNull { linkAddress ->
 				val addr = linkAddress.address ?: return@mapNotNull null

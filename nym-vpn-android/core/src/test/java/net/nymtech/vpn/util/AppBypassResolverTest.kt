@@ -50,6 +50,46 @@ class AppBypassResolverTest {
 		assertFalse(AppBypassResolver.steeringDecisionChanged(previouslyActive = false, active = false))
 	}
 
+	@Test
+	fun `underlying network changed when DNS resolver differs`() {
+		assertTrue(
+			AppBypassResolver.underlyingNetworkChanged(
+				previousDns = listOf("10.223.228.187"), previousLanPrefixes = listOf("10.223.228.70/24"),
+				currentDns = listOf("192.168.1.1"), currentLanPrefixes = listOf("10.223.228.70/24"),
+			),
+		)
+	}
+
+	@Test
+	fun `underlying network changed when local subnet differs`() {
+		assertTrue(
+			AppBypassResolver.underlyingNetworkChanged(
+				previousDns = listOf("10.223.228.187"), previousLanPrefixes = listOf("10.223.228.70/24"),
+				currentDns = listOf("10.223.228.187"), currentLanPrefixes = listOf("192.168.1.5/24"),
+			),
+		)
+	}
+
+	@Test
+	fun `underlying network unchanged when same values, order-insensitive`() {
+		assertFalse(
+			AppBypassResolver.underlyingNetworkChanged(
+				previousDns = listOf("1.1.1.1", "8.8.8.8"), previousLanPrefixes = listOf("10.0.0.5/24"),
+				currentDns = listOf("8.8.8.8", "1.1.1.1"), currentLanPrefixes = listOf("10.0.0.5/24"),
+			),
+		)
+	}
+
+	@Test
+	fun `underlying network changed when previously unknown (null) and now present`() {
+		assertTrue(
+			AppBypassResolver.underlyingNetworkChanged(
+				previousDns = null, previousLanPrefixes = null,
+				currentDns = listOf("10.223.228.187"), currentLanPrefixes = listOf("10.223.228.70/24"),
+			),
+		)
+	}
+
 	private val us = "net.nymtech.nymvpn"
 
 	@Test

@@ -2,8 +2,10 @@ package net.nymtech.vpn.backend.service
 
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -14,8 +16,10 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -54,6 +58,11 @@ class VpnService :
 
 		const val ACTION_START_FROM_API = "net.nymtech.vpn.backend.service.START_FROM_API"
 		const val ACTION_START_FOREGROUND = "net.nymtech.vpn.backend.service.START_FOREGROUND"
+
+		// Debounce underlying-network events: a Wi-Fi<->cellular switch fires several
+		// onAvailable/onLost/onLinkPropertiesChanged in quick succession; coalesce them into
+		// a single app-bypass refresh once the network settles.
+		private const val UNDERLYING_NETWORK_DEBOUNCE_MS = 1_500L
 	}
 
 	// Binder exposing API.
@@ -91,6 +100,28 @@ class VpnService :
 			ioScope.launch {
 				core.disconnectBestEffort("competing-vpn")
 			}
+		}
+	}
+
+	@Volatile private var underlyingNetworkRefreshJob: Job? = null
+
+	// Fires when a non-VPN (underlying) network appears, drops, or changes its link properties.
+	// A Wi-Fi<->cellular switch or a DNS/subnet change leaves the steering engine holding the old
+	// network's DNS resolvers and LAN subnets; refresh the app-bypass config, which reconnects
+	// only if those actually changed. Debounced so a burst of transition events collapses into one.
+	private val underlyingNetworkCallback = object : ConnectivityManager.NetworkCallback() {
+		override fun onAvailable(network: Network) = scheduleUnderlyingNetworkRefresh()
+		override fun onLost(network: Network) = scheduleUnderlyingNetworkRefresh()
+		override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) =
+			scheduleUnderlyingNetworkRefresh()
+	}
+
+	private fun scheduleUnderlyingNetworkRefresh() {
+		underlyingNetworkRefreshJob?.cancel()
+		underlyingNetworkRefreshJob = ioScope.launch {
+			delay(UNDERLYING_NETWORK_DEBOUNCE_MS)
+			runCatching { core.onUnderlyingNetworkChanged() }
+				.onFailure { Timber.tag(TAG).w(it, "underlying-network refresh failed") }
 		}
 	}
 
@@ -134,6 +165,7 @@ class VpnService :
 
 		connectivity.start()
 		registerCompetingVpnDetector()
+		registerUnderlyingNetworkDetector()
 	}
 
 	private fun registerCompetingVpnDetector() {
@@ -143,12 +175,29 @@ class VpnService :
 		}.onFailure { Timber.tag(TAG).w(it, "Failed to register competing VPN detector") }
 	}
 
+	private fun registerUnderlyingNetworkDetector() {
+		runCatching {
+			val cm = getSystemService(ConnectivityManager::class.java) ?: return
+			// Match non-VPN networks with internet (Wi-Fi/cellular/ethernet), i.e. the networks
+			// steering's excluded-app DNS and LAN bypass are derived from.
+			val request = NetworkRequest.Builder()
+				.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+				.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+				.build()
+			cm.registerNetworkCallback(request, underlyingNetworkCallback)
+		}.onFailure { Timber.tag(TAG).w(it, "Failed to register underlying network detector") }
+	}
+
 	override fun onDestroy() {
 		Timber.tag(TAG).i("ServiceDestroyed")
 		_events.tryEmit(VpnServiceEvent.Log("VpnService destroyed"))
 		runCatching {
 			getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(competingVpnCallback)
 		}
+		runCatching {
+			getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(underlyingNetworkCallback)
+		}
+		underlyingNetworkRefreshJob?.cancel()
 
 		runCatching { runBlocking(Dispatchers.IO) { core.disconnectLocked() } }
 		runCatching { ioScope.cancel() }

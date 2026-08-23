@@ -85,6 +85,12 @@ class VpnCoreController(
 	@Volatile
 	private var lastAppBypassActive: Boolean? = null
 
+	// The last app-bypass config actually applied, kept so we can tell when the underlying
+	// network's DNS/subnets changed (which no CoreVpnConfig field reflects) and reconnect to
+	// refresh the steering engine. See onUnderlyingNetworkChanged.
+	@Volatile
+	private var lastAppBypass: nym_vpn_lib.AppBypassConfig? = null
+
 	@Volatile
 	private var bypassLanFlag: Boolean = false
 
@@ -175,6 +181,20 @@ class VpnCoreController(
 	suspend fun connect(): ConnectResult = coreMutex.withLock { connectLocked() }
 	suspend fun disconnect(): ConnectResult = coreMutex.withLock { disconnectLocked() }
 	suspend fun reconnect(): ConnectResult = coreMutex.withLock { reconnectLocked() }
+
+	/**
+	 * Refreshes steering after the underlying network changed (e.g. Wi-Fi<->cellular): recomputes
+	 * the app-bypass config from the now-current network and, if its DNS resolvers or local
+	 * subnets actually changed, reconnects so the steering engine picks up the new values.
+	 * No-op when the tunnel is down or steering isn't active; cheap (no reconnect) when nothing
+	 * changed. Called from the underlying-network callback in VpnService.
+	 */
+	suspend fun onUnderlyingNetworkChanged() = coreMutex.withLock {
+		if (state == Tunnel.State.Down || state == Tunnel.State.Offline) return@withLock
+		if (lastAppBypassActive != true) return@withLock
+		runCatching { applyCanonicalConfigToRustIfReady(force = false, canonical = null) }
+			.onFailure { Timber.tag(TAG).w(it, "underlying-network app-bypass refresh failed") }
+	}
 
 	suspend fun connectLocked(): ConnectResult {
 		if (android.net.VpnService.prepare(service) != null) {
@@ -409,10 +429,22 @@ class VpnCoreController(
 			)
 		}
 
+		// A Wi-Fi<->cellular (or subnet/DNS) change alters the underlying network's DNS and
+		// local subnets but no CoreVpnConfig field, yet the steering engine captured the old
+		// values at start; treat that as a routing change so we reconnect and refresh them.
+		val underlyingNetworkChanged = appBypass != null &&
+			AppBypassResolver.underlyingNetworkChanged(
+				lastAppBypass?.underlyingDns,
+				lastAppBypass?.lanPrefixes,
+				appBypass.underlyingDns,
+				appBypass.lanPrefixes,
+			)
+
 		val tunSettingsChanged = force ||
 			prev?.bypassLan != cfg.bypassLan ||
 			prev.restrictedApps != cfg.restrictedApps ||
-			AppBypassResolver.steeringDecisionChanged(lastAppBypassActive, appBypassActive)
+			AppBypassResolver.steeringDecisionChanged(lastAppBypassActive, appBypassActive) ||
+			underlyingNetworkChanged
 
 		syncLocalFieldsFromConfig(cfg)
 
@@ -428,6 +460,7 @@ class VpnCoreController(
 
 		lastAppliedConfig = cfg
 		lastAppBypassActive = appBypassActive
+		lastAppBypass = appBypass
 
 		if (tunSettingsChanged && state != Tunnel.State.Down) {
 			Timber.tag(TAG).i("Routing changed, triggering reconnect")
