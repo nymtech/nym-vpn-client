@@ -138,12 +138,24 @@ impl TunnelStateHandler for OfflineState {
                         }
                     },
                     TunnelCommand::Disconnect => {
-                        if self.reconnect {
-                            self.reconnect = false;
-                            let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
-                            NextTunnelState::NewState((self, new_state))
-                        } else {
-                            NextTunnelState::SameState(self)
+                        // An explicit user-initiated disconnect while offline should tear the
+                        // tunnel down immediately rather than only disarming auto-reconnect and
+                        // lingering in the offline state. Otherwise the first disconnect merely
+                        // re-emits `Offline`, which races the client's optimistic `Down` and
+                        // resurrects the offline UI, forcing the user to press disconnect twice.
+                        #[cfg(target_os = "android")]
+                        {
+                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                        }
+                        #[cfg(not(target_os = "android"))]
+                        {
+                            if self.reconnect {
+                                self.reconnect = false;
+                                let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
+                                NextTunnelState::NewState((self, new_state))
+                            } else {
+                                NextTunnelState::SameState(self)
+                            }
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
