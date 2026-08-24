@@ -313,7 +313,9 @@ internal fun ServerScreenContent(
 						onValueChange = onQueryChange,
 						modifier = Modifier
 							.fillMaxWidth()
-							.height(48.dp.scaledHeight())
+							// scaledHeight shrinks below the content height on short screens (e.g. 48dp -> ~33dp
+							// on a 1080x1920 xxhdpi device), clipping the text — keep the M3 48dp minimum
+							.height(48.dp.scaledHeight().coerceAtLeast(48.dp))
 							.background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp)),
 						placeholder = {
 							Text(
