@@ -9,7 +9,7 @@ tags:
 - assertVisible: "Exit server"
 
 - tapOn:
-    text: "Random"
+    text: "Safest"
     below: "Exit server"
 
 - extendedWaitUntil:
@@ -27,7 +27,7 @@ tags:
 - assertVisible: "Germany"
 
 - tapOn:
-    text: "Random"
+    text: "Safest"
     below: "Entry server"
 
 - extendedWaitUntil:
