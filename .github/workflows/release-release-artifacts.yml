@@ -221,6 +221,8 @@ jobs:
       linux_app_appimage_arm64: ${{ steps.linux_app.outputs.linux_app_appimage_arm64 }}
       windows_app_installer_x64: ${{ steps.windows_app.outputs.windows_app_installer_x64 }}
       windows_app_installer_arm64: ${{ steps.windows_app.outputs.windows_app_installer_arm64 }}
+      windows_app_installer_x64_sig: ${{ steps.windows_app.outputs.windows_app_installer_x64_sig }}
+      windows_app_installer_arm64_sig: ${{ steps.windows_app.outputs.windows_app_installer_arm64_sig }}
       android_apk: ${{ steps.android_app.outputs.android_apk }}
 
     steps:
@@ -319,8 +321,14 @@ jobs:
           WINDOWS_APP_INSTALLER_X64="${BASENAME}_x64-setup.exe"
           WINDOWS_APP_INSTALLER_ARM64="${BASENAME}_arm64-setup.exe"
 
+          WINDOWS_APP_INSTALLER_X64_SIG="${WINDOWS_APP_INSTALLER_X64}.sig"
+          WINDOWS_APP_INSTALLER_ARM64_SIG="${WINDOWS_APP_INSTALLER_ARM64}.sig"
+
           echo "windows_app_installer_x64=$WINDOWS_APP_INSTALLER_X64" >> $GITHUB_OUTPUT
           echo "windows_app_installer_arm64=$WINDOWS_APP_INSTALLER_ARM64" >> $GITHUB_OUTPUT
+
+          echo "windows_app_installer_x64_sig=$WINDOWS_APP_INSTALLER_X64_SIG" >> $GITHUB_OUTPUT
+          echo "windows_app_installer_arm64_sig=$WINDOWS_APP_INSTALLER_ARM64_SIG" >> $GITHUB_OUTPUT
 
       - name: App artifacts (Android)
         id: android_app
@@ -475,9 +483,13 @@ jobs:
         env:
           WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
           WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+          WINDOWS_APP_INSTALLER_X64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64_sig }}
+          WINDOWS_APP_INSTALLER_ARM64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64_sig }}
         run: |
           cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "${{ env.OUTPUT_DIR }}"
 
       - name: Copy artifacts (Android)
         if: ${{ needs.resolve.outputs.fdroid == 'true' }}
@@ -521,6 +533,8 @@ jobs:
           ARCHIVE_WINDOWS_ARM64: ${{ needs.resolve-artifacts.outputs.archive_windows_arm64 }}
           WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
           WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+          WINDOWS_APP_INSTALLER_X64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64_sig }}
+          WINDOWS_APP_INSTALLER_ARM64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64_sig }}
           MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
           VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
         run: |
@@ -550,6 +564,8 @@ jobs:
               "${ARCHIVE_WINDOWS_ARM64}"
               "${WINDOWS_APP_INSTALLER_X64}"
               "${WINDOWS_APP_INSTALLER_ARM64}"
+              "${WINDOWS_APP_INSTALLER_X64_SIG}"
+              "${WINDOWS_APP_INSTALLER_ARM64_SIG}"
             )
           fi
 

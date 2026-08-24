@@ -195,9 +195,9 @@ jobs:
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
   macos-updater:
-    needs: [setup, win-sigs]
-    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    needs: [setup]
     uses: ./.github/workflows/macos-updater.yml
+    secrets: inherit
     permissions:
       contents: write
       pull-requests: write
