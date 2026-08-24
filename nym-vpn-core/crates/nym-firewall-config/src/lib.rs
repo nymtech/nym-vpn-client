@@ -62,15 +62,11 @@ pub fn is_local_address(address: &IpAddr) -> bool {
 /// Host routes that must stay on the tunnel after LAN bypass carves out RFC1918/ULA.
 ///
 /// Exit WG metadata is `WG_TUN_DEVICE_IP_ADDRESS_V4` (`10.1.0.1`), which sits inside `10.0.0.0/8`.
-pub fn keep_on_tunnel_after_lan_bypass(
-    interface_addrs: impl IntoIterator<Item = IpAddr>,
-) -> Vec<IpNetwork> {
-    let mut nets = vec![
+pub fn keep_on_tunnel_after_lan_bypass() -> [IpNetwork; 2] {
+    [
         v4(WG_TUN_DEVICE_IP_ADDRESS_V4, 32),
         v6(WG_TUN_DEVICE_IP_ADDRESS_V6, 128),
-    ];
-    nets.extend(interface_addrs.into_iter().map(IpNetwork::from));
-    nets
+    ]
 }
 
 // Short-hand for `IpNetwork::V4(Ipv4Network::new_checked(address, prefix).unwrap())`.
@@ -89,7 +85,7 @@ mod tests {
 
     #[test]
     fn keep_on_tunnel_after_lan_bypass_includes_wg_metadata_v4() {
-        let nets = keep_on_tunnel_after_lan_bypass(std::iter::empty());
+        let nets = keep_on_tunnel_after_lan_bypass();
         let meta = IpAddr::V4(WG_TUN_DEVICE_IP_ADDRESS_V4);
         assert!(
             ALLOWED_LAN_NETS.iter().any(|net| net.contains(meta)),
@@ -100,38 +96,23 @@ mod tests {
 
     #[test]
     fn keep_on_tunnel_after_lan_bypass_includes_wg_metadata_v6() {
-        let nets = keep_on_tunnel_after_lan_bypass(std::iter::empty());
+        let nets = keep_on_tunnel_after_lan_bypass();
         let meta = IpAddr::V6(WG_TUN_DEVICE_IP_ADDRESS_V6);
         assert!(ALLOWED_LAN_NETS.iter().any(|net| net.contains(meta)));
         assert!(nets.iter().any(|net| net.contains(meta)));
     }
 
     #[test]
-    fn keep_on_tunnel_after_lan_bypass_includes_interface_addr() {
-        let client = Ipv4Addr::new(10, 1, 0, 2);
-        let nets = keep_on_tunnel_after_lan_bypass(std::iter::once(IpAddr::V4(client)));
-        assert!(nets.iter().any(|net| net.contains(IpAddr::V4(client))));
-    }
-
-    #[test]
     fn keep_on_tunnel_after_lan_bypass_emits_host_prefixes() {
-        let iface = [
-            IpAddr::V4(Ipv4Addr::new(10, 1, 0, 2)),
-            IpAddr::V6("fc01::2".parse().unwrap()),
-        ];
-        for net in keep_on_tunnel_after_lan_bypass(iface) {
+        for net in keep_on_tunnel_after_lan_bypass() {
             let expected = if net.is_ipv4() { 32 } else { 128 };
-            assert_eq!(
-                net.prefix(),
-                expected,
-                "{net} must be a host route so Android Ipv4Net/Ipv6Net::new cannot fail"
-            );
+            assert_eq!(net.prefix(), expected, "{net} must be a host route");
         }
     }
 
     #[test]
     fn keep_on_tunnel_after_lan_bypass_does_not_include_typical_lan_host() {
-        let nets = keep_on_tunnel_after_lan_bypass(std::iter::empty());
+        let nets = keep_on_tunnel_after_lan_bypass();
         for lan in [
             IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
             IpAddr::V4(Ipv4Addr::new(10, 0, 0, 2)),

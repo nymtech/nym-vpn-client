@@ -263,78 +263,38 @@ impl TunnelNetworkSettings {
                 .chain(ALLOWED_LAN_MULTICAST_NETS.iter())
             {
                 match network {
-                    IpNetwork::V4(address) => {
-                        if let Ok(ipv4_net) = Ipv4Net::new(address.ip(), address.prefix())
-                            .inspect_err(|e| {
-                                tracing::error!(
-                                    "Failed to create IPv4 network for {}: {}",
-                                    address,
-                                    e
-                                )
-                            })
-                        {
+                    IpNetwork::V4(address) => match Ipv4Net::new(address.ip(), address.prefix()) {
+                        Ok(ipv4_net) => {
                             exclude_ipv4_lan.add(ipv4_net);
                         }
-                    }
-                    IpNetwork::V6(address) => {
-                        if let Ok(ipv6_net) = Ipv6Net::new(address.ip(), address.prefix())
-                            .inspect_err(|e| {
-                                tracing::error!(
-                                    "Failed to create IPv6 network for {}: {}",
-                                    address,
-                                    e
-                                )
-                            })
-                        {
+                        Err(e) => {
+                            tracing::error!("Failed to create IPv4 network for {}: {}", address, e)
+                        }
+                    },
+                    IpNetwork::V6(address) => match Ipv6Net::new(address.ip(), address.prefix()) {
+                        Ok(ipv6_net) => {
                             exclude_ipv6_lan.add(ipv6_net);
                         }
-                    }
+                        Err(e) => {
+                            tracing::error!("Failed to create IPv6 network for {}: {}", address, e)
+                        }
+                    },
                 }
             }
 
             tunnel_ipv4 = tunnel_ipv4.exclude(&exclude_ipv4_lan);
             tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
 
-            // WG metadata (10.1.0.1) lives inside the RFC1918 LAN carve-out.
-            let interface_addrs = self
-                .ipv4_settings
-                .as_ref()
-                .into_iter()
-                .flat_map(|settings| settings.addresses.iter().map(|net| IpAddr::V4(net.ip())))
-                .chain(
-                    self.ipv6_settings
-                        .as_ref()
-                        .into_iter()
-                        .flat_map(|settings| {
-                            settings.addresses.iter().map(|net| IpAddr::V6(net.ip()))
-                        }),
-                );
-
-            for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass(interface_addrs) {
+            // Exit metadata is 10.1.0.1 / fc01::1, inside the LAN carve-out.
+            for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass() {
                 match network {
                     IpNetwork::V4(address) => {
-                        if let Ok(net) =
-                            Ipv4Net::new(address.ip(), address.prefix()).inspect_err(|e| {
-                                tracing::error!(
-                                    "Failed to re-add IPv4 keep-on-tunnel route for {}: {}",
-                                    address,
-                                    e
-                                )
-                            })
-                        {
+                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix()) {
                             tunnel_ipv4.add(net);
                         }
                     }
                     IpNetwork::V6(address) => {
-                        if let Ok(net) =
-                            Ipv6Net::new(address.ip(), address.prefix()).inspect_err(|e| {
-                                tracing::error!(
-                                    "Failed to re-add IPv6 keep-on-tunnel route for {}: {}",
-                                    address,
-                                    e
-                                )
-                            })
-                        {
+                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix()) {
                             tunnel_ipv6.add(net);
                         }
                     }
