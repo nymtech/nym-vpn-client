@@ -15,6 +15,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.favorites.FavoritesManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
+import net.nymtech.nymvpn.util.extensions.iso3CountryOrEmpty
 import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.backend.Tunnel
@@ -198,7 +199,7 @@ class ServerViewModel @Inject constructor(
 					(
 						locale.displayCountry.lowercase().contains(lowercaseQuery) ||
 							locale.country.lowercase().contains(lowercaseQuery) ||
-							locale.isO3Country.lowercase().contains(lowercaseQuery) ||
+							locale.iso3CountryOrEmpty().lowercase().contains(lowercaseQuery) ||
 							countryGateways.any { it.region?.lowercase()?.contains(lowercaseQuery) == true }
 						)
 			}
@@ -276,7 +277,7 @@ class ServerViewModel @Inject constructor(
 				query.isBlank() ||
 					item.locale.displayCountry.lowercase().contains(lowercaseQuery) ||
 					item.locale.country.lowercase().contains(lowercaseQuery) ||
-					item.locale.isO3Country.lowercase().contains(lowercaseQuery) ||
+					item.locale.iso3CountryOrEmpty().lowercase().contains(lowercaseQuery) ||
 					item.regions?.any { it.region.lowercase().contains(lowercaseQuery) } == true
 			}
 			.sortedWith(compareBy(collator) { it.locale.displayCountry })
