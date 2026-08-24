@@ -284,6 +284,22 @@ impl TunnelNetworkSettings {
 
             tunnel_ipv4 = tunnel_ipv4.exclude(&exclude_ipv4_lan);
             tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
+
+            // Exit metadata is 10.1.0.1 / fc01::1, inside the LAN carve-out.
+            for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass() {
+                match network {
+                    IpNetwork::V4(address) => {
+                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix()) {
+                            tunnel_ipv4.add(net);
+                        }
+                    }
+                    IpNetwork::V6(address) => {
+                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix()) {
+                            tunnel_ipv6.add(net);
+                        }
+                    }
+                }
+            }
         }
 
         tunnel_ipv4

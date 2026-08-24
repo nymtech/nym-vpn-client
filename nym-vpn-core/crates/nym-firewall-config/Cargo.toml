@@ -11,6 +11,7 @@ rust-version.workspace = true
 
 [dependencies]
 ipnetwork.workspace = true
+nym-network-defaults.workspace = true
 
 [lints]
 workspace = true
