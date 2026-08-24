@@ -12,7 +12,7 @@ members = [
     "crates/nym-firewall",
     "crates/nym-firewall-config",
     "crates/nym-gateway-directory",
-    # "crates/nym-http-client-lint",
+    "crates/nym-http-client-lint",
     "crates/nym-ifconfig",
     "crates/nym-ipc",
     "crates/nym-macos",
