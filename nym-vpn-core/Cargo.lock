@@ -6298,6 +6298,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-http-client-lint"
+version = "2026.13.0-beta.1"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "nym-id"
 version = "1.21.6"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.17-djibouti#7151978829fe52f3730fb09ad2e2177aa4e201c1"
