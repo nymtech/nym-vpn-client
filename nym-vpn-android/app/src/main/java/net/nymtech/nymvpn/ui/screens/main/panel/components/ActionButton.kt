@@ -40,7 +40,6 @@ internal fun ActionButton(
 	when (connectionState) {
 		ConnectionState.Disconnected,
 		ConnectionState.Offline,
-		ConnectionState.WaitingForConnection,
 		-> {
 			val isAccountNotActive = accountState is AccountControllerState.Error &&
 				accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
@@ -67,6 +66,16 @@ internal fun ActionButton(
 				shape = buttonShape,
 			)
 		}
+
+		ConnectionState.WaitingForConnection -> MainStyledButton(
+			onClick = { onAction(ConnectAction.DISCONNECT) },
+			textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+			content = { Text(stringResource(R.string.disconnect), style = MaterialTheme.typography.titleMedium) },
+			color = Color.Transparent,
+			borderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+			modifier = buttonModifier,
+			shape = buttonShape,
+		)
 
 		is ConnectionState.Connecting -> MainStyledButton(
 			onClick = { onAction(ConnectAction.DISCONNECT) },
