@@ -8,10 +8,15 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum FileUpdaterError {
     #[error("Failed to build HTTP client: {error}")]
-    BuildHttpClient { error: reqwest::Error },
+    BuildHttpClient {
+        error: nym_http_api_client::HttpClientError,
+    },
 
     #[error("HTTP request failed for {url}: {error}")]
-    Request { url: String, error: reqwest::Error },
+    Request {
+        url: String,
+        error: nym_http_api_client::HttpClientError,
+    },
 
     #[error("Failed to download chunk from {url}: {error}")]
     Download { url: String, error: reqwest::Error },

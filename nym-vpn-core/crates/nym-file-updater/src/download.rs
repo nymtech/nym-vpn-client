@@ -1,9 +1,14 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 use futures::StreamExt;
+use nym_http_api_client::{ApiClientCore, Client as HttpClient};
+use reqwest::Method;
 use tokio::{
     fs::{self, OpenOptions},
     io::{AsyncWriteExt, BufWriter},
@@ -13,8 +18,10 @@ use url::Url;
 
 use crate::{UpdateOutcome, error::FileUpdaterError};
 
+/// Connection timeout applied to the dedicated client used for each download.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
 pub(crate) async fn download_file(
-    http_client: &reqwest::Client,
     url: &Url,
     dest_path: &Path,
     cancel_token: CancellationToken,
@@ -30,13 +37,33 @@ pub(crate) async fn download_file(
             })?;
     }
 
+    // Bound to `url` itself so every request targets exactly the download URL. Built from the
+    // registry-configured builder (not `reqwest::Client::builder()`) so platform-specific TLS
+    // overrides (e.g. Android's webpki-roots backend, needed because rustls-platform-verifier
+    // isn't initialized in this process) still apply.
+    let http_client = HttpClient::builder(url.clone())
+        .and_then(|builder| {
+            builder
+                .with_reqwest_builder(
+                    nym_http_api_client::registry::default_builder().connect_timeout(CONNECT_TIMEOUT),
+                )
+                .build()
+        })
+        .map_err(|error| FileUpdaterError::BuildHttpClient { error })?;
+
     let etag_path = etag_path(dest_path);
     let current_etag = read_etag(&etag_path).await;
 
     // Step 1: HEAD request to read the server's current ETag without downloading.
     if let Some(ref stored) = current_etag {
+        let head_request = http_client
+            .create_request(Method::HEAD, "", nym_http_api_client::NO_PARAMS, None::<&()>)
+            .map_err(|error| FileUpdaterError::Request {
+                url: url.to_string(),
+                error,
+            })?;
         let head = cancel_token
-            .run_until_cancelled(http_client.head(url.as_str()).send())
+            .run_until_cancelled(http_client.send(head_request))
             .await
             .ok_or(FileUpdaterError::Cancelled)?
             .map_err(|error| FileUpdaterError::Request {
@@ -59,8 +86,14 @@ pub(crate) async fn download_file(
     }
 
     // Step 4: Different (or no stored etag) → full GET, write file, store new ETag.
+    let get_request = http_client
+        .create_request(Method::GET, "", nym_http_api_client::NO_PARAMS, None::<&()>)
+        .map_err(|error| FileUpdaterError::Request {
+            url: url.to_string(),
+            error,
+        })?;
     let response = cancel_token
-        .run_until_cancelled(http_client.get(url.as_str()).send())
+        .run_until_cancelled(http_client.send(get_request))
         .await
         .ok_or(FileUpdaterError::Cancelled)?
         .map_err(|error| FileUpdaterError::Request {
@@ -259,7 +292,6 @@ mod tests {
             .unwrap();
 
         let outcome = download_file(
-            &reqwest::Client::new(),
             &make_url(&server, "filters.txt.gz"),
             &dest_path,
             CancellationToken::new(),
@@ -283,7 +315,6 @@ mod tests {
         tokio::fs::write(&etag_path, TEST_ETAG).await.unwrap();
 
         let outcome = download_file(
-            &reqwest::Client::new(),
             &make_url(&server, "filters.txt.gz"),
             &dest_path,
             CancellationToken::new(),
@@ -309,7 +340,6 @@ mod tests {
         let etag_path = dest_path.with_extension("etag");
 
         let outcome = download_file(
-            &reqwest::Client::new(),
             &make_url(&server, "filters.txt.gz"),
             &dest_path,
             CancellationToken::new(),

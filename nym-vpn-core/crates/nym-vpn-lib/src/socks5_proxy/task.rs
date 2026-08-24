@@ -104,18 +104,8 @@ async fn supervisor(
         watch::channel(config.excluded_countries.clone());
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
-    let file_updater_handle = match FileUpdater::new() {
-        Ok((file_updater, handle)) => {
-            tokio::spawn(file_updater.run(shutdown_token.child_token()));
-            handle
-        }
-        Err(err) => {
-            let msg = format!("Failed to create file updater: {err:#}");
-            tracing::error!("{msg}");
-            let _ = ready_tx.send(Err(msg));
-            return;
-        }
-    };
+    let (file_updater, file_updater_handle) = FileUpdater::new();
+    tokio::spawn(file_updater.run(shutdown_token.child_token()));
 
     match nym_socks5_proxy::run(
         config,

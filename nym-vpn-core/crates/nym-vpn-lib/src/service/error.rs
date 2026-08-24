@@ -50,9 +50,6 @@ pub enum Error {
     #[error("failed to set up paths")]
     PathsSetup(#[source] crate::paths::PathsSetupError),
 
-    #[error("failed to create file updater")]
-    CreateFileUpdater(#[source] nym_file_updater::FileUpdaterError),
-
     #[error("state machine error")]
     StateMachine(#[source] TunnelStateMachineError),
 
