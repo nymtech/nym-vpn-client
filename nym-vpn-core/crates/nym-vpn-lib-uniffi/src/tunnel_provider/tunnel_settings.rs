@@ -263,22 +263,32 @@ impl TunnelNetworkSettings {
                 .chain(ALLOWED_LAN_MULTICAST_NETS.iter())
             {
                 match network {
-                    IpNetwork::V4(address) => match Ipv4Net::new(address.ip(), address.prefix()) {
-                        Ok(ipv4_net) => {
+                    IpNetwork::V4(address) => {
+                        if let Ok(ipv4_net) = Ipv4Net::new(address.ip(), address.prefix())
+                            .inspect_err(|e| {
+                                tracing::error!(
+                                    "Failed to create IPv4 network for {}: {}",
+                                    address,
+                                    e
+                                )
+                            })
+                        {
                             exclude_ipv4_lan.add(ipv4_net);
                         }
-                        Err(e) => {
-                            tracing::error!("Failed to create IPv4 network for {}: {}", address, e)
-                        }
-                    },
-                    IpNetwork::V6(address) => match Ipv6Net::new(address.ip(), address.prefix()) {
-                        Ok(ipv6_net) => {
+                    }
+                    IpNetwork::V6(address) => {
+                        if let Ok(ipv6_net) = Ipv6Net::new(address.ip(), address.prefix())
+                            .inspect_err(|e| {
+                                tracing::error!(
+                                    "Failed to create IPv6 network for {}: {}",
+                                    address,
+                                    e
+                                )
+                            })
+                        {
                             exclude_ipv6_lan.add(ipv6_net);
                         }
-                        Err(e) => {
-                            tracing::error!("Failed to create IPv6 network for {}: {}", address, e)
-                        }
-                    },
+                    }
                 }
             }
 
@@ -303,12 +313,28 @@ impl TunnelNetworkSettings {
             for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass(interface_addrs) {
                 match network {
                     IpNetwork::V4(address) => {
-                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix()) {
+                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix())
+                            .inspect_err(|e| {
+                                tracing::error!(
+                                    "Failed to re-add IPv4 keep-on-tunnel route for {}: {}",
+                                    address,
+                                    e
+                                )
+                            })
+                        {
                             tunnel_ipv4.add(net);
                         }
                     }
                     IpNetwork::V6(address) => {
-                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix()) {
+                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix())
+                            .inspect_err(|e| {
+                                tracing::error!(
+                                    "Failed to re-add IPv6 keep-on-tunnel route for {}: {}",
+                                    address,
+                                    e
+                                )
+                            })
+                        {
                             tunnel_ipv6.add(net);
                         }
                     }

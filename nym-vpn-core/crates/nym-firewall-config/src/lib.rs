@@ -114,6 +114,22 @@ mod tests {
     }
 
     #[test]
+    fn keep_on_tunnel_after_lan_bypass_emits_host_prefixes() {
+        let iface = [
+            IpAddr::V4(Ipv4Addr::new(10, 1, 0, 2)),
+            IpAddr::V6("fc01::2".parse().unwrap()),
+        ];
+        for net in keep_on_tunnel_after_lan_bypass(iface) {
+            let expected = if net.is_ipv4() { 32 } else { 128 };
+            assert_eq!(
+                net.prefix(),
+                expected,
+                "{net} must be a host route so Android Ipv4Net/Ipv6Net::new cannot fail"
+            );
+        }
+    }
+
+    #[test]
     fn keep_on_tunnel_after_lan_bypass_does_not_include_typical_lan_host() {
         let nets = keep_on_tunnel_after_lan_bypass(std::iter::empty());
         for lan in [
