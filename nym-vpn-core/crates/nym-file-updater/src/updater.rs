@@ -120,29 +120,17 @@ impl FileUpdaterHandle {
 /// requests and fires registered periodic tasks on schedule.
 ///
 /// Downloads are spawned onto separate tasks so the message loop stays responsive
-/// while a download is in progress.
+/// while a download is in progress. Each download builds its own
+/// [`nym_http_api_client::Client`] bound to its target URL, so no client is held here.
 pub struct FileUpdater {
     rx: mpsc::UnboundedReceiver<Message>,
-    http_client: reqwest::Client,
 }
 
 impl FileUpdater {
-    /// Create a new `FileUpdater` with a default HTTP client, returning the updater and a handle.
-    pub fn new() -> Result<(Self, FileUpdaterHandle), FileUpdaterError> {
-        // Built from the registry-configured builder (not `reqwest::Client::builder()`)
-        // so platform-specific TLS overrides (e.g. Android's webpki-roots backend, needed
-        // because rustls-platform-verifier isn't initialized in this process) still apply.
-        let http_client = nym_http_api_client::registry::default_builder()
-            .connect_timeout(Duration::from_secs(10))
-            .build()
-            .map_err(|error| FileUpdaterError::BuildHttpClient { error })?;
-        Ok(Self::with_client(http_client))
-    }
-
-    /// Create a new `FileUpdater` using a pre-built `reqwest::Client`.
-    pub fn with_client(http_client: reqwest::Client) -> (Self, FileUpdaterHandle) {
+    /// Create a new `FileUpdater`, returning the updater and a handle.
+    pub fn new() -> (Self, FileUpdaterHandle) {
         let (tx, rx) = mpsc::unbounded_channel();
-        let file_updater = Self { rx, http_client };
+        let file_updater = Self { rx };
         let handle = FileUpdaterHandle { tx };
         (file_updater, handle)
     }
@@ -168,16 +156,10 @@ impl FileUpdater {
                 msg = self.rx.recv() => {
                     match msg {
                         Some(Message::OneShot(req)) => {
-                            let http_client = self.http_client.clone();
                             let cancel = cancel_token.child_token();
                             tokio::spawn(async move {
-                                let result = download_file(
-                                    &http_client,
-                                    &req.url,
-                                    &req.dest_path,
-                                    cancel,
-                                )
-                                .await;
+                                let result =
+                                    download_file(&req.url, &req.dest_path, cancel).await;
                                 let _ = req.result_tx.send(result);
                             });
                         }
@@ -220,15 +202,13 @@ impl FileUpdater {
                         let task_id = tasks[idx].id;
                         let url = tasks[idx].url.clone();
                         let dest_path = tasks[idx].dest_path.clone();
-                        let http_client = self.http_client.clone();
                         let cancel = cancel_token.child_token();
                         let completion_tx = completion_tx.clone();
 
                         tasks[idx].in_flight = true;
 
                         tokio::spawn(async move {
-                            let result =
-                                download_file(&http_client, &url, &dest_path, cancel).await;
+                            let result = download_file(&url, &dest_path, cancel).await;
                             let _ = completion_tx.send(PeriodicCompletion { task_id, result });
                         });
                     }
