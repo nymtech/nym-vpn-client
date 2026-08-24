@@ -313,8 +313,8 @@ impl TunnelNetworkSettings {
             for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass(interface_addrs) {
                 match network {
                     IpNetwork::V4(address) => {
-                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix())
-                            .inspect_err(|e| {
+                        if let Ok(net) =
+                            Ipv4Net::new(address.ip(), address.prefix()).inspect_err(|e| {
                                 tracing::error!(
                                     "Failed to re-add IPv4 keep-on-tunnel route for {}: {}",
                                     address,
@@ -326,8 +326,8 @@ impl TunnelNetworkSettings {
                         }
                     }
                     IpNetwork::V6(address) => {
-                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix())
-                            .inspect_err(|e| {
+                        if let Ok(net) =
+                            Ipv6Net::new(address.ip(), address.prefix()).inspect_err(|e| {
                                 tracing::error!(
                                     "Failed to re-add IPv6 keep-on-tunnel route for {}: {}",
                                     address,
