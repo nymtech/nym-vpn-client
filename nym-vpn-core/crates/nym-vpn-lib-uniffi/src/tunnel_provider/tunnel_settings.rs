@@ -284,6 +284,36 @@ impl TunnelNetworkSettings {
 
             tunnel_ipv4 = tunnel_ipv4.exclude(&exclude_ipv4_lan);
             tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
+
+            // WG metadata (10.1.0.1) lives inside the RFC1918 LAN carve-out.
+            let interface_addrs = self
+                .ipv4_settings
+                .as_ref()
+                .into_iter()
+                .flat_map(|settings| settings.addresses.iter().map(|net| IpAddr::V4(net.ip())))
+                .chain(
+                    self.ipv6_settings
+                        .as_ref()
+                        .into_iter()
+                        .flat_map(|settings| {
+                            settings.addresses.iter().map(|net| IpAddr::V6(net.ip()))
+                        }),
+                );
+
+            for network in nym_firewall_config::keep_on_tunnel_after_lan_bypass(interface_addrs) {
+                match network {
+                    IpNetwork::V4(address) => {
+                        if let Ok(net) = Ipv4Net::new(address.ip(), address.prefix()) {
+                            tunnel_ipv4.add(net);
+                        }
+                    }
+                    IpNetwork::V6(address) => {
+                        if let Ok(net) = Ipv6Net::new(address.ip(), address.prefix()) {
+                            tunnel_ipv6.add(net);
+                        }
+                    }
+                }
+            }
         }
 
         tunnel_ipv4

@@ -5825,6 +5825,7 @@ name = "nym-firewall-config"
 version = "2026.12.2-beta.1"
 dependencies = [
  "ipnetwork",
+ "nym-network-defaults",
 ]
 
 [[package]]
