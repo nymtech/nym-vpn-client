@@ -65,7 +65,7 @@ impl ErrorState {
 
         #[cfg(target_os = "android")]
         if let Err(err) = shared_state.ensure_android_blocking_tun() {
-            trace_err_chain!(err, "Failed to install Android blocking TUN in error state");
+            trace_err_chain!(err, "failed to install Android blocking TUN in error state");
         }
 
         // Mobile: allow discovery/account networking; device traffic is covered by blocking TUN

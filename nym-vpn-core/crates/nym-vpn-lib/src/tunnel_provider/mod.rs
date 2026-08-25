@@ -40,6 +40,7 @@ pub struct TunnelSettings {
     pub mtu: u16,
 
     /// When true on Android, exclude the VPN app from the tunnel so control-plane traffic can
-    /// use the physical interface (used by the blocking placeholder during reconnect/error).
+    /// use the physical interface. Set on the blocking placeholder for Connecting / reconnect /
+    /// error. iOS has no equivalent and ignores the UniFFI copy of this field.
     pub exclude_vpn_app: bool,
 }
