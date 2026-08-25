@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 import AccountPrefetchGates
 @testable import Home
@@ -76,5 +77,11 @@ struct ProcessingAccountCarouselInterruptTests {
         await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func scenePhaseMapsOnlyBackgroundToInterrupt() {
+        #expect(ProcessingAccountView.carouselSceneAction(for: .active) == .resume)
+        #expect(ProcessingAccountView.carouselSceneAction(for: .inactive) == .ignore)
+        #expect(ProcessingAccountView.carouselSceneAction(for: .background) == .interrupt)
     }
 }
