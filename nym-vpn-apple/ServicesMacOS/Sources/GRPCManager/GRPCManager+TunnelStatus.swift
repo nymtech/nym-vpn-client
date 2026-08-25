@@ -109,8 +109,6 @@ extension GRPCManager {
             ErrorReason.credentialFetchingFailed
         case .noCredentialAvailable:
             ErrorReason.noCredentialAvailable
-        case .connectionAttemptsExceeded:
-            ErrorReason.connectionAttemptsExceeded
         }
     }
 }
@@ -175,8 +173,6 @@ extension ErrorReason {
             self = .credentialFetchingFailed
         case .noCredentialAvailable:
             self = .noCredentialAvailable
-        case .connectionAttemptsExceeded:
-            self = .connectionAttemptsExceeded
         }
     }
 }
