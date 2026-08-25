@@ -7,6 +7,7 @@ struct ProcessingAccountView: View {
     @Bindable var viewModel: ProcessingAccountViewModel
     let minHeight: CGFloat
 
+    @Environment(\.scenePhase) private var scenePhase
     @State private var titleBlockHeight: CGFloat = 0
 
     init(viewModel: ProcessingAccountViewModel, minHeight: CGFloat = 0) {
@@ -26,6 +27,23 @@ struct ProcessingAccountView: View {
         .padding(.vertical, AuthLayout.processingCarouselVerticalPadding)
         .frame(maxWidth: .infinity)
         .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
+        .onAppear {
+            if scenePhase == .active {
+                viewModel.noteCarouselResumed()
+            } else {
+                viewModel.noteCarouselInterrupted()
+            }
+        }
+        .onDisappear {
+            viewModel.noteCarouselInterrupted()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                viewModel.noteCarouselResumed()
+            } else {
+                viewModel.noteCarouselInterrupted()
+            }
+        }
     }
 }
 
