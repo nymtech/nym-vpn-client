@@ -812,7 +812,8 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Notify discovery, account controller, and gateway cache when network is unrestricted.
+    /// Unpause discovery / account / gateway cache. This is not a device kill-switch; on Android
+    /// other apps follow the VpnService interface, not this flag.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
@@ -855,6 +856,14 @@ impl SharedState {
             return Ok(());
         }
         self.install_android_blocking_tun()
+    }
+
+    /// Unpause control-plane only when a blocking placeholder or a held live TUN still covers apps.
+    #[cfg(target_os = "android")]
+    async fn allow_networking_if_android_covered(&self) {
+        if self.android_blocking_tun.is_some() || self.android_tun_hold.is_some() {
+            self.allow_networking().await;
+        }
     }
 
     /// Drop blocking TUN and any retained previous TUN (intentional Disconnect / real tunnel up).
