@@ -1065,7 +1065,7 @@ impl ConnectingPolicyParameters {
 
 /// Maximum number of consecutive reconnect attempts before transitioning to the error
 /// state instead of silently retrying forever.
-const MAX_RECONNECT_ATTEMPTS: u32 = 10;
+const MAX_RECONNECT_ATTEMPTS: u32 = 3;
 
 /// Decision on what to do for the given reconnect attempt.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
