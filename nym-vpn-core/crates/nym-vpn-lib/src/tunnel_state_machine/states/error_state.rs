@@ -68,9 +68,12 @@ impl ErrorState {
             trace_err_chain!(err, "failed to install Android blocking TUN in error state");
         }
 
-        // Mobile: allow discovery/account networking; device traffic is covered by blocking TUN
-        // (Android) or NE blocking settings (iOS). Control-plane sockets use bypass() on Android.
-        #[cfg(any(target_os = "android", target_os = "ios"))]
+        // iOS: NE blocking settings cover the device. Android: unpause control-plane only when a
+        // blocking TUN or a held live TUN is present. Skipping allow_networking does not deny
+        // other apps; without VpnService they already use the ISP.
+        #[cfg(target_os = "android")]
+        shared_state.allow_networking_if_android_covered().await;
+        #[cfg(target_os = "ios")]
         shared_state.allow_networking().await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
