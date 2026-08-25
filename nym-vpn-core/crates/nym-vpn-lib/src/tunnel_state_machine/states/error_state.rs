@@ -63,16 +63,10 @@ impl ErrorState {
             .await;
         }
 
+        // Android: cover if possible; publish TunnelProvider when uncovered so the UI does not
+        // show a blocked/account reason while traffic uses the ISP. iOS uses NE settings.
         #[cfg(target_os = "android")]
-        if let Err(err) = shared_state.ensure_android_blocking_tun() {
-            trace_err_chain!(err, "failed to install Android blocking TUN in error state");
-        }
-
-        // iOS: NE blocking settings cover the device. Android: unpause control-plane only when a
-        // blocking TUN or a held live TUN is present. Skipping allow_networking does not deny
-        // other apps; without VpnService they already use the ISP.
-        #[cfg(target_os = "android")]
-        shared_state.allow_networking_if_android_covered().await;
+        let reason = shared_state.apply_android_error_cover(reason).await;
         #[cfg(target_os = "ios")]
         shared_state.allow_networking().await;
 
