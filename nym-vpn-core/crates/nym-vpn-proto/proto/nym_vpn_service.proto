@@ -426,6 +426,7 @@ message BridgeParameters {
   oneof state {
     QuicClientOptions quic_plain = 1;
     TlsClientOptions tls_plain = 2;
+    SshClientOptions ssh_plain = 3;
   }
 }
 
@@ -440,6 +441,14 @@ message TlsClientOptions {
   repeated SocketAddr addresses = 1;
   optional string host = 2;
   string id_pubkey = 3;
+}
+
+message SshClientOptions {
+  repeated SocketAddr addresses = 1;
+  string id_pubkey = 2;
+  optional string username = 3;
+  string client_auth_key = 4;
+  optional string client_banner = 5;
 }
 
 message Performance {
