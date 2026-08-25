@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Search across favorites (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Fix for Geo Exclusion UI (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Fix Region selection for Entry Server (https://github.com/nymtech/nym-vpn-client/pull/5996)
+- Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6016)
 
 ## [v2026.11.3]
 
