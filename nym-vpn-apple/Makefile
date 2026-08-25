@@ -14,7 +14,16 @@ NYM_VPND_DEST_DIR := ${CURDIR}/NymVPND
 
 TARGETS := nym-vpnd nym-socks5-proxy nym-diagnostic nym-setup
 
-.PHONY: all build-mac build-ios build-universal build-mac-package build-ios-package
+INSTALL_APPLE := $(CURDIR)/../scripts/install-apple.sh
+INSTALL_APPLE_FLAGS :=
+ifeq ($(OPEN),1)
+INSTALL_APPLE_FLAGS += --open
+endif
+ifneq ($(UDID),)
+INSTALL_APPLE_FLAGS += --udid $(UDID)
+endif
+
+.PHONY: all build-mac build-ios build-universal build-mac-package build-ios-package install-macos install-ios
 
 all: build-universal
 
@@ -98,3 +107,10 @@ build-ios-package:
 	mkdir -p "$(NYM_VPN_LIB_IOS_DIR)"
 	cp -R "${NYM_VPN_LIB_SRC}" "${NYM_VPN_LIB_IOS_DEST}"
 	echo "Copied NymVPNLib → ${NYM_VPN_LIB_IOS_DEST}"
+
+# Device/Debug install (xcodebuild + helper/devicectl). UniFFI staging lives in the script.
+install-macos:
+	$(INSTALL_APPLE) --macos $(INSTALL_APPLE_FLAGS)
+
+install-ios:
+	$(INSTALL_APPLE) --ios $(INSTALL_APPLE_FLAGS)
