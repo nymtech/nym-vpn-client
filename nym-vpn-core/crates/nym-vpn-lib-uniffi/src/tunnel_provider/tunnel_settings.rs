@@ -235,7 +235,8 @@ pub struct TunnelNetworkSettings {
     /// Tunnel device MTU.
     pub mtu: u16,
 
-    /// When true on Android, exclude the VPN app from the tunnel (blocking placeholder).
+    /// Android-only; iOS PacketTunnel conversion ignores this (NE has no equivalent).
+    #[uniffi(default = false)]
     pub exclude_vpn_app: bool,
 }
 
@@ -430,5 +431,28 @@ impl TunnelNetworkSettings {
             IpNetwork::V4(address) => Either::Left(address),
             IpNetwork::V6(address) => Either::Right(address),
         })
+    }
+}
+
+#[cfg(all(test, any(target_os = "ios", target_os = "android")))]
+mod tests {
+    use std::net::{IpAddr, Ipv4Addr};
+
+    use super::*;
+
+    fn settings(exclude_vpn_app: bool) -> nym_vpn_lib::tunnel_provider::TunnelSettings {
+        nym_vpn_lib::tunnel_provider::TunnelSettings {
+            interface_addresses: vec![],
+            dns_servers: vec![IpAddr::V4(Ipv4Addr::LOCALHOST)],
+            remote_addresses: vec![],
+            mtu: 1280,
+            exclude_vpn_app,
+        }
+    }
+
+    #[test]
+    fn from_tunnel_settings_copies_exclude_vpn_app() {
+        assert!(TunnelNetworkSettings::from(settings(true)).exclude_vpn_app);
+        assert!(!TunnelNetworkSettings::from(settings(false)).exclude_vpn_app);
     }
 }

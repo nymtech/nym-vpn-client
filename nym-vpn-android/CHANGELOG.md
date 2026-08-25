@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix auto-connect getting stuck after boot (https://github.com/nymtech/nym-vpn-client/pull/5924)
 - Fix Search across favorites (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Fix for Geo Exclusion UI (https://github.com/nymtech/nym-vpn-client/pull/5958)
+- Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6016)
 
 ## [v2026.11.3]
 

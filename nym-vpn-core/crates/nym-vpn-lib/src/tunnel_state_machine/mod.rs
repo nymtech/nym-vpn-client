@@ -37,7 +37,9 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "android")]
-use crate::tunnel_state_machine::blocking_tun::{android_blocking_dns, blocking_tunnel_settings};
+use crate::tunnel_state_machine::blocking_tun::{
+    BLOCKING_INTERFACE_ADDRS, blocking_tunnel_settings,
+};
 
 use crate::adblocker;
 #[cfg(not(target_os = "android"))]
@@ -784,7 +786,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    /// Held FD for the Android blocking / placeholder VPN interface during Connecting / Error.
+    /// Held FD for the Android blocking / placeholder VPN interface during Connecting / Error / Offline.
     #[cfg(target_os = "android")]
     android_blocking_tun: Option<OwnedFd>,
     /// Previous live TUN kept when blocking install fails mid-reconnect (avoids ISP window).
@@ -835,7 +837,7 @@ impl SharedState {
     /// Establish (or replace) the Android blocking VPN interface and retain its FD.
     #[cfg(target_os = "android")]
     fn install_android_blocking_tun(&mut self) -> std::io::Result<()> {
-        let settings = blocking_tunnel_settings(android_blocking_dns());
+        let settings = blocking_tunnel_settings(BLOCKING_INTERFACE_ADDRS[0]);
         let raw_fd = self.tun_provider.configure_tunnel(settings)?;
         // Safety: configure_tunnel returns a freshly owned FD from VpnService.Builder.establish().
         let owned = unsafe { OwnedFd::from_raw_fd(raw_fd) };
@@ -845,7 +847,8 @@ impl SharedState {
         Ok(())
     }
 
-    /// Install blocking TUN when none is held yet.
+    /// Install blocking TUN when none is held yet. After a live TUN may have replaced the cover,
+    /// use `prepare_blocking_cover_before_release` so a stale FD cannot skip reinstall.
     #[cfg(target_os = "android")]
     fn ensure_android_blocking_tun(&mut self) -> std::io::Result<()> {
         if self.android_blocking_tun.is_some() {
@@ -868,18 +871,16 @@ impl SharedState {
         &mut self,
         mut tombstone: Option<tunnel::Tombstone>,
     ) -> std::io::Result<()> {
-        use crate::tunnel_state_machine::blocking_tun::with_blocking_before_tun_release;
-
-        let result = with_blocking_before_tun_release(
-            || self.install_android_blocking_tun(),
-            || {
+        match self.install_android_blocking_tun() {
+            Ok(()) => {
                 drop(tombstone.take());
-            },
-        );
-        if result.is_err() {
-            self.android_tun_hold = tombstone;
+                Ok(())
+            }
+            Err(err) => {
+                self.android_tun_hold = tombstone;
+                Err(err)
+            }
         }
-        result
     }
 
     #[cfg(target_os = "linux")]

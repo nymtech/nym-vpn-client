@@ -88,6 +88,7 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.disallow_networking().await;
 
+        // Reconnect also enters here with retry_attempt 0; skip would leak.
         #[cfg(target_os = "android")]
         if let Err(err) = shared_state.ensure_android_blocking_tun() {
             trace_err_chain!(err, "failed to install Android blocking TUN");
@@ -290,11 +291,23 @@ impl ConnectingState {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
 
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        let _ = shared_state; // Avoid unused variable warning
+        // Real TUN may have replaced the cover while still Connecting; a held stale FD would
+        // make ensure_android_blocking_tun a no-op after this drop.
+        #[cfg(target_os = "android")]
+        if let Err(err) = shared_state.prepare_blocking_cover_before_release(Some(tombstone)) {
+            trace_err_chain!(
+                err,
+                "failed to install Android blocking TUN before tunnel close"
+            );
+        }
 
-        // drop tombstone to close tunnel devices
-        let _ = tombstone;
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = tombstone;
+        }
+
+        #[cfg(target_os = "ios")]
+        let _ = shared_state;
     }
 
     async fn handle_reconnect_delay(
