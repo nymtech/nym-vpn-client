@@ -858,12 +858,21 @@ impl SharedState {
         self.install_android_blocking_tun()
     }
 
-    /// Unpause control-plane only when a blocking placeholder or a held live TUN still covers apps.
+    /// Install cover if needed, unpause control-plane only when covered, and publish
+    /// `TunnelProvider` when the device has no blocking TUN and no held live TUN.
     #[cfg(target_os = "android")]
-    async fn allow_networking_if_android_covered(&self) {
-        if self.android_blocking_tun.is_some() || self.android_tun_hold.is_some() {
+    async fn apply_android_error_cover(&mut self, requested: ErrorStateReason) -> ErrorStateReason {
+        if let Err(err) = self.ensure_android_blocking_tun() {
+            nym_common::trace_err_chain!(
+                err,
+                "failed to install Android blocking TUN in error state"
+            );
+        }
+        let covered = self.android_blocking_tun.is_some() || self.android_tun_hold.is_some();
+        if covered {
             self.allow_networking().await;
         }
+        blocking_tun::android_error_reason_if_uncovered(requested, covered)
     }
 
     /// Drop blocking TUN and any retained previous TUN (intentional Disconnect / real tunnel up).

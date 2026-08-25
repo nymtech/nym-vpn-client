@@ -29,6 +29,20 @@ pub fn blocking_tunnel_settings(dns_server: IpAddr) -> TunnelSettings {
     }
 }
 
+/// When the device has no blocking TUN and no held live TUN, publish `TunnelProvider` so the UI
+/// does not show a "blocked" reason (bandwidth, account, …) while traffic uses the ISP.
+#[cfg(any(test, target_os = "android"))]
+pub(crate) fn android_error_reason_if_uncovered(
+    requested: nym_vpn_lib_types::ErrorStateReason,
+    covered: bool,
+) -> nym_vpn_lib_types::ErrorStateReason {
+    if covered {
+        requested
+    } else {
+        nym_vpn_lib_types::ErrorStateReason::TunnelProvider
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,6 +59,24 @@ mod tests {
         assert_eq!(
             settings.interface_addresses,
             BLOCKING_INTERFACE_ADDRS.map(IpNetwork::from).to_vec()
+        );
+    }
+
+    #[test]
+    fn android_error_reason_if_uncovered_overrides_blocked_reasons() {
+        use nym_vpn_lib_types::ErrorStateReason;
+
+        assert_eq!(
+            android_error_reason_if_uncovered(ErrorStateReason::BandwidthExceeded, false),
+            ErrorStateReason::TunnelProvider
+        );
+        assert_eq!(
+            android_error_reason_if_uncovered(ErrorStateReason::BandwidthExceeded, true),
+            ErrorStateReason::BandwidthExceeded
+        );
+        assert_eq!(
+            android_error_reason_if_uncovered(ErrorStateReason::TunnelProvider, false),
+            ErrorStateReason::TunnelProvider
         );
     }
 }
