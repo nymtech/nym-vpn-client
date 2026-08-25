@@ -28,21 +28,13 @@ struct ProcessingAccountView: View {
         .frame(maxWidth: .infinity)
         .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
         .onAppear {
-            if scenePhase == .active {
-                viewModel.noteCarouselResumed()
-            } else {
-                viewModel.noteCarouselInterrupted()
-            }
+            applyCarouselScenePhase(scenePhase)
         }
         .onDisappear {
             viewModel.noteCarouselInterrupted()
         }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                viewModel.noteCarouselResumed()
-            } else {
-                viewModel.noteCarouselInterrupted()
-            }
+            applyCarouselScenePhase(newPhase)
         }
     }
 }
@@ -118,6 +110,17 @@ private extension ProcessingAccountView {
         .hidden()
         .accessibilityHidden(true)
         .allowsHitTesting(false)
+    }
+
+    func applyCarouselScenePhase(_ phase: ScenePhase) {
+        switch ProcessingAccountView.carouselSceneAction(for: phase) {
+        case .resume:
+            viewModel.noteCarouselResumed()
+        case .interrupt:
+            viewModel.noteCarouselInterrupted()
+        case .ignore:
+            break
+        }
     }
 
     func titlePairMeasurement(title: String, subtitle: String) -> some View {
@@ -252,6 +255,12 @@ private extension ProcessingAccountView {
     }
 }
 
+enum ProcessingAccountCarouselSceneAction: Equatable {
+    case resume
+    case interrupt
+    case ignore
+}
+
 enum ProcessingAccountTitleBlockMode: Equatable {
     case staticCopy
     case welcome
@@ -260,6 +269,19 @@ enum ProcessingAccountTitleBlockMode: Equatable {
 }
 
 extension ProcessingAccountView {
+    static func carouselSceneAction(for phase: ScenePhase) -> ProcessingAccountCarouselSceneAction {
+        switch phase {
+        case .active:
+            return .resume
+        case .background:
+            return .interrupt
+        case .inactive:
+            return .ignore
+        @unknown default:
+            return .ignore
+        }
+    }
+
     static func titleBlockMode(
         usesStaticCopy: Bool,
         didShowFinalMessage: Bool,
