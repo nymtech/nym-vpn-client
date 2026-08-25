@@ -88,6 +88,12 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.disallow_networking().await;
 
+        #[cfg(target_os = "android")]
+        if let Err(err) = shared_state.ensure_android_blocking_tun() {
+            trace_err_chain!(err, "failed to install Android blocking TUN");
+            return ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state).await;
+        }
+
         // Always allow networking on mobile since there is no configurable firewall
         #[cfg(any(target_os = "android", target_os = "ios"))]
         shared_state.allow_networking().await;
@@ -275,7 +281,7 @@ impl ConnectingState {
         )
     }
 
-    pub(super) async fn handle_tunnel_close(tombstone: Tombstone, shared_state: &mut SharedState) {
+    async fn handle_tunnel_close(tombstone: Tombstone, shared_state: &mut SharedState) {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
@@ -740,28 +746,6 @@ impl TunnelStateHandler for ConnectingState {
                         } else {
                             if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
                                 let tombstone = tunnel_monitor_handle.wait().await;
-                                #[cfg(target_os = "android")]
-                                {
-                                    // Install blocking cover before releasing the live TUN (same
-                                    // ordering as Disconnecting(Reconnect)).
-                                    if let Err(err) = shared_state
-                                        .prepare_blocking_cover_before_release(Some(tombstone))
-                                    {
-                                        tracing::error!(
-                                            "Failed to install Android blocking TUN before Connecting reconnect: {err}"
-                                        );
-                                        return NextTunnelState::NewState(
-                                            ErrorState::enter(
-                                                ErrorStateReason::TunnelProvider,
-                                                shared_state,
-                                            )
-                                            .await,
-                                        );
-                                    }
-                                    Self::handle_tunnel_close(Tombstone::default(), shared_state)
-                                        .await;
-                                }
-                                #[cfg(not(target_os = "android"))]
                                 Self::handle_tunnel_close(tombstone, shared_state).await;
                             }
 
