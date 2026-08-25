@@ -4,7 +4,7 @@ import AccountPrefetchGates
 @testable import Home
 
 @MainActor
-private final class FakeProcessing: AccountProcessing {
+final class FakeProcessing: AccountProcessing {
     enum Call: Equatable, Sendable {
         case ensure
         case prepare
@@ -102,7 +102,7 @@ private final class FakeProcessing: AccountProcessing {
 }
 
 @MainActor
-private final class FakeCoordinator: AppSessionCoordinating {
+final class FakeCoordinator: AppSessionCoordinating {
     private(set) var actions: [CoordinatorAction] = []
 
     func handle(_ action: CoordinatorAction) {
@@ -111,7 +111,7 @@ private final class FakeCoordinator: AppSessionCoordinating {
 }
 
 @MainActor
-private func makeViewModel(
+func makeViewModel(
     flow: ProcessingFlow,
     processing: FakeProcessing,
     coordinator: FakeCoordinator,
@@ -128,7 +128,7 @@ private func makeViewModel(
 }
 
 @MainActor
-private func finishSetupCarousel(_ viewModel: ProcessingAccountViewModel) async {
+func finishSetupCarousel(_ viewModel: ProcessingAccountViewModel) async {
     viewModel.animationDidFinish()
     await viewModel.awaitFinalMessage()
 }
