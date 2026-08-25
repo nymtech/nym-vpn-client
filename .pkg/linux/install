@@ -74,17 +74,17 @@ esac
 
 ## STABLE BUILDS #################################################
 # app artifacts
-app_tag=nym-vpn-v2026.12.1
-app_version=2026.12.1
+app_tag=nym-vpn-v2026.12.2
+app_version=2026.12.2
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_${app_image_arch}.AppImage"
 app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_${deb_arch}.deb"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/ac4153bb1/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
 # nym-vpnd artifacts
-vpnd_tag=nym-vpn-v2026.12.1
+vpnd_tag=nym-vpn-v2026.12.2
 # ⚠ there are inconsistencies in the package version naming…
-vpnd_version=2026.12.1
+vpnd_version=2026.12.2
 vpnd_deb_ver=$vpnd_version
 vpnd_deb_ver_url=$vpnd_version
 vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
