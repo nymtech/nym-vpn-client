@@ -13,8 +13,6 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::Result;
-#[cfg(target_os = "android")]
-use crate::tunnel_state_machine::tunnel::Tombstone;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -34,7 +32,6 @@ use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
-#[cfg(target_os = "android")]
 use super::ErrorState;
 
 pub struct ConnectedState {
@@ -286,43 +283,12 @@ impl ConnectedState {
         Self::prepare_for_disconnect(shared_state).await;
 
         match error_state_reason {
-            // Ordered cover via Disconnecting (same as Connecting Down → Error).
-            Some(block_reason) => NextTunnelState::NewState(
-                DisconnectingState::enter(
-                    PrivateActionAfterDisconnect::Error(block_reason),
-                    Some(self.tunnel_monitor_handle),
-                    shared_state,
-                )
-                .await,
-            ),
-            None => {
-                // Preserve selected gateways (Disconnecting(Reconnect) would clear them).
-                // Install Android blocking cover before releasing the TUN, then re-enter Connecting.
-                self.tunnel_monitor_handle.cancel();
-                let tombstone = self.tunnel_monitor_handle.wait().await;
-
-                #[cfg(target_os = "android")]
-                {
-                    if let Err(err) =
-                        shared_state.prepare_blocking_cover_before_release(Some(tombstone))
-                    {
-                        tracing::error!(
-                            "Failed to install Android blocking TUN before Connected reconnect: {err}"
-                        );
-                        return NextTunnelState::NewState(
-                            ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state).await,
-                        );
-                    }
-                    // Cover already released the live TUN; still clear socks5 / side-effects.
-                    ConnectingState::handle_tunnel_close(Tombstone::default(), shared_state).await;
-                }
-                #[cfg(not(target_os = "android"))]
-                ConnectingState::handle_tunnel_close(tombstone, shared_state).await;
-
-                NextTunnelState::NewState(
-                    ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
-                )
+            Some(block_reason) => {
+                NextTunnelState::NewState(ErrorState::enter(block_reason, shared_state).await)
             }
+            None => NextTunnelState::NewState(
+                ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
+            ),
         }
     }
 
