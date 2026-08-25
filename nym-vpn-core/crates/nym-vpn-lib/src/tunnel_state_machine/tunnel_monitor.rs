@@ -24,6 +24,7 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
+use nym_bridges::types::TransportAssociation;
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -1381,49 +1382,59 @@ impl TunnelMonitor {
                 "attempted to open transport connection without bridge params",
             ))?;
 
+        let transport_name = entry_bridge_params.transport_name();
         // Attempt transport Connection. If successful a listening UDP connection is created
         // and the bind address of that UDP listener is provided to the entry wireguard tunnel
         // as the endpoint address.
-        tracing::info!("Establishing DVPN QUIC transport tunnel");
+        tracing::info!("Establishing DVPN {transport_name} tunnel",);
 
         #[cfg(target_os = "linux")]
         let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
         #[cfg(any(target_os = "linux", target_os = "android"))]
-        let on_quic_socket_open = move |fd| {
+        let on_bridge_socket_open = move |fd| {
             #[cfg(target_os = "android")]
             {
-                tracing::debug!("Bypass quic socket");
+                tracing::debug!("Bypass {transport_name}  socket");
                 tun_provider.bypass(fd);
             }
 
             #[cfg(target_os = "linux")]
             {
-                tracing::debug!("Bypass quic socket");
+                tracing::debug!("Bypass {transport_name}  socket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(fd) };
                 if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
-                    tracing::error!("Could not set fwmark for quic socket fd: {err}");
+                    tracing::error!("Could not set fwmark for {transport_name} socket fd: {err}");
                 }
             }
         };
+        let entry_bridge_params = transports::filter_bridge_params_ipv4_only(entry_bridge_params);
         let bridge_conn = transports::BridgeConn::try_connect(
             entry_bridge_params,
             self.shutdown_token.child_token(),
             #[cfg(any(target_os = "linux", target_os = "android"))]
-            on_quic_socket_open,
+            on_bridge_socket_open,
+            Some(transports::BRIDGE_CONNECT_TIMEOUT),
         )
         .await?;
+
+        tracing::info!(
+            "{} transport connected",
+            bridge_conn.params().transport_name()
+        );
+
         let remote_addr = bridge_conn.endpoint();
         let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
             bridge_conn,
             None,
             Some(bridge_close_tx),
             self.shutdown_token.child_token(),
+            Some(transports::INITIAL_FWD_CONNECTION_TIMEOUT),
         )
         .await?;
 
-        tracing::info!("quic transport connected, udp forwarder open on {listen_addr}");
+        tracing::info!("bridge udp forwarder open on {listen_addr}",);
 
         let bridge_addr = BridgeAddress {
             listen_addr,

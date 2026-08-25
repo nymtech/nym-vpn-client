@@ -568,6 +568,7 @@ impl From<BridgeParameters> for proto::BridgeParameters {
                     proto::TlsClientOptions::from(options),
                 )),
             },
+            BridgeParameters::SshPlain(_options) => todo!(),
         }
     }
 }
