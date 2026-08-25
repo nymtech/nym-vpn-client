@@ -60,7 +60,7 @@ pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
     );
     if a == b {
         // US gateways are distinguished per-region rather than per-country.
-        return if a == "US" { x.region == y.region } else { true };
+        return a != "US" || x.region == y.region;
     }
     same_jurisdiction_group(a, b)
 }
