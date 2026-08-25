@@ -12,8 +12,8 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, GatewayType,
     LewesProtocolDetails, LewesProtocolDetailsData, ListGatewaysOptions, LogPath,
-    NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions, StoreAccountRequest,
-    SystemMessage, TlsClientOptions, UserAgent, VpnServiceInfo,
+    NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions, SshClientOptions,
+    StoreAccountRequest, SystemMessage, TlsClientOptions, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -555,6 +555,41 @@ impl TryFrom<proto::TlsClientOptions> for TlsClientOptions {
     }
 }
 
+impl From<SshClientOptions> for proto::SshClientOptions {
+    fn from(value: SshClientOptions) -> Self {
+        Self {
+            addresses: value
+                .addresses
+                .into_iter()
+                .map(proto::SocketAddr::from)
+                .collect(),
+            id_pubkey: value.id_pubkey,
+            username: value.username,
+            client_auth_key: value.client_auth_key,
+            client_banner: value.client_banner,
+        }
+    }
+}
+
+impl TryFrom<proto::SshClientOptions> for SshClientOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::SshClientOptions) -> Result<Self, Self::Error> {
+        let addresses = value
+            .addresses
+            .into_iter()
+            .map(SocketAddr::try_from)
+            .collect::<Result<Vec<SocketAddr>, ConversionError>>()?;
+        Ok(Self {
+            addresses,
+            id_pubkey: value.id_pubkey,
+            username: value.username,
+            client_auth_key: value.client_auth_key,
+            client_banner: value.client_banner,
+        })
+    }
+}
+
 impl From<BridgeParameters> for proto::BridgeParameters {
     fn from(value: BridgeParameters) -> Self {
         match value {
@@ -568,7 +603,11 @@ impl From<BridgeParameters> for proto::BridgeParameters {
                     proto::TlsClientOptions::from(options),
                 )),
             },
-            BridgeParameters::SshPlain(_options) => todo!(),
+            BridgeParameters::SshPlain(options) => proto::BridgeParameters {
+                state: Some(proto::bridge_parameters::State::SshPlain(
+                    proto::SshClientOptions::from(options),
+                )),
+            },
         }
     }
 }
@@ -586,6 +625,9 @@ impl TryFrom<proto::BridgeParameters> for BridgeParameters {
             }
             proto::bridge_parameters::State::TlsPlain(options) => {
                 BridgeParameters::TlsPlain(TlsClientOptions::try_from(options)?)
+            }
+            proto::bridge_parameters::State::SshPlain(options) => {
+                BridgeParameters::SshPlain(SshClientOptions::try_from(options)?)
             }
         })
     }

@@ -614,7 +614,8 @@ pub struct RecentGateways {
 
 pub use nym_bridges_types::{
     ClientConfig as BridgeParameters, PersistedClientConfig as BridgeInformation,
-    quic::ClientOptions as QuicClientOptions, tls::ClientOptions as TlsClientOptions,
+    quic::ClientOptions as QuicClientOptions, ssh::ClientOptions as SshClientOptions,
+    tls::ClientOptions as TlsClientOptions,
 };
 
 #[derive(Debug, Clone)]
