@@ -15,8 +15,7 @@ use tokio_util::sync::CancellationToken;
     target_os = "linux",
     target_os = "macos",
     target_os = "windows",
-    target_os = "ios",
-    target_os = "android"
+    target_os = "ios"
 ))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
