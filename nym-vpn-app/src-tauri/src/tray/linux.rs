@@ -35,7 +35,7 @@ fn decode_argb(bytes: &[u8]) -> ksni::Icon {
     let height = img.height() as i32;
     let mut data = img.into_rgba8().into_vec();
     // ksni expects ARGB; image gives RGBA.
-    for px in data.chunks_exact_mut(4) {
+    for px in data.as_chunks_mut::<4>().0 {
         px.rotate_right(1);
     }
     ksni::Icon {
