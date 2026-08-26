@@ -177,6 +177,7 @@ impl MixnetClientRegistration {
         builder.build().map_err(Box::new)
     }
 
+    #[allow(clippy::result_large_err)]
     async fn wireguard_registration(
         mixnet_client: MixnetClient,
         wg_registration_config: &WgRegistrationConfig,

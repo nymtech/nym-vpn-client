@@ -2495,7 +2495,7 @@ impl NymVpnService {
             let res = recents_manager
                 .get_recent(tunnel_type)
                 .await
-                .map_err(ListGatewaysError::GetRecentGateways);
+                .map_err(|error| ListGatewaysError::GetRecentGateways(Box::new(error)));
             let _ = tx.send(res);
         });
     }
