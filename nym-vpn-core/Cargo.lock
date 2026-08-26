@@ -6099,6 +6099,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-conflict"
+version = "2026.13.0-beta.1"
+dependencies = [
+ "ipnetwork",
+ "mnl",
+ "nym-routing",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "nym-connection-monitor"
 version = "2026.13.0-beta.1"
 dependencies = [
@@ -7970,6 +7981,7 @@ dependencies = [
  "nym-client-core",
  "nym-common 2026.13.0-beta.1",
  "nym-config",
+ "nym-conflict",
  "nym-connection-monitor",
  "nym-credentials-interface",
  "nym-crypto",

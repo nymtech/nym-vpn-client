@@ -189,6 +189,25 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_conflict_detection(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_conflict_detection = request.into_inner();
+
+        let _ = self
+            .send_and_wait(
+                VpnServiceCommand::SetEnableConflictDetection,
+                enable_conflict_detection,
+            )
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set conflict-detection config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_fronting_mode(
         &self,
         request: tonic::Request<proto::FrontingModeRequest>,
