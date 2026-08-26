@@ -6,6 +6,7 @@ members = [
     "crates/nym-connection-monitor",
     "crates/nym-cgroup",
     "crates/nym-dbus",
+    "crates/nym-conflict",
     "crates/nym-diagnostic",
     "crates/nym-dns",
     "crates/nym-exclude",
@@ -250,6 +251,7 @@ nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }
 nym-dbus = { path = "crates/nym-dbus" }
+nym-conflict = { path = "crates/nym-conflict" }
 nym-dns = { path = "crates/nym-dns" }
 nym-favorites = { path = "crates/nym-favorites" }
 nym-firewall = { path = "crates/nym-firewall" }

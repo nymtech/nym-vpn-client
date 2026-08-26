@@ -74,7 +74,7 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConflictDetected, ConnectionData,
     DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
     GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
@@ -157,6 +157,10 @@ pub struct TunnelSettings {
 
     /// Enable Ad blocking
     pub enable_ad_blocking: bool,
+
+    /// Detect other software on the system that may conflict with NymVPN's
+    /// own network filtering (e.g. AdGuard's DNS protection).
+    pub enable_conflict_detection: bool,
 
     /// Select residential exit gateways only.
     pub residential_exit: bool,
@@ -350,6 +354,9 @@ impl TunnelSettings {
         if self.enable_ad_blocking != other.enable_ad_blocking {
             diff.add(TunnelSettingsDiffFields::EnableAdBlocking);
         }
+        if self.enable_conflict_detection != other.enable_conflict_detection {
+            diff.add(TunnelSettingsDiffFields::EnableConflictDetection);
+        }
         if self.residential_exit != other.residential_exit {
             diff.add(TunnelSettingsDiffFields::ResidentialExit);
         }
@@ -424,6 +431,7 @@ pub enum TunnelSettingsDiffFields {
     TunnelType,
     AllowLan,
     EnableAdBlocking,
+    EnableConflictDetection,
     ResidentialExit,
     MixnetTunnelOptions,
     WireguardTunnelOptions,
@@ -461,6 +469,7 @@ impl TunnelSettingsDiffFields {
                 cfg!(target_os = "android")
             }
             Self::AllowLan
+            | Self::EnableConflictDetection
             | Self::SplitTunnel
             | Self::GeoExclusion
             | Self::GeoExclusionEnabled
@@ -497,6 +506,10 @@ impl TunnelSettingsDiff {
 
     pub fn enable_ad_blocking_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
+    }
+
+    pub fn enable_conflict_detection_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EnableConflictDetection)
     }
 
     pub fn entry_point_changed(&self) -> bool {
@@ -1141,12 +1154,74 @@ impl DiagnosticsSuggestionTracker {
     }
 }
 
+/// [`Self::poll`] must be called on every iteration of the state machine
+/// loop, not just on state transitions.
+#[derive(Default)]
+struct ConflictTracker {
+    checked_dns: bool,
+    pending_scan_cancellation: Option<CancellationToken>,
+}
+
+impl ConflictTracker {
+    fn poll(&mut self, state: &TunnelState, enabled: bool) -> Vec<nym_conflict::ConflictCheck> {
+        if !enabled {
+            self.checked_dns = false;
+            self.cancel_pending_scan();
+        }
+        match state {
+            TunnelState::Connecting {
+                retry_attempt: 0,
+                state: EstablishConnectionState::ResolvingApiAddresses,
+                ..
+            } => {
+                self.checked_dns = false;
+                self.cancel_pending_scan();
+                if enabled {
+                    vec![
+                        nym_conflict::ConflictCheck::CompetingVpn,
+                        nym_conflict::ConflictCheck::CompetingFirewall,
+                    ]
+                } else {
+                    Vec::new()
+                }
+            }
+            TunnelState::Connected { .. } if enabled && !self.checked_dns => {
+                self.checked_dns = true;
+                vec![nym_conflict::ConflictCheck::InterceptedDns]
+            }
+            TunnelState::Disconnected => {
+                self.checked_dns = false;
+                self.cancel_pending_scan();
+                Vec::new()
+            }
+            _ => Vec::new(),
+        }
+    }
+
+    fn set_pending_scan(&mut self, token: CancellationToken) {
+        self.cancel_pending_scan();
+        self.pending_scan_cancellation = Some(token);
+    }
+
+    fn cancel_pending_scan(&mut self) {
+        if let Some(token) = self.pending_scan_cancellation.take() {
+            token.cancel();
+        }
+    }
+}
+
 pub struct TunnelStateMachine {
     current_state_handler: Box<dyn TunnelStateHandler>,
+    /// Mirrors the tunnel state most recently reported to `event_sender`.
+    /// Kept up to date across `SameState` iterations too, so
+    /// `conflict_tracker.poll` has a state to check against even on
+    /// iterations that didn't themselves produce a new one.
+    current_state: TunnelState,
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
     diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker,
+    conflict_tracker: ConflictTracker,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(target_os = "android"))]
@@ -1277,7 +1352,7 @@ impl TunnelStateMachine {
             shared_state.start_socks5_proxy().await;
         }
 
-        let (current_state_handler, _) = if shared_state
+        let (current_state_handler, initial_tunnel_state) = if shared_state
             .connectivity_handle
             .connectivity()
             .await
@@ -1290,10 +1365,12 @@ impl TunnelStateMachine {
 
         let tunnel_state_machine = Self {
             current_state_handler,
+            current_state: TunnelState::from(initial_tunnel_state),
             shared_state,
             command_receiver,
             event_sender,
             diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker::default(),
+            conflict_tracker: ConflictTracker::default(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(target_os = "android"))]
@@ -1328,6 +1405,7 @@ impl TunnelStateMachine {
                         .report_tunnel_state(state.clone());
                     let diagnostics_suggestion =
                         self.diagnostics_suggestion_tracker.observe(&state);
+                    self.current_state = state.clone();
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
                     if let Some(reason) = diagnostics_suggestion {
                         tracing::info!("Suggesting diagnostics: {reason}");
@@ -1340,6 +1418,43 @@ impl TunnelStateMachine {
                     self.current_state_handler = same_state;
                 }
                 NextTunnelState::Finished => break,
+            }
+
+            let checks = self.conflict_tracker.poll(
+                &self.current_state,
+                self.shared_state.tunnel_settings.enable_conflict_detection,
+            );
+            if !checks.is_empty() {
+                let scan_cancellation = CancellationToken::new();
+                self.conflict_tracker
+                    .set_pending_scan(scan_cancellation.clone());
+                for check in checks {
+                    let event_sender = self.event_sender.clone();
+                    let shutdown_token = self.shutdown_token.clone();
+                    let scan_cancellation = scan_cancellation.clone();
+                    tokio::spawn(async move {
+                        let conflicts = tokio::select! {
+                            conflicts = nym_conflict::detect(check) => conflicts,
+                            _ = shutdown_token.cancelled() => return,
+                            _ = scan_cancellation.cancelled() => return,
+                        };
+                        for conflict in conflicts {
+                            let conflict = match conflict {
+                                nym_conflict::Conflict::InterceptedDns => {
+                                    ConflictDetected::InterceptedDns
+                                }
+                                nym_conflict::Conflict::CompetingVpn => {
+                                    ConflictDetected::CompetingVpn
+                                }
+                                nym_conflict::Conflict::CompetingFirewall => {
+                                    ConflictDetected::CompetingFirewall
+                                }
+                            };
+                            tracing::info!("{conflict}");
+                            let _ = event_sender.send(TunnelEvent::ConflictDetected(conflict));
+                        }
+                    });
+                }
             }
         }
 
@@ -1591,10 +1706,10 @@ impl tunnel::Error {
             }
             Self::BandwidthController(BandwidthControllerError::TicketbookFetchFailed { .. }) => {
                 Some(ErrorStateReason::CredentialFetchingFailed)
-            },
+            }
             Self::BandwidthController(BandwidthControllerError::TicketbooksUnavailable) => {
                 Some(ErrorStateReason::NoCredentialAvailable)
-            },
+            }
 
             Self::RegistrationClient(e) => match *e {
                 nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),

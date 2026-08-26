@@ -896,6 +896,118 @@ impl NetworkInterface {
     fn is_loopback(&self) -> bool {
         self.link_layer_type == LinkLayerType::Loopback
     }
+
+    /// Best-effort classification of virtual/tunnel interfaces. Interface
+    /// naming isn't guaranteed (a user or tool can name a device anything),
+    /// but these prefixes cover the overwhelming majority of VPN clients on
+    /// Linux (WireGuard, OpenVPN/TAP, PPP-based clients, NetworkManager's
+    /// generic tun devices).
+    fn is_tunnel_like(&self) -> bool {
+        const TUNNEL_PREFIXES: &[&str] = &["wg", "tun", "tap", "ppp"];
+        TUNNEL_PREFIXES
+            .iter()
+            .any(|prefix| self.name.starts_with(prefix))
+    }
+}
+
+/// Get every interface currently holding a default-route-shaped entry in the
+/// main routing table, for the given address family. See
+/// [`crate::DefaultRouteInterfaces`].
+///
+/// Opens its own short-lived netlink connection rather than reusing a
+/// running [`RouteManagerImpl`], since this is meant to be a cheap,
+/// standalone, read-only query.
+pub(crate) async fn get_default_route_interfaces(
+    family: crate::AddressFamily,
+) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
+    let (connection, mut handle, _) = rtnetlink::new_connection().map_err(Error::Connect)?;
+    tokio::spawn(connection);
+
+    let iface_map = RouteManagerImpl::initialize_link_map(&handle).await?;
+
+    let rt_family = match family {
+        crate::AddressFamily::Ipv4 => AddressFamily::Inet,
+        crate::AddressFamily::Ipv6 => AddressFamily::Inet6,
+    };
+
+    let mut route_message = RouteMessage::default();
+    route_message.header.address_family = rt_family;
+
+    let mut req = NetlinkMessage::from(RouteNetlinkMessage::GetRoute(route_message));
+    req.header.flags = NLM_F_REQUEST | NLM_F_DUMP;
+
+    let mut response = handle.request(req).map_err(Error::Netlink)?;
+
+    let mut result = crate::DefaultRouteInterfaces::default();
+
+    while let Some(message) = response.next().await {
+        match message.payload {
+            NetlinkPayload::InnerMessage(RouteNetlinkMessage::NewRoute(route)) => {
+                if !is_default_route_prefix(&route) || !route_in_main_table(&route) {
+                    continue;
+                }
+
+                let mut oif = None;
+                for attribute in &route.attributes {
+                    if let RouteAttribute::Oif(idx) = attribute {
+                        oif = Some(*idx);
+                    }
+                }
+
+                let Some(oif) = oif else {
+                    continue;
+                };
+
+                let is_virtual = iface_map
+                    .get(&oif)
+                    .map(NetworkInterface::is_tunnel_like)
+                    .unwrap_or(false);
+
+                if is_virtual {
+                    result.virtual_.insert(oif);
+                } else {
+                    result.physical.insert(oif);
+                }
+            }
+            NetlinkPayload::Error(error) => {
+                return Err(Error::Netlink(rtnetlink::Error::NetlinkError(error)).into());
+            }
+            _ => {}
+        }
+    }
+
+    Ok(result)
+}
+
+/// Whether `route` is a default route, or one of the two `/1` halves some
+/// VPN clients install instead of replacing `0.0.0.0/0` directly.
+fn is_default_route_prefix(route: &RouteMessage) -> bool {
+    match route.header.destination_prefix_length {
+        0 => true,
+        1 if route.header.address_family == AddressFamily::Inet => {
+            route.attributes.iter().any(|attribute| match attribute {
+                RouteAttribute::Destination(addr) => matches!(
+                    route_address_to_ip(addr.clone()),
+                    Ok(IpAddr::V4(addr))
+                        if addr == Ipv4Addr::new(0, 0, 0, 0) || addr == Ipv4Addr::new(128, 0, 0, 0)
+                ),
+                _ => false,
+            })
+        }
+        _ => false,
+    }
+}
+
+/// Whether `route` belongs to the main routing table (as opposed to e.g. a
+/// separate policy-routing table NymVPN's own split-tunneling uses).
+fn route_in_main_table(route: &RouteMessage) -> bool {
+    let mut table_id = u32::from(route.header.table);
+    for attribute in &route.attributes {
+        if let RouteAttribute::Table(id) = attribute {
+            table_id = *id;
+        }
+    }
+    table_id == u32::from(RouteHeader::RT_TABLE_MAIN)
 }
 
 #[cfg(test)]
