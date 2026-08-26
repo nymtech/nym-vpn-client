@@ -189,10 +189,39 @@ jobs:
       signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
+  # Sparkle appcast feed. macos-updater.yml downloads NymVPN-*.pkg off the release, so a
+  # ship that did not build macOS has nothing for it to do -- probe first rather than
+  # letting `gh release download` fail the job with "no assets match the file pattern".
+  # Same shape as win-sigs above.
+  mac-pkg:
+    needs: setup
+    runs-on: arc-linux-latest
+    outputs:
+      enabled: ${{ steps.pkg.outputs.enabled }}
+    steps:
+      - name: Check for a macOS pkg on the release
+        id: pkg
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.setup.outputs.tag }}
+        run: |
+          set -euo pipefail
+          pkg=$(gh release view "$TAG" --json assets \
+            -q '.assets[].name | select(startswith("NymVPN-") and endswith(".pkg"))' | head -n1)
+          if [ -z "$pkg" ]; then
+            echo "::notice:: no macOS pkg on ${TAG} — skipping Sparkle appcast"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice:: found ${pkg} — will update Sparkle appcast"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
   macos-updater:
-    needs: [setup, win-sigs]
-    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    needs: [setup, mac-pkg]
+    if: ${{ needs.mac-pkg.outputs.enabled == 'true' }}
     uses: ./.github/workflows/macos-updater.yml
+    secrets: inherit
     permissions:
       contents: write
       pull-requests: write
