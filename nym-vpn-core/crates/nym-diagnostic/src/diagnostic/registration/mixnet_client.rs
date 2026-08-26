@@ -180,7 +180,7 @@ impl MixnetClientRegistration {
     async fn wireguard_registration(
         mixnet_client: MixnetClient,
         wg_registration_config: &WgRegistrationConfig,
-    ) -> Result<WireguardConfiguration, RegistrationError> {
+    ) -> Result<WireguardConfiguration, Box<RegistrationError>> {
         let address = *mixnet_client.nym_address();
 
         let mixnet_listener =
@@ -207,7 +207,7 @@ impl MixnetClientRegistration {
         // Stopping mixnet client
         mixnet_listener.stop().await;
 
-        auth_res
+        auth_res.map_err(Box::new)
     }
 
     async fn mixnet_ipr_connect(
