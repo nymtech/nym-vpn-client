@@ -78,5 +78,11 @@ mod tests {
             android_error_reason_if_uncovered(ErrorStateReason::TunnelProvider, false),
             ErrorStateReason::TunnelProvider
         );
+        // Connecting unexpected-Down and Disconnecting Reconnect must publish this, not
+        // reconnect() / ConnectionAttemptsExceeded, when cover install failed.
+        assert_eq!(
+            android_error_reason_if_uncovered(ErrorStateReason::ConnectionAttemptsExceeded, false),
+            ErrorStateReason::TunnelProvider
+        );
     }
 }
