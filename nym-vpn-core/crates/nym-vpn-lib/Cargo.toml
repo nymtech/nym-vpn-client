@@ -60,6 +60,7 @@ nym-wireguard-types.workspace = true
 nym-apple-network.workspace = true
 nym-authenticator-client.workspace = true
 nym-common.workspace = true
+nym-conflict.workspace = true
 nym-diagnostic.workspace = true
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-connection-monitor.workspace = true

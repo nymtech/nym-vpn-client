@@ -4,7 +4,10 @@
 
 use super::{Error, Result};
 use nym_windows::net::{AddressFamily, get_ip_interface_entry, try_socketaddr_from_inet_sockaddr};
-use std::{net::SocketAddr, slice};
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    slice,
+};
 use widestring::{WideCStr, widecstr};
 use windows::Win32::{
     NetworkManagement::{
@@ -18,10 +21,12 @@ use windows::Win32::{
 };
 
 // Interface description substrings found for virtual adapters.
-const TUNNEL_INTERFACE_DESCS: [&WideCStr; 3] = [
+const TUNNEL_INTERFACE_DESCS: [&WideCStr; 5] = [
     widecstr!("WireGuard"),
     widecstr!("Wintun"),
     widecstr!("Tunnel"),
+    widecstr!("TAP"),
+    widecstr!("OpenVPN"),
 ];
 
 fn get_ip_forward_table(family: AddressFamily) -> Result<Vec<MIB_IPFORWARD_ROW2>> {
@@ -99,6 +104,62 @@ pub fn get_best_default_route(family: AddressFamily) -> Result<Option<InterfaceA
             })
         })
         .transpose()
+}
+
+/// Get every interface currently holding a default-route-shaped entry, for
+/// the given address family. See [`crate::DefaultRouteInterfaces`].
+pub async fn get_default_route_interfaces(
+    family: crate::AddressFamily,
+) -> Result<crate::DefaultRouteInterfaces> {
+    // The underlying FFI calls are blocking; run them off the async runtime's
+    // worker threads to present a uniform async signature across platforms.
+    tokio::task::spawn_blocking(move || get_default_route_interfaces_blocking(family))
+        .await
+        .unwrap_or_else(|_| {
+            Err(Error::GetIpForwardTableFailed(windows::core::Error::from(
+                windows::Win32::Foundation::E_FAIL,
+            )))
+        })
+}
+
+fn get_default_route_interfaces_blocking(
+    family: crate::AddressFamily,
+) -> Result<crate::DefaultRouteInterfaces> {
+    let family = match family {
+        crate::AddressFamily::Ipv4 => AddressFamily::Ipv4,
+        crate::AddressFamily::Ipv6 => AddressFamily::Ipv6,
+    };
+    let table = get_ip_forward_table(family)?;
+
+    let mut result = crate::DefaultRouteInterfaces::default();
+
+    for row in &table {
+        if !is_default_route_prefix(row) {
+            continue;
+        }
+
+        if is_route_on_physical_interface(row).unwrap_or(false) {
+            result.physical.insert(row.InterfaceIndex);
+        } else {
+            result.virtual_.insert(row.InterfaceIndex);
+        }
+    }
+
+    Ok(result)
+}
+
+/// Whether `row` is a default route, or one of the two `/1` halves some VPN
+/// clients install instead of replacing `0.0.0.0/0` directly.
+fn is_default_route_prefix(row: &MIB_IPFORWARD_ROW2) -> bool {
+    match row.DestinationPrefix.PrefixLength {
+        0 => true,
+        1 => matches!(
+            try_socketaddr_from_inet_sockaddr(row.DestinationPrefix.Prefix).map(|addr| addr.ip()),
+            Ok(IpAddr::V4(addr))
+                if addr == Ipv4Addr::new(0, 0, 0, 0) || addr == Ipv4Addr::new(128, 0, 0, 0)
+        ),
+        _ => false,
+    }
 }
 
 pub fn route_has_gateway(route: &MIB_IPFORWARD_ROW2) -> bool {
