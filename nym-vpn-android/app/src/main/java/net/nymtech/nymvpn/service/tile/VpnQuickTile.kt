@@ -90,7 +90,7 @@ class VpnQuickTile :
 				setActive()
 			}
 
-			Tunnel.State.Offline -> {
+			is Tunnel.State.Offline -> {
 				setTileDescription(this@VpnQuickTile.getString(R.string.offline))
 				setActive()
 			}

@@ -87,6 +87,8 @@
 	<string name="credential_modal_description">Para añadir este dispositivo, ve a la página \"Dispositivos\" de tu cuenta, elimina uno de los dispositivos existentes y, a continuación, inicia sesión en este dispositivo con tu frase de recuperación.</string>
 	<string name="manage_devices">Gestiona tus dispositivos</string>
 	<string name="close">Cerrar</string>
+	<string name="previous">Anterior</string>
+	<string name="next">Siguiente</string>
 	<string name="enter_access_code">Introduzca o pegue su frase de recuperación: 24 palabras separadas por espacios</string>
 	<string name="get_in_touch">Ponte en contacto</string>
 	<string name="loading">Cargando</string>
@@ -94,8 +96,8 @@
 	<string name="two_hop_explanation">Experimenta la máxima velocidad (250+ Mbps) con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.</string>
 	<string name="two_hop_title">Rápido(WireGuard)</string>
 	<string name="disabled_while_connecting">Desactivado al conectar a VPN</string>
-	<string name="exit_location">Ubicación de salida</string>
-	<string name="entry_location">Ubicación de entrada</string>
+	<string name="exit_location">Servidor de Salida</string>
+	<string name="entry_location">Servidor de entrada</string>
 	<string name="no_results_found">No hay resultados.</string>
 	<string name="how_to_run_gateway">cómo correr un gateway.</string>
 	<string name="or_learn">o aprender</string>
@@ -148,7 +150,9 @@
 	<string name="unexpected_error">Se produjo un error inesperado:</string>
 	<string name="error_invalid_entry_gateway_country">País no válido para el servidor de entradas. Elige otro y vuelve a conectar.</string>
 	<string name="error_invalid_exit_gateway_country">País no válido para el servidor de salida. Elige otro y vuelve a conectar.</string>
-	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
+	<string name="bandwidth_error">Límite de datos diario alcanzado. Póngase en contacto con el soporte para obtener un impulso rápido de datos.</string>
+	<string name="error_credential_fetching_failed">No se han podido obtener las credenciales necesarias para conectarse. Por favor, inténtalo de nuevo.</string>
+	<string name="error_no_credential_available">No hay credenciales disponibles para conectar. Por favor, inténtalo de nuevo.</string>
 	<string name="max_devices_error">Se ha superado el límite de dispositivo de cuenta. Elimina un dispositivo de tu cuenta antes de conectarte.</string>
 	<string name="device_time_out_of_sync">El tiempo del dispositivo no está sincronizado</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
@@ -170,17 +174,21 @@
 	<string name="error_expired_subscription_title">Tu suscripción ha caducado</string>
 	<string name="error_expired_subscription_description">El método de pago recurrente ha sido rechazado</string>
 	<string name="error_expired_subscription_button">Renovar ahora</string>
+	<string name="error_no_subscription_title">Ninguna suscripción activa</string>
+	<string name="error_no_subscription_description">Elija un plan para comenzar a usar NymVPN</string>
+	<string name="error_no_subscription_button">Seleccionar Plan</string>
+	<string name="account_subscription_pending_title">Suscripción pendiente</string>
+	<string name="account_subscription_pending_description">Estamos esperando a que se confirme tu pago. Esto puede tomar un poco de tiempo para obtener algunos métodos de pago.</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/7)</string>
+	<string name="connection_state_resolving_addresses">Iniciando NymVPN (1/7)</string>
 	<string name="connection_state_awaiting_readiness">Configurando tu cuenta (2/7)</string>
-	<string name="connection_state_refreshing_gateways">Actualizando lista de servidores (4/7)</string>
-	<string name="connection_state_selecting_gateways">Elegir los mejores servidores (5/7)</string>
+	<string name="connection_state_awaiting_credentials">Preparando credenciales (3/7)</string>
+	<string name="connection_state_refreshing_gateways">Actualizando la lista de servidores (4/7)</string>
+	<string name="connection_state_selecting_gateways">Seleccionando los mejores servidores (5/7)</string>
 	<string name="connection_state_connecting_mixnet_client">Registrándose anónimamente con los servidores (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Estableciendo conexión con el servidor (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Usar el mejor servidor</string>
 	<string name="one_click_mode_fast">Rápido</string>
-	<string name="connect_mode_auto">Auto</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Servidor de Salida</string>
 	<string name="one_click_nym_entry_node">Servidor de entrada</string>
@@ -188,9 +196,27 @@
 	<string name="connection_status_not_protected">No protegido</string>
 	<string name="connection_status_fast_mode">Protección de modo rápido</string>
 	<string name="connection_status_anonymous">Protección de Mixnet</string>
-	<!-- Hop Screen -->
-	<string name="gateway_best">Mejor servidor</string>
+	<!-- Server Screen -->
+	<string name="gateway_safest">Servidor más seguro</string>
 	<string name="gateway_random">Servidor aleatorio</string>
+	<string name="server_entry_tab">Entrada</string>
+	<string name="server_exit_tab">Salida</string>
+	<string name="server_search_text">Buscar ubicación o servidor</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="one">país %1$s</item>
+		<item quantity="other">países %1$s</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="one">nodo %1$s</item>
+		<item quantity="other">nodos %1$s</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s: %2$s</string>
+	<string name="server_favorite_icon">Favorito</string>
+	<string name="server_favorites_tab">Favorites</string>
+	<string name="server_recent_tab">Recent</string>
+	<string name="server_all_tab">All servers</string>
+	<string name="server_no_favorites_text">Todavía no hay favoritos</string>
+	<string name="server_no_recents_text">Aún no hay servidores recientes</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">¡Bienvenido!</string>
 	<string name="auth_welcome_description">A la VPN más privada del mundo</string>
@@ -216,7 +242,7 @@
 	<string name="settings_reset_app_title">Restablecer datos de la app</string>
 	<string name="settings_system_status_title">Estado del sistema</string>
 	<string name="settings_mixnet_tuning_title">Ajuste Mixnet</string>
-	<string name="settings_mixnet_tuning_description">Personalizar patrones de tráfico del modo anónimo</string>
+	<string name="settings_mixnet_tuning_description">Ajuste sus parámetros de mixnet</string>
 	<string name="settings_quit_title">Salir de NymVPN</string>
 	<string name="settings_app_version_line">Versión de la aplicación: %1$s</string>
 	<string name="settings_daemon_version_line">Versión de Daemon: %1$s</string>
@@ -235,8 +261,8 @@
 	<string name="settings_shortcuts_title">Atajos de aplicación</string>
 	<string name="settings_logs_title">Registros &amp; datos</string>
 	<string name="settings_legal_title">Legal</string>
-	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
-	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
+	<string name="settings_geo_exclusion_title">Exclusión Geográfica</string>
+	<string name="settings_geo_exclusion_desciption">Los rangos de IP específicos se conectan directamente</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueo de pantalla necesario para usar accesos directos.</string>
 	<string name="shortcut_title">Confirmar acción</string>
@@ -279,6 +305,26 @@
 	<string name="welcome_usage_description">Nos ayuda a mejorar la red Nym. Sin registro ni actividad rastreada.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">Crear cuenta</string>
+	<string name="onboarding_welcome_title">Bienvenido a NymVPN</string>
+	<string name="onboarding_welcome_description">Tu acceso privado a \nuna **Internet sin paredes.**</string>
+	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
+	<string name="onboarding_modes_description_dvpn">Privacidad para todas tus actividades web \n**Descentralizada** red de 2 saltos \nFork de **AmneziaWG** de WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
+	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
+	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
+	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
+	<string name="onboarding_around_title">Nym gets you around</string>
+	<string name="onboarding_around_description">Disfraza WireGuard con **AmneziaWG** \nrodea los firewalls con **QUIC** \nevita que la VPN se bloquee con seguridad **sigilo** \nSeguridad **Post-quantum**</string>
+	<string name="onboarding_plan_title">What plan works for you?</string>
+	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
+	<string name="onboarding_plan_year_plan_prefix">Plan de 1 año &amp; </string>
+	<string name="onboarding_plan_save_percent">ahorra %1$s</string>
+	<string name="onboarding_plan_free_trial">+ prueba gratuita de %1$d días</string>
+	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
+	<string name="onboarding_plan_price_per_month">%1$s / mes</string>
+	<string name="onboarding_plan_try_prefix">Or try for </string>
+	<string name="onboarding_plan_one_month">1 month</string>
+	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Elige tu nivel \nde protección 🛡️</string>
 	<string name="select_plan_line_0">prueba gratuita de 7 días</string>
@@ -290,12 +336,20 @@
 	<string name="select_plan_modal_free_trial">Prueba gratis: 1 semana</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Detalles del servidor</string>
-	<string name="details_select_server_button">Seleccionar servidor</string>
+	<string name="details_features_title">Características del nodo</string>
+	<string name="details_performance_title">Métricas de rendimiento</string>
+	<string name="details_connection_title">Detalles de conexión</string>
+	<string name="details_build_info_title">Construir información</string>
+	<string name="details_select_server_button">Seleccionar nodo</string>
 	<string name="details_advanced_privacy">Privacidad avanzada</string>
-	<string name="details_with_mixnet">Con mixnet (5-salto)</string>
-	<string name="details_streaming_content">Transmitiendo &amp; contenido</string>
+	<string name="details_with_mixnet">Mixnet</string>
+	<string name="details_streaming_content">Streaming &amp; IP</string>
 	<string name="details_residental_ip">IP residencial</string>
 	<string name="details_datacenter_ip">IP del Datacenter</string>
+	<string name="details_post_quantum_secure_keys">Claves seguras post-quantum</string>
+	<string name="details_lewes_protocol">Lewes protocol</string>
+	<string name="details_standard_key_exchange">Intercambio de clave estándar</string>
+	<string name="details_family_membership">Family membership</string>
 	<string name="details_anti_censorship">Anticensura</string>
 	<string name="details_quic_protocol">Protocolo QUIC</string>
 	<string name="details_standard_protocol">Protocolo Estándar</string>
@@ -304,7 +358,7 @@
 	<string name="details_overall_performance">Rendimiento global</string>
 	<string name="details_server_load">Carga del servidor</string>
 	<string name="details_uptime">Actualización</string>
-	<string name="not_applicable">N/A</string>
+	<string name="not_applicable">Sin datos</string>
 	<string name="details_performance_calculated">Puntuación de rendimiento calculada a partir de la carga y el tiempo de activación. Tiempo de actualización como media última 24 horas. Última actualización %1$s.</string>
 	<string name="details_exit_ipv4">Salir de IPv4</string>
 	<string name="details_exit_ipv6">Salir de IPv6</string>
@@ -312,6 +366,8 @@
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">Nombre ASN</string>
 	<string name="details_build_version">Versión de construcción de Nym</string>
+	<string name="details_identity_key">Clave de identidad:</string>
+	<string name="details_copy_identity">Copiar clave de identidad</string>
 	<string name="details_missing_incorrect_info">¿Por qué falta información o es incorrecta</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/es/articles/26448676449297-Cómo es-server-location-determined-por-NymVPN</string>
 	<string name="details_more_details_start">Más detalles en el</string>
@@ -356,13 +412,13 @@
 	<string name="account_generating_deeplink_title">Iniciando sesión...</string>
 	<string name="account_generating_deeplink_description">Por favor, espera mientras verificamos tu cuenta</string>
 	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
-	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
-	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
-	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
-	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
-	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
-	<string name="account_login_processing_almost_ready">Finishing up…</string>
-	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verificando tu inicio de sesión</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparando tu cuenta para este dispositivo</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finalizando configuración de cuenta</string>
+	<string name="account_login_processing_loading_credentials">Cargando tus credenciales anónimas…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">Esto puede tomar un momento en el primer inicio de sesión</string>
+	<string name="account_login_processing_almost_ready">Finalizando...</string>
+	<string name="account_login_processing_almost_ready_subtitle">Solo unos segundos más</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Procesando su pago de forma segura…</string>
 	<string name="account_payment_verifying">Estamos verificando tu suscripción—ningún dato personal está vinculado a tu identidad</string>
@@ -403,10 +459,10 @@
 	<string name="account_info_device_title">ID del dispositivo</string>
 	<string name="account_info_device_info">Usa esto para vincular este dispositivo a tu cuenta en nym.com</string>
 	<string name="account_info_status_title">Estado de la cuenta</string>
-	<string name="account_info_bandwidth_title">Daily allowance</string>
+	<string name="account_info_bandwidth_title">Asignación diaria</string>
 	<string name="account_info_limit_text">Límite</string>
-	<string name="account_info_reset_text">Resets daily at</string>
-	<string name="account_info_data_unavailable">Usage data unavailable</string>
+	<string name="account_info_reset_text">Se reinicia diariamente el</string>
+	<string name="account_info_data_unavailable">Datos de uso no disponibles</string>
 	<string name="account_info_valid_text">Plan válido hasta %s</string>
 	<string name="account_info_expires_text">El plan expira el %s</string>
 	<string name="banner_plan_expires_text">El plan expira el\n%s</string>
@@ -492,26 +548,28 @@
 	<string name="mixnet_tuning_current_latency">Latencia</string>
 	<string name="mixnet_tuning_internet_speed">Hasta la velocidad de Internet</string>
 	<string name="mixnet_tuning_current_description">Se esperaba una latencia de ida y vuelta (RTT) en una red estándar</string>
-	<string name="mixnet_tuning_traffic_title">Enviar tráfico continuamente</string>
+	<string name="mixnet_tuning_traffic_title">Enviar tráfico continuo</string>
 	<string name="mixnet_tuning_traffic_off_title">Tasa de tráfico de portada en segundo plano</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ El tráfico continuo está desactivado. Tus paquetes serán enviados a medida que estén disponibles. Esto podría revelar patrones de tráfico.</string>
-	<string name="mixnet_tuning_traffic_on_description">El tráfico de portada siempre se envía para mantener el patrón uniforme. Ajuste la tasa de envío de sus paquetes.</string>
-	<string name="mixnet_tuning_traffic_off_description">Seguiremos enviando la cobertura de tráfico independientemente de su tráfico real. Elija cuánta cobertura necesita. </string>
-    <string name="mixnet_tuning_traffic_on_low">Baja\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_description">El tráfico en cubierto siempre se envía para mantener el patrón uniforme. Ajuste la tasa de envío de sus paquetes.</string>
+	<string name="mixnet_tuning_traffic_off_description">Elija cuánta cobertura necesita.</string>
+	<string name="mixnet_tuning_traffic_on_low">Baja\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Alta\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Equilibrado\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_low">Baja</string>
 	<string name="mixnet_tuning_traffic_off_high">Alta\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Equilibrado\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Media\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Ajustando retraso a 0 elimina la mezcla, reduciendo el anonimato</string>
 	<string name="mixnet_tuning_delays_title">Retrasos de mezcla</string>
 	<string name="mixnet_tuning_delays_description">Ajuste los retrasos de tiempo para cambiar lo bien que sus paquetes están mezclados.</string>
-    <string name="mixnet_tuning_delays_low">Baja\n0m</string>
+	<string name="mixnet_tuning_delays_low">Bajo\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Alta\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Por defecto\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Actual\n%1$s</string>
-    <string name="mixnet_tuning_link_text">Aprende más sobre los parámetros de mixnet</string>
+	<string name="mixnet_tuning_delays_current">Actual\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Más rápido</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimato</string>
+	<string name="mixnet_tuning_link_text">Aprende más sobre mejorar la mixnet</string>
 	<string name="mixnet_tuning_save_button">Guardar ajustes personalizados</string>
 	<string name="mixnet_tuning_restore_button">Restaurar ajustes por defecto</string>
 	<!-- Diagnostic screen -->
@@ -528,50 +586,59 @@
 	<string name="private_dns_title">Desactivar DNS privados para usar bloqueador de anuncios.</string>
 	<string name="private_dns_button">Abrir configuración</string>
 	<!-- Notifications screen -->
-	<string name="notifications_node_families_title">Server family reminders</string>
-	<string name="notifications_node_families_description">Keeps reminding of shared family</string>
-	<string name="notifications_system_title">System notifications</string>
-	<string name="notifications_system_description">Keeps the app running when closed</string>
+	<string name="notifications_node_families_title">Recordatorios de familia de servidores</string>
+	<string name="notifications_node_families_description">Mantiene recordando la familia compartida</string>
+	<string name="notifications_system_title">Notificaciones del sistema</string>
+	<string name="notifications_system_description">Mantener aplicación en ejecución al cerrar</string>
 	<!-- Node Families -->
-	<string name="node_families_title">The selected servers are in the same operator family!</string>
-	<string name="node_families_description_text">Disable reminders in </string>
-	<string name="node_families_description_link">notification settings.</string>
+	<string name="node_families_title">¡Los servidores seleccionados están en la misma familia de operadores!</string>
+	<string name="node_families_description_text">Desactivar recordatorios en </string>
+	<string name="node_families_description_link">ajustes de notificaciones.</string>
 	<string name="node_families_connect_button">Connect anyway</string>
-	<string name="node_families_error_message">Selected servers share a family. Choose a different pair or connect anyway.</string>
+	<string name="node_families_error_message">Los servidores seleccionados comparten una familia. Elige un par diferente o conéctate de todos modos.</string>
 	<!-- Geo Exclusion -->
-	<string name="geo_exclusion_enable_title">Enable Geo Exclusion</string>
-	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>
-	<string name="geo_exclusion_beta_text">Beta version:  China only for now. More regions coming.</string>
-	<string name="geo_exclusion_traffic_bypass_text">Traffic to excluded regions bypasses the VPN.</string>
-	<string name="geo_exclusion_sock55_title">SOCKS5 port</string>
-	<string name="geo_exclusion_custom_port_title">Custom port</string>
+	<string name="geo_exclusion_enable_title">Habilitar Exclusión Geográfica</string>
+	<string name="geo_exclusion_description">Enruta tráfico para regiones seleccionadas fuera del túnel VPN, por lo que las aplicaciones domésticas funcionan a toda velocidad. Todo lo demás permanece protegido.</string>
+	<string name="geo_exclusion_beta_text">Versión beta: China sólo por ahora. Más regiones por venir.</string>
+	<string name="geo_exclusion_traffic_bypass_text">El tráfico a las regiones excluidas brinca a la VPN.</string>
+	<string name="geo_exclusion_sock55_title">Puerto SOCKS5</string>
+	<string name="geo_exclusion_custom_port_title">Puerto personalizado</string>
 	<string name="geo_exclusion_ports_text">1024–65535</string>
-	<string name="geo_exclusion_ranges_count">%1$s ranges</string>
-	<string name="geo_exclusion_last_updated">List updated %1$s</string>
-	<string name="geo_exclusion_error_sock55_title">SOCKS5 not detected</string>
-	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy not detected. Check your port settings.</string>
-	<string name="geo_exclusion_error_failed_start_title">Feature failed to start</string>
-	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
-	<string name="geo_exclusion_error_invalid_port_text">Port must be between 1024 and 65535.</string>
-	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
-	<string name="geo_exclusion_excluded_regions_label">EXCLUDED REGIONS</string>
+	<string name="geo_exclusion_ranges_count">Rango de %1$s</string>
+	<string name="geo_exclusion_last_updated">Lista actualizada %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">SOCKS5 no detectado</string>
+	<string name="geo_exclusion_error_sock55_text">Proxy SOCKS5 no detectado. Compruebe la configuración del puerto.</string>
+	<string name="geo_exclusion_error_failed_start_title">Error al iniciar la función</string>
+	<string name="geo_exclusion_error_failed_start_text">La Geo Exclusión no se pudo iniciar. Vuelve a conectar e inténtalo de nuevo.</string>
+	<string name="geo_exclusion_error_invalid_port_text">El puerto debe estar entre 1024 y 65535.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">El puerto 1080 está prohibido. Elige otro.</string>
+	<string name="geo_exclusion_excluded_regions_label">REGIONES EXCLUIDAS</string>
 	<string name="geo_exclusion_china">China</string>
-	<string name="geo_exclusion_add_region_button">Add region</string>
-	<string name="geo_exclusion_copy_proxy_label">Copy proxy address</string>
+	<string name="geo_exclusion_add_region_button">Añadir región</string>
+	<string name="geo_exclusion_copy_proxy_label">Copiar dirección proxy</string>
 	<!-- Setup instructions screen -->
-	<string name="setup_instructions_title">Setup instructions</string>
-	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
-	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
-	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
-	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>
-	<string name="setup_instructions_browser_title">Browser setup</string>
-	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
-	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
+	<string name="setup_instructions_title">Instrucciones de configuración</string>
+	<string name="setup_instructions_description">Configurar aplicaciones y navegadores para enrutar tráfico a través del proxy Nym SOCKS5.</string>
+	<string name="setup_instructions_per_app_title">Por aplicación (aplicación compatible con SOCKS5)</string>
+	<string name="setup_instructions_per_app_description">Android no tiene ajustes SOCKS5 en todo el sistema.</string>
+	<string name="setup_instructions_pert_app_step">Utilice una aplicación que soporte directamente un proxy SOCKS5.</string>
+	<string name="setup_instructions_browser_title">Configurar navegador</string>
+	<string name="setup_instructions_browser_description">Cualquier aplicación con soporte SOCKS5. Ejemplo de Firefox:</string>
+	<string name="setup_instructions_browser_step_1">Configuración → habilitar proxy SOCKS — Host</string>
 	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
-	<string name="setup_instructions_browser_step_3">, Port</string>
+	<string name="setup_instructions_browser_step_3">, Puerto</string>
 	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
-	<string name="setup_instructions_wallet_title">Web3 wallet</string>
-	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
+	<string name="setup_instructions_wallet_title">Cartera Web3</string>
+	<string name="setup_instructions_wallet_step_1">Establecer la URL RPC a</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
-	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
+	<string name="setup_instructions_proxy_title">DIRECCIÓN DE PROXY</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">Icono de la aplicación</string>
+	<string name="app_icon_label_default">Por defecto</string>
+	<string name="app_icon_label_dark">Oscuro</string>
+	<string name="app_icon_label_light">Claro</string>
+	<string name="app_icon_disconnect_first">Desconecte la VPN para cambiar el icono de la aplicación.</string>
+	<string name="app_icon_change_title">¿Cambiar el icono de la aplicación?</string>
+	<string name="app_icon_change_body">La aplicación se cerrará brevemente para aplicar el nuevo icono. Sólo el icono de la pantalla de inicio y el cambio de etiqueta — las notificaciones y la búsqueda del sistema todavía muestran NymVPN.</string>
+	<string name="app_icon_change_confirm">Cambiar icono</string>
 </resources>

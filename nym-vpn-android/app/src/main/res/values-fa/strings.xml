@@ -87,6 +87,8 @@
 	<string name="credential_modal_description">برای افزودن این دستگاه، به صفحه \"دستگاه‌ها\"ی حساب خود بروید، یکی از دستگاه‌های موجود را حذف کنید و سپس با این دستگاه با وارد کردن عبارت عبور خود وارد شوید.</string>
 	<string name="manage_devices">مدیریت دستگاه‌های شما</string>
 	<string name="close">بستن</string>
+	<string name="previous">قبلی</string>
+	<string name="next">بعدی</string>
 	<string name="enter_access_code">عبارت عبور خود را وارد کنید یا الصاق کنید: ۲۴ کلمه جدا شده با فاصله</string>
 	<string name="get_in_touch">با ما در ارتباط باشید</string>
 	<string name="loading">در حال بارگذاری</string>
@@ -94,8 +96,8 @@
 	<string name="two_hop_explanation">بیشترین سرعت وبگردی (۲۵۰ مگابیت بر ثانیه) با مسیر دو-پرشی. از AmneziaWG بهره می‌برد؛ نسخه‌ای ضد‌سانسور از WireGuard که برای استریم، وبگردی با سرعت بالا و دانلود بسیار مناسب است.</string>
 	<string name="two_hop_title">پر سرعت (WireGuard)</string>
 	<string name="disabled_while_connecting">در زمان برقراری اتصال به وی‌پی‌ان غیرفعال است</string>
-	<string name="exit_location">منطقه خروجی</string>
-	<string name="entry_location">منطقه ورودی</string>
+	<string name="exit_location">سرور خروجی</string>
+	<string name="entry_location">سرور ورودی</string>
 	<string name="no_results_found">نتیجه‌ای یافت نشد.</string>
 	<string name="how_to_run_gateway">چگونه یک سرور راه‌اندازی کنیم.</string>
 	<string name="or_learn">یا یاد بگیرید</string>
@@ -149,6 +151,8 @@
 	<string name="error_invalid_entry_gateway_country">گره کشور خروجی نامعتبر است، گره محل خروجی را تغییر دهید و دوباره متصل شوید.</string>
 	<string name="error_invalid_exit_gateway_country">گره کشور خروجی نامعتبر است، گره محل خروجی را تغییر دهید و دوباره متصل شوید.</string>
 	<string name="bandwidth_error">محدودیت داده روزانه به پایان رسیده است. برای افزایش وقفه حجم، سریعاً با پشتیبانی تماس بگیرید.</string>
+	<string name="error_credential_fetching_failed">Couldn\'t obtain the credentials needed to connect. Please try again.</string>
+	<string name="error_no_credential_available">No credentials are available to connect. Please try again.</string>
 	<string name="max_devices_error">تعداد دستگاه های متصل به حساب کاربری شما از حداکثر مجاز عبور کرده. لطفاً قبل از اتصال، یکی از دستگاههای متصل را از حساب کاربری خود حذف کنید.</string>
 	<string name="device_time_out_of_sync">ساعت دستگاه همگام‌سازی نشده است</string>
 	<string name="error_ipv6_unavailable">Ipv6 در دسترس نیست</string>
@@ -170,17 +174,21 @@
 	<string name="error_expired_subscription_title">اشتراک شما منقضی شده است</string>
 	<string name="error_expired_subscription_description">روش پرداخت دوره‌ای رد شده است</string>
 	<string name="error_expired_subscription_button">همین حالا تمدید کنید</string>
+	<string name="error_no_subscription_title">اشتراک فعالی وجود ندارد</string>
+	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
+	<string name="error_no_subscription_button">Select Plan</string>
+	<string name="account_subscription_pending_title">Subscription pending</string>
+	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">در حال آماده‌سازی NymVPN ‏(۱/۶)</string>
-	<string name="connection_state_awaiting_readiness">در حال تنظیم حساب کاربری شما ‏(۲/۶)</string>
-	<string name="connection_state_refreshing_gateways">در حال به‌روزرسانی لیست سرورها ‏(۳/۶)</string>
-	<string name="connection_state_selecting_gateways">در حال انتخاب بهترین سرورها ‏(۴/۶)</string>
-	<string name="connection_state_connecting_mixnet_client">در حال ثبت‌نام ناشناس در سرورها ‏(۵/۶)</string>
-	<string name="connection_state_connecting_tunnel">در حال برقراری اتصال با سرور ‏(۶/۶)</string>
+	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>
+	<string name="connection_state_awaiting_credentials">Preparing credentials (3/7)</string>
+	<string name="connection_state_refreshing_gateways">Updating server list (4/7)</string>
+	<string name="connection_state_selecting_gateways">Choosing best servers (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">استفاده از بهترین سرور</string>
 	<string name="one_click_mode_fast">سریع</string>
-	<string name="connect_mode_auto">خودکار</string>
 	<string name="connect_mode_mixnet">میکس‌نت</string>
 	<string name="one_click_nym_exit_node">سرور خروجی</string>
 	<string name="one_click_nym_entry_node">سرور ورودی</string>
@@ -188,9 +196,27 @@
 	<string name="connection_status_not_protected">محافظت نشده</string>
 	<string name="connection_status_fast_mode">محافظت حالت سریع</string>
 	<string name="connection_status_anonymous">محافظت میکس‌نتی</string>
-	<!-- Hop Screen -->
-	<string name="gateway_best">بهترین سرور</string>
+	<!-- Server Screen -->
+	<string name="gateway_safest">Safest server</string>
 	<string name="gateway_random">سرور تصادفی</string>
+	<string name="server_entry_tab">ورودی</string>
+	<string name="server_exit_tab">خروج</string>
+	<string name="server_search_text">جستجوی مکان یا سرور</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="one">%1$s country</item>
+		<item quantity="other">%1$s countries</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="one">%1$s node</item>
+		<item quantity="other">%1$s nodes</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
+	<string name="server_favorite_icon">Favorite</string>
+	<string name="server_favorites_tab">Favorites</string>
+	<string name="server_recent_tab">Recent</string>
+	<string name="server_all_tab">All servers</string>
+	<string name="server_no_favorites_text">No favorites yet</string>
+	<string name="server_no_recents_text">No recent servers yet</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">خوش آمدید!</string>
 	<string name="auth_welcome_description">خصوصی‌ترین VPN حال حاضر جهان</string>
@@ -216,7 +242,7 @@
 	<string name="settings_reset_app_title">تنظیم مجدد داده‌های برنامه</string>
 	<string name="settings_system_status_title">وضعیت سیستم</string>
 	<string name="settings_mixnet_tuning_title">تنظیمات mixnet</string>
-	<string name="settings_mixnet_tuning_description">تنظیم الگوهای ترافیک در حالت ناشناس</string>
+	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
 	<string name="settings_quit_title">خروج از NymVPN</string>
 	<string name="settings_app_version_line">نسخه برنامه: %1$s</string>
 	<string name="settings_daemon_version_line">نسخه دیمون: %1$s</string>
@@ -280,6 +306,26 @@
 	<string name="welcome_usage_description">به ما کمک می‌کند شبکهٔ Nym را بهبود دهیم. هیچ لاگ‌گیری انجام نمی‌شود و هیچ فعالیتی ردیابی نمی‌گردد.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">ایجاد حساب کاربری</string>
+	<string name="onboarding_welcome_title">خوش آمدید به NymVPN</string>
+	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
+	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
+	<string name="onboarding_modes_description_dvpn">Privacy for all your web activities \n**Decentralized** 2-hop network \n**AmneziaWG** fork of WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
+	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
+	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
+	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
+	<string name="onboarding_around_title">Nym gets you around</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_plan_title">What plan works for you?</string>
+	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
+	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
+	<string name="onboarding_plan_save_percent">save %1$s</string>
+	<string name="onboarding_plan_free_trial">+ %1$d-day free trial</string>
+	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
+	<string name="onboarding_plan_price_per_month">%1$s / month</string>
+	<string name="onboarding_plan_try_prefix">Or try for </string>
+	<string name="onboarding_plan_one_month">1 month</string>
+	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">طرح اشتراک\n خود را انتخاب کنید</string>
 	<string name="select_plan_line_0">آزمایش رایگان ۷ روزه</string>
@@ -291,12 +337,20 @@
 	<string name="select_plan_modal_free_trial">۷-روز آزمایشی رایگان از امروز شروع می‌شود</string>
 	<!-- Server Details screen -->
 	<string name="details_title">جزئیات سرور</string>
-	<string name="details_select_server_button">انتخاب سرور</string>
+	<string name="details_features_title">ویژگی‌های گره</string>
+	<string name="details_performance_title">شاخص‌های عملکرد</string>
+	<string name="details_connection_title">جزئیات اتصال</string>
+	<string name="details_build_info_title">اطلاعات نسخه ساخته شده</string>
+	<string name="details_select_server_button">Select node</string>
 	<string name="details_advanced_privacy">حریم خصوصی پیشرفته</string>
-	<string name="details_with_mixnet">با میکس‌نت (۵ گامی)</string>
-	<string name="details_streaming_content">پخش زنده &amp; محتوا</string>
+	<string name="details_with_mixnet">میکس‌نت</string>
+	<string name="details_streaming_content">Streaming &amp; IP</string>
 	<string name="details_residental_ip">آدرس آی‌پی مسکونی</string>
 	<string name="details_datacenter_ip">آی‌پی مرکز داده</string>
+	<string name="details_post_quantum_secure_keys">کلیدهای امنِ پساکوانتومی</string>
+	<string name="details_lewes_protocol">پروتکل Lewes</string>
+	<string name="details_standard_key_exchange">Standard key exchange</string>
+	<string name="details_family_membership">اشتراک خانوادگی</string>
 	<string name="details_anti_censorship">ضد سانسور</string>
 	<string name="details_quic_protocol">بروتوكول QUIC</string>
 	<string name="details_standard_protocol">پروتکل استاندارد</string>
@@ -305,14 +359,16 @@
 	<string name="details_overall_performance">عملکرد کلی</string>
 	<string name="details_server_load">بارگذاری سرور</string>
 	<string name="details_uptime">مدت زمان فعالیت</string>
-	<string name="not_applicable">غیر قابل اجرا</string>
-	<string name="details_performance_calculated">امتیاز عملکرد از بارگذاری سرور و مدت زمان فعال بودن محاسبه میگردد. مدت زمان فعال بودن به صورت میانگین ۲۴ ساعت آخر است. آخرین به‌روزرسانی %1$s.</string>
+	<string name="not_applicable">داده‌ای موجود نیست</string>
+	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update: %1$s.</string>
 	<string name="details_exit_ipv4">خروج از IPv4</string>
 	<string name="details_exit_ipv6">خروج از IPv6</string>
 	<string name="details_ip_link">https://ipinfo.io/%1$s</string>
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">نام ASN</string>
 	<string name="details_build_version">نسخه ساخت Nym</string>
+	<string name="details_identity_key">کلید شناسایی هویت:</string>
+	<string name="details_copy_identity">کپی کلید هویت</string>
 	<string name="details_missing_incorrect_info">چرا اطلاعات ناقص یا نادرست وجود دارد</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">جزئیات بیشتر در</string>
@@ -493,26 +549,28 @@
 	<string name="mixnet_tuning_current_latency">تأخیر</string>
 	<string name="mixnet_tuning_internet_speed">تا بیشترین سرعت ممکن</string>
 	<string name="mixnet_tuning_current_description">تأخیر رفت‌وبرگشت مورد انتظار (RTT) در یک شبکه استاندارد</string>
-	<string name="mixnet_tuning_traffic_title">ارسال مداوم ترافیک</string>
-	<string name="mixnet_tuning_traffic_off_title">میزان ترافیک پوششی پس‌زمینه</string>
+	<string name="mixnet_tuning_traffic_title">Send continuous traffic</string>
+	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
 	<string name="mixnet_tuning_traffic_warning">ترافیک مداوم غیرفعال است. بسته‌ها به‌محض آماده شدن ارسال می‌شوند که ممکن است الگوهای ترافیکی را آشکار کند.</string>
-	<string name="mixnet_tuning_traffic_on_description">برای یکنواخت نگه‌داشتن الگو، ترافیک پوششی همواره ارسال می‌شود. میزان ارسال بسته‌ها را تنظیم کنید.</string>
-	<string name="mixnet_tuning_traffic_off_description">ما همچنان مستقل از ترافیک واقعی شما، ترافیک پوششی ارسال می‌کنیم. میزان ترافیک پوششی را تعیین کنید. </string>
-    <string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
+	<string name="mixnet_tuning_traffic_off_description">Choose how much cover you need.</string>
+	<string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">زیاد\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">بالانس\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">پایه</string>
+	<string name="mixnet_tuning_traffic_off_low">پایین</string>
 	<string name="mixnet_tuning_traffic_off_high">زیاد\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">متعادل\n۵بار</string>
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n۱۰بار</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">تأخیرهای اختلاط</string>
 	<string name="mixnet_tuning_delays_description">با تنظیم تأخیر زمانی، میزان اختلاط بسته‌های خود را تغییر دهید.</string>
-    <string name="mixnet_tuning_delays_low">پایین\n0m</string>
+	<string name="mixnet_tuning_delays_low">Low\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">زیاد\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">فعلی\n%1$s</string>
-    <string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
+	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>
 	<string name="mixnet_tuning_restore_button">بازگردانی تنظیمات پیش‌فرض</string>
 	<!-- Diagnostic screen -->
@@ -575,4 +633,13 @@
 	<string name="setup_instructions_wallet_step_1">تنظیم URL RPC به</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
 	<string name="setup_instructions_proxy_title">آدرس پروکسی</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">App icon</string>
+	<string name="app_icon_label_default">پیش فرض</string>
+	<string name="app_icon_label_dark">Dark</string>
+	<string name="app_icon_label_light">Light</string>
+	<string name="app_icon_disconnect_first">Disconnect the VPN to change the app icon.</string>
+	<string name="app_icon_change_title">Change app icon?</string>
+	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Only the home-screen icon and label change — notifications and system search still show NymVPN.</string>
+	<string name="app_icon_change_confirm">Change icon</string>
 </resources>

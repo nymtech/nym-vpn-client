@@ -147,6 +147,8 @@ extension OneClickViewModel {
         let title: String
         if case .random = entry {
             title = "gatewaysView.random".localizedString
+        } else if case .auto = entry {
+            title = "gatewaysView.safest".localizedString
         } else {
             title = gatewayManager.userFriendlyTitle(with: entry)
                 ?? gateway?.location?.city ?? gateway?.name ?? gateway?.id ?? ""
@@ -157,13 +159,20 @@ extension OneClickViewModel {
         let scoreGateway = scoreGateway(forEntry: entry, fallback: gateway, gatewayType: gatewayType)
         let isExplicitGateway: Bool
         if case .gateway = entry { isExplicitGateway = true } else { isExplicitGateway = false }
+        let isRandomSelection: Bool
+        if case .random = entry { isRandomSelection = true } else { isRandomSelection = false }
+        let isSafestSelection: Bool
+        if case .auto = entry { isSafestSelection = true } else { isSafestSelection = false }
         return makePhase(
             title: title,
             subtitle: subtitle,
             countryCode: countryCode,
             scoreGateway: scoreGateway,
             hopType: .entry,
-            showsInfoButton: isExplicitGateway
+            showsInfoButton: isExplicitGateway,
+            showsScore: !(isRandomSelection || isSafestSelection),
+            isRandomSelection: isRandomSelection,
+            isSafestSelection: isSafestSelection
         )
     }
 
@@ -172,6 +181,8 @@ extension OneClickViewModel {
         let title: String
         if case .random = exit {
             title = "gatewaysView.random".localizedString
+        } else if case .auto = exit {
+            title = "gatewaysView.safest".localizedString
         } else {
             title = gatewayManager.userFriendlyTitle(with: exit)
                 ?? gateway?.location?.city ?? gateway?.name ?? gateway?.id ?? ""
@@ -182,19 +193,26 @@ extension OneClickViewModel {
         let scoreGateway = scoreGateway(forExit: exit, fallback: gateway, gatewayType: gatewayType)
         let isExplicitGateway: Bool
         if case .gateway = exit { isExplicitGateway = true } else { isExplicitGateway = false }
+        let isRandomSelection: Bool
+        if case .random = exit { isRandomSelection = true } else { isRandomSelection = false }
+        let isSafestSelection: Bool
+        if case .auto = exit { isSafestSelection = true } else { isSafestSelection = false }
         return makePhase(
             title: title,
             subtitle: subtitle,
             countryCode: countryCode,
             scoreGateway: scoreGateway,
             hopType: .exit,
-            showsInfoButton: isExplicitGateway
+            showsInfoButton: isExplicitGateway,
+            showsScore: !(isRandomSelection || isSafestSelection),
+            isRandomSelection: isRandomSelection,
+            isSafestSelection: isSafestSelection
         )
     }
 
     func scoreGateway(forEntry entry: EntryGateway, fallback: GatewayNode?, gatewayType: NodeType) -> GatewayNode? {
         switch entry {
-        case .country, .region, .random:
+        case .country, .region, .random, .auto:
             return gatewayManager.bestGateway(matching: entry, gatewayType: gatewayType) ?? fallback
         case .gateway:
             return fallback
@@ -203,7 +221,7 @@ extension OneClickViewModel {
 
     func scoreGateway(forExit exit: ExitRouter, fallback: GatewayNode?, gatewayType: NodeType) -> GatewayNode? {
         switch exit {
-        case .country, .region, .random:
+        case .country, .region, .random, .auto:
             return gatewayManager.bestGateway(matching: exit, gatewayType: gatewayType) ?? fallback
         case .gateway:
             return fallback
@@ -216,7 +234,10 @@ extension OneClickViewModel {
         countryCode: String,
         scoreGateway: GatewayNode?,
         hopType: HopType,
-        showsInfoButton: Bool = false
+        showsInfoButton: Bool = false,
+        showsScore: Bool = true,
+        isRandomSelection: Bool = false,
+        isSafestSelection: Bool = false
     ) -> OneClickSelectionPhase {
         if title.isEmpty && (subtitle?.isEmpty ?? true) {
             return .selecting
@@ -228,7 +249,10 @@ extension OneClickViewModel {
             score: scoreGateway.map { score(for: $0) } ?? .offline,
             gateway: scoreGateway,
             hopType: hopType,
-            showsInfoButton: showsInfoButton
+            showsInfoButton: showsInfoButton,
+            showsScore: showsScore,
+            isRandomSelection: isRandomSelection,
+            isSafestSelection: isSafestSelection
         ))
     }
 
@@ -252,7 +276,7 @@ extension OneClickViewModel {
             return regionSubtitle(gateway: gateway, location: location)
         case .gateway:
             return serverSubtitle(location: location, countryCode: location.twoLetterIsoCountryCode)
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -266,7 +290,7 @@ extension OneClickViewModel {
             return regionSubtitle(gateway: gateway, location: location)
         case .gateway:
             return serverSubtitle(location: location, countryCode: location.twoLetterIsoCountryCode)
-        case .random:
+        case .random, .auto:
             return nil
         }
     }

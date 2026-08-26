@@ -9,7 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- macOS: fix IPv6 toggle not working
+- Fix switching between modes to always land on the last selected mode (https://github.com/nymtech/nym-vpn-client/pull/6023)
+- Show full version in settings (https://github.com/nymtech/nym-vpn-client/pull/6032)
+- Sync daemon settings on rpc connect. Fixes issues with stale configuration being displayed in UI (https://github.com/nymtech/nym-vpn-client/pull/6067)
+
 
 ## [2.11.0]
 

@@ -56,8 +56,8 @@ extension ConnectionStorage {
 
 #if SANTA
     func resetGatewaySelectionsForEnvironmentChange() {
-        connectionConfig.entry = .random
-        connectionConfig.exit = .random
+        connectionConfig.entry = .auto
+        connectionConfig.exit = .auto
     }
 
     func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
@@ -78,8 +78,8 @@ extension ConnectionStorage {
 
     static func generateInitialConfig() -> ConnectionConfig {
         ConnectionConfig(
-            entry: .random,
-            exit: .random,
+            entry: .auto,
+            exit: .auto,
             dns: nil,
             allowLan: false,
             disableIpv6: false,

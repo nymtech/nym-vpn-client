@@ -196,7 +196,7 @@ jobs:
 
   core:
     needs: [resolve]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.macos == 'true' }}
+    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-core.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
@@ -238,5 +238,5 @@ jobs:
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
-      dev_mode: ${{ needs.resolve.outputs.channel == 'nightly' }}
+      dev_mode: ${{ needs.resolve.outputs.channel == 'beta' || needs.resolve.outputs.channel == 'nightly' }}
     secrets: inherit

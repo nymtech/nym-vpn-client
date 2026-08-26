@@ -87,6 +87,8 @@
 	<string name="credential_modal_description">इस उपकरण को जोड़ने के लिए अपने अकाउंट के ‘उपकरण’ पेज पर जाएँ, मौजूदा उपकरणों में से किसी एक को हटाएँ, और फिर अपने पुनर्प्राप्ति वाक्यांश का उपयोग करके इस उपकरण में एंट्री करें।</string>
 	<string name="manage_devices">अपने डिवाइसेज़ प्रबंधित करें</string>
 	<string name="close">बंद करें</string>
+	<string name="previous">पिछला</string>
+	<string name="next">अगला</string>
 	<string name="enter_access_code">अपना पासफ़्रेज़ दर्ज करें या पेस्ट करें: रिक्त स्थानों से अलग किए गए 24 शब्द</string>
 	<string name="get_in_touch">संपर्क करें</string>
 	<string name="loading">लोड हो रहा है</string>
@@ -94,8 +96,8 @@
 	<string name="two_hop_explanation">दो-हॉप रूटिंग के साथ हाई-स्पीड ब्राउज़िंग (250+ Mbps)। यह WireGuard के सेंसरशिप-प्रतिरोधी संस्करण, AmneziaWG का उपयोग करता है, जो स्ट्रीमिंग, तेज़ ब्राउज़िंग और डाउनलोड के लिए आदर्श है।</string>
 	<string name="two_hop_title">तेज़ (WireGuard)</string>
 	<string name="disabled_while_connecting">VPN से जुड़ते समय अक्षम</string>
-	<string name="exit_location">आखरी स्थान</string>
-	<string name="entry_location">एंट्री स्थान</string>
+	<string name="exit_location">एग्ज़िट सर्वर</string>
+	<string name="entry_location">Entry server</string>
 	<string name="no_results_found">कोई परिणाम नहीं मिला।</string>
 	<string name="how_to_run_gateway">गेटवे को कैसे चलाएँ।</string>
 	<string name="or_learn">या सीखें</string>
@@ -147,6 +149,8 @@
 	<string name="error_invalid_entry_gateway_country">प्रविष्टि सर्वर के लिए अमान्य देश। कृपया कोई अन्य सर्वर चुनें और पुनः कनेक्ट करें।</string>
 	<string name="error_invalid_exit_gateway_country">एग्ज़िट सर्वर के लिए अमान्य देश। कृपया कोई और चुनें और पुनः कनेक्ट करें।</string>
 	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
+	<string name="error_credential_fetching_failed">Couldn\'t obtain the credentials needed to connect. Please try again.</string>
+	<string name="error_no_credential_available">No credentials are available to connect. Please try again.</string>
 	<string name="max_devices_error">अकाउंट डिवाइस सीमा से अधिक हो गई है। कृपया कनेक्ट करने से पहले अपने अकाउंट से एक डिवाइस हटा दें।</string>
 	<string name="device_time_out_of_sync">डिवाइस समय समन्वयित नहीं है</string>
 	<string name="error_ipv6_unavailable">Ipv6 उपलब्ध नहीं है</string>
@@ -168,17 +172,21 @@
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
+	<string name="error_no_subscription_title">कोई सक्रिय सब्स्क्रिप्शन नहीं</string>
+	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
+	<string name="error_no_subscription_button">Select Plan</string>
+	<string name="account_subscription_pending_title">Subscription pending</string>
+	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">NymVPN को प्रारंभ किया जा रहा है (1/7)</string>
-	<string name="connection_state_awaiting_readiness">आपका अकाउंट सेट अप किया जा रहा है (2/7)</string>
-	<string name="connection_state_refreshing_gateways">सर्वर सूची अपडेट की जा रही है (4/7)</string>
-	<string name="connection_state_selecting_gateways">सर्वश्रेष्ठ सर्वर चुना जा रहा है (5/7)</string>
-	<string name="connection_state_connecting_mixnet_client">सर्वरों के साथ गुमनाम रूप से पंजीकरण किया जा रहा है (6/7)</string>
-	<string name="connection_state_connecting_tunnel">सर्वर कनेक्शन स्थापित किया जा रहा है (7/7)</string>
+	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>
+	<string name="connection_state_awaiting_credentials">Preparing credentials (3/7)</string>
+	<string name="connection_state_refreshing_gateways">Updating server list (4/7)</string>
+	<string name="connection_state_selecting_gateways">Choosing best servers (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Use best server</string>
 	<string name="one_click_mode_fast">तेज़</string>
-	<string name="connect_mode_auto">Auto</string>
 	<string name="connect_mode_mixnet">मिक्सनेट</string>
 	<string name="one_click_nym_exit_node">एग्ज़िट सर्वर</string>
 	<string name="one_click_nym_entry_node">Entry server</string>
@@ -186,9 +194,27 @@
 	<string name="connection_status_not_protected">संरक्षित नहीं</string>
 	<string name="connection_status_fast_mode">तेज़ मोड सुरक्षा</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
-	<!-- Hop Screen -->
-	<string name="gateway_best">Best server</string>
+	<!-- Server Screen -->
+	<string name="gateway_safest">Safest server</string>
 	<string name="gateway_random">Random server</string>
+	<string name="server_entry_tab">उद्भव स्थान</string>
+	<string name="server_exit_tab">आखरी स्थान</string>
+	<string name="server_search_text">सर्च लोकेशन या सर्वर</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="one">%1$s country</item>
+		<item quantity="other">%1$s countries</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="one">%1$s node</item>
+		<item quantity="other">%1$s nodes</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
+	<string name="server_favorite_icon">Favorite</string>
+	<string name="server_favorites_tab">Favorites</string>
+	<string name="server_recent_tab">Recent</string>
+	<string name="server_all_tab">All servers</string>
+	<string name="server_no_favorites_text">No favorites yet</string>
+	<string name="server_no_recents_text">No recent servers yet</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">स्वागत है!</string>
 	<string name="auth_welcome_description">To the world’s most private VPN</string>
@@ -214,7 +240,7 @@
 	<string name="settings_reset_app_title">ऐप डेटा रीसेट करें</string>
 	<string name="settings_system_status_title">सिस्टम स्टेटस</string>
 	<string name="settings_mixnet_tuning_title">मिक्सनेट ट्यूनिंग</string>
-	<string name="settings_mixnet_tuning_description">अनॉनिमस मोड के ट्रैफ़िक पैटर्न को अनुकूलित करें</string>
+	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
 	<string name="settings_quit_title">NymVPN को बंद करें</string>
 	<string name="settings_app_version_line">ऐप वर्ज़न: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon वर्ज़न: %1$s</string>
@@ -277,6 +303,26 @@
 	<string name="welcome_usage_description">इससे हमें Nym नेटवर्क को बेहतर बनाने में मदद मिलती है। इसमें किसी भी गतिविधि को लॉग या ट्रैक नहीं किया जाता है।</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">अकाउंट बनाएँ</string>
+	<string name="onboarding_welcome_title">NymVPN में आपका स्वागत है</string>
+	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
+	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
+	<string name="onboarding_modes_description_dvpn">Privacy for all your web activities \n**Decentralized** 2-hop network \n**AmneziaWG** fork of WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
+	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
+	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
+	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
+	<string name="onboarding_around_title">Nym gets you around</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_plan_title">What plan works for you?</string>
+	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
+	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
+	<string name="onboarding_plan_save_percent">save %1$s</string>
+	<string name="onboarding_plan_free_trial">+ %1$d-day free trial</string>
+	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
+	<string name="onboarding_plan_price_per_month">%1$s / month</string>
+	<string name="onboarding_plan_try_prefix">Or try for </string>
+	<string name="onboarding_plan_one_month">1 month</string>
+	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">अपना \nसब्स्क्रिप्शन प्लान चुनें</string>
 	<string name="select_plan_line_0">7 दिन का मुफ़्त ट्रायल</string>
@@ -288,12 +334,20 @@
 	<string name="select_plan_modal_free_trial">आज से 7 दिन का मुफ़्त ट्रायल शुरू हो रहा है</string>
 	<!-- Server Details screen -->
 	<string name="details_title">सर्वर विवरण</string>
-	<string name="details_select_server_button">सर्वर चुनें</string>
+	<string name="details_features_title">नोड सुविधाएँ</string>
+	<string name="details_performance_title">प्रदर्शन मेट्रिक्स</string>
+	<string name="details_connection_title">कनेक्शन विवरण</string>
+	<string name="details_build_info_title">बिल्ड जानकारी</string>
+	<string name="details_select_server_button">Select node</string>
 	<string name="details_advanced_privacy">उन्नत गोपनीयता</string>
-	<string name="details_with_mixnet">मिक्सनेट (5-हॉप) के साथ</string>
-	<string name="details_streaming_content">स्ट्रीमिंग और कंटेंट</string>
+	<string name="details_with_mixnet">मिक्सनेट</string>
+	<string name="details_streaming_content">Streaming &amp; IP</string>
 	<string name="details_residental_ip">आवासीय IP</string>
 	<string name="details_datacenter_ip">डेटा सेंटर आईपी</string>
+	<string name="details_post_quantum_secure_keys">पोस्ट-क्वांटम सुरक्षित कुंजियाँ</string>
+	<string name="details_lewes_protocol">Lewes प्रोटोकॉल</string>
+	<string name="details_standard_key_exchange">Standard key exchange</string>
+	<string name="details_family_membership">Family membership</string>
 	<string name="details_anti_censorship">सेन्सरशिप के विरोध में</string>
 	<string name="details_quic_protocol">QUIC प्रोटोकॉल</string>
 	<string name="details_standard_protocol">स्टैंडर्ड प्रोटोकॉल </string>
@@ -302,14 +356,16 @@
 	<string name="details_overall_performance">कुल प्रदर्शन</string>
 	<string name="details_server_load">सर्वर लोड</string>
 	<string name="details_uptime">अपटाइम</string>
-	<string name="not_applicable">लागू नहीं</string>
-	<string name="details_performance_calculated">प्रदर्शन स्कोर सर्वर लोड और अपटाइम से गणना किया गया है। अपटाइम पिछले २४ घंटों के औसत के रूप में। अंतिम अपडेट %1$s।</string>
+	<string name="not_applicable">कोई डेटा नहीं</string>
+	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update: %1$s.</string>
 	<string name="details_exit_ipv4">IPv4 निकास </string>
 	<string name="details_exit_ipv6">IPv6 निकास </string>
 	<string name="details_ip_link">https://ipinfo.io/%1$s</string>
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">ASN नाम</string>
 	<string name="details_build_version">Nym बिल्ड संस्करण</string>
+	<string name="details_identity_key">आइडेंटिटी की:</string>
+	<string name="details_copy_identity">Copy identity key</string>
 	<string name="details_missing_incorrect_info">जानकारी गायब या गलत क्यों है</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/hi/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">अधिक जानकारी के लिए</string>
@@ -364,7 +420,7 @@
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है…</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
-	<string name="account_payment_retrieving">आपके गुमनाम अकाउंट की प्रमाणीकरण
+	<string name="account_payment_retrieving">आपके गुमनाम अकाउंट की प्रमाणीकरण 
 जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
 	<string name="account_payment_credentials">ये ज़ीरो-नॉलेज क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
 	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं…</string>
@@ -491,26 +547,28 @@
 	<string name="mixnet_tuning_current_latency">लेटेन्सी</string>
 	<string name="mixnet_tuning_internet_speed">इंटरनेट स्पीड तक</string>
 	<string name="mixnet_tuning_current_description">मानक नेटवर्क पर अपेक्षित राउंड-ट्रिप लेटेंसी (RTT)</string>
-	<string name="mixnet_tuning_traffic_title">लगातार ट्रैफ़िक भेजें</string>
-	<string name="mixnet_tuning_traffic_off_title">बैकग्राउंड कवर यातायात दर</string>
+	<string name="mixnet_tuning_traffic_title">Send continuous traffic</string>
+	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ निरंतर ट्रैफ़िक बंद कर दिया गया है। आपके पैकेट उपलब्ध होते ही भेज दिए जाएँगे। इससे ट्रैफ़िक पैटर्न का पता चल सकता है।</string>
-	<string name="mixnet_tuning_traffic_on_description">पैटर्न को एकसमान बनाए रखने के लिए कवर ट्रैफ़िक हमेशा भेजा जाता है। अपने पैकेट भेजने की दर को समायोजित करें।</string>
-	<string name="mixnet_tuning_traffic_off_description">हम आपके वास्तविक ट्रैफ़िक से अलग, कवर ट्रैफ़िक भेजते रहेंगे। आपको जितनी कवर ट्रैफ़िक की आवश्यकता है, उसे चुनें। </string>
-    <string name="mixnet_tuning_traffic_on_low">कम\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
+	<string name="mixnet_tuning_traffic_off_description">Choose how much cover you need.</string>
+	<string name="mixnet_tuning_traffic_on_low">कम\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">उच्च\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">संतुलित\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">बेस</string>
+	<string name="mixnet_tuning_traffic_off_low">Kam</string>
 	<string name="mixnet_tuning_traffic_off_high">उच्च\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">संतुलित\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">मध्यम\n10x</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">मिक्सिंग में देरी</string>
 	<string name="mixnet_tuning_delays_description">पैकेटों के मिश्रण की गुणवत्ता को बदलने के लिए समय विलंब को समायोजित करें।</string>
-    <string name="mixnet_tuning_delays_low">कम\n0m</string>
+	<string name="mixnet_tuning_delays_low">Low\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">उच्च\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">डिफ़ॉल्ट\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">वर्तमान\n%1$s</string>
-    <string name="mixnet_tuning_link_text">मिक्सनेट पैरामीटर के बारे में और जानें</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
+	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
 	<string name="mixnet_tuning_save_button">कस्टम सेटिंग्स सेव करें</string>
 	<string name="mixnet_tuning_restore_button">डिफाल्ट सेटिंग रिस्टोर करो</string>
 	<!-- Diagnostic screen -->
@@ -573,4 +631,13 @@
 	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
 	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">App icon</string>
+	<string name="app_icon_label_default">डिफ़ॉल्ट</string>
+	<string name="app_icon_label_dark">Dark</string>
+	<string name="app_icon_label_light">Light</string>
+	<string name="app_icon_disconnect_first">Disconnect the VPN to change the app icon.</string>
+	<string name="app_icon_change_title">Change app icon?</string>
+	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Only the home-screen icon and label change — notifications and system search still show NymVPN.</string>
+	<string name="app_icon_change_confirm">Change icon</string>
 </resources>

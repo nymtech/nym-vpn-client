@@ -1,7 +1,6 @@
 import Foundation
 
 public enum AppVersionProvider {
-    public static let libVersion = "1.17.0-beta"
 
     public static var app: String {
         "nym-vpn-app"
@@ -11,12 +10,20 @@ public enum AppVersionProvider {
         "\(osType()); \(osVersion()); \(hardwareString())"
     }
 
+    /// Returns bundle version limited to three component version due to AppStore limitations
     public static func appVersion(in bundle: Bundle = .main) -> String {
         guard let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         else {
             fatalError("Missing CFBundleShortVersionString")
         }
         return version
+    }
+
+    /// Returns full version including -beta or -nightly suffix
+    public static func realAppVersion(in bundle: Bundle = .main) -> String {
+        let version = bundle.object(forInfoDictionaryKey: "ApplicationVersion") as? String
+
+        return version ?? "unspecified"
     }
 }
 

@@ -20,9 +20,7 @@ import NotificationsManager
 import PurchasesManager
 import SentryManager
 import Theme
-#if os(iOS)
 import NymVPNLib
-#endif
 
 @main
 struct NymVPNApp: App {
@@ -30,7 +28,16 @@ struct NymVPNApp: App {
         let manager = LogFileManager(logFileType: .app)
         initLogger(logDir: LogFileManager.logsDirectory()?.path(), logLevel: .debug, sentryMonitoring: false)
         LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label, logFileManager: manager)
+            let fileLogger = FileLogHandler(label: label, logFileManager: manager)
+
+            #if DEBUG
+                return MultiplexLogHandler([
+                    StreamLogHandler.standardOutput(label: label),
+                    fileLogger
+                ])
+            #else
+                return fileLogger
+            #endif
         }
         return manager
     }()

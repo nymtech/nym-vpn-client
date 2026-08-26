@@ -8,12 +8,9 @@
 "nym-vpn-app/**":
   - agentpietrucha
   - mrkiwi
-  - rokas-ambrazevicius
 "nym-vpn-apple/**":
-  - rokas-ambrazevicius
   - agentpietrucha
   - mrkiwi
 "nym-vpn-android/**":
   - mrkiwi
-  - rokas-ambrazevicius
   - agentpietrucha

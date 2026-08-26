@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">گیت‌وی ورودی پاسخ‌گو نیست.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">گیت‌وی خروجی پاسخ‌گو نیست.</string>
 	<string name="error_reason_bandwidth_exceeded">از سقف مجاز پهنای باند عبور کرده‌اید.</string>
+	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
+	<string name="error_reason_no_credential_available">No credentials available.</string>
 	<string name="error_reason_inactive_account">حساب شما غیرفعال است.</string>
 	<string name="error_reason_inactive_subscription">اشتراک شما غیرفعال است.</string>
 	<string name="error_reason_max_devices_reached">حداکثر تعداد دستگاه‌ها استفاده شده است.</string>

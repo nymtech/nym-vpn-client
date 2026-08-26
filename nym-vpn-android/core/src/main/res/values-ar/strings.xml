@@ -14,7 +14,7 @@
 	<string name="error_reason_set_routing">فشل في تكوين مسار الشبكة.</string>
 	<string name="error_reason_set_dns">فشل في تكوين إعدادات DNS.</string>
 	<string name="error_reason_tun_device">فشل في تهيئة واجهة نفق VPN.</string>
-	<string name="error_reason_tunnel_provider">فشل في تكوين موفر نفق الحزمة.</string>
+	<string name="error_reason_tunnel_provider">فشل ضبط مزوّد نفق الحزم.</string>
 	<string name="error_reason_ipv6_unavailable">IPv6 معطل على هذا النظام.</string>
 	<string name="error_reason_same_entry_and_exit_gateway">لا يمكن أن تكون بوابات الدخول والخروج هي نفسها.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">لم يتم العثور على بوابة دخول مناسبة.</string>
@@ -26,10 +26,12 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">بوابة الدخول غير مستجيبة.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">بوابة الخروج غير مستجيبة.</string>
 	<string name="error_reason_bandwidth_exceeded">تجاوز الحد الأقصى للعرض الترددي.</string>
+	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
+	<string name="error_reason_no_credential_available">No credentials available.</string>
 	<string name="error_reason_inactive_account">حسابك غير نشط.</string>
 	<string name="error_reason_inactive_subscription">اشتراكك غير نشط.</string>
 	<string name="error_reason_max_devices_reached">تم الوصول إلى الحد الأقصى لعدد الأجهزة.</string>
 	<string name="error_reason_device_time_out_of_sync">وقت الجهاز غير متزامن.</string>
-	<string name="error_reason_device_logged_out">تم تسجيل خروج الجهاز.</string>
+	<string name="error_reason_device_logged_out">الجهاز مسجَّل خروجه.</string>
 	<string name="error_reason_internal">خطأ داخلي: %1$s</string>
 </resources>

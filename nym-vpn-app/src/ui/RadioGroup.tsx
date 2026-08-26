@@ -106,21 +106,19 @@ function RadioGroup<K extends Key>({
                 value={option.key}
                 className={({ checked }) =>
                   clsx([
-                    'dark:bg-surface-elev relative flex rounded-lg bg-white px-5 py-2 focus:outline-hidden',
+                    'bg-surface-elev relative flex rounded-2xl px-5 py-2 focus:outline-hidden',
                     checked &&
                       'border-brand-primary hover:border-brand-primary border',
                     checked &&
                       'dark:border-brand-primary dark:hover:border-brand-primary',
-                    !checked && 'dark:border-surface-elev border border-white',
+                    !checked && 'border-surface-elev border',
                     !option.disabled &&
                       !checked &&
-                      'dark:hover:border-surface-elev/85 hover:border-transparent',
-                    !option.disabled &&
-                      'dark:hover:bg-surface-elev/85 hover:bg-white/60',
+                      'hover:border-surface-elev/85',
+                    !option.disabled && 'hover:bg-surface-elev/85',
                     'transition-noborder cursor-default',
                     option.tooltip && 'attach-tooltip',
-                    disabled &&
-                      'dark:hover:bg-surface-elev! opacity-50 hover:bg-white! dark:opacity-60',
+                    disabled && 'hover:bg-surface-elev! opacity-50',
                   ])
                 }
                 disabled={option.disabled}

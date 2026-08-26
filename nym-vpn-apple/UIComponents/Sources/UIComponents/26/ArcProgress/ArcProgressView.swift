@@ -175,12 +175,7 @@ private extension ArcProgressView {
         if state == .failed || state == .offline {
             return Constants.errorFill
         }
-        switch mode {
-        case .fast:
-            return Constants.fastFill
-        case .anonymous:
-            return Constants.anonymousFill
-        }
+        return Constants.fastFill
     }
 
     var trackColor: Color {
@@ -213,12 +208,7 @@ private extension ArcProgressView {
 
     var haloColor: Color {
         guard state == .connected else { return .clear }
-        switch mode {
-        case .fast:
-            return Color.Nym.primary.opacity(0.55)
-        case .anonymous:
-            return Color.Nym.textTertiary.opacity(0.35)
-        }
+        return Color.Nym.primary.opacity(0.55)
     }
 
     var haloRadius: CGFloat {
@@ -416,7 +406,6 @@ private extension ArcProgressView {
         static let glowConnectedOpacity: Double = 0.55
 
         static let fastFill      = Color.Nym.primary
-        static let anonymousFill = Color.Nym.textTertiary.opacity(0.60)
         static let track         = Color.white.opacity(0.15)
         static let errorFill     = Color.Nym.error.opacity(0.60)
         static let errorTint     = Color.Nym.error.opacity(0.08)

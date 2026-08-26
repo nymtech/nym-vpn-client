@@ -19,7 +19,7 @@
   "random-server": "Random server",
   "safest-server-selection": "Safest server selection",
   "mode-toggle": {
-    "fast": "Fast",
+    "fast": "dVPN",
     "mixnet": "Mixnet"
   },
   "snackbar-disabled-message": {

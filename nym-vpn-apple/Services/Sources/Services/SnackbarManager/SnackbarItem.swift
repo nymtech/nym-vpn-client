@@ -7,6 +7,10 @@ public struct SnackbarItem: Identifiable {
         case neutral
         case negative
         case warning
+
+        /// Close control is always available. Critical used to hide it, which left
+        /// macOS users stuck on login/processing errors with no dismiss control.
+        public var showsCloseButton: Bool { true }
     }
 
     public let id: UUID

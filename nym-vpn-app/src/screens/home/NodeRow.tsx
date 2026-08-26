@@ -8,7 +8,6 @@ import {
   FlagIcon,
   MsIcon,
   Skeleton,
-  SmileyIcon,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
@@ -286,12 +285,17 @@ export function NodeRow({ type }: NodeRowProps) {
       : nodeDetails.name;
   }, [gateway?.name, nodeDetails.name, state]);
 
-  // A 'safest' hop carries no gateway id of its own, so `gateway` is null until
-  // the daemon reports the one it picked. Gate on that rather than on the
-  // tunnel state: at the moment the state flips to 'connecting' the gateway is
-  // still unknown, and ScoreIndicator maps an undefined score to a
+  // 'safest' and 'random' hops carry no gateway id of their own, so `gateway`
+  // is null until the daemon reports the one it picked. Gate on that rather
+  // than on the tunnel state: at the moment the state flips to 'connecting' the
+  // gateway is still unknown, and ScoreIndicator maps an undefined score to a
   // full-strength bar — i.e. a confident signal reading for no server.
-  const showSafestPlaceholder = isAuto(userSelectedNode) && !gateway;
+  const placeholderIcon = useMemo(() => {
+    if (gateway) return null;
+    if (isAuto(userSelectedNode)) return 'explore';
+    if (userSelectedNode === 'random') return 'shuffle';
+    return null;
+  }, [gateway, userSelectedNode]);
 
   const descriptionLabel = useMemo(() => {
     if (showLoading) return null;
@@ -320,8 +324,11 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
-              {showSafestPlaceholder ? (
-                <SmileyIcon className="h-6 w-6" />
+              {placeholderIcon ? (
+                <MsIcon
+                  icon={placeholderIcon}
+                  className="text-text-primary leading-none"
+                />
               ) : (
                 <ScoreIndicator score={nodeDetails.score} />
               )}

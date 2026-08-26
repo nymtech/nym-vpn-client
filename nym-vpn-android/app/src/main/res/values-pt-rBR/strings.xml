@@ -87,6 +87,8 @@
 	<string name="credential_modal_description">Para adicionar esse dispositivo, acesse a página “Dispositivos” da sua conta, remova um dos dispositivos existentes e, em seguida, faça login nesse dispositivo com sua frase de recuperação.</string>
 	<string name="manage_devices">Gerencie seus dispositivos</string>
 	<string name="close">Fechar</string>
+	<string name="previous">Anterior</string>
+	<string name="next">Próximo</string>
 	<string name="enter_access_code">Digite ou cole sua frase secreta: 24 palavras separadas por espaços</string>
 	<string name="get_in_touch">Entre em contato com o suporte</string>
 	<string name="loading">Carregando</string>
@@ -94,8 +96,8 @@
 	<string name="two_hop_explanation">Navegação em alta velocidade (mais de 250 Mbps) com roteamento de 2 saltos. Utiliza o AmneziaWG, uma versão resistente à censura do WireGuard, ideal para streaming, navegação rápida e downloads.</string>
 	<string name="two_hop_title">Rápido (WireGuard)</string>
 	<string name="disabled_while_connecting">Desativado durante a conexão com a VPN</string>
-	<string name="exit_location">Local de saída</string>
-	<string name="entry_location">Local de entrada</string>
+	<string name="exit_location">Servidor de saída</string>
+	<string name="entry_location">Servidor de entrada</string>
 	<string name="no_results_found">Nenhum resultado encontrado.</string>
 	<string name="how_to_run_gateway">como operar um servidor.</string>
 	<string name="or_learn">ou saiba</string>
@@ -149,6 +151,8 @@
 	<string name="error_invalid_entry_gateway_country">País inválido para o servidor de entrada. Escolha outro e reconecte-se.</string>
 	<string name="error_invalid_exit_gateway_country">País inválido para o servidor de saída. Escolha outro e reconecte-se.</string>
 	<string name="bandwidth_error">Limite diário de dados atingido. Fale com o Suporte para um aumento rápido de dados.</string>
+	<string name="error_credential_fetching_failed">Não foi possível obter as credenciais necessárias para se conectar. Por favor, tente novamente.</string>
+	<string name="error_no_credential_available">Nenhuma credencial disponível para conexão. Por favor, tente novamente.</string>
 	<string name="max_devices_error">Limite de dispositivos da conta excedido. Por favor, remova um dispositivo da sua conta antes de conectar.</string>
 	<string name="device_time_out_of_sync">Hora do dispositivo fora de sincronia</string>
 	<string name="error_ipv6_unavailable">Ipv6 Indisponível</string>
@@ -170,17 +174,21 @@
 	<string name="error_expired_subscription_title">Sua assinatura expirou</string>
 	<string name="error_expired_subscription_description">O método de pagamento recorrente foi recusado</string>
 	<string name="error_expired_subscription_button">Renovar agora</string>
+	<string name="error_no_subscription_title">Nenhuma assinatura ativa</string>
+	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
+	<string name="error_no_subscription_button">Escolher plano</string>
+	<string name="account_subscription_pending_title">Assinatura pendente</string>
+	<string name="account_subscription_pending_description">Estamos esperando a confirmação do seu pagamento. Isso pode demorar um pouco para alguns métodos de pagamento.</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/7)</string>
-	<string name="connection_state_awaiting_readiness">Configurando sua conta (2/7)</string>
-	<string name="connection_state_refreshing_gateways">Atualizando lista de servidores (4/7)</string>
-	<string name="connection_state_selecting_gateways">Escolhendo os melhores servidores (5/7)</string>
-	<string name="connection_state_connecting_mixnet_client">Registrando anonimamente com servidores (6/7)</string>
-	<string name="connection_state_connecting_tunnel">Estabelecendo conexão com o servidor (7/7)</string>
+	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>
+	<string name="connection_state_awaiting_credentials">Preparando credenciais (3/7)</string>
+	<string name="connection_state_refreshing_gateways">Updating server list (4/7)</string>
+	<string name="connection_state_selecting_gateways">Choosing best servers (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Use o melhor servidor</string>
 	<string name="one_click_mode_fast">Rápido</string>
-	<string name="connect_mode_auto">Automático</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Servidor de saída</string>
 	<string name="one_click_nym_entry_node">Servidor de entrada</string>
@@ -188,9 +196,27 @@
 	<string name="connection_status_not_protected">Não protegido</string>
 	<string name="connection_status_fast_mode">Proteção do modo rápido</string>
 	<string name="connection_status_anonymous">Proteção Mixnet</string>
-	<!-- Hop Screen -->
-	<string name="gateway_best">Melhor servidor</string>
+	<!-- Server Screen -->
+	<string name="gateway_safest">Servidor mais seguro</string>
 	<string name="gateway_random">Servidor aleatório</string>
+	<string name="server_entry_tab">Entrada</string>
+	<string name="server_exit_tab">Saída</string>
+	<string name="server_search_text">Pesquisar localização ou servidor</string>
+	<plurals name="server_countries_count_text">
+		<item quantity="one">%1$s country</item>
+		<item quantity="other">%1$s países</item>
+	</plurals>
+	<plurals name="server_nodes_count_text">
+		<item quantity="one">%1$s node</item>
+		<item quantity="other">%1$s nós</item>
+	</plurals>
+	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
+	<string name="server_favorite_icon">Favorito</string>
+	<string name="server_favorites_tab">Favorites</string>
+	<string name="server_recent_tab">Recent</string>
+	<string name="server_all_tab">All servers</string>
+	<string name="server_no_favorites_text">Nenhum favorito ainda</string>
+	<string name="server_no_recents_text">Nenhum servidor recente ainda</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Bem-vindo!</string>
 	<string name="auth_welcome_description">Para a VPN mais privada do mundo</string>
@@ -216,7 +242,7 @@
 	<string name="settings_reset_app_title">Redefinir dados do aplicativo</string>
 	<string name="settings_system_status_title">Status do sistema</string>
 	<string name="settings_mixnet_tuning_title">Configuração da Mixnet</string>
-	<string name="settings_mixnet_tuning_description">Personalizar os padrões de tráfego do modo anônimo</string>
+	<string name="settings_mixnet_tuning_description">Ajuste os parâmetros do mixnet</string>
 	<string name="settings_quit_title">Sair da NymVPN</string>
 	<string name="settings_app_version_line">Versão do app: %1$s</string>
 	<string name="settings_daemon_version_line">Versão do Daemon: %1$s</string>
@@ -279,6 +305,26 @@
 	<string name="welcome_usage_description">Ajuda a melhorar a rede Nym. Nenhum registro ou atividade é rastreado.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">Criar conta</string>
+	<string name="onboarding_welcome_title">Bem-vindo ao NymVPN</string>
+	<string name="onboarding_welcome_description">Seu acesso privado a \numa **internet sem barreiras.**</string>
+	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
+	<string name="onboarding_modes_description_dvpn">Privacidade para todas as suas atividades online \nrede de 2 hops **decentralizada** \n**AmneziaWG**: fork do WireGuard</string>
+	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
+	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
+	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
+	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
+	<string name="onboarding_around_title">Nym gets you around</string>
+	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
+	<string name="onboarding_plan_title">What plan works for you?</string>
+	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
+	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
+	<string name="onboarding_plan_save_percent">save %1$s</string>
+	<string name="onboarding_plan_free_trial">+ %1$d-day free trial</string>
+	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
+	<string name="onboarding_plan_price_per_month">%1$s / month</string>
+	<string name="onboarding_plan_try_prefix">Or try for </string>
+	<string name="onboarding_plan_one_month">1 month</string>
+	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Escolha seu \nplano</string>
 	<string name="select_plan_line_0">7 dias de teste gratuito</string>
@@ -290,12 +336,20 @@
 	<string name="select_plan_modal_free_trial">Teste grátis de 7 dias começa hoje</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Detalhes do servidor</string>
-	<string name="details_select_server_button">Selecionar servidor</string>
+	<string name="details_features_title">Recursos do nó</string>
+	<string name="details_performance_title">Métricas de desempenho</string>
+	<string name="details_connection_title">Detalhes da conexão</string>
+	<string name="details_build_info_title">Informação da compilação</string>
+	<string name="details_select_server_button">Select node</string>
 	<string name="details_advanced_privacy">Privacidade avançada</string>
-	<string name="details_with_mixnet">Com mixnet (5 saltos)</string>
-	<string name="details_streaming_content">Streaming &amp; conteúdo</string>
+	<string name="details_with_mixnet">Mixnet</string>
+	<string name="details_streaming_content">Streaming &amp; IP</string>
 	<string name="details_residental_ip">IP Residencial</string>
 	<string name="details_datacenter_ip">IP do Datacenter</string>
+	<string name="details_post_quantum_secure_keys">Chaves seguras pós-quânticas</string>
+	<string name="details_lewes_protocol">Lewes protocol</string>
+	<string name="details_standard_key_exchange">Standard key exchange</string>
+	<string name="details_family_membership">Família de operadores</string>
 	<string name="details_anti_censorship">Anti-censura</string>
 	<string name="details_quic_protocol">Protocolo QUIC</string>
 	<string name="details_standard_protocol">Standard protocol</string>
@@ -304,14 +358,16 @@
 	<string name="details_overall_performance">Desempenho geral</string>
 	<string name="details_server_load">Carga do servidor</string>
 	<string name="details_uptime">Tempo de atividade</string>
-	<string name="not_applicable">N/D</string>
-	<string name="details_performance_calculated">Pontuação de desempenho calculada a partir da carga do servidor e tempo de atividade. Tempo de atividade como média das últimas 24 horas. Última atualização %1$s.</string>
+	<string name="not_applicable">Sem dados</string>
+	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update: %1$s.</string>
 	<string name="details_exit_ipv4">Sair do IPv4</string>
 	<string name="details_exit_ipv6">Sair do IPv6</string>
 	<string name="details_ip_link">https://ipinfo.io/%1$s</string>
 	<string name="details_asn">AEA</string>
 	<string name="details_asn_name">Nome do ASN</string>
 	<string name="details_build_version">Versão da compilação Nym</string>
+	<string name="details_identity_key">Chave de identificação:</string>
+	<string name="details_copy_identity">Copiar chave de identidade</string>
 	<string name="details_missing_incorrect_info">Por que há informações faltando ou incorretas</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">Mais detalhes em</string>
@@ -361,13 +417,13 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="account_generating_deeplink_description">Por favor, aguarde enquanto verificamos sua conta</string>
 	<string name="account_login_processing_setting_up">Configurando sua conta anônima
 </string>
-	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
-	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
-	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
-	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
-	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
-	<string name="account_login_processing_almost_ready">Finishing up…</string>
-	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verificando seu login</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparando sua conta para este dispositivo</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finalizando a configuração da conta</string>
+	<string name="account_login_processing_loading_credentials">Carregando suas credenciais anônimas…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">Isso pode levar um momento no primeiro login</string>
+	<string name="account_login_processing_almost_ready">Finalizando…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Só mais alguns segundos</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processando seu pagamento com segurança…</string>
 	<string name="account_payment_verifying">Estamos verificando sua assinatura — nenhum dado pessoal está vinculado à sua identidade</string>
@@ -497,28 +553,29 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="mixnet_tuning_current_latency">Latência</string>
 	<string name="mixnet_tuning_internet_speed">Até a velocidade da internet</string>
 	<string name="mixnet_tuning_current_description">Latência de ida e volta estimada (RTT) em uma rede padrão</string>
-	<string name="mixnet_tuning_traffic_title">Enviar tráfego continuamente</string>
-	<string name="mixnet_tuning_traffic_off_title">Taxa de tráfego de cobertura em segundo plano</string>
+	<string name="mixnet_tuning_traffic_title">Send continuous traffic</string>
+	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ Tráfego contínuo desativado. Seus pacotes serão enviados assim que estiverem disponíveis. Isso pode revelar padrões de tráfego.</string>
-	<string name="mixnet_tuning_traffic_on_description">Tráfego de cobertura é sempre enviado para manter o padrão uniforme. Ajuste a taxa de envio dos seus pacotes.</string>
-	<string name="mixnet_tuning_traffic_off_description">Continuaremos enviando tráfego de cobertura independente do seu tráfego real. Escolha o nível de cobertura que você precisa.</string>
-    <string name="mixnet_tuning_traffic_on_low">Baixo\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
+	<string name="mixnet_tuning_traffic_off_description">Choose how much cover you need.</string>
+	<string name="mixnet_tuning_traffic_on_low">Baixo\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Alto\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Balanceado\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_low">Baixa</string>
 	<string name="mixnet_tuning_traffic_off_high">Alto\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Balanceado\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Médio\n10x</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Configurar o atraso para 0 remove a mixagem, reduzindo o anonimato</string>
 	<string name="mixnet_tuning_delays_title">Atrasos de mixagem</string>
 	<string name="mixnet_tuning_delays_description">Ajuste os atrasos para melhorar a forma como seus pacotes são misturados.</string>
-    <string name="mixnet_tuning_delays_low">Baixo\n0m</string>
+	<string name="mixnet_tuning_delays_low">Low\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Alto\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Padrão
 15 ms</string>
-	<string name="mixnet_tuning_delays_current">Atual
-%1$s</string>
-    <string name="mixnet_tuning_link_text">Saiba mais sobre parâmetros mixnet</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
+	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
 	<string name="mixnet_tuning_save_button">Salvar configurações personalizadas</string>
 	<string name="mixnet_tuning_restore_button">Restaurar configurações padrão</string>
 	<!-- Diagnostic screen -->
@@ -583,4 +640,13 @@ Recebeu um contato inesperado? Provavelmente é golpe.</string>
 	<string name="setup_instructions_wallet_step_1">Defina a URL RPC para</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
 	<string name="setup_instructions_proxy_title">ENDEREÇO DO PROXY</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">Ícone do app</string>
+	<string name="app_icon_label_default">Padrão</string>
+	<string name="app_icon_label_dark">Escuro</string>
+	<string name="app_icon_label_light">Claro</string>
+	<string name="app_icon_disconnect_first">Desconecte a VPN para alterar o ícone do app.</string>
+	<string name="app_icon_change_title">Alterar ícone do app?</string>
+	<string name="app_icon_change_body">O app fechará brevemente para aplicar o novo ícone. Apenas o ícone e o nome na tela inicial mudam — notificações e a busca do sistema continuam mostrando NymVPN.</string>
+	<string name="app_icon_change_confirm">Alterar ícone</string>
 </resources>

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,13 +44,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,6 +66,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
@@ -87,6 +91,8 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -103,6 +109,7 @@ fun ServerScreen(
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val context = LocalContext.current
+	val coroutineScope = rememberCoroutineScope()
 	val locationSupportLink = stringResource(R.string.location_support_link)
 
 	var refreshing by remember { mutableStateOf(false) }
@@ -173,7 +180,18 @@ fun ServerScreen(
 			appUiState.settings.quicEnabled
 	}
 
-	val showBestOption = false
+	val isRandomSelected = remember(selectedLocation, appUiState.vpnConfig.entryPoint, appUiState.vpnConfig.exitPoint) {
+		when (selectedLocation) {
+			GatewayLocation.ENTRY -> appUiState.vpnConfig.entryPoint is EntryPoint.Random
+			GatewayLocation.EXIT -> appUiState.vpnConfig.exitPoint is ExitPoint.Random
+		}
+	}
+	val isSafestSelected = remember(selectedLocation, appUiState.vpnConfig.entryPoint, appUiState.vpnConfig.exitPoint) {
+		when (selectedLocation) {
+			GatewayLocation.ENTRY -> appUiState.vpnConfig.entryPoint is EntryPoint.Auto
+			GatewayLocation.EXIT -> appUiState.vpnConfig.exitPoint is ExitPoint.Auto
+		}
+	}
 
 	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
 		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT)
@@ -190,14 +208,17 @@ fun ServerScreen(
 		selectedKey = selectedKey,
 		gatewayType = gatewayType,
 		canShowQuicLabel = canShowQuicLabel,
-		showBestOption = showBestOption,
+		isRandomSelected = isRandomSelected,
+		isSafestSelected = isSafestSelected,
 		gatewayLocation = selectedLocation,
 		isRefreshing = refreshing,
 		onRefresh = { refreshing = true },
 		onQueryChange = { viewModel.onQueryChange(it) },
 		onSelect = { id ->
-			viewModel.onSelected(id, selectedLocation)
-			navController.safePopBackStack()
+			coroutineScope.launch {
+				viewModel.onSelected(id, selectedLocation)
+				navController.safePopBackStack()
+			}
 		},
 		onLocationSelect = { location -> selectedLocation = location },
 		onFilterSelect = { viewModel.onFilterSelected(it) },
@@ -216,7 +237,8 @@ internal fun ServerScreenContent(
 	selectedKey: String?,
 	gatewayType: GatewayType,
 	canShowQuicLabel: Boolean,
-	showBestOption: Boolean,
+	isRandomSelected: Boolean,
+	isSafestSelected: Boolean,
 	gatewayLocation: GatewayLocation,
 	isRefreshing: Boolean,
 	onRefresh: () -> Unit,
@@ -291,7 +313,9 @@ internal fun ServerScreenContent(
 						onValueChange = onQueryChange,
 						modifier = Modifier
 							.fillMaxWidth()
-							.height(48.dp.scaledHeight())
+							// scaledHeight shrinks below the content height on short screens (e.g. 48dp -> ~33dp
+							// on a 1080x1920 xxhdpi device), clipping the text — keep the M3 48dp minimum
+							.height(48.dp.scaledHeight().coerceAtLeast(48.dp))
 							.background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp)),
 						placeholder = {
 							Text(
@@ -334,35 +358,41 @@ internal fun ServerScreenContent(
 			}
 			if (uiState.filter == ServerListFilter.ALL_SERVERS) {
 				item {
-					val isBestSelected = showBestOption && selectedKey == null
-					val isRandomSelected = !showBestOption && selectedKey == null
-
 					val items = buildList {
-						if (showBestOption) {
-							add(
-								SelectionItem(
-									onClick = { onSelect("Best") },
-									leading = {
-										Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-											Icon(
-												imageVector = Icons.Rounded.Star,
-												contentDescription = null,
-												modifier = Modifier.size(iconSize),
-											)
-										}
-									},
-									title = { Text(stringResource(R.string.gateway_best), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-									selected = isBestSelected,
-								),
-							)
-						}
+						add(
+							SelectionItem(
+								onClick = { onSelect("Auto") },
+								leading = {
+									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+										Icon(
+											imageVector = ImageVector.vectorResource(R.drawable.ic_safest),
+											contentDescription = null,
+											modifier = Modifier.size(iconSize),
+										)
+									}
+								},
+								title = { Text(stringResource(R.string.gateway_safest), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
+								selected = isSafestSelected,
+							),
+						)
+					}
+					SurfaceSelectionGroupButton(
+						items = items,
+						shape = RoundedCornerShape(14.dp),
+						background = MaterialTheme.colorScheme.primaryContainer,
+						anchorsPadding = 0.dp,
+					)
+					Spacer(modifier = Modifier.height(8.dp))
+				}
+				item {
+					val items = buildList {
 						add(
 							SelectionItem(
 								onClick = { onSelect("Random") },
 								leading = {
 									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 										Icon(
-											imageVector = Icons.Rounded.Shuffle,
+											imageVector = ImageVector.vectorResource(R.drawable.ic_random),
 											contentDescription = null,
 											modifier = Modifier.size(iconSize),
 										)
@@ -380,6 +410,7 @@ internal fun ServerScreenContent(
 						background = MaterialTheme.colorScheme.primaryContainer,
 						anchorsPadding = 0.dp,
 					)
+					Spacer(modifier = Modifier.height(4.dp))
 				}
 			}
 
@@ -629,7 +660,8 @@ internal fun ServerScreenPreview() {
 				selectedKey = null,
 				gatewayType = GatewayType.WG,
 				canShowQuicLabel = false,
-				showBestOption = true,
+				isRandomSelected = false,
+				isSafestSelected = true,
 				gatewayLocation = GatewayLocation.EXIT,
 				isRefreshing = false,
 				onRefresh = {},

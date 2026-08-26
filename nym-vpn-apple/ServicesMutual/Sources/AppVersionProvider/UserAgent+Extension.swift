@@ -6,7 +6,7 @@ extension UserAgent {
     public static var appUserAgent: UserAgent {
         UserAgent(
             application: AppVersionProvider.app,
-            version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
+            version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.realAppVersion()))",
             platform: AppVersionProvider.platform,
             gitCommit: ""
         )

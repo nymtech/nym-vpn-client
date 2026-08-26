@@ -71,3 +71,9 @@ lint/tmp/
 !libjnidispatch.so
 #include platform verifier .aar
 !core/libs/rustls-maven/**/*.aar
+
+# Maestro test debug output
+maestro/tests/
+
+# Generated uniffi bindings
+core/src/main/java/net/nymtech/vpn/nym_bridges_types/

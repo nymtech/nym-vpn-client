@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="vpn_notification_title">NymVPN</string>
-	<string name="channel_name">NymVPN 群组</string>
-	<string name="channel_description">与 VPN 通知相关的群组。</string>
+	<string name="channel_name">NymVPN 频道</string>
+	<string name="channel_description">VPN 公告频道。</string>
 	<string name="disconnect">断开</string>
 	<string name="state_connected">已连接</string>
 	<string name="state_disconnected">未连接</string>
 	<string name="state_initializing">初始化客户端…</string>
-	<string name="state_establishing">正在建立连接…</string>
+	<string name="state_establishing">正在建立连接……</string>
 	<string name="notification_entry">入口: %1$s</string>
 	<string name="notification_exit">出口: %1$s</string>
 	<string name="error_reason_set_firewall_policy">防火墙策略配置失败。</string>
@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">入口网关没有响应。</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">出口网关没有响应。</string>
 	<string name="error_reason_bandwidth_exceeded">带宽已达上限。</string>
+	<string name="error_reason_credential_fetching_failed">获取凭证失败。</string>
+	<string name="error_reason_no_credential_available">没有可用的访问凭证。</string>
 	<string name="error_reason_inactive_account">您的账号未激活。</string>
 	<string name="error_reason_inactive_subscription">您的订阅未激活。</string>
 	<string name="error_reason_max_devices_reached">设备数量已达上限。</string>

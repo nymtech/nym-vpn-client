@@ -26,6 +26,8 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Входной шлюз не отвечает.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Выходной шлюз не отвечает.</string>
 	<string name="error_reason_bandwidth_exceeded">Превышен лимит трафика.</string>
+	<string name="error_reason_credential_fetching_failed">Не удалось получить учётные данные.</string>
+	<string name="error_reason_no_credential_available">Нет доступных учётных данных.</string>
 	<string name="error_reason_inactive_account">Ваш аккаунт неактивен.</string>
 	<string name="error_reason_inactive_subscription">Ваша подписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Достигнуто максимальное количество устройств.</string>

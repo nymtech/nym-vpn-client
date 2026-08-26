@@ -34,6 +34,8 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.toSubscriptionUiState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.AccountControllerErrorStateReason
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
@@ -94,6 +96,7 @@ constructor(
 		) { base, accountSummary ->
 			base.copy(
 				subscription = accountSummary?.toSubscriptionUiState(),
+				hasSubscriptionHistory = accountSummary?.subscription != null,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -115,6 +118,16 @@ constructor(
 		autologinJob?.cancel()
 		autologinJob = viewModelScope.launch {
 			_autologinState.value = AutologinState.Loading
+
+			val accountState = backendManager.stateFlow.value.accountState
+			val needsRegistration = accountState is AccountControllerState.Error &&
+				accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
+			if (needsRegistration) {
+				runCatching { backendManager.registerAccount(null) }
+					.onSuccess { Timber.tag(TAG).i("RegisterAccountSuccess") }
+					.onFailure { t -> Timber.tag(TAG).w(t, "RegisterAccountFailed") }
+			}
+
 			runCatching { backendManager.getAutologinDeeplink(kind) }
 				.onSuccess { response ->
 					if (response != null) {

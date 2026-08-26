@@ -179,7 +179,6 @@ jobs:
           brew install xcbeautify
           brew install crowdin
           brew install xmlstarlet
-          brew install jq
           brew install brotli
           brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
           brew install getsentry/tools/sentry-cli
@@ -227,13 +226,13 @@ jobs:
           keychain --version
 
       - name: Apply orchestrated version (apple)
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: apple
 
       - name: Apply orchestrated version (core)
-        uses: ./.github/workflows/platform/apply-version
+        uses: ./.github/actions/apply-version
         with:
           version: ${{ inputs.version }}
           target: core
@@ -308,28 +307,6 @@ jobs:
         with:
           keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
-      - name: Update core version in app
-        if: ${{ env.RELEASE_TYPE != 'pr' }}
-        run: |
-          set -euo pipefail
-
-          # Get version from Cargo.toml workspace
-          LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core/Cargo.toml)
-          echo "📦 Core library version: ${LIB_VERSION}"
-
-          # Path to Swift source file
-          app_version_file="nym-vpn-apple/ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
-
-          # Validate and update
-          if [[ -f "$app_version_file" ]]; then
-            # macOS/BSD sed syntax: -i ''
-            sed -i '' -E 's|(public static let libVersion = ")[^"]*(")|\1'"$LIB_VERSION"'\2|' "$app_version_file"
-            echo "✅ libVersion updated to ${LIB_VERSION} in ${app_version_file}."
-          else
-            echo "❌ Error: AppVersionProvider.swift file not found at ${app_version_file}"
-            exit 1
-          fi
-
       - name: Update localizations Crowdin
         if: ${{ env.RELEASE_TYPE != 'pr' }}
         env:
@@ -343,7 +320,8 @@ jobs:
           crowdin download translations \
             --config crowdin-configs/macos-ios.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN"
+            --token "$CROWDIN_PERSONAL_TOKEN" \
+            --no-progress
 
       - name: Add stubs for unused packages
         working-directory: nym-vpn-apple
@@ -372,35 +350,16 @@ jobs:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          APPLICATION_ID_RESOURCE_ID: 6471254143
         run: |
           set -euo pipefail
 
-          PROJECT="$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-          )"
-
           echo "🚜 Resolve build number (max across all TestFlight versions)"
-          LATEST="$(
-            app-store-connect builds list \
-              --app-id 6471254143 \
-              --platform IOS \
-              --silent \
-              --no-color \
-              --json 2>/dev/null \
-            | jq '[.[].attributes.version | tonumber] | max // 0'
-          )"
-          REQUIRED=$((LATEST + 1))
-          TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
+          LATEST="$(app-store-connect get-latest-testflight-build-number --all-versions --platform IOS --silent --no-color $APPLICATION_ID_RESOURCE_ID)"
+          TARGET=$((LATEST + 1))
 
-          if (( TARGET != PROJECT )); then
-            echo "🚜 Bump build: $PROJECT → $TARGET (TestFlight latest=$LATEST)"
-            fastlane mac bump_build build:"$TARGET"
-          else
-            echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
-          fi
+          echo "🚜 Set build number: $TARGET (TestFlight latest: $LATEST)"
+          fastlane mac bump_build build:"$TARGET"
 
           # Export for downstream steps (build, Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"

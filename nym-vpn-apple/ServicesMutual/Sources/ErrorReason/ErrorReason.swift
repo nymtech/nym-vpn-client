@@ -47,6 +47,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case needFullDiskPermissions
     case splitTunnel
     case needsRelaxedIndependenceCriteria
+    case needsDeviceLocation
+    case connectionAttemptsExceeded
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -110,6 +112,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .splitTunnel
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 #endif
@@ -202,6 +208,10 @@ public enum ErrorReason: LocalizedError, Codable {
 #endif
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 
@@ -304,6 +314,10 @@ private extension ErrorReason {
 #endif
         case .needsRelaxedIndependenceCriteria:
             "errorReason.needsRelaxedIndependenceCriteria".localizedString
+        case .needsDeviceLocation:
+            "errorReason.needsDeviceLocation".localizedString
+        case .connectionAttemptsExceeded:
+            "errorReason.connectionAttemptsExceeded".localizedString
         case .credentialFetchingFailed:
             "errorReason.credentialFetchingFailed".localizedString
         case .noCredentialAvailable:
@@ -359,6 +373,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case needFullDiskPermissions
     case splitTunnel
     case needsRelaxedIndependenceCriteria
+    case needsDeviceLocation
+    case connectionAttemptsExceeded
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -440,6 +456,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
 #endif
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 }

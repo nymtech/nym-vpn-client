@@ -91,7 +91,7 @@ private extension OneClickView {
         Group {
             switch viewModel.selectionPhase {
             case .selecting:
-                selectingRowCompact(score: .offline)
+                selectingRowCompact
             case let .selected(info):
                 selectedRowCompact(info: info, showCarets: true)
             }
@@ -101,9 +101,8 @@ private extension OneClickView {
         .accessibilityAddTraits(.isButton)
     }
 
-    func selectingRowCompact(score: OneClickServerScore) -> some View {
+    var selectingRowCompact: some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: score)
             randomGlyph
             Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)
@@ -114,8 +113,7 @@ private extension OneClickView {
     }
 
     var randomGlyph: some View {
-        Image(systemName: "shuffle")
-            .font(.system(size: Constants.FlagImage.size))
+        GenericImage(imageName: "random")
             .foregroundStyle(Color.Nym.textPrimary)
             .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
             .accessibilityHidden(true)
@@ -133,8 +131,14 @@ private extension OneClickView {
         let primaryText = info.title
         let secondaryText: String? = (info.subtitle?.isEmpty ?? true) ? nil : info.subtitle
         return HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: info.score)
-            flagImage(countryCode: info.countryCode)
+            if info.showsScore {
+                scoreBars(score: info.score)
+            }
+            flagImage(
+                countryCode: info.countryCode,
+                isRandomSelection: info.isRandomSelection,
+                isSafestSelection: info.isSafestSelection
+            )
             ZStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("X")
@@ -185,13 +189,25 @@ private extension OneClickView {
     }
 
     @ViewBuilder
-    func flagImage(countryCode: String) -> some View {
+    func flagImage(countryCode: String, isRandomSelection: Bool = false, isSafestSelection: Bool = false) -> some View {
         if countryCode.isEmpty {
-            Image(systemName: "globe")
-                .font(.system(size: Constants.FlagImage.size))
-                .foregroundStyle(Color.Nym.textSecondary)
-                .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
-                .accessibilityHidden(true)
+            if isSafestSelection {
+                GenericImage(imageName: "safest")
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                    .accessibilityHidden(true)
+            } else if isRandomSelection {
+                GenericImage(imageName: "random")
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                    .accessibilityHidden(true)
+            } else {
+                Image(systemName: "globe")
+                    .font(.system(size: Constants.FlagImage.size))
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                    .accessibilityHidden(true)
+            }
         } else {
             GenericImage(imageName: countryCode.lowercased())
                 .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
@@ -264,7 +280,6 @@ private extension OneClickView {
 
     var selectingEntryRowCompact: some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: .offline)
             randomGlyph
             Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)

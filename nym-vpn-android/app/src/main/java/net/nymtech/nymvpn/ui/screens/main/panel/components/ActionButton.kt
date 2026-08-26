@@ -29,6 +29,7 @@ internal fun ActionButton(
 	accountState: AccountControllerState,
 	isMnemonicStored: Boolean,
 	isSubscriptionExpired: Boolean,
+	hasSubscriptionHistory: Boolean,
 	onAction: (ConnectAction) -> Unit,
 	modifier: Modifier = Modifier,
 ) {
@@ -39,23 +40,42 @@ internal fun ActionButton(
 	when (connectionState) {
 		ConnectionState.Disconnected,
 		ConnectionState.Offline,
-		ConnectionState.WaitingForConnection,
 		-> {
 			val isAccountNotActive = accountState is AccountControllerState.Error &&
 				accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
+			val isPendingSubscription = accountState is AccountControllerState.PendingSubscription
 			val label = when {
-				isAccountNotActive -> R.string.get_started
-				isSubscriptionExpired -> R.string.error_expired_subscription_button
+				isAccountNotActive -> R.string.connect
+				isSubscriptionExpired -> if (hasSubscriptionHistory) R.string.error_expired_subscription_button else R.string.error_no_subscription_button
 				isMnemonicStored -> R.string.connect
 				else -> R.string.get_started
 			}
 			MainStyledButton(
-				onClick = { onAction(if (!isAccountNotActive && isMnemonicStored && !isSubscriptionExpired) ConnectAction.CONNECT else ConnectAction.GET_STARTED) },
+				onClick = {
+					onAction(
+						when {
+							isPendingSubscription -> ConnectAction.REFRESH_ACCOUNT
+							!isAccountNotActive && isMnemonicStored && !isSubscriptionExpired -> ConnectAction.CONNECT
+							else -> ConnectAction.GET_STARTED
+						},
+					)
+				},
 				content = { Text(stringResource(label), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary) },
+				color = if (isPendingSubscription) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
 				modifier = buttonModifier,
 				shape = buttonShape,
 			)
 		}
+
+		ConnectionState.WaitingForConnection -> MainStyledButton(
+			onClick = { onAction(ConnectAction.DISCONNECT) },
+			textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+			content = { Text(stringResource(R.string.disconnect), style = MaterialTheme.typography.titleMedium) },
+			color = Color.Transparent,
+			borderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+			modifier = buttonModifier,
+			shape = buttonShape,
+		)
 
 		is ConnectionState.Connecting -> MainStyledButton(
 			onClick = { onAction(ConnectAction.DISCONNECT) },
@@ -86,10 +106,16 @@ internal fun ActionButton(
 		is ConnectionState.Error -> {
 			val isSubscriptionError = connectionState.reason is ErrorStateReason.InactiveSubscription ||
 				connectionState.reason is ErrorStateReason.InactiveAccount
-			val isAccountActionPending = accountState == AccountControllerState.Syncing ||
-				accountState == AccountControllerState.PendingSubscription
+			val isPendingSubscription = accountState is AccountControllerState.PendingSubscription
+			val isAccountActionPending = accountState == AccountControllerState.Syncing || isPendingSubscription
 
 			when {
+				isSubscriptionError && isPendingSubscription -> MainStyledButton(
+					onClick = { onAction(ConnectAction.REFRESH_ACCOUNT) },
+					content = { Text(stringResource(R.string.refresh), style = CustomTypography.buttonMain) },
+					modifier = buttonModifier,
+					shape = buttonShape,
+				)
 				isSubscriptionError && !isAccountActionPending && isVpnAlwaysOn(context) -> MainStyledButton(
 					onClick = { onAction(ConnectAction.STOP_KILL_SWITCH) },
 					textColor = MaterialTheme.colorScheme.onError,

@@ -137,22 +137,24 @@ impl OrderingCriteria<EntryPoint> {
         entry_gateways: &mut GatewayList,
         entry_point: nym_vpn_lib_types::EntryPoint,
         device_location: Option<&Location>,
-    ) -> Self {
+    ) -> Result<Self, GatewayProviderError> {
         match entry_point {
             nym_vpn_lib_types::EntryPoint::Gateway { identity } => {
-                OrderingCriteria::Random(EntryPoint::Gateway {
+                Ok(OrderingCriteria::Random(EntryPoint::Gateway {
                     identity: *identity.inner(),
-                })
+                }))
             }
             nym_vpn_lib_types::EntryPoint::Country {
                 two_letter_iso_country_code,
-            } => OrderingCriteria::Random(EntryPoint::Country {
+            } => Ok(OrderingCriteria::Random(EntryPoint::Country {
                 two_letter_iso_country_code,
-            }),
+            })),
             nym_vpn_lib_types::EntryPoint::Region { region } => {
-                OrderingCriteria::Random(EntryPoint::Region { region })
+                Ok(OrderingCriteria::Random(EntryPoint::Region { region }))
             }
-            nym_vpn_lib_types::EntryPoint::Random => OrderingCriteria::Random(EntryPoint::Random),
+            nym_vpn_lib_types::EntryPoint::Random => {
+                Ok(OrderingCriteria::Random(EntryPoint::Random))
+            }
             nym_vpn_lib_types::EntryPoint::Auto {
                 exclude_user_country,
             } => {
@@ -168,9 +170,9 @@ impl OrderingCriteria<EntryPoint> {
                                 })
                         });
                     }
-                    OrderingCriteria::ClosestTo(device_location.clone())
+                    Ok(OrderingCriteria::ClosestTo(device_location.clone()))
                 } else {
-                    OrderingCriteria::Random(EntryPoint::Random)
+                    Err(GatewayProviderError::NeedsDeviceLocation)
                 }
             }
         }
@@ -183,27 +185,27 @@ impl OrderingCriteria<ExitPoint> {
         exit_gateways: &mut GatewayList,
         exit_point: nym_vpn_lib_types::ExitPoint,
         device_location: Option<&Location>,
-    ) -> Self {
+    ) -> Result<Self, GatewayProviderError> {
         match exit_point {
             nym_vpn_lib_types::ExitPoint::Gateway { identity } => {
-                OrderingCriteria::Random(ExitPoint::Gateway {
+                Ok(OrderingCriteria::Random(ExitPoint::Gateway {
                     identity: *identity.inner(),
-                })
+                }))
             }
             nym_vpn_lib_types::ExitPoint::Address { address } => {
-                OrderingCriteria::Random(ExitPoint::Address {
+                Ok(OrderingCriteria::Random(ExitPoint::Address {
                     address: Box::new(nym_gateway_directory::Recipient::from(*address)),
-                })
+                }))
             }
             nym_vpn_lib_types::ExitPoint::Country {
                 two_letter_iso_country_code,
-            } => OrderingCriteria::Random(ExitPoint::Country {
+            } => Ok(OrderingCriteria::Random(ExitPoint::Country {
                 two_letter_iso_country_code,
-            }),
+            })),
             nym_vpn_lib_types::ExitPoint::Region { region } => {
-                OrderingCriteria::Random(ExitPoint::Region { region })
+                Ok(OrderingCriteria::Random(ExitPoint::Region { region }))
             }
-            nym_vpn_lib_types::ExitPoint::Random => OrderingCriteria::Random(ExitPoint::Random),
+            nym_vpn_lib_types::ExitPoint::Random => Ok(OrderingCriteria::Random(ExitPoint::Random)),
             nym_vpn_lib_types::ExitPoint::Auto {
                 exclude_entry_point_country,
                 exclude_user_country,
@@ -240,11 +242,11 @@ impl OrderingCriteria<ExitPoint> {
                                 })
                         });
                     }
-                    OrderingCriteria::ClosestTo(entry_gateway_location)
+                    Ok(OrderingCriteria::ClosestTo(entry_gateway_location))
                 } else if let Some(criteria) = fallback_criteria {
-                    criteria
+                    Ok(criteria)
                 } else {
-                    OrderingCriteria::Random(ExitPoint::Random)
+                    Err(GatewayProviderError::NeedsDeviceLocation)
                 }
             }
         }
@@ -301,7 +303,7 @@ fn select_entry(
         &mut entry_gateways,
         tunnel_settings.entry_point.as_ref().clone(),
         device_location,
-    );
+    )?;
 
     find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
         .map_err(GatewayProviderError::EntryGatewayUnavailable)
@@ -328,7 +330,7 @@ fn select_exit(
         &mut exit_gateways,
         tunnel_settings.exit_point.as_ref().clone(),
         device_location,
-    );
+    )?;
 
     let mut exit_filter_items: Vec<GatewayFilter> = Vec::new();
     if tunnel_settings.residential_exit {

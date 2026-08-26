@@ -18,7 +18,7 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State = when (this.v1) {
 	is TunnelState.Disconnected -> Tunnel.State.Down
 	is TunnelState.Disconnecting -> Tunnel.State.Disconnecting
 	is TunnelState.Error -> Tunnel.State.Error(this.v1.v1)
-	is TunnelState.Offline -> Tunnel.State.Offline
+	is TunnelState.Offline -> Tunnel.State.Offline((this.v1 as TunnelState.Offline).reconnect)
 }
 
 enum class GatewaySelectionMode(val value: String) {
@@ -30,7 +30,7 @@ fun EntryPoint.asString(): String = when (val entry = this) {
 	is EntryPoint.Gateway -> entry.identity
 	is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 	EntryPoint.Random -> GatewaySelectionMode.RANDOM.value
-	is EntryPoint.Region -> entry.region.lowercase()
+	is EntryPoint.Region -> entry.region
 	is EntryPoint.Auto -> GatewaySelectionMode.AUTO.value
 }
 
@@ -57,7 +57,7 @@ fun String.asExitPoint(): ExitPoint = when {
 	Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 	this == GatewaySelectionMode.RANDOM.value -> ExitPoint.Random
 	this == GatewaySelectionMode.AUTO.value -> ExitPoint.Auto(excludeEntryPointCountry = true, excludeUserCountry = true)
-	else -> throw IllegalArgumentException("Invalid exit id $this")
+	else -> ExitPoint.Region(this)
 }
 
 fun String.asFavoriteSelector(): FavoriteSelector = when {
@@ -92,6 +92,8 @@ private val ERROR_STATE_REASON_STRING_RES: Map<ErrorStateReason, Int> = mapOf(
 	ErrorStateReason.DeviceLoggedOut to R.string.error_reason_device_logged_out,
 	ErrorStateReason.CredentialFetchingFailed to R.string.error_reason_credential_fetching_failed,
 	ErrorStateReason.NoCredentialAvailable to R.string.error_reason_no_credential_available,
+	ErrorStateReason.NeedsDeviceLocation to R.string.error_reason_needs_device_location,
+	ErrorStateReason.ConnectionAttemptsExceeded to R.string.error_reason_connection_attempts_exceeded,
 )
 
 fun ErrorStateReason.toHumanReadableString(context: Context): String = when (this) {

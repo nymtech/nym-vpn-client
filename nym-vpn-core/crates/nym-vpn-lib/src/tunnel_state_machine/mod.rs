@@ -6,6 +6,7 @@ mod account;
 mod blocking_tun;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
+mod entry_blame;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod gateway_ext;
 mod ipv6_availability;
@@ -80,7 +81,7 @@ use tokio_util::sync::CancellationToken;
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_gateway_directory::ResolvedConfig;
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
+use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
@@ -800,6 +801,8 @@ pub struct SharedState {
     #[cfg(target_os = "linux")]
     nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
+    /// Tracks pre-handshake connection failures to attribute blame to the entry gateway.
+    entry_blame: entry_blame::EntryBlameTracker<NodeIdentity>,
     topology_service: VpnTopologyServiceHandle,
     recents_manager: RecentsManager<GatewayCacheHandle>,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
@@ -1297,6 +1300,7 @@ impl TunnelStateMachine {
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,
             gateway_provider,
+            entry_blame: entry_blame::EntryBlameTracker::default(),
             topology_service,
             recents_manager,
             discovery_refresher_command_tx,
@@ -1600,6 +1604,9 @@ impl tunnel::Error {
                 }
                 GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
                     Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
+                }
+                GatewayProviderError::NeedsDeviceLocation => {
+                    Some(ErrorStateReason::NeedsDeviceLocation)
                 }
                 _ => None,
             },

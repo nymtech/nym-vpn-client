@@ -186,9 +186,16 @@
 	<string name="error_gateway_unavailable_exit">Can\'t reach exit server. Try another!</string>
 	<string name="error_invalid_entry_gateway_identity">Entry server offline. Choose another and reconnect.</string>
 	<string name="error_invalid_exit_gateway_identity">Exit server offline. Choose another and reconnect.</string>
+	<string name="error_needs_device_location">Safest routing isn\'t available right now. Try again later or choose your own servers.</string>
+	<string name="error_connection_attempts_exceeded">Couldn\'t establish the connection after several attempts. Please try again.</string>
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
+	<string name="error_no_subscription_title">No active subscription</string>
+	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
+	<string name="error_no_subscription_button">Select Plan</string>
+	<string name="account_subscription_pending_title">Subscription pending</string>
+	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
 	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>
@@ -198,18 +205,16 @@
 	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Use best server</string>
-	<string name="one_click_mode_fast">Fast</string>
-	<string name="connect_mode_auto">Auto</string>
+	<string name="one_click_mode_fast">dVPN</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Exit server</string>
 	<string name="one_click_nym_entry_node">Entry server</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Not protected</string>
-	<string name="connection_status_fast_mode">Fast mode protection</string>
+	<string name="connection_status_fast_mode">dVPN mode protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
 	<!-- Server Screen -->
-	<string name="gateway_best">Best server</string>
+	<string name="gateway_safest">Safest server</string>
 	<string name="gateway_random">Random server</string>
 	<string name="server_entry_tab">Entry</string>
 	<string name="server_exit_tab">Exit</string>
@@ -281,7 +286,7 @@
 	<string name="shortcut_title">Confirm action</string>
 	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start dVPN mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -397,7 +402,7 @@
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Disguises WireGuard traffic with decoy packets to prevent VPN blocking. \n\nNote: Only implemented client-side.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
@@ -618,6 +623,7 @@
 	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>
 	<string name="geo_exclusion_beta_text">Beta version:  China only for now. More regions coming.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Traffic to excluded regions bypasses the VPN.</string>
+	<string name="geo_exclusion_server_title">Server</string>
 	<string name="geo_exclusion_sock55_title">SOCKS5 port</string>
 	<string name="geo_exclusion_custom_port_title">Custom port</string>
 	<string name="geo_exclusion_ports_text">1024–65535</string>
@@ -635,7 +641,12 @@
 	<string name="geo_exclusion_copy_proxy_label">Copy proxy address</string>
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Setup instructions</string>
-	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
+	<string name="setup_instructions_step_manual">Settings → Network Settings → Manual proxy.</string>
+	<string name="setup_instructions_step_socks_host">SOCKS Host</string>
+	<string name="setup_instructions_step_socks_port">, Port</string>
+	<string name="setup_instructions_step_socks_suffix">, select SOCKS v5.</string>
+	<string name="setup_instructions_step_dns">Check Proxy DNS when using SOCKS v5 (prevents DNS leaks).</string>
+	<string name="setup_instructions_description">On Firefox or browsers that permit SOCKS5 configurations.</string>
 	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
 	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
 	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>

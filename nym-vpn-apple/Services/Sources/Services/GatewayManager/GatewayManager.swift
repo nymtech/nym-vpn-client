@@ -146,7 +146,7 @@ import GRPCManager
         case let .gateway(identifier):
             return country(with: identifier, nodeType: .entry)?.code
             ?? country(with: identifier, nodeType: .vpn)?.code
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -160,7 +160,7 @@ import GRPCManager
             ?? country(with: identifier, nodeType: .vpn)?.code
         case let .region(countryCode: code, region: _):
             return localizedCountry(with: code)?.code
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -177,7 +177,7 @@ import GRPCManager
             }
         case let .gateway(identifier):
             return moniker(with: identifier) ?? identifier
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -194,7 +194,7 @@ import GRPCManager
             } else {
                 return region
             }
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -207,14 +207,14 @@ import GRPCManager
             return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region }
         case let .gateway(identifier):
             return vpn.contains { $0.id == identifier && $0.isQuicAvailable }
-        case .random:
+        case .random, .auto:
             return false
         }
     }
 
     public func containsStreaming(with gateway: ExitRouter) -> Bool {
         switch gateway {
-        case .country, .region, .random:
+        case .country, .region, .random, .auto:
             false
         case let .gateway(identifier):
             vpn.contains { $0.id == identifier && $0.isResidentialAvailable }
@@ -316,7 +316,7 @@ extension GatewayManager {
             }
         case let .gateway(identifier):
             return pool.filter { $0.id == identifier }
-        case .random:
+        case .random, .auto:
             return pool
         }
     }
@@ -332,7 +332,7 @@ extension GatewayManager {
             }
         case let .gateway(identifier):
             return pool.filter { $0.id == identifier }
-        case .random:
+        case .random, .auto:
             return pool
         }
     }
@@ -383,8 +383,11 @@ extension GatewayManager {
         defer { isLoading = false }
         do {
             let result = try await worker.fetchGateways()
+            logger.info(
+                "Fetched gateways entry=\(result.entry.count) exit=\(result.exit.count) vpn=\(result.vpn.count)"
+            )
 
-            guard !result.entry.isEmpty, !result.exit.isEmpty, !result.vpn.isEmpty
+            guard !result.entry.isEmpty || !result.exit.isEmpty || !result.vpn.isEmpty
             else {
                 logger.info("Empty gateways from API")
                 return

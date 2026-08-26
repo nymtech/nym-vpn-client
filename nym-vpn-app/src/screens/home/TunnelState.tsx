@@ -40,8 +40,7 @@ const PROGRESS_STEPS = {
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--nv-connection-arc-track)';
-const FILL_FAST = 'var(--nv-brand-primary)';
-const FILL_ANON = 'var(--nv-connection-arc-anon)';
+const FILL = 'var(--nv-brand-primary)';
 const ERROR_CLR = 'var(--nv-status-error)';
 
 // Delay (ms) before surfacing the transient `needs-relaxed-independence-criteria`
@@ -55,7 +54,7 @@ type Phase =
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function TunnelState() {
-  const { state, connectingState, progressMessages, vpnMode } = useAppStore(
+  const { state, connectingState, progressMessages } = useAppStore(
     useShallow((s) => ({
       state: s.state,
       connectingState: s.connectingState,
@@ -140,11 +139,6 @@ export function TunnelState() {
     }
   }, [suppressRelaxedIndependenceError, computedPhase]);
 
-  // ─── Mode → sweep duration and fill color ─────────────────────────────────
-  const isMixnet = vpnMode === 'mixnet';
-  const sweepDur = isMixnet ? 1200 : 800;
-  const fillColor = isMixnet ? FILL_ANON : FILL_FAST;
-
   // ─── Ring targets based on current progress ───────────────────────────────
   const progress = connectingState?.progress;
 
@@ -174,14 +168,14 @@ export function TunnelState() {
   const effectiveOffsets = isCanceling ? frozenOffsets.current : ringTargets;
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
-  const strokeColor = phase === 'error' ? ERROR_CLR : fillColor;
+  const strokeColor = phase === 'error' ? ERROR_CLR : FILL;
   const strokeOpacity =
     phase === 'canceling' ? 0.15 : phase === 'error' ? 0.6 : 1;
 
   const ringTransition =
     phase === 'canceling'
       ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
-      : `stroke-dashoffset ${sweepDur}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
+      : 'stroke-dashoffset 800ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease';
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -103,7 +102,6 @@ fun ConnectPanel(
 			NodeSection(
 				label = stringResource(R.string.one_click_nym_exit_node),
 				node = state.exitNode,
-				isAuto = state.exitIsAutoBest,
 				isClickable = true,
 				onNodeClick = onExitNodeClick,
 				onInfoClick = onExitInfoClick,
@@ -114,8 +112,7 @@ fun ConnectPanel(
 			NodeSection(
 				label = stringResource(R.string.one_click_nym_entry_node),
 				node = state.entryNode,
-				isAuto = state.connectMode == ConnectMode.AUTO && state.entryNode.location == null,
-				isClickable = state.connectMode != ConnectMode.AUTO,
+				isClickable = true,
 				onNodeClick = onEntryNodeClick,
 				onInfoClick = onEntryInfoClick,
 				visible = panelState == PanelState.FULL,
@@ -134,39 +131,8 @@ fun ConnectPanel(
 				accountState = state.accountState,
 				isMnemonicStored = state.isMnemonicStored,
 				isSubscriptionExpired = state.isSubscriptionExpired,
+				hasSubscriptionHistory = state.hasSubscriptionHistory,
 				onAction = onAction,
-			)
-		}
-	}
-}
-
-@Preview(name = "Auto – dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun PreviewAutoDark() {
-	NymVPNTheme(Theme.DARK_MODE) {
-		Surface(
-			color = MaterialTheme.colorScheme.background,
-			modifier = Modifier
-				.fillMaxWidth(),
-		) {
-			ConnectPanel(
-				state = ConnectPanelState(
-					connectionState = ConnectionState.Disconnected,
-					accountState = AccountControllerState.ReadyToConnect,
-					isMnemonicStored = true,
-					connectMode = ConnectMode.AUTO,
-					exitNode = ServerNode(name = null, countryCode = null, location = null, score = Score.HIGH),
-					entryNode = ServerNode(name = null, countryCode = null, location = null, score = Score.HIGH),
-					exitIsAutoBest = true,
-					initialPanelState = PanelState.FULL,
-				),
-				onModeChange = {},
-				onAction = {},
-				onPanelStateChange = {},
-				onExitNodeClick = {},
-				onEntryNodeClick = {},
-				onExitInfoClick = {},
-				onEntryInfoClick = {},
 			)
 		}
 	}
@@ -184,7 +150,6 @@ private fun PreviewFastLight() {
 				connectMode = ConnectMode.FAST,
 				exitNode = ServerNode(name = "Paris #1", countryCode = "fr", location = "France", score = Score.HIGH),
 				entryNode = ServerNode(name = "Berlin #2", countryCode = "de", location = "Germany", score = Score.MEDIUM),
-				exitIsAutoBest = false,
 				initialPanelState = PanelState.FULL,
 			),
 			onModeChange = {},

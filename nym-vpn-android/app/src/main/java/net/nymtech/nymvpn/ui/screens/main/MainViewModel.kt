@@ -100,6 +100,12 @@ constructor(
 		_expiryBannerDismissed.value = true
 	}
 
+	fun refreshAccount() = viewModelScope.launch {
+		Timber.tag(TAG).i("RefreshAccountRequested")
+		runCatching { backendManager.refreshAccount() }
+			.onFailure { t -> Timber.tag(TAG).e(t, "RefreshAccountFailed") }
+	}
+
 	fun registerAccount() = viewModelScope.launch {
 		Timber.tag(TAG).i("RegisterAccountRequested")
 		_events.tryEmit(MainUiEvent.NavigateToSelectPlan)
@@ -109,12 +115,6 @@ constructor(
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "RegisterAccountFailed")
 		}
-	}
-
-	fun onAutoSelected() {
-		// Auto mode is not yet wired up to the new per-hop EntryPoint/ExitPoint auto
-		// selection in core; the tab that triggers this remains hidden until it is.
-		Timber.tag(TAG).w("ConnectModeChangeRequested mode=AUTO, but Auto mode is not currently supported")
 	}
 
 	fun onTwoHopSelected() = viewModelScope.launch {
@@ -225,6 +225,15 @@ constructor(
 				ConnectionState.Disconnecting
 			managerState.isRestarting ->
 				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+			managerState.tunnelState is Tunnel.State.Offline ->
+				// The backend reports Offline both for a paused-but-armed session (reconnect)
+				// and while fully disconnected with no network; only the former is a "waiting"
+				// state, the latter is a plain offline/disconnected state.
+				if ((managerState.tunnelState as Tunnel.State.Offline).reconnect) {
+					ConnectionState.WaitingForConnection
+				} else {
+					ConnectionState.Offline
+				}
 			managerState.tunnelState !is Tunnel.State.Down &&
 				managerState.tunnelState !is Tunnel.State.Error &&
 				networkStatus == NetworkStatus.Disconnected ->
