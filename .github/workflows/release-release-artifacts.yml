@@ -488,8 +488,8 @@ jobs:
         run: |
           cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "${{ env.OUTPUT_DIR }}" || true
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "${{ env.OUTPUT_DIR }}" || true
 
       - name: Copy artifacts (Android)
         if: ${{ needs.resolve.outputs.fdroid == 'true' }}
@@ -564,9 +564,9 @@ jobs:
               "${ARCHIVE_WINDOWS_ARM64}"
               "${WINDOWS_APP_INSTALLER_X64}"
               "${WINDOWS_APP_INSTALLER_ARM64}"
-              "${WINDOWS_APP_INSTALLER_X64_SIG}"
-              "${WINDOWS_APP_INSTALLER_ARM64_SIG}"
             )
+            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_X64_SIG}")
+            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_ARM64_SIG}")
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
