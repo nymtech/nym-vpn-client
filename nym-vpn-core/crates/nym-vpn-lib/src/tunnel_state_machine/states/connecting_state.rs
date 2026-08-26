@@ -292,7 +292,10 @@ impl ConnectingState {
         )
     }
 
-    async fn handle_tunnel_close(tombstone: Tombstone, shared_state: &mut SharedState) {
+    async fn handle_tunnel_close(
+        tombstone: Tombstone,
+        shared_state: &mut SharedState,
+    ) -> std::io::Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
@@ -302,14 +305,10 @@ impl ConnectingState {
         }
 
         // Real TUN may have replaced the cover while still Connecting; a held stale FD would
-        // make ensure_android_blocking_tun a no-op after this drop.
+        // make ensure_android_blocking_tun a no-op after this drop. Same contract as
+        // DisconnectingState Reconnect: install failure must not continue uncovered.
         #[cfg(target_os = "android")]
-        if let Err(err) = shared_state.prepare_blocking_cover_before_release(Some(tombstone)) {
-            trace_err_chain!(
-                err,
-                "failed to install Android blocking TUN before tunnel close"
-            );
-        }
+        shared_state.prepare_blocking_cover_before_release(Some(tombstone))?;
 
         #[cfg(not(target_os = "android"))]
         {
@@ -318,6 +317,8 @@ impl ConnectingState {
 
         #[cfg(target_os = "ios")]
         let _ = shared_state;
+
+        Ok(())
     }
 
     async fn handle_reconnect_delay(
@@ -770,7 +771,13 @@ impl TunnelStateHandler for ConnectingState {
                         } else {
                             if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
                                 let tombstone = tunnel_monitor_handle.wait().await;
-                                Self::handle_tunnel_close(tombstone, shared_state).await;
+                                if let Err(reason) = unexpected_down_after_cover(
+                                    Self::handle_tunnel_close(tombstone, shared_state).await,
+                                ) {
+                                    return NextTunnelState::NewState(
+                                        ErrorState::enter(reason, shared_state).await,
+                                    );
+                                }
                             }
 
                             tracing::info!("Tunnel closed");
@@ -1095,6 +1102,17 @@ enum ReconnectDecision {
     Abort,
 }
 
+fn unexpected_down_after_cover(cover: std::io::Result<()>) -> Result<(), ErrorStateReason> {
+    cover
+        .inspect_err(|err| {
+            trace_err_chain!(
+                err,
+                "failed to install Android blocking TUN before tunnel close"
+            );
+        })
+        .map_err(|_| ErrorStateReason::TunnelProvider)
+}
+
 fn reconnect_decision(next_attempt: u32) -> ReconnectDecision {
     if next_attempt >= MAX_RECONNECT_ATTEMPTS {
         ReconnectDecision::Abort
@@ -1146,6 +1164,15 @@ mod test {
             reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1),
             ReconnectDecision::Retry { .. }
         ));
+    }
+
+    #[test]
+    fn unexpected_down_cover_failure_is_tunnel_provider_not_reconnect() {
+        assert_eq!(
+            unexpected_down_after_cover(Err(std::io::Error::other("configure_tunnel"))),
+            Err(ErrorStateReason::TunnelProvider)
+        );
+        assert_eq!(unexpected_down_after_cover(Ok(())), Ok(()));
     }
 
     #[test]
