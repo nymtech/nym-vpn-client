@@ -2,10 +2,12 @@ import { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import i18n from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
   BackendError,
+  ConflictDetected,
   DiagnosticsSuggestedReason,
   FeatureFlags,
   MixnetEventPayload,
@@ -19,6 +21,7 @@ import {
 } from '../types';
 import {
   AccountStateEvent,
+  ConflictDetectedEvent,
   DaemonEvent,
   DiagnosticsSuggestedEvent,
   MixnetEvent,
@@ -36,6 +39,8 @@ export function useTauriEvents(
   add: (data: ToastAddData) => string,
   close: (id: string) => void,
 ) {
+  const { t } = useTranslation('notifications');
+
   const registerDaemonListener = useCallback(() => {
     return listen<VpndStatus>(
       DaemonEvent,
@@ -143,6 +148,17 @@ export function useTauriEvents(
     );
   }, []);
 
+  const registerConflictDetectedListener = useCallback(() => {
+    return listen<ConflictDetected>(ConflictDetectedEvent, ({ payload }) => {
+      console.info('conflict detected', payload);
+      add({
+        id: `conflict-detected-${payload}`,
+        title: t(`conflict-detected.${payload}`),
+        type: 'warn',
+      });
+    });
+  }, [add, t]);
+
   // register/unregister event listeners
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -153,6 +169,7 @@ export function useTauriEvents(
     const unlistenVpnConfig = registerVpnConfigListener();
     const unlistenUpdatePending = registerUpdatePendingListener();
     const unlistenDiagnosticsSuggested = registerDiagnosticsSuggestedListener();
+    const unlistenConflictDetected = registerConflictDetectedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -163,6 +180,7 @@ export function useTauriEvents(
       unlistenVpnConfig.then((f) => f());
       unlistenUpdatePending.then((f) => f());
       unlistenDiagnosticsSuggested.then((f) => f());
+      unlistenConflictDetected.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -173,5 +191,6 @@ export function useTauriEvents(
     registerVpnConfigListener,
     registerUpdatePendingListener,
     registerDiagnosticsSuggestedListener,
+    registerConflictDetectedListener,
   ]);
 }
