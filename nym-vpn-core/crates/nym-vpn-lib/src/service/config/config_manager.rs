@@ -165,6 +165,13 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_enable_conflict_detection(&mut self, enable_conflict_detection: bool) {
+        if self.config.enable_conflict_detection != enable_conflict_detection {
+            self.config.enable_conflict_detection = enable_conflict_detection;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
         if self.config.fronting_mode != fronting_mode {
             // Change the shared fronting policy
@@ -558,6 +565,7 @@ impl VpnServiceConfigManager {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
             enable_ad_blocking: self.config.enable_ad_blocking,
+            enable_conflict_detection: self.config.enable_conflict_detection,
             residential_exit: self.config.residential_exit,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },

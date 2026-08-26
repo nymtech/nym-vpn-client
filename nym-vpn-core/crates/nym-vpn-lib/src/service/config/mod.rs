@@ -16,6 +16,7 @@ mod v1;
 mod v10;
 mod v11;
 mod v12;
+mod v13;
 mod v2;
 mod v3;
 mod v4;
@@ -111,12 +112,13 @@ enum VpnServiceConfigVersion {
     V10,
     V11,
     V12,
+    V13,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V12
+        VpnServiceConfigVersion::V13
     }
 }
 
@@ -135,6 +137,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V10 => "v10",
             VpnServiceConfigVersion::V11 => "v11",
             VpnServiceConfigVersion::V12 => "v12",
+            VpnServiceConfigVersion::V13 => "v13",
         })
     }
 }
@@ -155,6 +158,7 @@ enum VpnServiceConfigExt {
     V10(v10::VpnServiceConfig),
     V11(v11::VpnServiceConfig),
     V12(v12::VpnServiceConfig),
+    V13(v13::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -172,6 +176,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V10(_) => VpnServiceConfigVersion::V10,
             VpnServiceConfigExt::V11(_) => VpnServiceConfigVersion::V11,
             VpnServiceConfigExt::V12(_) => VpnServiceConfigVersion::V12,
+            VpnServiceConfigExt::V13(_) => VpnServiceConfigVersion::V13,
         }
     }
 }
@@ -193,6 +198,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V10(v10) => nym_vpn_lib_types::VpnServiceConfig::try_from(v10),
             VpnServiceConfigExt::V11(v11) => nym_vpn_lib_types::VpnServiceConfig::try_from(v11),
             VpnServiceConfigExt::V12(v12) => nym_vpn_lib_types::VpnServiceConfig::try_from(v12),
+            VpnServiceConfigExt::V13(v13) => nym_vpn_lib_types::VpnServiceConfig::try_from(v13),
         }
     }
 }
@@ -225,7 +231,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let gateway_independence = GatewayIndependence::from(&value.gateway_independence);
 
-        let v12 = v12::VpnServiceConfig {
+        let v13 = v13::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -233,6 +239,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
             enable_ad_blocking: value.enable_ad_blocking,
+            enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
@@ -247,7 +254,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             gateway_independence,
         };
 
-        Ok(VpnServiceConfigExt::V12(v12))
+        Ok(VpnServiceConfigExt::V13(v13))
     }
 }
 
