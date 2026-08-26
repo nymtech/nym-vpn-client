@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
+import net.nymtech.nymvpn.manager.backend.model.ConnectionInfo
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.manager.backend.model.toInfo
@@ -19,12 +20,45 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.model.VpnServiceEvent
 import nym_vpn_lib_types.ErrorStateReason
+import nym_vpn_lib_types.EstablishConnectionState
 import timber.log.Timber
 
 /**
  * Reduces VpnServiceEvent into TunnelManagerState.
  */
 class VpnEventReducer(private val context: Context, private val state: MutableStateFlow<TunnelManagerState>) {
+
+	companion object {
+		// A session lasts from the first Connected event until the tunnel is Down; its
+		// connectedAt survives offline gaps and reconnects so the timer shows cumulative
+		// session time.
+		internal fun reduceStateChanged(current: TunnelManagerState, newState: Tunnel.State): TunnelManagerState {
+			val next = current.copy(tunnelState = newState, isRestarting = false, backendUiEvent = null)
+			return if (newState == Tunnel.State.Down) {
+				next.copy(establishConnectionState = null, mixnetConnectionState = null, connectionData = null)
+			} else {
+				next
+			}
+		}
+
+		internal fun reduceEstablishConnection(current: TunnelManagerState, establishState: EstablishConnectionState, newInfo: ConnectionInfo?): TunnelManagerState {
+			val preserved = newInfo?.let { info ->
+				current.connectionData?.connectedAt?.let { info.copy(connectedAt = it) } ?: info
+			} ?: current.connectionData
+			return current.copy(establishConnectionState = establishState, connectionData = preserved)
+		}
+
+		internal fun reduceConnected(current: TunnelManagerState, newInfo: ConnectionInfo?): TunnelManagerState {
+			val preserved =
+				if (current.connectionData?.connectedAt != null && newInfo != null) {
+					newInfo.copy(connectedAt = current.connectionData!!.connectedAt)
+				} else {
+					newInfo
+				}
+			return current.copy(connectionData = preserved, establishConnectionState = null)
+		}
+	}
+
 	fun observe(scope: CoroutineScope, dispatcher: CoroutineDispatcher, apiFlow: StateFlow<VpnServiceApi?>) {
 		scope.launch(dispatcher) {
 			apiFlow
@@ -38,38 +72,16 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 	private fun handle(event: VpnServiceEvent) {
 		when (event) {
 			is VpnServiceEvent.StateChanged -> {
-				state.update { s ->
-					val next = s.copy(tunnelState = event.state, isRestarting = false, backendUiEvent = null)
-					if (event.state == Tunnel.State.Down) {
-						next.copy(establishConnectionState = null, mixnetConnectionState = null)
-					} else {
-						next
-					}
-				}
+				state.update { s -> reduceStateChanged(s, event.state) }
 				context.requestTileServiceStateUpdate()
 			}
 
 			is VpnServiceEvent.EstablishConnection -> {
-				state.update { s ->
-					s.copy(
-						establishConnectionState = event.state,
-						connectionData = event.data?.toInfo(),
-					)
-				}
+				state.update { s -> reduceEstablishConnection(s, event.state, event.data?.toInfo()) }
 			}
 
 			is VpnServiceEvent.Connected -> {
-				state.update { current ->
-					val newInfo = event.data?.toInfo()
-					val preserved =
-						if (current.isRestarting && current.connectionData?.connectedAt != null && newInfo != null) {
-							newInfo.copy(connectedAt = current.connectionData!!.connectedAt)
-						} else {
-							newInfo
-						}
-
-					current.copy(connectionData = preserved, establishConnectionState = null)
-				}
+				state.update { current -> reduceConnected(current, event.data?.toInfo()) }
 			}
 
 			is VpnServiceEvent.MixnetConnectionEvent -> {
@@ -94,6 +106,7 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 								tunnelState = Tunnel.State.Down,
 								establishConnectionState = null,
 								mixnetConnectionState = null,
+								connectionData = null,
 								backendUiEvent = null,
 							)
 						}
@@ -110,6 +123,7 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 						tunnelState = Tunnel.State.Down,
 						establishConnectionState = null,
 						mixnetConnectionState = null,
+						connectionData = null,
 					)
 				}
 				context.requestTileServiceStateUpdate()
