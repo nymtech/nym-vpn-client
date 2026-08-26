@@ -11,6 +11,7 @@ use futures::{
         oneshot,
     },
 };
+pub(crate) use get_best_default_route::get_default_route_interfaces;
 pub use get_best_default_route::{InterfaceAndGateway, get_best_default_route};
 use net::AddressFamily;
 use nym_common::trace_err_chain;
