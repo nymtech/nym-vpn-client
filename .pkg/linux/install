@@ -195,12 +195,23 @@ desktop_exec='env RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage -l %U'
 os=$(uname -a)
 # → to lowercase
 os="${os,,}"
+# distro identification for the deb/pacman family checks below: prefer
+# /etc/os-release's ID + ID_LIKE, falling back to `uname -a` on systems
+# without it. Matching distro name substrings straight out of `uname -a`
+# is fragile — e.g. on aarch64 hosts the kernel string's machine arch
+# ("aarch64") spuriously matches a `*arch*` (Arch Linux) glob.
+if [ -r /etc/os-release ]; then
+  os_id="$(. /etc/os-release && printf '%s %s' "${ID:-}" "${ID_LIKE:-}")"
+  os_id="${os_id,,}"
+else
+  os_id="$os"
+fi
 install_type=raw
 
 # for deb based systems install from deb packages; an explicit value wins
 if [ -n "${INSTALL_TYPE:-}" ]; then
   install_type=$INSTALL_TYPE
-elif [[ "$os" == *debian* || "$os" == *ubuntu* || "$os" == *mint* ]]; then
+elif [[ "$os_id" == *debian* || "$os_id" == *ubuntu* || "$os_id" == *mint* ]]; then
   install_type=deb
 fi
 
@@ -347,7 +358,7 @@ dev_setup() {
 # do not install/uninstall if system packages are installed
 # ⚠ be sure to call `select_components` before this function
 check_system_pkg() {
-  case "$os" in
+  case "$os_id" in
   *debian* | *ubuntu* | *mint*)
     for pkg in "${sys_pkgs[@]}"; do
       if dpkg-query -W "$pkg"; then
@@ -516,7 +527,7 @@ check_system_deps() {
     return 0
   fi
 
-  case "$os" in
+  case "$os_id" in
   *ubuntu* | *debian*)
     # check for ubuntu version > 22.04 libfuse3 (needed for AppImage)
     fuse_output=$(dpkg --get-selections | grep fuse || true)
