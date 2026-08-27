@@ -102,18 +102,22 @@ private extension GeoExclusionInstructionsView {
     func highlightedStep(_ key: String, values: [String]) -> Text {
         let mono = Font.custom("Courier New", size: 14)
         let parts = key.localizedString.components(separatedBy: "%@")
-        var result = Text(verbatim: "")
+        var pieces: [Text] = []
         for (index, part) in parts.enumerated() {
-            result = result + Text(verbatim: part)
-                .font(.Nym.bodyDefault)
-                .foregroundColor(Color.Nym.textPrimary)
+            pieces.append(
+                Text(verbatim: part)
+                    .font(.Nym.bodyDefault)
+                    .foregroundColor(Color.Nym.textPrimary)
+            )
             if index < values.count {
-                result = result + Text(verbatim: values[index])
-                    .font(mono)
-                    .foregroundColor(Color.Nym.primary)
+                pieces.append(
+                    Text(verbatim: values[index])
+                        .font(mono)
+                        .foregroundColor(Color.Nym.primary)
+                )
             }
         }
-        return result
+        return pieces.reduce(Text(verbatim: ""), +)
     }
 }
 #endif
