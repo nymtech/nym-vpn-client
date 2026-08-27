@@ -31,8 +31,8 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 		add(
 			stringResource(R.string.details_overall_performance) to {
 				Row(verticalAlignment = Alignment.CenterVertically) {
-					if (score != null) {
-						val scoreIcon = getScoreIcon(score)
+					val scoreIcon = getScoreIcon(score)
+					if (score != null && scoreIcon != null) {
 						Image(
 							scoreIcon.first,
 							contentDescription = scoreIcon.second,
