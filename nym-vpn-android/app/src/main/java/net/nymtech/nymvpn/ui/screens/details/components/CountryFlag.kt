@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -12,12 +13,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 
 @Composable
-fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSelectionType = NodeSelectionType.NODE) {
+fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSelectionType = NodeSelectionType.NODE, tint: Color = MaterialTheme.colorScheme.onBackground) {
 	val context = LocalContext.current
 	val (painter, description, colorFilter) = if (LocalInspectionMode.current) {
 		Triple(
@@ -33,20 +35,30 @@ fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSe
 				null,
 			)
 		} ?: when (selectionType) {
-			NodeSelectionType.AUTO -> Triple(
-				painterResource(R.drawable.ic_safest),
-				stringResource(R.string.gateway_safest),
-				null,
+			NodeSelectionType.SAFEST -> Triple(
+				painterResource(Profile.SAFEST.icon),
+				stringResource(Profile.SAFEST.titleRes),
+				ColorFilter.tint(tint),
+			)
+			NodeSelectionType.MOST_PRIVATE -> Triple(
+				painterResource(Profile.MOST_PRIVATE.icon),
+				stringResource(Profile.MOST_PRIVATE.titleRes),
+				ColorFilter.tint(tint),
+			)
+			NodeSelectionType.FASTEST -> Triple(
+				painterResource(Profile.FASTEST.icon),
+				stringResource(Profile.FASTEST.titleRes),
+				ColorFilter.tint(tint),
 			)
 			NodeSelectionType.RANDOM -> Triple(
-				painterResource(R.drawable.ic_random),
-				stringResource(R.string.unknown),
-				ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+				painterResource(Profile.RANDOM.icon),
+				stringResource(Profile.RANDOM.titleRes),
+				ColorFilter.tint(tint),
 			)
 			NodeSelectionType.NODE -> Triple(
 				painterResource(R.drawable.faq),
 				stringResource(R.string.unknown),
-				ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+				ColorFilter.tint(tint),
 			)
 		}
 	}
