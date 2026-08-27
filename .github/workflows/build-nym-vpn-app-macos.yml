@@ -597,6 +597,27 @@ jobs:
               --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
               "$DIST_XML_FILE"
 
+          # Fail early with an explicit message on unsupported macOS versions.
+          # Without this, the min-os-version requirement baked into the nested pkg only
+          # surfaces on the Destination Select pane as a generic "You cannot install
+          # NymVPN in this location" error, which doesn't tell the user why.
+          INSTALL_CHECK_JS="
+          function installCheck() {
+              if (system.compareVersions(system.version.ProductVersion, '$MIN_OS_VERSION') >= 0) {
+                  return true;
+              }
+              my.result.title = 'Unsupported macOS version';
+              my.result.message = 'NymVPN requires macOS $MIN_OS_VERSION or later. Please update macOS and try again.';
+              my.result.type = 'Fatal';
+              return false;
+          }
+          "
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' --type elem -n 'script' --value "$INSTALL_CHECK_JS" \
+            --subnode '//installer-gui-script' --type elem -n 'installation-check' \
+            --append '$prev' --type attr -n 'script' --value 'installCheck()' \
+            "$DIST_XML_FILE"
+
           # Add element to prompt user to close the app before installation
           xmlstarlet edit --inplace \
             --subnode '//installer-gui-script' \
