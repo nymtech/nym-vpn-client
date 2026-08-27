@@ -95,6 +95,8 @@ private extension GRPCManager {
             break
         case .diagnosticsSuggested:
             break
+        case .conflictDetected:
+            break
         }
     }
 
