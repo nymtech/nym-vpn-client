@@ -51,8 +51,8 @@ fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSe
 				ColorFilter.tint(tint),
 			)
 			NodeSelectionType.RANDOM -> Triple(
-				painterResource(R.drawable.ic_random),
-				stringResource(R.string.unknown),
+				painterResource(Profile.RANDOM.icon),
+				stringResource(Profile.RANDOM.titleRes),
 				ColorFilter.tint(tint),
 			)
 			NodeSelectionType.NODE -> Triple(
