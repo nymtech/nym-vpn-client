@@ -90,9 +90,9 @@ class VpnQuickTile :
 				setActive()
 			}
 
-			Tunnel.State.Offline -> {
+			is Tunnel.State.Offline -> {
 				setTileDescription(this@VpnQuickTile.getString(R.string.offline))
-				setActive()
+				if (state.reconnect) setActive() else setInactive()
 			}
 
 			is Tunnel.State.Error -> {
@@ -121,8 +121,10 @@ class VpnQuickTile :
 		super.onClick()
 		unlockAndRun {
 			lifecycleScope.launch {
-				when (backendManager.getState()) {
+				when (val state = backendManager.getState()) {
 					Tunnel.State.Down -> backendManager.startTunnel()
+					is Tunnel.State.Offline ->
+						if (state.reconnect) backendManager.stopTunnel() else backendManager.startTunnel()
 					else -> backendManager.stopTunnel()
 				}
 			}

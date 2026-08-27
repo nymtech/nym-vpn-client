@@ -50,7 +50,7 @@ jobs:
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "*.pkg"
+          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "NymVPN-*.pkg"
 
       - name: Find PKG file
         id: find_pkg

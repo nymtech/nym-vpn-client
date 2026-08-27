@@ -1,6 +1,17 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "errorReason.connectionAttemptsExceeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't establish the connection after several attempts. Please try again."
+          }
+        }
+      }
+    },
     "onboarding26.censorship.amneziaBold" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15605,7 +15616,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Works with macOS system-wide proxy settings, Firefox, and Web3 wallets."
+            "value" : "On Firefox or browsers that permit SOCKS5 configurations."
           }
         }
       }
@@ -15749,6 +15760,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setup instructions"
+          }
+        }
+      }
+    },
+    "geoExclusion.server" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
           }
         }
       }

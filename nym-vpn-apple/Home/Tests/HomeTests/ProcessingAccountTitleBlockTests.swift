@@ -3,20 +3,21 @@ import AccountPrefetchGates
 @testable import Home
 
 struct ProcessingAccountTitleBlockTests {
-    @Test func titleBlockMode_prefetchBeforeSetupComplete_showsCredentials() {
+    @Test func titleBlockMode_prefetchBeforeSetupComplete_keepsSetupCarousel() {
         let showsCredentials = LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
             usesStaticCopy: false,
             didShowFinalMessage: false,
             isSyncing: false,
-            isPrefetching: true
+            isPrefetching: true,
+            didFinishSetupCarousel: false
         )
-        #expect(showsCredentials)
+        #expect(!showsCredentials)
         #expect(
             ProcessingAccountView.titleBlockMode(
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
                 showsCredentialsCarousel: showsCredentials
-            ) == .credentials
+            ) == .setupCarousel
         )
     }
 
@@ -25,7 +26,8 @@ struct ProcessingAccountTitleBlockTests {
             usesStaticCopy: false,
             didShowFinalMessage: false,
             isSyncing: true,
-            isPrefetching: false
+            isPrefetching: false,
+            didFinishSetupCarousel: true
         )
         #expect(showsCredentials)
         #expect(

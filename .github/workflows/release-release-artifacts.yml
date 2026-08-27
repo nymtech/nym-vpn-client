@@ -11,6 +11,22 @@ on:
         description: "GitHub Release type (draft, prerelease, or release)"
         type: string
         required: true
+      publish_github:
+        description: "Whether to publish release on Github"
+        type: boolean
+        required: true
+      publish_s3:
+        description: "Whether to publish release on S3"
+        type: boolean
+        required: true
+      github_branch:
+        description: "Github branch"
+        type: string
+        required: true
+      build_timestamp:
+        description: "Build timestamp (format: YYYYMMDDHHmm)"
+        type: string
+        required: true
       version:
         type: string
         description: "Release version"
@@ -55,24 +71,39 @@ on:
     outputs:
       github_release_url:
         value: ${{ jobs.create-release.outputs.github_release_url }}
+        description: "GitHub release page link"
       linux_app_deb_x64_url:
         value: ${{ jobs.create-release.outputs.linux_app_deb_x64_url }}
+        description: "GitHub download link for nym-vpn-app (deb, x64)"
       linux_app_deb_arm64_url:
         value: ${{ jobs.create-release.outputs.linux_app_deb_arm64_url }}
+        description: "GitHub download link for nym-vpn-app (deb, arm64)"
       linux_app_appimage_x64_url:
         value: ${{ jobs.create-release.outputs.linux_app_appimage_x64_url }}
+        description: "GitHub download link for nym-vpn-app (AppImage, x64)"
       linux_app_appimage_arm64_url:
         value: ${{ jobs.create-release.outputs.linux_app_appimage_arm64_url }}
+        description: "GitHub download link for nym-vpn-app (AppImage, arm64)"
       windows_installer_x64_url:
         value: ${{ jobs.create-release.outputs.windows_installer_x64_url }}
+        description: "GitHub download link for windows installer (x64)"
       windows_installer_arm64_url:
         value: ${{ jobs.create-release.outputs.windows_installer_arm64_url }}
+        description: "GitHub download link for windows installer (arm64)"
       macos_installer_url:
         value: ${{ jobs.create-release.outputs.macos_installer_url }}
+        description: "GitHub download link for macOS installer"
       vpnc_macos_installer_url:
         value: ${{ jobs.create-release.outputs.vpnc_macos_installer_url }}
+        description: "GitHub download link for macOS nym-vpnc installer"
       android_apk_url:
         value: ${{ jobs.create-release.outputs.android_apk_url }}
+        description: "GitHub download link for Android APK"
+    secrets:
+      GARAGE_AWS_ACCESS_KEY_ID:
+        required: true
+      GARAGE_AWS_SECRET_ACCESS_KEY:
+        required: true
 
 env:
   APP_ARTIFACTS_LINUX_AARCH64: app_artifacts_linux_aarch64
@@ -97,6 +128,10 @@ env:
   RELEASE_PAYLOAD_ARTIFACT: release-payload
   RELEASE_PAYLOAD: release-payload.json
   CHECKSUM_FILE: checksums.txt
+  S3_BRANCH_MANIFEST: manifest.json
+  S3_LATEST_MANIFEST: latest.json
+  S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
+  S3_BUCKET: builds
 
 jobs:
   resolve:
@@ -186,6 +221,8 @@ jobs:
       linux_app_appimage_arm64: ${{ steps.linux_app.outputs.linux_app_appimage_arm64 }}
       windows_app_installer_x64: ${{ steps.windows_app.outputs.windows_app_installer_x64 }}
       windows_app_installer_arm64: ${{ steps.windows_app.outputs.windows_app_installer_arm64 }}
+      windows_app_installer_x64_sig: ${{ steps.windows_app.outputs.windows_app_installer_x64_sig }}
+      windows_app_installer_arm64_sig: ${{ steps.windows_app.outputs.windows_app_installer_arm64_sig }}
       android_apk: ${{ steps.android_app.outputs.android_apk }}
 
     steps:
@@ -284,8 +321,14 @@ jobs:
           WINDOWS_APP_INSTALLER_X64="${BASENAME}_x64-setup.exe"
           WINDOWS_APP_INSTALLER_ARM64="${BASENAME}_arm64-setup.exe"
 
+          WINDOWS_APP_INSTALLER_X64_SIG="${WINDOWS_APP_INSTALLER_X64}.sig"
+          WINDOWS_APP_INSTALLER_ARM64_SIG="${WINDOWS_APP_INSTALLER_ARM64}.sig"
+
           echo "windows_app_installer_x64=$WINDOWS_APP_INSTALLER_X64" >> $GITHUB_OUTPUT
           echo "windows_app_installer_arm64=$WINDOWS_APP_INSTALLER_ARM64" >> $GITHUB_OUTPUT
+
+          echo "windows_app_installer_x64_sig=$WINDOWS_APP_INSTALLER_X64_SIG" >> $GITHUB_OUTPUT
+          echo "windows_app_installer_arm64_sig=$WINDOWS_APP_INSTALLER_ARM64_SIG" >> $GITHUB_OUTPUT
 
       - name: App artifacts (Android)
         id: android_app
@@ -343,16 +386,18 @@ jobs:
         vpnc_macos_installer_url: ${{ steps.extract_urls.outputs.vpnc_macos_installer_url }}
         android_apk_url: ${{ steps.extract_urls.outputs.android_apk_url }}
     steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
       - name: Download artifacts
         uses: actions/download-artifact@v8
 
       - name: Prepare build output directory
         shell: bash
         env:
-          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+          OUTPUT_DIR: ci-builds/${{ inputs.github_branch }}/${{ inputs.build_timestamp }}
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
-          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
           echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
           rm -rf ci-builds || true
           mkdir -p $OUTPUT_DIR
@@ -438,9 +483,21 @@ jobs:
         env:
           WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
           WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+          WINDOWS_APP_INSTALLER_X64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64_sig }}
+          WINDOWS_APP_INSTALLER_ARM64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64_sig }}
         run: |
           cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "${{ env.OUTPUT_DIR }}"
+          if [ -f "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ]; then
+            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "${{ env.OUTPUT_DIR }}"
+          else
+            echo "::notice::Skipping optional Windows x64 installer signature (absent): ${WINDOWS_APP_INSTALLER_X64_SIG:-<empty>}"
+          fi
+          if [ -f "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ]; then
+            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "${{ env.OUTPUT_DIR }}"
+          else
+            echo "::notice::Skipping optional Windows arm64 installer signature (absent): ${WINDOWS_APP_INSTALLER_ARM64_SIG:-<empty>}"
+          fi
 
       - name: Copy artifacts (Android)
         if: ${{ needs.resolve.outputs.fdroid == 'true' }}
@@ -484,6 +541,8 @@ jobs:
           ARCHIVE_WINDOWS_ARM64: ${{ needs.resolve-artifacts.outputs.archive_windows_arm64 }}
           WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64 }}
           WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64 }}
+          WINDOWS_APP_INSTALLER_X64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64_sig }}
+          WINDOWS_APP_INSTALLER_ARM64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64_sig }}
           MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
           VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
         run: |
@@ -514,6 +573,8 @@ jobs:
               "${WINDOWS_APP_INSTALLER_X64}"
               "${WINDOWS_APP_INSTALLER_ARM64}"
             )
+            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_X64_SIG}")
+            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_ARM64_SIG}")
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
@@ -546,6 +607,7 @@ jobs:
       - name: Publish GitHub Release
         working-directory: ${{ env.OUTPUT_DIR }}
         id: gh-release
+        if: ${{ inputs.publish_github == true }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
@@ -591,6 +653,7 @@ jobs:
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: List asset URLs
+        if: ${{ inputs.publish_github == true }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.gh-release.outputs.release_tag }}
@@ -605,6 +668,7 @@ jobs:
 
       - name: Extract asset URLs
         id: extract_urls
+        if: ${{ inputs.publish_github == true }}
         env:
           GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.release_url }}
           LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
@@ -716,3 +780,34 @@ jobs:
               echo "android_apk_url=$ANDROID_APK" >> $GITHUB_OUTPUT
             fi
           fi
+
+      - name: Prepare S3 manifest
+        if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' }}
+        env:
+          BUILD_TIMESTAMP: ${{ inputs.build_timestamp }}
+          GITHUB_BRANCH: ${{ inputs.github_branch }}
+          RELEASE_ASSETS: ${{ env.RELEASE_ASSETS }}
+          OUTPUT_DIR: ${{ env.OUTPUT_DIR }}
+          LATEST_MANIFEST: ${{ env.S3_LATEST_MANIFEST }}
+          BRANCH_MANIFEST: ${{ env.OUTPUT_DIR }}/${{ env.S3_BRANCH_MANIFEST }}
+        run: |
+          PARENT_DIR=$(dirname "$OUTPUT_DIR")
+          LATEST_MANIFEST_PATH="$PARENT_DIR/$LATEST_MANIFEST"
+
+          echo "::notice:: Create S3 manifest at $LATEST_MANIFEST_PATH"
+          jq -R -s --arg ts "$BUILD_TIMESTAMP" \
+            '{timestamp: $ts, files: (split("\n") | map(select(length > 0)))}' "$RELEASE_ASSETS" > "$LATEST_MANIFEST_PATH"
+
+          echo "::notice:: Copy S3 manifest to $BRANCH_MANIFEST"
+          cp "$LATEST_MANIFEST_PATH" "$BRANCH_MANIFEST"
+
+      - name: Publish release to S3
+        if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' }}
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: ci-builds/
+          destination: nym-vpn-client/nym-vpn-core/
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}

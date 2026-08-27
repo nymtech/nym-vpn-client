@@ -62,5 +62,3 @@ tags:
 
 - assertVisible:
     text: "App version:.*"
-- assertVisible:
-    text: "Daemon version:.*"

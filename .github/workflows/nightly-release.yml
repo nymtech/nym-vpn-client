@@ -1,9 +1,9 @@
 name: nightly-release
 
 on:
-#  schedule:
-#    - cron: "0 4 * * *"
   workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * *"
 
 jobs:
   release-nightly:
@@ -12,7 +12,8 @@ jobs:
     permissions:
       contents: write
     with:
-      gh_release: auto
+      gh_release: none
+      publish_s3: true
       release_channel: nightly
       android: false
       fdroid: true

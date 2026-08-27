@@ -4,6 +4,7 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+use nym_network_defaults::{WG_TUN_DEVICE_IP_ADDRESS_V4, WG_TUN_DEVICE_IP_ADDRESS_V6};
 
 /// Value used to mark packets and associated connections.
 /// This should be an arbitrary but unique integer.
@@ -58,6 +59,16 @@ pub fn is_local_address(address: &IpAddr) -> bool {
         .any(|net| net.contains(address))
 }
 
+/// Host routes that must stay on the tunnel after LAN bypass carves out RFC1918/ULA.
+///
+/// Exit WG metadata is `WG_TUN_DEVICE_IP_ADDRESS_V4` (`10.1.0.1`), which sits inside `10.0.0.0/8`.
+pub fn keep_on_tunnel_after_lan_bypass() -> [IpNetwork; 2] {
+    [
+        v4(WG_TUN_DEVICE_IP_ADDRESS_V4, 32),
+        v6(WG_TUN_DEVICE_IP_ADDRESS_V6, 128),
+    ]
+}
+
 // Short-hand for `IpNetwork::V4(Ipv4Network::new_checked(address, prefix).unwrap())`.
 const fn v4(address: Ipv4Addr, prefix: u8) -> IpNetwork {
     IpNetwork::V4(Ipv4Network::new_checked(address, prefix).unwrap())
@@ -66,4 +77,55 @@ const fn v4(address: Ipv4Addr, prefix: u8) -> IpNetwork {
 // Short-hand for `IpNetwork::V6(Ipv6Network::new_checked(address, prefix).unwrap())`.
 const fn v6(address: Ipv6Addr, prefix: u8) -> IpNetwork {
     IpNetwork::V6(Ipv6Network::new_checked(address, prefix).unwrap())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keep_on_tunnel_after_lan_bypass_includes_wg_metadata_v4() {
+        let nets = keep_on_tunnel_after_lan_bypass();
+        let meta = IpAddr::V4(WG_TUN_DEVICE_IP_ADDRESS_V4);
+        assert!(
+            ALLOWED_LAN_NETS.iter().any(|net| net.contains(meta)),
+            "WG metadata v4 must sit inside LAN bypass nets (the collision this keep-list exists for)"
+        );
+        assert!(nets.iter().any(|net| net.contains(meta)));
+    }
+
+    #[test]
+    fn keep_on_tunnel_after_lan_bypass_includes_wg_metadata_v6() {
+        let nets = keep_on_tunnel_after_lan_bypass();
+        let meta = IpAddr::V6(WG_TUN_DEVICE_IP_ADDRESS_V6);
+        assert!(ALLOWED_LAN_NETS.iter().any(|net| net.contains(meta)));
+        assert!(nets.iter().any(|net| net.contains(meta)));
+    }
+
+    #[test]
+    fn keep_on_tunnel_after_lan_bypass_emits_host_prefixes() {
+        for net in keep_on_tunnel_after_lan_bypass() {
+            let expected = if net.is_ipv4() { 32 } else { 128 };
+            assert_eq!(net.prefix(), expected, "{net} must be a host route");
+        }
+    }
+
+    #[test]
+    fn keep_on_tunnel_after_lan_bypass_does_not_include_typical_lan_host() {
+        let nets = keep_on_tunnel_after_lan_bypass();
+        for lan in [
+            IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+            IpAddr::V4(Ipv4Addr::new(10, 0, 0, 2)),
+            IpAddr::V4(Ipv4Addr::new(172, 16, 0, 1)),
+        ] {
+            assert!(
+                ALLOWED_LAN_NETS.iter().any(|net| net.contains(lan)),
+                "{lan} should remain in the LAN bypass set"
+            );
+            assert!(
+                !nets.iter().any(|net| net.contains(lan)),
+                "{lan} must not be re-added to the tunnel"
+            );
+        }
+    }
 }

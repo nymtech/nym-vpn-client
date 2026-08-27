@@ -29,6 +29,7 @@ BASE="${FULL%%-*}"   # strip the first '-' and everything after → major.minor.
 echo "::notice:: channel=${CHANNEL} cargo_version=${FULL} base=${BASE}"
 
 NIGHTLY_TIMESTAMP=""
+BUILD_TIMESTAMP="$(date -u +%Y%m%d%H%M)"
 
 case "$CHANNEL" in
   nightly)
@@ -87,6 +88,7 @@ echo "::notice:: version=${VERSION} tag=${TAG}"
   echo "channel=${CHANNEL}"
   echo "version=${VERSION}"
   echo "tag=${TAG}"
+  echo "build_timestamp=${BUILD_TIMESTAMP}"
 } >> "$GITHUB_OUTPUT"
 
 if [ -n "$NIGHTLY_TIMESTAMP" ]; then

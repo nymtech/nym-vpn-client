@@ -18,7 +18,7 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State = when (this.v1) {
 	is TunnelState.Disconnected -> Tunnel.State.Down
 	is TunnelState.Disconnecting -> Tunnel.State.Disconnecting
 	is TunnelState.Error -> Tunnel.State.Error(this.v1.v1)
-	is TunnelState.Offline -> Tunnel.State.Offline
+	is TunnelState.Offline -> Tunnel.State.Offline((this.v1 as TunnelState.Offline).reconnect)
 }
 
 enum class GatewaySelectionMode(val value: String) {
@@ -93,6 +93,7 @@ private val ERROR_STATE_REASON_STRING_RES: Map<ErrorStateReason, Int> = mapOf(
 	ErrorStateReason.CredentialFetchingFailed to R.string.error_reason_credential_fetching_failed,
 	ErrorStateReason.NoCredentialAvailable to R.string.error_reason_no_credential_available,
 	ErrorStateReason.NeedsDeviceLocation to R.string.error_reason_needs_device_location,
+	ErrorStateReason.ConnectionAttemptsExceeded to R.string.error_reason_connection_attempts_exceeded,
 )
 
 fun ErrorStateReason.toHumanReadableString(context: Context): String = when (this) {

@@ -8,6 +8,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.screens.details.components.CountryFlag
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
-import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 
@@ -113,10 +113,9 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 		modifier = modifier.fillMaxWidth(),
 	) {
 		val (icon, description) = getScoreIcon(node.score)
-		Icon(
+		Image(
 			icon,
 			contentDescription = description,
-			tint = LocalNymColors.current.success,
 			modifier = Modifier.size(iconSize).padding(2.dp),
 		)
 

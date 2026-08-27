@@ -6,7 +6,7 @@ tags:
 - runFlow: ../../subflows/open_app.yaml
 
 - tapOn:
-    text: "Random"
+    text: "Safest"
     below: "Exit server"
 
 - extendedWaitUntil:
