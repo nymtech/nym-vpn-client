@@ -4,9 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -26,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,13 +115,24 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 		horizontalArrangement = Arrangement.spacedBy(8.dp),
 		modifier = modifier.fillMaxWidth(),
 	) {
-		val (icon, description) = getScoreIcon(node.score)
-		val scoreIconPadding = if (node.score == null) 0.dp else 2.dp
-		Image(
-			icon,
-			contentDescription = description,
-			modifier = Modifier.align(Alignment.Top).size(iconSize).padding(scoreIconPadding),
-		)
+		val scoreIcon = getScoreIcon(node.score)
+		val lastScoreIcon = remember { mutableStateOf(scoreIcon) }
+		if (scoreIcon != null) lastScoreIcon.value = scoreIcon
+
+		AnimatedVisibility(
+			visible = scoreIcon != null,
+			modifier = Modifier.align(Alignment.Top),
+			enter = fadeIn(animationSpec = tween(350)) + expandHorizontally(animationSpec = tween(350)),
+			exit = fadeOut(animationSpec = tween(350)) + shrinkHorizontally(animationSpec = tween(350)),
+		) {
+			lastScoreIcon.value?.let { (icon, description) ->
+				Image(
+					icon,
+					contentDescription = description,
+					modifier = Modifier.size(iconSize).padding(2.dp),
+				)
+			}
+		}
 
 		Column(
 			verticalArrangement = Arrangement.spacedBy(4.dp),
