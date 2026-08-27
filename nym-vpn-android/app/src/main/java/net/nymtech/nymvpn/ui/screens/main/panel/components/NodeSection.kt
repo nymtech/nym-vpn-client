@@ -113,10 +113,11 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 		modifier = modifier.fillMaxWidth(),
 	) {
 		val (icon, description) = getScoreIcon(node.score)
+		val scoreIconPadding = if (node.score == null) 0.dp else 2.dp
 		Image(
 			icon,
 			contentDescription = description,
-			modifier = Modifier.size(iconSize).padding(2.dp),
+			modifier = Modifier.align(Alignment.Top).size(iconSize).padding(scoreIconPadding),
 		)
 
 		Column(
