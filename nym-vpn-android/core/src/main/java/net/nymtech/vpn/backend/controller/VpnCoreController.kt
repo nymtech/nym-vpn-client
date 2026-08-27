@@ -220,6 +220,7 @@ class VpnCoreController(
 				events.tryEmit(Log("TunnelEvent config_changed"))
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
+			is TunnelEvent.ConflictDetected -> events.tryEmit(Log("TunnelEvent conflict_detected: ${event.v1}"))
 		}
 	}
 
