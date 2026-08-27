@@ -22,6 +22,7 @@ set -o pipefail
 # catch errors
 trap 'catch $? ${FUNCNAME[0]:-main} $LINENO' ERR
 cwd=$(pwd)
+temp_dir=""
 
 # ANSI style codes
 RED="\e[38;5;1m" # red
@@ -52,6 +53,14 @@ BUILD_CHANNEL=${BUILD_CHANNEL:-stable}
 # (e.g. nym-vpn-v2026.12.0-nightly.20260706)
 APP_RELEASE=${APP_RELEASE:-}
 CORE_BUILD=${CORE_BUILD:-0}
+
+case "$BUILD_CHANNEL" in
+stable | dev) ;;
+*)
+  echo "Unsupported BUILD_CHANNEL: $BUILD_CHANNEL (expected stable or dev)" >&2
+  exit 1
+  ;;
+esac
 
 # detect CPU architecture
 _uname_arch=$(uname -m)
@@ -136,11 +145,11 @@ tilded() {
 # check if a binary is in the PATH
 # outputs 0 if found, 1 if not found
 bin_in_path() {
-  if which "$1" &>/dev/null; then
+  if command -v "$1" &>/dev/null; then
     log "${B_YLW}⚠$RS $1 is present in the system"
-    echo 0
+    return 0
   fi
-  echo 1
+  return 1
 }
 
 user_prompt() {
@@ -188,10 +197,20 @@ os=$(uname -a)
 os="${os,,}"
 install_type=raw
 
-# for deb based systems install from deb packages
-[[ -z "$INSTALL_TYPE" ]] &&
-  [[ "$os" == *debian* || "$os" == *ubuntu* || "$os" == *mint* ]] &&
+# for deb based systems install from deb packages; an explicit value wins
+if [ -n "${INSTALL_TYPE:-}" ]; then
+  install_type=$INSTALL_TYPE
+elif [[ "$os" == *debian* || "$os" == *ubuntu* || "$os" == *mint* ]]; then
   install_type=deb
+fi
+
+case "$install_type" in
+raw | deb) ;;
+*)
+  echo "Unsupported INSTALL_TYPE: $install_type (expected raw or deb)" >&2
+  exit 1
+  ;;
+esac
 
 # components to install/uninstall
 # 0 = to be (un)installed
@@ -206,13 +225,32 @@ sys_pkgs=()
 # `nym-vpn-vXXXX.YY.ZZ-nightly.TIMESTAMP`; we keep the one with the highest
 # trailing timestamp.
 latest_nightly_tag() {
-  curl -sSL \
+  curl -fsSL \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/nymtech/nym-vpn-client/releases?per_page=100" |
     grep -oP '"tag_name":\s*"\Knym-vpn-v[0-9]+\.[0-9]+\.[0-9]+-nightly\.[0-9]+(?=")' |
     sort -t. -k4 -n |
     tail -n1
+}
+
+# All release artifacts are listed in one release-wide checksums.txt.
+download_and_verify() {
+  local url=$1
+  local filename=$2
+  local checksum_url="${url%/*}/checksums.txt"
+
+  log "  ${B_GRN}Downloading$RS $filename"
+  curl -fL -# "$url" -o "$filename"
+  log "  ${B_GRN}Downloading$RS checksums.txt"
+  curl -fL -# "$checksum_url" -o checksums.txt
+  if ! awk -v file="$filename" '$NF == file { found=1 } END { exit !found }' checksums.txt; then
+    echo "checksum entry for $filename was not found in checksums.txt" >&2
+    return 1
+  fi
+  log "  ${B_GRN}Checking$RS sha256sum"
+  sha256sum --ignore-missing --check --status checksums.txt
+  log "   ${BI_MGT}ok$RS"
 }
 
 app_dev_setup() {
@@ -228,12 +266,16 @@ app_dev_setup() {
   # capture the response first; piping curl straight into `grep -m1` makes grep
   # close the pipe early on a large release payload, killing curl with SIGPIPE
   # (exit 23) under pipefail.
-  app_release_json=$(curl -sSL \
+  app_release_json=$(curl -fsSL \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/"$app_tag")
   app_version=$(printf '%s' "$app_release_json" |
     grep -m1 -oP "(?<=\"name\": \"NymVPN_).+(?=_${app_image_arch}\.AppImage)")
+  if [ -z "$app_version" ]; then
+    echo "failed to resolve AppImage version from release $app_tag" >&2
+    exit 1
+  fi
   appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_${app_image_arch}.AppImage"
   app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_${deb_arch}.deb"
   appimage="NymVPN_${app_version}_${app_image_arch}.AppImage"
@@ -265,7 +307,7 @@ vpnd_dev_setup() {
   # manifest (see publish-nym-vpn-core.yml) instead of scraping the build dir.
   if [ "$CORE_BUILD" = 0 ]; then
     core_build_base=https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core/develop
-    manifest=$(curl -s "$core_build_base/latest.json")
+    manifest=$(curl -fsSL "$core_build_base/latest.json")
     latest=$(printf '%s' "$manifest" | grep -oP '"timestamp"\s*:\s*"\K[0-9]+')
     if [ -z "$latest" ]; then
       echo "failed to resolve latest dev build from $core_build_base/latest.json" >&2
@@ -274,11 +316,15 @@ vpnd_dev_setup() {
     build_url="$core_build_base/$latest/"
   else
     build_url="$CORE_BUILD/"
-    manifest=$(curl -s "${build_url}manifest.json")
+    manifest=$(curl -fsSL "${build_url}manifest.json")
   fi
 
   get_core_dev "$manifest" "$build_url"
   get_vpnd_dev_deb "$manifest" "$build_url"
+  if [ -z "$core_archive" ] || [ -z "$vpnd_deb" ]; then
+    echo "failed to resolve dev core artifacts from $build_url" >&2
+    exit 1
+  fi
 }
 
 dev_setup() {
@@ -352,13 +398,7 @@ select_components() {
 # Download app AppImage and desktop assets
 download_app_appimage() {
   _pushd "$temp_dir"
-  log "  ${B_GRN}Downloading$RS $appimage"
-  curl -fL -# "$appimage_url" -o "$appimage"
-  log "  ${B_GRN}Downloading$RS $appimage.sha256sum"
-  curl -fL -# "$appimage_url.sha256sum" -o "$appimage.sha256sum"
-  log "  ${B_GRN}Checking$RS sha256sum"
-  sha256sum --check --status "$appimage.sha256sum"
-  log "   ${BI_MGT}ok$RS"
+  download_and_verify "$appimage_url" "$appimage"
   log "  ${B_GRN}Downloading$RS app desktop entry"
   curl -fL -# "$desktop_url" -o app.desktop
   log "  ${B_GRN}Downloading$RS app icon"
@@ -369,45 +409,27 @@ download_app_appimage() {
 # Download `nym-vpn-app` deb package
 download_app_deb() {
   _pushd "$temp_dir"
-  log "  ${B_GRN}Downloading$RS $app_deb"
-  curl -fL -# "$app_deb_url" -o "$app_deb"
-  log "  ${B_GRN}Downloading$RS $app_deb.sha256sum"
-  curl -fL -# "$app_deb_url.sha256sum" -o "$app_deb.sha256sum"
-  log "  ${B_GRN}Checking$RS sha256sum"
-  sha256sum --check --status "$app_deb.sha256sum"
-  log "   ${BI_MGT}ok$RS"
+  download_and_verify "$app_deb_url" "$app_deb"
   _popd
 }
 
 # Download `nym-vpnd` prebuilt binary
 download_vpnd_raw() {
   _pushd "$temp_dir"
-  log "  ${B_GRN}Downloading$RS nym-vpnd archive"
-  curl -fL -# "$vpnd_raw_url" -o "$core_archive"
-  log "  ${B_GRN}Downloading$RS archive sha256sum"
-  curl -fL -# "$vpnd_raw_url.sha256sum" -o "$core_archive.sha256sum"
-  log "  ${B_GRN}Checking$RS sha256sum"
-  sha256sum --check --status "$core_archive.sha256sum"
-  log "   ${BI_MGT}ok$RS"
+  download_and_verify "$vpnd_raw_url" "$core_archive"
   log "  ${B_GRN}Downloading$RS unit file"
   curl -fL -# "$unit_url" -o nym-vpnd.service
   log "  ${B_GRN}Unarchiving$RS nym-vpnd"
   tar -xzf "$core_archive"
-  mv "${core_archive%.tar.gz}/$vpnd_bin" $vpnd_bin
-  mv "${core_archive%.tar.gz}/$socks5_proxy_bin" $socks5_proxy_bin
+  mv "${core_archive%.tar.gz}/$vpnd_bin" "$vpnd_bin"
+  mv "${core_archive%.tar.gz}/$socks5_proxy_bin" "$socks5_proxy_bin"
   _popd
 }
 
 # Download `nym-vpnd` deb package
 download_vpnd_deb() {
   _pushd "$temp_dir"
-  log "  ${B_GRN}Downloading$RS $vpnd_deb"
-  curl -fL -# "$vpnd_deb_url" -o "$vpnd_deb"
-  log "  ${B_GRN}Downloading$RS $vpnd_deb.sha256sum"
-  curl -fL -# "$vpnd_deb_url.sha256sum" -o "$vpnd_deb.sha256sum"
-  log "  ${B_GRN}Checking$RS sha256sum"
-  sha256sum --check --status "$vpnd_deb.sha256sum"
-  log "   ${BI_MGT}ok$RS"
+  download_and_verify "$vpnd_deb_url" "$vpnd_deb"
   _popd
 }
 
@@ -422,25 +444,20 @@ dir_in_path() {
 # check if a unit exists
 # return 0 if found, 1 if not found
 check_unit() {
-  if systemctl status nym-vpnd &>/dev/null; then
+  if systemctl cat "$1" &>/dev/null; then
     return 0
-  else
-    status=$?
-    if [ $status -eq 4 ]; then
-      # exit code 4 means the service is not found
-      return 1
-    fi
   fi
-  # other exit code mean the service exists
-  return 0
+  return 1
 }
 
 # check for existing installation presence
 sanity_check() {
   log "  ${B_GRN}Checking$RS for existing installation"
 
-  vpnd_in_path=$(bin_in_path $vpnd_bin)
-  app_in_path=$(bin_in_path $target_appimage)
+  vpnd_in_path=1
+  app_in_path=1
+  bin_in_path "$vpnd_bin" && vpnd_in_path=0 || true
+  bin_in_path "$target_appimage" && app_in_path=0 || true
 
   # check for any existing installation, if found cancel the script
   if [[ "$_vpnd" == 0 && $vpnd_in_path == 0 ]] ||
@@ -465,7 +482,7 @@ sanity_check() {
     fi
   done
 
-  if [ "$_vpnd" == 0 ] && check_unit "nym_vpnd"; then
+  if [ "$_vpnd" == 0 ] && check_unit "$vpnd_service"; then
     log "  ${I_YLW}⚠$RS nym-vpnd unit service found on the system$RS"
     log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
     exit 1
@@ -480,8 +497,8 @@ start_service() {
   user_prompt choice "$prompt"
 
   if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
-    sudo systemctl enable $vpnd_service &>/dev/null
-    sudo systemctl start $vpnd_service &>/dev/null
+    sudo systemctl enable "$vpnd_service" &>/dev/null
+    sudo systemctl start "$vpnd_service" &>/dev/null
     log "    ${B_GRN}✓$RS service enabled and started"
   else
     log "   Run the following commands to enable and start the VPN service:
@@ -502,7 +519,7 @@ check_system_deps() {
   case "$os" in
   *ubuntu* | *debian*)
     # check for ubuntu version > 22.04 libfuse3 (needed for AppImage)
-    fuse_output=$(dpkg --get-selections | grep fuse)
+    fuse_output=$(dpkg --get-selections | grep fuse || true)
     if [[ "$fuse_output" != *"libfuse3-3"* ]]; then
       choice=""
       log "  ${B_GRN}Install$RS required package libfuse3?"
@@ -702,7 +719,6 @@ _uninstall_raw() {
   local files=()
   if [ "$_vpnd" == 0 ]; then
     files+=(
-      "$xdg_bin_home/nym-vpnd"
       "/usr/bin/nym-vpnd"
       "/usr/bin/nym-socks5-proxy"
       "/usr/lib/systemd/system/nym-vpnd.service"
@@ -764,11 +780,11 @@ _uninstall_deb() {
     return 0
   fi
   if [ $u_app = 0 ]; then
-    log "  ${B_GRN}Removing$RS nymp-vpn-app"
+    log "  ${B_GRN}Removing$RS nym-vpn-app"
     sudo apt remove -y nym-vpn-app
   fi
   if [ $u_vpnd = 0 ]; then
-    log "  ${B_GRN}Removing$RS nymp-vpnd"
+    log "  ${B_GRN}Removing$RS nym-vpnd"
     sudo apt remove -y nym-vpnd
   fi
 }
@@ -780,8 +796,8 @@ need_cmd sed
 need_cmd curl
 need_cmd tar
 need_cmd sha256sum
-need_cmd which
 need_cmd grep
+need_cmd awk
 
 if [ "$1" == uninstall ]; then
   log "$ITL${BI_GRY}nym$RS${BI_GRN}VPN$RS ${BI}uninstaller$RS\n"
