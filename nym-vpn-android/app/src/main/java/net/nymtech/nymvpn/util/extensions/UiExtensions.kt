@@ -214,7 +214,7 @@ internal fun NymGateway.isQuicSupported(): Boolean = run {
 }
 
 @Composable
-fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String> {
+fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String>? {
 	val score = when (gatewayType) {
 		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> mixnetScore
 		GatewayType.WG -> wgScore
@@ -223,12 +223,12 @@ fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String>
 }
 
 @Composable
-fun getScoreIcon(score: Score?): Pair<ImageVector, String> = when (score) {
+fun getScoreIcon(score: Score?): Pair<ImageVector, String>? = when (score) {
 	Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
 	Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 	Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
 	Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
-	null -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+	null -> null
 }
 
 @Composable
