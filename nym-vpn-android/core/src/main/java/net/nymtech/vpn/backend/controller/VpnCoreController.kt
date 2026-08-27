@@ -222,6 +222,7 @@ class VpnCoreController(
 				service.updateForegroundNotification(state, lastRetryAttempt)
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
+			is TunnelEvent.ConflictDetected -> events.tryEmit(Log("TunnelEvent conflict_detected: ${event.v1}"))
 		}
 	}
 
