@@ -525,9 +525,12 @@ internal fun ServerScreenContent(
 								SelectionItem(
 									onClick = { onSelect(gateway.identity) },
 									leading = {
-										val (icon, description) = gateway.getScoreIcon(gatewayType)
-										Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-											Image(icon, contentDescription = description, modifier = Modifier.size(16.dp))
+										val scoreIcon = gateway.getScoreIcon(gatewayType)
+										if (scoreIcon != null) {
+											val (icon, description) = scoreIcon
+											Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+												Image(icon, contentDescription = description, modifier = Modifier.size(16.dp))
+											}
 										}
 									},
 									trailing = {
