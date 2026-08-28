@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.screens.details.components.CountryFlag
-import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
