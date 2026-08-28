@@ -145,6 +145,36 @@ const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
 
 const METADATA_ENDPOINT_REACHABILITY_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// Reachability timeout used when the exit WireGuard handshake has not completed yet by
+/// the time the metadata endpoints are checked: the tunnel may still be warming up
+/// (e.g. slow gateway, post-wake path recovery), and WireGuard retries handshake
+/// initiations every ~5s, so the check is given extra headroom before the connection
+/// attempt is failed and the gateways are blamed.
+const EXTENDED_METADATA_ENDPOINT_REACHABILITY_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// Timeout for the metadata endpoint reachability check, depending on whether the exit
+/// WireGuard handshake completed within its own wait window.
+fn metadata_reachability_timeout(exit_handshake_completed: bool) -> Duration {
+    if exit_handshake_completed {
+        METADATA_ENDPOINT_REACHABILITY_TIMEOUT
+    } else {
+        EXTENDED_METADATA_ENDPOINT_REACHABILITY_TIMEOUT
+    }
+}
+
+/// Returns the up-to-date exit handshake state: a handshake that was not completed
+/// within the initial wait window may well have completed since, in which case a later
+/// connection failure must not be attributed to a missing handshake.
+fn exit_handshake_completed_now(
+    initially_completed: bool,
+    mut get_stats: impl FnMut() -> nym_wg_go::Result<nym_wg_go::wireguard_go::TunnelStats>,
+) -> bool {
+    initially_completed
+        || get_stats()
+            .map(|stats| stats.all_peers_connected())
+            .unwrap_or(false)
+}
+
 /// Timeout for starting the registration client
 const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
@@ -838,8 +868,9 @@ impl TunnelMonitor {
         let (exit_metadata_endpoint_reachable_tx, exit_metadata_endpoint_reachable_rx) =
             tokio::sync::oneshot::channel::<bool>();
         let uses_metadata_endpoint = wg_tunnel_runtime.is_some();
-        let metadata_endpoints_reachable =
-            tokio::time::timeout(METADATA_ENDPOINT_REACHABILITY_TIMEOUT, async move {
+        let metadata_endpoints_reachable = tokio::time::timeout(
+            metadata_reachability_timeout(exit_handshake_completed),
+            async move {
                 // for mixnet tunnel, we don't have metadata endpoints, so we just return true
                 if !uses_metadata_endpoint {
                     return true;
@@ -848,8 +879,9 @@ impl TunnelMonitor {
                 let exit_reachable = exit_metadata_endpoint_reachable_rx.await.unwrap_or(false);
 
                 entry_reachable && exit_reachable
-            })
-            .fuse();
+            },
+        )
+        .fuse();
         tokio::pin!(metadata_endpoints_reachable);
 
         // Send metadata endpoint data to the bandwidth monitor
@@ -978,6 +1010,10 @@ impl TunnelMonitor {
                                     }
                                 } else {
                                     tracing::info!("Tunnel connection is down. Exiting");
+                                    let exit_handshake_completed = match tunnel_handle.as_wireguard() {
+                                        Some(wg) => exit_handshake_completed_now(exit_handshake_completed, || wg.get_exit_stats()),
+                                        None => exit_handshake_completed,
+                                    };
                                     self.send_event(TunnelMonitorEvent::ConnectionFailed {
                                         entry_gateway_id: selected_gateways
                                             .entry_gateway()
@@ -1000,6 +1036,10 @@ impl TunnelMonitor {
                             health.clear_health();
                         }
                         tracing::info!("Metadata endpoints not reachable. Exiting");
+                        let exit_handshake_completed = match tunnel_handle.as_wireguard() {
+                            Some(wg) => exit_handshake_completed_now(exit_handshake_completed, || wg.get_exit_stats()),
+                            None => exit_handshake_completed,
+                        };
                         self.send_event(TunnelMonitorEvent::ConnectionFailed {
                             entry_gateway_id: selected_gateways.entry_gateway().identity(),
                             exit_gateway_id: selected_gateways.exit_gateway().identity(),
@@ -2261,6 +2301,54 @@ mod tests {
 
     const TEST_TIMEOUT: Duration = Duration::from_secs(10);
     const TEST_POLL_INTERVAL: Duration = Duration::from_millis(500);
+
+    #[test]
+    fn metadata_check_uses_standard_timeout_after_completed_handshake() {
+        assert_eq!(
+            metadata_reachability_timeout(true),
+            METADATA_ENDPOINT_REACHABILITY_TIMEOUT
+        );
+    }
+
+    #[test]
+    fn metadata_check_gets_extra_headroom_when_handshake_is_still_pending() {
+        assert_eq!(
+            metadata_reachability_timeout(false),
+            EXTENDED_METADATA_ENDPOINT_REACHABILITY_TIMEOUT
+        );
+        assert!(
+            EXTENDED_METADATA_ENDPOINT_REACHABILITY_TIMEOUT
+                > METADATA_ENDPOINT_REACHABILITY_TIMEOUT,
+            "a tunnel still waiting for its exit handshake needs more time, not less"
+        );
+    }
+
+    #[test]
+    fn handshake_state_is_not_repolled_when_already_completed() {
+        let polled = std::cell::Cell::new(false);
+        assert!(exit_handshake_completed_now(true, || {
+            polled.set(true);
+            Ok(stats_with_handshake(false))
+        }));
+        assert!(!polled.get());
+    }
+
+    #[test]
+    fn late_handshake_completion_is_recognized_at_failure_time() {
+        assert!(exit_handshake_completed_now(false, || Ok(
+            stats_with_handshake(true)
+        )));
+    }
+
+    #[test]
+    fn missing_handshake_stays_missing_at_failure_time() {
+        assert!(!exit_handshake_completed_now(false, || Ok(
+            stats_with_handshake(false)
+        )));
+        assert!(!exit_handshake_completed_now(false, || Err(
+            nym_wg_go::Error::GetUapiConfig
+        )));
+    }
 
     #[tokio::test(start_paused = true)]
     async fn handshake_wait_returns_completed_when_all_peers_connected() {
