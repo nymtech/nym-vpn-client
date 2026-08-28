@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn
 
+import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.os.Build
@@ -35,6 +36,7 @@ import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.ExitReasons
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
@@ -56,6 +58,7 @@ class NymVpn : Application() {
 
 	companion object {
 		private const val TAG = "app"
+		private const val PRIOR_EXIT_REASONS_MAX = 5
 
 		val isInitialized: Boolean get() = ::instance.isInitialized
 
@@ -107,6 +110,9 @@ class NymVpn : Application() {
 	@Volatile
 	private var logReaderStarted: Boolean = false
 
+	@Volatile
+	private var priorExitReasonsLogged: Boolean = false
+
 	private var logsObserverJob: Job? = null
 
 	override fun onCreate() {
@@ -132,6 +138,7 @@ class NymVpn : Application() {
 					applyLoggingConfig(enabled, debugEnabled)
 					if (enabled) {
 						ensureLogReaderStarted()
+						logPriorExitReasonsOnce()
 					}
 				}
 		}
@@ -231,6 +238,27 @@ class NymVpn : Application() {
 		if (!BuildConfig.DEBUG) return
 		StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.LAX)
 		StrictMode.setVmPolicy(StrictMode.VmPolicy.LAX)
+	}
+
+	private suspend fun logPriorExitReasonsOnce() {
+		if (priorExitReasonsLogged) return
+		priorExitReasonsLogged = true
+
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+		runCatching {
+			val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+			activityManager.getHistoricalProcessExitReasons(packageName, 0, PRIOR_EXIT_REASONS_MAX)
+				.forEach { info ->
+					// written directly to the log files: lines emitted this early would be
+					// wiped by the log reader's logcat -c
+					logReader.writeDiagnostic(
+						TAG,
+						ExitReasons.formatLine(info.timestamp, info.reason, info.status, info.importance, info.description),
+					)
+				}
+		}.onFailure { t ->
+			Timber.tag(TAG).w(t, "PriorExitReasonsFailed")
+		}
 	}
 
 	private fun ensureLogReaderStarted() {
