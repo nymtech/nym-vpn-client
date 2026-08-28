@@ -8,7 +8,12 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
 };
+use std::time::Duration;
 
+use futures::{
+    FutureExt,
+    future::{BoxFuture, Fuse},
+};
 #[cfg(target_os = "ios")]
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "macos")]
@@ -49,7 +54,18 @@ const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
     )),
 ];
 
+/// Delay before automatically attempting to recover from a transient error.
+const AUTO_RECOVERY_DELAY: Duration = Duration::from_secs(60);
+
+/// Returns true for error reasons caused by transient network conditions, from which
+/// the state machine should automatically attempt to recover instead of staying blocked
+/// until user interaction.
+fn is_auto_recoverable(reason: &ErrorStateReason) -> bool {
+    matches!(reason, ErrorStateReason::ConnectionAttemptsExceeded)
+}
+
 pub struct ErrorState {
+    recovery_delay_fut: Fuse<BoxFuture<'static, ()>>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     firewall_policy_params: BlockedPolicyParameters,
 }
@@ -123,7 +139,18 @@ impl ErrorState {
             firewall_policy_params
         };
 
+        let recovery_delay_fut = if is_auto_recoverable(&reason) {
+            tracing::info!(
+                "Will automatically attempt to recover from error state in {}s",
+                AUTO_RECOVERY_DELAY.as_secs()
+            );
+            tokio::time::sleep(AUTO_RECOVERY_DELAY).boxed().fuse()
+        } else {
+            Fuse::terminated()
+        };
+
         let blocked_state = Self {
+            recovery_delay_fut,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
         };
@@ -218,6 +245,18 @@ impl TunnelStateHandler for ErrorState {
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
+            _ = &mut self.recovery_delay_fut => {
+                tracing::info!("Attempting automatic recovery from error state");
+
+                #[cfg(any(target_os = "linux", target_os = "windows"))]
+                Self::reset_dns(shared_state).await;
+
+                if shared_state.connectivity_handle.connectivity().await.is_offline() {
+                    NextTunnelState::NewState(OfflineState::enter(true, None, shared_state).await)
+                } else {
+                    NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
+                }
+            },
             Some(command) = command_rx.recv() => {
                 tracing::debug!("ErrorState received command: {command:?}");
                 match command {
@@ -330,5 +369,28 @@ impl BlockedPolicyParameters {
             allow_lan: self.allow_lan,
             allowed_endpoints,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exceeded_connection_attempts_are_auto_recoverable() {
+        assert!(
+            is_auto_recoverable(&ErrorStateReason::ConnectionAttemptsExceeded),
+            "the daemon must not stay blocked forever after transient connection failures"
+        );
+    }
+
+    #[test]
+    fn configuration_errors_are_not_auto_recoverable() {
+        assert!(!is_auto_recoverable(&ErrorStateReason::SetDns));
+        assert!(!is_auto_recoverable(&ErrorStateReason::SetFirewallPolicy));
+        assert!(!is_auto_recoverable(&ErrorStateReason::InactiveAccount));
+        assert!(!is_auto_recoverable(&ErrorStateReason::Internal(
+            "logic error".to_owned()
+        )));
     }
 }

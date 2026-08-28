@@ -22,6 +22,7 @@ use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
     SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
     states::{ConnectedState, DisconnectingState, ErrorState, OfflineState},
+    system_sleep::SleepMarker,
     tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
@@ -67,6 +68,7 @@ type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
 pub struct ConnectingState {
     retry_attempt: u32,
+    attempt_start: SleepMarker,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
     tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
@@ -188,6 +190,7 @@ impl ConnectingState {
             tunnel_monitor_event_sender: Some(monitor_event_sender),
             tunnel_monitor_event_receiver: monitor_event_receiver,
             retry_attempt,
+            attempt_start: SleepMarker::now(),
             selected_gateways,
             connection_data: initial_connection_data.clone(),
             resolve_api_addrs_fut: Fuse::terminated(),
@@ -241,7 +244,14 @@ impl ConnectingState {
     }
 
     async fn reconnect(self, shared_state: &mut SharedState) -> NextTunnelState {
-        let next_attempt = self.retry_attempt.saturating_add(1);
+        let system_slept = self.attempt_start.system_slept();
+        if system_slept {
+            tracing::info!(
+                "System sleep interrupted connection attempt #{}; not counting it towards the reconnect limit",
+                self.retry_attempt
+            );
+        }
+        let next_attempt = next_retry_attempt(self.retry_attempt, system_slept);
 
         match reconnect_decision(next_attempt) {
             ReconnectDecision::Retry { reset_gateways } => {
@@ -760,26 +770,36 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id, exit_handshake_completed } => {
-                        // WG handshake timed out or connectivity probe failed without a healthy
-                        // metadata path; blacklist the exit so a different one is selected.
-                        shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
-                        // A failure before the exit handshake ever completed may equally be the
-                        // entry gateway's fault. Once the same entry accumulates enough
-                        // pre-handshake failures while exits rotate, blacklist it too.
-                        if shared_state.entry_blame.record_failure(entry_gateway_id, exit_handshake_completed) {
-                            tracing::warn!(
-                                "Blacklisted entry gateway {entry_gateway_id} after repeated connection failures without a completed exit handshake"
-                            );
-                            shared_state.gateway_provider.add_blacklisted_gateway(entry_gateway_id).await;
+                        if self.attempt_start.system_slept() {
+                            // The failure was in all likelihood caused by the system going to
+                            // sleep mid-attempt, so it says nothing about the gateways.
+                            tracing::info!("Not blacklisting gateways: system sleep interrupted the connection attempt");
+                        } else {
+                            // WG handshake timed out or connectivity probe failed without a healthy
+                            // metadata path; blacklist the exit so a different one is selected.
+                            shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                            // A failure before the exit handshake ever completed may equally be the
+                            // entry gateway's fault. Once the same entry accumulates enough
+                            // pre-handshake failures while exits rotate, blacklist it too.
+                            if shared_state.entry_blame.record_failure(entry_gateway_id, exit_handshake_completed) {
+                                tracing::warn!(
+                                    "Blacklisted entry gateway {entry_gateway_id} after repeated connection failures without a completed exit handshake"
+                                );
+                                shared_state.gateway_provider.add_blacklisted_gateway(entry_gateway_id).await;
+                            }
+                            self.selected_gateways = None;
                         }
-                        self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
-                        // Registration with the entry gateway failed; blacklist it to avoid
-                        // re-selecting the same failing gateway.
-                        shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
-                        self.selected_gateways = None;
+                        if self.attempt_start.system_slept() {
+                            tracing::info!("Not blacklisting gateway {gateway_id}: system sleep interrupted the registration");
+                        } else {
+                            // Registration with the entry gateway failed; blacklist it to avoid
+                            // re-selecting the same failing gateway.
+                            shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                            self.selected_gateways = None;
+                        }
                         NextTunnelState::SameState(self)
                     }
                 }
@@ -1076,6 +1096,17 @@ enum ReconnectDecision {
     Abort,
 }
 
+/// Computes the reconnect attempt number for the next attempt. An attempt interrupted
+/// by system sleep is not counted towards the reconnect limit: its failure says nothing
+/// about the network or the selected gateways.
+fn next_retry_attempt(current_attempt: u32, system_slept: bool) -> u32 {
+    if system_slept {
+        current_attempt
+    } else {
+        current_attempt.saturating_add(1)
+    }
+}
+
 fn reconnect_decision(next_attempt: u32) -> ReconnectDecision {
     if next_attempt >= MAX_RECONNECT_ATTEMPTS {
         ReconnectDecision::Abort
@@ -1119,6 +1150,22 @@ mod test {
                 reset_gateways: true
             }
         );
+    }
+
+    #[test]
+    fn attempt_counts_towards_limit_without_sleep() {
+        assert_eq!(next_retry_attempt(0, false), 1);
+        assert_eq!(next_retry_attempt(2, false), 3);
+    }
+
+    #[test]
+    fn sleep_interrupted_attempt_is_not_counted() {
+        assert_eq!(
+            next_retry_attempt(0, true),
+            0,
+            "an attempt interrupted by system sleep must not burn the reconnect budget"
+        );
+        assert_eq!(next_retry_attempt(2, true), 2);
     }
 
     #[test]
