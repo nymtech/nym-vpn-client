@@ -109,7 +109,7 @@ class ProcessingCopyTest {
 	fun processingCopyForPhase_credentialsCarousel_includesSubtitles() {
 		val tick0 = ProcessingCopy.processingCopyForPhase(
 			LoginProcessingUiPhase.Carousel,
-			AccountControllerState.RequestingZkNyms,
+			AccountControllerState.Syncing,
 			credentialsCarouselTick = 0,
 			setupCarouselFinished = true,
 		)
@@ -118,7 +118,7 @@ class ProcessingCopyTest {
 
 		val tick1 = ProcessingCopy.processingCopyForPhase(
 			LoginProcessingUiPhase.Carousel,
-			AccountControllerState.RequestingZkNyms,
+			AccountControllerState.Syncing,
 			credentialsCarouselTick = 1,
 			setupCarouselFinished = true,
 		)
@@ -179,7 +179,7 @@ class ProcessingCopyTest {
 			R.string.account_login_processing_loading_credentials,
 			ProcessingCopy.processingCopyForPhase(
 				LoginProcessingUiPhase.Carousel,
-				AccountControllerState.RequestingZkNyms,
+				AccountControllerState.Syncing,
 				setupCarouselFinished = true,
 			).titleRes,
 		)
@@ -193,11 +193,11 @@ class ProcessingCopyTest {
 	fun processingTitleForCarouselAccountState() {
 		assertEquals(
 			R.string.account_login_processing_setting_up,
-			ProcessingCopy.processingTitleForCarouselAccountState(AccountControllerState.Syncing),
+			ProcessingCopy.processingTitleForCarouselAccountState(AccountControllerState.ReadyToConnect),
 		)
 		assertEquals(
 			R.string.account_login_processing_loading_credentials,
-			ProcessingCopy.processingTitleForCarouselAccountState(AccountControllerState.RequestingZkNyms),
+			ProcessingCopy.processingTitleForCarouselAccountState(AccountControllerState.Syncing),
 		)
 	}
 
