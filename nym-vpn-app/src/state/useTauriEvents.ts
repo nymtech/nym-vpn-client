@@ -37,9 +37,11 @@ export function useTauriEvents(
   close: (id: string) => void,
 ) {
   const registerDaemonListener = useCallback(() => {
+    let liveEventSeen = false;
     return listen<VpndStatus>(
       DaemonEvent,
       async ({ event, payload: status }) => {
+        liveEventSeen = true;
         console.log(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
@@ -73,7 +75,18 @@ export function useTauriEvents(
           } catch {}
         }
       },
-    );
+    ).then(async (unlisten) => {
+      try {
+        const status =
+          (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
+        if (!liveEventSeen) {
+          daemonStatusUpdate(status, add, close);
+        }
+      } catch (error) {
+        console.info('command [daemon_status] catch-up failed', error);
+      }
+      return unlisten;
+    });
   }, [add, close]);
 
   const registerTunnelStateListener = useCallback(() => {
