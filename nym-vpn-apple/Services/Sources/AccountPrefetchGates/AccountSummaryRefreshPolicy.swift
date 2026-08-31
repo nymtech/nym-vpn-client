@@ -17,4 +17,10 @@ public enum AccountSummaryRefreshPolicy {
             .seconds(10)
         ]
     }
+
+    /// untilActive waits for a paid plan. Inactive is not terminal - login that
+    /// must not wait passes untilActive: false instead.
+    public static func shouldStopUntilActivePoll(isSubscriptionActive: Bool) -> Bool {
+        isSubscriptionActive
+    }
 }

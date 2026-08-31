@@ -27,6 +27,7 @@ final class FakeProcessing: AccountProcessing {
     var accountActive = true
     var prefetchDelay: Duration = .zero
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
+    private(set) var lastSyncUntilActive: Bool?
     private(set) var calls: [Call] = []
 
     func releasePrepare() {
@@ -56,6 +57,7 @@ final class FakeProcessing: AccountProcessing {
     }
 
     func updateAccountSummary(force: Bool, untilActive: Bool) async {
+        lastSyncUntilActive = untilActive
         calls.append(.sync)
     }
 
@@ -142,7 +144,8 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-        #expect(processing.calls == [.ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
+        #expect(processing.calls == [.isActive, .ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
+        #expect(processing.lastSyncUntilActive == true)
         await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
@@ -161,6 +164,7 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls == [
+            .isActive,
             .storeDeeplink("nymvpn://auth/privy/privateKey?x=1"),
             .register,
             .ensure,
@@ -208,7 +212,7 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-        #expect(processing.calls == [.ensure, .sync, .isActive, .prefetch])
+        #expect(processing.calls == [.isActive, .ensure, .sync, .isActive, .prefetch])
         await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
     }
@@ -232,7 +236,7 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-        #expect(processing.calls == [.ensure, .sync, .isActive])
+        #expect(processing.calls == [.isActive, .ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
         #expect(viewModel.usesStaticCopy)
         #expect(viewModel.phase == .finished)
@@ -293,8 +297,26 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
         #expect(viewModel.usesStaticCopy)
+        #expect(processing.lastSyncUntilActive == false)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func unregisteredAtInitHidesSetupCarouselBeforeWork() {
+        let processing = FakeProcessing()
+        processing.accountActive = false
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        #expect(viewModel.usesStaticCopy)
+        #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
+        #expect(
+            ProcessingAccountView.titleBlockMode(
+                usesStaticCopy: true,
+                didShowFinalMessage: false,
+                showsCredentialsCarousel: false
+            ) == .staticCopy
+        )
     }
 
     @Test func navigationWaitsForCarouselAfterWorkCompletes() async {

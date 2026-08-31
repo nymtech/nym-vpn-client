@@ -608,7 +608,11 @@ extension CredentialsManager {
             }
             await fetchAccountSummary()
             if untilActive {
-                if accountSummary?.isActive == true { break }
+                if AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(
+                    isSubscriptionActive: accountSummary?.isActive == true
+                ) {
+                    break
+                }
             } else {
                 if accountSummary != nil { break }
             }

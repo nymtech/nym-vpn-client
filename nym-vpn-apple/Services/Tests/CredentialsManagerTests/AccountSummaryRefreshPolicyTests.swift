@@ -18,6 +18,18 @@ struct AccountSummaryRefreshPolicyTests {
     @Test func pollDelaysIncludeImmediateFirstAttempt() {
         let delays = AccountSummaryRefreshPolicy.pollDelays(untilActive: true)
         #expect(delays.first == .zero)
-        #expect(delays.count == 5)
+        #expect(delays.count == 7)
+    }
+
+    @Test func untilActiveDoesNotStopWhenInactive() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(isSubscriptionActive: false)
+        )
+    }
+
+    @Test func untilActiveStopsWhenSubscriptionActive() {
+        #expect(
+            AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(isSubscriptionActive: true)
+        )
     }
 }

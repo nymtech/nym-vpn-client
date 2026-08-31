@@ -242,7 +242,11 @@ extension CredentialsManager {
                     }
                     applyVpnAccountSummary(summary)
                     if untilActive {
-                        if summary.isSubscriptionActive() { return }
+                        if AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(
+                            isSubscriptionActive: summary.isSubscriptionActive()
+                        ) {
+                            return
+                        }
                     } else {
                         return
                     }

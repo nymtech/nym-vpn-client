@@ -94,6 +94,7 @@ public final class ProcessingAccountViewModel {
         switch flow {
         case .login, .createAccount:
             currentStep = LoginProcessingUI.initialProgressStep
+            skipSetupCarouselUnlessActive()
         case .postPurchase:
             currentStep = PostPurchaseProcessingUI.progressStep
             didFinishAnimatingText = true
@@ -132,18 +133,14 @@ public final class ProcessingAccountViewModel {
                     self?.applyBackendAccountPhase(accountPhase)
                 }
                 let isActive = try await syncSummaryThenPrefetch()
-                if !isActive {
-                    skipsSetupCarousel = true
-                }
+                skipsSetupCarousel = !isActive
                 completeWork()
             case .createAccount:
                 phase = .preparing
                 syncProgressStep()
                 await processing.ensureCredentialImportResolved()
                 let isActive = try await syncSummaryThenPrefetch()
-                if !isActive {
-                    skipsSetupCarousel = true
-                }
+                skipsSetupCarousel = !isActive
                 completeWork()
             case .postPurchase:
                 try await runPostPurchase()
@@ -171,7 +168,7 @@ public final class ProcessingAccountViewModel {
             phase = .syncing
             syncProgressStep()
         }
-        await processing.updateAccountSummary(force: true, untilActive: true)
+        await processing.updateAccountSummary(force: true, untilActive: !skipsSetupCarousel)
         try Task.checkCancellation()
         let isActive = processing.isAccountActive()
         if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
@@ -189,9 +186,16 @@ public final class ProcessingAccountViewModel {
         return isActive
     }
 
+    private func skipSetupCarouselUnlessActive() {
+        if !processing.isAccountActive() {
+            skipsSetupCarousel = true
+        }
+    }
+
     private func applyBackendAccountPhase(
         _ accountPhase: OnboardingAccountPreparationPolicy.AccountStatePhase
     ) {
+        skipSetupCarouselUnlessActive()
         guard let displayPhase = LoginProcessingBackendPhasePolicy.displayPhase(for: accountPhase) else {
             return
         }
