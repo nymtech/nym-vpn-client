@@ -323,6 +323,9 @@ private extension OneClickView {
     }
 
     var connectButtonStyle: NymButton.Style {
+        if viewModel.isRefreshingAccountSummary {
+            return .connecting
+        }
         switch viewModel.connectState {
         case .disconnected, .noAccount, .noSubscription, .accountUnreachable:
             .primary
@@ -336,6 +339,9 @@ private extension OneClickView {
     }
 
     var connectButtonDisabled: Bool {
+        if viewModel.isRefreshingAccountSummary {
+            return true
+        }
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
             true
