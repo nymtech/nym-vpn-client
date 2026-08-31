@@ -55,6 +55,11 @@ look for release tag `nym-vpn-app-v*` and download `NymVPN.AppImage`.
 
 ### Windows
 
+NymVPN [supports Windows 10 and Windows 11](https://support.nym.com/hc/en-us/articles/22692547666193-What-devices-and-operating-systems-does-NymVPN-support)
+on x64 and ARM64 devices. The installer checks the Windows version and installs
+the required Microsoft [Edge WebView2](https://support.nym.com/hc/en-us/articles/29036510423697-Why-does-NymVPN-require-Edge-WebView2-a-Microsoft-product-upon-Windows-installation)
+and Visual C++ runtimes when they are missing.
+
 The installer is available in the
 [releases](https://github.com/nymtech/nym-vpn-client/releases).\
 Look for release tag `nym-vpn-app-v*`, download

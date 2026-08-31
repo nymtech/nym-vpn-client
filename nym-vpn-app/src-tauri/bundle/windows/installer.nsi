@@ -16,6 +16,7 @@ ManifestDPIAwareness PerMonitorV2
 !include MUI2.nsh
 !include FileFunc.nsh
 !include x64.nsh
+!include WinVer.nsh
 !include WordFunc.nsh
 !include "utils.nsh"
 !include "FileAssociation.nsh"
@@ -32,6 +33,11 @@ ${UnStrTok}
 {{/if}}
 
 !define WEBVIEW2APPGUID "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+!define WEBVIEW2DOWNLOADURL "https://developer.microsoft.com/microsoft-edge/webview2/#download-section"
+!define VCREDISTHELPURL "https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist"
+!define WINDOWSUPGRADEURL "https://support.microsoft.com/windows/upgrade-to-windows-11-faq-fb6206a2-1a0f-448a-80f1-8668ee5b2bf9"
+!define ERROR_INSTALL_FAILURE 1603
+!define ERROR_UNSUPPORTED_PLATFORM 1633
 
 !define MANUFACTURER "{{manufacturer}}"
 !define PRODUCTNAME "{{product_name}}"
@@ -590,6 +596,20 @@ FunctionEnd
   !include "{{this}}"
 {{/each}}
 
+Function AbortUnsupportedWindows
+  DetailPrint "Unsupported Windows version. NymVPN requires Windows 10 or Windows 11."
+  ${If} $PassiveMode = 1
+    Goto unsupported_windows_exit
+  ${EndIf}
+  ${IfNot} ${Silent}
+    MessageBox MB_ICONSTOP|MB_YESNO "This version of Windows is not supported. NymVPN requires Windows 10 or Windows 11.$\r$\n$\r$\nUpgrade Windows, then run setup again.$\r$\n$\r$\nOpen Microsoft's Windows upgrade help now?" /SD IDNO IDNO unsupported_windows_exit
+    ExecShell "open" "${WINDOWSUPGRADEURL}"
+  ${EndIf}
+  unsupported_windows_exit:
+  SetErrorLevel ${ERROR_UNSUPPORTED_PLATFORM}
+  Quit
+FunctionEnd
+
 Function .onInit
   ${GetOptions} $CMDLINE "/P" $PassiveMode
   ${IfNot} ${Errors}
@@ -611,6 +631,14 @@ Function .onInit
   ${GetOptions} $CMDLINE "/FORCEVCREDIST" $ForceVCRedistMode
   ${IfNot} ${Errors}
     StrCpy $ForceVCRedistMode 1
+  ${EndIf}
+
+  ; Reject unsupported systems before selecting an install location or making
+  ; any changes to files and services.
+  ${IfNot} ${AtLeastWin10}
+    Call AbortUnsupportedWindows
+  ${ElseIf} ${IsServerOS}
+    Call AbortUnsupportedWindows
   ${EndIf}
 
   !if "${DISPLAYLANGUAGESELECTOR}" == "true"
@@ -679,54 +707,75 @@ Section WebView2
 
   ${If} $4 == ""
     ; Webview2 installation
-    ;
-    ; Skip if updating
-    ${If} $UpdateMode <> 1
-      !if "${INSTALLWEBVIEW2MODE}" == "downloadBootstrapper"
-        Delete "$TEMP\MicrosoftEdgeWebview2Setup.exe"
-        DetailPrint "$(webview2Downloading)"
-        NSISdl::download "https://go.microsoft.com/fwlink/p/?LinkId=2124703" "$TEMP\MicrosoftEdgeWebview2Setup.exe"
-        Pop $0
-        ${If} $0 == "success"
-          DetailPrint "$(webview2DownloadSuccess)"
-        ${Else}
-          DetailPrint "$(webview2DownloadError)"
-          Abort "$(webview2AbortError)"
+    !if "${INSTALLWEBVIEW2MODE}" == "downloadBootstrapper"
+      webview2_download:
+      Delete "$TEMP\MicrosoftEdgeWebview2Setup.exe"
+      DetailPrint "$(webview2Downloading)"
+      NSISdl::download "https://go.microsoft.com/fwlink/p/?LinkId=2124703" "$TEMP\MicrosoftEdgeWebview2Setup.exe"
+      Pop $0
+      ${If} $0 == "success"
+        DetailPrint "$(webview2DownloadSuccess)"
+      ${Else}
+        DetailPrint "WebView2 bootstrapper download failed: $0"
+        ${If} $PassiveMode = 1
+        ${OrIf} ${Silent}
+          Goto webview2_manual_repair
         ${EndIf}
-        StrCpy $6 "$TEMP\MicrosoftEdgeWebview2Setup.exe"
-        Goto install_webview2
-      !endif
+        MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "NymVPN requires Microsoft Edge WebView2 Runtime, but setup could not download it.$\r$\n$\r$\nCheck your internet connection and select Retry, or select Cancel for Microsoft's manual download page." /SD IDCANCEL IDRETRY webview2_download
+        Goto webview2_manual_repair
+      ${EndIf}
+      StrCpy $6 "$TEMP\MicrosoftEdgeWebview2Setup.exe"
+      Goto install_webview2
+    !endif
 
-      !if "${INSTALLWEBVIEW2MODE}" == "embedBootstrapper"
-        Delete "$TEMP\MicrosoftEdgeWebview2Setup.exe"
-        File "/oname=$TEMP\MicrosoftEdgeWebview2Setup.exe" "${WEBVIEW2BOOTSTRAPPERPATH}"
-        DetailPrint "$(installingWebview2)"
-        StrCpy $6 "$TEMP\MicrosoftEdgeWebview2Setup.exe"
-        Goto install_webview2
-      !endif
+    !if "${INSTALLWEBVIEW2MODE}" == "embedBootstrapper"
+      Delete "$TEMP\MicrosoftEdgeWebview2Setup.exe"
+      File "/oname=$TEMP\MicrosoftEdgeWebview2Setup.exe" "${WEBVIEW2BOOTSTRAPPERPATH}"
+      DetailPrint "$(installingWebview2)"
+      StrCpy $6 "$TEMP\MicrosoftEdgeWebview2Setup.exe"
+      Goto install_webview2
+    !endif
 
-      !if "${INSTALLWEBVIEW2MODE}" == "offlineInstaller"
-        Delete "$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe"
-        File "/oname=$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe" "${WEBVIEW2INSTALLERPATH}"
-        DetailPrint "$(installingWebview2)"
-        StrCpy $6 "$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe"
-        Goto install_webview2
-      !endif
+    !if "${INSTALLWEBVIEW2MODE}" == "offlineInstaller"
+      Delete "$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe"
+      File "/oname=$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe" "${WEBVIEW2INSTALLERPATH}"
+      DetailPrint "$(installingWebview2)"
+      StrCpy $6 "$TEMP\MicrosoftEdgeWebView2RuntimeInstaller.exe"
+      Goto install_webview2
+    !endif
 
-      Goto webview2_done
+    Goto webview2_done
 
-      install_webview2:
-        DetailPrint "$(installingWebview2)"
-        ; $6 holds the path to the webview2 installer
-        ExecWait "$6 ${WEBVIEW2INSTALLERARGS} /install" $1
-        ${If} $1 = 0
-          DetailPrint "$(webview2InstallSuccess)"
-        ${Else}
-          DetailPrint "$(webview2InstallError)"
-          Abort "$(webview2AbortError)"
+    install_webview2:
+      DetailPrint "$(installingWebview2)"
+      ; $6 holds the path to the webview2 installer
+      ExecWait "$6 ${WEBVIEW2INSTALLERARGS} /install" $1
+      ${If} $1 = 0
+        DetailPrint "$(webview2InstallSuccess)"
+        Goto webview2_done
+      ${Else}
+        DetailPrint "WebView2 Runtime installation failed: $1"
+        ${If} $PassiveMode = 1
+        ${OrIf} ${Silent}
+          Goto webview2_manual_repair
         ${EndIf}
-      webview2_done:
-    ${EndIf}
+        MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "NymVPN requires Microsoft Edge WebView2 Runtime, but the component could not be installed.$\r$\n$\r$\nSelect Retry to try again, or select Cancel for Microsoft's manual download page." /SD IDCANCEL IDRETRY install_webview2
+      ${EndIf}
+
+    webview2_manual_repair:
+      DetailPrint "WebView2 is required; setup cannot continue"
+      ${If} $PassiveMode = 1
+        Goto webview2_abort
+      ${EndIf}
+      ${IfNot} ${Silent}
+        MessageBox MB_ICONINFORMATION|MB_YESNO "Install or repair Microsoft Edge WebView2 Runtime, then run NymVPN setup again.$\r$\n$\r$\nOpen Microsoft's WebView2 download page now?" /SD IDNO IDNO webview2_abort
+        ExecShell "open" "${WEBVIEW2DOWNLOADURL}"
+      ${EndIf}
+    webview2_abort:
+      SetErrorLevel ${ERROR_INSTALL_FAILURE}
+      Abort
+
+    webview2_done:
   ${Else}
     !if "${MINIMUMWEBVIEW2VERSION}" != ""
       ${VersionCompare} "${MINIMUMWEBVIEW2VERSION}" "$4" $R0
@@ -748,10 +797,17 @@ Section WebView2
             ${If} $1 = 0
               DetailPrint "$(webview2InstallSuccess)"
             ${Else}
-              MessageBox MB_ICONEXCLAMATION|MB_ABORTRETRYIGNORE "$(webview2InstallError)" IDIGNORE ignore IDRETRY update_webview
-              Quit
-              ignore:
+              DetailPrint "WebView2 Runtime update failed: $1"
+              ${If} $PassiveMode = 1
+              ${OrIf} ${Silent}
+                Goto webview2_manual_repair
+              ${EndIf}
+              MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "NymVPN requires a newer Microsoft Edge WebView2 Runtime, but setup could not update it.$\r$\n$\r$\nSelect Retry to try again, or select Cancel for Microsoft's manual download page." /SD IDCANCEL IDRETRY update_webview
+              Goto webview2_manual_repair
             ${EndIf}
+          ${Else}
+            DetailPrint "Microsoft Edge Update could not be found"
+            Goto webview2_manual_repair
           ${EndIf}
       ${EndIf}
     !endif
@@ -771,29 +827,62 @@ Section VCRedist
     ; $PLUGINSDIR is a private, installer-only temp directory (created on the
     ; first plugin call below, deleted automatically when the installer exits),
     ; unlike the predictable, shared $TEMP path.
+    vcredist_download:
+    Delete "$PLUGINSDIR\vc_redist.exe"
     DetailPrint "Downloading Visual C++ Redistributable (${VCREDISTARCH})"
     NSISdl::download "${VCREDISTURL}" "$PLUGINSDIR\vc_redist.exe"
     Pop $5
     ${If} $5 != "success"
       DetailPrint "vc_redist.exe download failed: $5"
-      Abort "Failed to download the Visual C++ Redistributable [$5]"
+      ${If} $PassiveMode = 1
+      ${OrIf} ${Silent}
+        Goto vcredist_manual_repair
+      ${EndIf}
+      MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "NymVPN requires the Microsoft Visual C++ Runtime, but setup could not download it.$\r$\n$\r$\nCheck your internet connection and select Retry, or select Cancel for Microsoft's manual download page." /SD IDCANCEL IDRETRY vcredist_download
+      Goto vcredist_manual_repair
     ${EndIf}
     DetailPrint "Visual C++ Redistributable downloaded successfully"
 
+    vcredist_install:
     DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
     ExecWait '"$PLUGINSDIR\vc_redist.exe" /install /quiet /norestart' $5
-    Delete "$PLUGINSDIR\vc_redist.exe"
     ${If} $5 = 0
       DetailPrint "Visual C++ Redistributable installed successfully"
+      Delete "$PLUGINSDIR\vc_redist.exe"
     ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
       DetailPrint "Visual C++ Redistributable installed successfully, a reboot is required"
+      Delete "$PLUGINSDIR\vc_redist.exe"
       SetRebootFlag true
     ${ElseIf} $5 = 1638 ; ERROR_PRODUCT_VERSION: a matching/newer version is already installed
       DetailPrint "Visual C++ Redistributable is already installed"
+      Delete "$PLUGINSDIR\vc_redist.exe"
     ${Else}
       DetailPrint "vc_redist.exe install failed: $5"
-      Abort "Failed to install the Visual C++ Redistributable [$5]"
+      ${If} $PassiveMode = 1
+      ${OrIf} ${Silent}
+        Delete "$PLUGINSDIR\vc_redist.exe"
+        Goto vcredist_manual_repair
+      ${EndIf}
+      MessageBox MB_ICONEXCLAMATION|MB_RETRYCANCEL "NymVPN requires the Microsoft Visual C++ Runtime, but the component could not be installed.$\r$\n$\r$\nSelect Retry to try again, or select Cancel for Microsoft's manual download page." /SD IDCANCEL IDRETRY vcredist_install
+      Delete "$PLUGINSDIR\vc_redist.exe"
+      Goto vcredist_manual_repair
     ${EndIf}
+    Goto vcredist_done
+
+    vcredist_manual_repair:
+      DetailPrint "Microsoft Visual C++ Runtime is required; setup cannot continue"
+      ${If} $PassiveMode = 1
+        Goto vcredist_abort
+      ${EndIf}
+      ${IfNot} ${Silent}
+        MessageBox MB_ICONINFORMATION|MB_YESNO "Install or repair the Microsoft Visual C++ Runtime for ${VCREDISTARCH}, then run NymVPN setup again.$\r$\n$\r$\nOpen Microsoft's download page now?" /SD IDNO IDNO vcredist_abort
+        ExecShell "open" "${VCREDISTHELPURL}"
+      ${EndIf}
+    vcredist_abort:
+      SetErrorLevel ${ERROR_INSTALL_FAILURE}
+      Abort
+
+    vcredist_done:
   ${EndIf}
 SectionEnd
 
