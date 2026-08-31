@@ -433,9 +433,10 @@ Function PageLeaveReinstall
     Goto reinst_uninstall
   ${EndIf}
 
-  ; In update mode, always proceeds without uninstalling
+  ; In update mode, defer stopping and uninstalling the service until the
+  ; Install section. WebView2 and VCRedist run before that section, so a failed
+  ; prerequisite leaves the existing service intact.
   ${If} $UpdateMode = 1
-    Call VpndUninstall
     Goto reinst_done
   ${EndIf}
 
@@ -894,6 +895,12 @@ Section Install
   !endif
 
   !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
+
+  ; Update prerequisites have now succeeded, so it is safe to replace the
+  ; existing VPN service and binaries.
+  ${If} $UpdateMode = 1
+    Call VpndUninstall
+  ${EndIf}
 
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
