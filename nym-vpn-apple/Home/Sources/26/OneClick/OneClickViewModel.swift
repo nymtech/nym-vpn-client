@@ -117,11 +117,33 @@ public final class OneClickViewModel {
         impactGenerator.impact()
         snackbarManager.clear()
 
+        if handleDisconnectedHomeCTATap() {
+            return
+        }
+
         let isConnectingTap = connectionManager.currentTunnelStatus != .connected
 
         connectDisconnectTask?.cancel()
         connectDisconnectTask = Task { @MainActor [weak self] in
             await self?.performConnectDisconnect(isConnectingTap: isConnectingTap)
+        }
+    }
+
+    func handleDisconnectedHomeCTATap() -> Bool {
+        switch connectState {
+        case .noAccount:
+            sessionCoordinator?.handle(.requestWelcome)
+            return true
+        case .noSubscription:
+            sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
+            return true
+        case .accountUnreachable:
+            Task { @MainActor [weak self] in
+                await self?.credentialsManager.updateAccountSummary(force: true)
+            }
+            return true
+        case .disconnected, .connecting, .stop, .connected, .disconnecting, .noInternet:
+            return false
         }
     }
 
@@ -208,7 +230,6 @@ public final class OneClickViewModel {
             }
         }
     }
-
 }
 
 extension OneClickSpeedMode {
