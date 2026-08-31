@@ -71,7 +71,14 @@ export function useTauriEvents(
           } catch {}
         }
       },
-    );
+    ).then(async (unlisten) => {
+      try {
+        const status =
+          (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
+        daemonStatusUpdate(status, add, close);
+      } catch {}
+      return unlisten;
+    });
   }, [add, close]);
 
   const registerTunnelStateListener = useCallback(() => {
