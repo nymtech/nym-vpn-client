@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 
 extension GRPCManager {
     public func socks5Status() async throws -> Socks5Status? {

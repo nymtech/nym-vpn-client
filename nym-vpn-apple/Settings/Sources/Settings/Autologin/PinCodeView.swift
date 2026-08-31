@@ -135,7 +135,14 @@ private extension PinCodeView {
         NSPasteboard.general.setString(pinCode, forType: .string)
 #endif
         Task { [externalLinkManager, url] in
-            try? await externalLinkManager.presentPrivyAuthSession(urlString: url)
+            do {
+                try await externalLinkManager.presentPrivyAuthSession(urlString: url)
+                dismiss()
+            } catch is CancellationError {
+                return
+            } catch {
+                return
+            }
         }
         withAnimation(.easeInOut) {
             didCopy = true

@@ -14,7 +14,7 @@ jobs:
     runs-on: arc-linux-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -42,7 +42,7 @@ jobs:
           cat build-info.txt
 
       - name: Upload build-info
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: build-info
           path: build-info.txt

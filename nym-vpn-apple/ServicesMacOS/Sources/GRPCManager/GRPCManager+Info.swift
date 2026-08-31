@@ -1,27 +1,6 @@
-extension GRPCManager {
-    public func version() async throws {
-        do {
-            guard let result = try await rpcClient?.getInfo()
-            else {
-                Task { @MainActor in
-                    daemonVersion = "noVersion"
-                }
-                return
-            }
-            Task { @MainActor in
-                daemonVersion = result.version
-                networkName = result.nymNetwork.networkName
-                logger.info("🛜 \(result.nymNetwork.networkName)")
-            }
-        } catch {
-            Task { @MainActor in
-                guard daemonVersion != "noVersion" || daemonVersion != "update" else { return }
-                daemonVersion = "noVersion"
-            }
-            throw error
-        }
-    }
+import NymVPNLib
 
+extension GRPCManager {
     public func updateErrorReportingIfNeeded(with isEnabled: Bool) async throws {
         if isEnabled {
             try await rpcClient?.enableSentry()

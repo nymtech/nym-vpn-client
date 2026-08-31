@@ -1,6 +1,457 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "errorReason.connectionAttemptsExceeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't establish the connection after several attempts. Please try again."
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.amneziaBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AmneziaWG"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.blocking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoid VPN blocking with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.disguise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disguise WireGuard with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.firewalls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get around firewalls with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.postQuantum" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " security"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.postQuantumBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Post-quantum"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.quicBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.stealthBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stealth Connect"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nym gets you around"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.amnezia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " fork of WireGuard"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.amneziaBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AmneziaWG"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.decentralized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 2-hop network"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.decentralizedBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decentralized"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy for all your web activities"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t snitch - won’t snitch network design."
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your dVPN"
+          }
+        }
+      }
+    },
+    "onboarding26.getStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get started"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.anonymous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The most "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.anonymousBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "anonymous"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.anonymousSuffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " way to be online"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.hops" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5-hop "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.mixnetBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mixnet"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.noise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " with "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.noiseBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "noise"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.patterns" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customize your traffic patterns"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protecting metadata fingerprints."
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your mixnet"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.communityFavorite" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NYM COMMUNITY FAVORITE"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.freeTrial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ %@ free trial"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.oneMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 month"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.price" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ / month"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "save %@"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.startingAt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting at "
+          }
+        }
+      }
+    },
+    "onboarding26.plan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What plan works for you?"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.try" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Or try for "
+          }
+        }
+      }
+    },
+    "onboarding26.plan.trySuffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", no commitment."
+          }
+        }
+      }
+    },
+    "onboarding26.plan.yearPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-year plan & "
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your private access to\nan "
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.subtitleEmphasis" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "internet without walls"
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to NymVPN"
+          }
+        }
+      }
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -213,7 +664,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast (WireGuard)"
+            "value" : "dVPN (WireGuard)"
           }
         },
         "es" : {
@@ -2202,6 +2653,50 @@
         }
       }
     },
+    "appIcon.calculator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculator"
+          }
+        }
+      }
+    },
+    "appIcon.default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        }
+      }
+    },
+    "appIcon.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't change the app icon. Please try again."
+          }
+        }
+      }
+    },
+    "appIcon.notes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
+          }
+        }
+      }
+    },
     "arcProgress.anonymousModeProtection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2331,7 +2826,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Fast mode protection"
+            "value" : "dVPN mode protection"
           }
         }
       }
@@ -2635,6 +3130,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Choosing best servers"
+          }
+        }
+      }
+    },
+    "arcProgress.step.downloadingZkNyms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading ZK-Nyms"
           }
         }
       }
@@ -7688,6 +8194,17 @@
         }
       }
     },
+    "errorReason.accountStoreBusy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account storage is busy. Disconnect the VPN and try again."
+          }
+        }
+      }
+    },
     "errorReason.apiTimeout" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7792,100 +8309,10 @@
     "errorReason.bandwidthExceeded" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم الوصول إلى حد البيانات الشهرية. اتصل بالدعم من أجل تعزيز البيانات السريعة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monatliches Datenlimit erreicht. Kontaktieren Sie den Support für eine schnelle Daten-Boost."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Límite de datos mensual alcanzado. Póngase en contacto con el soporte para obtener un impulso rápido de datos."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "محدودیت ترافیک ماهانه شما به اتمام رسیده. برای افزایش سریع ترافیک، با پشتیبانی تماس بگیرید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de données mensuelle atteinte. Contactez le support pour une accélération rapide des données."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite dati mensile raggiunto. Contatta il supporto per un rapido potenziamento dei dati."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "月間データの上限に達しました。クイックデータブーストのサポートにお問い合わせください。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de dados mensais atingido. Entre em contato com o Suporte para obter um impulso rápido de dados."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de dados mensais atingido. Entre em contato com o Suporte para obter um impulso rápido de dados."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Достигнут месячный лимит данных. Свяжитесь с поддержкой для быстрого увеличения лимита."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Досягнуто місячний ліміт даних. Зверніться до служби підтримки, щоб швидко збільшити обсяг даних."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已达到每月数据上限。请联系客服快速数据推送。"
+            "value" : "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong."
           }
         }
       }
@@ -7897,6 +8324,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to create log file"
+          }
+        }
+      }
+    },
+    "errorReason.credentialFetchingFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credentials download failed"
           }
         }
       }
@@ -9348,6 +9786,17 @@
         }
       }
     },
+    "errorReason.needsDeviceLocation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Safest routing isn't available right now. Try again later or choose your own servers."
+          }
+        }
+      }
+    },
     "errorReason.needsRelaxedIndependenceCriteria" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9456,6 +9905,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有存储帐户。请添加一个passphrase。"
+          }
+        }
+      }
+    },
+    "errorReason.noCredentialAvailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No credentials available"
           }
         }
       }
@@ -10973,17 +11433,6 @@
         }
       }
     },
-    "gatewayInfo.familyMembership" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Family membership"
-          }
-        }
-      }
-    },
     "gatewayInfo.antiCensorship" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11608,6 +12057,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在反审查设置中使用此功能"
+          }
+        }
+      }
+    },
+    "gatewayInfo.familyMembership" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Family membership"
           }
         }
       }
@@ -13356,7 +13816,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+            "value" : "Only showing dVPN mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
           }
         },
         "es" : {
@@ -13540,6 +14000,83 @@
         }
       }
     },
+    "gatewaysView.favorite.add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Add to favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.favorite.remove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Remove from favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.allServers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "All servers"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.noFavorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No favorite servers yet"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.noRecents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No recently used servers yet"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.recent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Recent"
+          }
+        }
+      }
+    },
     "gatewaysView.random" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13547,6 +14084,28 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Random"
+          }
+        }
+      }
+    },
+    "gatewaysView.safest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Safest"
+          }
+        }
+      }
+    },
+    "general.beta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
           }
         }
       }
@@ -13648,17 +14207,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "关闭"
-          }
-        }
-      }
-    },
-    "general.beta" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta"
           }
         }
       }
@@ -14882,6 +15430,369 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在保存您的凭据到本地..."
+          }
+        }
+      }
+    },
+    "geoExclusion.addRegion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add region"
+          }
+        }
+      }
+    },
+    "geoExclusion.betaNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta version: China only for now. More regions coming."
+          }
+        }
+      }
+    },
+    "geoExclusion.china" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "China"
+          }
+        }
+      }
+    },
+    "geoExclusion.customPort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom port"
+          }
+        }
+      }
+    },
+    "geoExclusion.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected."
+          }
+        }
+      }
+    },
+    "geoExclusion.enable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Geo Exclusion"
+          }
+        }
+      }
+    },
+    "geoExclusion.excludedRegions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded regions"
+          }
+        }
+      }
+    },
+    "geoExclusion.failedToStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
+          }
+        }
+      }
+    },
+    "geoExclusion.port.forbidden" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port %@ is forbidden. Choose another."
+          }
+        }
+      }
+    },
+    "geoExclusion.port.outOfRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port must be between 1024 and 65535."
+          }
+        }
+      }
+    },
+    "geoExclusion.portRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1024–65535"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.app.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Network Settings → Manual proxy."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.app.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS Host %@, Port %@, select SOCKS v5."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.app.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tick \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.app.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Any app with SOCKS5 support. Firefox example:"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.app.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App (e.g. browser)"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On Firefox or browsers that permit SOCKS5 configurations."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.proxyAddress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy address"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy the SOCKS5 port."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open your app's proxy or network settings."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set proxy to 127.0.0.1 with the copied port."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.systemWide.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings → Network → select your active connection → Details… → Proxies."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.systemWide.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable SOCKS proxy."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.systemWide.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server %@, Port %@. Leave authentication empty."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.systemWide.step4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK → Apply."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.systemWide.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure macOS network proxy in System Settings:"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.systemWide.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System-wide (System Settings)"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.web3.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the RPC URL to %@."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.web3.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Web3 wallet"
+          }
+        }
+      }
+    },
+    "geoExclusion.setupInstructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup instructions"
+          }
+        }
+      }
+    },
+    "geoExclusion.server" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
+          }
+        }
+      }
+    },
+    "geoExclusion.socks5Port" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 port"
+          }
+        }
+      }
+    },
+    "geoExclusion.warning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traffic to excluded regions bypasses the VPN."
           }
         }
       }
@@ -17393,7 +18304,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the Fast mode reliability in restrictive networks by"
+            "value" : "Improves the dVPN mode reliability in restrictive networks by"
           }
         }
       }
@@ -18845,6 +19756,17 @@
         }
       }
     },
+    "mixnetTuning.anonymity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymity"
+          }
+        }
+      }
+    },
     "mixnetTuning.atLeast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19054,13 +19976,46 @@
         }
       }
     },
+    "mixnetTuning.packetMixingProfile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Packet mixing profile"
+          }
+        }
+      }
+    },
+    "mixnetTuning.packetRate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Packet rate"
+          }
+        }
+      }
+    },
+    "mixnetTuning.performance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Performance"
+          }
+        }
+      }
+    },
     "mixnetTuning.reset" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reset to default settings"
+            "value" : "Restore default settings"
           }
         }
       }
@@ -19148,7 +20103,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Expected performance based on current settings:"
+            "value" : "Expected performance of current settings:"
           }
         }
       }
@@ -20370,6 +21325,39 @@
         }
       }
     },
+    "oneClick.incompleteSubscription.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete subscription setup"
+          }
+        }
+      }
+    },
+    "oneClick.incompleteSubscription.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is safe, but needs an active subscription to shield traffic."
+          }
+        }
+      }
+    },
+    "oneClick.incompleteSubscription.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account setup incomplete"
+          }
+        }
+      }
+    },
     "oneClick.server.details.accessibilityLabel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20398,7 +21386,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast"
+            "value" : "dVPN"
           }
         }
       }
@@ -22747,942 +23735,112 @@
         }
       }
     },
-    "processingAccount.createAccount.subtitle2" : {
+    "processingAccount.awaitingConfirmation.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating keys that never leave your device"
+            "state" : "translated",
+            "value" : "We are verifying your transaction with the network. Please do not close the app."
           }
         }
       }
     },
-    "processingAccount.createAccount.subtitle3" : {
+    "processingAccount.awaitingConfirmation.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing anonymous network credentials"
+            "state" : "translated",
+            "value" : "Awaiting confirmation of your payment..."
           }
         }
       }
     },
-    "processingAccount.createAccount.subtitle4" : {
+    "processingAccount.login.almostReady" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them."
+            "state" : "translated",
+            "value" : "Finishing up…"
           }
         }
       }
     },
-    "processingAccount.createAccount.title2" : {
+    "processingAccount.login.almostReadySubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Generating cryptographic keypairs..."
+            "state" : "translated",
+            "value" : "Just a few more seconds"
           }
         }
       }
     },
-    "processingAccount.createAccount.title3" : {
+    "processingAccount.login.loadingCredentials" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating your anonymous identity..."
+            "state" : "translated",
+            "value" : "Loading your anonymous credentials…"
           }
         }
       }
     },
-    "processingAccount.createAccount.title4" : {
+    "processingAccount.login.loadingCredentialsSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "This can take a moment on first sign-in"
           }
         }
       }
     },
-    "processingAccount.login.subtitle2" : {
+    "processingAccount.login.settingUp" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Deriving keys from your 24-word phrase on this device"
+            "state" : "translated",
+            "value" : "Setting up your anonymous account"
           }
         }
       }
     },
-    "processingAccount.login.subtitle3" : {
+    "processingAccount.login.settingUpStep2Subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Re-establishing your anonymous network credentials"
+            "state" : "translated",
+            "value" : "Verifying your sign-in"
           }
         }
       }
     },
-    "processingAccount.login.subtitle4" : {
+    "processingAccount.login.settingUpStep3Subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them."
+            "state" : "translated",
+            "value" : "Preparing your account for this device"
           }
         }
       }
     },
-    "processingAccount.login.title2" : {
+    "processingAccount.login.settingUpStep4Subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Recovering your cryptographic keypairs..."
-          }
-        }
-      }
-    },
-    "processingAccount.login.title3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Restoring your anonymous identity..."
-          }
-        }
-      }
-    },
-    "processingAccount.login.title4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
-          }
-        }
-      }
-    },
-    "processingAccount.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
             "state" : "translated",
-            "value" : "نحن نقوم بالتحقق من اشتراكك - لا توجد تفاصيل شخصية مرتبطة بهويتك"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wir verifizieren Ihr Abonnement - keine persönlichen Daten sind jemals an Ihre Identität gebunden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estamos verificando tu suscripción—ningún dato personal está vinculado a tu identidad"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ما در حال تأیید اشتراک شما هستیم—هیچ اطلاعات شخصی هرگز به هویت شما مرتبط نمی‌شود"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous vérifions votre abonnement—aucune information personnelle n'est liée à votre identité"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stiamo verificando il tuo abbonamento — nessun dato personale è mai legato alla tua identità"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "サブスクリプションを確認中です。個人情報はお客様のIDに関連付けられていません。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estamos verificando sua assinatura — nenhum dado pessoal está vinculado à sua identidade"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estamos verificando sua assinatura — nenhum dado pessoal está vinculado à sua identidade"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Мы проверяем вашу подписку — никакие личные данные никогда не связываются с вашей личностью"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aboneliğiniz doğrulanıyor—kişisel bilgileriniz asla kimliğinizle ilişkilendirilmez."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ми перевіряємо вашу підписку — ваші особисті дані ніколи не прив'язуються до вашої особи"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "我们正在验证您的订阅—请放心，不会涉及任何与您的真实身份关联的个人信息"
-          }
-        }
-      }
-    },
-    "processingAccount.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "وثائق اعتماد المعرفة الصفرية هذه تثبت أن لديك حق الوصول دون الكشف عن من أنت"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Null-Wissen-Referenzen beweisen, dass Sie Zugriff haben, ohne zu enthüllen, wer Sie sind"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estas credenciales de conocimiento cero demuestran que tienes acceso sin revelar quiénes eres"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "این مدارک دانش صفر اثبات می‌کنند که شما بدون اینکه هویت خود را فاش کنید دسترسی دارید"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ces informations d'identification sans connaissance prouvent que vous avez accès sans révéler qui vous êtes"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ये zero-knowledge क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Queste credenziali a conoscenza zero dimostrano di avere accesso senza rivelare chi sei"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "これらのゼロ知識資格情報は、あなたが誰であるかを明らかにせずにアクセスできることを証明します"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estas credenciais de conhecimento zero provam que você tem acesso sem revelar quem você é"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estas credenciais de conhecimento zero provam que você tem acesso sem revelar quem você é"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Эти учётные данные с нулевым разглашением (zero-knowledge credentials) подтверждают, что у вас есть доступ, не раскрывая, кто вы"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu sıfır bilgi kimlik bilgileri, kimliğinizi açığa çıkarmadan erişiminiz olduğunu kanıtlar."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ці повноваження повноваження доводять, що у вас є доступ без розкриття того, хто ви є"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Các thông tin xác thực zero-knowledge này chứng minh bạn có quyền truy cập mà không tiết lộ danh tính của bạn"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这些零知识凭据在不透露真实身份证明您拥有NymVPN的使用权"
-          }
-        }
-      }
-    },
-    "processingAccount.subtitle4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يتم الآن تخزين بيانات اعتماد الوصول المجهول الخاصة بك بأمان، خاصّة، مشفّرة، وفي التحكم الخاص بك"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ihre anonymen Zugangsdaten sind jetzt sicher gespeichert, privat, verschlüsselt und in Ihrer Kontrolle"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sus credenciales de acceso anónimos ahora están almacenadas, privadas y cifradas de forma segura y bajo su control"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اطلاعات دسترسی ناشناس شما اکنون به صورت ایمن ذخیره شده‌اند، خصوصی، رمزنگاری شده و تحت کنترل شما هستند"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vos identifiants d'accès anonymes sont maintenant stockés en toute sécurité, privés, chiffrés et dans votre contrôle"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "आपके गुमनाम पहुंच प्रमाणपत्र अब सुरक्षित, निजी, एन्क्रिप्टेड हैं और आपके नियंत्रण में हैं"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le tue credenziali di accesso anonime sono ora archiviate in modo sicuro, private, crittografate e nel tuo controllo"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名のアクセス資格情報は安全に保管、非公開、暗号化、および制御に保存されます。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suas credenciais de acesso anônimo agora estão armazenadas, privadas e criptografadas com segurança em seu controle"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suas credenciais de acesso anônimo agora estão armazenadas, privadas e criptografadas com segurança em seu controle"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваши анонимные учётные данные теперь надёжно сохранены, приватны, зашифрованы и находятся под вашим контролем"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonim erişim kimlik bilgileriniz artık güvenli bir şekilde saklanıyor; gizli, şifreli ve tamamen sizin kontrolünüzde."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваші анонімні дані доступу тепер зберігаються, приватні, шифруються та керуються вашим контролем"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thông tin xác thực truy cập ẩn danh của bạn hiện đã được lưu trữ an toàn, riêng tư, được mã hóa, và do bạn kiểm soát"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您的匿名访问凭据现已安全地加密保存并在您的控制下"
-          }
-        }
-      }
-    },
-    "processingAccount.subtitle5" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أنت الآن محمي بالكامل"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du bist jetzt vollständig geschützt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You're now fully protected"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ahora estás completamente protegido"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "شما اکنون به‌طور کامل محافظت شده‌اید"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous êtes protégés"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "आप अब पूरी तरह से संरक्षित हैं"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ora sei completamente protetto"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "完全に保護されています"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Agora você está totalmente protegido"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Agora você está totalmente protegido"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Теперь вы полностью защищены"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Artık tamamen güvendesiniz"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тепер ви повністю захищені"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bạn hiện đã được bảo vệ toàn diện"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您的流量现在已全面受到保护"
-          }
-        }
-      }
-    },
-    "processingAccount.title2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "معالجة الدفع الخاص بك بشكل آمن..."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bearbeite deine Zahlung sicher..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Processing your payment securely..."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Procesando su pago de forma segura..."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "پردازش امن پرداخت شما..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Traitement de votre paiement en toute sécurité..."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elaborazione del pagamento in modo sicuro..."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支払いを安全に処理しています..."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Processando o seu pagamento em segurança..."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Processando o seu pagamento em segurança..."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обрабатываем ваш платёж в безопасном режиме..."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeniz güvenli bir şekilde işleniyor…"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Безпечна обробка ваших платежів..."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang xử lý thanh toán của bạn một cách an toàn..."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安全地处理您的付款..."
-          }
-        }
-      }
-    },
-    "processingAccount.title3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استرداد بيانات اعتماد حسابك المجهول (zk-nyms)..."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rufe deine anonymen Zugangsdaten (zk-nyms)..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recuperando las credenciales de su cuenta anónima (zk-nyms)..."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "در حال بازیابی اطلاعات حساب ناشناس شما (شناسه‌های zk-nyms)..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Récupération de vos identifiants de compte anonymes (zk-nyms)..."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "आपके गुमनाम खाते की प्रमाणीकरण \nजानकारी (zk-nyms) प्राप्त की जा रही है..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recupero delle credenziali anonime dell'account (zk-nyms)..."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名アカウントの資格情報を取得しています..."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recuperando suas credenciais de conta anônima (zk-nyms)..."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recuperando suas credenciais de conta anônima (zk-nyms)..."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Извлечение ваших анонимных учётных данных аккаунта (zk-nyms)..."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonim hesap kimlik bilgileriniz\n(zk-nymler) alınıyor…"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отримання ваших анонімних облікових даних (zk-nyms)..."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang lấy thông tin xác thực tài khoản ẩn danh của bạn (zk-nyms)..."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在获取您的匿名帐户凭据(zk-nyms)..."
-          }
-        }
-      }
-    },
-    "processingAccount.title4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "حفظ الرمز zk-nyms الخاص بك على الجهاز..."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speichere deine zk-nyms auf dem Gerät..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saving your zk-nyms on the device..."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guardando tus zk-nyms en el dispositivo..."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "در حال ذخیره zk-nyms روی دستگاه شما..."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrement de vos zk-nyms sur l'appareil..."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं..."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salvataggio dei tuoi zk-nyms sul dispositivo..."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "zk-nyms をデバイスに保存しています..."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salvando seu zk-nyms no dispositivo..."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Salvando seu zk-nyms no dispositivo..."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сохранение Zk-nyms на устройстве..."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zk-nymleriniz \ncihazda kaydediliyor…"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Збереження ваших k-ніг на пристрої..."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang lưu zk-nyms của bạn trên thiết bị..."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在保存您的zk-nyms到设备本地..."
-          }
-        }
-      }
-    },
-    "processingAccount.title5" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مرحبا بك في الخصوصية الحقيقية 🎉"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Willkommen zur wahren Privatsphäre 🎉"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome to true privacy 🎉"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenido a la verdadera privacidad 🎉"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "به حریم خصوصی واقعی خوش آمدید 🎉"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La confidentialité est à vous 🎉"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "असली गोपनीयता में आपका स्वागत है 🎉"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benvenuto nella vera privacy 🎉"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "真のプライバシーへようこそ 🎉"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bem-vindo à privacidade verdadeira 🎉"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bem-vindo à verdadeira privacidade 🎉"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добро пожаловать в настоящую приватность 🎉"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gerçek gizliliğe hoş geldiniz 🎉"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ласкаво просимо до справжнього конфіденційності 🎉"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chào mừng đến với quyền riêng tư thật sự 🎉"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "欢迎来到真正的隐私 🎉"
+            "value" : "Finishing account setup"
           }
         }
       }
@@ -23885,6 +24043,28 @@
         }
       }
     },
+    "purchasePlan.checkoutDismissed.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is ready, but you need an active plan to start protecting your traffic."
+          }
+        }
+      }
+    },
+    "purchasePlan.checkoutDismissed.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription still needed"
+          }
+        }
+      }
+    },
     "purchasePlan.chooseMyPlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23903,6 +24083,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No ads"
+          }
+        }
+      }
+    },
+    "purchasePlan.paymentCancelledAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment canceled. Your account was created, but you still need an active plan to connect."
+          }
+        }
+      }
+    },
+    "purchasePlan.paymentFailedAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your purchase could not be finalized. Please verify your payment details and try again."
+          }
+        }
+      }
+    },
+    "purchasePlan.paymentPendingAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your payment is pending. We will activate your plan once the store confirms it."
           }
         }
       }
@@ -25854,7 +26067,40 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safe to share. Use to contact Nym Support."
+            "value" : "Safe to share. Use this to "
+          }
+        }
+      }
+    },
+    "settings.account.accountId.supportLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "connect Nym support."
+          }
+        }
+      }
+    },
+    "settings.account.allowanceReached.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your usage quota resets daily, so you shouldn’t stay unprotected long."
+          }
+        }
+      }
+    },
+    "settings.account.allowanceReached.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily allowance reached!"
           }
         }
       }
@@ -25892,17 +26138,6 @@
         }
       }
     },
-    "settings.account.bandwidthLimit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fair usage spent"
-          }
-        }
-      }
-    },
     "settings.account.contactSupport.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25921,6 +26156,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "if you reach your limit"
+          }
+        }
+      }
+    },
+    "settings.account.dailyAllowanceHelper" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counts credential requests today, not VPN data downloaded."
+          }
+        }
+      }
+    },
+    "settings.account.dailyAllowanceUsed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily allowance used"
+          }
+        }
+      }
+    },
+    "settings.account.dailyLimit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily limit"
           }
         }
       }
@@ -26002,6 +26270,28 @@
         }
       }
     },
+    "settings.account.refresh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh account"
+          }
+        }
+      }
+    },
+    "settings.account.refreshFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t refresh account. Try again."
+          }
+        }
+      }
+    },
     "settings.account.renewNow" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26013,13 +26303,13 @@
         }
       }
     },
-    "settings.account.resetsOn" : {
+    "settings.account.resetsDailyUtc" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resets on"
+            "value" : "Resets daily"
           }
         }
       }
@@ -26031,6 +26321,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Account status"
+          }
+        }
+      }
+    },
+    "settings.account.usageDataUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage data temporarily unavailable"
           }
         }
       }
@@ -26371,61 +26672,6 @@
         }
       }
     },
-    "appIcon.calculator" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calculator"
-          }
-        }
-      }
-    },
-    "appIcon.default" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default"
-          }
-        }
-      }
-    },
-    "appIcon.error" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn't change the app icon. Please try again."
-          }
-        }
-      }
-    },
-    "appIcon.notes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notes"
-          }
-        }
-      }
-    },
-    "settings.appIcon" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Icon"
-          }
-        }
-      }
-    },
     "settings.appearance" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26523,6 +26769,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外观"
+          }
+        }
+      }
+    },
+    "settings.appIcon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Icon"
           }
         }
       }
@@ -27346,6 +27603,17 @@
         }
       }
     },
+    "settings.diagnosticTool.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to run diagnostics. Please try again."
+          }
+        }
+      }
+    },
     "settings.diagnosticTool.report" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27487,6 +27755,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Customize DNS"
+          }
+        }
+      }
+    },
+    "settings.geoExclusion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geo Exclusion"
+          }
+        }
+      }
+    },
+    "settings.geoExclusion.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Specific IP ranges connect directly"
           }
         }
       }
@@ -28767,347 +29057,6 @@
         }
       }
     },
-    "geoExclusion.addRegion" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add region"
-          }
-        }
-      }
-    },
-    "geoExclusion.betaNote" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta version: China only for now. More regions coming."
-          }
-        }
-      }
-    },
-    "geoExclusion.china" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "China"
-          }
-        }
-      }
-    },
-    "geoExclusion.customPort" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom port"
-          }
-        }
-      }
-    },
-    "geoExclusion.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected."
-          }
-        }
-      }
-    },
-    "geoExclusion.enable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Geo Exclusion"
-          }
-        }
-      }
-    },
-    "geoExclusion.excludedRegions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Excluded regions"
-          }
-        }
-      }
-    },
-    "geoExclusion.failedToStart" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
-          }
-        }
-      }
-    },
-    "geoExclusion.port.forbidden" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Port %@ is forbidden. Choose another."
-          }
-        }
-      }
-    },
-    "geoExclusion.port.outOfRange" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Port must be between 1024 and 65535."
-          }
-        }
-      }
-    },
-    "geoExclusion.portRange" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1024–65535"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.app.step1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings → Network Settings → Manual proxy."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.app.step2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SOCKS Host %@, Port %@, select SOCKS v5."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.app.step3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tick \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.app.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Any app with SOCKS5 support. Firefox example:"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.app.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App (e.g. browser)"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Works with macOS system-wide proxy settings, Firefox, and Web3 wallets."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.proxyAddress" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proxy address"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.systemWide.step1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Settings → Network → select your active connection → Details… → Proxies."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.systemWide.step2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable SOCKS proxy."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.systemWide.step3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server %@, Port %@. Leave authentication empty."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.systemWide.step4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OK → Apply."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.systemWide.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configure macOS network proxy in System Settings:"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.systemWide.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System-wide (System Settings)"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.web3.step1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set the RPC URL to %@."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.web3.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Web3 wallet"
-          }
-        }
-      }
-    },
-    "geoExclusion.setupInstructions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Setup instructions"
-          }
-        }
-      }
-    },
-    "geoExclusion.socks5Port" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SOCKS5 port"
-          }
-        }
-      }
-    },
-    "geoExclusion.warning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Traffic to excluded regions bypasses the VPN."
-          }
-        }
-      }
-    },
-    "settings.geoExclusion" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geo Exclusion"
-          }
-        }
-      }
-    },
-    "settings.geoExclusion.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Specific IP ranges connect directly"
-          }
-        }
-      }
-    },
     "settings.splitTunnel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29418,28 +29367,6 @@
         }
       }
     },
-    "splitTunnel.cannotExcludeNym" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Nym VPN can’t exclude itself."
-          }
-        }
-      }
-    },
-    "splitTunnel.notExecutable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Not an executable file."
-          }
-        }
-      }
-    },
     "splitTunnel.apps" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29469,6 +29396,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beta feature"
+          }
+        }
+      }
+    },
+    "splitTunnel.cannotExcludeNym" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Nym VPN can’t exclude itself."
           }
         }
       }
@@ -29601,6 +29539,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recommended setting for all apps."
+          }
+        }
+      }
+    },
+    "splitTunnel.notExecutable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Not an executable file."
           }
         }
       }
@@ -29840,6 +29789,61 @@
         }
       }
     },
+    "subscriptionPurchase.choice.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose how to subscribe"
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.inApp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscribe in the App Store"
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete your subscription in the App Store or on the web. You can return here when payment finishes."
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete your subscription"
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.web" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscribe on the web"
+          }
+        }
+      }
+    },
     "support.protect.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29889,26 +29893,26 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "إعداد حسابك (2/6)"
+            "state" : "needs_review",
+            "value" : "إعداد حسابك (2/7)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einrichtung deines Kontos (2/6)"
+            "value" : "Einrichtung deines Kontos (2/7)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setting up your account (2/6)"
+            "value" : "Setting up your account (2/7)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configurando tu cuenta (2/6)"
+            "value" : "Configurando tu cuenta (2/7)"
           }
         },
         "fa" : {
@@ -29920,43 +29924,43 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration de votre compte (2/6)"
+            "value" : "Configuration de votre compte (2/7)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "खाते की तैयारी की प्रतीक्षा हो रही है"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configurare il tuo account (2/6)"
+            "value" : "Configurare il tuo account (2/7)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "アカウントの設定 (2/6)"
+            "state" : "needs_review",
+            "value" : "アカウントの設定 (2/7)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configurando sua conta (2/6)"
+            "state" : "needs_review",
+            "value" : "Configurando sua conta (2/7)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configurando sua conta (2/6)"
+            "state" : "needs_review",
+            "value" : "Configurando sua conta (2/7)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Настройка вашей учётной записи (2/6)"
+            "state" : "needs_review",
+            "value" : "Настройка вашей учётной записи (2/7)"
           }
         },
         "tr" : {
@@ -29967,20 +29971,31 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Налаштування облікового запису (2/6)"
+            "state" : "needs_review",
+            "value" : "Налаштування облікового запису (2/7)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang thiết lập tài khoản của bạn (2/6)"
+            "state" : "needs_review",
+            "value" : "Đang thiết lập tài khoản của bạn (2/7)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "设置您的帐户 (2/7)"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.awaitingCredentialsAvailability" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
             "state" : "translated",
-            "value" : "设置您的帐户 (2/6)"
+            "value" : "Downloading ZKNyms (3/7)"
           }
         }
       }
@@ -29990,26 +30005,26 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "إنشاء اتصال بالخادم (6/6)"
+            "state" : "needs_review",
+            "value" : "إنشاء اتصال بالخادم (7/7)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serververbindung wird hergestellt (6/6)"
+            "value" : "Serververbindung wird hergestellt (7/7)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Establishing server connection (6/6)"
+            "value" : "Establishing server connection (7/7)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Estableciendo conexión con el servidor (6/6)"
+            "value" : "Estableciendo conexión con el servidor (7/7)"
           }
         },
         "fa" : {
@@ -30021,43 +30036,43 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Établissement de la connexion au serveur (6/6)"
+            "value" : "Établissement de la connexion au serveur (7/7)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "टनल से कनेक्ट हो रहा है"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stabilimento connessione server (6/6)"
+            "value" : "Stabilimento connessione server (7/7)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "サーバー接続を確立しています（6/6）"
+            "state" : "needs_review",
+            "value" : "サーバー接続を確立しています（7/7）"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estabelecendo conexão com o servidor (6/6)"
+            "state" : "needs_review",
+            "value" : "Estabelecendo conexão com o servidor (7/7)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estabelecendo conexão com o servidor (6/6)"
+            "state" : "needs_review",
+            "value" : "Estabelecendo conexão com o servidor (7/7)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Установка соединения с сервером (6/6)"
+            "state" : "needs_review",
+            "value" : "Установка соединения с сервером (7/7)"
           }
         },
         "tr" : {
@@ -30068,20 +30083,20 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Встановлення з'єднання з сервером (6/6)"
+            "state" : "needs_review",
+            "value" : "Встановлення з'єднання з сервером (7/7)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang thiết lập kết nối máy chủ (6/6)"
+            "state" : "needs_review",
+            "value" : "Đang thiết lập kết nối máy chủ (7/7)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "建立服务器连接(6/6)"
+            "state" : "needs_review",
+            "value" : "建立服务器连接(7/7)"
           }
         }
       }
@@ -30091,26 +30106,26 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "تحديث قائمة الخوادم (3/6)"
+            "state" : "needs_review",
+            "value" : "تحديث قائمة الخوادم (4/7)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Serverliste wird aktualisiert (3/6)"
+            "value" : "Serverliste wird aktualisiert (4/7)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Updating server list (3/6)"
+            "value" : "Updating server list (4/7)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualizando lista de servidores (3/6)"
+            "value" : "Actualizando lista de servidores (4/7)"
           }
         },
         "fa" : {
@@ -30122,43 +30137,43 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mise à jour de la liste des serveurs (3/6)"
+            "value" : "Mise à jour de la liste des serveurs (4/7)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "गेटवे लिस्ट को ताज़ा किया जा रहा है"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aggiornamento lista server (3/6)"
+            "value" : "Aggiornamento lista server (4/7)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "サーバーリストを更新しています(3/6)"
+            "state" : "needs_review",
+            "value" : "サーバーリストを更新しています(4/7)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizando lista de servidores (3/6)"
+            "state" : "needs_review",
+            "value" : "Atualizando lista de servidores (4/7)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizando lista de servidores (3/6)"
+            "state" : "needs_review",
+            "value" : "Atualizando lista de servidores (4/7)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обновление списка серверов (3/6)"
+            "state" : "needs_review",
+            "value" : "Обновление списка серверов (4/7)"
           }
         },
         "tr" : {
@@ -30169,20 +30184,20 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оновлення списку серверів (3/6)"
+            "state" : "needs_review",
+            "value" : "Оновлення списку серверів (4/7)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang cập nhật danh sách máy chủ (3/6)"
+            "state" : "needs_review",
+            "value" : "Đang cập nhật danh sách máy chủ (4/7)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "更新服务器列表 (3/6)"
+            "state" : "needs_review",
+            "value" : "更新服务器列表 (4/7)"
           }
         }
       }
@@ -30192,26 +30207,26 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "تسجيل مجهول مع الخوادم (5/6)"
+            "state" : "needs_review",
+            "value" : "تسجيل مجهول مع الخوادم (6/7)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonym bei Servern registrieren (5/6)"
+            "value" : "Anonym bei Servern registrieren (6/7)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering anonymously with servers (5/6)"
+            "value" : "Registering anonymously with servers (6/7)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registrándose anónimamente con los servidores (5/6)"
+            "value" : "Registrándose anónimamente con los servidores (6/7)"
           }
         },
         "fa" : {
@@ -30223,43 +30238,43 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inscription anonyme sur les serveurs (5/6)"
+            "value" : "Inscription anonyme sur les serveurs (6/7)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Registering with servers"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registrazione anonima con server (5/6)"
+            "value" : "Registrazione anonima con server (6/7)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "サーバーに匿名で登録しています (5/6)"
+            "state" : "needs_review",
+            "value" : "サーバーに匿名で登録しています (6/7)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registrar-se anonimamente com servidores (5/6)"
+            "state" : "needs_review",
+            "value" : "Registrar-se anonimamente com servidores (6/7)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registrar-se anonimamente com servidores (5/6)"
+            "state" : "needs_review",
+            "value" : "Registrar-se anonimamente com servidores (6/7)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонимная регистрация на серверах (5/6)"
+            "state" : "needs_review",
+            "value" : "Анонимная регистрация на серверах (6/7)"
           }
         },
         "tr" : {
@@ -30270,20 +30285,20 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонімна реєстрація на серверах (5/6)"
+            "state" : "needs_review",
+            "value" : "Анонімна реєстрація на серверах (6/7)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang đăng ký ẩn danh với các máy chủ (5/6)"
+            "state" : "needs_review",
+            "value" : "Đang đăng ký ẩn danh với các máy chủ (6/7)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名注册服务器(5/6)"
+            "state" : "needs_review",
+            "value" : "匿名注册服务器(6/7)"
           }
         }
       }
@@ -30293,26 +30308,26 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "تهيئة NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "تهيئة NymVPN (1/7)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initialisiere NymVPN (1/6)"
+            "value" : "Initialisiere NymVPN (1/7)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initializing NymVPN (1/6)"
+            "value" : "Initializing NymVPN (1/7)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inicializando NymVPN (1/6)"
+            "value" : "Inicializando NymVPN (1/7)"
           }
         },
         "fa" : {
@@ -30324,43 +30339,43 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initialisation de NymVPN (1/6)"
+            "value" : "Initialisation de NymVPN (1/7)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "API IP पतों का समाधान कर रहा है"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inizializzazione Di NymVPN (1/6)"
+            "value" : "Inizializzazione Di NymVPN (1/7)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPNの初期化 (1/6)"
+            "state" : "needs_review",
+            "value" : "NymVPNの初期化 (1/7)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inicializando NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "Inicializando NymVPN (1/7)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inicializando NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "Inicializando NymVPN (1/7)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Инициализация NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "Инициализация NymVPN (1/7)"
           }
         },
         "tr" : {
@@ -30371,20 +30386,20 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ініціалізація NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "Ініціалізація NymVPN (1/7)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang khởi tạo NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "Đang khởi tạo NymVPN (1/7)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在初始化 NymVPN (1/6)"
+            "state" : "needs_review",
+            "value" : "正在初始化 NymVPN (1/7)"
           }
         }
       }
@@ -30394,26 +30409,26 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختيار أفضل الخوادم (4/6)"
+            "state" : "needs_review",
+            "value" : "اختيار أفضل الخوادم (5/7)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beste Server wählen (4/6)"
+            "value" : "Beste Server wählen (5/7)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choosing best servers (4/6)"
+            "value" : "Choosing best servers (5/7)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elegir los mejores servidores (4/6)"
+            "value" : "Elegir los mejores servidores (5/7)"
           }
         },
         "fa" : {
@@ -30425,43 +30440,43 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choix des meilleurs serveurs (4/6)"
+            "value" : "Choix des meilleurs serveurs (5/7)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "गेटवे का चयन हो रहा हैं"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scegliere i migliori server (4/6)"
+            "value" : "Scegliere i migliori server (5/7)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "最適なサーバーの選択 (4/6)"
+            "state" : "needs_review",
+            "value" : "最適なサーバーの選択 (5/7)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolhendo os melhores servidores (4/6)"
+            "state" : "needs_review",
+            "value" : "Escolhendo os melhores servidores (5/7)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolhendo os melhores servidores (4/6)"
+            "state" : "needs_review",
+            "value" : "Escolhendo os melhores servidores (5/7)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбор лучших серверов (4/6)"
+            "state" : "needs_review",
+            "value" : "Выбор лучших серверов (5/7)"
           }
         },
         "tr" : {
@@ -30472,20 +30487,20 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вибір кращих серверів (4/6)"
+            "state" : "needs_review",
+            "value" : "Вибір кращих серверів (5/7)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang chọn máy chủ tốt nhất (4/6)"
+            "state" : "needs_review",
+            "value" : "Đang chọn máy chủ tốt nhất (5/7)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择最佳服务器 (4/6)"
+            "state" : "needs_review",
+            "value" : "选择最佳服务器 (5/7)"
           }
         }
       }

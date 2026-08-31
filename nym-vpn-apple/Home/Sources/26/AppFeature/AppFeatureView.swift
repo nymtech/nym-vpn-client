@@ -1,8 +1,9 @@
 import SwiftUI
+import AccountPrefetchGates
+import AppSettings
 #if os(iOS)
 import KeyboardManager
 #endif
-import AppSettings
 import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
@@ -41,6 +42,9 @@ public struct AppFeatureView: View {
     @State private var welcomeHeight: CGFloat = 0
     @State private var bottomSafeAreaInset: CGFloat = 0
     @State private var drawerOffsetY: CGFloat = 0
+#if os(macOS)
+    @State private var autologinState = AutologinState()
+#endif
     @Environment(\.colorScheme)
     private var colorScheme
     @Environment(\.scenePhase)
@@ -49,6 +53,8 @@ public struct AppFeatureView: View {
     private var appearance: AppSetting.Appearance = .automatic
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
     private var isCredentialImported = false
+    @AppStorage(AppSettingKey.onboardingDidDisplay.rawValue)
+    private var onboardingDidDisplay = false
 
     public init(viewModel: AppFeatureViewModel) {
         _viewModel = State(wrappedValue: viewModel)
@@ -56,106 +62,7 @@ public struct AppFeatureView: View {
 
     public var body: some View {
         @Bindable var viewModel = viewModel
-        NavigationStack(path: $viewModel.path) {
-            VStack(spacing: 0) {
-                navigationBar
-                ZStack {
-                    background
-                    GeometryReader { innerGeometry in
-                        let effectiveDrawerHeight = viewModel.drawerContent == nil ? 0 : drawerHeight
-                        // Drawer ignores bottom safe area; innerGeometry does not. Add it back
-                        // so availableHeight reflects ZStack-top → drawer-top, not an
-                        // under-reported value that triggers needless extra shrink.
-                        let availableHeight = max(
-                            0,
-                            innerGeometry.size.height + bottomSafeAreaInset - effectiveDrawerHeight
-                        )
-                        ConnectionStatusBackdrop(
-                            viewModel: viewModel.connectionStatus,
-                            availableHeight: availableHeight
-                        )
-                            .position(
-                                x: innerGeometry.size.width / 2,
-                                y: availableHeight / 2
-                            )
-                            .animation(
-                                .spring(response: 0.35, dampingFraction: 0.85),
-                                value: effectiveDrawerHeight
-                            )
-                    }
-                }
-                .clipped()
-            }
-            .overlay(alignment: .bottom) {
-#if os(iOS)
-                KeyboardHostView(
-                    bottomSafeAreaInset: bottomSafeAreaInset,
-                    isEnabled: viewModel.drawerTag.isWelcome
-                ) {
-                    Spacer()
-                    drawerColumn
-                        .trackHeight { drawerHeight = $0 }
-                        .padding(.bottom, bottomSafeAreaInset == 0 ? NymSpacing.standard : 0)
-                }
-#else
-                drawerColumn
-                    .trackHeight { drawerHeight = $0 }
-                    .padding(.bottom, NymSpacing.standard)
-#endif
-            }
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { bottomSafeAreaInset = proxy.safeAreaInsets.bottom }
-                        .onChange(of: proxy.safeAreaInsets.bottom) { _, newValue in
-                            bottomSafeAreaInset = newValue
-                        }
-                }
-            }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
-            .animation(.spring, value: viewModel.drawerContent == nil)
-            .navigationDestination(for: HomeLink.self) { link in
-                linkDestination(link: link, path: $viewModel.path)
-            }
-#if os(iOS)
-            .toolbar(.hidden, for: .navigationBar)
-#endif
-        }
-        .nymSnackbar(manager: viewModel.snackbarManager)
-        .overlay {
-            if viewModel.isFamilyWarningModalDisplayed {
-                ModalOverlayView(
-                    isDisplayed: $viewModel.isFamilyWarningModalDisplayed,
-                    dismissOnOverlayTap: false,
-                    horizontalPadding: NymSpacing.standard,
-                    maxWidth: NymSpacing.drawerMaxWidth
-                ) {
-                    FamilyWarningModalView(
-                        title: "gatewayIndependence.modal.title".localizedString,
-                        reminderText: "gatewayIndependence.modal.disableReminders".localizedString,
-                        reminderLinkText: "gatewayIndependence.modal.notificationSettingsLink".localizedString,
-                        connectAnywayTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
-                        cancelTitle: "cancel".localizedString,
-                        onConnectAnyway: { viewModel.confirmFamilyWarning() },
-                        onCancel: { viewModel.dismissFamilyWarning() },
-                        onOpenNotificationSettings: { viewModel.openNotificationSettingsFromFamilyWarning() }
-                    )
-                }
-            }
-        }
-        .preferredColorScheme(appearance.colorScheme)
-        .onAppear { wireOneClickNavigation() }
-        .onChange(of: isCredentialImported) { _, newValue in
-            viewModel.handleCredentialChange(imported: newValue)
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                viewModel.handleSceneBecameActive()
-            }
-        }
-        .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
-            viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
-        }
+        decoratedRoot(viewModel: viewModel)
     }
 }
 
@@ -190,15 +97,212 @@ public struct AppFeatureView: View {
 }
 #endif
 
+private struct ConnectionStatusBackdropLayer: View {
+    let connectionStatus: ConnectionStatusViewModel
+    let drawerContentIsNil: Bool
+    let drawerHeight: CGFloat
+    let bottomSafeAreaInset: CGFloat
+
+    var body: some View {
+        GeometryReader { innerGeometry in
+            let effectiveDrawerHeight = drawerContentIsNil ? 0 : drawerHeight
+            let availableHeight = max(
+                0,
+                innerGeometry.size.height + bottomSafeAreaInset - effectiveDrawerHeight
+            )
+            ConnectionStatusBackdrop(
+                viewModel: connectionStatus,
+                availableHeight: availableHeight
+            )
+            .position(
+                x: innerGeometry.size.width / 2,
+                y: availableHeight / 2
+            )
+            .animation(
+                .spring(response: 0.35, dampingFraction: 0.85),
+                value: effectiveDrawerHeight
+            )
+        }
+    }
+}
+
 private extension AppFeatureView {
-    func wireOneClickNavigation() {
-        let pushPlanPurchase: () -> Void = { [weak viewModel] in
-            guard let viewModel else { return }
+    @ViewBuilder
+    func decoratedRoot(viewModel: AppFeatureViewModel) -> some View {
+        @Bindable var viewModel = viewModel
+        let stack = navigationStack(viewModel: viewModel)
+        withSessionObservers(stack, viewModel: viewModel)
+            .nymSnackbar(manager: viewModel.snackbarManager)
+            .overlay {
+                if viewModel.isFamilyWarningModalDisplayed {
+                    ModalOverlayView(
+                        isDisplayed: $viewModel.isFamilyWarningModalDisplayed,
+                        dismissOnOverlayTap: false,
+                        horizontalPadding: NymSpacing.standard,
+                        maxWidth: NymSpacing.drawerMaxWidth
+                    ) {
+                        FamilyWarningModalView(
+                            title: "gatewayIndependence.modal.title".localizedString,
+                            reminderText: "gatewayIndependence.modal.disableReminders".localizedString,
+                            reminderLinkText: "gatewayIndependence.modal.notificationSettingsLink".localizedString,
+                            connectAnywayTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
+                            cancelTitle: "cancel".localizedString,
+                            onConnectAnyway: { viewModel.confirmFamilyWarning() },
+                            onCancel: { viewModel.dismissFamilyWarning() },
+                            onOpenNotificationSettings: { viewModel.openNotificationSettingsFromFamilyWarning() }
+                        )
+                    }
+                }
+            }
+            .overlay {
+                if !onboardingDidDisplay, !isCredentialImported {
+                    OnboardingView {
+                        appSettings.onboardingDidDisplay = true
+                    }
+                    .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: onboardingDidDisplay)
+            .preferredColorScheme(appearance.colorScheme)
+            .onAppear { wireMacOSDaemonNavigation() }
+#if os(macOS)
+            .modifier(
+                WebSubscriptionPurchaseChromeModifier(
+                    viewModel: viewModel,
+                    autologinState: autologinState,
+                    credentialsManager: credentialsManager
+                )
+            )
+#endif
+    }
+
+    @ViewBuilder
+    func navigationStack(viewModel: AppFeatureViewModel) -> some View {
+        @Bindable var viewModel = viewModel
+        NavigationStack(path: $viewModel.path) {
+            homeColumn(viewModel: viewModel)
+                .overlay(alignment: .bottom) {
+                    drawerOverlay(viewModel: viewModel)
+                }
+                .background { bottomSafeAreaReader }
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+                .animation(.spring, value: viewModel.drawerContent == nil)
+                .navigationDestination(for: HomeLink.self) { link in
+                    linkDestination(link: link, path: $viewModel.path)
+                }
+#if os(iOS)
+                .toolbar(.hidden, for: .navigationBar)
+#endif
+        }
+    }
+
+    @ViewBuilder
+    func homeColumn(viewModel: AppFeatureViewModel) -> some View {
+        VStack(spacing: 0) {
+            navigationBar
+            ZStack {
+                background
+                ConnectionStatusBackdropLayer(
+                    connectionStatus: viewModel.connectionStatus,
+                    drawerContentIsNil: viewModel.drawerContent == nil,
+                    drawerHeight: drawerHeight,
+                    bottomSafeAreaInset: bottomSafeAreaInset
+                )
+            }
+            .clipped()
+            if viewModel.purchaseTransitionOverlayVisible {
+                Color.Nym.background
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .allowsHitTesting(false)
+            }
+        }
+        .animation(
+            .easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds),
+            value: viewModel.purchaseTransitionOverlayVisible
+        )
+    }
+
+    @ViewBuilder
+    func drawerOverlay(viewModel: AppFeatureViewModel) -> some View {
+#if os(iOS)
+        KeyboardHostView(
+            bottomSafeAreaInset: bottomSafeAreaInset,
+            isEnabled: viewModel.drawerTag.isWelcome
+        ) {
+            Spacer()
+            drawerColumn
+                .trackHeight { drawerHeight = $0 }
+                .padding(.bottom, bottomSafeAreaInset == 0 ? NymSpacing.standard : 0)
+        }
+#else
+        drawerColumn
+            .trackHeight { drawerHeight = $0 }
+            .padding(.bottom, NymSpacing.standard)
+#endif
+    }
+
+    var bottomSafeAreaReader: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .onAppear { bottomSafeAreaInset = proxy.safeAreaInsets.bottom }
+                .onChange(of: proxy.safeAreaInsets.bottom) { _, newValue in
+                    bottomSafeAreaInset = newValue
+                }
+        }
+    }
+
+    @ViewBuilder
+    func withSessionObservers<Content: View>(
+        _ content: Content,
+        viewModel: AppFeatureViewModel
+    ) -> some View {
+        content
+            .onChange(of: viewModel.planPurchaseNavigationToken) { _, _ in
+                handlePlanPurchaseNavigationTokenChange(viewModel: viewModel)
+            }
+            .onChange(of: viewModel.drawerContent == nil) { _, drawerHidden in
+                handleDrawerHiddenChange(drawerHidden, viewModel: viewModel)
+            }
+            .onChange(of: isCredentialImported) { _, newValue in
+                viewModel.handleCredentialChange(imported: newValue)
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    viewModel.handleSceneBecameActive()
+                }
+            }
+            .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
+                viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
+            }
+    }
+
+    func handlePlanPurchaseNavigationTokenChange(viewModel: AppFeatureViewModel) {
+        guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+        guard viewModel.drawerContent == nil else { return }
+        pushPlanPurchaseNavigation()
+        viewModel.consumeNavigationIntent()
+        viewModel.checkoutNavigationDidComplete()
+    }
+
+    func handleDrawerHiddenChange(_ drawerHidden: Bool, viewModel: AppFeatureViewModel) {
+        guard drawerHidden else { return }
+        guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+        guard viewModel.planPurchaseNavigationToken > 0 else { return }
+        pushPlanPurchaseNavigation()
+        viewModel.consumeNavigationIntent()
+        viewModel.checkoutNavigationDidComplete()
+    }
+
+    func pushPlanPurchaseNavigation() {
+        withAnimation(.easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds)) {
+            viewModel.path = NavigationPath()
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
         }
-        viewModel.oneClick.onRequestPlanPurchase = pushPlanPurchase
-        viewModel.onRequestPlanPurchase = pushPlanPurchase
+    }
+
+    func wireMacOSDaemonNavigation() {
 #if os(macOS)
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }
@@ -229,6 +333,8 @@ private extension AppFeatureView {
             drawer
         }
         .offset(y: drawerOffsetY)
+        .opacity(viewModel.shouldHideDrawerChromeDuringCheckout ? 0 : 1)
+        .allowsHitTesting(!viewModel.shouldHideDrawerChromeDuringCheckout)
         .onChange(of: viewModel.drawerSlideID) { _, _ in
             slideDrawer()
         }
@@ -293,7 +399,7 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+            sessionCoordinator: viewModel
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))
@@ -316,9 +422,11 @@ private extension AppFeatureView {
                 imageSize: Constants.NavigationBar.TrailingIcon.size,
                 accessibilityLabel: "home.navigationBar.settings.accessibilityLabel".localizedString
             ) {
+                guard viewModel.drawerContent?.isProcessing != true else { return }
                 impactGenerator.softImpact()
                 viewModel.path.append(HomeLink.settings)
             }
+            .allowsHitTesting(viewModel.drawerContent?.isProcessing != true)
             .padding(.leading, NymSpacing.small)
         }
         .frame(height: Constants.NavigationBar.height)
@@ -381,35 +489,49 @@ private extension AppFeatureView {
     @ViewBuilder
     func settingsDestination(path: Binding<NavigationPath>) -> some View {
 #if os(iOS)
-        SettingsView(
-            viewModel: SettingsViewModel(
-                path: path,
-                appSettings: appSettings,
-                configurationManager: configurationManager,
-                connectionManager: connectionManager,
-                credentialsManager: credentialsManager,
-                externalLinkManager: externalLinkManager,
-                featureFlagsManager: featureFlagsManager,
-                impactGenerator: impactGenerator,
-                purchasesManager: purchasesManager
-            )
-        )
+        SettingsView(viewModel: configuredIOSSettingsViewModel(path: path))
 #elseif os(macOS)
-        SettingsView(
-            viewModel: SettingsViewModel(
-                isServing: $grpcManager.isServing,
-                path: path,
-                appSettings: appSettings,
-                configurationManager: configurationManager,
-                connectionManager: connectionManager,
-                credentialsManager: credentialsManager,
-                externalLinkManager: externalLinkManager,
-                featureFlagsManager: featureFlagsManager,
-                impactGenerator: impactGenerator
-            )
-        )
+        SettingsView(viewModel: configuredMacSettingsViewModel(path: path))
 #endif
     }
+
+#if os(iOS)
+    func configuredIOSSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
+        let settingsViewModel = SettingsViewModel(
+            path: path,
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            connectionManager: connectionManager,
+            credentialsManager: credentialsManager,
+            externalLinkManager: externalLinkManager,
+            featureFlagsManager: featureFlagsManager,
+            impactGenerator: impactGenerator,
+            purchasesManager: purchasesManager
+        )
+        settingsViewModel.onSessionEvent = { [viewModel] event in
+            viewModel.handleSessionEvent(event)
+        }
+        return settingsViewModel
+    }
+#elseif os(macOS)
+    func configuredMacSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
+        let settingsViewModel = SettingsViewModel(
+            isServing: $grpcManager.isServing,
+            path: path,
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            connectionManager: connectionManager,
+            credentialsManager: credentialsManager,
+            externalLinkManager: externalLinkManager,
+            featureFlagsManager: featureFlagsManager,
+            impactGenerator: impactGenerator
+        )
+        settingsViewModel.onSessionEvent = { [viewModel] event in
+            viewModel.handleSessionEvent(event)
+        }
+        return settingsViewModel
+    }
+#endif
 }
 
 private extension AppFeatureView {

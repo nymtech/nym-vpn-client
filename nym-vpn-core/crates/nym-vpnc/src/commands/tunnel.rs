@@ -5,10 +5,7 @@ use anyhow::Result;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::{
-    boolean_option::BooleanOption, display_helpers::display_on_off,
-    gateway_selection_algorithm::GatewaySelectionAlgorithmParser,
-};
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 use clap::builder::ValueParser;
 
 #[derive(Debug, Clone, clap::Subcommand)]
@@ -76,20 +73,13 @@ pub struct SetParams {
     )]
     disable_real_traffic_poisson_rate: Option<BooleanOption>,
 
-    /// Set the level of automatic selection of gateway that the tunnel state machine should use
-    /// 0 means no automatic selection, everything is set by the user explicitly
-    /// 1 means automatic selection just for the entry gateway
-    /// anything else means automatic selection for both entry and exit gateway
-    #[arg(
-    long,
-    value_name = "LEVEL",
-    value_parser = clap::value_parser!(GatewaySelectionAlgorithmParser)
-    )]
-    gateway_selection_algorithm: Option<GatewaySelectionAlgorithmParser>,
-
     /// Enable or disable geo-location data being used for determining gateway proximity
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     geo_location: Option<BooleanOption>,
+
+    /// Enable or disable gateway independence criteria when selecting the pair of servers
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
+    gateway_independence: Option<BooleanOption>,
 }
 
 impl Command {
@@ -105,10 +95,7 @@ impl Command {
                     display_on_off(config.enable_bridges)
                 );
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
-                println!(
-                    "Gateway selection algorithm configuration: {}",
-                    config.gateway_selection_algorithm_config
-                );
+                println!("Gateway independence: {}", config.gateway_independence);
 
                 Ok(())
             }
@@ -160,15 +147,15 @@ impl Command {
                         .await?;
                 }
 
-                if let Some(gateway_selection_algorithm) = params.gateway_selection_algorithm {
-                    rpc_client
-                        .set_gateway_selection_algorithm(*gateway_selection_algorithm)
-                        .await?;
-                }
-
                 if let Some(enable_geo_location) = params.geo_location {
                     rpc_client
                         .set_enable_geo_location(*enable_geo_location)
+                        .await?;
+                }
+
+                if let Some(gateway_independence) = params.gateway_independence {
+                    rpc_client
+                        .set_enable_gateway_independence(*gateway_independence)
                         .await?;
                 }
 

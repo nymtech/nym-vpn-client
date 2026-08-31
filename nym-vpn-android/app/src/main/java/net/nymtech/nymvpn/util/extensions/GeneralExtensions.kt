@@ -5,8 +5,8 @@ import android.provider.Settings
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import java.util.Locale
+import java.util.MissingResourceException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -23,6 +23,14 @@ fun String.truncateWithEllipsis(length: Int): String = if (this.length <= length
 
 fun NymGateway.toLocale(): Locale? = twoLetterCountryISO?.let { Locale(it, it) }
 
+// Locale.isO3Country throws MissingResourceException for codes without an ISO3 mapping
+// (user-assigned codes like "XK"/Kosovo on older ICU data, e.g. Android 9)
+fun Locale.iso3CountryOrEmpty(): String = try {
+	isO3Country
+} catch (_: MissingResourceException) {
+	""
+}
+
 private const val ALWAYS_ON_VPN_APP = "always_on_vpn_app"
 
 fun isVpnAlwaysOn(context: Context): Boolean = try {
@@ -32,8 +40,7 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 	false
 }
 
-fun GatewaySelectionAlgorithm.toConnectMode(vpnMode: Tunnel.Mode): ConnectMode = when {
-	this == GatewaySelectionAlgorithm.EXPLICIT && vpnMode == Tunnel.Mode.TWO_HOP_MIXNET -> ConnectMode.FAST
-	this == GatewaySelectionAlgorithm.EXPLICIT && vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET -> ConnectMode.MIXNET
-	else -> ConnectMode.AUTO
+fun Tunnel.Mode.toConnectMode(): ConnectMode = when (this) {
+	Tunnel.Mode.TWO_HOP_MIXNET -> ConnectMode.FAST
+	Tunnel.Mode.FIVE_HOP_MIXNET -> ConnectMode.MIXNET
 }

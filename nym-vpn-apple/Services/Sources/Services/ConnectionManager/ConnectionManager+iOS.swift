@@ -1,8 +1,10 @@
 #if os(iOS)
 import NetworkExtension
 import AppSettings
+import ConfigurationManager
 import Constants
 import ConnectionTypes
+import NymLogger
 import NymVPNLib
 import PathManager
 import TunnelMixnet
@@ -96,6 +98,9 @@ extension ConnectionManager {
         let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
         let dataURL = try PathManager.dataFolderURL()
         let configURL = try PathManager.configFolderURL()
+        guard let logsURL = LogFileManager.logsDirectory() else {
+            throw PathManagerError.cannotCreateDB
+        }
         let algorithmConfig = connectionConfig.gatewaySelectionAlgorithmConfig
 
         return MixnetConfig(
@@ -103,6 +108,7 @@ extension ConnectionManager {
             exitRouter: exitRouter,
             configPath: configURL.path(),
             dataPath: dataURL.path(),
+            logPath: logsURL.path(),
             customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
             mixnetTuning: connectionConfig.mixnetTuningConfig,
             isErrorReportingEnabled: isErrorReportingEnabled,
@@ -118,6 +124,7 @@ extension ConnectionManager {
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
+        credentialsManager.shutdownControllers()
         do {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
@@ -154,21 +161,45 @@ extension ConnectionManager {
     func fetchConnectionConfig() async {}
 
     @MainActor
-    func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async {
+    func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async throws {
         if let cfg = try? generateConfig() {
             MixnetConfigStorage.save(cfg)
         }
-        await tunnelsManager.send(message)
+        try await tunnelsManager.send(message: message)
+    }
+
+    @MainActor
+    public func runDiagnostic() async -> String? {
+        guard let environment = ConfigurationManager.shared.networkEnv else { return nil }
+        return try? await NymVPNLib.runDiagnostic(
+            params: DiagnosticRunParams(
+                gateway: nil,
+                skipDns: false,
+                skipHttp: false,
+                skipHybridTransport: false
+            ),
+            environment: environment
+        )
     }
 }
 
 extension ConnectionManager {
     /// connects disconnects VPN, depending on current VPN status
     @MainActor public func connectDisconnect() async throws {
+        if MockMode.isEnabled {
+            if currentTunnelStatus == .connected || currentTunnelStatus == .connecting {
+                MockConnectionState.shared.disconnect()
+            } else {
+                MockConnectionState.shared.connect()
+            }
+            return
+        }
         if shouldDisconnectActiveTunnel() {
             isDisconnecting = true
             try await disconnectActiveTunnel()
-            lastError = nil
+            if !GatewayIndependenceArcPolicy.isIndependenceConsentError(lastError) {
+                lastError = nil
+            }
         } else {
             let config = try generateConfig()
             try await connect(with: config)

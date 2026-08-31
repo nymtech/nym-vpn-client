@@ -7,6 +7,9 @@ public enum ArcProgressState: Equatable, Sendable {
     /// Idle / not connected — all rings at track opacity, label "Not protected".
     case disconnected
 
+    /// Device has no internet — idle rings, label "Your device has no internet connection".
+    case offline
+
     /// One of the six connecting steps — fills 50% (first half) or 100% (full)
     /// of the corresponding ring. Outer ring covers steps 1–2, middle 3–4,
     /// inner 5–6.
@@ -22,9 +25,13 @@ public enum ArcProgressState: Equatable, Sendable {
     /// Mid-cancel — fills fade to 15% opacity, no color change.
     case canceling
 
+    /// Gateway independence pre-flight blocked — not connected; label prompts consent.
+    case awaitingGatewayConsent
+
     public enum Step: Equatable, Sendable, CaseIterable {
         case initializingNym
         case authenticatingAccount
+        case downloadingZkNyms
         case updatingServerList
         case choosingBestServers
         case registeringWithServers

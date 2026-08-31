@@ -1,1 +1,1 @@
-Gizli ve güvenli İsviçre dVPN’i. WireGuard, mixnet, merkeziyetsiz vekil sunucu, e-posta yok.
+Özel İsviçre dVPN. WireGuard, Mixnet, merkeziyetsiz proxy. Şifreli, e-posta yok

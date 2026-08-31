@@ -1,0 +1,115 @@
+name: build-nym-vpn-core-ios
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-core-macos.yml"
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: "Orchestrated app version to embed (empty = self-bump as before)"
+        type: string
+        default: ""
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-wireguard-go-ios:
+    uses: ./.github/workflows/build-wireguard-go-ios.yml
+
+  build-nym-vpn-core-ios:
+    if: github.actor != 'dependabot[bot]'
+    needs: build-wireguard-go-ios
+    env:
+      UPLOAD_DIR_IOS: core_artifacts_ios
+    runs-on: custom-macos-15
+    outputs:
+      UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: aarch64-apple-ios aarch64-apple-ios-sim
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
+
+      - name: Apply orchestrated version
+        uses: ./.github/actions/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: wireguard-go_ios_universal
+          path: build/lib
+
+      - name: Build nym-vpn-core
+        env:
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          make -C nym-vpn-core -f iOS.mk RELEASE="true"
+
+      - name: Move assets for upload
+        run: |
+          mkdir "${{ env.UPLOAD_DIR_IOS }}"
+          mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib "${{ env.UPLOAD_DIR_IOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.UPLOAD_DIR_IOS }}
+          path: ${{ env.UPLOAD_DIR_IOS }}
+          if-no-files-found: error
+          retention-days: 1

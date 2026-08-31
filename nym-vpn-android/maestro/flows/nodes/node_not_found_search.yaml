@@ -1,0 +1,21 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn:
+    text: "Safest"
+    index: 0
+
+- assertNotVisible: "No results found."
+- assertVisible: "Germany"
+
+- tapOn: "Search location or server"
+- inputText: "Random non existing country"
+
+- assertVisible: "No results found."
+- assertNotVisible: "Germany"
+
+- tapOn: "Clear text"
+
+- assertVisible: "Germany"
+- assertNotVisible: "No results found."

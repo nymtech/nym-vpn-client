@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -41,18 +42,21 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanel
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanelState
+import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.screens.main.panel.PanelState
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
 import net.nymtech.nymvpn.ui.screens.permission.Permission
@@ -62,15 +66,16 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
-import nym_vpn_lib_types.Score
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 
 @Composable
-fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, loginProcessing: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
@@ -81,8 +86,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
-	var showAuthSheet by remember { mutableStateOf(false) }
-	var initialAuthRoute by remember { mutableStateOf<AuthRoute>(AuthRoute.Welcome) }
+	var bottomSheetContent by remember { mutableStateOf<MainBottomSheetContent>(MainBottomSheetContent.Hidden) }
+	var authSheetHeightPx by remember { mutableIntStateOf(0) }
 	var authSheetChecked by rememberSaveable { mutableStateOf(false) }
 	var didAutoStart by rememberSaveable { mutableStateOf(false) }
 
@@ -160,7 +165,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (uiState.connectionState == ConnectionState.WaitingForConnection) {
 			AlertController.show(AlertMessage(title = nodeAlertTitle))
 		} else {
-			navController.goFromRoot(Route.EntryLocation)
+			navController.goFromRoot(Route.EntryServer)
 		}
 	}
 
@@ -168,7 +173,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (uiState.connectionState == ConnectionState.WaitingForConnection) {
 			AlertController.show(AlertMessage(title = nodeAlertTitle))
 		} else {
-			navController.goFromRoot(Route.ExitLocation)
+			navController.goFromRoot(Route.ExitServer)
 		}
 	}
 
@@ -181,8 +186,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			appUiState.subscription?.expiryState == ExpiryState.EXPIRED && appUiState.managerState.isMnemonicStored ->
 				navController.goFromRoot(Route.SelectPlan)
 			!appUiState.managerState.isMnemonicStored -> {
-				initialAuthRoute = AuthRoute.Welcome
-				showAuthSheet = true
+				bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.Welcome)
 			}
 		}
 	}
@@ -192,9 +196,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	LaunchedEffect(appUiState.managerState.isInitialized) {
 		if (appUiState.managerState.isInitialized && !authSheetChecked) {
 			authSheetChecked = true
-			if (!appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown) {
-				initialAuthRoute = AuthRoute.Welcome
-				showAuthSheet = true
+			when {
+				!appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown ->
+					bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.Welcome)
+				appUiState.managerState.isMnemonicStored && !appUiState.settings.technicalOptCompleted ->
+					bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.TechOpt)
 			}
 		}
 	}
@@ -202,8 +208,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	LaunchedEffect(authRoute) {
 		if (authRoute == null) return@LaunchedEffect
 		if (authRoute == AuthRoute.TechOpt || !appUiState.managerState.isMnemonicStored) {
-			initialAuthRoute = authRoute
-			showAuthSheet = true
+			bottomSheetContent = MainBottomSheetContent.Auth(authRoute)
+		}
+	}
+
+	LaunchedEffect(loginProcessing) {
+		if (loginProcessing) {
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing
 		}
 	}
 
@@ -238,6 +249,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		expiryState = appUiState.subscription?.expiryState,
 		validUntilDate = appUiState.subscription?.validUntilDate ?: "",
 		expiryBannerDismissed = expiryBannerDismissed,
+		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
 		onRenewSubscription = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
@@ -261,11 +273,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				}
 				ConnectAction.STOP_KILL_SWITCH -> navController.goFromRoot(Route.Settings(true))
 				ConnectAction.GET_STARTED -> onGetStartedPressed()
+				ConnectAction.REFRESH_ACCOUNT -> viewModel.refreshAccount()
 			}
 		},
 		onModeChange = { mode ->
 			when (mode) {
-				ConnectMode.AUTO -> viewModel.onAutoSelected()
 				ConnectMode.FAST -> viewModel.onTwoHopSelected()
 				ConnectMode.MIXNET -> viewModel.onFiveHopSelected()
 			}
@@ -295,9 +307,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		showBatteryDialog = showBatteryDialog,
 		showNetworkStatsDialog = showNetworkStatsDialog,
 		showNodeFamiliesDialog = showNodeFamiliesDialog,
-		showAuthSheet = showAuthSheet,
-		isMnemonicStored = appUiState.managerState.isMnemonicStored,
-		initialAuthRoute = initialAuthRoute,
+		bottomSheetContent = bottomSheetContent,
 		onCancelAutologin = appViewModel::cancelAutologin,
 		onDismissAutologin = appViewModel::dismissAutologin,
 		onDismissInfo = { showInfoDialog = false },
@@ -330,15 +340,34 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			showNodeFamiliesDialog = false
 			viewModel.onNodeFamiliesConfirm()
 		},
-		onDismissNodeFamilies = { showNodeFamiliesDialog = false },
-		onNotificationSettingsClick = { navController.goFromRoot(Route.Notifications) },
-		onDismissAuthSheet = {
-			if (!appUiState.settings.isWelcomeShown) appViewModel.setWelcomeShown()
-			showAuthSheet = false
+		onDismissNodeFamilies = {
+			showNodeFamiliesDialog = false
+			viewModel.onNodeFamiliesCancel()
 		},
-		onAuthSuccess = { showAuthSheet = false },
+		onNotificationSettingsClick = { navController.goFromRoot(Route.Notifications) },
+		onDismissBottomSheet = {
+			if (!appUiState.settings.isWelcomeShown) appViewModel.setWelcomeShown()
+			bottomSheetContent = MainBottomSheetContent.Hidden
+		},
+		onAuthSuccess = { bottomSheetContent = MainBottomSheetContent.Hidden },
+		onLoginProcessingStart = {
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+		},
+		authSheetMinHeightPx = authSheetHeightPx,
+		onAuthSheetHeightChange = { height -> authSheetHeightPx = height },
 		appUiState = appUiState,
 	)
+}
+
+private fun nodeSelectionType(isAuto: Boolean, isRandom: Boolean, currentProfile: Profile?): NodeSelectionType = when {
+	isRandom -> NodeSelectionType.RANDOM
+	isAuto -> when (currentProfile) {
+		Profile.SAFEST, null -> NodeSelectionType.SAFEST
+		Profile.MOST_PRIVATE -> NodeSelectionType.MOST_PRIVATE
+		Profile.FASTEST -> NodeSelectionType.FASTEST
+		Profile.RANDOM -> NodeSelectionType.RANDOM
+	}
+	else -> NodeSelectionType.NODE
 }
 
 @Composable
@@ -358,7 +387,7 @@ private fun MainScreenContent(
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
 ) {
-	val connectMode = appUiState.vpnConfig.algorithm.toConnectMode(appUiState.vpnConfig.mode)
+	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
 	val panelState = ConnectPanelState(
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
@@ -369,20 +398,28 @@ private fun MainScreenContent(
 			name = appUiState.exitPointName,
 			countryCode = appUiState.exitPointCountry,
 			location = appUiState.exitPointLocation,
-			score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
+			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
+			selectionType = nodeSelectionType(
+				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
+				isRandom = appUiState.vpnConfig.exitPoint is ExitPoint.Random,
+				currentProfile = appUiState.currentProfile,
+			),
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
 			name = appUiState.entryPointName,
 			countryCode = appUiState.entryPointCountry,
 			location = appUiState.entryPointLocation,
-			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
+			selectionType = nodeSelectionType(
+				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
+				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,
+				currentProfile = appUiState.currentProfile,
+			),
+			score = appUiState.entryPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 		),
-		exitIsAutoBest = connectMode == ConnectMode.AUTO &&
-			appUiState.vpnConfig.algorithm == GatewaySelectionAlgorithm.AUTO &&
-			appUiState.isExitPointRandom,
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
+		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 	)
 
 	Box(

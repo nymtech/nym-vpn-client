@@ -3,7 +3,7 @@
 
 use crate::{Error, error::Result};
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
-use nym_validator_client::models::NymNodeDataV1;
+use nym_validator_client::models::described::v1::NymNodeDataV1;
 
 #[derive(Debug, Copy, Clone)]
 pub struct IpPacketRouterAddress(Recipient);

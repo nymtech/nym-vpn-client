@@ -63,12 +63,6 @@ impl TryFrom<StoreAccountRequest> for StorableAccount {
 
 #[derive(Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-pub struct DecentralisedObtainTicketbooksRequest {
-    pub amount: u64,
-}
-
-#[derive(Debug)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct AccountCommandResponse {
     pub error: Option<crate::AccountCommandError>,
 }

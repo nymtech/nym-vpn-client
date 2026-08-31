@@ -1,0 +1,18 @@
+# Navigating to the 24-word recovery-phrase login screen.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/logout_to_welcome.yaml
+
+- tapOn: "Login to my account"
+- extendedWaitUntil:
+    visible:
+      text: "Login with 24 words"
+    timeout: 10000
+
+- tapOn: "Login with 24 words"
+- extendedWaitUntil:
+    visible:
+      text: "Enter your 24-word recovery phrase..."
+    timeout: 10000

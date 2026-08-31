@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 import Combine
 
 final class RPCTunnelObserver: ObservableObject, TunnelEventObserver, @unchecked Sendable {

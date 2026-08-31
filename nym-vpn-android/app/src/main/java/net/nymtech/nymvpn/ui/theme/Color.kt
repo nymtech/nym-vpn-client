@@ -35,7 +35,7 @@ internal object LightSchemeBaseColors {
 	val secondary = Color(0xFFB0ADB6)
 	val onSecondary = Color(0xFF1C1B1F)
 	val tertiary = Color(0xFF28C96C)
-	val background = Color(0xFFFFFFFF)
+	val background = Color(0xFFD5D5D5)
 	val onBackground = Color(0xFF8A8990)
 	val surface = Color(0xFFF6F6F7)
 	val onSurface = Color(0xFF6A7282)
@@ -64,6 +64,9 @@ data class NymColors(
 	val navBarTitleBackground: Color = Color.Unspecified,
 	val navBarIconTint: Color = Color.Unspecified,
 	val switchBackground: Color = Color.Unspecified,
+	val warningBackground: Color = Color.Unspecified,
+	val favorite: Color = Color.Unspecified,
+	val currentValueIndicator: Color = Color.Unspecified,
 )
 
 val DarkNymColors = NymColors(
@@ -81,6 +84,9 @@ val DarkNymColors = NymColors(
 	navBarTitleBackground = Color(0xFF090909),
 	navBarIconTint = Color(0xFFAEACB1),
 	switchBackground = Color(0xFF66656A),
+	warningBackground = Color(0x1AFFCC33),
+	favorite = Color(0xFFFFB400),
+	currentValueIndicator = Color(0xFF9189FF),
 )
 
 val LightNymColors = NymColors(
@@ -98,6 +104,9 @@ val LightNymColors = NymColors(
 	navBarTitleBackground = Color(0xFFFFFFFF),
 	navBarIconTint = Color(0xFF111111),
 	switchBackground = Color(0xFFD5D5D5),
+	warningBackground = Color(0xB3634A00),
+	favorite = Color(0xFFFFB400),
+	currentValueIndicator = Color(0xFF9189FF),
 )
 
 val LocalNymColors = staticCompositionLocalOf { DarkNymColors }

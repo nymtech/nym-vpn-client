@@ -12,6 +12,7 @@ import {
   Display,
   Error,
   GeoExclusion,
+  GeoExclusionSelectRegion,
   GeoExclusionSetup,
   Lang,
   Legal,
@@ -55,6 +56,7 @@ export const routes = {
   splitTunneling: '/settings/split-tunneling',
   geoExclusion: '/settings/geo-exclusion',
   geoExclusionSetup: '/settings/geo-exclusion/setup-instructions',
+  geoExclusionSelectRegion: '/settings/geo-exclusion/select-region',
   notifications: '/settings/notifications',
   support: '/settings/support',
   legal: '/settings/legal',
@@ -198,6 +200,11 @@ const router = createBrowserRouter([
           {
             path: routes.geoExclusionSetup,
             Component: GeoExclusionSetup,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.geoExclusionSelectRegion,
+            Component: GeoExclusionSelectRegion,
             errorElement: <Error />,
           },
           {

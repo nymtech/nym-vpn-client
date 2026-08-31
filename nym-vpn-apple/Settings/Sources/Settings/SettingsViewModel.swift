@@ -43,7 +43,7 @@ import Theme
 #endif
 
     var versionTitle: String {
-        let base = "\("version".localizedString) \(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))"
+        let base = "\("version".localizedString) \(AppVersionProvider.realAppVersion())"
         let env = configurationManager.currentEnvString
         guard env != Env.mainnet.rawValue else { return base }
         return "\(base) - \(env)"
@@ -115,6 +115,19 @@ import Theme
     func reloadSections() {
         configureSections()
     }
+
+    func updateAccountSectionOnly() {
+        guard appSettings.isCredentialImported else {
+            sections.removeAll { $0.kind == .account }
+            return
+        }
+        let updated = accountSection()
+        if let index = sections.firstIndex(where: { $0.kind == .account }) {
+            sections[index] = updated
+        } else {
+            sections.insert(updated, at: 0)
+        }
+    }
 }
 
 private extension SettingsViewModel {
@@ -146,6 +159,15 @@ private extension SettingsViewModel {
     func navigateToAccount() {
         impactGenerator.softImpact()
         path.append(SettingLink.accountAndDevices)
+    }
+
+    func navigateToPlanPurchase() {
+        impactGenerator.softImpact()
+#if os(iOS)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+#elseif os(macOS)
+        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
+#endif
     }
 
     func navigateToPassphrase() {
@@ -206,6 +228,17 @@ private extension SettingsViewModel {
             self?.reloadSections()
         }
         .store(in: &cancellables)
+
+        Publishers.Merge3(
+            appSettings.$isAdBlockerEnabledPublisher,
+            appSettings.$isIPv6TrafficEnabledPublisher,
+            appSettings.$isLanBypassEnabledPublisher
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+        .store(in: &cancellables)
     }
 
     func setupCredentialManagerObservers() {
@@ -222,7 +255,7 @@ private extension SettingsViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
-                    self?.reloadSections()
+                    self?.updateAccountSectionOnly()
                 }
             }
             .store(in: &cancellables)
@@ -287,7 +320,9 @@ private extension SettingsViewModel {
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
                 first.foregroundColor = Color.Nym.error
-                subtitle = first
+                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
+                second.foregroundColor = Color.Nym.primary
+                subtitle = first + second
             }
         } else {
             subtitle = AttributedString("requestingZkNyms".localizedString)
@@ -397,8 +432,8 @@ private extension SettingsViewModel {
         let adBlockViewModel = SettingsListItemViewModel(
             accessory: .toggle(
                 isOn: Binding(
-                    get: { [weak appSettings] in appSettings?.isAdBlockerEnabled ?? false },
-                    set: { [weak connectionManager] in connectionManager?.setAdBlocking($0) }
+                    get: { [appSettings] in appSettings.isAdBlockerEnabled },
+                    set: { [connectionManager] newValue in connectionManager.setAdBlocking(newValue) }
                 )
             ),
             title: "settings.adblock.title".localizedString,
@@ -423,8 +458,8 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .toggle(
                     isOn: Binding(
-                        get: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled ?? true },
-                        set: { [weak connectionManager] in connectionManager?.setIPv6TrafficEnabled($0) }
+                        get: { [appSettings] in appSettings.isIPv6TrafficEnabled },
+                        set: { [connectionManager] newValue in connectionManager.setIPv6TrafficEnabled(newValue) }
                     )
                 ),
                 title: "settings.ipv6.title".localizedString,
@@ -438,8 +473,8 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .toggle(
                     isOn: Binding(
-                        get: { [weak appSettings] in appSettings?.isLanBypassEnabled ?? false },
-                        set: { [weak connectionManager] in connectionManager?.setLanBypassEnabled($0) }
+                        get: { [appSettings] in appSettings.isLanBypassEnabled },
+                        set: { [connectionManager] newValue in connectionManager.setLanBypassEnabled(newValue) }
                     )
                 ),
                 title: "settings.lanBypass.title".localizedString,

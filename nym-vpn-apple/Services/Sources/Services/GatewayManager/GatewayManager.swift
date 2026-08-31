@@ -4,6 +4,7 @@ import AppSettings
 import ConfigurationManager
 import ConnectionTypes
 import Logging
+import TunnelStatus
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -24,6 +25,7 @@ import GRPCManager
     var cancellables = Set<AnyCancellable>()
 
     private var autoUpdateTask: Task<Void, Never>?
+    private var gatewayUpdateTask: Task<Void, Never>?
 
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
@@ -31,6 +33,8 @@ import GRPCManager
     @Published public var entryCountries: [NymCountry]
     @Published public var exitCountries: [NymCountry]
     @Published public var vpnCountries: [NymCountry]
+    @Published public private(set) var entryFavorites: [ServerFavorite] = []
+    @Published public private(set) var exitFavorites: [ServerFavorite] = []
 
     public let countriesSupportingRegions = ["US"]
 
@@ -142,7 +146,7 @@ import GRPCManager
         case let .gateway(identifier):
             return country(with: identifier, nodeType: .entry)?.code
             ?? country(with: identifier, nodeType: .vpn)?.code
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -156,7 +160,7 @@ import GRPCManager
             ?? country(with: identifier, nodeType: .vpn)?.code
         case let .region(countryCode: code, region: _):
             return localizedCountry(with: code)?.code
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -173,7 +177,7 @@ import GRPCManager
             }
         case let .gateway(identifier):
             return moniker(with: identifier) ?? identifier
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -190,7 +194,7 @@ import GRPCManager
             } else {
                 return region
             }
-        case .random:
+        case .random, .auto:
             return nil
         }
     }
@@ -203,17 +207,70 @@ import GRPCManager
             return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region }
         case let .gateway(identifier):
             return vpn.contains { $0.id == identifier && $0.isQuicAvailable }
-        case .random:
+        case .random, .auto:
             return false
         }
     }
 
     public func containsStreaming(with gateway: ExitRouter) -> Bool {
         switch gateway {
-        case .country, .region, .random:
+        case .country, .region, .random, .auto:
             false
         case let .gateway(identifier):
             vpn.contains { $0.id == identifier && $0.isResidentialAvailable }
+        }
+    }
+}
+
+// MARK: - Recents -
+extension GatewayManager {
+    /// Gateways recently connected through, most recent first, for the given tunnel type.
+    /// Entry and exit are tracked separately by core.
+    public func recentGateways(
+        for tunnelType: ConnectionTunnelType
+    ) async -> (entry: [GatewayNode], exit: [GatewayNode]) {
+        do {
+            return try await worker.fetchRecents(for: tunnelType)
+        } catch {
+            logger.error("Failed to fetch recent gateways: \(error.localizedDescription)")
+            return ([], [])
+        }
+    }
+}
+
+// MARK: - Favorites -
+extension GatewayManager {
+    /// Reload favorites from core. Cheap — reads one small JSON file.
+    public func updateFavorites() async {
+        do {
+            let favorites = try await worker.fetchFavorites()
+            // Assign only on change — every publish re-renders the whole gateways screen.
+            if entryFavorites != favorites.entry {
+                entryFavorites = favorites.entry
+            }
+            if exitFavorites != favorites.exit {
+                exitFavorites = favorites.exit
+            }
+        } catch {
+            logger.error("Failed to fetch favorites: \(error.localizedDescription)")
+        }
+    }
+
+    public func setEntryFavorite(_ favorite: ServerFavorite, isFavorite: Bool) async {
+        do {
+            try await worker.setEntryFavorite(favorite, isFavorite: isFavorite)
+            await updateFavorites()
+        } catch {
+            logger.error("Failed to store entry favorite: \(error.localizedDescription)")
+        }
+    }
+
+    public func setExitFavorite(_ favorite: ServerFavorite, isFavorite: Bool) async {
+        do {
+            try await worker.setExitFavorite(favorite, isFavorite: isFavorite)
+            await updateFavorites()
+        } catch {
+            logger.error("Failed to store exit favorite: \(error.localizedDescription)")
         }
     }
 }
@@ -259,7 +316,7 @@ extension GatewayManager {
             }
         case let .gateway(identifier):
             return pool.filter { $0.id == identifier }
-        case .random:
+        case .random, .auto:
             return pool
         }
     }
@@ -275,7 +332,7 @@ extension GatewayManager {
             }
         case let .gateway(identifier):
             return pool.filter { $0.id == identifier }
-        case .random:
+        case .random, .auto:
             return pool
         }
     }
@@ -315,23 +372,28 @@ extension GatewayManager {
             return
         }
         isLoading = true
-
-        Task { [weak self] in
+        gatewayUpdateTask?.cancel()
+        gatewayUpdateTask = Task { [weak self] in
             guard let self else { return }
             await self.fetchGateways()
         }
     }
 
     func fetchGateways() async {
+        defer { isLoading = false }
         do {
             let result = try await worker.fetchGateways()
+            logger.info(
+                "Fetched gateways entry=\(result.entry.count) exit=\(result.exit.count) vpn=\(result.vpn.count)"
+            )
 
-            guard !result.entry.isEmpty, !result.exit.isEmpty, !result.vpn.isEmpty
+            guard !result.entry.isEmpty || !result.exit.isEmpty || !result.vpn.isEmpty
             else {
                 logger.info("Empty gateways from API")
-                isLoading = false
                 return
             }
+
+            try Task.checkCancellation()
 
             entry = result.entry
             exit = result.exit
@@ -347,10 +409,10 @@ extension GatewayManager {
 
             storeGatewayStore()
             updateCountriesFromGateways()
-            isLoading = false
+        } catch is CancellationError {
+            return
         } catch {
             logger.error("Failed to fetch gateways: \(String(describing: error.localizedDescription))")
-            isLoading = false
         }
     }
 
@@ -412,10 +474,13 @@ private extension GatewayManager {
 #else
             self.gatewayStore.lastFetchDate = nil
 #endif
-            Task {
+            Task { @MainActor in
+                self.gatewayUpdateTask?.cancel()
+                self.isLoading = false
 #if os(iOS)
                 await self.worker.reset()
 #endif
+                self.isLoading = true
                 await self.fetchGateways()
             }
         }

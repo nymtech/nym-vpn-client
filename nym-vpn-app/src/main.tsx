@@ -7,13 +7,9 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
 import App from './App';
+import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
-import {
-  GatewaySelectionAlgorithmConfig,
-  InitState,
-  VpndConfig,
-  VpndStatus,
-} from './types';
+import { InitState, VpndConfig, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { getTheme } from './util';
@@ -78,16 +74,18 @@ const defaultGeoExclusion = {
   excludedCountries: ['CN'],
 };
 
-const defaultGatewaySelectionAlgorithmConfig = {
-  enableGeoLocation: true,
-  gatewaySelectionAlgorithm: 'explicit',
-} as GatewaySelectionAlgorithmConfig;
+const defaultGatewaySelectionAlgorithmConfig = { enableGeoLocation: true };
 
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
   document.oncontextmenu = (event) => {
     event.preventDefault();
   };
+}
+
+if (import.meta.env.MODE === 'dev-browser') {
+  console.log('Running in dev-browser mode. Mocking tauri window and IPCs');
+  mockTauriIPC();
 }
 
 dayjs.extend(relativeTime);

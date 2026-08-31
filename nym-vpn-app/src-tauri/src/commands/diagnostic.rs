@@ -1,10 +1,13 @@
+use nym_vpn_lib_types as lib;
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
 
 use tracing::{error, info, instrument};
 
 use crate::{
+    commands::fs::export_logs_archive,
     error::BackendError,
+    state::SharedAppState,
     vpnd::{
         client::VpndClient,
         diagnostic::{DiagnosticReport, DiagnosticRunParams},
@@ -57,4 +60,43 @@ pub async fn share_diagnostic(
     })?;
 
     Ok(())
+}
+
+/// Runs the diagnostic tool and lets the user save the resulting report, along with
+/// the app and vpnd logs, as a single zip archive.
+///
+/// Returns `true` if the archive was created successfully, `false` if the user
+/// cancelled the save dialog.
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn share_diagnostics_and_logs(
+    app: AppHandle,
+    app_state: State<'_, SharedAppState>,
+    vpnd: State<'_, VpndClient>,
+) -> Result<bool, BackendError> {
+    let params = lib::DiagnosticRunParams {
+        gateway: None,
+        skip_dns: false,
+        skip_http: false,
+        skip_hybrid_transport: false,
+    };
+    let report = vpnd.run_diagnostic(params).await.map_err(|e| {
+        error!("failed to run diagnostic: {e}");
+        BackendError::from(e)
+    })?;
+    let report = DiagnosticReport::from(report);
+
+    let json = serde_json::to_string_pretty(&report).map_err(|e| {
+        error!("failed to serialize diagnostic report: {e}");
+        BackendError::internal(&format!("failed to serialize diagnostic report: {e}"), None)
+    })?;
+
+    export_logs_archive(
+        &app,
+        &app_state,
+        &vpnd,
+        "nymvpn-diagnostics.zip",
+        Some(("diagnostic-report.json".to_owned(), json.into_bytes())),
+    )
+    .await
 }

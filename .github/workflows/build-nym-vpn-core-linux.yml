@@ -6,12 +6,14 @@ on:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      version:
+        description: "Orchestrated app version to embed (empty = self-bump as before)"
+        type: string
+        default: ""
     secrets:
       VPND_SENTRY_DSN:
         required: true
-    outputs:
-      RUST_VERSION:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,11 +22,12 @@ jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
-  build-linux:
+  build-nym-vpn-core-linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: "ubuntu-22.04"
+          - os: "arc-ubuntu-22.04"
             arch: "x86_64"
           - os: "ubuntu-22.04-arm"
             arch: "aarch64"
@@ -32,8 +35,8 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
     env:
-      UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.arch }}
-      UPLOAD_DIR_DEB: deb_artifacts-${{ matrix.arch }}
+      UPLOAD_DIR_LINUX: core_artifacts_linux_${{ matrix.arch }}
+      UPLOAD_DIR_DEB: deb_artifacts_${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
@@ -41,7 +44,7 @@ jobs:
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -88,26 +91,16 @@ jobs:
           crate: toml-cli
           cache-key: ${{ matrix.arch }}
 
-      - name: Set version for nightly builds
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+      - name: Apply orchestrated version
+        uses: ./.github/actions/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard_go-${{ matrix.arch }}
+          name: wireguard-go_${{ matrix.arch }}-linux-unknown
           path: build/lib
 
       - name: Build nym-vpn-core
@@ -116,7 +109,6 @@ jobs:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build --release
-          ls -la nym-vpn-core/target/release/ || true
 
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.
@@ -127,7 +119,6 @@ jobs:
         run: |
           cargo deb -p nym-vpnd --no-build
           cargo deb -p nym-vpnc --no-build
-          ls -la target/debian/ || true
 
       - name: Get rust version used for build
         id: rust-version
@@ -151,7 +142,7 @@ jobs:
           cp -vpr ${{ env.SRC_DEB }}/nym-vpnd_*.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}
@@ -159,7 +150,7 @@ jobs:
           retention-days: 1
 
       - name: Upload deb artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_DEB }}
           path: ${{ env.UPLOAD_DIR_DEB }}

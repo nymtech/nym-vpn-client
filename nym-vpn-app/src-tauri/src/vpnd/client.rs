@@ -11,8 +11,8 @@ pub use super::{
 };
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
-    events::MixnetEvent,
-    gateway::{Gateway, GatewaySelectionAlgorithm, GatewayType},
+    events::{DiagnosticsSuggestedReason, MixnetEvent},
+    gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
     tunnel::{FrontingMode, SplitApp, TunnelState},
 };
@@ -37,7 +37,7 @@ pub use crate::vpnd::network::NetworkCompatVersions;
 use crate::{
     error::BackendError,
     events::AppHandleEventEmitter,
-    state::SharedAppState,
+    state::{SharedAppState, app::VpnMode},
     vpnd::account::{AccountState, log_account_state},
 };
 
@@ -303,6 +303,10 @@ impl VpndClient {
                 debug!("config event {e}");
                 VpndClient::handle_config_update(app, *e).await.ok();
             }
+            lib::TunnelEvent::DiagnosticsSuggested(reason) => {
+                debug!("diagnostics suggested: {reason}");
+                app.emit_diagnostics_suggested(DiagnosticsSuggestedReason::from_lib(reason));
+            }
         }
         Ok(())
     }
@@ -455,6 +459,18 @@ impl VpndClient {
         if !ok {
             warn!("vpn_connect: connect_tunnel returned false");
         }
+
+        Ok(())
+    }
+
+    /// Reconnect the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_reconnect(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.reconnect_tunnel()
+            .or_else(async |e| self.handle_rpc_error("reconnect_tunnel", e).await)
+            .await?;
 
         Ok(())
     }
@@ -638,17 +654,46 @@ impl VpndClient {
 
         debug!("vpnd gateways count: {}", gateways.len());
 
-        let gateways: Vec<Gateway> = gateways
-            .into_iter()
-            .filter_map(|gateway| {
-                Gateway::from_lib(gateway, gw_type)
-                    .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
-                    .ok()
-            })
-            .collect();
+        let gateways = parse_gateways(gateways, gw_type);
 
         debug!("parsed gateway #{}", gateways.len());
         Ok(gateways)
+    }
+
+    /// Get the gateways of the most recent successful connections for the given
+    /// mode, most-recent-first.
+    #[instrument(skip(self))]
+    pub async fn recent_gateways(&self, mode: &VpnMode) -> Result<RecentGateways, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let params = lib::GetRecentGatewaysParams {
+            tunnel_type: match mode {
+                VpnMode::Mixnet => lib::TunnelType::Mixnet,
+                VpnMode::Wg => lib::TunnelType::Wireguard,
+            },
+        };
+
+        let recents = vpnd
+            .get_recent_gateways(params)
+            .or_else(async |e| self.handle_rpc_error("get_recent_gateways", e).await)
+            .await?;
+
+        let (entry_type, exit_type) = match mode {
+            VpnMode::Mixnet => (GatewayType::MxEntry, GatewayType::MxExit),
+            VpnMode::Wg => (GatewayType::Wg, GatewayType::Wg),
+        };
+
+        let recents = RecentGateways {
+            entry: parse_gateways(recents.entry, entry_type),
+            exit: parse_gateways(recents.exit, exit_type),
+        };
+
+        debug!(
+            "parsed recent gateways: entry #{}, exit #{}",
+            recents.entry.len(),
+            recents.exit.len()
+        );
+        Ok(recents)
     }
 
     #[instrument(skip(self, app))]
@@ -988,6 +1033,14 @@ impl VpndClient {
         Ok(summary.map(Into::into))
     }
 
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.refresh_account_state(force)
+            .or_else(async |e| self.handle_rpc_error("refresh_account_state", e).await)
+            .await
+    }
+
     pub async fn handle_subscription_payment(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
@@ -1088,21 +1141,6 @@ impl VpndClient {
             .await?;
 
         Ok(is_supported)
-    }
-
-    #[instrument(skip_all)]
-    pub async fn set_gateway_selection_algorithm(
-        &self,
-        algorithm: GatewaySelectionAlgorithm,
-    ) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
-        vpnd.set_gateway_selection_algorithm(algorithm.into())
-            .or_else(async |e| {
-                self.handle_rpc_error("set_gateway_selection_algorithm", e)
-                    .await
-            })
-            .await
     }
 
     #[instrument(skip_all)]

@@ -14,6 +14,7 @@ use std::{
 pub enum DaemonMessage {
     Configure(ProxyConfig),
     SetTunnelAddresses(InterfaceAddresses),
+    SetExcludedCountries(Vec<String>),
     Terminate,
 }
 
@@ -37,6 +38,7 @@ impl FromStr for DaemonMessage {
 pub struct ProxyConfig {
     pub listen_port: u16,
     pub data_dir: PathBuf,
+    pub log_dir: PathBuf,
     pub log_level: String,
     pub excluded_countries: Vec<String>,
 }
@@ -51,29 +53,37 @@ impl ProxyConfig {
             return Err("data_dir must be a valid path".into());
         }
 
+        if self.log_dir.as_os_str().is_empty() || !self.log_dir.is_dir() {
+            return Err("log_dir must be a valid path".into());
+        }
+
         // The log_level can be more than just "info", "debug", etc., so just check it's not empty
         if self.log_level.is_empty() {
             return Err("log_level cannot be empty".into());
         }
 
-        for country in &self.excluded_countries {
-            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
-                return Err(format!(
-                    "Invalid excluded country code '{}': must be a 2-letter uppercase string",
-                    country
-                ));
-            }
-        }
-
-        let mut seen = std::collections::HashSet::new();
-        for country in &self.excluded_countries {
-            if !seen.insert(country) {
-                return Err(format!("Duplicate excluded country code: '{}'", country));
-            }
-        }
-
-        Ok(())
+        validate_country_codes(&self.excluded_countries)
     }
+}
+
+pub fn validate_country_codes(countries: &[String]) -> Result<(), String> {
+    for country in countries {
+        if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
+            return Err(format!(
+                "Invalid excluded country code '{}': must be a 2-letter uppercase string",
+                country
+            ));
+        }
+    }
+
+    let mut seen = std::collections::HashSet::new();
+    for country in countries {
+        if !seen.insert(country) {
+            return Err(format!("Duplicate excluded country code: '{}'", country));
+        }
+    }
+
+    Ok(())
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

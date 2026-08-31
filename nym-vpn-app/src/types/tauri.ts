@@ -38,10 +38,6 @@ export type Cli = {
    */
   buildInfo: boolean;
   /**
-   * Enable writing app logs to a file
-   */
-  logFile: boolean;
-  /**
    * Set the log level
    */
   logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | null;
@@ -59,6 +55,7 @@ export type Cli = {
 export type ConnectingProgress =
   | 'resolving-api-addresses'
   | 'awaiting-account-readiness'
+  | 'awaiting-credentials-availability'
   | 'refreshing-gateways'
   | 'selecting-gateways'
   | 'registering-with-gateways'
@@ -96,11 +93,11 @@ export type DbKey =
   | 'cache-device-id';
 
 export type DeeplinkKind =
-  | 'privy'
-  | 'privyLink'
-  | 'autologinRenew'
-  | 'autologinView'
-  | 'createAccount';
+  'privy' | 'privyLink' | 'autologinRenew' | 'autologinView' | 'createAccount';
+
+export type DiagnosticsSuggestedReason =
+  | { 'repeated-connection-retries': { attempts: number } }
+  | { 'ambiguous-error': TunnelError };
 
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
@@ -136,9 +133,17 @@ export type ErrorKey =
   | 'device-time-desync'
   | 'split-tunnel-app-invalid'
   | 'split-tunnel-app-duplicate'
+  | 'insufficient-funds'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query';
+
+export type Favorite =
+  | { country: { code: string } }
+  | { gateway: { id: string } }
+  | { region: string };
+
+export type Favorites = { entry: Array<Favorite>; exit: Array<Favorite> };
 
 export type FeatureFlags = {
   quic: boolean;
@@ -166,15 +171,7 @@ export type Gateway = {
   nodeFamilyName: string | null;
 };
 
-export type GatewaySelectionAlgorithm =
-  | 'explicit'
-  | 'autoEntryExplicitExit'
-  | 'auto';
-
-export type GatewaySelectionAlgorithmConfig = {
-  enableGeoLocation: boolean;
-  gatewaySelectionAlgorithm: GatewaySelectionAlgorithm;
-};
+export type GatewaySelectionAlgorithmConfig = { enableGeoLocation: boolean };
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
@@ -290,6 +287,8 @@ export type Performance = {
   uptime24h: number;
 };
 
+export type RecentGateways = { entry: Array<Gateway>; exit: Array<Gateway> };
+
 export type Region = {
   name: string;
   country: Country;
@@ -304,7 +303,13 @@ export type SelectedNode =
   | { country: { code: string } }
   | { gateway: { id: string } }
   | { region: string }
-  | 'random';
+  | 'random'
+  | {
+      auto: {
+        exclude_user_country: boolean;
+        exclude_entry_point_country: boolean;
+      };
+    };
 
 export type Socks5Settings = { listenAddress: string | null };
 
@@ -343,13 +348,11 @@ export type TAccountState =
   | 'syncing'
   | 'offline'
   | 'decentralised'
-  | 'upgrade-mode'
   | 'bandwidth-exceeded'
   | 'status-not-active'
   | 'no-subscription'
   | 'pending-subscription'
   | 'max-device-reached'
-  | 'requesting-zk-nyms'
   | { error: TBackendError };
 
 export type TAccountSummary = {
@@ -501,20 +504,14 @@ export type TTunnelState =
 export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
 
 export type TVpnSubscriptionKind =
-  | 'one-month'
-  | 'one-year'
-  | 'two-years'
-  | 'freepass'
-  | { other: string };
+  'one-month' | 'one-year' | 'two-years' | 'freepass' | { other: string };
 
 /**
  * Only the discriminant is needed by the UI to decide the connect flow, so the
  * `Selected` entry/exit payload is intentionally dropped.
  */
 export type TentativeGateways =
-  | 'selected'
-  | 'needs-relaxed-independence-criteria'
-  | 'no-gateways-available';
+  'selected' | 'needs-relaxed-independence-criteria' | 'no-gateways-available';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -554,7 +551,11 @@ export type TunnelError =
   | 'credential-wasted-on-exit-gateway'
   | 'need-full-disk-permissions'
   | 'split-tunnel'
-  | 'needs-relaxed-independence-criteria';
+  | 'needs-relaxed-independence-criteria'
+  | 'needs-device-location'
+  | 'credential-fetching-failed'
+  | 'no-credential-available'
+  | 'connection-attempts-exceeded';
 
 export type TunnelStateEvent = {
   state: TTunnelState;

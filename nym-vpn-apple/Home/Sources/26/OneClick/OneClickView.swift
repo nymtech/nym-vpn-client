@@ -114,8 +114,7 @@ private extension OneClickView {
     }
 
     var randomGlyph: some View {
-        Image(systemName: "shuffle")
-            .font(.system(size: Constants.FlagImage.size))
+        GenericImage(imageName: "random")
             .foregroundStyle(Color.Nym.textPrimary)
             .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
             .accessibilityHidden(true)
@@ -134,7 +133,11 @@ private extension OneClickView {
         let secondaryText: String? = (info.subtitle?.isEmpty ?? true) ? nil : info.subtitle
         return HStack(alignment: .center, spacing: NymSpacing.medium) {
             scoreBars(score: info.score)
-            flagImage(countryCode: info.countryCode)
+            flagImage(
+                countryCode: info.countryCode,
+                isRandomSelection: info.isRandomSelection,
+                isSafestSelection: info.isSafestSelection
+            )
             ZStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("X")
@@ -185,13 +188,25 @@ private extension OneClickView {
     }
 
     @ViewBuilder
-    func flagImage(countryCode: String) -> some View {
+    func flagImage(countryCode: String, isRandomSelection: Bool = false, isSafestSelection: Bool = false) -> some View {
         if countryCode.isEmpty {
-            Image(systemName: "globe")
-                .font(.system(size: Constants.FlagImage.size))
-                .foregroundStyle(Color.Nym.textSecondary)
-                .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
-                .accessibilityHidden(true)
+            if isSafestSelection {
+                GenericImage(imageName: "safest")
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                    .accessibilityHidden(true)
+            } else if isRandomSelection {
+                GenericImage(imageName: "random")
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                    .accessibilityHidden(true)
+            } else {
+                Image(systemName: "globe")
+                    .font(.system(size: Constants.FlagImage.size))
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                    .accessibilityHidden(true)
+            }
         } else {
             GenericImage(imageName: countryCode.lowercased())
                 .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
@@ -297,7 +312,7 @@ private extension OneClickView {
         case .disconnecting:
             "disconnecting".localizedString
         case .noInternet:
-            "noInternet".localizedString
+            "offline".localizedString
         case .noSubscription:
             "home.getStarted".localizedString
         }

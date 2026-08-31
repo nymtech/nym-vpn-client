@@ -18,7 +18,7 @@ jobs:
     runs-on: "custom-windows-11"
 
     steps:
-      - name: Cleanup working directory
+      - name: "Cleanup working directory"
         shell: bash
         run: |
           ls -la ./
@@ -27,7 +27,7 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
@@ -63,7 +63,7 @@ jobs:
           done
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: st-driver
           path: ${{ github.workspace }}/build/st-driver/

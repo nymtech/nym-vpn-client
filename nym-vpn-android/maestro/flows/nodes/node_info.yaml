@@ -1,0 +1,95 @@
+# Location info dialog and the server details screen for a specific server.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn:
+    text: "Safest"
+    below: "Exit server"
+
+- extendedWaitUntil:
+    visible:
+      text: "Search location or server"
+    timeout: 10000
+
+- tapOn: "Info"
+- assertVisible: "Choosing exit locations"
+- assertVisible: "Streaming"
+- assertVisible: "Location accuracy"
+- tapOn: "OK"
+- assertNotVisible: "Choosing exit locations"
+
+- tapOn: "Search location or server"
+- inputText: "Mock-Entry-DE-01"
+- extendedWaitUntil:
+    visible:
+      text: "Mock-Entry-DE-01"
+    timeout: 10000
+
+- tapOn:
+    text: "Info"
+    rightOf: "Mock-Entry-DE-01"
+
+- extendedWaitUntil:
+    visible:
+      text: "Server details"
+    timeout: 10000
+- assertVisible: "Mock-Entry-DE-01"
+- assertVisible: "Berlin, Berlin, Germany"
+
+- scrollUntilVisible:
+    element:
+      text: "Advanced privacy"
+    direction: DOWN
+- assertVisible: "Advanced privacy"
+- assertVisible: "Mixnet"
+- assertVisible: "Streaming & IP"
+- assertVisible: "Datacenter IP"
+- assertVisible: "Anti-censorship"
+- assertVisible: "Standard protocol"
+
+- scrollUntilVisible:
+    element:
+      text: "Overall performance"
+    direction: DOWN
+- assertVisible: "Overall performance"
+- assertVisible: "High"
+- assertVisible: "Server load"
+- assertVisible: "Medium"
+- assertVisible: "Uptime"
+- assertVisible: "9570%"
+
+- scrollUntilVisible:
+    element:
+      text: "Exit IPv4"
+    direction: DOWN
+- assertVisible: "Exit IPv4"
+- assertVisible: "91.198.174.192"
+- assertVisible: "Exit IPv6"
+- assertVisible: "2a02:26f0::2"
+- assertVisible: "ASN"
+- assertVisible: "AS3320"
+- assertVisible: "ASN name"
+- assertVisible: "Deutsche Telekom AG"
+
+- scrollUntilVisible:
+    element:
+      text: "Nym build version"
+    direction: DOWN
+- assertVisible: "Nym build version"
+- assertVisible: "5mZ8G2XrYF8nW7AqH2kP3DsV9uQ4JrL1tC6bN0eMfYw"
+
+- scrollUntilVisible:
+    element:
+      text: "Why is there missing or incorrect info"
+    direction: DOWN
+- assertVisible: "Why is there missing or incorrect info"
+
+- tapOn: "Select node"
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 20000
+- assertVisible: "NOT PROTECTED"

@@ -1,59 +1,8 @@
 import Foundation
-import NymVPNRpc
+import NymVPNLib
 import Constants
 import ErrorReason
 import TunnelStatus
-
-extension GRPCManager {
-    func startDaemonInitialStatusPingerIfNeeded() {
-        guard versionPingTask == nil || versionPingTask?.isCancelled == true else { return }
-
-        versionPingTask = Task { [weak self] in
-            guard let self else { return }
-            await self.pingDaemonInitialStatus()
-        }
-    }
-
-    func stopInitialStatusPinger() {
-        versionPingTask?.cancel()
-        versionPingTask = nil
-    }
-
-    func pingDaemonInitialStatus() async {
-        var retryCount = 0
-        while !isServing {
-            do {
-                try await version()
-                guard let tunnelState = try await rpcClient?.getTunnelState() else { return }
-                await MainActor.run {
-                    updateTunnelStatus(with: tunnelState)
-                }
-            } catch is CancellationError {
-                return
-            } catch {
-                 logger.debug("pingDaemonInitialStatus error: \(error)")
-            }
-
-            if !isServing {
-                retryCount += 1
-                if retryCount == 2 {
-                    daemonVersion = "update"
-                }
-                do {
-                    try await Task.sleep(for: .seconds(5))
-                } catch is CancellationError {
-                    logger.debug("pingDaemonInitialStatus cancelled during sleep")
-                    return
-                } catch {
-                    logger.debug("Ping Daemon initial status: \(error)")
-                }
-            }
-            if isServing {
-                stopInitialStatusPinger()
-            }
-        }
-    }
-}
 
 extension GRPCManager {
     func updateTunnelStatus(with state: TunnelState) {
@@ -98,9 +47,6 @@ extension GRPCManager {
                 tunnelStatus = .offline
             }
         }
-
-        guard !isServing else { return }
-        isServing = true
     }
 }
 
@@ -157,6 +103,14 @@ extension GRPCManager {
             ErrorReason.splitTunnel
         case .needsRelaxedIndependenceCriteria:
             ErrorReason.needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            ErrorReason.needsDeviceLocation
+        case .credentialFetchingFailed:
+            ErrorReason.credentialFetchingFailed
+        case .noCredentialAvailable:
+            ErrorReason.noCredentialAvailable
+        case .connectionAttemptsExceeded:
+            ErrorReason.connectionAttemptsExceeded
         }
     }
 }
@@ -215,13 +169,21 @@ extension ErrorReason {
             self = .splitTunnel
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 }
 #endif
 
 private extension ConnectionTunnelType {
-    init(_ tunnelType: NymVPNRpc.TunnelType) {
+    init(_ tunnelType: NymVPNLib.TunnelType) {
         switch tunnelType {
         case .mixnet:
             self = .mixnet
@@ -230,7 +192,7 @@ private extension ConnectionTunnelType {
         }
     }
 
-    init(_ data: NymVPNRpc.TunnelConnectionData) {
+    init(_ data: NymVPNLib.TunnelConnectionData) {
         switch data {
         case .mixnet:
             self = .mixnet
@@ -247,6 +209,8 @@ private extension TunnelConnectingState {
             self = .resolvingApiAddresses
         case .awaitingAccountReadiness:
             self = .awaitingAccountReadiness
+        case .awaitingCredentialsAvailability:
+            self = .awaitingCredentialsAvailability
         case .refreshingGateways:
             self = .refreshingGateways
         case .selectingGateways:

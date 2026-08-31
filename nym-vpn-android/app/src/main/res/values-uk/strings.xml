@@ -146,13 +146,13 @@
 	<string name="unexpected_error">Виникла непередбачувана помилка:</string>
 	<string name="error_invalid_entry_gateway_country">Неправильна країна для вхідного сервера. Виберіть іншу і підключіться знову.</string>
 	<string name="error_invalid_exit_gateway_country">Неправильна країна для вихідного сервера. Виберіть іншу і підключіться знову.</string>
-	<string name="bandwidth_error">Досягнуто місячний ліміт даних. Зверніться до служби підтримки, щоб швидко збільшити обсяг даних.</string>
+	<string name="bandwidth_error">Досягнуто щоденний ліміт трафіку. Зверніться до служби підтримки, щоб швидко збільшити обсяг трафіку.</string>
 	<string name="max_devices_error">Перевищено ліміт пристроїв в акаунті. Будь ласка, видаліть пристрій з акаунта перед підключенням.</string>
 	<string name="device_time_out_of_sync">Час пристрою не синхронізовано</string>
 	<string name="error_ipv6_unavailable">Ipv6 недоступний</string>
 	<string name="error_device_logged_out">Пристрій вимкнено.</string>
 	<string name="error_inactive_account">Статус облікового запису не є «Активним».</string>
-	<string name="error_inactive_account_subtitle">Press on Get Started</string>
+	<string name="error_inactive_account_subtitle">Натисніть «Почати»</string>
 	<string name="error_set_dns">Не вдалося налаштувати DNS.</string>
 	<string name="error_set_firewall_policy">Не вдалося встановити політику брандмауера.</string>
 	<string name="error_set_routing">Не вдалося налаштувати маршрутизацію.</string>
@@ -169,25 +169,22 @@
 	<string name="error_expired_subscription_description">Спосіб оплати з регулярними платежами було відхилено</string>
 	<string name="error_expired_subscription_button">Поновити зараз</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Налаштування облікового запису (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Оновлення списку серверів (3/6)</string>
-	<string name="connection_state_selecting_gateways">Вибір кращих серверів (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Анонімна реєстрація на серверах (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Встановлення з\'єднання з сервером (6/6)</string>
+	<string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Налаштування облікового запису (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Оновлення списку серверів (4/7)</string>
+	<string name="connection_state_selecting_gateways">Вибір кращих серверів (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Анонімна реєстрація на серверах (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Встановлення з\'єднання з сервером (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Використовуйте найкращий сервер</string>
 	<string name="one_click_mode_fast">Швидкий</string>
-	<string name="connect_mode_auto">Автоматично</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
-	<string name="one_click_nym_exit_node">Вийти з сервера</string>
+	<string name="one_click_nym_exit_node">Вихідний сервер</string>
 	<string name="one_click_nym_entry_node">Вхідний сервер</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Не захищено</string>
 	<string name="connection_status_fast_mode">Захист у швидкому режимі</string>
-	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_anonymous">Захист Mixnet</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Найкращий сервер</string>
 	<string name="gateway_random">Випадковий сервер</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Ласкаво просимо!</string>
@@ -233,6 +230,8 @@
 	<string name="settings_shortcuts_title">Ярлик додатку</string>
 	<string name="settings_logs_title">Журнали &amp; та дані</string>
 	<string name="settings_legal_title">Правові</string>
+	<string name="settings_geo_exclusion_title">Географічне виключення</string>
+	<string name="settings_geo_exclusion_desciption">Певні діапазони IP-адрес підключаються безпосередньо</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для використання ярликів необхідне блокування екрану.</string>
 	<string name="shortcut_title">Підтвердити дію</string>
@@ -266,7 +265,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Продовжити</string>
 	<string name="welcome_title">Допоможіть нам покращити NymVPN</string>
-	<string name="welcome_description">Виберіть, якими анонімними даними ви хочете поділитися. Перед надсиланням всі дані позбавляються інформації, що дозволяє ідентифікувати особу.</string>
+	<string name="welcome_description">Виберіть, якими анонімними даними ви хочете поділитися. \nПеред надсиланням з усіх даних видаляється інформація, що дозволяє ідентифікувати особу.</string>
 	<string name="welcome_error_reports_title">Поділитися звітами про помилки</string>
 	<string name="welcome_error_reports_description_start">Допомагає нам швидше виправляти помилки, не збирати персональні дані (через </string>
 	<string name="welcome_error_reports_link_text">Sentry</string>
@@ -351,6 +350,14 @@
 	<string name="account_generating_error">Не вдалося зареєструвати обліковий запис. Спробуйте пізніше.</string>
 	<string name="account_generating_deeplink_title">Авторизація...</string>
 	<string name="account_generating_deeplink_description">Будь ласка, зачекайте, поки ми перевіряємо ваш обліковий запис</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Безпечна обробка ваших платежів...</string>
 	<string name="account_payment_verifying">Ми перевіряємо вашу підписку — ваші особисті дані ніколи не прив\'язуються до вашої особи</string>
@@ -391,9 +398,10 @@
 	<string name="account_info_device_title">Ідентифікатор пристрою</string>
 	<string name="account_info_device_info">Використовуйте це, щоб пов\'язати цей пристрій зі своїм обліковим записом на nym.com</string>
 	<string name="account_info_status_title">Статус облікового запису</string>
-	<string name="account_info_bandwidth_title">Витрати на справедливе використання</string>
+	<string name="account_info_bandwidth_title">Добові</string>
 	<string name="account_info_limit_text">Ліміт</string>
-	<string name="account_info_reset_text">Скидання налаштувань</string>
+	<string name="account_info_reset_text">Скидається щодня о</string>
+	<string name="account_info_data_unavailable">Дані про використання відсутні</string>
 	<string name="account_info_valid_text">План дійсний до %s</string>
 	<string name="account_info_expires_text">Термін дії плану закінчується %s</string>
 	<string name="banner_plan_expires_text">Термін дії плану закінчується:\n%s</string>
@@ -401,8 +409,8 @@
 	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
 	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
 	<string name="account_info_no_plan">Активної підписки не виявлено</string>
-	<string name="account_info_contact_support_action">Contact Customer Support</string>
-	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
+	<string name="account_info_contact_support_action">Звернутися до служби підтримки</string>
+	<string name="account_info_contact_support_suffix"> якщо ви досягнете свого ліміту.</string>
 	<string name="account_info_confirming_payment">Підтвердження оплати</string>
 	<string name="account_info_autologin_fetching">Отримання коду доступу…</string>
 	<string name="account_info_autologin_error">Не вдалося отримати код доступу. Спробуйте ще раз.</string>
@@ -475,7 +483,7 @@
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">Налаштуйте свої моделі трафіку в мікснеті</string>
 	<string name="mixnet_tuning_current_title">Очікувана продуктивність поточних налаштувань:</string>
-	<string name="mixnet_tuning_current_speed">Швидкість</string>
+	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">Затримка</string>
 	<string name="mixnet_tuning_internet_speed">До швидкості інтернету</string>
 	<string name="mixnet_tuning_current_description">Очікувана затримка в обох напрямках (RTT) у стандартній мережі</string>
@@ -484,23 +492,21 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Безперервний трафік вимкнено. Ваші пакети будуть надсилатися по мірі їхньої доступності. Це може розкрити схеми трафіку.</string>
 	<string name="mixnet_tuning_traffic_on_description">Трафік покриття завжди надсилається для забезпечення однорідності структури. Налаштуйте швидкість надсилання пакетів.</string>
 	<string name="mixnet_tuning_traffic_off_description">Ми все одно будемо надсилати додатковий трафік незалежно від вашого реального трафіку.  Виберіть, скільки додаткового трафіку вам потрібно. </string>
-	<string name="mixnet_tuning_traffic_min">Використовувати менше заряду батареї &amp; </string>
-	<string name="mixnet_tuning_traffic_on_low">Низький\n0.7 Мбіт/с</string>
+    <string name="mixnet_tuning_traffic_on_low">Низький\n0.7 Мбіт/с</string>
 	<string name="mixnet_tuning_traffic_on_high">Високий\n2 Мбіт/с</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Збалансований\n1 Мбіт/с</string>
 	<string name="mixnet_tuning_traffic_off_low">Основи</string>
 	<string name="mixnet_tuning_traffic_off_high">Високий\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Збалансований\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Середній\n10х</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Якщо встановити затримку на 0, змішування буде вимкнено, що знизить рівень анонімності</string>
 	<string name="mixnet_tuning_delays_title">Затримки змішування</string>
 	<string name="mixnet_tuning_delays_description">Налаштуйте затримки синхронізації, щоб змінити якість змішування пакетів.</string>
-	<string name="mixnet_tuning_delays_min">Більша швидкість</string>
-	<string name="mixnet_tuning_delays_low">Низький\n0м</string>
+    <string name="mixnet_tuning_delays_low">Низький\n0м</string>
 	<string name="mixnet_tuning_delays_high">Високий\n200 мс</string>
 	<string name="mixnet_tuning_delays_default">За замовчуванням\n15 мс</string>
 	<string name="mixnet_tuning_delays_current">Поточний\n%1$s</string>
-	<string name="mixnet_tuning_max">Максимальна анонімність</string>
-	<string name="mixnet_tuning_link_text">Дізнайтеся більше про параметри мікснету</string>
+    <string name="mixnet_tuning_link_text">Дізнайтеся більше про параметри мікснету</string>
 	<string name="mixnet_tuning_save_button">Зберегти власні налаштування</string>
 	<string name="mixnet_tuning_restore_button">Відновіть налаштування за замовчуванням</string>
 	<!-- Diagnostic screen -->
@@ -516,4 +522,51 @@
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">Вимкніть приватний DNS, щоб використовувати блокувальник реклами.</string>
 	<string name="private_dns_button">Відкрити налаштування</string>
+	<!-- Notifications screen -->
+	<string name="notifications_node_families_title">Нагадування щодо сімейства серверів</string>
+	<string name="notifications_node_families_description">Постійно нагадує про спільну родину</string>
+	<string name="notifications_system_title">Системні сповіщення</string>
+	<string name="notifications_system_description">Забезпечує роботу програми навіть у закритому стані</string>
+	<!-- Node Families -->
+	<string name="node_families_title">Вибрані сервери належать до однієї групи операторів!</string>
+	<string name="node_families_description_text">Вимкнути нагадування в</string>
+	<string name="node_families_description_link">параметри сповіщень.</string>
+	<string name="node_families_connect_button">Під\'єднатися все одно</string>
+	<string name="node_families_error_message">Вибрані сервери належать до одного сімейства. Виберіть іншу пару або підключіться все одно.</string>
+	<!-- Geo Exclusion -->
+	<string name="geo_exclusion_enable_title">Увімкнути географічне виключення</string>
+	<string name="geo_exclusion_description">Перенаправляє трафік для вибраних регіонів поза межами VPN-тунелю, завдяки чому місцеві додатки працюють на повній швидкості. Усе інше залишається захищеним.</string>
+	<string name="geo_exclusion_beta_text">Бета-версія: поки що доступна лише в Китаї. Незабаром з’являться й інші регіони.</string>
+	<string name="geo_exclusion_traffic_bypass_text">Трафік до регіонів, що знаходяться у списку виключень, обходить VPN.</string>
+	<string name="geo_exclusion_sock55_title">Порт SOCKS5</string>
+	<string name="geo_exclusion_custom_port_title">Користувацький порт</string>
+	<string name="geo_exclusion_ports_text">1024–65535</string>
+	<string name="geo_exclusion_ranges_count">Діапазони %1$s</string>
+	<string name="geo_exclusion_last_updated">Список оновлено %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">SOCKS5 не виявлено</string>
+	<string name="geo_exclusion_error_sock55_text">Проксі SOCKS5 не виявлено. Перевірте налаштування портів.</string>
+	<string name="geo_exclusion_error_failed_start_title">Функція не запустилася</string>
+	<string name="geo_exclusion_error_failed_start_text">Не вдалося запустити функцію «Географічне виключення». Під\'єднайтеся знову та спробуйте ще раз.</string>
+	<string name="geo_exclusion_error_invalid_port_text">Номер порту повинен бути в діапазоні від 1024 до 65535.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">Порт 1080 заборонено. Оберіть інший.</string>
+	<string name="geo_exclusion_excluded_regions_label">РЕГІОНИ, ЩО НЕ ВХОДЯТЬ ДО СКЛАДУ</string>
+	<string name="geo_exclusion_china">Китай</string>
+	<string name="geo_exclusion_add_region_button">Додати регіон</string>
+	<string name="geo_exclusion_copy_proxy_label">Скопіювати адресу проксі-сервера</string>
+	<!-- Setup instructions screen -->
+	<string name="setup_instructions_title">Інструкції з встановлення</string>
+	<string name="setup_instructions_description">Налаштуйте додатки та браузери так, щоб трафік проходить через SOCKS5-проксі Nym.</string>
+	<string name="setup_instructions_per_app_title">Для кожного додатка (додатки, що підтримують SOCKS5)</string>
+	<string name="setup_instructions_per_app_description">У Android немає загальносистемних налаштувань SOCKS5.</string>
+	<string name="setup_instructions_pert_app_step">Використовуйте додаток, який безпосередньо підтримує проксі SOCKS5.</string>
+	<string name="setup_instructions_browser_title">Налаштування браузера</string>
+	<string name="setup_instructions_browser_description">Будь-який додаток із підтримкою SOCKS5. Приклад для Firefox:</string>
+	<string name="setup_instructions_browser_step_1">Налаштування → увімкнути SOCKS-проксі — Хост</string>
+	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
+	<string name="setup_instructions_browser_step_3">, Порт</string>
+	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
+	<string name="setup_instructions_wallet_title">Гаманець Web3</string>
+	<string name="setup_instructions_wallet_step_1">Встановіть URL-адресу RPC на</string>
+	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
+	<string name="setup_instructions_proxy_title">АДРЕСА ПРОКСІ-СЕРВЕРА</string>
 </resources>

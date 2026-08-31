@@ -8,7 +8,6 @@ public enum AccountReportPlatform: String, CaseIterable {
 public enum AccountActionKind: String {
     case renewPlan
     case manageSubscriptionExternal
-    case linkAccount
     case manageSubscriptionInApp
     case logout
 
@@ -19,8 +18,6 @@ public enum AccountActionKind: String {
             return "Renew → plan purchase (macOS: autologin renew; iOS: passphrase → purchase)"
         case .manageSubscriptionExternal:
             return "Manage subscription → autologin to web account"
-        case .linkAccount:
-            return "Link account → Privy auth session"
         case .manageSubscriptionInApp:
             return "Manage subscription → iOS native subscriptions sheet"
         case .logout:
@@ -43,7 +40,7 @@ public struct AccountButton: Equatable {
 
 /// The ordered set of buttons the Account & Devices view renders for a given
 /// account state. Mirrors `AccountAndDevicesView` render order:
-/// renew (in account-status card) → manage-subscription (web) → link → iOS in-app manage → logout.
+/// renew (in account-status card) → manage-subscription (web) → iOS in-app manage → logout.
 public func accountButtons(
     for summary: AccountSummary?,
     platform: AccountReportPlatform,
@@ -56,9 +53,6 @@ public func accountButtons(
         buttons.append(AccountButton(titleKey: "settings.account.renewNow", kind: .renewPlan, isDestructive: false))
     }
     buttons.append(AccountButton(titleKey: "settings.account.manageSubscription", kind: .manageSubscriptionExternal, isDestructive: false))
-    if summary.shouldShowLinkAccountRow {
-        buttons.append(AccountButton(titleKey: "settings.account.nymAccount", kind: .linkAccount, isDestructive: false))
-    }
     if platform == .iOS && !isTestFlight {
         buttons.append(AccountButton(titleKey: "settings.manageSubscription", kind: .manageSubscriptionInApp, isDestructive: false))
     }

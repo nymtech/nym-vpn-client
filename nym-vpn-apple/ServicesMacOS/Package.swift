@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "GRPCManager", targets: ["GRPCManager"])
     ],
     dependencies: [
-        .package(path: "../NymVPNRpc"),
+        .package(path: "../NymVPNLib"),
         .package(path: "../ServicesMutual"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
     ],
@@ -37,11 +37,16 @@ let package = Package(
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
-                .product(name: "NymVPNRpc", package: "NymVPNRpc"),
+                .product(name: "NymVPNLib", package: "NymVPNLib"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
-            path: "Sources/GRPCManager"
+            path: "Sources/GRPCManager",
+            linkerSettings: [
+                // NymVPNLibUniffi static lib references SystemConfiguration/Network symbols
+                .linkedFramework("SystemConfiguration"),
+                .linkedFramework("Network")
+            ]
         ),
         .testTarget(
             name: "AppDiscoveryServiceTests",

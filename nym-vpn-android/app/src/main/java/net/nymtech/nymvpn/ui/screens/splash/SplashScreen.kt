@@ -39,7 +39,9 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState, topOffset: 
 
 	LaunchedEffect(appUiState.managerState.isInitialized, isAppReady) {
 		if (appUiState.managerState.isInitialized && isAppReady) {
-			navController.navigateAndForget(Route.Main())
+			val shouldShowOnboarding = !appUiState.settings.isOnboardingCompleted && !appUiState.managerState.isMnemonicStored
+			val destination = if (shouldShowOnboarding) Route.Onboarding else Route.Main()
+			navController.navigateAndForget(destination)
 		}
 	}
 

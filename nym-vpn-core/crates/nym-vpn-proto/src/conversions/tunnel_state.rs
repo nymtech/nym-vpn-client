@@ -51,6 +51,8 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::CredentialWastedOnEntryGateway => Self::CredentialWastedOnEntryGateway,
             Reason::CredentialWastedOnExitGateway => Self::CredentialWastedOnExitGateway,
             Reason::BandwidthExceeded => Self::BandwidthExceeded,
+            Reason::CredentialFetchingFailed => Self::CredentialFetchingFailed,
+            Reason::NoCredentialAvailable => Self::NoCredentialAvailable,
             Reason::InactiveAccount => Self::InactiveAccount,
             Reason::InactiveSubscription => Self::InactiveSubscription,
             Reason::MaxDevicesReached => Self::MaxDevicesReached,
@@ -59,6 +61,8 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::NeedFullDiskPermissions => Self::NeedFullDiskPermissions,
             Reason::SplitTunnel => Self::SplitTunnel,
             Reason::NeedsRelaxedIndependenceCriteria => Self::NeedsRelaxedIndependenceCriteria,
+            Reason::NeedsDeviceLocation => Self::NeedsDeviceLocation,
+            Reason::ConnectionAttemptsExceeded => Self::ConnectionAttemptsExceeded,
             Reason::Internal => Self::Internal(value.message.unwrap_or_default()),
         })
     }
@@ -133,6 +137,14 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
                 reason: Reason::BandwidthExceeded.into(),
                 message: None,
             },
+            ErrorStateReason::CredentialFetchingFailed => Self {
+                reason: Reason::CredentialFetchingFailed.into(),
+                message: None,
+            },
+            ErrorStateReason::NoCredentialAvailable => Self {
+                reason: Reason::NoCredentialAvailable.into(),
+                message: None,
+            },
             ErrorStateReason::InactiveAccount => Self {
                 reason: Reason::InactiveAccount.into(),
                 message: None,
@@ -163,6 +175,14 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::NeedsRelaxedIndependenceCriteria => Self {
                 reason: Reason::NeedsRelaxedIndependenceCriteria.into(),
+                message: None,
+            },
+            ErrorStateReason::NeedsDeviceLocation => Self {
+                reason: Reason::NeedsDeviceLocation.into(),
+                message: None,
+            },
+            ErrorStateReason::ConnectionAttemptsExceeded => Self {
+                reason: Reason::ConnectionAttemptsExceeded.into(),
                 message: None,
             },
             ErrorStateReason::Internal(message) => Self {
@@ -260,6 +280,9 @@ impl From<proto::EstablishConnectionState> for EstablishConnectionState {
             proto::EstablishConnectionState::AwaitingAccountReadiness => {
                 Self::AwaitingAccountReadiness
             }
+            proto::EstablishConnectionState::AwaitingCredentialsAvailability => {
+                Self::AwaitingCredentialsAvailability
+            }
             proto::EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             proto::EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             proto::EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
@@ -275,6 +298,9 @@ impl From<EstablishConnectionState> for proto::EstablishConnectionState {
     fn from(value: EstablishConnectionState) -> Self {
         match value {
             EstablishConnectionState::AwaitingAccountReadiness => Self::AwaitingAccountReadiness,
+            EstablishConnectionState::AwaitingCredentialsAvailability => {
+                Self::AwaitingCredentialsAvailability
+            }
             EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             EstablishConnectionState::SelectingGateways => Self::SelectingGateways,

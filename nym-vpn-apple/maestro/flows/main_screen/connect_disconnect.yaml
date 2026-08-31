@@ -1,0 +1,21 @@
+# Full connect and disconnect round trip against the mock backend.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+  - smoke
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- assertVisible: "Connect"
+- runFlow: ../../subflows/connect.yaml
+- extendedWaitUntil:
+    visible:
+      text: "Disconnect"
+    timeout: 30000
+
+- tapOn: "Disconnect"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 30000

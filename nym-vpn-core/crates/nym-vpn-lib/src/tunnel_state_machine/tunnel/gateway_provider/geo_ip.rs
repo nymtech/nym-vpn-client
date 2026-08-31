@@ -16,6 +16,7 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 const GEO_IP_UPDATE_INTERVAL: Duration = Duration::from_hours(1);
+const TIMEOUT_INITIAL_LOCATION: Duration = Duration::from_secs(5);
 
 #[async_trait::async_trait]
 pub trait GeoIpClient: Send + Sync + 'static {
@@ -35,13 +36,33 @@ fn geo_distance(x: &Location, y: &Location) -> f64 {
     Haversine.distance(p1, p2)
 }
 
+/// Groups of ISO country codes that are treated as a single jurisdiction for
+/// gateway-safety purposes, beyond an exact country-code match. Membership is
+/// symmetric: for any two codes in the same group, neither is offered as an
+/// entry or exit relative to the other (or to a user located in the group).
+const JURISDICTION_GROUPS: &[&[&str]] = &[
+    // Greater China: mainland China, Taiwan, Macau.
+    &["CN", "TW", "MO"],
+];
+
+/// Returns true if two ISO country codes belong to the same safety jurisdiction
+/// group. Exact-match equality is handled separately by [`same_jurisdiction`].
+fn same_jurisdiction_group(a: &str, b: &str) -> bool {
+    JURISDICTION_GROUPS
+        .iter()
+        .any(|group| group.contains(&a) && group.contains(&b))
+}
+
 pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
-    if x.two_letter_iso_country_code == y.two_letter_iso_country_code
-        && x.two_letter_iso_country_code == "US"
-    {
-        return x.region == y.region;
+    let (a, b) = (
+        x.two_letter_iso_country_code.as_str(),
+        y.two_letter_iso_country_code.as_str(),
+    );
+    if a == b {
+        // US gateways are distinguished per-region rather than per-country.
+        return a != "US" || x.region == y.region;
     }
-    x.two_letter_iso_country_code == y.two_letter_iso_country_code
+    same_jurisdiction_group(a, b)
 }
 
 // Compare two gateways' distance to a given reference point
@@ -112,7 +133,7 @@ pub(crate) struct GeoIpFetcher {
     query_control: Arc<RwLock<QueryControl>>,
     client: Box<dyn GeoIpClient>,
     command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
-    update_location_tx: mpsc::UnboundedSender<Location>,
+    update_location_tx: mpsc::UnboundedSender<Option<Location>>,
     shutdown_token: CancellationToken,
 }
 
@@ -121,7 +142,7 @@ impl GeoIpFetcher {
         enable_geo_location: bool,
         client: Box<dyn GeoIpClient>,
         command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
-        update_location_tx: mpsc::UnboundedSender<Location>,
+        update_location_tx: mpsc::UnboundedSender<Option<Location>>,
         shutdown_token: CancellationToken,
     ) -> Self {
         let state = if enable_geo_location {
@@ -170,11 +191,15 @@ impl GeoIpFetcher {
                         Ok(geo_ip_location) => {
                             let Ok(location) = geo_ip_location.location.try_into() else {
                                 tracing::warn!("Failed to convert geo ip location response into location");
+                                let _ = self.update_location_tx.send(None);
                                 continue;
                             };
-                            let _ = self.update_location_tx.send(location);
+                            let _ = self.update_location_tx.send(Some(location));
                         }
-                        Err(err) => tracing::warn!("Failed to query VPN API: {err:?}"),
+                        Err(err) => {
+                            let _ = self.update_location_tx.send(None);
+                            tracing::warn!("Failed to query VPN API: {err:?}");
+                        }
                     }
                 }
                 Some(command) = self.command_rx.recv() => {
@@ -192,16 +217,31 @@ impl GeoIpFetcher {
 }
 
 pub(crate) struct GeoIpProvider {
-    update_location_rx: UnboundedReceiver<Location>,
+    update_location_rx: UnboundedReceiver<Option<Location>>,
     latest_known_location: Option<Location>,
 }
 
 impl GeoIpProvider {
-    pub(crate) fn new(update_location_rx: UnboundedReceiver<Location>) -> Self {
+    pub(crate) fn new(update_location_rx: UnboundedReceiver<Option<Location>>) -> Self {
         Self {
             update_location_rx,
             latest_known_location: None,
         }
+    }
+
+    /// Get the initial location, or timeout early to not disrupt too much the connecting phase.
+    pub(crate) async fn initial_location(&mut self) -> Option<Location> {
+        self.latest_known_location =
+            tokio::time::timeout(TIMEOUT_INITIAL_LOCATION, self.update_location_rx.recv())
+                .await
+                .inspect_err(|_| {
+                    tracing::warn!(
+                        "No location for {} seconds, considering random location",
+                        TIMEOUT_INITIAL_LOCATION.as_secs()
+                    )
+                })
+                .ok()??;
+        self.latest_known_location.clone()
     }
 
     /// Return whenever there is a new location available, different to what we've already returned
@@ -209,10 +249,15 @@ impl GeoIpProvider {
     pub(crate) async fn new_location(&mut self) -> Option<Location> {
         loop {
             // if recv() returns None, there will never be a new location because the fetcher is gone
-            // So we should skip the loop
-            let latest_location = Some(self.update_location_rx.recv().await?);
-            if self.latest_known_location != latest_location {
-                self.latest_known_location = latest_location;
+            // So we should return from the loop
+            let Some(latest_location) = self.update_location_rx.recv().await? else {
+                tracing::debug!(
+                    "Received empty location, because of an API error, not updating it as new location"
+                );
+                continue;
+            };
+            if self.latest_known_location.as_ref() != Some(&latest_location) {
+                self.latest_known_location = Some(latest_location);
                 return self.latest_known_location.clone();
             }
         }
@@ -222,6 +267,28 @@ impl GeoIpProvider {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    #[test]
+    fn greater_china_shares_jurisdiction() {
+        let group = ["CN", "TW", "MO"];
+        // Every pair within the group shares a jurisdiction (symmetric),
+        // including each code with itself.
+        for a in group {
+            for b in group {
+                assert!(
+                    same_jurisdiction_group(a, b),
+                    "{a}/{b} should share a jurisdiction",
+                );
+            }
+        }
+        // Codes outside the group are not affected (Hong Kong is intentionally excluded).
+        assert!(!same_jurisdiction_group("HK", "CN"));
+        assert!(!same_jurisdiction_group("HK", "TW"));
+        assert!(!same_jurisdiction_group("CN", "US"));
+        assert!(!same_jurisdiction_group("TW", "JP"));
+        assert!(!same_jurisdiction_group("US", "GB"));
+        assert!(!same_jurisdiction_group("DE", "FR"));
+    }
 
     #[derive(Clone)]
     pub struct MockGeoIpClient {}

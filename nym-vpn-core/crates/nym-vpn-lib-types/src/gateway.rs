@@ -4,7 +4,7 @@
 use std::{
     collections::HashMap,
     fmt,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{Ipv4Addr, Ipv6Addr},
     str::FromStr,
 };
 
@@ -18,6 +18,8 @@ use nym_crypto::asymmetric::{
     ed25519::{self, Ed25519RecoveryError},
     x25519,
 };
+
+use crate::TunnelType;
 
 // Types that duplicate what nym-sdk already offers without pulling the whole nym-sdk into types crate
 pub type ClientEncryptionKey = x25519::PublicKey;
@@ -287,6 +289,12 @@ pub enum EntryPoint {
     },
     // Select an entry gateway at random.
     Random,
+
+    // Automatically select an entry point as close as possible to user
+    // The user's own country could be excluded or not.
+    Auto {
+        exclude_user_country: bool,
+    },
 }
 
 impl EntryPoint {
@@ -309,24 +317,6 @@ impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
             },
             nym_gateway_directory::EntryPoint::Region { region } => EntryPoint::Region { region },
             nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
-        }
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
-    fn from(value: EntryPoint) -> Self {
-        match value {
-            EntryPoint::Gateway { identity } => nym_gateway_directory::EntryPoint::Gateway {
-                identity: *identity.inner(),
-            },
-            EntryPoint::Country {
-                two_letter_iso_country_code,
-            } => nym_gateway_directory::EntryPoint::Country {
-                two_letter_iso_country_code,
-            },
-            EntryPoint::Region { region } => nym_gateway_directory::EntryPoint::Region { region },
-            EntryPoint::Random => nym_gateway_directory::EntryPoint::Random,
         }
     }
 }
@@ -368,27 +358,14 @@ pub enum ExitPoint {
 
     // Select an exit gateway at random.
     Random,
-}
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
-    fn from(value: ExitPoint) -> Self {
-        match value {
-            ExitPoint::Address { address } => nym_gateway_directory::ExitPoint::Address {
-                address: Box::new(nym_gateway_directory::Recipient::from(*address)),
-            },
-            ExitPoint::Gateway { identity } => nym_gateway_directory::ExitPoint::Gateway {
-                identity: *identity.inner(),
-            },
-            ExitPoint::Country {
-                two_letter_iso_country_code,
-            } => nym_gateway_directory::ExitPoint::Country {
-                two_letter_iso_country_code,
-            },
-            ExitPoint::Region { region } => nym_gateway_directory::ExitPoint::Region { region },
-            ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
-        }
-    }
+    // Automatically select an exit point as close as possible to the selected entry point.
+    // The entry point's country could be excluded or not
+    // The user's own country could be excluded or not
+    Auto {
+        exclude_entry_point_country: bool,
+        exclude_user_country: bool,
+    },
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -409,6 +386,54 @@ impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
             nym_gateway_directory::ExitPoint::Region { region } => ExitPoint::Region { region },
             nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum FavoriteSelector {
+    // A favorite gateway identity.
+    Gateway {
+        #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        identity: NodeIdentity,
+    },
+    // A favorite country.
+    Country {
+        two_letter_iso_country_code: String,
+    },
+    // A favorite region.
+    Region {
+        region: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct FavoriteSelectors {
+    pub entry: Vec<FavoriteSelector>,
+    pub exit: Vec<FavoriteSelector>,
+}
+
+impl std::fmt::Display for FavoriteSelectors {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "entry: {:?}", self.entry)?;
+        write!(f, "exit: {:?}", self.exit)
     }
 }
 
@@ -568,23 +593,8 @@ pub enum TentativeGateways {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct BridgeInformation {
-    pub version: String,
-    pub transports: Vec<BridgeParameters>,
-}
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(
-    feature = "typescript-bindings",
-    derive(TS),
-    ts(export),
-    ts(export_to = "bindings.ts")
-)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub enum BridgeParameters {
-    QuicPlain(QuicClientOptions),
+pub struct GetRecentGatewaysParams {
+    pub tunnel_type: TunnelType,
 }
 
 #[derive(Debug, Clone)]
@@ -597,11 +607,15 @@ pub enum BridgeParameters {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct QuicClientOptions {
-    pub addresses: Vec<SocketAddr>,
-    pub host: Option<String>,
-    pub id_pubkey: String,
+pub struct RecentGateways {
+    pub entry: Vec<Gateway>,
+    pub exit: Vec<Gateway>,
 }
+
+pub use nym_bridges_types::{
+    ClientConfig as BridgeParameters, PersistedClientConfig as BridgeInformation,
+    quic::ClientOptions as QuicClientOptions, tls::ClientOptions as TlsClientOptions,
+};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -909,8 +923,10 @@ impl From<nym_gateway_directory::Country> for Country {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
-    fn from(node_description: nym_validator_client::models::NymNodeDescriptionV1) -> Self {
+impl From<nym_validator_client::models::described::v1::NymNodeDescriptionV1> for Gateway {
+    fn from(
+        node_description: nym_validator_client::models::described::v1::NymNodeDescriptionV1,
+    ) -> Self {
         let build_version = Some(node_description.version().to_owned());
         let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
             node_description.description.host_information.ip_address,
@@ -940,8 +956,10 @@ impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
-    fn from(node_description: nym_validator_client::models::NymNodeDescriptionV2) -> Self {
+impl From<nym_validator_client::models::described::v2::NymNodeDescriptionV2> for Gateway {
+    fn from(
+        node_description: nym_validator_client::models::described::v2::NymNodeDescriptionV2,
+    ) -> Self {
         let build_version = Some(node_description.version().to_owned());
         let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
             node_description.description.host_information.ip_address,
@@ -1038,8 +1056,12 @@ impl From<nym_gateway_directory::Lp> for Lp {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::LewesProtocolDetailsV1> for LewesProtocolDetails {
-    fn from(value: nym_validator_client::models::LewesProtocolDetailsV1) -> Self {
+impl From<nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1>
+    for LewesProtocolDetails
+{
+    fn from(
+        value: nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1,
+    ) -> Self {
         Self {
             content: value.content.into(),
             signature: value.signature.to_base58_string(),
@@ -1048,8 +1070,12 @@ impl From<nym_validator_client::models::LewesProtocolDetailsV1> for LewesProtoco
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::LewesProtocolDetailsDataV1> for LewesProtocolDetailsData {
-    fn from(value: nym_validator_client::models::LewesProtocolDetailsDataV1) -> Self {
+impl From<nym_validator_client::models::described::type_translation::LewesProtocolDetailsDataV1>
+    for LewesProtocolDetailsData
+{
+    fn from(
+        value: nym_validator_client::models::described::type_translation::LewesProtocolDetailsDataV1,
+    ) -> Self {
         let kem_keys = value
             .kem_keys
             .into_iter()
@@ -1119,7 +1145,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
             mixnet_performance: gateway.mixnet_performance.map(|p| p.round_to_integer()),
-            bridge_params: gateway.bridge_params.map(BridgeInformation::from),
+            bridge_params: gateway.bridge_params,
             performance: gateway.performance.map(Performance::from),
             exit_ipv4s,
             exit_ipv6s,
@@ -1127,43 +1153,55 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             lewes_protocol_details: gateway
                 .lewes_protocol_details
                 .map(LewesProtocolDetails::from),
-            node_family_name: gateway.node_family.map(|family| family.name),
+            node_family_name: gateway.family_data.map(|family| family.name),
         }
     }
 }
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::response::BridgeInformation> for BridgeInformation {
-    fn from(value: nym_vpn_api_client::response::BridgeInformation) -> Self {
-        Self {
-            version: value.version,
-            transports: value
-                .transports
-                .into_iter()
-                .map(BridgeParameters::from)
-                .collect(),
-        }
-    }
-}
+#[cfg(test)]
+#[cfg(feature = "serde")]
+mod bridges_test {
+    use super::{BridgeInformation, BridgeParameters};
+    const RAW_V0_CLIENT_CONFIG: &str = r#"{"version":"0","transports":[{"transport_type":"quic_plain","args":{"addresses":["139.162.33.226:4443","[2400:8901::2000:faff:fea6:87f2]:4443"],"host":"netdna.bootstrapcdn.com","id_pubkey":"9JC91ZiszhIn3n4FG+MDYE/lYwhGdpHGWQTKUqGl+sE="}}]}"#;
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::response::BridgeParameters> for BridgeParameters {
-    fn from(value: nym_vpn_api_client::response::BridgeParameters) -> Self {
-        match value {
-            nym_vpn_api_client::response::BridgeParameters::QuicPlain(options) => {
-                BridgeParameters::QuicPlain(QuicClientOptions::from(options))
-            }
-        }
-    }
-}
+    /// The initial version of the bridge descriptors that are provided by the gateways use a snake case
+    /// for the enum differentiator. This test validates that under normal circumstances that the descriptor
+    /// is parsed as  expected. The only situation under which the enum differentiator has a different format
+    /// is when using the `typescript-bindings` feature.
+    #[test]
+    fn ensure_bridge_v0_parsing_compatibility() -> Result<(), Box<dyn std::error::Error>> {
+        // Parse the JSON to verify structure
+        let parsed: BridgeInformation = serde_json::from_str(RAW_V0_CLIENT_CONFIG)?;
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::response::QuicClientOptions> for QuicClientOptions {
-    fn from(value: nym_vpn_api_client::response::QuicClientOptions) -> Self {
-        Self {
-            addresses: value.addresses,
-            host: value.host,
-            id_pubkey: value.id_pubkey,
-        }
+        // Verify version
+        assert_eq!(parsed.version, "0");
+
+        // Verify transport type
+        let params = match &parsed.transports[0] {
+            BridgeParameters::QuicPlain(p) => p,
+            BridgeParameters::TlsPlain(_) => return Err("expected quic transport args".into()),
+        };
+
+        // Verify addresses contain our test IPs
+        let addresses = &params.addresses;
+
+        let address_strings: Vec<String> = addresses.iter().map(|v| v.to_string()).collect();
+
+        // Should contain both IPv4 and IPv6 addresses with port 4443
+        assert!(
+            address_strings
+                .iter()
+                .any(|addr| addr.contains("139.162.33.226:4443"))
+        );
+        assert!(
+            address_strings
+                .iter()
+                .any(|addr| addr.contains("[2400:8901::2000:faff:fea6:87f2]:4443"))
+        );
+
+        // Verify host field
+        assert_eq!(params.host, Some("netdna.bootstrapcdn.com".to_string()),);
+
+        Ok(())
     }
 }

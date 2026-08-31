@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { useShallow } from 'zustand/react/shallow';
@@ -31,6 +31,7 @@ const GLOW_SPREAD = SPHERE_SIZE * 0.55;
 const PROGRESS_STEPS = {
   'resolving-api-addresses': { ring: 0, half: true },
   'awaiting-account-readiness': { ring: 0, half: false },
+  'awaiting-credentials-availability': { ring: 0, half: false },
   'refreshing-gateways': { ring: 1, half: true },
   'selecting-gateways': { ring: 1, half: false },
   'registering-with-gateways': { ring: 2, half: true },
@@ -39,21 +40,21 @@ const PROGRESS_STEPS = {
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--nv-connection-arc-track)';
-const FILL_FAST = 'var(--nv-brand-primary)';
-const FILL_ANON = 'var(--nv-connection-arc-anon)';
+const FILL = 'var(--nv-brand-primary)';
 const ERROR_CLR = 'var(--nv-status-error)';
 
+// Delay (ms) before surfacing the transient `needs-relaxed-independence-criteria`
+// error, so a quick auto-relax + reconnect (e.g. when switching servers while
+// connected) doesn't flash the error UI for an error that resolves on its own.
+const RELAXED_INDEPENDENCE_ERROR_DELAY = 1000;
+
 type Phase =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'canceling'
-  | 'error';
+  'disconnected' | 'connecting' | 'connected' | 'canceling' | 'error';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function TunnelState() {
-  const { state, connectingState, progressMessages, vpnMode } = useAppStore(
+  const { state, connectingState, progressMessages } = useAppStore(
     useShallow((s) => ({
       state: s.state,
       connectingState: s.connectingState,
@@ -82,16 +83,41 @@ export function TunnelState() {
     accountState === 'status-not-active' ||
     accountState === 'error';
 
+  // ─── Throttle the transient relaxed-independence error ────────────────────
+  // While connected, switching servers can make the daemon briefly surface
+  // `needs-relaxed-independence-criteria` before the watcher auto-relaxes and
+  // reconnects. Delay surfacing it.
+  const isRelaxedIndependenceError =
+    state === 'error' && tunnelError === 'needs-relaxed-independence-criteria';
+
+  const [showRelaxedIndependenceError, setShowRelaxedIndependenceError] =
+    useState(false);
+  useEffect(() => {
+    if (!isRelaxedIndependenceError) {
+      setShowRelaxedIndependenceError(false);
+      return;
+    }
+    const id = setTimeout(
+      () => setShowRelaxedIndependenceError(true),
+      RELAXED_INDEPENDENCE_ERROR_DELAY,
+    );
+    return () => clearTimeout(id);
+  }, [isRelaxedIndependenceError]);
+
+  const suppressRelaxedIndependenceError =
+    isRelaxedIndependenceError && !showRelaxedIndependenceError;
+
   const isError =
-    state === 'error' ||
-    state === 'unknown' ||
-    state === 'offline' ||
-    state === 'offline-auto-reconnect';
+    !suppressRelaxedIndependenceError &&
+    (state === 'error' ||
+      state === 'unknown' ||
+      state === 'offline' ||
+      state === 'offline-auto-reconnect');
   const isConnected = state === 'connected';
   const isConnecting = state === 'connecting';
   const isCanceling = state === 'disconnecting';
 
-  const phase: Phase = isError
+  const computedPhase: Phase = isError
     ? 'error'
     : isCanceling
       ? 'canceling'
@@ -101,10 +127,17 @@ export function TunnelState() {
           ? 'connecting'
           : 'disconnected';
 
-  // ─── Mode → sweep duration and fill color ─────────────────────────────────
-  const isMixnet = vpnMode === 'mixnet';
-  const sweepDur = isMixnet ? 1200 : 800;
-  const fillColor = isMixnet ? FILL_ANON : FILL_FAST;
+  // While suppressing the transient error, keep showing the previous phase
+  // (typically `connecting` during a server switch) so nothing flashes.
+  const lastPhaseRef = useRef<Phase>('disconnected');
+  const phase: Phase = suppressRelaxedIndependenceError
+    ? lastPhaseRef.current
+    : computedPhase;
+  useEffect(() => {
+    if (!suppressRelaxedIndependenceError) {
+      lastPhaseRef.current = computedPhase;
+    }
+  }, [suppressRelaxedIndependenceError, computedPhase]);
 
   // ─── Ring targets based on current progress ───────────────────────────────
   const progress = connectingState?.progress;
@@ -135,14 +168,14 @@ export function TunnelState() {
   const effectiveOffsets = isCanceling ? frozenOffsets.current : ringTargets;
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
-  const strokeColor = phase === 'error' ? ERROR_CLR : fillColor;
+  const strokeColor = phase === 'error' ? ERROR_CLR : FILL;
   const strokeOpacity =
     phase === 'canceling' ? 0.15 : phase === 'error' ? 0.6 : 1;
 
   const ringTransition =
     phase === 'canceling'
       ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
-      : `stroke-dashoffset ${sweepDur}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
+      : 'stroke-dashoffset 800ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease';
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
@@ -253,6 +286,7 @@ export function TunnelState() {
             {label !== null && (
               <motion.div
                 key={label}
+                data-testid="connection-status-text"
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 12 }}

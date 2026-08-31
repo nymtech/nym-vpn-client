@@ -18,7 +18,6 @@ import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.util.extensions.toUserMessage
-import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 
 @Composable
@@ -29,6 +28,7 @@ fun MainAlerts(
 	expiryState: ExpiryState?,
 	validUntilDate: String,
 	expiryBannerDismissed: Boolean,
+	hasSubscriptionHistory: Boolean,
 	onRetryConnect: () -> Unit,
 	onDismissExpiryBanner: () -> Unit,
 	onRenewSubscription: () -> Unit,
@@ -49,7 +49,10 @@ fun MainAlerts(
 	val expiredTitle = stringResource(R.string.error_expired_subscription_title)
 	val expiredBody = stringResource(R.string.error_expired_subscription_description)
 	val expiredAction = stringResource(R.string.error_expired_subscription_button)
-	LaunchedEffect(expiryState, expiryBannerDismissed) {
+	val noSubscriptionTitle = stringResource(R.string.error_no_subscription_title)
+	val noSubscriptionBody = stringResource(R.string.error_no_subscription_description)
+	val noSubscriptionAction = stringResource(R.string.error_no_subscription_button)
+	LaunchedEffect(expiryState, expiryBannerDismissed, hasSubscriptionHistory) {
 		when {
 			!expiryBannerDismissed && expiryState == ExpiryState.WARNING -> AlertController.show(
 				AlertMessage(
@@ -69,9 +72,9 @@ fun MainAlerts(
 				AlertController.show(
 					AlertMessage(
 						type = AlertType.Error,
-						title = expiredTitle,
-						body = expiredBody,
-						action = AlertAction(expiredAction) { onNavigateToSelectPlan() },
+						title = if (hasSubscriptionHistory) expiredTitle else noSubscriptionTitle,
+						body = if (hasSubscriptionHistory) expiredBody else noSubscriptionBody,
+						action = AlertAction(if (hasSubscriptionHistory) expiredAction else noSubscriptionAction) { onNavigateToSelectPlan() },
 						duration = Long.MAX_VALUE,
 						id = AlertId.Expired,
 					),
@@ -84,23 +87,21 @@ fun MainAlerts(
 		}
 	}
 
-	val inactiveAccountTitle = stringResource(R.string.error_inactive_account)
-	val inactiveAccountBody = stringResource(R.string.error_inactive_account_subtitle)
+	val pendingSubscriptionTitle = stringResource(R.string.account_subscription_pending_title)
+	val pendingSubscriptionBody = stringResource(R.string.account_subscription_pending_description)
 	LaunchedEffect(accountState) {
-		val isInactive = accountState is AccountControllerState.Error &&
-			accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
-		if (isInactive) {
+		if (accountState is AccountControllerState.PendingSubscription) {
 			AlertController.show(
 				AlertMessage(
-					type = AlertType.Error,
-					title = inactiveAccountTitle,
-					body = inactiveAccountBody,
+					type = AlertType.Neutral,
+					title = pendingSubscriptionTitle,
+					body = pendingSubscriptionBody,
 					duration = Long.MAX_VALUE,
-					id = AlertId.InactiveAccount,
+					id = AlertId.PendingSubscription,
 				),
 			)
 		} else {
-			AlertController.dismiss(id = AlertId.InactiveAccount)
+			AlertController.dismiss(id = AlertId.PendingSubscription)
 		}
 	}
 

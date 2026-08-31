@@ -1,0 +1,532 @@
+name: prepare-release-notes
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/prepare-release-notes.yml"
+  workflow_dispatch:
+    inputs:
+      github_release_type:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+      android:
+        type: boolean
+        required: true
+      fdroid:
+        type: boolean
+        required: true
+      linux:
+        type: boolean
+        required: true
+      windows:
+        type: boolean
+        required: true
+      macos:
+        type: boolean
+        required: true
+      ios:
+        type: boolean
+        required: true
+      android_apk:
+        type: string
+        required: false
+      vpnd_deb_x86_64:
+        type: string
+        required: false
+      vpnd_deb_aarch64:
+        type: string
+        required: false
+      vpnc_deb_x86_64:
+        type: string
+        required: false
+      vpnc_deb_aarch64:
+        type: string
+        required: false
+      linux_app_deb_x64:
+        type: string
+        required: false
+      linux_app_deb_arm64:
+        type: string
+        required: false
+      linux_app_appimage_x64:
+        type: string
+        required: false
+      linux_app_appimage_arm64:
+        type: string
+        required: false
+      macos_installer_name:
+        type: string
+        required: false
+      vpnc_macos_installer_name:
+        type: string
+        required: false
+      windows_app_installer_x64:
+        type: string
+        required: false
+      windows_app_installer_arm64:
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      github_release_type:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+      android:
+        type: boolean
+        required: true
+      fdroid:
+        type: boolean
+        required: true
+      linux:
+        type: boolean
+        required: true
+      windows:
+        type: boolean
+        required: true
+      macos:
+        type: boolean
+        required: true
+      ios:
+        type: boolean
+        required: true
+      android_apk:
+        type: string
+        required: false
+      vpnd_deb_x86_64:
+        type: string
+        required: false
+      vpnd_deb_aarch64:
+        type: string
+        required: false
+      vpnc_deb_x86_64:
+        type: string
+        required: false
+      vpnc_deb_aarch64:
+        type: string
+        required: false
+      linux_app_deb_x64:
+        type: string
+        required: false
+      linux_app_deb_arm64:
+        type: string
+        required: false
+      linux_app_appimage_x64:
+        type: string
+        required: false
+      linux_app_appimage_arm64:
+        type: string
+        required: false
+      macos_installer_name:
+        type: string
+        required: false
+      vpnc_macos_installer_name:
+        type: string
+        required: false
+      windows_app_installer_x64:
+        type: string
+        required: false
+      windows_app_installer_arm64:
+        type: string
+        required: false
+    outputs:
+      release_notes_artifact:
+        value: ${{ jobs.prepare-release-notes.outputs.release_notes_artifact }}
+      release_notes_file:
+        value: ${{ jobs.prepare-release-notes.outputs.release_notes_file }}
+
+env:
+  RELEASE_NOTES_ARTIFACT: release-notes
+  RELEASE_NOTES: release-notes.md
+
+jobs:
+  resolve:
+    runs-on: arc-linux-latest
+    outputs:
+      github_release_type: ${{ steps.set-params.outputs.github_release_type }}
+      version: ${{ steps.set-params.outputs.version }}
+      android: ${{ steps.set-params.outputs.android }}
+      fdroid: ${{ steps.set-params.outputs.fdroid }}
+      linux: ${{ steps.set-params.outputs.linux }}
+      windows: ${{ steps.set-params.outputs.windows }}
+      macos: ${{ steps.set-params.outputs.macos }}
+      ios: ${{ steps.set-params.outputs.ios }}
+      android_apk: ${{ steps.set-params.outputs.android_apk }}
+      vpnd_deb_x86_64: ${{ steps.set-params.outputs.vpnd_deb_x86_64 }}
+      vpnd_deb_aarch64: ${{ steps.set-params.outputs.vpnd_deb_aarch64 }}
+      vpnc_deb_x86_64: ${{ steps.set-params.outputs.vpnc_deb_x86_64 }}
+      vpnc_deb_aarch64: ${{ steps.set-params.outputs.vpnc_deb_aarch64 }}
+      linux_app_deb_x64: ${{ steps.set-params.outputs.linux_app_deb_x64 }}
+      linux_app_deb_arm64: ${{ steps.set-params.outputs.linux_app_deb_arm64 }}
+      linux_app_appimage_x64: ${{ steps.set-params.outputs.linux_app_appimage_x64 }}
+      linux_app_appimage_arm64: ${{ steps.set-params.outputs.linux_app_appimage_arm64 }}
+      macos_installer_name: ${{ steps.set-params.outputs.macos_installer_name }}
+      vpnc_macos_installer_name: ${{ steps.set-params.outputs.vpnc_macos_installer_name }}
+      windows_app_installer_x64: ${{ steps.set-params.outputs.windows_app_installer_x64 }}
+      windows_app_installer_arm64: ${{ steps.set-params.outputs.windows_app_installer_arm64 }}
+    steps:
+      - name: Resolve runtime parameters
+        id: set-params
+        run: |
+          IS_PR="${{ github.event_name == 'pull_request' }}"
+
+          if [ "$IS_PR" = "true" ]; then
+            # --- PULL REQUEST TEST VALUES ---
+            echo "github_release_type=draft" >> $GITHUB_OUTPUT
+            echo "version=0.0.0-pr-test" >> $GITHUB_OUTPUT
+            echo "android=true" >> $GITHUB_OUTPUT
+            echo "fdroid=true" >> $GITHUB_OUTPUT
+            echo "linux=true" >> $GITHUB_OUTPUT
+            echo "windows=true" >> $GITHUB_OUTPUT
+            echo "macos=true" >> $GITHUB_OUTPUT
+            echo "ios=true" >> $GITHUB_OUTPUT
+
+            echo "android_apk=app-release.apk" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_x86_64=vpnd_amd64.deb" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_aarch64=vpnd_arm64.deb" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_x86_64=vpnc_amd64.deb" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_aarch64=vpnc_arm64.deb" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_x64=app_amd64.deb" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_arm64=app_arm64.deb" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_x64=app_x64.AppImage" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_arm64=app_arm64.AppImage" >> $GITHUB_OUTPUT
+            echo "macos_installer_name=app_installer.pkg" >> $GITHUB_OUTPUT
+            echo "vpnc_macos_installer_name=vpnc_installer.pkg" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_x64=app_x64.exe" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_arm64=app_arm64.exe" >> $GITHUB_OUTPUT
+          else
+            echo "github_release_type=${{ inputs.github_release_type }}" >> $GITHUB_OUTPUT
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "android=${{ inputs.android }}" >> $GITHUB_OUTPUT
+            echo "fdroid=${{ inputs.fdroid }}" >> $GITHUB_OUTPUT
+            echo "linux=${{ inputs.linux }}" >> $GITHUB_OUTPUT
+            echo "windows=${{ inputs.windows }}" >> $GITHUB_OUTPUT
+            echo "macos=${{ inputs.macos }}" >> $GITHUB_OUTPUT
+            echo "ios=${{ inputs.ios }}" >> $GITHUB_OUTPUT
+
+            echo "android_apk=${{ inputs.android_apk || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_x86_64=${{ inputs.vpnd_deb_x86_64 || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnd_deb_aarch64=${{ inputs.vpnd_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_x86_64=${{ inputs.vpnc_deb_x86_64 || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnc_deb_aarch64=${{ inputs.vpnc_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_x64=${{ inputs.linux_app_deb_x64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_deb_arm64=${{ inputs.linux_app_deb_arm64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_x64=${{ inputs.linux_app_appimage_x64 || '' }}" >> $GITHUB_OUTPUT
+            echo "linux_app_appimage_arm64=${{ inputs.linux_app_appimage_arm64 || '' }}" >> $GITHUB_OUTPUT
+            echo "macos_installer_name=${{ inputs.macos_installer_name || '' }}" >> $GITHUB_OUTPUT
+            echo "vpnc_macos_installer_name=${{ inputs.vpnc_macos_installer_name || '' }}" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_x64=${{ inputs.windows_app_installer_x64 || '' }}" >> $GITHUB_OUTPUT
+            echo "windows_app_installer_arm64=${{ inputs.windows_app_installer_arm64 || '' }}" >> $GITHUB_OUTPUT
+          fi
+
+  prepare-release-notes:
+    runs-on: arc-linux-latest
+    needs: [resolve]
+    outputs:
+      release_notes_artifact: ${{ env.RELEASE_NOTES_ARTIFACT }}
+      release_notes_file: ${{ env.RELEASE_NOTES }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Extract core changelog
+        id: core-changelog
+        uses: ffurrer2/extract-release-notes@v3
+        with:
+          changelog_file: nym-vpn-core/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
+
+      - name: Extract android changelog
+        id: android-changelog
+        if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
+        uses: ffurrer2/extract-release-notes@v3
+        with:
+          changelog_file: nym-vpn-android/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
+
+      - name: Extract tauri changelog
+        id: tauri-changelog
+        if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
+        uses: ffurrer2/extract-release-notes@v3
+        with:
+          changelog_file: nym-vpn-app/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
+
+      - name: Extract apple changelog
+        id: apple-changelog
+        if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
+        uses: ffurrer2/extract-release-notes@v3
+        with:
+          changelog_file: nym-vpn-apple/CHANGELOG.md
+          # for prereleases, extract the changelog from the [unreleased] section
+          prerelease: ${{ needs.resolve.outputs.github_release_type != 'release' }}
+
+      - name: Add release notes (General + Core)
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          CORE_CHANGES: ${{ steps.core-changelog.outputs.release_notes }}
+          ANDROID: ${{ needs.resolve.outputs.android }}
+          FDROID: ${{ needs.resolve.outputs.fdroid }}
+          IOS: ${{ needs.resolve.outputs.ios }}
+          MACOS: ${{ needs.resolve.outputs.macos }}
+          WINDOWS: ${{ needs.resolve.outputs.windows }}
+          LINUX: ${{ needs.resolve.outputs.linux }}
+        run: |
+          include_platforms=()
+          exclude_platforms=()
+
+          # Define platforms mapping (Variable name : Display Name)
+          declare -A platforms=(
+            [ANDROID]="Android (Google Play)"
+            [FDROID]="F-Droid"
+            [IOS]="iOS"
+            [MACOS]="macOS"
+            [WINDOWS]="Windows"
+            [LINUX]="Linux"
+          )
+
+          # Process platforms dynamically
+          for var in "${!platforms[@]}"; do
+            if [[ "${!var}" == "true" ]]; then
+              include_platforms+=("${platforms[$var]}")
+            else
+              exclude_platforms+=("${platforms[$var]}")
+            fi
+          done
+
+          # Determine if core binaries are included
+          if [[ "$MACOS" == "true" || "$WINDOWS" == "true" || "$LINUX" == "true" ]]; then
+            REL_INCLUDES="application and core binaries"
+          else
+            REL_INCLUDES="application binaries"
+          fi
+
+          # Compare counts and build the release note string
+          if [[ ${#include_platforms[@]} -gt ${#exclude_platforms[@]} ]]; then
+            # More included than excluded
+            if [[ ${#exclude_platforms[@]} -eq 0 ]]; then
+              REL_FOR=""
+            else
+              IFS=', ' list_excluded="${exclude_platforms[*]}"
+              REL_FOR=" This release is for all platforms, except ${list_excluded}"
+            fi
+          else
+            # More excluded than included
+            if [[ ${#include_platforms[@]} -eq 0 ]]; then
+              REL_FOR=""
+            else
+              IFS=', ' list_included="${include_platforms[*]}"
+              REL_FOR=" This release is for ${list_included} only"
+            fi
+          fi
+
+          export REL_INCLUDES="$REL_INCLUDES"
+          export REL_FOR="$REL_FOR"
+
+          envsubst '$VERSION $REL_INCLUDES $REL_FOR' << 'EOF' > "$RELEASE_NOTES"
+          Nym VPN v$VERSION $REL_INCLUDES.$REL_FOR
+
+          EOF
+
+          if [ -n "$CORE_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_CORE_CHANGES=$(sed 's/^### /#### /' <<< "$CORE_CHANGES")
+
+            envsubst '$UPDATED_CORE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ## 🚀 What's New
+          ### 🛠️ Core
+
+          $UPDATED_CORE_CHANGES
+
+          EOF
+          fi
+
+      - name: Add release notes (Android)
+        if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          ANDROID_CHANGES: ${{ steps.android-changelog.outputs.release_notes || '' }}
+        run: |
+          if [ -n "$ANDROID_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_ANDROID_CHANGES=$(sed 's/^### /#### /' <<< "$ANDROID_CHANGES")
+
+            envsubst '$UPDATED_ANDROID_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ### 🤖 Android app
+
+          $UPDATED_ANDROID_CHANGES
+
+          EOF
+          fi
+
+      - name: Add release notes (Tauri)
+        if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          TAURI_CHANGES: ${{ steps.tauri-changelog.outputs.release_notes || '' }}
+        run: |
+          if [ -n "$TAURI_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_TAURI_CHANGES=$(sed 's/^### /#### /' <<< "$TAURI_CHANGES")
+
+            envsubst '$UPDATED_TAURI_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ### 🐧🪟 Windows & Linux apps
+
+          $UPDATED_TAURI_CHANGES
+
+          EOF
+          fi
+
+      - name: Add release notes (Apple)
+        if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.ios == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          APPLE_CHANGES: ${{ steps.apple-changelog.outputs.release_notes || '' }}
+        run: |
+          if [ -n "$APPLE_CHANGES" ]; then
+            # Increase indentation from h3 to h4 to better fit the release notes
+            export UPDATED_APPLE_CHANGES=$(sed 's/^### /#### /' <<< "$APPLE_CHANGES")
+
+            envsubst '$UPDATED_APPLE_CHANGES' << 'EOF' >> "$RELEASE_NOTES"
+          ### 🍎 iOS & macOS apps
+
+          $UPDATED_APPLE_CHANGES
+
+          EOF
+          fi
+
+      - name: Add release notes (Core overview)
+        if: ${{ needs.resolve.outputs.macos == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.linux == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ## 📦 Core Components Overview
+
+          - `nym-vpnd`: Background daemon service managed via the UI app or CLI.
+          - `nym-vpnc`:  Command-line interface (CLI) to control the daemon (`nym-vpnd`).
+          - `nym-socks5-proxy`: SOCKS5 proxy handling geo-exclusion routing.
+          - `nym-diagnostic`: System information and network troubleshooting tool.
+          - `nym-setup`: macOS helper tool for system service configuration.
+
+          EOF
+
+      - name: Add release notes (Downloads & Assets)
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ## 💾 Downloads & Assets
+
+          EOF
+
+      - name: Add release notes (F-Droid)
+        if: ${{ needs.resolve.outputs.fdroid == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          ANDROID_APK: ${{ needs.resolve.outputs.android_apk }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🤖 Android
+
+          - `${{ env.ANDROID_APK }}`: Android App (F-Droid Build)
+
+          <details>
+          <summary>How to verify the build fingerprint?</summary>
+
+          #### Signing Certificate SHA-256 Fingerprint (4096-bit):
+
+          ```text
+          3c98a016aa4f14a3ba185c764ed363415cf7ff3c3d328a87ffff2ff1b140ff06
+          ```
+
+          #### Verification Steps:
+
+          To verify the build fingerprint on your system, run:
+          ```sh
+          apksigner verify --print-certs "${{ env.ANDROID_APK }}" | grep SHA-256
+          ```
+
+          </details>
+
+          EOF
+
+      - name: Add release notes (Linux)
+        if: ${{ needs.resolve.outputs.linux == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          VPND_DEB_X86_64: ${{ needs.resolve.outputs.vpnd_deb_x86_64 }}
+          VPND_DEB_ARM64: ${{ needs.resolve.outputs.vpnd_deb_aarch64 }}
+          VPNC_DEB_X86_64: ${{ needs.resolve.outputs.vpnc_deb_x86_64 }}
+          VPNC_DEB_ARM64: ${{ needs.resolve.outputs.vpnc_deb_aarch64 }}
+          LINUX_APP_DEB_X64: ${{ needs.resolve.outputs.linux_app_deb_x64 }}
+          LINUX_APP_DEB_ARM64: ${{ needs.resolve.outputs.linux_app_deb_arm64 }}
+          LINUX_APP_APPIMAGE_X64: ${{ needs.resolve.outputs.linux_app_appimage_x64 }}
+          LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve.outputs.linux_app_appimage_arm64 }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🐧 Linux
+
+          - **Desktop App**
+            - `${{ env.LINUX_APP_DEB_X64 }}`: Nym VPN app, debian package (x86_64)
+            - `${{ env.LINUX_APP_DEB_ARM64 }}`: Nym VPN app, debian package (arm64)
+            - `${{ env.LINUX_APP_APPIMAGE_X64 }}`: Nym VPN app, AppImage (x86_64)
+            - `${{ env.LINUX_APP_APPIMAGE_ARM64 }}`: Nym VPN app, AppImage (arm64)
+          - **CLI & Daemon**
+            - `${{ env.VPND_DEB_X86_64 }}`: Nym VPN daemon, debian package (x86_64)
+            - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN daemon, debian package (arm64)
+            - `${{ env.VPNC_DEB_X86_64 }}`: Nym VPN command-line tool, debian package (x86_64)
+            - `${{ env.VPNC_DEB_ARM64 }}`: Nym VPN command-line tool, debian package (arm64)
+
+          EOF
+
+      - name: Add release notes (macOS)
+        if: ${{ needs.resolve.outputs.macos == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          MACOS_INSTALLER_NAME: ${{ needs.resolve.outputs.macos_installer_name }}
+          VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve.outputs.vpnc_macos_installer_name }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🍎 macOS
+
+          - `${{ env.MACOS_INSTALLER_NAME }}`: Desktop App Installer
+          - `${{ env.VPNC_MACOS_INSTALLER_NAME }}`: Command-Line Tool Installer
+
+          EOF
+
+      - name: Add release notes (Windows)
+        if: ${{ needs.resolve.outputs.windows == 'true' }}
+        env:
+          RELEASE_NOTES: ${{ env.RELEASE_NOTES }}
+          WINDOWS_APP_INSTALLER_X64: ${{ needs.resolve.outputs.windows_app_installer_x64 }}
+          WINDOWS_APP_INSTALLER_ARM64: ${{ needs.resolve.outputs.windows_app_installer_arm64 }}
+        run: |
+          cat << 'EOF' >> "$RELEASE_NOTES"
+          ### 🪟 Windows
+
+          - `${{ env.WINDOWS_APP_INSTALLER_X64 }}`: Desktop App Installer (x64)
+          - `${{ env.WINDOWS_APP_INSTALLER_ARM64 }}`: Desktop App Installer (arm64)
+
+          EOF
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.RELEASE_NOTES_ARTIFACT }}
+          path: ${{ env.RELEASE_NOTES }}

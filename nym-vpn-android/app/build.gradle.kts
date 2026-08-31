@@ -21,9 +21,14 @@ val currentCommitHash: Provider<String> = providers.exec {
 	isIgnoreExitValue = true
 }.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
 
-val buildTimestamp: String = DateTimeFormatter
-	.ofPattern("yyyyMMddHHmm")
-	.format(LocalDateTime.now(ZoneOffset.UTC))
+// Nightly apk timestamp: use the orchestrator-provided value (NIGHTLY_TIMESTAMP, e.g.
+// parsed from the unified nightly tag) so the apk name matches the release tag; only
+// generate one at build time when none is provided.
+val buildTimestamp: String = providers.environmentVariable("NIGHTLY_TIMESTAMP").orNull
+	?.takeIf { it.isNotBlank() }
+	?: DateTimeFormatter
+		.ofPattern("yyyyMMddHHmm")
+		.format(LocalDateTime.now(ZoneOffset.UTC))
 
 val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }
@@ -89,7 +94,7 @@ android {
 
 		ndk {
 			abiFilters.clear()
-			abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+			abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
 		}
 	}
 
@@ -151,6 +156,11 @@ android {
 			proguardFile("proguard-rules.pro")
 			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
+		create(Constants.MOCK) {
+			dimension = Constants.TYPE
+			applicationIdSuffix = ".mock"
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.MOCK}\"")
+		}
 	}
 
 	compileOptions {
@@ -188,11 +198,17 @@ androidComponents {
 
 		variant.outputs.forEach { output ->
 			(output as? VariantOutputImpl)?.outputFileName?.set("$fullName.apk")
-			(output as? VariantOutputImpl)?.versionName?.set(fullName)
+			(output as? VariantOutputImpl)?.versionName?.set(version)
 		}
 
 		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))
 		variant.resValues.put(variant.makeResValueKey("string", "fullVersionName"), ResValue(fullName))
+	}
+}
+
+androidComponents {
+	beforeVariants(selector().withFlavor("type" to "mock")) { variant ->
+		variant.enable = variant.buildType == "debug"
 	}
 }
 

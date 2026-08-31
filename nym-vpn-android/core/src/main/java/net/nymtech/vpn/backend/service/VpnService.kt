@@ -8,7 +8,6 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.Process
-import androidx.annotation.RequiresApi
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -73,16 +72,15 @@ class VpnService :
 
 	// Fires when the default network changes; disconnects if another app's VPN took over.
 	private val competingVpnCallback = object : ConnectivityManager.NetworkCallback() {
-		@RequiresApi(Build.VERSION_CODES.R)
 		override fun onAvailable(network: Network) {
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
 			val cm = getSystemService(ConnectivityManager::class.java) ?: return
 			val caps = cm.getNetworkCapabilities(network) ?: return
 			if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return
 			if (caps.ownerUid == Process.myUid()) return
 
 			val currentState = core.state
-			if (currentState == Tunnel.State.Down || currentState == Tunnel.State.Offline) return
+			if (currentState == Tunnel.State.Down || currentState is Tunnel.State.Offline) return
 
 			Timber.tag(TAG).w("Competing VPN detected (network=$network uid=${caps.ownerUid}), disconnecting")
 			_events.tryEmit(VpnServiceEvent.CompetingVpnDetected)
@@ -191,7 +189,7 @@ class VpnService :
 
 			ioScope.launch {
 				core.ensureReadyForManagementBestEffort()
-				if (core.state == Tunnel.State.Down || core.state == Tunnel.State.Offline) {
+				if (core.state == Tunnel.State.Down || core.state is Tunnel.State.Offline) {
 					core.connectLocked()
 				}
 			}

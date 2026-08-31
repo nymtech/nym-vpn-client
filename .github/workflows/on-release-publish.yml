@@ -5,9 +5,10 @@ name: on-release-publish
 # on a draft). Fires the moment a human clicks "Publish release" on the ship draft:
 #   aur-vpnd, aur-app        -> publish PKGBUILDs to AUR
 #   post-release             -> changelog/installer/flatpak PR
-#   gen-hashes               -> hashes.json artifact of the published assets
 #   win-sigs + windows-updater -> tauri Windows updater feed PR (skips if no win build)
-#   macos-appcast            -> calls publish-macos-appcast.yml (Sparkle PR; skips if no macOS)
+#
+# (macOS Sparkle appcast PR is opened during the build/draft phase by
+#  build-nym-vpn-apple.yml as a DRAFT PR — not deferred here.)
 #
 # Why 'released' (not 'published'):
 #   - 'released'  matches NON-prerelease publishes only  -> ship  (nym-vpn-v*)
@@ -22,6 +23,11 @@ name: on-release-publish
 # Assumes this workflow + its callees exist on the release commit / default
 # branch (reusable callees resolve at the caller's ref).
 on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        type: string
+        description: Release tag
   release:
     types: [released]
 
@@ -37,8 +43,8 @@ jobs:
     # Guard: only act on the unified ship tag (nym-vpn-v*). Ignores legacy
     # (nym-vpn-core-v*, nym-vpn-app-v*) and nightly (nym-vpn-nightly-*) tags --
     # none of those share the 'nym-vpn-v' prefix.
-    if: ${{ startsWith(github.event.release.tag_name, 'nym-vpn-v') }}
-    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.event.release.tag_name || inputs.tag_name, 'nym-vpn-v') }}
+    runs-on: arc-linux-latest
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
@@ -46,7 +52,7 @@ jobs:
       - name: Resolve tag + version
         id: v
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag_name }}
         run: |
           set -euo pipefail
           version="${TAG#nym-vpn-v}"
@@ -55,6 +61,38 @@ jobs:
             echo "version=${version}"
           } >> "$GITHUB_OUTPUT"
           echo "::notice:: post-release fan-out for ${TAG} (version ${version})"
+
+  # Ship is the line's final release: clear the -beta.N releases that led to it so
+  # the Releases page shows only shipped versions. Scoped to the shipped base line
+  # (a ship of 2026.11.0 only clears 2026.11.0-beta.*). Tags are KEPT (no
+  # --cleanup-tag) — they stay the immutable ledger that resolve-version reads to
+  # never recompute onto a used beta number. Only fires on ship: beta releases are
+  # --prerelease, and 'released' never fires for prereleases.
+  delete-betas:
+    needs: setup
+    runs-on: arc-linux-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete shipped-line beta releases (keep tags)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          BASE="${VERSION%%-*}"          # major.minor.patch of the shipped line
+          BASE_RE="${BASE//./[.]}"       # literal-dot regex for jq test()
+          mapfile -t betas < <(gh release list --limit 200 --json tagName \
+            -q ".[] | .tagName | select(test(\"^nym-vpn-v${BASE_RE}-beta[.][0-9]+\$\"))")
+          if [ "${#betas[@]}" -eq 0 ]; then
+            echo "::notice:: no beta releases for ${BASE} to delete"
+            exit 0
+          fi
+          for t in "${betas[@]}"; do
+            echo "::notice:: deleting beta release ${t} (keeping tag)"
+            gh release delete "$t" --yes   # no --cleanup-tag → tag stays
+          done
 
   aur-vpnd:
     needs: setup
@@ -97,14 +135,6 @@ jobs:
       version: ${{ needs.setup.outputs.version }}
       core_release_tag: ${{ needs.setup.outputs.tag }}
 
-  # Hashes JSON of the published assets. The action uploads a workflow ARTIFACT
-  # (not a release asset), so it's safe against immutable-release freezing.
-  gen-hashes:
-    needs: setup
-    uses: ./.github/workflows/gen-hashes-json.yml
-    with:
-      release_tag: ${{ needs.setup.outputs.tag }}
-
   # Tauri Windows updater feed. tauri-updater.yml wants the bundle signatures as
   # inputs; under orchestration they came from the build job's outputs, which are
   # gone by publish time. Recover them from the *setup.exe.sig assets attached to
@@ -112,7 +142,7 @@ jobs:
   # (NymVPN_<ver>_x64-setup.exe.sig) — parse it rather than assume tag==app version.
   win-sigs:
     needs: setup
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     outputs:
       enabled: ${{ steps.sig.outputs.enabled }}
       app_version: ${{ steps.sig.outputs.app_version }}
@@ -164,14 +194,47 @@ jobs:
       signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
-  # macOS Sparkle appcast PR into nym-websites — delegated to the apple-owned reusable
-  # workflow so the Sparkle logic lives with the macOS pipeline. The build attached the
-  # appcast <item> to this release as appcast-item-<ver>.xml; publish-macos-appcast
-  # recovers it and opens the PR. Running it here (post-publish) keeps the Sparkle update
-  # behind the human ship gate. secrets: inherit forwards WEB_REPO_TOKEN_FOR_APPCAST.
-  macos-appcast:
-    needs: setup
-    uses: ./.github/workflows/publish-macos-appcast.yml
+  macos-updater:
+    needs: [setup]
+    uses: ./.github/workflows/macos-updater.yml
     secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write
     with:
-      release_tag: ${{ needs.setup.outputs.tag }}
+      version_tag: ${{ needs.setup.outputs.tag }}
+
+  update-nym-fdroid:
+    runs-on: arc-linux-latest
+    needs: setup
+    steps:
+      - name: Dispatch update for fdroid repo
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ secrets.ANDROID_PAT }}
+          repository: nymtech/fdroid
+          event-type: fdroid-update
+
+  # Bust the nym.com (Next.js) release cache tag so the public download page picks
+  # up the freshly published version. Only fires here, gated on `setup`, so it runs
+  # exactly when a ship (non-prerelease) release with the nym-vpn-v* tag goes public
+  # — nightly/beta prereleases never reach this workflow. Signs the payload with an
+  # HMAC-SHA256 the endpoint verifies via the X-Hub-Signature-256 header.
+  revalidate-website:
+    needs: setup
+    runs-on: arc-linux-latest
+    steps:
+      - name: Invalidate release cache
+        env:
+          REVALIDATE_SECRET: ${{ secrets.WEBSITE_REVALIDATE_SECRET }}
+          RELEASE_TAG: ${{ needs.setup.outputs.tag }}
+        run: |
+          set -euo pipefail
+          BODY='{"event":"release"}'
+          SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$REVALIDATE_SECRET" | awk '{print $2}')"
+          curl -fsS --retry 3 --retry-delay 5 -X POST https://nym.com/api/github/revalidate \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: $SIG" \
+            -d "$BODY"
+
+          echo "::notice:: revalidated nym.com release cache for ${RELEASE_TAG}"

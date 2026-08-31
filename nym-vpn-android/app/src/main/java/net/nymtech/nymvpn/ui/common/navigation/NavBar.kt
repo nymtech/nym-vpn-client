@@ -5,10 +5,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -18,17 +18,23 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
+import net.nymtech.nymvpn.ui.screens.main.profiles.ProfilesPanel
 import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
@@ -42,16 +48,23 @@ fun NavBar(
 	hideBackButton: Boolean = false,
 	onBackClick: (Route) -> Unit = {},
 	onNavBarEvent: (NavBarEvent) -> Unit = {},
+	serverLocationIsExit: Boolean = false,
 	logsEnabled: Boolean = false,
-	onMainThemeClick: () -> Unit = {},
+	selectedProfile: Profile? = null,
+	onProfileClick: () -> Unit = {},
+	onProfileSelect: (Profile) -> Unit = {},
 	onMainSettingsClick: () -> Unit = {},
 ) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 	var navBarState: NavBarState by remember { mutableStateOf(NavBarState.Empty) }
 
-	val currentMainThemeClick by rememberUpdatedState(onMainThemeClick)
+	val currentProfileClick by rememberUpdatedState(onProfileClick)
+	val currentProfileSelect by rememberUpdatedState(onProfileSelect)
 	val currentMainSettingsClick by rememberUpdatedState(onMainSettingsClick)
+
+	var profilesExpanded by remember { mutableStateOf(false) }
+	var navBarHeightPx by remember { mutableIntStateOf(0) }
 
 	val currentRoute = navBackStackEntry?.destination?.route
 	val backgroundColor = when (navBarState) {
@@ -59,18 +72,24 @@ fun NavBar(
 		is NavBarState.Empty -> MaterialTheme.colorScheme.background
 		else -> MaterialTheme.colorScheme.surface
 	}
-	LaunchedEffect(currentRoute, hideBackButton, logsEnabled) {
+	LaunchedEffect(navBarState) {
+		if (navBarState !is NavBarState.Main) profilesExpanded = false
+	}
+	LaunchedEffect(currentRoute, hideBackButton, logsEnabled, serverLocationIsExit, selectedProfile) {
 		keyboardController?.hide()
 		val route = currentRoute ?: return@LaunchedEffect
 
 		navBarState = when {
-			route.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState.Empty
+			route.startsWith(Route.Splash::class.qualifiedName!!) ||
+				route.startsWith(Route.Onboarding::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||
 				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Main::class.qualifiedName!!) -> NavBarState.Main(
-				onThemeClick = currentMainThemeClick,
+				selectedProfile = selectedProfile,
+				onProfileClick = currentProfileClick,
+				onProfileSelect = currentProfileSelect,
 				onSettingsClick = currentMainSettingsClick,
 			)
 
@@ -84,16 +103,13 @@ fun NavBar(
 				onClose = { navController.safePopBackStack() },
 			)
 
-			route.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.entry_location,
+			route.startsWith(Route.EntryServer::class.qualifiedName!!) ||
+				route.startsWith(Route.ExitServer::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = if (serverLocationIsExit) R.string.exit_location else R.string.entry_location,
 				onBack = { navController.safePopBackStack() },
-				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.EntryLocationInfoClicked) },
-			)
-
-			route.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.exit_location,
-				onBack = { navController.safePopBackStack() },
-				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.ExitLocationInfoClicked) },
+				trailing = NavBarState.Trailing.Info {
+					onNavBarEvent(if (serverLocationIsExit) NavBarEvent.ExitLocationInfoClicked else NavBarEvent.EntryLocationInfoClicked)
+				},
 			)
 
 			route.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState.WithBack(
@@ -147,6 +163,11 @@ fun NavBar(
 
 			route.startsWith(Route.Display::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.display_theme,
+				onBack = { navController.safePopBackStack() },
+			)
+
+			route.startsWith(Route.AppIcon::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.app_icon_title,
 				onBack = { navController.safePopBackStack() },
 			)
 
@@ -213,69 +234,90 @@ fun NavBar(
 		}
 	}
 
-	AnimatedVisibility(
-		visible = navBarState !is NavBarState.Hidden,
-		enter = slideInVertically() + fadeIn(),
-		exit = slideOutVertically() + fadeOut(),
-	) {
-		CenterAlignedTopAppBar(
-			modifier = modifier,
-			title = {
-				when (val state = navBarState) {
-					is NavBarState.Main -> MainTitle()
-					is NavBarState.WithBack -> if (state.titleRes != null) NavTitle(stringResource(state.titleRes)) else MainTitle()
-					is NavBarState.WithClose -> if (state.titleRes != null) NavTitle(stringResource(state.titleRes)) else MainTitle()
-					else -> {}
-				}
-			},
-			navigationIcon = {
-				when (val state = navBarState) {
-					is NavBarState.Main -> NavIcon(
-						icon = Icons.Outlined.Contrast,
-						description = stringResource(R.string.appearance),
-						onClick = state.onThemeClick,
-					)
-					is NavBarState.WithBack -> state.onBack?.let { onBack ->
-						NavIcon(
-							icon = Icons.AutoMirrored.Filled.ArrowBack,
-							description = stringResource(R.string.back),
-							onClick = onBack,
-						)
+	Box {
+		AnimatedVisibility(
+			visible = navBarState !is NavBarState.Hidden,
+			enter = slideInVertically() + fadeIn(),
+			exit = slideOutVertically() + fadeOut(),
+		) {
+			CenterAlignedTopAppBar(
+				modifier = modifier.onGloballyPositioned { navBarHeightPx = it.size.height },
+				title = {
+					when (val state = navBarState) {
+						is NavBarState.Main -> MainTitle()
+						is NavBarState.WithBack -> if (state.titleRes != null) NavTitle(stringResource(state.titleRes)) else MainTitle()
+						is NavBarState.WithClose -> if (state.titleRes != null) NavTitle(stringResource(state.titleRes)) else MainTitle()
+						else -> {}
 					}
-					else -> {}
-				}
-			},
-			actions = {
-				when (val state = navBarState) {
-					is NavBarState.Main -> NavIcon(
-						icon = Icons.Outlined.Settings,
-						description = stringResource(R.string.settings),
-						onClick = state.onSettingsClick,
-					)
-					is NavBarState.WithClose -> if (state.showClose) {
-						NavIcon(
-							icon = Icons.Filled.Close,
-							description = stringResource(R.string.close),
-							onClick = state.onClose,
+				},
+				navigationIcon = {
+					when (val state = navBarState) {
+						is NavBarState.Main -> NavIcon(
+							icon = ImageVector.vectorResource(R.drawable.ic_profiles),
+							description = stringResource(R.string.profiles_title),
+							tint = MaterialTheme.colorScheme.primary,
+							onClick = {
+								if (!profilesExpanded) {
+									profilesExpanded = true
+									state.onProfileClick()
+								}
+							},
 						)
+						is NavBarState.WithBack -> state.onBack?.let { onBack ->
+							NavIcon(
+								icon = Icons.AutoMirrored.Filled.ArrowBack,
+								description = stringResource(R.string.back),
+								onClick = onBack,
+							)
+						}
+						else -> {}
 					}
-					is NavBarState.WithBack -> when (val trailing = state.trailing) {
-						is NavBarState.Trailing.Info -> NavIcon(
-							icon = Icons.Outlined.Info,
-							description = stringResource(R.string.info),
-							onClick = trailing.onClick,
+				},
+				actions = {
+					when (val state = navBarState) {
+						is NavBarState.Main -> NavIcon(
+							icon = Icons.Outlined.Settings,
+							description = stringResource(R.string.settings),
+							onClick = state.onSettingsClick,
 						)
-						is NavBarState.Trailing.LogsMenu -> LogsActionsMenu(
-							onDownload = trailing.onDownload,
-							onShare = trailing.onShare,
-							onDelete = trailing.onDelete,
-						)
-						NavBarState.Trailing.None -> {}
+						is NavBarState.WithClose -> if (state.showClose) {
+							NavIcon(
+								icon = Icons.Filled.Close,
+								description = stringResource(R.string.close),
+								onClick = state.onClose,
+							)
+						}
+						is NavBarState.WithBack -> when (val trailing = state.trailing) {
+							is NavBarState.Trailing.Info -> NavIcon(
+								icon = Icons.Outlined.Info,
+								description = stringResource(R.string.info),
+								onClick = trailing.onClick,
+							)
+							is NavBarState.Trailing.LogsMenu -> LogsActionsMenu(
+								onDownload = trailing.onDownload,
+								onShare = trailing.onShare,
+								onDelete = trailing.onDelete,
+							)
+							NavBarState.Trailing.None -> {}
+						}
+						else -> {}
 					}
-					else -> {}
-				}
-			},
-			colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
-		)
+				},
+				colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
+			)
+		}
+
+		(navBarState as? NavBarState.Main)?.let { state ->
+			ProfilesPanel(
+				expanded = profilesExpanded,
+				selected = state.selectedProfile,
+				anchorHeightPx = navBarHeightPx,
+				onDismiss = { profilesExpanded = false },
+				onSelect = {
+					state.onProfileSelect(it)
+					profilesExpanded = false
+				},
+			)
+		}
 	}
 }

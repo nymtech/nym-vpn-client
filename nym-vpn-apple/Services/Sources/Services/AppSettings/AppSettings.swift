@@ -1,9 +1,22 @@
+import Foundation
 import SwiftUI
 import Constants
 import ConnectionTypes
 
 @MainActor public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
+
+    // Duplicated from MockMode — importing ConnectionManager here would cycle.
+    static var isMockMode: Bool {
+        #if MOCK_MODE
+        return true
+        #elseif DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+            || ProcessInfo.processInfo.arguments.contains("MOCK_MODE")
+        #else
+        return false
+        #endif
+    }
 
 #if os(iOS)
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
@@ -41,9 +54,6 @@ import ConnectionTypes
 
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
-
-    @AppStorage(AppSettingKey.didCompleteFirstLaunch.rawValue)
-    public var didCompleteFirstLaunch = false
 
     // Technical opt ins
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
@@ -92,8 +102,12 @@ import ConnectionTypes
         didSet { serverFamilyRemindersEnabledPublisher = serverFamilyRemindersEnabled }
     }
 
+#if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
+#else
+    public var isStatisticsEnabled = false
+#endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
@@ -193,6 +207,13 @@ import ConnectionTypes
         isPassphraseStoredPublisher = false
         serverFamilyRemindersEnabledPublisher = true
 
+        // Seed a signed-in mock session so UI tests start on the home screen.
+        if Self.isMockMode {
+            isCredentialImported = true
+            welcomeScreenDidDisplay = true
+            onboardingDidDisplay = true
+        }
+
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
@@ -233,7 +254,6 @@ public enum AppSettingKey: String {
     case errorReporting
     case credenitalExists
     case smallScreen
-    case didCompleteFirstLaunch
     case welcomeScreenDidDisplay
     case onboardingDidDisplay
     case lastConnectionIntent
@@ -241,6 +261,7 @@ public enum AppSettingKey: String {
     case countryStore
     case gatewayStore
     case accountToken
+    case accountTokensByEnv
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount

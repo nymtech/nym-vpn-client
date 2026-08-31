@@ -4,7 +4,7 @@
 mod boolean_option;
 mod commands;
 mod display_helpers;
-mod gateway_selection_algorithm;
+mod fs;
 mod table_style;
 
 use anyhow::{Context, Result, bail};
@@ -20,11 +20,15 @@ use crate::table_style::TableStyle;
 async fn main() -> Result<()> {
     let args = ProgramArgs::parse();
 
-    let rpc_client = RpcClient::new()
-        .await
-        .context("Failed to create RPC client")?;
+    if args.command.needs_rpc_client() {
+        let rpc_client = RpcClient::new()
+            .await
+            .context("Failed to create RPC client")?;
 
-    args.command.execute(rpc_client).await
+        args.command.execute(rpc_client).await
+    } else {
+        args.command.execute_no_rpc_client().await
+    }
 }
 
 #[derive(Parser, Debug)]
@@ -68,7 +72,7 @@ pub enum Command {
     /// Get the current connection status
     Status {
         /// Monitor tunnel state continuously until ctrl+c.
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
         listen: bool,
     },
 
@@ -152,15 +156,38 @@ pub enum Command {
         subcommand: nym_diagnostic::cli::Command,
     },
 
+    /// Favorites management
+    Favorites {
+        #[command(subcommand)]
+        subcommand: commands::favorites::Command,
+    },
+
     /// Split tunneling
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     SplitTunnel {
         #[command(subcommand)]
         subcommand: commands::split_tunnel::Command,
     },
+
+    /// Profiles management.
+    Profile {
+        #[command(subcommand)]
+        subcommand: commands::profile::Command,
+    },
 }
 
 impl Command {
+    pub fn needs_rpc_client(&self) -> bool {
+        !matches!(self, Self::Favorites { .. })
+    }
+
+    pub async fn execute_no_rpc_client(self) -> Result<()> {
+        match self {
+            Command::Favorites { subcommand } => subcommand.execute().await,
+            _ => Err(anyhow::anyhow!("internal: command needs rpc client")),
+        }
+    }
+
     pub async fn execute(self, rpc_client: RpcClient) -> Result<()> {
         match self {
             Command::StartSession => commands::session::execute(rpc_client).await,
@@ -186,8 +213,10 @@ impl Command {
             Command::Diagnostic { subcommand } => {
                 commands::diagnostic::execute(subcommand, rpc_client).await
             }
+            Command::Favorites { subcommand } => subcommand.execute().await,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Profile { subcommand } => subcommand.execute(rpc_client).await,
         }
     }
 

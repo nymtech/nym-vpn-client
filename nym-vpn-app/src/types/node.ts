@@ -20,22 +20,33 @@ export type SelectedUiNode =
   | UiCountry
   | UiRegion
   | UiGateway
-  | { nodeType: 'random'; isSelected: SelectedKind };
+  | { nodeType: 'random'; isSelected: SelectedKind }
+  | { nodeType: 'safest'; isSelected: SelectedKind };
+
+export const SafestNode: SelectedNode = {
+  auto: {
+    exclude_user_country: true,
+    exclude_entry_point_country: true,
+  },
+};
 
 export type UiCountry = Country & {
   nodeType: 'country';
   isSelected: SelectedKind;
+  isFavorite: boolean;
 };
 
 export type UiGateway = Gateway & {
   nodeType: 'gateway';
   isSelected: GwSelectedKind;
+  isFavorite: boolean;
 };
 
 export type UiRegion = Omit<Region, 'gateways'> & {
   nodeType: 'region';
   gateways: UiGateway[];
   isSelected: SelectedKind;
+  isFavorite: boolean;
 };
 
 export type UiGatewaysByCountry = Omit<
@@ -89,5 +100,7 @@ export function uiNodeToSelectedNode(uiNode: SelectedUiNode): SelectedNode {
       return { gateway: { id: uiNode.id } };
     case 'random':
       return 'random';
+    case 'safest':
+      return SafestNode;
   }
 }

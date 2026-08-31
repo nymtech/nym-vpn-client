@@ -6,9 +6,20 @@ public struct SettingsListItem: View {
     @ObservedObject private var viewModel: SettingsListItemViewModel
 
     @State private var isHovered = false
+    @State private var isToggleOn = false
 
     public init(viewModel: SettingsListItemViewModel) {
         self.viewModel = viewModel
+        if case let .toggle(isOn, _) = viewModel.accessory {
+            _isToggleOn = State(initialValue: isOn.wrappedValue)
+        }
+    }
+
+    private var toggleValue: Bool {
+        if case let .toggle(isOn, _) = viewModel.accessory {
+            return isOn.wrappedValue
+        }
+        return false
     }
 
     public var body: some View {
@@ -25,8 +36,8 @@ public struct SettingsListItem: View {
                 .frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if case let .toggle(isOn, isDisabled) = viewModel.accessory, !isDisabled {
-                        isOn.wrappedValue.toggle()
+                    if case let .toggle(_, isDisabled) = viewModel.accessory, !isDisabled {
+                        isToggleOn.toggle()
                     }
                     viewModel.action()
                 }
@@ -70,6 +81,16 @@ public struct SettingsListItem: View {
         .onHover { newValue in
             guard !viewModel.isHoveredHighlightDisabled else { return }
             isHovered = newValue
+        }
+        .onChange(of: isToggleOn) { _, newValue in
+            if case let .toggle(isOn, _) = viewModel.accessory, isOn.wrappedValue != newValue {
+                isOn.wrappedValue = newValue
+            }
+        }
+        .onChange(of: toggleValue) { _, newValue in
+            if isToggleOn != newValue {
+                isToggleOn = newValue
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
@@ -142,8 +163,8 @@ private extension SettingsListItem {
 
     @ViewBuilder
     func optionalToggleView() -> some View {
-        if case let .toggle(isOn, isDisabled) = viewModel.accessory {
-            Toggle("", isOn: isOn)
+        if case let .toggle(_, isDisabled) = viewModel.accessory {
+            Toggle("", isOn: $isToggleOn)
                 .toggleStyle(.switch)
                 .tint(Color.Nym.primary)
                 .labelsHidden()

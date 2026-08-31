@@ -8,7 +8,6 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        gateway::GatewaySelectionAlgorithm,
         tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
     },
 };
@@ -117,6 +116,13 @@ pub async fn disconnect(
 
     vpnd.vpn_disconnect().await?;
     Ok(TunnelState::Disconnecting(None))
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn reconnect(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.vpn_reconnect().await?;
+    Ok(())
 }
 
 #[instrument(skip(vpnd))]
@@ -427,16 +433,6 @@ pub async fn remove_custom_split_tunnel_app(
     let mut apps = custom_apps::load(&db)?;
     custom_apps::remove(&mut apps, &path);
     custom_apps::save(&db, &apps)?;
-    Ok(())
-}
-
-#[instrument(skip(vpnd))]
-#[tauri::command]
-pub async fn set_gateway_selection_algorithm(
-    vpnd: State<'_, VpndClient>,
-    algorithm: GatewaySelectionAlgorithm,
-) -> Result<(), BackendError> {
-    vpnd.set_gateway_selection_algorithm(algorithm).await?;
     Ok(())
 }
 

@@ -1,0 +1,25 @@
+# Switching between Fast and Mixnet modes, and that the choice persists.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- assertVisible: "Fast"
+- assertVisible: "Mixnet"
+- assertVisible: "NOT PROTECTED"
+
+- tapOn: "Mixnet"
+- assertVisible: "Mixnet"
+- assertVisible: "NOT PROTECTED"
+
+- tapOn: "Fast"
+- assertVisible: "Fast"
+- assertVisible: "NOT PROTECTED"
+
+- tapOn: "Mixnet"
+- tapOn: "Settings"
+- assertVisible: "Settings"
+- back
+- assertVisible: "Mixnet"
+- assertVisible: "Connect"

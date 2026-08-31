@@ -17,8 +17,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: false
@@ -27,7 +35,7 @@ jobs:
             /nym-vpn-app/
 
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
           cache: npm

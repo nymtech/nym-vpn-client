@@ -8,8 +8,8 @@ import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
 import nym_vpn_lib_types.NodeIdentity
 import nym_vpn_lib_types.Score
-import nym_vpn_lib_types.BridgeInformation as SdkBridgeInformation
-import nym_vpn_lib_types.BridgeParameters as SdkBridgeParameter
+import nym_bridges_types.PersistedClientConfig as SdkBridgeInformation
+import nym_bridges_types.ClientConfig as SdkBridgeParameter
 
 /**
  * Gateway domain model mapped from SDK types.
@@ -34,6 +34,8 @@ data class NymGateway(
 	var exitIpv4s: List<Ipv4Addr>,
 	var exitIpv6s: List<Ipv6Addr>,
 	val bridgeInformation: BridgeInformation?,
+	val nodeFamilyName: String? = null,
+	val isPostQuantumEnabled: Boolean = false,
 ) {
 	companion object {
 		fun from(gateway: Gateway): NymGateway = NymGateway(
@@ -55,6 +57,8 @@ data class NymGateway(
 			exitIpv4s = gateway.exitIpv4s,
 			exitIpv6s = gateway.exitIpv6s,
 			bridgeInformation = gateway.bridgeParams?.toBridgeInformation(),
+			nodeFamilyName = gateway.nodeFamilyName,
+			isPostQuantumEnabled = gateway.lewesProtocolDetails?.content?.enabled == true,
 		)
 
 		fun from(string: String?): NymGateway? = string?.let { Json.decodeFromString<NymGateway>(string) }
@@ -71,6 +75,7 @@ data class NymGateway(
 
 		private fun SdkBridgeParameter.toBridgeParameter() = when (this) {
 			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
+			is SdkBridgeParameter.TlsPlain -> BridgeParameter.TlsPlain()
 		}
 	}
 
@@ -84,4 +89,7 @@ data class BridgeInformation(val transports: List<BridgeParameter>)
 sealed class BridgeParameter {
 	@Serializable
 	class QuicPlain : BridgeParameter()
+
+	@Serializable
+	class TlsPlain : BridgeParameter()
 }

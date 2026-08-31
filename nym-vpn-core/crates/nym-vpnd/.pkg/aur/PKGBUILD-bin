@@ -15,10 +15,10 @@ makedepends=()
 provides=('nym-vpnd' 'nym-exclude' 'nym-socks5-proxy')
 conflicts=('nym-vpnd')
 options=(!debug)
-source_x86_64=("$url/releases/download/${RELEASE_TAG}/nym-vpn-core-v${PKGVER}_linux_x86_64.tar.gz" 'nym-vpnd.service')
-source_aarch64=("$url/releases/download/${RELEASE_TAG}/nym-vpn-core-v${PKGVER}_linux_aarch64.tar.gz" 'nym-vpnd.service')
-sha256sums_x86_64=($TARBALL_SHA256_X86_64 $SERVICE_SHA256)
-sha256sums_aarch64=($TARBALL_SHA256_AARCH64 $SERVICE_SHA256)
+source_x86_64=("$url/releases/download/${RELEASE_TAG}/nym-vpn-core-v${PKGVER}_linux_x86_64.tar.gz" 'nym-vpnd.service' 'nym-vpn.conf')
+source_aarch64=("$url/releases/download/${RELEASE_TAG}/nym-vpn-core-v${PKGVER}_linux_aarch64.tar.gz" 'nym-vpnd.service' 'nym-vpn.conf')
+sha256sums_x86_64=($TARBALL_SHA256_X86_64 $SERVICE_SHA256 $CONF_SHA256)
+sha256sums_aarch64=($TARBALL_SHA256_AARCH64 $SERVICE_SHA256 $CONF_SHA256)
 
 package() {
   pushd "nym-vpn-core-v${PKGVER}_linux_${CARCH}"
@@ -29,4 +29,5 @@ package() {
   popd
 
   install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"
+  install -Dm644 nym-vpn.conf "$pkgdir/usr/lib/sysusers.d/nym-vpn.conf"
 }

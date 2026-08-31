@@ -31,11 +31,15 @@
 	<string name="error_reason_credential_wasted_on_exit_gateway">Exit gateway is unresponsive.</string>
 
 	<string name="error_reason_bandwidth_exceeded">Bandwidth limit exceeded.</string>
+	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
+	<string name="error_reason_no_credential_available">No credentials available.</string>
 	<string name="error_reason_inactive_account">Your account is inactive.</string>
 	<string name="error_reason_inactive_subscription">Your subscription is inactive.</string>
 	<string name="error_reason_max_devices_reached">Maximum number of devices reached.</string>
 	<string name="error_reason_device_time_out_of_sync">Device time is out of sync.</string>
 	<string name="error_reason_device_logged_out">Device is logged out.</string>
+	<string name="error_reason_needs_device_location">Safest routing is unavailable; device location could not be determined.</string>
+	<string name="error_reason_connection_attempts_exceeded">Could not connect after several attempts.</string>
 
 	<string name="error_reason_internal">Internal error: %1$s</string>
 

@@ -10,7 +10,7 @@ public struct ElevationSectionView<Content: View>: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(NymColor.elevation)
+        .background(Color.Nym.surface)
         .cornerRadius(8)
     }
 

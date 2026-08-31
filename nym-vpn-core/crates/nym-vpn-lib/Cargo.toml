@@ -81,6 +81,7 @@ nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
 nym-sqlx-pool-guard.workspace = true
 nym-file-updater.workspace = true
+nym-favorites.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 quinn.workspace = true
@@ -134,6 +135,8 @@ urlencoding.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
 
+nym-bridges = {workspace = true, features = ["serde"] }
+
 # UNIX-specific dependencies
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = [
@@ -143,6 +146,10 @@ nix = { workspace = true, features = [
     "signal",
     "ioctl",
 ] }
+
+# Linux-specific dependencies
+[target.'cfg(target_os = "linux")'.dependencies]
+nym-dbus.workspace = true
 
 # Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
@@ -208,7 +215,7 @@ vergen-gitcl = { workspace = true, default-features = false, features = [
 
 
 [features]
-default = []
+default = ["cgroup2"]
 metrics-server = ["nym-client-core/metrics-server"]
 cgroup2 = ["nym-split-tunnel/cgroup2", "nym-firewall/cgroup2"]
 

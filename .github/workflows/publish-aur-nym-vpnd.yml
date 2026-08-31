@@ -53,7 +53,6 @@ jobs:
   aur-publish:
     name: Publish package in AUR
     runs-on: arc-linux-latest-dind
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -75,11 +74,12 @@ jobs:
       REPOSITORY: ${{ github.repository }}
       TARBALL: ${{ github.workspace }}/sources.tar.gz
       SERVICE_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
+      CONF_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpn.conf
       LINUX_BIN_X86_64: linux-bin-x86_64
       LINUX_BIN_AARCH64: linux-bin-aarch64
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -120,7 +120,8 @@ jobs:
         run: |
           export SRC_TARBALL_SHA256=$(sha256sum "${{ env.TARBALL }}" | cut -d' ' -f1)
           export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
-          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$SRC_TARBALL_SHA256,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          export CONF_SHA256=$(sha256sum "${{ env.CONF_FILE }}" | cut -d' ' -f1)
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$SRC_TARBALL_SHA256,$SERVICE_SHA256,$CONF_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
           mv "$PKGBUILD.tmp" "$PKGBUILD"
 
       - name: Update PKGBUILD (bin)
@@ -134,7 +135,8 @@ jobs:
           export TARBALL_SHA256_X86_64=$(sha256sum "${{ env.LINUX_BIN_X86_64 }}" | cut -d' ' -f1)
           export TARBALL_SHA256_AARCH64=$(sha256sum "${{ env.LINUX_BIN_AARCH64 }}" | cut -d' ' -f1)
           export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
-          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$TARBALL_SHA256_X86_64,$TARBALL_SHA256_AARCH64,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          export CONF_SHA256=$(sha256sum "${{ env.CONF_FILE }}" | cut -d' ' -f1)
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$TARBALL_SHA256_X86_64,$TARBALL_SHA256_AARCH64,$SERVICE_SHA256,$CONF_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
           mv "$PKGBUILD.tmp" "$PKGBUILD"
 
       - name: Rename PKGBUILD (bin)
@@ -149,7 +151,7 @@ jobs:
 
       - name: Publish
         if: inputs.publish_aur == true
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
+        uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
         with:
           pkgname: ${{ env.PKGNAME }}
           pkgbuild: ${{ env.PKGBUILD }}
@@ -159,3 +161,4 @@ jobs:
           commit_message: ${{ inputs.commit_msg || format('v{0}', steps.app-version.outputs.metadata) }}
           assets: |
             nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
+            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpn.conf

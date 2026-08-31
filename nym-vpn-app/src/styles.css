@@ -56,7 +56,6 @@
   --nv-status-info: #3548a3;
   /* connection — arc / sphere visuals */
   --nv-connection-arc-track: rgba(10, 10, 10, 0.12);
-  --nv-connection-arc-anon: rgba(107, 107, 112, 0.6);
   --nv-connection-sphere: #0a0a0a;
   --nv-connection-sphere-hi: #2a2a2e;
   --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
@@ -81,7 +80,6 @@
   --nv-status-error: #e73e14;
   --nv-status-info: #485eca;
   --nv-connection-arc-track: rgba(255, 255, 255, 0.15);
-  --nv-connection-arc-anon: rgba(139, 139, 144, 0.6);
   --nv-connection-sphere: #0a0a0a;
   --nv-connection-sphere-hi: #2a2a2e;
   --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
@@ -105,7 +103,6 @@
   --color-status-error: var(--nv-status-error);
   --color-status-info: var(--nv-status-info);
   --color-connection-arc-track: var(--nv-connection-arc-track);
-  --color-connection-arc-anon: var(--nv-connection-arc-anon);
   --color-connection-sphere: var(--nv-connection-sphere);
   --color-connection-sphere-hi: var(--nv-connection-sphere-hi);
   --color-connection-error-tint: var(--nv-connection-error-tint);

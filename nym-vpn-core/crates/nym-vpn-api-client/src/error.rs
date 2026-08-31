@@ -51,6 +51,9 @@ pub enum VpnApiClientError {
     #[error("failed to update device")]
     UpdateDevice(#[source] Box<HttpClientError>),
 
+    #[error("failed to delete device")]
+    DeleteDevice(#[source] Box<HttpClientError>),
+
     #[error("failed to request zk-nym")]
     RequestZkNym(#[source] Box<HttpClientError>),
 
@@ -104,6 +107,15 @@ pub enum VpnApiClientError {
 
     #[error("failed to get directory zk-nym ticketbook partial verification keys")]
     GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] Box<HttpClientError>),
+
+    #[error("failed to get directory zk-nym ticketbook master verification key")]
+    GetDirectoryZkNymsTicketbookMasterVerificationKey(#[source] Box<HttpClientError>),
+
+    #[error("failed to get directory zk-nym ticketbook aggregated coin indices signatures")]
+    GetDirectoryZkNymsTicketbookAggregatedCoinIndicesSignatures(#[source] Box<HttpClientError>),
+
+    #[error("failed to get directory zk-nym ticketbook aggregated expiration date signatures")]
+    GetDirectoryZkNymsTicketbookAggregatedExpirationDateSignatures(#[source] Box<HttpClientError>),
 
     #[error("failed to get health")]
     GetHealth(#[source] Box<HttpClientError>),

@@ -12,10 +12,18 @@ use crate::country::Country;
 #[ts(export, export_to = "tauri.ts")]
 #[ts(rename = "SelectedNode")]
 pub enum Node {
-    Country { code: String },
-    Gateway { id: String },
+    Country {
+        code: String,
+    },
+    Gateway {
+        id: String,
+    },
     Region(String),
     Random,
+    Auto {
+        exclude_user_country: bool,
+        exclude_entry_point_country: bool,
+    },
 }
 
 impl TryFrom<Node> for lib::EntryPoint {
@@ -31,6 +39,12 @@ impl TryFrom<Node> for lib::EntryPoint {
                 identity: lib::NodeIdentity::from_str(&id)?,
             },
             Node::Random => lib::EntryPoint::Random,
+            Node::Auto {
+                exclude_user_country,
+                ..
+            } => lib::EntryPoint::Auto {
+                exclude_user_country,
+            },
         })
     }
 }
@@ -48,6 +62,13 @@ impl TryFrom<Node> for lib::ExitPoint {
                 identity: lib::NodeIdentity::from_str(&id)?,
             },
             Node::Random => lib::ExitPoint::Random,
+            Node::Auto {
+                exclude_entry_point_country,
+                exclude_user_country,
+            } => lib::ExitPoint::Auto {
+                exclude_entry_point_country,
+                exclude_user_country,
+            },
         })
     }
 }
@@ -63,6 +84,12 @@ impl From<lib::EntryPoint> for Node {
                 id: identity.to_base58_string(),
             },
             lib::EntryPoint::Random => Node::Random,
+            lib::EntryPoint::Auto {
+                exclude_user_country,
+            } => Node::Auto {
+                exclude_user_country,
+                exclude_entry_point_country: exclude_user_country,
+            },
         }
     }
 }
@@ -86,6 +113,13 @@ impl TryFrom<lib::ExitPoint> for Node {
                     "Exit node of type [Address] is not supported by tauri client"
                 ));
             }
+            lib::ExitPoint::Auto {
+                exclude_entry_point_country,
+                exclude_user_country,
+            } => Node::Auto {
+                exclude_user_country,
+                exclude_entry_point_country,
+            },
         })
     }
 }
@@ -113,6 +147,13 @@ impl fmt::Display for Node {
             Node::Region(region) => write!(f, "region {region}"),
             Node::Gateway { id } => write!(f, "gateway [{id}]"),
             Node::Random => write!(f, "random"),
+            Node::Auto {
+                exclude_user_country,
+                exclude_entry_point_country,
+            } => write!(
+                f,
+                "auto exclude_user_country {exclude_user_country}, exclude_entry_point_country {exclude_entry_point_country}"
+            ),
         }
     }
 }

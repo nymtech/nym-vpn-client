@@ -58,14 +58,22 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// Enable writing app logs to a file
-    #[arg(short, long)]
-    pub log_file: bool,
-
     /// Set the log level
     #[arg(short = 'L', long)]
     #[ts(inline)]
     pub log_level: Option<LogLevel>,
+
+    /// Deprecated no-op, kept for backward compatibility.
+    ///
+    /// Windows installers up to 2026.10 baked `-l -Ldebug` into the desktop
+    /// and start menu shortcuts. Updating replaces the binary but not those
+    /// shortcuts, so without this flag `Cli::parse` rejects `-l` and the app
+    /// silently exits.
+    /// The installer clears the arguments of the shortcuts it owns, but it
+    /// cannot reach taskbar or start menu pins.
+    #[arg(short = 'l', long, hide = true)]
+    #[ts(skip)]
+    pub log_file: bool,
 
     /// Open a console to see the logs
     #[arg(short, long)]

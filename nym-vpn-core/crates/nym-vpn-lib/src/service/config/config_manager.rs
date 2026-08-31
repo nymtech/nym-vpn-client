@@ -20,7 +20,7 @@ use crate::{
     service::{
         config::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
-            VpnServiceConfigVersion, legacy,
+            VpnServiceConfigVersion, geo_exclusion_settings, legacy, profile::ProfileSpecifics,
         },
         error::{Error, GeoExclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
@@ -219,23 +219,6 @@ impl VpnServiceConfigManager {
         Ok(())
     }
 
-    pub async fn _set_gateway_selection_algorithm(
-        &mut self,
-        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) {
-        if self
-            .config
-            .gateway_selection_algorithm_config
-            .gateway_selection_algorithm()
-            != gateway_selection_algorithm
-        {
-            self.config
-                .gateway_selection_algorithm_config
-                .set_gateway_selection_algorithm(gateway_selection_algorithm);
-            self.save_config_and_send_event().await;
-        }
-    }
-
     pub async fn set_enable_geo_location(
         &mut self,
         enable_geo_location: bool,
@@ -338,38 +321,21 @@ impl VpnServiceConfigManager {
         &mut self,
         listen_port: u16,
     ) -> Result<(), GeoExclusionConfigError> {
-        // Port 1080 is reserved for mixnet socks5 proxy
-        const RESERVED_PORT: u16 = 1080;
+        geo_exclusion_settings::v9::validate_listen_port(listen_port)?;
 
-        if listen_port == RESERVED_PORT {
-            Err(GeoExclusionConfigError::ReservedPort(listen_port))
-        } else if listen_port == 0 {
-            Err(GeoExclusionConfigError::InvalidPort)
-        } else if self.config.geo_exclusion.listen_port != listen_port {
+        if self.config.geo_exclusion.listen_port != listen_port {
             self.config.geo_exclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
-            Ok(())
-        } else {
-            Ok(())
         }
+
+        Ok(())
     }
 
     pub async fn set_geo_exclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
     ) -> Result<(), GeoExclusionConfigError> {
-        for country in &excluded_countries {
-            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
-                return Err(GeoExclusionConfigError::InvalidCountryCode(country.clone()));
-            } else if country != "CN" {
-                return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
-            }
-        }
-
-        // Temporary:  At the moment Geo Exclusion is only supported for China
-        if !excluded_countries.iter().any(|c| c == "CN") {
-            return Err(GeoExclusionConfigError::CnRequired);
-        }
+        geo_exclusion_settings::v9::validate_excluded_countries(&excluded_countries)?;
 
         if self.config.geo_exclusion.excluded_countries != excluded_countries {
             self.config.geo_exclusion.excluded_countries = excluded_countries;
@@ -377,6 +343,42 @@ impl VpnServiceConfigManager {
         }
 
         Ok(())
+    }
+
+    pub async fn set_profile(&mut self, profile: nym_vpn_lib_types::Profile) {
+        let profile_specifics = ProfileSpecifics::from(profile);
+        let mut changed = false;
+        if self.config.entry_point != profile_specifics.entry_point {
+            self.config.entry_point = profile_specifics.entry_point;
+            changed = true;
+        }
+        if self.config.exit_point != profile_specifics.exit_point {
+            self.config.exit_point = profile_specifics.exit_point;
+            changed = true;
+        }
+        let enable_two_hop = matches!(
+            profile_specifics.tunnel_type,
+            nym_vpn_lib_types::TunnelType::Wireguard
+        );
+        if self.config.enable_two_hop != enable_two_hop {
+            self.config.enable_two_hop = enable_two_hop;
+            changed = true;
+        }
+        if self.config.fronting_mode != profile_specifics.fronting_mode {
+            // Change the shared fronting policy
+            let front_policy = match profile_specifics.fronting_mode {
+                nym_vpn_lib_types::FrontingMode::Off => FrontPolicy::Off,
+                nym_vpn_lib_types::FrontingMode::OnRetry => FrontPolicy::OnRetry,
+                nym_vpn_lib_types::FrontingMode::Always => FrontPolicy::Always,
+            };
+            Client::set_shared_front_policy(front_policy);
+
+            self.config.fronting_mode = profile_specifics.fronting_mode;
+            changed = true;
+        }
+        if changed {
+            self.save_config_and_send_event().await;
+        }
     }
 
     async fn save_config_and_send_event(&self) {

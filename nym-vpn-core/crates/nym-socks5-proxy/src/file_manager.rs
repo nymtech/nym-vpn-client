@@ -7,6 +7,7 @@ use anyhow::Context;
 use tokio::fs::{self, try_exists};
 
 pub(crate) struct Source {
+    pub country: &'static str,
     pub file_name: &'static str,
     pub builtin: &'static [u8],
     pub builtin_etag: &'static str,
@@ -15,26 +16,57 @@ pub(crate) struct Source {
 
 pub(crate) static SOURCES: &[Source] = &[
     Source {
+        country: "CN",
         file_name: "CN-ip.json.gz",
         builtin: include_bytes!("../builtin/CN-ip.json.gz"),
         builtin_etag: include_str!("../builtin/CN-ip.json.etag"),
         url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/CN-ip.json.gz",
     },
     Source {
+        country: "CN",
         file_name: "CN-domain.txt.gz",
         builtin: include_bytes!("../builtin/CN-domain.txt.gz"),
         builtin_etag: include_str!("../builtin/CN-domain.txt.etag"),
         url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/CN-domain.txt.gz",
     },
+    Source {
+        country: "RU",
+        file_name: "RU-ip.json.gz",
+        builtin: include_bytes!("../builtin/RU-ip.json.gz"),
+        builtin_etag: include_str!("../builtin/RU-ip.json.etag"),
+        url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/RU-ip.json.gz",
+    },
+    Source {
+        country: "RU",
+        file_name: "RU-domain.txt.gz",
+        builtin: include_bytes!("../builtin/RU-domain.txt.gz"),
+        builtin_etag: include_str!("../builtin/RU-domain.txt.etag"),
+        url: "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com/RU-domain.txt.gz",
+    },
 ];
 
-/// Seed builtin files and their ETag sidecars into `data_dir` if not already present.
-pub(crate) async fn init_files(data_dir: &Path) -> anyhow::Result<()> {
+/// Returns the sources for countries the user has actually selected for geo-exclusion.
+pub(crate) fn selected_sources<'a>(
+    excluded_countries: &'a [String],
+) -> impl Iterator<Item = &'static Source> + 'a {
+    SOURCES.iter().filter(move |source| {
+        excluded_countries
+            .iter()
+            .any(|code| code.eq_ignore_ascii_case(source.country))
+    })
+}
+
+/// Seed builtin files and their ETag sidecars into `data_dir` if not already present, for the
+/// given selected countries only.
+pub(crate) async fn init_files(
+    data_dir: &Path,
+    excluded_countries: &[String],
+) -> anyhow::Result<()> {
     fs::create_dir_all(data_dir)
         .await
         .with_context(|| format!("Failed to create directory '{}'", data_dir.display()))?;
 
-    for source in SOURCES.iter() {
+    for source in selected_sources(excluded_countries) {
         let dest = data_dir.join(source.file_name);
         if !try_exists(&dest).await.unwrap_or(false) {
             fs::write(&dest, source.builtin)

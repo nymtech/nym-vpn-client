@@ -14,10 +14,6 @@ extension AccountAndDevicesView {
                 accountStatusBandwidth(accountSummary: accountSummary)
                 sectionDivider()
                 accountStatusResetDate(accountSummary: accountSummary)
-                if accountSummary.shouldShowRenewRow {
-                    sectionDivider()
-                    renewNowRow(color: accountSummary.statusColor, isVisible: true)
-                }
             } else {
                 accountStatusInactive()
                 sectionDivider()
@@ -61,6 +57,7 @@ extension AccountAndDevicesView {
                     .foregroundStyle(Color.Nym.textPrimary)
                     .nymTextStyle(.bodyLarge)
                 Spacer()
+                refreshAccountButton()
             }
             .padding(.horizontal, 16)
             Spacer()
@@ -68,15 +65,52 @@ extension AccountAndDevicesView {
         }
     }
 
+    @ViewBuilder
+    func refreshAccountButton() -> some View {
+        Button {
+            refreshAccount()
+        } label: {
+            if isRefreshingAccount {
+                ProgressView()
+                    .controlSize(.small)
+                    .tint(Color.Nym.textSecondary)
+                    .frame(width: 20, height: 20)
+            } else {
+                GenericImage(systemImageName: "arrow.clockwise")
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(Color.Nym.textSecondary)
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(isRefreshingAccount)
+        .accessibilityLabel("settings.account.refresh".localizedString)
+    }
+
+    @ViewBuilder
     func accountStatusBandwidth(accountSummary: AccountSummary) -> some View {
         VStack(spacing: 8) {
             HStack {
-                Text("settings.account.bandwidthLimit".localizedString)
+                Text("settings.account.dailyAllowanceUsed".localizedString)
                     .foregroundStyle(Color.Nym.primary)
                     .nymTextStyle(.bodySmall)
                 Spacer()
+                Text("settings.account.dailyLimit".localizedString)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
             }
 
+            if accountSummary.dataUnavailable {
+                accountStatusBandwidthUnavailable()
+            } else {
+                accountStatusBandwidthDetail(accountSummary: accountSummary)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    func accountStatusBandwidthDetail(accountSummary: AccountSummary) -> some View {
+        VStack(spacing: 8) {
             bandwidthProgressBar(
                 used: accountSummary.trafficUsedGb,
                 limit: accountSummary.trafficLimitGb,
@@ -85,21 +119,36 @@ extension AccountAndDevicesView {
 
             HStack {
                 Text(bandwidthUsedText(used: accountSummary.trafficUsedGb))
-                    .foregroundStyle(Color.Nym.primary)
-                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyDefault)
                 Spacer()
-                Text(bandwidthLimitText(limit: accountSummary.trafficLimitGb))
+            }
+
+            HStack {
+                Text("settings.account.dailyAllowanceHelper".localizedString)
                     .foregroundStyle(Color.Nym.textSecondary)
                     .nymTextStyle(.bodySmall)
+                Spacer()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+    }
+
+    func accountStatusBandwidthUnavailable() -> some View {
+        HStack(spacing: 8) {
+            GenericImage(systemImageName: "exclamationmark.triangle")
+                .frame(width: 16, height: 16)
+                .foregroundStyle(Color.Nym.textSecondary)
+            Text("settings.account.usageDataUnavailable".localizedString)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
+            Spacer()
+        }
+        .padding(.vertical, 4)
     }
 
     func accountStatusResetDate(accountSummary: AccountSummary) -> some View {
         HStack {
-            Text("settings.account.resetsOn".localizedString)
+            Text("settings.account.resetsDailyUtc".localizedString)
                 .foregroundStyle(Color.Nym.textSecondary)
                 .nymTextStyle(.bodyDefault)
             Spacer()
@@ -164,10 +213,6 @@ extension AccountAndDevicesView {
         formatBandwidth(max(0, used ?? 0))
     }
 
-    func bandwidthLimitText(limit: Int?) -> String {
-        formatBandwidth(limit ?? 0)
-    }
-
     func formatBandwidth(_ gb: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -176,10 +221,14 @@ extension AccountAndDevicesView {
         return "\(formatted) GB"
     }
 
+    /// Daily reset is a midnight-UTC boundary, so render it in UTC rather than the
+    /// device locale. When the core could not parse `resetsOnUtc` the date is nil and
+    /// we show a neutral placeholder that implies no billing-period reset.
     func resetDateText(date: Date?) -> String {
-        guard let date else { return "-" }
+        guard let date else { return "~~" }
         let formatter = DateFormatter()
         formatter.locale = .autoupdatingCurrent
+        formatter.timeZone = TimeZone(identifier: "UTC")
         formatter.dateStyle = .long
         formatter.timeStyle = .none
         return formatter.string(from: date)

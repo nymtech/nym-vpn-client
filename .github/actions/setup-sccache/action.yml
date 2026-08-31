@@ -1,0 +1,29 @@
+name: 'Setup sccache'
+description: 'Configures sccache environment variables cross-platform'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run sccache action
+      uses: mozilla-actions/sccache-action@v0.0.10
+
+    - name: Configure sccache (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      env:
+        SCCACHE_PATH: ${{ env.SCCACHE_PATH }}
+      run: |
+        echo "RUSTC_WRAPPER=$SCCACHE_PATH" >> "$GITHUB_ENV"
+        echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_CACHE_SIZE=60G" >> "$GITHUB_ENV"
+        echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
+        echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+
+    - name: Configure sccache (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Add-Content -Path $env:GITHUB_ENV -Value "RUSTC_WRAPPER=$env:SCCACHE_PATH" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_DIR=$env:USERPROFILE\.cache\sccache" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_CACHE_SIZE=60G" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_IDLE_TIMEOUT=0" -Encoding utf8
+        Add-Content -Path $env:GITHUB_ENV -Value "CARGO_INCREMENTAL=0" -Encoding utf8

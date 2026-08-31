@@ -169,11 +169,22 @@
 //! await vpnService.shutdownAndWait()
 //! ```
 
-#![cfg(any(target_os = "android", target_os = "ios"))]
-
+#![cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))]
 uniffi::setup_scaffolding!();
 
+use std::{net::IpAddr, path::PathBuf};
+
+uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
+uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
+
+mod environment;
 pub(crate) mod error;
+mod favorites;
+mod gateway_cache;
+mod offline_monitor;
+
+#[cfg(target_os = "macos")]
+mod rpc;
 
 #[cfg(target_os = "ios")]
 mod account;
@@ -181,189 +192,18 @@ mod account;
 mod android_connectivity_monitor;
 #[cfg(target_os = "ios")]
 mod deeplink;
-mod environment;
-mod gateway_cache;
+#[cfg(any(target_os = "android", target_os = "ios"))]
 mod logging;
-mod offline_monitor;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+mod mobile;
+#[cfg(any(target_os = "android", target_os = "ios"))]
 mod tunnel_provider;
 #[cfg(target_os = "ios")]
 mod vpn_account_storage;
+#[cfg(any(target_os = "android", target_os = "ios"))]
 mod vpn_service;
+#[cfg(any(target_os = "android", target_os = "ios"))]
 mod vpn_service_command_sender;
 
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    path::PathBuf,
-    sync::{Arc, LazyLock},
-};
-
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use tokio::runtime::Runtime;
-
-use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, FrontingMode, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage,
-    SplitTunnelSettings, UserAgent, VpnServiceConfig,
-};
-
-#[cfg(target_os = "android")]
-use android_connectivity_monitor::AndroidConnectivityMonitor;
-use environment::NymEnvironment;
-use error::VpnError;
-#[cfg(target_os = "android")]
-use tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use tunnel_provider::ios::OSTunProvider;
-
-uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
-uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Addr);
-uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Addr);
-uniffi::use_remote_type!(nym_vpn_lib_types::IpNetwork);
-uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Network);
-uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Network);
-uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
-
-static TOKIO_RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
-    tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(10)
-        .enable_all()
-        .build()
-        .expect("failed to initialize tokio runtime")
-});
-
-/// Get the message to be signed using the Privy signing API.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
-    PrivyDerivationMessage {
-        message: nym_vpn_lib::privy::message_to_sign(),
-    }
-}
-
-#[derive(uniffi::Record)]
-pub struct VPNConfig {
-    /// Path to configuration directory on disk
-    pub config_dir: PathBuf,
-
-    /// Path to data directory on disk
-    pub data_dir: PathBuf,
-
-    pub entry_gateway: EntryPoint,
-    pub exit_router: ExitPoint,
-    pub enable_two_hop: bool,
-    pub enable_bridges: bool,
-    pub residential_exit: bool,
-    pub enable_ad_blocking: bool,
-
-    pub fronting_mode: FrontingMode,
-
-    /// Custom DNS used when set.
-    /// Leave empty to use default DNS servers.
-    pub custom_dns: Vec<IpAddr>,
-
-    pub mixnet_traffic: Option<MixnetTrafficConfig>,
-    pub network_stats: Option<NetworkStatisticsConfig>,
-    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
-    pub gateway_independence: GatewayIndependence,
-    pub user_agent: UserAgent,
-    #[cfg(target_os = "ios")]
-    tun_provider: Arc<dyn OSTunProvider>,
-    #[cfg(target_os = "android")]
-    tun_provider: Arc<dyn AndroidTunProvider>,
-    #[cfg(target_os = "android")]
-    connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
-}
-
-impl VPNConfig {
-    fn as_vpn_service_config(&self) -> Box<VpnServiceConfig> {
-        Box::new(VpnServiceConfig {
-            entry_point: self.entry_gateway.clone(),
-            exit_point: self.exit_router.clone(),
-
-            // Does not have effect on mobile platforms
-            allow_lan: true,
-
-            disable_ipv6: false,
-            enable_two_hop: self.enable_two_hop,
-            enable_bridges: self.enable_bridges,
-
-            enable_ad_blocking: self.enable_ad_blocking,
-            fronting_mode: self.fronting_mode,
-
-            // Always true on mobile platforms
-            netstack: true,
-
-            residential_exit: self.residential_exit,
-            enable_custom_dns: !self.custom_dns.is_empty(),
-            custom_dns: self.custom_dns.clone(),
-            min_gateway_vpn_performance: None,
-            mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
-            network_stats: self.network_stats.unwrap_or_default(),
-            gateway_selection_algorithm_config: self.gateway_selection_algorithm_config.clone(),
-            gateway_independence: self.gateway_independence,
-
-            // Not available via vpn service on mobile platforms
-            split_tunnel: SplitTunnelSettings::default(),
-            geo_exclusion: GeoExclusionSettings::default(),
-        })
-    }
-}
-
-/// Initialize JNI global Android context.
-///
-/// This is necessary for NDK libraries which use the global context.
-#[cfg(target_os = "android")]
-#[unsafe(no_mangle)]
-pub extern "C" fn Java_net_nymtech_nymvpn_NymVpnLib_initContext<'caller>(
-    mut unowned_env: jni::EnvUnowned<'caller>,
-    _class: jni::objects::JClass,
-    ctx: jni::objects::JObject<'caller>,
-) {
-    unowned_env
-        .with_env(|env| -> jni::errors::Result<_> {
-            let vm = env.get_java_vm()?;
-            // `ctx` is a local JNI reference, only valid for the duration of this call.
-            // Here we create a globally valid one and leak it.
-            let global_ctx = std::mem::ManuallyDrop::new(env.new_global_ref(ctx)?);
-            unsafe {
-                ndk_context::initialize_android_context(
-                    vm.get_raw() as *mut std::ffi::c_void,
-                    global_ctx.as_raw() as *mut std::ffi::c_void,
-                );
-            }
-            Ok(())
-        })
-        .resolve::<jni::errors::ThrowRuntimeExAndDefault>();
-}
-
-#[cfg(target_os = "android")]
-mod android_tls {
-    use nym_http_api_client::{ReqwestClientBuilder, registry::ConfigRecord};
-    use rustls::{ClientConfig, RootCertStore};
-    use std::sync::Arc;
-
-    fn configure_webpki_tls(builder: ReqwestClientBuilder) -> ReqwestClientBuilder {
-        let root_store = RootCertStore {
-            roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
-        };
-
-        let crypto_provider = rustls::crypto::CryptoProvider::get_default()
-            .unwrap_or(&Arc::new(rustls::crypto::ring::default_provider()))
-            .clone();
-
-        let tls_config = ClientConfig::builder_with_provider(crypto_provider)
-            .with_safe_default_protocol_versions()
-            .expect("ring supports TLS 1.2 and 1.3")
-            .with_root_certificates(root_store)
-            .with_no_client_auth();
-
-        builder.tls_backend_preconfigured(tls_config)
-    }
-
-    inventory::submit! {
-        ConfigRecord {
-            priority: -100,
-            apply: configure_webpki_tls,
-        }
-    }
-}
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub use mobile::*;

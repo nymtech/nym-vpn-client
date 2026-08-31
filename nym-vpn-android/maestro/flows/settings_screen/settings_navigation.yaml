@@ -1,0 +1,14 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn:
+    text: "Settings"
+
+- assertVisible:
+    text: "Settings"
+
+- back
+
+- assertVisible:
+    text: "Connect"

@@ -9,7 +9,9 @@ import WidgetKit
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
-        try? await grpcManager.setGatewayIndependence(true)
+        // Reminders off means the user opted out of the warning: relax up front
+        // so the daemon never surfaces `needsRelaxedIndependenceCriteria` (no modal).
+        try? await grpcManager.setGatewayIndependence(appSettings.serverFamilyRemindersEnabled)
         try await startTunnel()
     }
 
@@ -19,58 +21,16 @@ extension ConnectionManager {
     }
 }
 
-// MARK: - First-launch bootstrap -
-extension ConnectionManager {
-    /// First-launch reconciliation with the daemon.
-    ///
-    /// Runs only when:
-    ///   1. `appSettings.didCompleteFirstLaunch == false`, and
-    ///   2. the stored ConnectionConfig is byte-identical to the freshly
-    ///      generated initial config (i.e. the user hasn't touched anything).
-    ///
-    /// Replaces the local config with the daemon's, then forces `entry` and
-    /// `exit` back to the app's initial values and pushes them to the daemon.
-    /// Sets the flag so subsequent launches no-op.
-    @MainActor public func bootstrapFromDaemonIfNeeded() async {
-        guard !appSettings.didCompleteFirstLaunch else { return }
-
-        guard connectionStorage.isUsingInitialConfig
-        else {
-            appSettings.didCompleteFirstLaunch = true
-            return
-        }
-
-        await waitUntilDaemonServing()
-
-        guard let daemonConfig = await grpcManager.config() else { return }
-
-        let preservedCustomAppPaths = connectionConfig.splitTunnelConfig.customAppPaths
-        connectionConfig = daemonConfig
-        connectionConfig.splitTunnelConfig.customAppPaths = preservedCustomAppPaths
-        connectionType = daemonConfig.enableTwoHop ? .wireguard : .mixnet5hop
-        entryGateway = daemonConfig.entry
-        exitRouter = daemonConfig.exit
-
-        appSettings.isLanBypassEnabled = daemonConfig.allowLan
-        appSettings.isIPv6TrafficEnabled = !daemonConfig.disableIpv6
-        appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
-        appSettings.isQuicEnabled = daemonConfig.enableBridges
-        appSettings.customDns = daemonConfig.dns ?? []
-        appSettings.isCustomDnsEnabled = !(daemonConfig.dns?.isEmpty ?? true)
-
-        appSettings.didCompleteFirstLaunch = true
-    }
-
-    @MainActor private func waitUntilDaemonServing() async {
-        guard !grpcManager.isServing else { return }
-        for await serving in grpcManager.$isServing.values where serving {
-            return
-        }
-    }
-}
-
 extension ConnectionManager {
     @MainActor public func connectDisconnect() async throws {
+        if MockMode.isEnabled {
+            if currentTunnelStatus == .connected || currentTunnelStatus == .connecting {
+                MockConnectionState.shared.disconnect()
+            } else {
+                MockConnectionState.shared.connect()
+            }
+            return
+        }
         switch grpcManager.tunnelStatus {
         case .connected, .connecting, .offlineReconnect, .error:
             try await grpcManager.disconnect()
@@ -81,9 +41,19 @@ extension ConnectionManager {
 }
 
 // MARK: - Setup -
+
 extension ConnectionManager {
     func setupGRPCManagerObservers() {
         updateWidgetState(for: currentTunnelStatus)
+
+        grpcManager.$isServing.sink { [weak self] isConnectedToDaemon in
+            guard isConnectedToDaemon else { return }
+
+            Task { @MainActor [weak self] in
+                await self?.fetchDaemonConfig()
+            }
+        }
+        .store(in: &cancellables)
 
         grpcManager.$tunnelStatus.sink { [weak self] status in
             Task { @MainActor [weak self] in
@@ -119,6 +89,24 @@ extension ConnectionManager {
             .receive(on: DispatchQueue.main)
             .assign(to: \.connectionInfoData, on: self)
             .store(in: &cancellables)
+    }
+
+    @MainActor private func fetchDaemonConfig() async {
+        guard let daemonConfig = await grpcManager.config() else { return }
+
+        let preservedCustomAppPaths = connectionConfig.splitTunnelConfig.customAppPaths
+        connectionConfig = daemonConfig
+        connectionConfig.splitTunnelConfig.customAppPaths = preservedCustomAppPaths
+        connectionType = daemonConfig.enableTwoHop ? .wireguard : .mixnet5hop
+        entryGateway = daemonConfig.entry
+        exitRouter = daemonConfig.exit
+
+        appSettings.isLanBypassEnabled = daemonConfig.allowLan
+        appSettings.isIPv6TrafficEnabled = !daemonConfig.disableIpv6
+        appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
+        appSettings.isQuicEnabled = daemonConfig.enableBridges
+        appSettings.customDns = daemonConfig.dns ?? []
+        appSettings.isCustomDnsEnabled = !(daemonConfig.dns?.isEmpty ?? true)
     }
 }
 

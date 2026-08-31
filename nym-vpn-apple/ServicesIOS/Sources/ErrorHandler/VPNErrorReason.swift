@@ -36,6 +36,7 @@ public enum VPNErrorReason: LocalizedError {
     case deeplinkError(details: String)
     case fetchEnvironment(details: String)
     case linkPrivy(details: String)
+    case accountStoreBusy
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -77,123 +78,6 @@ public enum VPNErrorReason: LocalizedError {
             self = .invalidMnemonic(details: details)
         case let .UnregisterDevice(details: details):
             self = .unregisterDevice(details: details)
-        case let .RequestZkNym(details: details):
-            let messageString: String
-            switch details {
-            case let .GetZkNymsAvailableForDownloadEndpointFailure(response: response):
-                switch response {
-                case .Timeout:
-                    self = .vpnApiTimeout
-                    return
-                case let .StatusCode(code: code, msg: message):
-                    self = .vpnApi(details: String("\(code): \(message)"))
-                    return
-                case let .Response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                    return
-                }
-            case let .CreateEcashKeyPair(response):
-                messageString = response
-            case let .ConstructWithdrawalRequest(response):
-                messageString = response
-            case let .RequestZkNymEndpointFailure(ticketType: _, response: response):
-                switch response {
-                case .Timeout:
-                    self = .vpnApiTimeout
-                    return
-                case let .StatusCode(code: code, msg: message):
-                    self = .vpnApi(details: String("\(code): \(message)"))
-                    return
-                case let .Response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                    return
-                }
-            case let .InvalidTicketTypeInResponse(response):
-                messageString = response
-            case .TicketTypeMismatch:
-                messageString = "Ticket type mismatch"
-            case let .PollZkNymEndpointFailure(response: response):
-                switch response {
-                case .Timeout:
-                    self = .vpnApiTimeout
-                    return
-                case let .StatusCode(code: code, msg: message):
-                    self = .vpnApi(details: String("\(code): \(message)"))
-                    return
-                case let .Response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                    return
-                }
-            case .PollingTimeout:
-                self = .vpnApiTimeout
-                return
-            case .MissingBlindedShares:
-                messageString = "Missing blinded shares"
-            case let .ResponseHasInvalidMasterVerificationKey(response):
-                messageString = response
-            case .EpochIdMismatch:
-                messageString = "Epoch ID mismatch"
-            case .ExpirationDateMismatch:
-                messageString = "Expiration date mismatch"
-            case let .GetPartialVerificationKeysEndpointFailure(epochId: _, response: response):
-                switch response {
-                case .Timeout:
-                    self = .vpnApiTimeout
-                    return
-                case let .StatusCode(code: code, msg: message):
-                    self = .vpnApi(details: String("\(code): \(message)"))
-                    return
-                case let .Response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                    return
-                }
-            case .NoMasterVerificationKeyInStorage:
-                messageString = "No master verification key in storage"
-            case .NoCoinIndexSignaturesInStorage:
-                messageString = "No coin index signatures in storage"
-            case .NoExpirationDateSignaturesInStorage:
-                messageString = "No expiration date signatures in storage"
-            case let .InvalidVerificationKey(details):
-                messageString = details
-            case let .DeserializeBlindedSignature(details):
-                messageString = details
-            case .DecodedKeysMissingIndex:
-                messageString = "Decoded keys missing index"
-            case let .ImportZkNym(ticketType: ticketType, error: error):
-                messageString = "\(ticketType): \(error)"
-            case let .AggregateWallets(details):
-                messageString = details
-            case let .ConfirmZkNymDownloadEndpointFailure(id: _, response: response):
-                switch response {
-                case .Timeout:
-                    self = .vpnApiTimeout
-                    return
-                case let .StatusCode(code: code, msg: message):
-                    self = .vpnApi(details: String("\(code): \(message)"))
-                    return
-                case let .Response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                    return
-                }
-            case let .MissingPendingRequest(details):
-                messageString = details
-            case let .CredentialStorage(details):
-                messageString = details
-            case let .UnexpectedErrorResponse(details):
-                messageString = details
-            case let .Internal(details):
-                self = .internalError(details: details)
-                return
-            case .ZkNymRevoked:
-                messageString = "ZkNym revoked"
-            case .IssuanceError:
-                messageString = "Issuance error"
-            case .MalformedUpgradeModeJwt:
-                messageString = "Malformed upgrade mode JWT"
-            case let .InconsistentResponse(reason: reason):
-                messageString = reason
-            }
-            self = .requestZknym(details: messageString)
         case let .UnexpectedVpnApiResponse(details: details):
             self = .unexpectedVpnApiResponse(details: details)
         case let .FailedAccountRegistration(details: details):
@@ -309,6 +193,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .fetchEnvironment(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .linkPrivy:
             self = .linkPrivy(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .accountStoreBusy:
+            self = .accountStoreBusy
         }
     }
 
@@ -403,6 +289,8 @@ extension VPNErrorReason {
             details
         case let .linkPrivy(details: details):
             details
+        case .accountStoreBusy:
+            "errorReason.accountStoreBusy".localizedString
         }
     }
 }
@@ -448,6 +336,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case deeplinkError
     case fetchEnvironment
     case linkPrivy
+    // Appended last to keep existing NSError wire codes stable across the app/extension boundary.
+    case accountStoreBusy
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -517,6 +407,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .fetchEnvironment
         case .linkPrivy:
             self = .linkPrivy
+        case .accountStoreBusy:
+            self = .accountStoreBusy
         }
     }
 }

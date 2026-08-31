@@ -290,7 +290,7 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
       data-testid={`${testId}-container`}
     >
       <img
-        src={`./flags/${code}.svg`}
+        src={`/flags/${code}.svg`}
         className={clsx([
           'pointer-events-none h-6 fill-current',
           className && className,

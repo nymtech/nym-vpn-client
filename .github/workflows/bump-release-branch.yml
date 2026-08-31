@@ -30,7 +30,7 @@ concurrency:
 jobs:
   next-release-version:
     name: Compute ${{ case(inputs.is_release_bump, 'release', 'next beta') }} version
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
     outputs:
@@ -42,10 +42,27 @@ jobs:
     env:
       GIT_BRANCH: ${{ inputs.branch || github.ref_name }}
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ env.GIT_BRANCH }}
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
       - name: Validate input
         run: |
-          if [ ! echo "${{ env.GIT_BRANCH }}" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then
-            echo "::error:: Branch must start with 'release/' (got: ${{ env.GIT_BRANCH }})"
+          if [ ! echo "$GIT_BRANCH" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then
+            echo "::error:: Branch must start with 'release/' (got: $GIT_BRANCH)"
             exit 1
           fi
 
@@ -53,12 +70,6 @@ jobs:
         run: |
           git config --global user.name "${{ env.GIT_USER }}"
           git config --global user.email "${{ env.GIT_EMAIL }}"
-
-      - name: Checkout repo
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-          ref: ${{ env.GIT_BRANCH }}
 
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@v3

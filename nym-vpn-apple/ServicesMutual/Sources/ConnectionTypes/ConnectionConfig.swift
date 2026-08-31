@@ -1,7 +1,6 @@
 import Foundation
-#if os(iOS)
-#elseif os(macOS)
-import NymVPNRpc
+#if os(macOS)
+import NymVPNLib
 #endif
 
 public struct ConnectionConfig: Codable {
@@ -46,10 +45,7 @@ public struct ConnectionConfig: Codable {
         mixnetTuningConfig: MixnetTuningConfig,
         splitTunnelConfig: SplitTunnelConfig,
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
-        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
-            enableGeoLocation: true,
-            algorithm: .explicit
-        )
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
     ) {
         self.entry = entry
         self.exit = exit
@@ -85,8 +81,7 @@ public struct ConnectionConfig: Codable {
         self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
         self.geoExclusionConfig = GeoExclusionConfig(from: config.geoExclusion)
         self.gatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
-            enableGeoLocation: true,
-            algorithm: .explicit
+            enableGeoLocation: true
         )
     }
 #endif
@@ -104,6 +99,8 @@ private extension ConnectionConfig {
             return .region(countryCode: "", region: region)
         case .random:
             return .random
+        case .auto:
+            return .auto
         }
     }
 
@@ -120,6 +117,8 @@ private extension ConnectionConfig {
             return ExitRouter.region(countryCode: "", region: region)
         case .random:
             return ExitRouter.random
+        case .auto:
+            return ExitRouter.auto
         }
     }
 
@@ -131,6 +130,8 @@ private extension ConnectionConfig {
             EntryPoint.gateway(identity: node)
         case .random:
             EntryPoint.random
+        case .auto:
+            EntryPoint.auto(excludeUserCountry: true)
         case let .region(countryCode: _, region: region):
             EntryPoint.region(region: region)
         }
@@ -146,6 +147,8 @@ private extension ConnectionConfig {
             ExitPoint.region(region: region)
         case .random:
             ExitPoint.random
+        case .auto:
+            ExitPoint.auto(excludeEntryPointCountry: true, excludeUserCountry: true)
         }
     }
 }
@@ -199,7 +202,7 @@ extension ConnectionConfig {
         self.gatewaySelectionAlgorithmConfig = try container.decodeIfPresent(
             NymGatewaySelectionAlgorithmConfig.self,
             forKey: .gatewaySelectionAlgorithmConfig
-        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .explicit)
+        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
     }
 }
 

@@ -10,7 +10,9 @@ use nym_gateway_directory::{
 };
 use nym_sdk::UserAgent;
 use nym_vpn_api_client::response::NodeFamily;
-use nym_vpn_lib_types::{EntryPoint, ExitPoint, GatewayIndependence, TunnelType};
+use nym_vpn_lib_types::{
+    EntryPoint, ExitPoint, GatewayIndependence, TentativeGateways, TunnelType,
+};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
@@ -121,7 +123,7 @@ fn gw_full(id: &str, family_id: u32, asn: &str, route: &str) -> Gateway {
             load: ScoreValue::Low,
             uptime_percentage_last_24_hours: Default::default(),
         })
-        .node_family(Some(NodeFamily {
+        .family_data(Some(NodeFamily {
             id: family_id,
             name: format!("Family {family_id}"),
             description: String::new(),
@@ -229,6 +231,33 @@ async fn error_stream() {
     let mut tunnel_settings = default_tunnel_settings();
     tunnel_settings
         .gateway_selection_algorithm_config
+        .enable_geo_location = true;
+    let (mut gw_provider, handle) = GatewayProvider::new(
+        MockGatewayCache::new(gateways),
+        MockGeoIpClient::new(),
+        tunnel_settings,
+        WireguardKeysDb::Ephemeral(Default::default()),
+        shutdown_token.child_token(),
+    );
+    // No gateways come out of the stream when there are no gateways to select from
+    assert!(
+        tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .is_err()
+    );
+    shutdown_token.cancel();
+    handle.await.unwrap();
+}
+
+#[tokio::test]
+async fn geo_location_disabled() {
+    let shutdown_token = CancellationToken::new();
+    let gateways = Arc::new(RwLock::new(None));
+    let mut tunnel_settings = default_tunnel_settings();
+    tunnel_settings
+        .gateway_selection_algorithm_config
         .enable_geo_location = false;
     let (mut gw_provider, handle) = GatewayProvider::new(
         MockGatewayCache::new(gateways),
@@ -261,7 +290,7 @@ async fn set_and_stream() {
     let mut tunnel_settings = default_tunnel_settings();
     tunnel_settings
         .gateway_selection_algorithm_config
-        .enable_geo_location = false;
+        .enable_geo_location = true;
     let (mut gw_provider, handle) = GatewayProvider::new(
         MockGatewayCache::new(gateways),
         MockGeoIpClient::new(),
@@ -277,6 +306,54 @@ async fn set_and_stream() {
     for _ in 0..100 {
         gw_provider.next().await.unwrap().unwrap();
     }
+
+    shutdown_token.cancel();
+    handle.await.unwrap();
+}
+
+/// Regression test for the intermittent `NoGatewaysAvailable` race.
+///
+/// `set_tunnel_settings` (triggered on every connect press via
+/// `set_gateway_independence`) swaps in a brand-new, empty selection stream and
+/// asks the algorithm to recompute. If `tentative_gateways` is queried before
+/// the first fresh selection lands in that stream, it must wait for it rather
+/// than immediately reporting `NoGatewaysAvailable`
+#[tokio::test]
+async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
+    let shutdown_token = CancellationToken::new();
+    let possible_gateways = [
+        "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz",
+        "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj",
+    ]
+    .map(gateway_id_to_gateway);
+    let gateways = Arc::new(RwLock::new(Some(possible_gateways.to_vec())));
+    let mut tunnel_settings = default_tunnel_settings();
+    tunnel_settings
+        .gateway_selection_algorithm_config
+        .enable_geo_location = true;
+
+    let cache = MockGatewayCache::new_with_lookup_delay(gateways, Duration::from_millis(50));
+    let (gw_provider, handle) = GatewayProvider::new(
+        cache,
+        MockGeoIpClient::new(),
+        tunnel_settings.clone(),
+        WireguardKeysDb::Ephemeral(Default::default()),
+        shutdown_token.child_token(),
+    );
+
+    // Reset the stream (as set_gateway_independence does on every connect press)
+    // and immediately query, before the freshly computed selection is ready.
+    gw_provider
+        .set_tunnel_settings(tunnel_settings)
+        .await
+        .unwrap();
+    let tentative = gw_provider.tentative_gateways().await;
+
+    assert!(
+        matches!(tentative, TentativeGateways::Selected { .. }),
+        "tentative_gateways must wait for the freshly computed selection instead \
+         of returning NoGatewaysAvailable; got {tentative:?}"
+    );
 
     shutdown_token.cancel();
     handle.await.unwrap();
@@ -299,7 +376,7 @@ async fn mainnet_syntethic_node_families() {
         names.sort();
         let mut groups: Vec<Vec<String>> = Vec::new();
         for name in names {
-            let joins = groups.last().map_or(false, |g| {
+            let joins = groups.last().is_some_and(|g| {
                 !name.is_empty() && !g[0].is_empty() && lcp_len(&g[0], &name) >= min_prefix
             });
             if joins {
@@ -400,7 +477,7 @@ async fn mainnet_syntethic_node_families() {
     for gw in &mut gateways {
         let name = gw.name.trim().to_string();
         if let Some((id, label, size)) = name_to_family.get(&name) {
-            gw.node_family = Some(NodeFamily {
+            gw.family_data = Some(NodeFamily {
                 id: *id,
                 name: label.clone(),
                 description: String::new(),
@@ -446,7 +523,7 @@ async fn mainnet_syntethic_node_families() {
     // ── Index structures shared by all scenarios ──────────────────────────
     let mut by_family_id: HashMap<u32, Vec<Gateway>> = HashMap::new();
     for gw in &gateways {
-        if let Some(nf) = &gw.node_family {
+        if let Some(nf) = &gw.family_data {
             by_family_id.entry(nf.id).or_default().push(gw.clone());
         }
     }
@@ -509,7 +586,7 @@ async fn mainnet_syntethic_node_families() {
     // The default independence settings (different_node_family: true) make this
     // an impossible pair, even though the full gateway pool is available.
     let same_family_pair = by_family_id.values().find(|v| v.len() >= 2).map(|v| {
-        let label = v[0].node_family.as_ref().unwrap().name.clone();
+        let label = v[0].family_data.as_ref().unwrap().name.clone();
         (v[0].clone(), v[1].clone(), label)
     });
     if let Some((gw_a, gw_b, family_name)) = same_family_pair {
@@ -614,8 +691,8 @@ async fn mainnet_syntethic_node_families() {
         "random selection on full pool under default criteria should succeed; got {result:?}"
     );
     let selected = result.unwrap();
-    let entry_family = selected.entry_gateway().node_family.as_ref().map(|f| f.id);
-    let exit_family = selected.exit_gateway().node_family.as_ref().map(|f| f.id);
+    let entry_family = selected.entry_gateway().family_data.as_ref().map(|f| f.id);
+    let exit_family = selected.exit_gateway().family_data.as_ref().map(|f| f.id);
     if let (Some(ef), Some(xf)) = (entry_family, exit_family) {
         assert_ne!(
             ef, xf,
@@ -713,10 +790,10 @@ async fn mainnet_syntethic_node_families() {
     let single_family_countries: Vec<(String, Vec<Gateway>)> = by_country
         .iter()
         .filter(|(_, gws)| {
-            gws.len() >= 2 && gws.iter().all(|gw| gw.node_family.is_some()) && {
-                let first_family = gws[0].node_family.as_ref().map(|f| f.id);
+            gws.len() >= 2 && gws.iter().all(|gw| gw.family_data.is_some()) && {
+                let first_family = gws[0].family_data.as_ref().map(|f| f.id);
                 gws.iter()
-                    .all(|gw| gw.node_family.as_ref().map(|f| f.id) == first_family)
+                    .all(|gw| gw.family_data.as_ref().map(|f| f.id) == first_family)
             }
         })
         .map(|(cc, gws)| (cc.clone(), gws.clone()))
@@ -728,7 +805,7 @@ async fn mainnet_syntethic_node_families() {
     }
     for (cc, country_gws) in single_family_countries {
         let family_label = country_gws[0]
-            .node_family
+            .family_data
             .as_ref()
             .map(|f| f.name.as_str())
             .unwrap_or("?");

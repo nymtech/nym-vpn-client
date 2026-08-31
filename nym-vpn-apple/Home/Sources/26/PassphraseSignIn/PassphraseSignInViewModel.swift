@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import SnackbarManager
 import Theme
@@ -13,9 +14,9 @@ public final class PassphraseSignInViewModel {
         case failed
     }
 
-    private let credentialsManager: CredentialsManager
+    private let credentialStore: PassphraseSignInCredentialStore
     @ObservationIgnored private var loginTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
     var passphraseText: String = "" {
         didSet {
@@ -28,10 +29,15 @@ public final class PassphraseSignInViewModel {
     var submissionState: SubmissionState = .idle
 
     public init(credentialsManager: CredentialsManager) {
-        self.credentialsManager = credentialsManager
+        self.credentialStore = credentialsManager
+    }
+
+    init(credentialStore: PassphraseSignInCredentialStore) {
+        self.credentialStore = credentialStore
     }
 
     func loginButtonTapped() {
+        guard submissionState != .loading else { return }
         let credential = passphraseText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !credential.isEmpty else { return }
         submissionState = .loading
@@ -39,14 +45,24 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                try await credentialsManager.add(credential: credential)
-                onWillRegister?()
-                try await credentialsManager.registerAccount()
-                passphraseText = ""
-                submissionState = .idle
+                sessionCoordinator?.handle(
+                    .session(.authWillBegin(flow: .login, completesOnCredentialImport: false))
+                )
+                try await credentialStore.storeLoginCredential(credential)
+                let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
+                    isAccountActive: { self.credentialStore.isAccountActive() },
+                    updateAccountSummary: {
+                        await self.credentialStore.updateAccountSummary(force: true, untilActive: false)
+                    }
+                )
+                sessionCoordinator?.handle(
+                    .session(.authCompleted(outcome: outcome, flow: .login))
+                )
             } catch is CancellationError {
-                // Cancelled — keep current state.
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
+                submissionState = .idle
             } catch {
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(
@@ -57,5 +73,9 @@ public final class PassphraseSignInViewModel {
                 )
             }
         }
+    }
+
+    func waitForLoginTask() async {
+        await loginTask?.value
     }
 }

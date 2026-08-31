@@ -72,6 +72,7 @@ impl OfflineState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -80,9 +81,13 @@ impl OfflineState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
+        #[cfg(target_os = "linux")]
+        shared_state.restore_nm_connectivity_check();
+
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
+        nym_http_api_client::network_reconfigured();
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -133,12 +138,24 @@ impl TunnelStateHandler for OfflineState {
                         }
                     },
                     TunnelCommand::Disconnect => {
-                        if self.reconnect {
-                            self.reconnect = false;
-                            let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
-                            NextTunnelState::NewState((self, new_state))
-                        } else {
-                            NextTunnelState::SameState(self)
+                        // An explicit user-initiated disconnect while offline should tear the
+                        // tunnel down immediately rather than only disarming auto-reconnect and
+                        // lingering in the offline state. Otherwise the first disconnect merely
+                        // re-emits `Offline`, which races the client's optimistic `Down` and
+                        // resurrects the offline UI, forcing the user to press disconnect twice.
+                        #[cfg(target_os = "android")]
+                        {
+                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                        }
+                        #[cfg(not(target_os = "android"))]
+                        {
+                            if self.reconnect {
+                                self.reconnect = false;
+                                let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
+                                NextTunnelState::NewState((self, new_state))
+                            } else {
+                                NextTunnelState::SameState(self)
+                            }
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
@@ -159,6 +176,8 @@ impl TunnelStateHandler for OfflineState {
                             shared_state
                                 .start_or_stop_socks5_proxy()
                                 .await;
+                        } else if diff.geo_exclusion_excluded_countries_changed() {
+                            shared_state.set_socks5_proxy_excluded_countries();
                         }
 
                         if diff.enable_ad_blocking_changed() {

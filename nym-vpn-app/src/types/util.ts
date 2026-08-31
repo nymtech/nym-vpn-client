@@ -145,6 +145,15 @@ export type SelectedEgion = {
 export function isRegion(node: SelectedNode): node is SelectedEgion {
   return (node as SelectedEgion).region !== undefined;
 }
+export type SelectedAuto = {
+  auto: {
+    exclude_user_country: boolean;
+    exclude_entry_point_country: boolean;
+  };
+};
+export function isAuto(node: SelectedNode): node is SelectedAuto {
+  return (node as SelectedAuto).auto !== undefined;
+}
 
 export type SelectableNode = Gateway | Country | Region | 'random';
 function isSelectableGateway(node: SelectableNode): node is Gateway {
@@ -182,8 +191,7 @@ export type AccountStateError = {
 
 // Flattened derived state from `TAccountState`
 export type AccountState =
-  | Exclude<TAccountState, 'syncing' | AccountStateError>
-  | 'error';
+  Exclude<TAccountState, 'syncing' | AccountStateError> | 'error';
 
 export function isAccountError(
   state: TAccountState,

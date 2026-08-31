@@ -98,7 +98,7 @@ impl fmt::Debug for PeerConfig {
 }
 
 /// Holds new endpoint for the peer matching by public key.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PeerEndpointUpdate {
     pub public_key: x25519::PublicKey,
     pub endpoint: SocketAddr,
@@ -108,5 +108,9 @@ impl PeerEndpointUpdate {
     fn append_to(&self, config_builder: &mut UapiConfigBuilder) {
         config_builder.add("public_key", self.public_key.as_bytes().as_ref());
         config_builder.add("endpoint", self.endpoint.to_string().as_str());
+    }
+
+    pub fn is_loopback(&self) -> bool {
+        self.endpoint.ip().is_loopback()
     }
 }

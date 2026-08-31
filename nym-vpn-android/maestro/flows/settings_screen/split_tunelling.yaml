@@ -1,0 +1,16 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+
+- tapOn:
+    text: "Split tunneling"
+    index: 1
+
+- assertVisible: "Set each app to use NymVPN or connect directly."
+- assertVisible: "Direct"
+- assertVisible: "Via NymVPN"
+- assertVisible: "Save changes"
+
+

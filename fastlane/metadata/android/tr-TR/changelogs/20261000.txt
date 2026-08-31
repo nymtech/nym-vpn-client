@@ -1,4 +1,4 @@
 Yenilikler:
-- Reklam engelleyiciliği iyileştirmek için DoH (DNS üzerinden HTTPS) ve DoT (DNS üzerinden TLS) kullanın 
-- Google'a bağlı olmayan Android uygulaması içindeki hesap oluşturma 
-- Hickory sistem çözücüde oluşan hatalar düzeltildi
+- Reklam engellemeyi güçlendirmek için DoH (HTTPS üzerinden DNS) ve DoT (TLS üzerinden DNS) eklendi 
+- Google’dan arındırılmış Android’de uygulama içi hesap oluşturma 
+- Hickory sistem çözümleyicisinin çökmesine neden olan sorun düzeltildi

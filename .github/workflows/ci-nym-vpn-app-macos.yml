@@ -1,0 +1,113 @@
+name: ci-nym-vpn-app-macos
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/ci-nym-vpn-app-macos.yml"
+      - "nym-vpn-apple/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
+jobs:
+  build:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: x86_64-apple-darwin aarch64-apple-darwin
+
+      - name: Install Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache-dependency-path: wireguard/libwg/go.sum
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
+
+      - name: Install xcbeautify
+        run: |
+          brew install xcbeautify
+
+      - name: Add stubs for distributed binaries
+        run: |
+          touch nym-vpn-apple/NymVPND/nym-setup
+          touch nym-vpn-apple/NymVPND/nym-vpnd
+          touch nym-vpn-apple/NymVPND/nym-socks5-proxy
+          touch nym-vpn-apple/NymVPND/nym-diagnostic
+
+      - name: Purge caches
+        run: |
+          # This runner is persistent (self-hosted), so stale SPM/DerivedData state from
+          # packages removed/renamed between runs (e.g. the old NymVPNRpc package) survives
+          # the workspace checkout and corrupts module resolution for later builds.
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/" || true
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData/" || true
+
+      - name: Purge caches
+        run: |
+          # This runner is persistent (self-hosted), so stale SPM/DerivedData state from
+          # packages removed/renamed between runs survives
+          # the workspace checkout and corrupts module resolution for later builds.
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/" || true
+          rm -rf "$HOME/Library/Developer/Xcode/DerivedData/" || true
+
+      - name: Build swift-package
+        run: |
+          make -C nym-vpn-core -f macOS.mk swift-package RELEASE="false"
+          mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "nym-vpn-apple/NymVPNLib"
+
+      - name: Apple unit tests
+        uses: ./.github/workflows/apple/tests
+        with:
+          account-report-path: ${{ github.workspace }}/account-report.md
+
+      - name: Build macOS app
+        working-directory: nym-vpn-apple
+        run: |
+          set -o pipefail
+
+          xcodebuild \
+            -workspace "NymVPN.xcworkspace" \
+            -scheme "NymVPNDaemon" \
+            -configuration "Debug" \
+            -destination "platform=macOS" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build | xcbeautify --renderer github-actions

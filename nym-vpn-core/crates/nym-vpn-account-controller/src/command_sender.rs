@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AvailableTicketbooks,
-    commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
+    commands::{AccountCommand, CommonCommand, ReturnSender},
     deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
 };
 use nym_validator_client::nyxd::Coin;
@@ -192,17 +191,6 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountCommandError> {
-        let (tx, rx) = ReturnSender::new();
-        self.command_tx
-            .send(AccountCommand::Common(CommonCommand::GetAvailableTickets(
-                tx,
-            )))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
-    }
-
-    #[instrument(skip(self))]
     pub async fn get_account_summary(
         &self,
     ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
@@ -297,35 +285,10 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn decentralised_obtain_ticketbooks(
-        &self,
-        amount: u64,
-    ) -> Result<(), AccountCommandError> {
+    pub async fn decentralised_obtain_ticketbooks(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::ObtainTicketbooks(tx, amount))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
-    }
-
-    #[instrument(skip(self))]
-    pub async fn query_upgrade_mode_enabled(&self) -> Result<bool, AccountCommandError> {
-        let (tx, rx) = ReturnSender::new();
-        self.command_tx
-            .send(AccountCommand::UpgradeMode(
-                UpgradeModeCommand::GetUpgradeModeEnabled(tx),
-            ))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
-    }
-
-    #[instrument(skip(self))]
-    pub async fn send_disable_upgrade_mode(&self) -> Result<(), AccountCommandError> {
-        let (tx, rx) = ReturnSender::new();
-        self.command_tx
-            .send(AccountCommand::UpgradeMode(
-                UpgradeModeCommand::DisableUpgradeMode(tx),
-            ))
+            .send(AccountCommand::ObtainTicketbooks(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

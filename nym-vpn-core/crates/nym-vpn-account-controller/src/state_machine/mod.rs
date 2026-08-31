@@ -17,7 +17,6 @@ mod offline_state;
 mod pending_subscription_state;
 mod ready_state;
 mod syncing_state;
-mod upgrade_mode_state;
 // Account Controller state machine available states
 
 /// Account stored, online, can't proceed without user action and/or temporary failure somewhere
@@ -41,21 +40,14 @@ pub(crate) use syncing_state::SyncingNetworkState;
 /// Whether a network sync is optimistic (short timeout, cache fallback) or mandatory
 pub(crate) use syncing_state::SyncMode;
 
-/// We're in the process of attempting to acquire a zk-nym
-pub(crate) use syncing_state::requesting_zknym_state::RequestingZkNymsState;
-
 /// Account is operating independently of VPN API
 pub(crate) use decentralised_state::DecentralisedState;
 
-/// The system is undergoing an upgrade mode, where zk-nyms can't be issued
-pub(crate) use upgrade_mode_state::UpgradeModeState;
+// The interval at which we update the account state when in error state
+const ACCOUNT_UPDATE_INTERVAL_ERROR: Duration = Duration::from_secs(2 * 60);
 
-// The interval at which we update the account state
-const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(2 * 60);
-
-// The interval at which we attempt to exit the upgrade mode by trying to get a new zk-nym instead
-// (note: this does not prevent bandwidth controller from notifying us directly about the UM being over)
-const UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL: Duration = Duration::from_secs(10 * 60);
+// The interval at which we update the account state when in ready state
+const ACCOUNT_UPDATE_INTERVAL_READY: Duration = Duration::from_secs(60 * 60);
 
 #[async_trait::async_trait]
 pub(crate) trait AccountControllerStateHandler<C: ConnectivityMonitor>: Send {
@@ -110,10 +102,8 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::LoggedOut => Self::LoggedOut,
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
             PrivateAccountControllerState::Decentralised => Self::Decentralised,
-            PrivateAccountControllerState::UpgradeMode => Self::UpgradeMode,
             PrivateAccountControllerState::PendingSubscription => Self::PendingSubscription,
             PrivateAccountControllerState::Error(reason) => Self::Error(reason),
-            PrivateAccountControllerState::RequestingZkNyms => Self::RequestingZkNyms,
         }
     }
 }
@@ -126,8 +116,6 @@ pub(super) enum PrivateAccountControllerState {
     LoggedOut,
     ReadyToConnect,
     Decentralised,
-    UpgradeMode,
     PendingSubscription,
     Error(AccountControllerErrorStateReason),
-    RequestingZkNyms,
 }

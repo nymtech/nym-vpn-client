@@ -14,6 +14,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.util.extensions.handleLifecycleEventSafely
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.nymvpn.util.extensions.truncateWithEllipsis
 import net.nymtech.vpn.backend.Tunnel
@@ -46,7 +47,9 @@ class VpnQuickTile :
 
 	override fun onStartListening() {
 		super.onStartListening()
-		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+		// a queued onStartListening can be delivered after onDestroy
+		if (lifecycleRegistry.currentState == Lifecycle.State.DESTROYED) return
+		lifecycleRegistry.handleLifecycleEventSafely(Lifecycle.Event.ON_START)
 
 		if (isCollecting) return
 		isCollecting = true
@@ -90,9 +93,9 @@ class VpnQuickTile :
 				setActive()
 			}
 
-			Tunnel.State.Offline -> {
+			is Tunnel.State.Offline -> {
 				setTileDescription(this@VpnQuickTile.getString(R.string.offline))
-				setActive()
+				if (state.reconnect) setActive() else setInactive()
 			}
 
 			is Tunnel.State.Error -> {
@@ -108,7 +111,7 @@ class VpnQuickTile :
 	}
 
 	override fun onStopListening() {
-		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+		lifecycleRegistry.handleLifecycleEventSafely(Lifecycle.Event.ON_STOP)
 		isCollecting = false
 	}
 
@@ -121,8 +124,10 @@ class VpnQuickTile :
 		super.onClick()
 		unlockAndRun {
 			lifecycleScope.launch {
-				when (backendManager.getState()) {
+				when (val state = backendManager.getState()) {
 					Tunnel.State.Down -> backendManager.startTunnel()
+					is Tunnel.State.Offline ->
+						if (state.reconnect) backendManager.stopTunnel() else backendManager.startTunnel()
 					else -> backendManager.stopTunnel()
 				}
 			}

@@ -18,6 +18,7 @@ public struct GatewayCell: View {
     @EnvironmentObject private var gatewayManager: GatewayManager
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
+    @EnvironmentObject private var favoritesState: ServersFavoritesState
     @Binding private var path: NavigationPath
     @Binding private var scrollToModel: GatewayScrollToModel
     @State private var isButtonHovered = false
@@ -70,6 +71,12 @@ public struct GatewayCell: View {
                         .padding(.trailing, NymSpacing.small)
                 }
             }
+
+            FavoriteStarButton(
+                isFavorite: favoritesState.isFavorite(.gateway(server.id)),
+                action: { favoritesState.toggleFavorite(.gateway(server.id)) }
+            )
+            .padding(.trailing, NymSpacing.small)
 
             infoButton()
                 .onHover { newValue in

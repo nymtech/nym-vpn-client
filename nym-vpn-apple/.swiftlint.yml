@@ -85,9 +85,9 @@ attributes:
     - "@discardableResult"
 
 analyzer_rules:
-    - capture_variable
-    - unused_declaration
-    - unused_import
+  - capture_variable
+  - unused_declaration
+  - unused_import
 
 conditional_returns_on_newline:
   if_only: true
@@ -125,7 +125,7 @@ nesting:
 
 private_outlet:
   allow_private_set: true
-  
+
 trailing_closure:
   only_single_muted_parameter: true
 
@@ -149,6 +149,6 @@ excluded:
   - "ServicesMacOS/Sources/GRPCManager/proto/nym/**"
   - "ServicesMacOS/Sources/GRPCManager/proto/grpc/**"
   - "**/.build/**"
+  - "**/build/**"
   - "**/DerivedData/**"
   - NymVPNLib
-  - NymVPNRpc

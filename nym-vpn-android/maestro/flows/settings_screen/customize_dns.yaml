@@ -1,0 +1,39 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+
+- tapOn:
+      text: "Customize DNS"
+      index: 1
+
+- extendedWaitUntil:
+      visible:
+          text: "DNS customization"
+      timeout: 5000
+
+- assertNotVisible: "9.9.9.9"
+- tapOn: "View default DNS"
+- assertVisible: "9.9.9.9"
+
+- tapOn:
+      text: "Enter DNS server"
+
+- inputText: "192.168.1.1"
+
+- scrollUntilVisible:
+      element:
+          text: "Add"
+      direction: DOWN
+
+- tapOn: "Add"
+
+- scrollUntilVisible:
+      element:
+          text: "Learn more about DNS"
+      direction: DOWN
+
+- tapOn: "Save changes"
+
+- assertVisible: "192.168.1.1"

@@ -1,0 +1,38 @@
+# Logs out of the mock's default session and lands on the welcome sheet.
+appId: net.nymtech.vpn
+---
+- runFlow: open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 10000
+
+- tapOn: "Account and devices"
+
+- extendedWaitUntil:
+    visible:
+      text: "Account status"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element:
+      text: "Log out ?"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    text: "Log out ?"
+
+# Match the exact "Log out" (no trailing space) to hit the dialog's Yes, not the list button behind it.
+- extendedWaitUntil:
+    visible:
+      text: "Log out of this device?"
+    timeout: 10000
+- tapOn:
+    text: "Log out"
+
+- extendedWaitUntil:
+    visible:
+      text: "Welcome!"
+    timeout: 20000

@@ -1,12 +1,18 @@
-#if os(macOS)
 import SwiftUI
-import GRPCManager
 import Theme
 import UIComponents
+#if os(macOS)
+import GRPCManager
 import UniformTypeIdentifiers
+#elseif os(iOS)
+import UIKit
+import ConnectionManager
+#endif
 
 struct DiagnosticToolView: View {
+#if os(macOS)
     @EnvironmentObject private var grpcManager: GRPCManager
+#endif
 
     @Binding private var path: NavigationPath
     @State private var reportText: String?
@@ -55,7 +61,8 @@ private extension DiagnosticToolView {
 
     @ViewBuilder
     func shareButton() -> some View {
-        if reportText != nil {
+        if let reportText {
+#if os(macOS)
             GenericButton(
                 title: "settings.diagnosticTool.share".localizedString,
                 style: .accentBorderOnly
@@ -63,6 +70,15 @@ private extension DiagnosticToolView {
             .onTapGesture {
                 exportReport()
             }
+#elseif os(iOS)
+            ShareLink(item: reportText) {
+                GenericButton(
+                    title: "settings.diagnosticTool.share".localizedString,
+                    style: .accentBorderOnly
+                )
+            }
+            .buttonStyle(.plain)
+#endif
         }
     }
 
@@ -78,8 +94,7 @@ private extension DiagnosticToolView {
                     Spacer()
 
                     CopyButton {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(reportText, forType: .string)
+                        copyReport(reportText)
                     }
                 }
 
@@ -104,17 +119,16 @@ private extension DiagnosticToolView {
     func runDiagnostics() {
         isLoading = true
         Task {
-            do {
-                let result = try await grpcManager.runDiagnostic()
-                await MainActor.run {
-                    reportText = formatJSON(result)
-                    isLoading = false
-                }
-            } catch {
-                print("Diagnostic error: \(error)")
-                await MainActor.run {
-                    isLoading = false
-                }
+            let result: String?
+#if os(macOS)
+            result = try? await grpcManager.runDiagnostic()
+#elseif os(iOS)
+            result = await ConnectionManager.shared.runDiagnostic()
+#endif
+            await MainActor.run {
+                reportText = formatJSON(result)
+                    ?? "settings.diagnosticTool.failed".localizedString
+                isLoading = false
             }
         }
     }
@@ -132,6 +146,16 @@ private extension DiagnosticToolView {
         return prettyString
     }
 
+    func copyReport(_ reportText: String) {
+#if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(reportText, forType: .string)
+#elseif os(iOS)
+        UIPasteboard.general.string = reportText
+#endif
+    }
+
+#if os(macOS)
     func exportReport() {
         guard let reportText else { return }
         let savePanel = NSSavePanel()
@@ -142,5 +166,5 @@ private extension DiagnosticToolView {
             try? reportText.write(to: url, atomically: true, encoding: .utf8)
         }
     }
-}
 #endif
+}

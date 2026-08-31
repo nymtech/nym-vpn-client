@@ -148,7 +148,7 @@
 	<string name="unexpected_error">حدث خطأ غير متوقع:</string>
 	<string name="error_invalid_entry_gateway_country">البلد غير صالح لخادم الدخول. اختر آخر وإعادة الاتصال.</string>
 	<string name="error_invalid_exit_gateway_country">البلد غير صالح للخادم الخروج. اختر آخر وإعادة الاتصال.</string>
-	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
+	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
 	<string name="max_devices_error">تجاوز حد جهاز الحساب. الرجاء إزالة جهاز من حسابك قبل الاتصال.</string>
 	<string name="device_time_out_of_sync">انتهاء وقت الجهاز من المزامنة</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
@@ -171,16 +171,14 @@
 	<string name="error_expired_subscription_description">تم رفض طريقة الدفع المتكررة</string>
 	<string name="error_expired_subscription_button">تجديد الآن</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">تهيئة NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">إعداد حسابك (2/6)</string>
-	<string name="connection_state_refreshing_gateways">تحديث قائمة الخوادم (3/6)</string>
-	<string name="connection_state_selecting_gateways">اختيار أفضل الخوادم (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">تسجيل مجهول مع الخوادم (5/6)</string>
-	<string name="connection_state_connecting_tunnel">إنشاء اتصال بالخادم (6/6)</string>
+	<string name="connection_state_resolving_addresses">تهيئة NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">إعداد حسابك (2/7)</string>
+	<string name="connection_state_refreshing_gateways">تحديث قائمة الخوادم (4/7)</string>
+	<string name="connection_state_selecting_gateways">اختيار أفضل الخوادم (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">تسجيل مجهول مع الخوادم (6/7)</string>
+	<string name="connection_state_connecting_tunnel">إنشاء اتصال بالخادم (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">استخدام أفضل خادم</string>
 	<string name="one_click_mode_fast">سريع</string>
-	<string name="connect_mode_auto">تلقائي</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">الخروج من الخادم</string>
 	<string name="one_click_nym_entry_node">خادم الإدخال</string>
@@ -189,7 +187,6 @@
 	<string name="connection_status_fast_mode">حماية الوضع السريع</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">أفضل خادم</string>
 	<string name="gateway_random">خادم عشوائي</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">مرحباً!</string>
@@ -235,6 +232,8 @@
 	<string name="settings_shortcuts_title">اختصارات التطبيق</string>
 	<string name="settings_logs_title">سجلات &amp; البيانات</string>
 	<string name="settings_legal_title">قانوني</string>
+	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
+	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">قفل الشاشة مطلوب لاستخدام الاختصار.</string>
 	<string name="shortcut_title">تأكيد الإجراء</string>
@@ -268,7 +267,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">المتابعة</string>
 	<string name="welcome_title">ساعدنا على تحسين NymVPN</string>
-	<string name="welcome_description">اختر البيانات المجهولة الهوية لمشاركتها. يتم تجريد جميع البيانات من معلومات التعريف قبل إرسالها.</string>
+	<string name="welcome_description">Choose what anonymous data to share. \nAll data is stripped of identifying information before being sent.</string>
 	<string name="welcome_error_reports_title">مشاركة تقارير الأخطاء</string>
 	<string name="welcome_error_reports_description_start">يساعدنا على إصلاح الأخطاء بشكل أسرع، لا توجد بيانات شخصية تم جمعها (من خلال </string>
 	<string name="welcome_error_reports_link_text">الحراسة</string>
@@ -353,6 +352,14 @@
 	<string name="account_generating_error">فشل في تسجيل الحساب. الرجاء المحاولة مرة أخرى لاحقاً</string>
 	<string name="account_generating_deeplink_title">جاري تسجيل الدخول...</string>
 	<string name="account_generating_deeplink_description">الرجاء الانتظار بينما نقوم بالتحقق من حسابك</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">معالجة الدفع الخاص بك بشكل آمن…</string>
 	<string name="account_payment_verifying">نحن نقوم بالتحقق من اشتراكك - لا توجد تفاصيل شخصية مرتبطة بهويتك</string>
@@ -393,9 +400,10 @@
 	<string name="account_info_device_title">معرف الجهاز</string>
 	<string name="account_info_device_info">استخدم هذا لربط هذا الجهاز بحسابك على nym.com</string>
 	<string name="account_info_status_title">حالة الحساب</string>
-	<string name="account_info_bandwidth_title">استخدام منصف</string>
+	<string name="account_info_bandwidth_title">Daily allowance</string>
 	<string name="account_info_limit_text">الحد</string>
-	<string name="account_info_reset_text">إعادة تعيين في</string>
+	<string name="account_info_reset_text">Resets daily at</string>
+	<string name="account_info_data_unavailable">Usage data unavailable</string>
 	<string name="account_info_valid_text">خطة صالحة حتى %s</string>
 	<string name="account_info_expires_text">الخطة تنتهي في %s</string>
 	<string name="banner_plan_expires_text">الخطة تنتهي في:\n%s</string>
@@ -477,7 +485,7 @@
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">تخصيص أنماط حركة مرور المزيج</string>
 	<string name="mixnet_tuning_current_title">الأداء المتوقع للإعدادات الحالية:</string>
-	<string name="mixnet_tuning_current_speed">السرعة</string>
+	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">لاتفيا</string>
 	<string name="mixnet_tuning_internet_speed">حتى سرعة الإنترنت</string>
 	<string name="mixnet_tuning_current_description">التأخير المتوقع للرحلة ذهابا وإيابا على شبكة قياسية</string>
@@ -486,23 +494,21 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ تم إيقاف حركة المرور المستمرة. سيتم إرسال الحزم الخاصة بك عندما تصبح متاحة. قد يكشف هذا عن أنماط حركة المرور.</string>
 	<string name="mixnet_tuning_traffic_on_description">يتم إرسال حركة مرور الغلاف دائماً للحفاظ على النمط الموحد. قم بتعديل معدل إرسال الحزم الخاصة بك.</string>
 	<string name="mixnet_tuning_traffic_off_description">سنظل نرسل غلاف حركة المرور بشكل مستقل عن حركة المرور الحقيقية. اختر مقدار الغطاء الذي تحتاجه. </string>
-	<string name="mixnet_tuning_traffic_min">استخدام قدر أقل من البطارية &amp;</string>
-	<string name="mixnet_tuning_traffic_on_low">منخفض\n0.7 ميغابايت</string>
+    <string name="mixnet_tuning_traffic_on_low">منخفض\n0.7 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_on_high">عالي\n2 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_on_balanced">متوازنة\n1 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_off_low">قاعدة</string>
 	<string name="mixnet_tuning_traffic_off_high">عالي\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">متوازن\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n10x</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">خلط التأخيرات</string>
 	<string name="mixnet_tuning_delays_description">ضبط تأخير التوقيت لتغيير مدى خلط الحزم الخاصة بك.</string>
-	<string name="mixnet_tuning_delays_min">سرعة أسرع</string>
-	<string name="mixnet_tuning_delays_low">منخفض\n0 دقيقة</string>
+    <string name="mixnet_tuning_delays_low">منخفض\n0 دقيقة</string>
 	<string name="mixnet_tuning_delays_high">عالي\n200 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_default">إفتراضي\n15 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_current">\n%1$s الحالي</string>
-	<string name="mixnet_tuning_max">Max. anonymity</string>
-	<string name="mixnet_tuning_link_text">تعلم المزيد عن معلمات المزيج</string>
+    <string name="mixnet_tuning_link_text">تعلم المزيد عن معلمات المزيج</string>
 	<string name="mixnet_tuning_save_button">حفظ الإعدادات المخصصة</string>
 	<string name="mixnet_tuning_restore_button">استعادة الإعدادات الافتراضية</string>
 	<!-- Diagnostic screen -->
@@ -518,4 +524,51 @@
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">تعطيل DNS الخاص لاستخدام مانع الإعلانات.</string>
 	<string name="private_dns_button">فتح الإعدادات</string>
+	<!-- Notifications screen -->
+	<string name="notifications_node_families_title">Server family reminders</string>
+	<string name="notifications_node_families_description">Keeps reminding of shared family</string>
+	<string name="notifications_system_title">System notifications</string>
+	<string name="notifications_system_description">Keeps the app running when closed</string>
+	<!-- Node Families -->
+	<string name="node_families_title">The selected servers are in the same operator family!</string>
+	<string name="node_families_description_text">Disable reminders in </string>
+	<string name="node_families_description_link">notification settings.</string>
+	<string name="node_families_connect_button">Connect anyway</string>
+	<string name="node_families_error_message">Selected servers share a family. Choose a different pair or connect anyway.</string>
+	<!-- Geo Exclusion -->
+	<string name="geo_exclusion_enable_title">Enable Geo Exclusion</string>
+	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>
+	<string name="geo_exclusion_beta_text">Beta version:  China only for now. More regions coming.</string>
+	<string name="geo_exclusion_traffic_bypass_text">Traffic to excluded regions bypasses the VPN.</string>
+	<string name="geo_exclusion_sock55_title">SOCKS5 port</string>
+	<string name="geo_exclusion_custom_port_title">Custom port</string>
+	<string name="geo_exclusion_ports_text">1024–65535</string>
+	<string name="geo_exclusion_ranges_count">%1$s ranges</string>
+	<string name="geo_exclusion_last_updated">List updated %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">SOCKS5 not detected</string>
+	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy not detected. Check your port settings.</string>
+	<string name="geo_exclusion_error_failed_start_title">Feature failed to start</string>
+	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
+	<string name="geo_exclusion_error_invalid_port_text">Port must be between 1024 and 65535.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
+	<string name="geo_exclusion_excluded_regions_label">EXCLUDED REGIONS</string>
+	<string name="geo_exclusion_china">China</string>
+	<string name="geo_exclusion_add_region_button">Add region</string>
+	<string name="geo_exclusion_copy_proxy_label">Copy proxy address</string>
+	<!-- Setup instructions screen -->
+	<string name="setup_instructions_title">Setup instructions</string>
+	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
+	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
+	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
+	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>
+	<string name="setup_instructions_browser_title">Browser setup</string>
+	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
+	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
+	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
+	<string name="setup_instructions_browser_step_3">, Port</string>
+	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
+	<string name="setup_instructions_wallet_title">Web3 wallet</string>
+	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
+	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
+	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
 </resources>

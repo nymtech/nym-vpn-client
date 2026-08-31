@@ -9,22 +9,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
+- Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006)
+- Persist gateway list to disk, seeded from a built-in list (https://github.com/nymtech/nym-vpn-client/pull/6015)
+- If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052) 
+- [Linux] Authenticate also via UNIX group "nym-vpn" membership, or root (https://github.com/nymtech/nym-vpn-client/pull/6100)
+
+### Changed
+
+- [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
+- Merge rpc-uniffi crate into lib-uniffi (https://github.com/nymtech/nym-vpn-client/pull/6010)
+- Local DNS resolver will respond with `serv_fail` on timeout from upstream DNS server (https://github.com/nymtech/nym-vpn-client/pull/6132)
+- Remove IPv6 DNS addresses from default DNS configuration due to reliability issues (https://github.com/nymtech/nym-vpn-client/pull/6132)
+
+
+## [2026.12.0] - 2026-08-18
+
+### Added
+
+- [CLI] Add short option `-l` for `nym-vpnc status --listen` (https://github.com/nymtech/nym-vpn-client/pull/5839)
+- Recents manager for storing successful gateway connections (https://github.com/nymtech/nym-vpn-client/pull/5903)
+- Favorites manager for storing UI favorites (https://github.com/nymtech/nym-vpn-client/pull/5914)
+- Geo-Exclusion now supports Russia (https://github.com/nymtech/nym-vpn-client/pull/5917)
+
+### Changed
+
+- While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
+- Use "Auto" for entry and exit selectors independently (https://github.com/nymtech/nym-vpn-client/pull/5962)
+- Shift bridge logic back to `nym-bridges` crate and add dependency without changing underlying interface or model. (https://github.com/nymtech/nym-vpn-client/pull/5928)
+
+### Fixed
+
+- Ad-blocker and nym-socks5-proxy files are no longer stored in the network directory. (https://github.com/nymtech/nym-vpn-client/pull/5826)
+- Improve behavior of forwarding resolver by not sending empty response when hostname resolution fails. Instead simulate timeout to let clients retry more aggressively. (https://github.com/nymtech/nym-vpn-client/pull/5832)
+- When no VPN tunnel is active the geo-exclusion feature rejects non-excluded traffic. (https://github.com/nymtech/nym-vpn-client/pull/5872)
+
+
+## [2026.11.0] - 2026-07-10
+
+### Added
+
 - [iOS] Send network stats over the tunnel interface (https://github.com/nymtech/nym-vpn-client/pull/5564)
 - Store gateway independence notification toggle (https://github.com/nymtech/nym-vpn-client/pull/5586)
 
 ### Changed
 
 - Permit API networking in error state in order to refresh account data (https://github.com/nymtech/nym-vpn-client/pull/5623)
+- Increase timeout for TCP-based probe for connection monitoring in two-hop mode (https://github.com/nymtech/nym-vpn-client/pull/5803)
 
 ### Fixed
 
 - Fix missing "recursion available" flag in DNS responses, passthrough authority and additional records (https://github.com/nymtech/nym-vpn-client/pull/5546)
 - Provide escape hatch when reconnecting the tunnel in "time desynced" error state (https://github.com/nymtech/nym-vpn-client/pull/5551)
 - Race when network usage spikes happen during longer bandwidth checks, disconnecting the client from the server (https://github.com/nymtech/nym-vpn-client/pull/5618)
+- [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
+- [iOS] Fix metadata endpoint not being reached for exit tunnel (https://github.com/nymtech/nym-vpn-client/pull/5728)
+- Fix going into Connected state when metadata endpoint might not work (https://github.com/nymtech/nym-vpn-client/pull/5750)
+- [Linux] Disable NetworkManager's connectivity check before applying firewall rules (https://github.com/nymtech/nym-vpn-client/pull/5801) 
+- [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
+- [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
+- [macOS] Skip catch-all NAT masquerade when split tunneling is active (macOS >=14.6, <15.1 only). (https://github.com/nymtech/nym-vpn-client/pull/5569)
+- [Android] Fix old Android devices failing to bind for metadata endpoint (https://github.com/nymtech/nym-vpn-client/pull/5878)
 
 ### Removed
 
-- Removed mixnet tuning feature flag
+- Removed mixnet tuning feature flag (https://github.com/nymtech/nym-vpn-client/pull/5581)
 
 
 ## [2026.10.0] - 2026-06-09
@@ -336,7 +385,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon global and service configuration is now stored in JSON format, allowing versioning to be
   supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
 - Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
-
 
 ## [1.14.0] - 2025-08-26
 

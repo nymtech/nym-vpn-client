@@ -1,6 +1,7 @@
 name: ci-nym-ifconfig-linux
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - .github/workflows/ci-nym-ifconfig-linux.yml
       - "crates/nym-ifconfig/**/*.rs"
@@ -10,8 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SCCACHE_GHA_ENABLED: true
-  RUSTC_WRAPPER: sccache
 
 jobs:
   build-linux:
@@ -20,11 +19,13 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - uses: actions/checkout@v7.0.1
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -33,13 +34,13 @@ jobs:
 
       - name: Build
         working-directory: nym-vpn-core
-        run: cargo build --package nym-ifconfig --locked
+        run: cargo build --profile ci --package nym-ifconfig --locked
 
       - name: Build tests
         working-directory: nym-vpn-core
         id: build-tests
         run: |
-          EXEC=$(cargo test --package nym-ifconfig --no-run --locked --message-format json | jq 'select(.reason == "compiler-artifact" and .target.name == "nym_ifconfig" and .executable != null) | .executable')
+          EXEC=$(cargo test --profile ci --package nym-ifconfig --no-run --locked --message-format json | jq 'select(.reason == "compiler-artifact" and .target.name == "nym_ifconfig" and .executable != null) | .executable')
           echo "Got executable: $EXEC"
           echo "exec=$EXEC" >> "$GITHUB_OUTPUT"
 
@@ -49,4 +50,4 @@ jobs:
 
       - name: Test
         working-directory: nym-vpn-core
-        run: cargo test --package nym-ifconfig
+        run: cargo test --profile ci --package nym-ifconfig

@@ -8,10 +8,6 @@
     {
       "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
-    },
-    {
-      "url": "https://nym-frontdoor.vercel.app/api/",
-      "fronts": ["vercel.app", "vercel.com"]
     }
   ],
   "nym_vpn_api_url": "https://nymvpn.com/api/",
@@ -22,10 +18,6 @@
     {
       "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
-    },
-    {
-      "url": "https://nymvpn.com/api/",
-      "fronts": ["vercel.app", "vercel.com"]
     }
   ],
   "account_management": {

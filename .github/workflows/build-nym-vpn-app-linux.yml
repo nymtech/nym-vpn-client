@@ -18,6 +18,11 @@ on:
         required: true
         type: boolean
         default: false
+      version:
+        description: "Orchestrated app version to embed (empty = use src-tauri/Cargo.toml as before)"
+        required: false
+        type: string
+        default: ""
     secrets:
       TAURI_PRIVATE_KEY:
         required: true
@@ -25,15 +30,17 @@ on:
         required: true
       DESKTOP_JS_SENTRY_DSN:
         required: true
+
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  build-nym-vpn-app-linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: "ubuntu-22.04"
+          - os: "arc-ubuntu-22.04"
             arch: "x86_64"
             deb_arch: "amd64"
             app_image_arch: "amd64"
@@ -45,11 +52,10 @@ jobs:
             bin_arch: "arm64"
     runs-on: ${{ matrix.os }}
     env:
-      UPDATER_BUNDLE_NAME: updater_linux_${{ matrix.arch }}.AppImage.tar.gz
-      UPLOAD_DIR_LINUX: linux_artifacts_${{ matrix.arch }}
+      UPLOAD_DIR_LINUX: app_artifacts_linux_${{ matrix.arch }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -75,7 +81,7 @@ jobs:
           crate: cargo-license
 
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
 
@@ -85,16 +91,23 @@ jobs:
           version: "21.12" # version on ubuntu 24.04
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Apply orchestrated version (tauri)
+        uses: ./.github/actions/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: tauri
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/actions/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-app/src-tauri
-
-      - name: Get rust version used for build
-        id: rust-version
-        run: |
-          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
 
       - name: Install JS dependencies
         working-directory: nym-vpn-app
@@ -154,9 +167,6 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           echo "Copy AppImage"
           cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_APPIMAGE }}
-          #echo "Copy updater bundle and signature"
-          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}
-          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
           echo "Copy debian pkg"
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR_LINUX }}
           echo "Copy plain binary"
@@ -165,7 +175,7 @@ jobs:
           cp -vpr .pkg/linux/install ${{ env.UPLOAD_DIR_LINUX }}/install
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}

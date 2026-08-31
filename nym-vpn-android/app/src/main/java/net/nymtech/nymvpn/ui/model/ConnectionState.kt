@@ -31,7 +31,8 @@ sealed interface ConnectionState {
 			Tunnel.State.Down -> Disconnected
 			Tunnel.State.Up -> Connected
 			Tunnel.State.Disconnecting -> Disconnecting
-			Tunnel.State.Offline -> WaitingForConnection
+			// only a reconnect-armed session is "waiting"; see Tunnel.State.Offline
+			is Tunnel.State.Offline -> if (tunnelState.reconnect) WaitingForConnection else Offline
 
 			is Tunnel.State.Error -> Error(tunnelState.reason)
 
@@ -43,6 +44,7 @@ sealed interface ConnectionState {
 				val messageRes = when (establishConnectionState) {
 					EstablishConnectionState.RESOLVING_API_ADDRESSES -> R.string.connection_state_resolving_addresses
 					EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> R.string.connection_state_awaiting_readiness
+					EstablishConnectionState.AWAITING_CREDENTIALS_AVAILABILITY -> R.string.connection_state_awaiting_credentials
 					EstablishConnectionState.REFRESHING_GATEWAYS -> R.string.connection_state_refreshing_gateways
 					EstablishConnectionState.SELECTING_GATEWAYS -> R.string.connection_state_selecting_gateways
 					EstablishConnectionState.REGISTERING_WITH_GATEWAYS -> R.string.connection_state_connecting_mixnet_client

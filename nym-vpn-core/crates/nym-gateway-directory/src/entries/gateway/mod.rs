@@ -8,7 +8,10 @@ use ipnetwork::IpNetwork;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_validator_client::models::{KeyRotationId, LewesProtocolDetailsV1, NymNodeDescriptionV2};
+use nym_validator_client::models::{
+    KeyRotationId,
+    described::{type_translation::LewesProtocolDetailsV1, v2::NymNodeDescriptionV2},
+};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters, NodeFamily, NodeStaking},
     types::Percent,
@@ -69,9 +72,9 @@ pub struct Gateway {
     #[builder(default)]
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
     #[builder(default)]
-    pub node_staking: Option<NodeStaking>,
+    pub staking_data: Option<NodeStaking>,
     #[builder(default)]
-    pub node_family: Option<NodeFamily>,
+    pub family_data: Option<NodeFamily>,
 }
 
 impl Gateway {
@@ -157,8 +160,8 @@ impl Gateway {
             performance: None,
             version,
             lewes_protocol_details,
-            node_staking: None,
-            node_family: None,
+            staking_data: None,
+            family_data: None,
         })
     }
 
@@ -685,10 +688,30 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             performance,
             version: gateway.build_information.map(|info| info.build_version),
             lewes_protocol_details: gateway.lewes_protocol_details,
-            node_staking: gateway.node_staking,
-            node_family: gateway.node_family,
+            staking_data: gateway.staking_data,
+            family_data: gateway.family_data,
         })
     }
+}
+
+/// Convert a nym-vpn-api directory response into a filtered [`GatewayList`], applying the same
+/// per-gateway conversion and mixnet-blacklist filtering regardless of whether the raw data came
+/// from a live fetch, the builtin snapshot, or the on-disk gateway cache.
+pub(crate) fn gateways_from_directory_response(
+    raw: Vec<nym_vpn_api_client::response::NymDirectoryGateway>,
+    gw_type: GatewayType,
+) -> GatewayList {
+    let gateways: Vec<_> = raw
+        .into_iter()
+        .filter_map(|gw| {
+            Gateway::try_from(gw)
+                .inspect_err(|err| tracing::error!("Failed to parse gateway: {err}"))
+                .ok()
+        })
+        .filter(Gateway::not_mixnet_blacklisted)
+        .collect();
+
+    GatewayList::new(Some(gw_type), gateways)
 }
 
 pub type NymNodeList = GatewayList;

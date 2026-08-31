@@ -1,0 +1,25 @@
+name: nightly-release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * *"
+
+jobs:
+  release-nightly:
+    name: Publish nightly release
+    uses: ./.github/workflows/release-all-platforms.yml
+    permissions:
+      contents: write
+    with:
+      gh_release: none
+      publish_s3: true
+      release_channel: nightly
+      android: false
+      fdroid: true
+      linux: true
+      windows: true
+      ios: false
+      macos: true
+      publish-metadata: false
+    secrets: inherit

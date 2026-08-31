@@ -267,6 +267,18 @@ make -C nym-vpn-core -f Android.mk
 
 ## Environment variables used by the service
 
+- `NYM_VPND_DATA_DIR` - Override the daemon data directory from the default:
+  - Linux and macOS: `/var/lib/nym-vpnd`.
+  - Windows: `%ProgramData%\nym-vpnd\data`.
+
+- `NYM_VPND_CONFIG_DIR` - Override the daemon configuration directory from the default:
+    - Linux and macOS: `/etc/nym`.
+    - Windows: `%ProgramData%\nym-vpnd\config`.
+
+- `NYM_VPND_LOG_DIR` - Override the daemon log directory from the default:
+    - Linux and macOS: `/var/log/nym-vpnd`.
+    - Windows: `%ProgramData%\nym-vpnd\log`.
+
 - `NYM_FIREWALL_DEBUG` - Helps debugging the firewall. Does different things depending on
   platform:
     - Linux: Set to `"1"` to add packet counters to all firewall rules.

@@ -1,13 +1,13 @@
 {
-  "version": "2026.10.0",
+  "version": "2026.12.2",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5Vjc4c1JsNDBmVURtU2JQTjM3cDdseDhucHVQNlcrT0tuSkEyNU9IcjQxYytCRzZpN1JpYmEzcGJmOGV0WXViUmFtM05TN1VWNGcyQlBaTkUwK3JyMGcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgxMDIwNDk3CWZpbGU6TnltVlBOXzIwMjYuMTAuMF94NjQtc2V0dXAuZXhlClM3dnRRNkhON2phb3lnTS82Q3FRd3BKQUJYZlNrVG1IT2JiOUYvOTB2N0N0ZnkyVlVVYXBFZHBCMmNsTjBYdzd0dEZkaDNCVDFpZE43QXdxaTJlSUJBPT0K",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v2026.10.0/NymVPN_2026.10.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjZDL3hHZFhrTUsvd05vQUhXeHZwYjNlbGd4bXRtRkdLY3NnaWVHOWU0U0RlcVFVdHViTE9VcU1TNFloUHc5SSs4L1cyU21Vekx6UE9IMzh2S1kydVFRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3NjYzNjM2CWZpbGU6TnltVlBOXzIwMjYuMTIuMl94NjQtc2V0dXAuZXhlClI2SHdOMmJnUGxWR1lGT3dsVFdOdUwxREU5blFwYjh5elR3YWk4MmZ3R0RtN2VDZTAycThGek1jV1Iza2J3VDExbHpoTStCZEtrcnJQTWlGUGZ4RENBPT0K",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-v2026.12.2/NymVPN_2026.12.2_x64-setup.exe"
     },
     "windows-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjhmS3YvRnRmOTdSZXZraFlrRGU5dDRjWkVjQlU5bWMrWTRuc2twM2dXNHpMU0V1cysrVzF0dnRyY0xXaW81ZFJxb3VyTUl3VEtaZndFcG5BK21TQUFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgxMDE5NTg0CWZpbGU6TnltVlBOXzIwMjYuMTAuMF9hcm02NC1zZXR1cC5leGUKS2RoT1dEK2c0R3FTR3dKcVN6VjVkNWh0ZDY5VGMzRkVCOEFDWmxGZTkwSTVyRG1qT2UxQTNYbU9JL2FpcDV1clZud3kwL3Z6RVB6a0s2c29JVUttQXc9PQo=",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v2026.10.0/NymVPN_2026.10.0_arm64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VnlRU0VGaTM3WTc4b3R2eTN3K0FXQjJBVm1pV3ZlRHNwMllRSExIUWM2NzBOQ1ZrUkxPamtvWDNVZjVISmM0cExQaEl2Z0FleTk3NW1sazFpMXpibWdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3NjYzNTk0CWZpbGU6TnltVlBOXzIwMjYuMTIuMl9hcm02NC1zZXR1cC5leGUKOHZ2Slp1ZGo0VnJiL01PQ0pTTXpiY2lVYkpaTnhnR2J5U0JZa3FSK0lZNHVNQnFVOS9tTEszSFRLckFZbnlsc2RGTlBvN0JWMnZDMVRDeDZBYUNOQ1E9PQo=",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-v2026.12.2/NymVPN_2026.12.2_arm64-setup.exe"
     }
   }
 }

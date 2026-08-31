@@ -1,14 +1,17 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{IpAddr, SocketAddr};
+use std::{
+    net::{IpAddr, SocketAddr},
+    time::Duration,
+};
 
 use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
 use nym_http_api_client::ReqwestClientBuilder;
 use nym_wireguard_private_metadata_client::WireguardMetadataApiClient;
 use nym_wireguard_private_metadata_shared::{AvailableBandwidth, Version, v1, v2};
-use tokio::sync::OnceCell;
+use tokio::sync::{OnceCell, oneshot};
 use url::Url;
 
 use error::Result;
@@ -17,8 +20,13 @@ use crate::error::MetadataClientError;
 
 pub mod error;
 
+pub struct TunUpSendData {
+    pub metadata_endpoint_reachable_tx: oneshot::Sender<bool>,
+    pub data_type: TunUpSendDataType,
+}
+
 #[derive(Clone)]
-pub enum TunUpSendData {
+pub enum TunUpSendDataType {
     InterfaceName(String),
     TcpProxy(SocketAddr),
 }
@@ -33,24 +41,48 @@ struct LazyMetadataClient {
     version: Version,
 }
 
+#[cfg(target_os = "android")]
+// Kernel after version 5.7 supports binding without root or `CAP_NET_RAW` capability
+// Linux is already ran as root so the version only needs to be > 2.0.30 (released in 1997)
+// so we don't check for that
+fn kernel_supports_interface_binding() -> bool {
+    let Ok(uts_name) = nix::sys::utsname::uname() else {
+        return false;
+    };
+    let Some(release_str) = uts_name.release().to_str() else {
+        return false;
+    };
+    let Ok(version) = semver::Version::parse(release_str) else {
+        return false;
+    };
+    version >= semver::Version::new(5, 7, 0)
+}
+
 impl LazyMetadataClient {
     async fn new(
         mut base_url: Url,
         bind_ip: IpAddr,
         retries: usize,
+        timeout: Duration,
         sent_data: TunUpSendData,
     ) -> Result<Self> {
         let mut interface_name = None;
         let reqwest_builder = ReqwestClientBuilder::new();
-        let reqwest_builder = match sent_data {
-            TunUpSendData::InterfaceName(interface) => {
-                #[cfg(target_os = "linux")]
+        let reqwest_builder = match sent_data.data_type {
+            TunUpSendDataType::InterfaceName(interface) => {
+                #[cfg(any(target_os = "linux", target_os = "ios"))]
                 let reqwest_builder = reqwest_builder.interface(&interface);
+                #[cfg(target_os = "android")]
+                let reqwest_builder = if kernel_supports_interface_binding() {
+                    reqwest_builder.interface(&interface)
+                } else {
+                    reqwest_builder
+                };
 
                 interface_name = Some(interface.clone());
                 reqwest_builder.local_address(bind_ip)
             }
-            TunUpSendData::TcpProxy(tcp_proxy) => {
+            TunUpSendDataType::TcpProxy(tcp_proxy) => {
                 base_url.set_ip_host(tcp_proxy.ip()).map_err(|_| {
                     MetadataClientError::Internal("failed to set tcp proxy ip".to_owned())
                 })?;
@@ -68,15 +100,21 @@ impl LazyMetadataClient {
                 builder
                     .with_reqwest_builder(reqwest_builder)
                     .with_retries(retries)
+                    .with_timeout(timeout)
                     .build()
             })
             .map_err(Box::new)?;
-        let version = inner.version().await.map_err(Box::new)?;
+        let response = inner.version().await.map_err(Box::new);
+
+        let endpoint_reachable = response.is_ok();
+        let _ = sent_data
+            .metadata_endpoint_reachable_tx
+            .send(endpoint_reachable);
 
         Ok(Self {
             inner,
             interface_name,
-            version,
+            version: response?,
         })
     }
 }
@@ -84,6 +122,7 @@ impl LazyMetadataClient {
 pub struct MetadataClient {
     lazy_client: OnceCell<Result<LazyMetadataClient>>,
     lazy_client_retries: usize,
+    lazy_client_timeout: Duration,
     gateway_id: NodeIdentity,
     base_url: Url,
     bind_ip: IpAddr,
@@ -108,6 +147,7 @@ impl MetadataClient {
                     self.base_url.clone(),
                     self.bind_ip,
                     self.lazy_client_retries,
+                    self.lazy_client_timeout,
                     data,
                 )
                 .await
@@ -121,10 +161,12 @@ impl MetadataClient {
         bind_ip: IpAddr,
         signal_channel: TunUpReceiver,
         lazy_client_retries: usize,
+        lazy_client_timeout: Duration,
     ) -> Self {
         Self {
             lazy_client: OnceCell::new(),
             lazy_client_retries,
+            lazy_client_timeout,
             gateway_id,
             bind_ip,
             base_url,
@@ -134,6 +176,11 @@ impl MetadataClient {
 
     pub fn gateway_id(&self) -> NodeIdentity {
         self.gateway_id
+    }
+
+    // Make sure the initialization is done, so that we can get the interface name without having to wait for the first query to complete.
+    pub async fn lazy_init(&mut self) {
+        self.lazy_client().await;
     }
 
     pub async fn interface_name(&mut self) -> Option<String> {

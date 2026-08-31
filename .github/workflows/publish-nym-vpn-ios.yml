@@ -1,0 +1,105 @@
+name: publish-nym-vpn-ios
+
+on:
+  workflow_call:
+    inputs:
+      ios_ipa_name:
+        description: "The name of the iOS IPA artifact"
+        type: string
+        required: true
+      is_public:
+        description: "Whether the build is available to the general public (true/false)"
+        type: boolean
+        required: true
+      github_branch:
+        type: string
+        required: true
+      github_sha:
+        type: string
+        required: true
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+
+jobs:
+  publish-testflight:
+    runs-on: custom-macos-15
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - uses: actions/checkout@v7.0.1
+
+      - name: Install python3
+        run: |
+          brew install python
+          python3 --version
+
+      - name: Cache virtual env
+        id: cache-virtual-env
+        uses: actions/cache@v6.1.0
+        with:
+          path: python-venv
+          key: ${{ runner.os }}-${{ runner.arch }}-python-venv
+
+      - name: Setup virtual env
+        if: steps.cache-virtual-env.outputs.cache-hit != 'true'
+        run: python3 -m venv python-venv
+
+      - name: Activate virtual env
+        run: |
+          source python-venv/bin/activate
+          echo "$GITHUB_WORKSPACE/python-venv/bin" >> $GITHUB_PATH
+
+      - name: Install codemagic-cli-tools
+        run: |
+          python3 -m pip install codemagic-cli-tools
+          app-store-connect --version
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.UPLOAD_DIR_IOS }}
+          path: dist
+
+      - name: Upload to TestFlight
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          IPA_FILE: ${{ github.workspace }}/dist/${{ inputs.ios_ipa_name }}
+          BETA_GROUP: ${{ inputs.is_public == true && 'World' || 'Nym Team External' }}
+          BRANCH_NAME: ${{ inputs.github_branch }}
+          COMMIT_SHA: ${{ inputs.github_sha }}
+          WHATS_NEW_FILE: ${{ github.workspace }}/whatsnew.txt
+        run: |
+          set -euo pipefail
+
+          echo "🚀 Uploading to TestFlight (beta group: $BETA_GROUP)..."
+
+          DATE=$(date -u '+%F %T')
+          cat << EOF > "$WHATS_NEW_FILE"
+          Date: $DATE
+          Branch: $BRANCH_NAME
+          Git commit: $COMMIT_SHA
+          EOF
+
+          app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$IPA_FILE" --whats-new="@file:${WHATS_NEW_FILE}"
+
+          echo "✅ Upload completed successfully."

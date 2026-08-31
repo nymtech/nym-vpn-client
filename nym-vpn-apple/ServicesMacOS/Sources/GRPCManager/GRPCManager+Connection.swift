@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 import Constants
 import ConnectionTypes
 
@@ -56,10 +56,6 @@ extension GRPCManager {
 
     public func setAllowLan(_ allowed: Bool) async throws {
         try await rpcClient?.setAllowLan(allowLan: allowed)
-    }
-
-    public func setGatewaySelectionAlgorithm(_ algorithm: NymGatewaySelectionAlgorithm) async throws {
-        try await rpcClient?.setGatewaySelectionAlgorithm(gatewaySelectionAlgorithm: algorithm.sdkValue)
     }
 
     public func setGatewayIndependence(_ isEnabled: Bool) async throws {

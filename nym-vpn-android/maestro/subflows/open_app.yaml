@@ -1,0 +1,24 @@
+# Launches the app with a clean state and permissions granted, on the home screen.
+appId: net.nymtech.nymvpn.mock.debug
+---
+- launchApp:
+      clearState: true
+      permissions:
+          all: allow
+
+- runFlow:
+      when:
+          visible: "Connection request"
+      commands:
+          - tapOn: "OK"
+
+- extendedWaitUntil:
+      visible:
+          text: "Help us improve NymVPN"
+      timeout: 20000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+      visible:
+          text: "Connect"
+      timeout: 20000

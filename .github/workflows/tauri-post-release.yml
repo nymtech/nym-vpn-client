@@ -32,13 +32,12 @@ on:
 jobs:
   post-release:
     runs-on: arc-linux-latest
-    continue-on-error: true
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: "develop"
@@ -56,7 +55,6 @@ jobs:
           echo "RELEASE_DATE=$date" >> $GITHUB_ENV
 
       - name: Update CHANGELOG.md
-        continue-on-error: true
         working-directory: nym-vpn-app
         run: |
           new_entry="## [${{ inputs.version }}] - ${{ env.RELEASE_DATE }}"
@@ -64,7 +62,6 @@ jobs:
           cat CHANGELOG.md
 
       - name: Bump installer script
-        continue-on-error: true
         working-directory: .pkg/linux
         env:
           APP_TAG: ${{ inputs.release_tag }}
@@ -73,7 +70,6 @@ jobs:
           ./bump.sh
 
       - name: Update flatpak metainfo
-        continue-on-error: true
         working-directory: nym-vpn-app/.pkg/flatpak
         env:
           METAINFO_XML: net.nymtech.NymVPN.metainfo.xml

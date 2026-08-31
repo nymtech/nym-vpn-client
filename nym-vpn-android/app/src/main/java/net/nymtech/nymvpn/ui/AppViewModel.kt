@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,21 +26,23 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
+import net.nymtech.nymvpn.ui.screens.main.profiles.toCoreProfile
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.toSubscriptionUiState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class AppViewModel
@@ -57,7 +58,6 @@ constructor(
 
 	companion object {
 		private const val TAG = "app-vm"
-		private const val ACCOUNT_INIT_TIMEOUT_MS = 30_000L
 		private const val DISCONNECT_AWAIT_TIMEOUT_MS = 10_000L
 	}
 
@@ -75,10 +75,7 @@ constructor(
 	private val _autologinState = MutableStateFlow<AutologinState>(AutologinState.Idle)
 	val autologinState: StateFlow<AutologinState> = _autologinState.asStateFlow()
 
-	private val accountInitializingState = MutableStateFlow(false)
-
 	private var autologinJob: Job? = null
-	private var accountInitJob: Job? = null
 
 	val uiState =
 		combine(
@@ -98,11 +95,10 @@ constructor(
 				)
 			},
 			backendManager.accountSummaryFlow,
-			accountInitializingState,
-		) { base, accountSummary, isInitializing ->
+		) { base, accountSummary ->
 			base.copy(
 				subscription = accountSummary?.toSubscriptionUiState(),
-				isAccountInitializing = isInitializing,
+				hasSubscriptionHistory = accountSummary?.subscription != null,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -124,6 +120,16 @@ constructor(
 		autologinJob?.cancel()
 		autologinJob = viewModelScope.launch {
 			_autologinState.value = AutologinState.Loading
+
+			val accountState = backendManager.stateFlow.value.accountState
+			val needsRegistration = accountState is AccountControllerState.Error &&
+				accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
+			if (needsRegistration) {
+				runCatching { backendManager.registerAccount(null) }
+					.onSuccess { Timber.tag(TAG).i("RegisterAccountSuccess") }
+					.onFailure { t -> Timber.tag(TAG).w(t, "RegisterAccountFailed") }
+			}
+
 			runCatching { backendManager.getAutologinDeeplink(kind) }
 				.onSuccess { response ->
 					if (response != null) {
@@ -148,26 +154,6 @@ constructor(
 		_autologinState.value = AutologinState.Idle
 	}
 
-	fun notifyLoginStarted() {
-		accountInitJob?.cancel()
-		accountInitializingState.value = true
-		accountInitJob = viewModelScope.launch {
-			withTimeoutOrNull(ACCOUNT_INIT_TIMEOUT_MS) {
-				backendManager.stateFlow
-					.map { it.accountState }
-					.filter { isSettledAccountState(it) }
-					.first()
-			}
-			accountInitializingState.value = false
-		}
-	}
-
-	private fun isSettledAccountState(state: AccountControllerState): Boolean = state is AccountControllerState.ReadyToConnect ||
-		state is AccountControllerState.Decentralised ||
-		state is AccountControllerState.UpgradeMode ||
-		state is AccountControllerState.PendingSubscription ||
-		state is AccountControllerState.Error
-
 	fun onConfigurationHandled() {
 		_configurationChange.value = false
 	}
@@ -178,7 +164,7 @@ constructor(
 			if (backendManager.getState() != Tunnel.State.Down) {
 				Timber.tag(TAG).i("LogoutStoppingTunnel")
 				backendManager.stopTunnel()
-				val disconnected = withTimeoutOrNull(DISCONNECT_AWAIT_TIMEOUT_MS) {
+				val disconnected = withTimeoutOrNull(DISCONNECT_AWAIT_TIMEOUT_MS.milliseconds) {
 					backendManager.stateFlow.first { it.tunnelState == Tunnel.State.Down }
 				}
 				if (disconnected == null) Timber.tag(TAG).w("LogoutDisconnectTimeout")
@@ -203,6 +189,11 @@ constructor(
 
 	fun setWelcomeShown() = viewModelScope.launch {
 		settingsRepository.setWelcomeShown(true)
+	}
+
+	fun onProfileSelected(profile: Profile) = viewModelScope.launch {
+		Timber.tag(TAG).i("ProfileSelected profile=%s", profile)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetProfile(profile.toCoreProfile()))
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
@@ -261,14 +252,12 @@ constructor(
 			Timber.tag(TAG).d("AutoStartCheck enabled=%s", enabled)
 			if (!enabled) return
 
-			val managerState = withTimeoutOrNull(15_000) {
-				backendManager.stateFlow
-					.filter { it.isInitialized }
-					.first()
+			val managerState = withTimeoutOrNull(Constants.AUTO_START_INIT_WAIT_MS.milliseconds) {
+				backendManager.stateFlow.first { it.isInitialized }
 			}
 
 			if (managerState == null) {
-				Timber.tag(TAG).w("AutoStartSkipped reason=backend_init_timeout timeoutMs=15000")
+				Timber.tag(TAG).w("AutoStartSkipped reason=backend_init_timeout timeoutMs=%d", Constants.AUTO_START_INIT_WAIT_MS)
 				return
 			}
 
@@ -280,14 +269,23 @@ constructor(
 			val tunnelState = backendManager.getState()
 			Timber.tag(TAG).d("AutoStartTunnelState state=%s", tunnelState)
 
-			if (tunnelState != Tunnel.State.Down) {
-				Timber.tag(TAG).d("AutoStartSkipped reason=tunnel_not_down state=%s", tunnelState)
-				return
+			if (tunnelState == Tunnel.State.Down) {
+				Timber.tag(TAG).i("AutoStartStartingTunnel")
+				backendManager.startTunnel()
+				Timber.tag(TAG).i("AutoStartStartRequested")
+			} else {
+				Timber.tag(TAG).d("AutoStartWatching state=%s", tunnelState)
 			}
 
-			Timber.tag(TAG).i("AutoStartStartingTunnel")
-			backendManager.startTunnel()
-			Timber.tag(TAG).i("AutoStartStartRequested")
+			val reachedUp = withTimeoutOrNull(Constants.AUTO_START_STUCK_STATE_TIMEOUT_MS.milliseconds) {
+				backendManager.stateFlow.map { it.tunnelState }.first { it == Tunnel.State.Up }
+			}
+			if (reachedUp == null) {
+				Timber.tag(TAG).w("AutoStartStuckRetrying state=%s", backendManager.getState())
+				backendManager.startTunnel()
+			} else {
+				Timber.tag(TAG).i("AutoStartConfirmedUp")
+			}
 		}.onFailure {
 			Timber.tag(TAG).e(it, "AutoStartFailed")
 		}
@@ -322,23 +320,13 @@ constructor(
 		}
 	}
 
-	suspend fun isUserLoggedIn(): Boolean = backendManager.isMnemonicStored()
-
-	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
-		try {
+	suspend fun handleDeepLinkAuth(url: String): Boolean = withContext(Dispatchers.IO) {
+		runCatching {
 			Timber.tag(TAG).i("DeepLinkAuth started.")
 			backendManager.storeDeeplinkAccount(url)
-
-			runCatching { backendManager.refreshAccount() }
-
-			delay(2_000L)
-			notifyLoginStarted()
-
-			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-			if (shouldShowTechnical) Route.Main(authRoute = AuthRoute.TechOpt.routeName) else Route.Main()
-		} catch (e: Exception) {
+			true
+		}.onFailure { e ->
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
-			Route.Main(autoStart = false)
-		}
+		}.getOrDefault(false)
 	}
 }

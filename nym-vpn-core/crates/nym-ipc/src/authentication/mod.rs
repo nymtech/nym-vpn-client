@@ -5,13 +5,16 @@
 mod linux;
 #[cfg(target_os = "linux")]
 pub(crate) use linux::{Transport, incoming, is_authenticated};
+#[cfg(target_os = "linux")]
+use nix::unistd::{Gid, Group};
 
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::SigningRequirements;
+#[allow(unused)]
 #[cfg(target_os = "macos")]
-pub(crate) use macos::{Transport, incoming, is_authenticated};
+pub(crate) use macos::{Transport, incoming, is_authenticated, skip_authentication_checks};
 
 #[cfg(target_os = "windows")]
 mod windows;
@@ -67,6 +70,8 @@ pub struct AuthenticationMaterial {
     pub(crate) nym_certificate_serial_number: String,
     #[cfg(target_os = "macos")]
     pub(crate) signing_requirements: SigningRequirements,
+    #[cfg(target_os = "linux")]
+    pub(crate) nym_vpn_gid: Option<Gid>,
     #[cfg(unix)]
     pub(crate) shutdown_token: tokio_util::sync::CancellationToken,
 }
@@ -76,14 +81,29 @@ impl AuthenticationMaterial {
         disable_client_verification: bool,
         #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
         #[cfg(target_os = "macos")] signing_requirements: SigningRequirements,
+        #[cfg(target_os = "linux")] nym_vpn_group: &str,
         #[cfg(unix)] shutdown_token: tokio_util::sync::CancellationToken,
     ) -> Self {
+        #[cfg(target_os = "linux")]
+        let nym_vpn_gid = Group::from_name(nym_vpn_group)
+            .inspect_err(|err| tracing::warn!("Could not get the group {nym_vpn_group}: {err}"))
+            .inspect(|g| {
+                if g.is_none() {
+                    tracing::warn!("Not group found for {nym_vpn_group}")
+                }
+            })
+            .ok()
+            .flatten()
+            .map(|g| g.gid);
+
         Self {
             disable_client_verification,
             #[cfg(target_os = "windows")]
             nym_certificate_serial_number,
             #[cfg(target_os = "macos")]
             signing_requirements,
+            #[cfg(target_os = "linux")]
+            nym_vpn_gid,
             #[cfg(unix)]
             shutdown_token,
         }

@@ -1,4 +1,4 @@
 新增内容：
-- DoH (DNS over HTTPS) and DoT (DNS over TLS) to enhance ad blocking 
-- De-googled Android in-app account creation 
-- Fixed Hickory system resolver panicking
+- 使用 DoH（基于 HTTPS 的 DNS）和 DoT（基于 TLS 的 DNS）来增强广告拦截效果 
+- 非 Google Play 版本现在也可以在应用内创建账号 
+- 修复了 Hickory 系统解析器崩溃问题

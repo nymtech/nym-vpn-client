@@ -12,12 +12,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-libwg:
+  build-libwg-android:
     runs-on: arc-linux-latest
 
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -25,11 +25,11 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         id: cache
         with:
           path: build/lib
-          key: libwg-android-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-android-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-android.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
@@ -63,18 +63,10 @@ jobs:
           ARCHITECTURES: aarch64 x86_64
         run: ./wireguard/build-wireguard-go.sh --android
 
-      - name: Upload aarch64 artifacts
-        uses: actions/upload-artifact@v7
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: wireguard-go_aarch64-linux-android
-          path: build/lib/aarch64-linux-android
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload x86_64 artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: wireguard-go_x86_64-linux-android
-          path: build/lib/x86_64-linux-android
+          name: wireguard-go_linux-android
+          path: build/lib
           if-no-files-found: error
           retention-days: 1

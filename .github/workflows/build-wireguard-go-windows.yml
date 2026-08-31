@@ -6,34 +6,32 @@ on:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-windows.yml"
   workflow_dispatch:
-    inputs:
-      cpu_arch:
-        description: "Target CPU architecture"
-        required: false
-        default: x64
-        type: choice
-        options:
-          - x64
-          - ARM64
   workflow_call:
-    inputs:
-      cpu_arch:
-        description: "Target CPU architecture"
-        required: false
-        default: x64
-        type: string
 
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  build-libwg:
+  build-libwg-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        cpu_arch: [x64, ARM64]
+
     runs-on: "custom-windows-11"
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -41,15 +39,15 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         id: cache
         with:
           path: build/lib
-          key: libwg-windows-${{ inputs.cpu_arch || 'x64' }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-windows-${{ matrix.cpu_arch || 'x64' }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-windows.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
@@ -64,13 +62,13 @@ jobs:
           install: mingw-w64-clang-x86_64-clang
 
       - name: Install x64 msys2 packages
-        if: steps.cache.outputs.cache-hit != 'true' && (inputs.cpu_arch == '' || inputs.cpu_arch == 'x64')
+        if: steps.cache.outputs.cache-hit != 'true' && (matrix.cpu_arch == '' || matrix.cpu_arch == 'x64')
         shell: msys2 {0}
         run: |
           pacman -S --needed --noconfirm mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
 
       - name: Install ARM64 msys2 packages
-        if: steps.cache.outputs.cache-hit != 'true' && inputs.cpu_arch == 'ARM64'
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.cpu_arch == 'ARM64'
         shell: msys2 {0}
         run: |
           pacman -S --needed --noconfirm mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-headers mingw-w64-clang-aarch64-crt-git
@@ -97,12 +95,12 @@ jobs:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk libwg CPU_ARCH=${{ inputs.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} PWSH=1
+        run: make -f Windows.mk libwg CPU_ARCH=${{ matrix.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} PWSH=1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: wireguard-go_${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
-          path: build/lib/${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
+          name: wireguard-go_${{ matrix.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
+          path: build/lib
           if-no-files-found: error
           retention-days: 1

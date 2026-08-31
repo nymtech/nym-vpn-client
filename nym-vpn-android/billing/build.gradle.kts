@@ -13,7 +13,7 @@ android {
 
 		ndk {
 			abiFilters.clear()
-			abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+			abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
 		}
 	}
 
@@ -43,6 +43,9 @@ android {
 			dimension = Constants.TYPE
 		}
 		create(Constants.GENERAL) {
+			dimension = Constants.TYPE
+		}
+		create(Constants.MOCK) {
 			dimension = Constants.TYPE
 		}
 	}

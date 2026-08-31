@@ -1,0 +1,14 @@
+# Reveals the Entry/Exit server hop rows by switching OneClick to nerd mode.
+appId: net.nymtech.vpn
+---
+- runFlow:
+    when:
+      notVisible: "Exit server"
+    commands:
+      - tapOn: "Expand"
+
+- extendedWaitUntil:
+    visible:
+      text: "Exit server"
+    timeout: 10000
+- assertVisible: "Entry server"

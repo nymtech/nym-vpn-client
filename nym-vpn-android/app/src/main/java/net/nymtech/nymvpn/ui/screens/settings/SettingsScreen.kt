@@ -25,15 +25,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -67,8 +66,6 @@ import kotlin.Boolean
 fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = LocalNavController.current
-
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
@@ -133,7 +130,6 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			appDeviceStartupEnabled = false,
 			appSystemTrayEnabled = false,
 			appVersion = BuildConfig.VERSION_NAME,
-			daemonVersion = uiState.daemonVersion,
 			subscription = appUiState.subscription,
 		),
 		SettingsActions(
@@ -236,7 +232,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				.verticalScroll(rememberScrollState())
 				.fillMaxSize()
 				.padding(top = 24.dp)
-				.padding(horizontal = 24.dp.scaledWidth())
+				.padding(horizontal = 16.dp.scaledWidth())
 				.navigationBarsPadding(),
 		) {
 			LoginSection(
@@ -258,7 +254,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 			// SystemStatusSection(actions.onSystemStatusClick)
 			LogoutSection(isMnemonicStored = values.isMnemonicStored, actions.onLogoutClick)
 			QuitSection(actions.onQuitClick)
-			AppVersionSection(appVersion = values.appVersion, daemonVersion = values.daemonVersion, onAppVersionClick = actions.onAppVersionClick)
+			AppVersionSection(appVersion = values.appVersion, onAppVersionClick = actions.onAppVersionClick)
 		}
 	}
 }

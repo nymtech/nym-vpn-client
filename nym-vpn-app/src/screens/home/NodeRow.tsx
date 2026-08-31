@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
@@ -18,6 +17,7 @@ import {
   Gateway,
   Score,
   SelectedNode,
+  isAuto,
   isCountry,
   isGateway,
   isRegion,
@@ -26,8 +26,8 @@ import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
+import { ScoreIndicator } from '../node/ScoreIndicator';
 import { isBridgeMode, regionToCountryCode } from './util';
-import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
 const DURATION = 0.3;
 
@@ -49,7 +49,6 @@ export type SelectedNodeDisplayProps = {
   showQuic?: boolean;
   disabled?: boolean;
   showStreamOptimized?: boolean;
-  showFastest?: boolean;
   score?: Score;
 };
 
@@ -57,7 +56,6 @@ export function NodeRow({ type }: NodeRowProps) {
   const { setFocused, addToExpanded, reset } = useNodeListState();
 
   const {
-    algo,
     state,
     userSelectedNode,
     tunnel,
@@ -71,7 +69,6 @@ export function NodeRow({ type }: NodeRowProps) {
     mxExit,
   } = useAppStore(
     useShallow((s) => ({
-      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
       state: s.state,
       userSelectedNode: type === 'entry' ? s.entryNode : s.exitNode,
       tunnel: s.tunnel,
@@ -130,10 +127,9 @@ export function NodeRow({ type }: NodeRowProps) {
     (gw: Gateway | null) => ({
       showQuic: Boolean(quicTag && gw?.quic),
       showStreamOptimized: type === 'exit' && gw?.asn?.type === 'residential',
-      showFastest: userSelectedNode === 'random' && !gw?.country?.code,
       score: gw?.type === 'wg' ? gw?.wgScore : gw?.mxScore,
     }),
-    [quicTag, type, userSelectedNode],
+    [quicTag, type],
   );
 
   const getLocationInfo = useCallback(
@@ -194,6 +190,13 @@ export function NodeRow({ type }: NodeRowProps) {
           ...gwFlags(gw),
         };
       }
+      if (isAuto(selected)) {
+        return {
+          name: t('safest-server-selection'),
+          ip: '',
+          ...gwFlags(gw),
+        };
+      }
       if (isCountry(selected))
         return getLocationInfo(selected.country.code, gw);
       if (isRegion(selected)) {
@@ -203,17 +206,18 @@ export function NodeRow({ type }: NodeRowProps) {
           selected.region,
         );
       }
-      return getGatewayInfo(selected.gateway.id, gw);
+      if (isGateway(selected)) {
+        return getGatewayInfo(selected.gateway.id, gw);
+      }
+      return {
+        name: t('random', { ns: 'common' }),
+        location: t('random-server'),
+        ip: '',
+        ...gwFlags(gw),
+      };
     },
     [getGatewayInfo, getLocationInfo, gwFlags, t],
   );
-
-  // The daemon picks both hops in 'auto' and the entry hop in
-  // 'autoEntryExplicitExit'. For those slots the stored userSelectedNode is
-  // stale UI state left over from earlier modes — ignore it and derive the
-  // row from the daemon-reported gateway only.
-  const daemonPicked =
-    algo === 'auto' || (algo === 'autoEntryExplicitExit' && type === 'entry');
 
   // `lookupGw` is a stable store function — depending on it alone won't re-run
   // this memo when the underlying wg/mx lists arrive after a mode switch.
@@ -224,9 +228,6 @@ export function NodeRow({ type }: NodeRowProps) {
         ? tunnel?.entryGwId || connectingState?.entryGwId
         : tunnel?.exitGwId || connectingState?.exitGwId;
 
-    if (daemonPicked) {
-      return gw ? lookupGw(gw, type) : null;
-    }
     if (isGateway(userSelectedNode)) {
       return lookupGw(userSelectedNode.gateway.id, type);
     }
@@ -236,7 +237,6 @@ export function NodeRow({ type }: NodeRowProps) {
     // re-run the memo when those lists arrive after a mode switch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    daemonPicked,
     connectingState?.entryGwId,
     connectingState?.exitGwId,
     lookupGw,
@@ -250,28 +250,18 @@ export function NodeRow({ type }: NodeRowProps) {
   ]);
 
   const nodeDetails = useMemo(() => {
-    if (daemonPicked) {
-      return getGatewayInfo(gateway?.id ?? '', gateway);
-    }
-    // 'random' is a "let the daemon pick each time" selection; once we're
-    // connecting/connected we know which gateway it picked — show that
-    // instead of the generic "Random server" placeholder.
+    // 'random' and 'safest' (the daemon's `Auto`) are both "let the daemon pick
+    // each time" selections; once we're connecting/connected we know which
+    // gateway it picked — show that instead of the generic placeholder.
     if (
-      userSelectedNode === 'random' &&
+      (userSelectedNode === 'random' || isAuto(userSelectedNode)) &&
       (state === 'connecting' || state === 'connected') &&
       gateway
     ) {
       return getGatewayInfo(gateway.id, gateway);
     }
     return nodeData(userSelectedNode, gateway);
-  }, [
-    daemonPicked,
-    gateway,
-    getGatewayInfo,
-    nodeData,
-    state,
-    userSelectedNode,
-  ]);
+  }, [gateway, getGatewayInfo, nodeData, state, userSelectedNode]);
 
   // After switching vpnMode the new gateway list may not be loaded yet —
   // lookupGw returns null and we'd otherwise render raw IDs. Show a Loading
@@ -286,54 +276,29 @@ export function NodeRow({ type }: NodeRowProps) {
       type === 'entry'
         ? tunnel?.entryGwId || connectingState?.entryGwId
         : tunnel?.exitGwId || connectingState?.exitGwId,
-    ) ||
-    (!daemonPicked && isGateway(userSelectedNode));
+    ) || isGateway(userSelectedNode);
 
   const showLoading = listLoading && !gateway && hasGatewayIdToResolve;
 
   const textLabel = useMemo(() => {
-    if (daemonPicked) {
-      return nodeDetails.ip || t('best-server-for-my-location');
-    }
-    switch (algo) {
-      case 'autoEntryExplicitExit':
-        return state === 'connected' ? nodeDetails.ip : nodeDetails.name;
-      case 'explicit':
-        return state === 'connected'
-          ? (gateway?.name ?? nodeDetails.name)
-          : nodeDetails.name;
-      default:
-        return nodeDetails.name;
-    }
-  }, [
-    algo,
-    daemonPicked,
-    gateway?.name,
-    nodeDetails.ip,
-    nodeDetails.name,
-    state,
-    t,
-  ]);
+    return state === 'connected'
+      ? (gateway?.name ?? nodeDetails.name)
+      : nodeDetails.name;
+  }, [gateway?.name, nodeDetails.name, state]);
+
+  // A 'safest' hop carries no gateway id of its own, so `gateway` is null until
+  // the daemon reports the one it picked. Gate on that rather than on the
+  // tunnel state: at the moment the state flips to 'connecting' the gateway is
+  // still unknown, and ScoreIndicator maps an undefined score to a
+  // full-strength bar — i.e. a confident signal reading for no server.
+  const showSafestPlaceholder = isAuto(userSelectedNode) && !gateway;
 
   const descriptionLabel = useMemo(() => {
     if (showLoading) return null;
-    if (daemonPicked) {
-      return nodeDetails.location;
-    }
     return isGateway(userSelectedNode) || state === 'connected'
       ? nodeDetails.location
       : null;
-  }, [daemonPicked, nodeDetails, showLoading, state, userSelectedNode]);
-
-  // Only the entry hop is locked away from the user — in 'auto' /
-  // 'autoEntryExplicitExit' the daemon owns it, so the row is unclickable.
-  // The exit row stays interactive in every algo: in 'auto' picking an exit
-  // is what flips us into 'autoEntryExplicitExit' (see Node.tsx).
-  // When connecting/connected we also dim the row's content (but not the
-  // info button) to reinforce the non-interactive state.
-  const rowDisabled = daemonPicked && type === 'entry';
-  const rowDimmed =
-    rowDisabled && (state === 'connecting' || state === 'connected');
+  }, [nodeDetails, showLoading, state, userSelectedNode]);
 
   return (
     <div>
@@ -341,56 +306,43 @@ export function NodeRow({ type }: NodeRowProps) {
         {label}
       </p>
       <div
-        role={rowDisabled ? undefined : 'button'}
-        tabIndex={rowDisabled ? undefined : 0}
-        aria-disabled={rowDisabled || undefined}
-        onClick={rowDisabled ? undefined : handleClick}
-        onKeyDown={
-          rowDisabled
-            ? undefined
-            : (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleClick();
-                }
-              }
-        }
-        className={clsx(
-          'group relative isolate w-full rounded-xl border border-transparent p-2 transition-all duration-150 ease-out',
-          !rowDisabled && 'hover:border-black dark:hover:border-white',
-          rowDisabled && 'cursor-default',
-        )}
+        role="button"
+        tabIndex={0}
+        onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
+        className="group relative isolate w-full rounded-xl border border-transparent p-2 transition-all duration-150 ease-out hover:border-black dark:hover:border-white"
       >
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
-            <div
-              className={clsx(
-                'flex flex-1 items-center gap-2 overflow-hidden transition-opacity',
-                rowDimmed && 'opacity-60',
+            <div className="flex flex-1 items-center gap-2 overflow-hidden">
+              {showSafestPlaceholder ? (
+                <SmileyIcon className="h-6 w-6" />
+              ) : (
+                <ScoreIndicator score={nodeDetails.score} />
               )}
-            >
-              <ScoreIndicatorContainer score={nodeDetails.score} />
               <AnimatePresence mode="wait">
-                {nodeDetails.countryCode &&
-                  (state === 'connected' ||
-                    state === 'connecting' ||
-                    !daemonPicked) && (
-                    <motion.div
-                      key={nodeDetails.countryCode}
-                      initial={{ opacity: 0, x: 14 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 14 }}
-                      transition={{
-                        duration: DURATION,
-                        ease: [0.32, 0.72, 0, 1],
-                      }}
-                    >
-                      <FlagIcon
-                        code={nodeDetails.countryCode}
-                        alt={nodeDetails.name}
-                      />
-                    </motion.div>
-                  )}
+                {nodeDetails.countryCode && (
+                  <motion.div
+                    key={nodeDetails.countryCode}
+                    initial={{ opacity: 0, x: 14 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 14 }}
+                    transition={{
+                      duration: DURATION,
+                      ease: [0.32, 0.72, 0, 1],
+                    }}
+                  >
+                    <FlagIcon
+                      code={nodeDetails.countryCode}
+                      alt={nodeDetails.name}
+                    />
+                  </motion.div>
+                )}
               </AnimatePresence>
               {showLoading ? (
                 <Skeleton className="h-5 w-40" />
@@ -409,9 +361,6 @@ export function NodeRow({ type }: NodeRowProps) {
                     }}
                     className="text-text-primary flex min-w-0 flex-1 gap-2 truncate overflow-hidden text-start text-base leading-6 tracking-[-0.08px]"
                   >
-                    {daemonPicked && !gateway && (
-                      <SmileyIcon className="h-6 w-6" />
-                    )}
                     {textLabel}
                   </motion.span>
                 </AnimatePresence>
@@ -419,23 +368,12 @@ export function NodeRow({ type }: NodeRowProps) {
             </div>
             <div className="flex flex-row items-center justify-center gap-3">
               {nodeDetails.showQuic && (
-                <div
-                  className={clsx(
-                    'transition-opacity',
-                    rowDimmed && 'opacity-60',
-                  )}
-                >
+                <div>
                   <QuicTag />
                 </div>
               )}
               {nodeDetails.showStreamOptimized && (
-                <MsIcon
-                  icon="smart_display"
-                  className={clsx(
-                    'text-status-info transition-opacity',
-                    rowDimmed && 'opacity-60',
-                  )}
-                />
+                <MsIcon icon="smart_display" className="text-status-info" />
               )}
               {gateway && (
                 <ButtonIconNew
@@ -445,9 +383,7 @@ export function NodeRow({ type }: NodeRowProps) {
                     e.preventDefault();
                     e.stopPropagation();
                     navigate(routes.nodeDetails, {
-                      state: {
-                        gateway: gateway,
-                      },
+                      state: { gateway, hop: type, resetScroll: true },
                     });
                   }}
                 />
@@ -462,10 +398,7 @@ export function NodeRow({ type }: NodeRowProps) {
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className={clsx(
-                  'overflow-hidden transition-opacity',
-                  rowDimmed && 'opacity-60',
-                )}
+                className="overflow-hidden"
               >
                 <p className="text-text-secondary text-xs leading-5 tracking-[0.18px]">
                   {descriptionLabel}

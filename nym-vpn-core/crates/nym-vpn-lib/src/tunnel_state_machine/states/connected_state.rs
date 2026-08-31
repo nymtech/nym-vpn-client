@@ -28,6 +28,7 @@ use nym_common::trace_err_chain;
 use nym_firewall::{
     AllowedClients, AllowedDns, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol,
 };
+use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
@@ -116,6 +117,10 @@ impl ConnectedState {
             .await;
         }
 
+        // point the internal DNS resolver to the system so that it routes over the tunnel
+        // using the custom / commodity DNS flow while in the connected state
+        HickoryDnsResolver::shared().use_system_resolver();
+
         #[cfg(not(any(target_os = "android")))]
         if let Err(e) = connected_state.set_dns(shared_state).await {
             trace_err_chain!(e, "failed to set dns");
@@ -127,8 +132,14 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(target_os = "android")]
-        let _ = shared_state; // Avoid unused variable warning
+        shared_state
+            .recents_manager
+            .add_recent(
+                connection_data.tunnel.tunnel_type(),
+                connection_data.entry_gateway.id.clone(),
+                connection_data.exit_gateway.id.clone(),
+            )
+            .await;
 
         // Statistics reports must be sent through a socket bound to the tunnel interface,
         // since the packet tunnel provider's traffic is otherwise excluded from the tunnel.
@@ -156,6 +167,7 @@ impl ConnectedState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -282,6 +294,10 @@ impl ConnectedState {
             .statistics_event_sender
             .report_tunnel_interface(None);
 
+        // Revert the internal resolver to use the configured nameserver group
+        HickoryDnsResolver::shared().use_configured_resolver();
+        nym_http_api_client::network_reconfigured();
+
         #[cfg(not(target_os = "android"))]
         Self::reset_dns(shared_state).await;
 
@@ -365,6 +381,8 @@ impl TunnelStateHandler for ConnectedState {
                             shared_state
                                 .start_or_stop_socks5_proxy()
                                 .await;
+                        } else if diff.geo_exclusion_excluded_countries_changed() {
+                            shared_state.set_socks5_proxy_excluded_countries();
                         }
 
                         if diff.enable_ad_blocking_changed() {

@@ -4,7 +4,8 @@
 use std::time::Duration;
 
 use crate::cli::{Commands, db_command};
-use crate::fs::path::APP_CONFIG_DIR;
+use crate::favorites::FavoritesState;
+use crate::fs::path::{APP_CONFIG_DIR, APP_DATA_DIR};
 use crate::startup_error::{ErrorKey, StartupError};
 use crate::tray::TrayManager;
 #[cfg(windows)]
@@ -23,6 +24,7 @@ use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::diagnostic as cmd_diag;
+use commands::favorites as cmd_favorites;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -34,6 +36,7 @@ use commands::tray as cmd_tray;
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
 use commands::*;
+use nym_favorites::FavoritesManager;
 use state::app::AppState;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
@@ -48,6 +51,7 @@ mod db;
 mod env;
 mod error;
 mod events;
+mod favorites;
 mod fs;
 #[cfg(windows)]
 mod icon_extractor;
@@ -75,6 +79,7 @@ const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
 const DEFAULT_NETSTATS_ENABLED: bool = true;
 const DEFAULT_QUIC: bool = false;
+const DEFAULT_DEBUG_LOGGING: bool = true;
 
 // build time pkg data
 build_info::build_info!(fn build_info);
@@ -92,11 +97,16 @@ async fn main() -> Result<()> {
         fs::util::clean_local_files();
         return Ok(());
     }
-    let sentry_enabled = AppConfig::read()
-        .ok()
+    let app_config = AppConfig::read().ok();
+    let sentry_enabled = app_config
+        .as_ref()
         .map(|cfg| cfg.sentry_monitoring)
         .unwrap_or(DEFAULT_SENTRY_ENABLED);
-    let _guard = log::setup_tracing(&cli, sentry_enabled).await?;
+    let debug_logging = app_config
+        .as_ref()
+        .map(|cfg| cfg.debug_logging)
+        .unwrap_or(DEFAULT_DEBUG_LOGGING);
+    let debug_logging_control = log::setup_tracing(&cli, sentry_enabled, debug_logging).await?;
     trace!("cli args: {:#?}", cli);
 
     let os = sys::OsInfo::new();
@@ -129,6 +139,21 @@ async fn main() -> Result<()> {
         sentry::init(&os)
     } else {
         None
+    };
+
+    // Built here rather than in `setup`: `FavoritesManager::new` is async while the
+    // setup hook is synchronous, so awaiting it on main avoids blocking on the
+    // async runtime from inside the hook, and guarantees the store is loaded
+    // before any command can read it.
+    let favorites_manager = match APP_DATA_DIR.clone() {
+        Some(dir) => {
+            info!("favorites store dir: {}", dir.display());
+            Some(FavoritesManager::new(dir).await)
+        }
+        None => {
+            error!("failed to get app data dir, favorites will be unavailable");
+            None
+        }
     };
 
     let c_os = os.clone();
@@ -192,6 +217,8 @@ async fn main() -> Result<()> {
             linux_update_watcher::spawn(app.handle().clone());
 
             app.manage(cli.clone());
+            app.manage(Mutex::new(debug_logging_control));
+            app.manage(FavoritesState::new(favorites_manager));
 
             info!("Creating k/v embedded db");
             let db = match Db::new() {
@@ -304,6 +331,7 @@ async fn main() -> Result<()> {
             tunnel::get_tunnel_state,
             tunnel::connect,
             tunnel::disconnect,
+            tunnel::reconnect,
             tunnel::set_node,
             tunnel::set_quic,
             tunnel::set_fronting_mode,
@@ -324,7 +352,6 @@ async fn main() -> Result<()> {
             tunnel::is_split_tunnel_supported,
             tunnel::add_custom_split_tunnel_app,
             tunnel::remove_custom_split_tunnel_app,
-            tunnel::set_gateway_selection_algorithm,
             tunnel::set_enable_geo_location,
             tunnel::set_geo_exclusion_enabled,
             tunnel::set_geo_exclusion_listen_port,
@@ -337,10 +364,16 @@ async fn main() -> Result<()> {
             cmd_db::db_del,
             cmd_db::db_flush,
             cmd_gw::get_gateways,
+            cmd_gw::get_recent_gateways,
+            cmd_favorites::get_favorites,
+            cmd_favorites::add_favorite,
+            cmd_favorites::remove_favorite,
             cmd_window::show_main_window,
             cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
+            cmd_log::set_debug_logging,
+            cmd_log::debug_logging_enabled,
             account::get_account_state,
             account::add_account,
             account::get_account_mode,
@@ -354,6 +387,7 @@ async fn main() -> Result<()> {
             account::store_deeplink_account,
             account::get_autologin_deeplink,
             account::get_account_summary,
+            account::refresh_account_state,
             account::handle_subscription_payment,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,
@@ -377,6 +411,7 @@ async fn main() -> Result<()> {
             cmd_socks5::get_socks5_status,
             cmd_diag::run_diagnostic,
             cmd_diag::share_diagnostic,
+            cmd_diag::share_diagnostics_and_logs,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

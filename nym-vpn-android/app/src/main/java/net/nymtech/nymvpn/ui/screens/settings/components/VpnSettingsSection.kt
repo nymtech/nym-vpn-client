@@ -7,7 +7,6 @@ import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -193,8 +192,8 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 				SelectionItem(
 					leading = {
 						SettingsIcon(
-							Icons.Outlined.VisibilityOff,
-							stringResource(R.string.settings_mixnet_tuning_title),
+							ImageVector.vectorResource(R.drawable.ic_mixnet_tuning),
+							stringResource(R.string.settings_split_tunneling_title),
 						)
 					},
 					trailing = {

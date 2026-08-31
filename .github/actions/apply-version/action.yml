@@ -1,0 +1,86 @@
+name: Apply orchestrated version
+description: >-
+  Override the embedded app version for one platform from the unified release
+  orchestrator. When `version` is empty the action is a no-op, so callers can wire
+  it unconditionally and the platform keeps its own version logic for non-orchestrated
+  (PR / manual) runs.
+
+  Tooling per target:
+    core   toml set [workspace.package].version + cargo fetch
+    tauri  toml set [package].version + cargo fetch
+    android perl rewrite of Constants.VERSION_NAME (no set-version tool exists; gradle
+            derives the final versionName, so only the BASE is written here)
+    apple  fastlane mac bump_version      (sets MARKETING_VERSION on the ship targets)
+
+  Run AFTER checkout and after the toolchain the target needs is on PATH:
+    core/tauri → after the Rust toolchain (toml-cli is installed here on demand)
+    apple      → after Ruby/fastlane is on PATH
+
+inputs:
+  version:
+    description: "Embedded app version to write (e.g. 2026.11.0-nightly). Empty = no-op."
+    required: false
+    default: ""
+  target:
+    description: "Platform whose version source-of-truth to rewrite: core | tauri | android | apple"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install toml-cli
+      if: ${{ inputs.version != '' && (inputs.target == 'core' || inputs.target == 'tauri') }}
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: toml-cli
+
+    - name: Apply version
+      if: ${{ inputs.version != '' }}
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        TARGET: ${{ inputs.target }}
+      run: |
+        set -euo pipefail
+        echo "::notice:: applying orchestrated version '${VERSION}' to target '${TARGET}'"
+        case "$TARGET" in
+          core)
+            ( cd nym-vpn-core
+              toml set Cargo.toml workspace.package.version "$VERSION" > Cargo-patched.toml
+              mv Cargo-patched.toml Cargo.toml
+              cargo fetch )
+            ;;
+          tauri)
+            ( cd nym-vpn-app/src-tauri
+              toml set Cargo.toml package.version "$VERSION" > Cargo-patched.toml
+              mv Cargo-patched.toml Cargo.toml
+              cargo fetch )
+            ;;
+          android)
+            # No set-version tool: gradle builds the final apk name from
+            # Constants.VERSION_NAME. For nightly, gradle appends its own
+            # "-nightly.<timestamp>" suffix, so strip the orchestrator's trailing
+            # "-nightly" to avoid doubling. Keep "-beta.N" so the beta apk name
+            # carries it. VERSION_CODE is an integer and is left untouched.
+            VN=$(echo "$VERSION" | sed 's/-nightly.*//')
+            f="nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt"
+            VN="$VN" perl -0777 -pi -e 's/(VERSION_NAME\s*=\s*")[^"]*(")/$1 . $ENV{VN} . $2/e' "$f"
+            ;;
+          apple)
+            # fastlane lane sets MARKETING_VERSION (CFBundleShortVersionString) on the 6
+            # shipping targets. App Store requires that to be 1-3 period-separated integers,
+            # so strip any pre-release suffix ("-beta.N" / "-nightly") → major.minor.patch.
+            # The channel is carried by the release tag and TestFlight build, not the
+            # marketing version. CURRENT_PROJECT_VERSION (build number) is set by bump_build.
+            MV="${VERSION%%-*}"
+            cd nym-vpn-apple
+            fastlane mac bump_version "$MV"
+            fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
+            fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$VERSION"
+            ;;
+          *)
+            echo "::error:: unknown target '${TARGET}' (expected core|tauri|android|apple)"
+            exit 1
+            ;;
+        esac
+        echo "::notice:: done applying version to ${TARGET}"

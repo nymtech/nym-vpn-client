@@ -1,0 +1,10 @@
+# Taps Connect and clears any VPN permission dialog.
+appId: net.nymtech.vpn
+---
+- tapOn: "Connect"
+
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"

@@ -3,7 +3,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use nym_vpn_lib::service::ServiceConfigStorageType;
+use nym_vpn_lib::{paths::Paths, service::ServiceConfigStorageType};
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_network_config::NetworkCache;
 use tokio::{
@@ -53,6 +53,10 @@ impl NymVpnService {
                 // Export environment first!
                 environment.export_to_env();
 
+                #[cfg(target_os = "android")]
+                let service_storage_type = ServiceConfigStorageType::Persistent;
+
+                #[cfg(not(target_os = "android"))]
                 let service_storage_type =
                     ServiceConfigStorageType::Ephemeral(config.as_vpn_service_config());
 
@@ -72,8 +76,23 @@ impl NymVpnService {
                 );
 
                 let shutdown_token = CancellationToken::new();
+
+                let paths = Paths {
+                    data_dir: config.data_dir.clone(),
+                    config_dir: config.config_dir.clone(),
+                    log_dir: config.log_dir.clone(),
+                    log_path: None,
+                };
+
+                paths
+                    .create_directories()
+                    .await
+                    .map_err(|e| VpnError::InternalError {
+                        details: e.to_string(),
+                    })?;
+
                 let network_cache = NetworkCache::new(
-                    config.config_dir.clone(),
+                    config.config_dir.to_path_buf(),
                     &environment.current().nym_network.network_name,
                     Some(config.user_agent.clone().into()),
                 )
@@ -81,10 +100,7 @@ impl NymVpnService {
                 .map_err(VpnError::internal)?;
 
                 let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
-                    // This is only needed for log removal helper
-                    log_path: None,
-                    config_dir: config.config_dir.clone(),
-                    data_dir: config.data_dir.clone(),
+                    paths,
                     network_cache,
                     sentry_enabled: crate::logging::is_sentry_enabled(),
                     user_agent: config.user_agent.clone().into(),

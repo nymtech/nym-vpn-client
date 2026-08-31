@@ -4,10 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +21,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,18 +28,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.details.components.CountryFlag
 import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
-import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 
@@ -45,7 +45,6 @@ import net.nymtech.nymvpn.util.extensions.getScoreIcon
 internal fun NodeSection(
 	label: String,
 	node: ServerNode,
-	isAuto: Boolean,
 	isClickable: Boolean,
 	onNodeClick: () -> Unit,
 	onInfoClick: () -> Unit,
@@ -70,7 +69,6 @@ internal fun NodeSection(
 		if (alwaysShowRow) {
 			ServerRow(
 				node = node,
-				isAuto = isAuto,
 				isClickable = isClickable,
 				onServerClick = onNodeClick,
 				onInfoClick = onInfoClick,
@@ -84,7 +82,6 @@ internal fun NodeSection(
 			) {
 				ServerRow(
 					node = node,
-					isAuto = isAuto,
 					isClickable = isClickable,
 					onServerClick = onNodeClick,
 					onInfoClick = onInfoClick,
@@ -96,9 +93,9 @@ internal fun NodeSection(
 }
 
 @Composable
-private fun ServerRow(node: ServerNode, isAuto: Boolean, isClickable: Boolean, onServerClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
 	val indication = if (isClickable) ripple() else null
-	val showDetails = !isAuto && node.location != null
+	val showDetails = node.location != null
 	val locationAlpha by animateFloatAsState(
 		targetValue = if (showDetails) 1f else 0f,
 		animationSpec = tween(350),
@@ -118,16 +115,27 @@ private fun ServerRow(node: ServerNode, isAuto: Boolean, isClickable: Boolean, o
 		horizontalArrangement = Arrangement.spacedBy(8.dp),
 		modifier = modifier.fillMaxWidth(),
 	) {
-		val (icon, description) = getScoreIcon(node.score)
-		Icon(
-			icon,
-			contentDescription = description,
-			tint = LocalNymColors.current.success,
-			modifier = Modifier.size(iconSize).padding(2.dp),
-		)
+		val scoreIcon = getScoreIcon(node.score)
+		val lastScoreIcon = remember { mutableStateOf(scoreIcon) }
+		if (scoreIcon != null) lastScoreIcon.value = scoreIcon
+
+		AnimatedVisibility(
+			visible = scoreIcon != null,
+			modifier = Modifier.align(Alignment.Top),
+			enter = fadeIn(animationSpec = tween(350)) + expandHorizontally(animationSpec = tween(350)),
+			exit = fadeOut(animationSpec = tween(350)) + shrinkHorizontally(animationSpec = tween(350)),
+		) {
+			lastScoreIcon.value?.let { (icon, description) ->
+				Image(
+					icon,
+					contentDescription = description,
+					modifier = Modifier.size(iconSize).padding(2.dp),
+				)
+			}
+		}
 
 		Column(
-			verticalArrangement = Arrangement.spacedBy(2.dp),
+			verticalArrangement = Arrangement.spacedBy(4.dp),
 			modifier = Modifier
 				.weight(1f)
 				.clickable(interactionSource = remember { MutableInteractionSource() }, indication = indication) {
@@ -139,21 +147,13 @@ private fun ServerRow(node: ServerNode, isAuto: Boolean, isClickable: Boolean, o
 				horizontalArrangement = Arrangement.spacedBy(8.dp),
 				modifier = Modifier.offset(y = nameOffset),
 			) {
-				if (isAuto) {
-					Icon(
-						imageVector = Icons.Filled.Star,
-						contentDescription = null,
-						tint = LocalNymColors.current.warning,
-						modifier = Modifier.size(22.dp),
-					)
-				} else {
-					CountryFlag(node.countryCode, 22.dp)
-				}
+				val titleColor = if (isClickable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+				CountryFlag(node.countryCode, 22.dp, node.selectionType, tint = titleColor)
 
 				Text(
-					text = if (isAuto) stringResource(R.string.one_click_auto_server) else node.name ?: stringResource(R.string.one_click_auto_server),
+					text = node.name.orEmpty(),
 					style = MaterialTheme.typography.bodyLarge,
-					color = if (isClickable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+					color = titleColor,
 					maxLines = 1,
 					overflow = TextOverflow.Ellipsis,
 					modifier = Modifier.weight(1f),

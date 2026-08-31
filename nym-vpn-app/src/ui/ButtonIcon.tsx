@@ -14,6 +14,7 @@ export type ButtonIconNewProps = {
   initialAnimation?: boolean;
   noDefaultSize?: boolean;
   clickFeedback?: boolean;
+  'aria-label'?: string;
 };
 
 export function ButtonIconNew({
@@ -24,6 +25,7 @@ export function ButtonIconNew({
   initialAnimation = false,
   noDefaultSize = false,
   clickFeedback = false,
+  ...rest
 }: ButtonIconNewProps) {
   const [isClicked, click] = useTransition();
 
@@ -41,6 +43,7 @@ export function ButtonIconNew({
         !noDefaultSize && 'h-10 w-10',
         className && className,
       ])}
+      aria-label={rest['aria-label']}
       onClick={(e) => {
         if (clickFeedback) {
           clickAnim();
@@ -103,6 +106,7 @@ export type ButtonIconProps = {
   clickDuration?: number;
   noDefaultSize?: boolean;
   'data-testid'?: string;
+  'aria-label'?: string;
 };
 
 function ButtonIcon({
@@ -153,6 +157,7 @@ function ButtonIcon({
         onClick();
       }}
       disabled={disabled}
+      aria-label={rest['aria-label']}
       data-testid={testId}
       data-test-disabled={disabled ? 'true' : 'false'}
       data-test-clicked={isClicked ? 'true' : 'false'}

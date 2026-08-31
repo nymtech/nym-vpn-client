@@ -14,8 +14,38 @@ crate-type = ["cdylib", "lib", "staticlib"]
 [lints]
 workspace = true
 
+# Common dependencies for all platforms
 [dependencies]
 async-trait.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio-util = { workspace = true, features = ["codec", "rt"] }
+thiserror.workspace = true
+tracing.workspace = true
+uniffi = { workspace = true, features = ["tokio"] }
+nym-bridges-types = { workspace = true, features = [
+    "uniffi-bindings",
+    "serde",
+] }
+nym-gateway-directory.workspace = true
+nym-http-api-client.workspace = true
+nym-offline-monitor.workspace = true
+nym-vpn-lib-types = { workspace = true, features = [
+    "uniffi-bindings",
+    "nym-type-conversions",
+    "serde",
+] }
+nym-vpn-network-config.workspace = true
+nym-vpn-store.workspace = true
+nym-common.workspace = true
+nym-favorites.workspace = true
+
+# Dependencies specific to macOS rpc client usage
+[target.'cfg(target_os = "macos")'.dependencies]
+futures.workspace = true
+nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
+
+# Dependencies for non-macOS platforms, particularly Android and iOS
+[target.'cfg(not(target_os = "macos"))'.dependencies]
 ipnetwork.workspace = true
 itertools.workspace = true
 sentry = { workspace = true, features = [
@@ -28,30 +58,16 @@ sentry = { workspace = true, features = [
     "logs",
 ] }
 time.workspace = true
-thiserror.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread"] }
-tokio-util = { workspace = true, features = ["codec", "rt"] }
-tracing.workspace = true
 serde_json.workspace = true
-uniffi = { workspace = true, features = ["tokio"] }
+nym-bandwidth-controller = { workspace = true }
 nym-sdk.workspace = true
-nym-offline-monitor.workspace = true
+nym-diagnostic.workspace = true
 nym-vpn-lib.workspace = true
-nym-vpn-lib-types = { workspace = true, features = [
-    "uniffi-bindings",
-    "nym-type-conversions",
-] }
 nym-vpn-account-controller.workspace = true
-nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-vpn-api-client.workspace = true
-nym-http-api-client.workspace = true
-nym-common.workspace = true
-nym-gateway-directory.workspace = true
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 
-[target.'cfg(target_os = "macos")'.dependencies]
-nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 iprange.workspace = true

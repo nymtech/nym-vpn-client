@@ -1,0 +1,37 @@
+# Navigating between the sign-up and log-in sheets from the welcome screen.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/logout_to_welcome.yaml
+
+- assertVisible: "Welcome!"
+- assertVisible: "To the world's most private VPN"
+- assertVisible: "Sign Up"
+- assertVisible: "Login to my account"
+- assertVisible:
+    text: "By continuing, you agree to NymVPN.*"
+
+- tapOn: "Sign Up"
+- extendedWaitUntil:
+    visible:
+      text: "Anonymous account"
+    timeout: 10000
+- assertVisible: "Sign up with socials *"
+
+- back
+
+- extendedWaitUntil:
+    visible:
+      text: "Login to my account"
+    timeout: 10000
+- tapOn: "Login to my account"
+
+- extendedWaitUntil:
+    visible:
+      text: "Log in with 24 words"
+    timeout: 10000
+- assertVisible: "Log in using socials *"
+
+- back
+- assertVisible: "Welcome!"

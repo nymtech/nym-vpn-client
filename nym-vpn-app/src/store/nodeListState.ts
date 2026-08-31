@@ -9,10 +9,14 @@ export type Focused = {
   key: string;
 };
 
+/** Which subset of the node list is shown. */
+export type ListView = 'all' | 'favorites' | 'recents';
+
 type HopState = {
   expanded: string[];
   focused: Focused | null;
   search: string | null;
+  view: ListView;
 };
 
 type NodeListStore = {
@@ -22,10 +26,16 @@ type NodeListStore = {
   addToExpanded: (hop: Hop, value: string) => void;
   setFocused: (hop: Hop, focused: Focused | null) => void;
   setSearch: (hop: Hop, search: string | null) => void;
+  setView: (hop: Hop, view: ListView) => void;
   reset: (hop: Hop | 'all') => void;
 };
 
-const emptyHop: HopState = { expanded: [], focused: null, search: null };
+const emptyHop: HopState = {
+  expanded: [],
+  focused: null,
+  search: null,
+  view: 'all',
+};
 
 export const useNodeListStateStore = create<NodeListStore>((set, get) => ({
   entry: { ...emptyHop },
@@ -45,11 +55,19 @@ export const useNodeListStateStore = create<NodeListStore>((set, get) => ({
 
   setSearch: (hop, search) => set((s) => ({ [hop]: { ...s[hop], search } })),
 
+  setView: (hop, view) => set((s) => ({ [hop]: { ...s[hop], view } })),
+
+  // `view` deliberately survives a reset: expanded/focused/search are list
+  // positioning that should be cleared on navigation, whereas the active view is
+  // a choice the user made for the session.
   reset: (hop) => {
     if (hop === 'all') {
-      set({ entry: { ...emptyHop }, exit: { ...emptyHop } });
+      set((s) => ({
+        entry: { ...emptyHop, view: s.entry.view },
+        exit: { ...emptyHop, view: s.exit.view },
+      }));
     } else {
-      set({ [hop]: { ...emptyHop } });
+      set((s) => ({ [hop]: { ...emptyHop, view: s[hop].view } }));
     }
   },
 }));

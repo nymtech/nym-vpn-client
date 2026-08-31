@@ -1,0 +1,8 @@
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+onFlowStart:
+  - clearState
+# Only run flows/ (subflows/ are invoked via runFlow, not standalone tests).
+flows:
+  - flows/**

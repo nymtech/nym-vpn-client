@@ -31,7 +31,6 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
-import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import timber.log.Timber
 
 @HiltViewModel
@@ -67,7 +66,8 @@ constructor(
 	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
-	private var lastConnectedAt: Long? = null
+	private var pendingNodeFamiliesConfirmAction: (suspend () -> Unit)? = null
+	private var nodeFamiliesEventHandled = false
 
 	init {
 		viewModelScope.launch {
@@ -84,7 +84,12 @@ constructor(
 				handleTunnelStateChange(state.tunnelState, state.connectionData?.connectedAt)
 				val event = state.backendUiEvent
 				if (event is BackendUiEvent.Failure && event.reason is ErrorStateReason.NeedsRelaxedIndependenceCriteria) {
-					handleNeedsRelaxedIndependenceCriteria()
+					if (!nodeFamiliesEventHandled) {
+						nodeFamiliesEventHandled = true
+						handleNeedsRelaxedIndependenceCriteria()
+					}
+				} else {
+					nodeFamiliesEventHandled = false
 				}
 			}
 		}
@@ -92,6 +97,12 @@ constructor(
 
 	fun dismissExpiryBanner() {
 		_expiryBannerDismissed.value = true
+	}
+
+	fun refreshAccount() = viewModelScope.launch {
+		Timber.tag(TAG).i("RefreshAccountRequested")
+		runCatching { backendManager.refreshAccount() }
+			.onFailure { t -> Timber.tag(TAG).e(t, "RefreshAccountFailed") }
 	}
 
 	fun registerAccount() = viewModelScope.launch {
@@ -105,24 +116,10 @@ constructor(
 		}
 	}
 
-	fun onAutoSelected() = viewModelScope.launch {
-		Timber.tag(TAG).i("ConnectModeChangeRequested mode=AUTO")
-		runCatching {
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.AUTO))
-		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=AUTO")
-		}
-	}
-
 	fun onTwoHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectModeChangeRequested mode=FAST")
 		runCatching {
-			vpnConfigRepository.apply(
-				listOf(
-					CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET),
-					CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.EXPLICIT),
-				),
-			)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET))
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=FAST")
 		}
@@ -131,12 +128,7 @@ constructor(
 	fun onFiveHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectModeChangeRequested mode=MIXNET")
 		runCatching {
-			vpnConfigRepository.apply(
-				listOf(
-					CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET),
-					CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.EXPLICIT),
-				),
-			)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=MIXNET")
 		}
@@ -162,10 +154,16 @@ constructor(
 
 	fun onNodeFamiliesConfirm() = viewModelScope.launch {
 		Timber.tag(TAG).i("NodeFamiliesModalConfirmed")
+		val action = pendingNodeFamiliesConfirmAction
+		pendingNodeFamiliesConfirmAction = null
 		runCatching {
-			backendManager.setGatewayIndependenceEnabled(false)
-			backendManager.startTunnel()
+			action?.invoke()
 		}.onFailure { Timber.tag(TAG).e(it, "NodeFamiliesConnectFailed") }
+	}
+
+	fun onNodeFamiliesCancel() {
+		Timber.tag(TAG).i("NodeFamiliesModalCancelled")
+		pendingNodeFamiliesConfirmAction = null
 	}
 
 	private suspend fun resolveNodeFamiliesInteraction(onSilent: suspend () -> Unit) {
@@ -173,9 +171,9 @@ constructor(
 			vpnConfigRepository.getConfig().nodeFamiliesNotificationsEnabled
 		}.getOrDefault(true)
 		if (notificationsEnabled) {
+			pendingNodeFamiliesConfirmAction = onSilent
 			_events.tryEmit(MainUiEvent.ShowNodeFamiliesDialog)
 		} else {
-			backendManager.setGatewayIndependenceEnabled(false)
 			onSilent()
 		}
 	}
@@ -183,7 +181,7 @@ constructor(
 	private suspend fun handleNeedsRelaxedIndependenceCriteria() {
 		Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (connected state)")
 		runCatching {
-			resolveNodeFamiliesInteraction { backendManager.requestReconnect() }
+			resolveNodeFamiliesInteraction { backendManager.requestReconnect(relaxGatewayIndependence = true) }
 		}.onFailure { Timber.tag(TAG).e(it, "NeedsRelaxedIndependenceCriteriaFailed") }
 	}
 
@@ -191,7 +189,7 @@ constructor(
 		when (result) {
 			is TentativeGateways.NeedsRelaxedIndependenceCriteria -> {
 				Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (pre-connect)")
-				resolveNodeFamiliesInteraction { backendManager.startTunnel() }
+				resolveNodeFamiliesInteraction { backendManager.startTunnel(relaxGatewayIndependence = true) }
 			}
 			else -> backendManager.startTunnel()
 		}
@@ -199,7 +197,6 @@ constructor(
 
 	fun onDisconnect() = viewModelScope.launch {
 		Timber.tag(TAG).i("DisconnectRequested")
-		lastConnectedAt = null
 		stopConnectionTimerInternal()
 		runCatching { backendManager.stopTunnel() }
 			.onFailure { Timber.tag(TAG).e(it, "DisconnectFailed") }
@@ -226,6 +223,13 @@ constructor(
 				ConnectionState.Disconnecting
 			managerState.isRestarting ->
 				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+			managerState.tunnelState is Tunnel.State.Offline ->
+				// only a reconnect-armed session is "waiting"; see Tunnel.State.Offline
+				if (managerState.tunnelState.reconnect) {
+					ConnectionState.WaitingForConnection
+				} else {
+					ConnectionState.Offline
+				}
 			managerState.tunnelState !is Tunnel.State.Down &&
 				managerState.tunnelState !is Tunnel.State.Error &&
 				networkStatus == NetworkStatus.Disconnected ->
@@ -246,8 +250,7 @@ constructor(
 					val isSubError = event.reason is ErrorStateReason.InactiveSubscription ||
 						event.reason is ErrorStateReason.InactiveAccount
 					val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
-						managerState.accountState is AccountControllerState.Decentralised ||
-						managerState.accountState is AccountControllerState.UpgradeMode
+						managerState.accountState is AccountControllerState.Decentralised
 					if (isSubError && isAccountReady) baseState else ConnectionState.Error(event.reason)
 				}
 			}
@@ -256,35 +259,10 @@ constructor(
 	}
 
 	private fun handleTunnelStateChange(tunnelState: Tunnel.State, connectedAt: Long?) {
-		when (tunnelState) {
-			is Tunnel.State.Up -> {
-				if (connectedAt != null) {
-					lastConnectedAt = connectedAt
-					startConnectionTimer(connectedAt)
-				}
-			}
-			is Tunnel.State.Disconnecting -> {
-				lastConnectedAt = null
-				stopConnectionTimerInternal()
-			}
-			is Tunnel.State.InitializingClient,
-			is Tunnel.State.EstablishingConnection,
-			is Tunnel.State.Offline,
-			-> {
-				if (connectedAt != null) {
-					lastConnectedAt = connectedAt
-					startConnectionTimer(connectedAt)
-				} else {
-					lastConnectedAt = null
-					stopConnectionTimerInternal()
-				}
-			}
-			is Tunnel.State.Down,
-			is Tunnel.State.Error,
-			-> {
-				if (connectedAt == null) lastConnectedAt = null
-				stopConnectionTimerInternal()
-			}
+		when (val command = ConnectionTimerPolicy.evaluate(tunnelState, connectedAt)) {
+			is ConnectionTimerPolicy.Command.Start -> startConnectionTimer(command.connectedAtSeconds)
+			ConnectionTimerPolicy.Command.Stop -> stopConnectionTimerInternal()
+			ConnectionTimerPolicy.Command.None -> Unit
 		}
 	}
 

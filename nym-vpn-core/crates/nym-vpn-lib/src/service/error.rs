@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+use nym_favorites::FavoritesError;
 use nym_vpn_api_client::error::VpnApiClientError;
 use nym_vpn_lib_types::GatewayType;
 
@@ -37,11 +38,17 @@ pub enum Error {
     #[error("failed to create account controller")]
     CreateAccountController(#[source] nym_vpn_account_controller::Error),
 
+    #[error("failed to setup bandwidth controller storage paths")]
+    BandwidthControllerStorage(#[source] Box<nym_sdk::Error>),
+
     #[error("failed to create gateway client")]
     CreateGatewayClient(#[source] crate::gateway_directory::Error),
 
     #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
+
+    #[error("failed to set up paths")]
+    PathsSetup(#[source] crate::paths::PathsSetupError),
 
     #[error("failed to create file updater")]
     CreateFileUpdater(#[source] nym_file_updater::FileUpdaterError),
@@ -84,11 +91,11 @@ pub enum GeoExclusionConfigError {
     #[error("invalid country code '{0}': must be a 2-letter uppercase ISO code")]
     InvalidCountryCode(String),
 
-    #[error("unsupported country code '{0}': only 'CN' is currently supported")]
-    UnsupportedCountry(String),
+    #[error("unsupported country code '{0}': supported countries are {1}")]
+    UnsupportedCountry(String, String),
 
-    #[error("'CN' must be included in the excluded countries list")]
-    CnRequired,
+    #[error("duplicate country code '{0}' in excluded countries list")]
+    DuplicateCountry(String),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -104,6 +111,9 @@ pub enum ListGatewaysError {
         gw_type: GatewayType,
         source: crate::gateway_directory::Error,
     },
+
+    #[error("failed to get recent gateways ({0})")]
+    GetRecentGateways(FavoritesError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

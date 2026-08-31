@@ -56,7 +56,8 @@ public struct GatewayRegionCell: View {
         entryGateway: Binding<EntryGateway>,
         exitRouter: Binding<ExitRouter>,
         scrollToModel: Binding<GatewayScrollToModel>,
-        bottomCornerRadius: CGFloat = 0
+        bottomCornerRadius: CGFloat = 0,
+        isInitiallyExpanded: Bool = false
     ) {
         self.hopType = hopType
         self.country = country
@@ -76,7 +77,7 @@ public struct GatewayRegionCell: View {
             region: region,
             server: selectedServer
         )
-        _isExpanded = State(initialValue: shouldExpand)
+        _isExpanded = State(initialValue: shouldExpand || isInitiallyExpanded)
         let shouldSelect = unwrappedScrollToModel.region == region && unwrappedScrollToModel.isRegion
         _isRegionSelected = State(initialValue: shouldSelect)
     }

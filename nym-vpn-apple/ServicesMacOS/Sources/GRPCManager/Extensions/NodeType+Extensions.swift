@@ -1,4 +1,4 @@
-import NymVPNRpc
+import NymVPNLib
 import ConnectionTypes
 
 extension NodeType {

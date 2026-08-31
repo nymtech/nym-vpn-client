@@ -68,6 +68,7 @@ impl LpClientRegistration {
                 &registration_config.local_wg_keypair,
                 &registration_config.gateway_id_key,
                 &registration_config.bandwidth_provider,
+                None,
                 TicketType::V1WireguardEntry,
             )
             .await;
@@ -150,7 +151,7 @@ async fn setup_registration(
             .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
     );
 
-    let bandwidth_provider = setup_bandwidth_provider(network, storage_path)
+    let bandwidth_provider = setup_bandwidth_provider(storage_path)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to setup bandwidth provider : {e}"))?;
 

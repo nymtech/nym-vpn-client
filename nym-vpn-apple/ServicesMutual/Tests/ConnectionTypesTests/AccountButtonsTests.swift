@@ -13,15 +13,13 @@ struct AccountButtonsTests {
         #expect(kinds == [.manageSubscriptionExternal, .logout])
     }
 
-    @Test func inactiveUnlinkedMacOS() {
-        var s = AccountSummary.makeFake(daysRemaining: nil, kind: .oneYear, isAutoRenew: false, baseAddress: "a")
-        s.isLinked = false
+    @Test func inactiveMacOS() {
+        let s = AccountSummary.makeFake(daysRemaining: nil, kind: .oneYear, isAutoRenew: false, baseAddress: "a")
         let buttons = accountButtons(for: s, platform: .macOS, isTestFlight: false)
-        #expect(buttons.map(\.kind) == [.renewPlan, .manageSubscriptionExternal, .linkAccount, .logout])
+        #expect(buttons.map(\.kind) == [.renewPlan, .manageSubscriptionExternal, .logout])
         #expect(buttons.map(\.titleKey) == [
             "settings.account.renewNow",
             "settings.account.manageSubscription",
-            "settings.account.nymAccount",
             "settings.logout"
         ])
         #expect(buttons.last?.isDestructive == true)

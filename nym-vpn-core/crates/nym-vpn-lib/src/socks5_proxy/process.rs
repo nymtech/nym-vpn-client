@@ -34,6 +34,13 @@ impl RunningProcess {
         }
     }
 
+    pub fn set_excluded_countries(&self, excluded_countries: Vec<String>) {
+        let msg = DaemonMessage::SetExcludedCountries(excluded_countries);
+        if self.msg_tx.send(msg).is_err() {
+            tracing::warn!("could not send SetExcludedCountries to proxy: channel closed");
+        }
+    }
+
     pub fn shutdown(&self) {
         self.shutdown_token.cancel();
     }

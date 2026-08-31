@@ -12,7 +12,7 @@ La plupart des VPN affirment qu'ils suivent une politique no-log : ils peuvent l
 
 • Mode Rapide : dVPN à 2 sauts basé sur AmneziaWG (WireGuard). Streaming et navigation rapides sur un réseau décentralisé.
 
-• Mode Anonyme : repose sur un Noise Generating Mixnet à 5 sauts, un successeur de Tor plus respectueux de la vie privée. Il mélange votre trafic avec d'autres tout en y ajoutant du bruit (noise) et un trafic de couverture. Le VPN grand public le plus anonyme. Idéal pour la crypto, les e-mails et les messageries privées comme Signal.
+• Mode Anonyme : repose sur un Noise Generating Mixnet à 5 sauts, un successeur de Tor plus respectueux de la vie privée. Il mélange votre trafic avec d'autres tout en y ajoutant du bruit et un trafic de couverture. Le VPN grand public le plus anonyme. Idéal pour la crypto, les e-mails et les messageries privées comme Signal.
 
 💰 PAYEZ ANONYMEMENT EN CRYPTOMONNAIES OU EN ESPÈCES
 
@@ -58,13 +58,10 @@ NymVPN opère sous la loi suisse : hors des « 14 Eyes ». Grâce à notre archi
 NymVPN est développé par Nym, reconnu dans le monde entier par des journalistes, des militants et des utilisateurs soucieux de leur vie privée. Nos protocoles sont open source et audités par des chercheurs en sécurité indépendants.
 
 🚫 CE QUE NOUS NE FAISONS JAMAIS
-
 • Nous ne demandons ni e-mail ni nom
 • Nous sommes incapables de tracer les sites que vous visitez
 • Nous ne pouvons pas vendre, partager ou louer vos données
 
 📲 MISE EN ROUTE
 
-Téléchargez NymVPN, créez un compte anonyme, et commencez à naviguer en privé.
-
-Essayez NymVPN dès aujourd'hui.
+Téléchargez NymVPN, créez un compte anonyme, et naviguer en privé.

@@ -12,7 +12,7 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    AvailableTicketbooks, SharedAccountState,
+    SharedAccountState,
     commands::{ReturnSender, dispatch::CommonCommand},
     deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
     storage::AccountStorageOp,
@@ -46,9 +46,6 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::GetActiveDevices(result_tx) => {
             result_tx.send(handle_get_active_devices(shared_state).await);
-        }
-        CommonCommand::GetAvailableTickets(result_tx) => {
-            result_tx.send(handle_get_available_tickets(shared_state).await);
         }
         CommonCommand::GetAccountSummary(result_tx) => {
             result_tx.send(handle_get_account_summary(shared_state).await);
@@ -183,23 +180,6 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
         tracing::debug!("{:?}", device);
     }
     Ok(devices.items)
-}
-
-pub(crate) async fn handle_get_available_tickets<C: ConnectivityMonitor>(
-    shared_state: &SharedAccountState<C>,
-) -> Result<AvailableTicketbooks, AccountCommandError> {
-    tracing::debug!("Getting available tickets from local credential storage");
-
-    shared_state
-        .credential_storage
-        .print_info()
-        .await
-        .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
-    shared_state
-        .credential_storage
-        .get_available_ticketbooks()
-        .await
-        .map_err(|err| AccountCommandError::Storage(err.to_string()))
 }
 
 pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(

@@ -6,6 +6,7 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
   BackendError,
+  DiagnosticsSuggestedReason,
   FeatureFlags,
   MixnetEventPayload,
   TAccountState,
@@ -19,6 +20,7 @@ import {
 import {
   AccountStateEvent,
   DaemonEvent,
+  DiagnosticsSuggestedEvent,
   MixnetEvent,
   TunnelStateEvent,
   UpdatePendingEvent,
@@ -131,6 +133,16 @@ export function useTauriEvents(
     });
   }, []);
 
+  const registerDiagnosticsSuggestedListener = useCallback(() => {
+    return listen<DiagnosticsSuggestedReason>(
+      DiagnosticsSuggestedEvent,
+      ({ payload }) => {
+        console.info('diagnostics suggested', payload);
+        dispatch({ type: 'set-diagnostics-suggested-reason', reason: payload });
+      },
+    );
+  }, []);
+
   // register/unregister event listeners
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -140,6 +152,7 @@ export function useTauriEvents(
     const unlistenThemeChanges = registerThemeChangedListener();
     const unlistenVpnConfig = registerVpnConfigListener();
     const unlistenUpdatePending = registerUpdatePendingListener();
+    const unlistenDiagnosticsSuggested = registerDiagnosticsSuggestedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -149,6 +162,7 @@ export function useTauriEvents(
       unlistenThemeChanges.then((f) => f());
       unlistenVpnConfig.then((f) => f());
       unlistenUpdatePending.then((f) => f());
+      unlistenDiagnosticsSuggested.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -158,5 +172,6 @@ export function useTauriEvents(
     registerThemeChangedListener,
     registerVpnConfigListener,
     registerUpdatePendingListener,
+    registerDiagnosticsSuggestedListener,
   ]);
 }

@@ -15,11 +15,6 @@ env:
   CI_TESTING: true
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
-  LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Debug
   STDRIVER_PATH: build/st-driver/x64-Debug
 
@@ -50,7 +45,7 @@ jobs:
         run: git config --system core.longpaths true
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
@@ -58,7 +53,8 @@ jobs:
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -87,7 +83,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
-          path: ${{ env.LIBS_PATH }}
+          path: build/lib
 
       - name: Download winfw artifacts
         uses: actions/download-artifact@v8
@@ -114,9 +110,9 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --locked
+          cargo build --profile ci --workspace --locked
 
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --locked
+          cargo test --profile ci --workspace --locked

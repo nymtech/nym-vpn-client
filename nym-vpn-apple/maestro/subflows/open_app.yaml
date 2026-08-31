@@ -1,0 +1,23 @@
+# Launches the mock app with a clean state and lands on the home screen.
+appId: net.nymtech.vpn
+---
+- launchApp:
+    arguments:
+      MOCK_MODE: "1"
+
+- runFlow:
+    when:
+      visible: ".*most private VPN.*"
+    commands:
+      - tapOn: "Get started"
+
+- runFlow:
+    when:
+      visible: "Welcome!"
+    commands:
+      - tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 20000

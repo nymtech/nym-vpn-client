@@ -16,9 +16,9 @@ use nym_vpn_lib_types::{
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent, TunnelState,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport, Socks5Settings,
+    Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -212,20 +212,6 @@ impl RpcClient {
 
         self.0
             .set_mixnet_traffic_config(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn set_gateway_selection_algorithm(
-        &mut self,
-        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) -> Result<()> {
-        let request = proto::GatewaySelectionAlgorithm::from(gateway_selection_algorithm);
-
-        self.0
-            .set_gateway_selection_algorithm(request)
             .await
             .map_err(Error::Rpc)?
             .into_inner();
@@ -523,14 +509,10 @@ impl RpcClient {
         AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn decentralised_obtain_ticketbooks(
-        &mut self,
-        amount: u64,
-    ) -> Result<AccountCommandResponse> {
-        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+    pub async fn decentralised_obtain_ticketbooks(&mut self) -> Result<AccountCommandResponse> {
         let response = self
             .0
-            .decentralised_obtain_ticketbooks(request)
+            .decentralised_obtain_ticketbooks(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
@@ -639,6 +621,12 @@ impl RpcClient {
             .into_inner();
 
         Ok(AvailableTickets::from(response))
+    }
+
+    pub async fn restock_ticketbooks(&mut self) -> Result<()> {
+        self.0.restock_ticketbooks(()).await.map_err(Error::Rpc)?;
+
+        Ok(())
     }
 
     pub async fn get_account_summary(&mut self) -> Result<Option<VpnAccountSummary>> {
@@ -934,6 +922,20 @@ impl RpcClient {
         TentativeGateways::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    pub async fn get_recent_gateways(
+        &mut self,
+        params: nym_vpn_lib_types::GetRecentGatewaysParams,
+    ) -> Result<RecentGateways> {
+        let request = proto::GetRecentGatewaysParams::from(params);
+        let response = self
+            .0
+            .get_recent_gateways(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        RecentGateways::try_from(response).map_err(Error::InvalidResponse)
+    }
+
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn is_split_tunnel_supported(&mut self) -> Result<bool> {
         self.0
@@ -1025,6 +1027,19 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
+
+    pub async fn set_profile(&mut self, profile_options: ProfileOptions) -> Result<()> {
+        let profile_options_proto =
+            proto::ProfileOptions::try_from(profile_options).map_err(Error::InvalidRequest)?;
+
+        self.0
+            .set_profile(profile_options_proto)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(())
+    }
 }
 
 pub fn get_rpc_socket_path() -> PathBuf {
@@ -1051,7 +1066,14 @@ pub enum Error {
     #[error("Failed to parse rpc response: {0}")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
 
-    #[error("Authentication is required to access the daemon")]
+    #[cfg(target_os = "linux")]
+    #[error(
+        "Authentication is required to access the daemon. Consider adding your user to the nym-vpn group: usermod -aG nym-vpn \"$USER\" (needs root permissions)"
+    )]
+    AuthenticationRequired,
+
+    #[cfg(not(target_os = "linux"))]
+    #[error("Authentication is required to access the daemon.")]
     AuthenticationRequired,
 }
 

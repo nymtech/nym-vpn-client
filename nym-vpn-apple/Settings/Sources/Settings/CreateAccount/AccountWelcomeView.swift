@@ -250,7 +250,7 @@ private extension AccountWelcomeView {
     func navigateBack() {
         switch navigationSource {
         case .onboarding, .addCredential:
-            path = .init([HomeLink.onboarding])
+            path = .init()
         case .settings:
             if !path.isEmpty { path.removeLast() }
         case .home:

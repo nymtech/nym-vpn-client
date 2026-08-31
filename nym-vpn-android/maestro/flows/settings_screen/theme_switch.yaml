@@ -1,0 +1,34 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+
+- scrollUntilVisible:
+    element:
+      text: "Appearance"
+      index: 1
+    direction: DOWN
+
+- tapOn:
+    text: "Appearance"
+    index: 1
+
+- tapOn:
+    text: "Display theme"
+    index: 1
+
+- assertVisible: "Display theme"
+
+- assertVisible: "Automatic"
+- assertVisible: "Dark theme"
+- assertVisible: "Light theme"
+
+- tapOn: "Light theme"
+- tapOn: "Dark theme"
+
+- tapOn: "Back"
+
+
+
+

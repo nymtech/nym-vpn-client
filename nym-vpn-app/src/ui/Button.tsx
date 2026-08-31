@@ -4,10 +4,7 @@ import { ReactNode } from 'react';
 import Spinner from './Spinner';
 
 export type ButtonVariant =
-  | 'primary'
-  | 'outlined'
-  | 'destructive'
-  | 'destructive-outlined';
+  'primary' | 'outlined' | 'destructive' | 'destructive-outlined';
 
 const variantStyles: Record<ButtonVariant, string[]> = {
   primary: [

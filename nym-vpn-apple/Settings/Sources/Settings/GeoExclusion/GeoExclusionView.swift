@@ -99,13 +99,36 @@ private extension GeoExclusionView {
 
     var socks5PortCard: some View {
         VStack(spacing: 0) {
+            Button(action: { viewModel.copyServer() }) {
+                HStack(spacing: 0) {
+                    Text("geoExclusion.server".localizedString)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                        .nymTextStyle(.bodyDefault)
+                    Spacer()
+                    Text(viewModel.serverAddress)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                        .font(Font.custom("Courier New", size: 15))
+                        .kerning(0.3)
+                        .padding(.trailing, 12)
+                    GenericImage(imageName: viewModel.serverCopied ? "checkmarkSeeThrough" : "copy")
+                        .frame(width: 24, height: 24)
+                }
+                .padding(16)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Divider()
+                .frame(height: 1)
+                .overlay(Color.Nym.divider)
+
             Button(action: { viewModel.copyPort() }) {
                 HStack(spacing: 0) {
                     Text("geoExclusion.socks5Port".localizedString)
                         .foregroundStyle(Color.Nym.textSecondary)
                         .nymTextStyle(.bodyDefault)
                     Spacer()
-                    Text("\(viewModel.listenPort)")
+                    Text(String(viewModel.listenPort))
                         .foregroundStyle(Color.Nym.textPrimary)
                         .font(Font.custom("Courier New", size: 15))
                         .kerning(0.3)

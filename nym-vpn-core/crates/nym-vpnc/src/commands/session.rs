@@ -71,8 +71,10 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
         Command::Diagnostic { subcommand } => {
             crate::commands::diagnostic::execute(subcommand, rpc_client).await?
         }
+        Command::Favorites { subcommand } => subcommand.execute().await?,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await?,
+        Command::Profile { subcommand } => subcommand.execute(rpc_client).await?,
     }
 
     Ok(false)

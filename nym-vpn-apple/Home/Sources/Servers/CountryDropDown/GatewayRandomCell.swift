@@ -1,14 +1,9 @@
 import SwiftUI
 import ConnectionTypes
-import ImpactGenerator
-import Theme
 import UIComponents
 
 public struct GatewayRandomCell: View {
     private let hopType: HopType
-    private let cornerRadius: CGFloat = 16
-
-    @State private var isButtonHovered = false
     @Binding private var path: NavigationPath
     @Binding private var entryGateway: EntryGateway
     @Binding private var exitRouter: ExitRouter
@@ -39,55 +34,17 @@ public struct GatewayRandomCell: View {
     }
 
     public var body: some View {
-        HStack(spacing: 0) {
-            Image(systemName: "shuffle")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.Nym.textPrimary)
-                .frame(width: 24, height: 24)
-                .padding(.leading, NymSpacing.large)
-            Text("gatewaysView.random".localizedString)
-                .foregroundStyle(Color.Nym.textPrimary)
-                .nymTextStyle(.bodyLarge)
-                .padding(.leading, NymSpacing.medium)
-            Spacer()
-        }
-        .frame(height: 64)
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
-        .background {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(Color.Nym.surface)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .inset(by: 0.5)
-                .stroke(isSelected ? Color.Nym.primary : .clear, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-        .padding(.horizontal, NymSpacing.large)
-        .padding(.bottom, NymSpacing.small)
-        .animation(.default, value: isSelected)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("gatewaysView.random".localizedString)
-        .accessibilityValue(isSelected ? "selected".localizedString : "")
-        .accessibilityAddTraits([.isButton])
-        .onHover { newValue in
-            isButtonHovered = newValue
-        }
-        .onTapGesture {
-            tapAction()
-        }
-        .accessibilityAction {
-            tapAction()
-        }
+        GatewaySelectionCell(
+            imageName: "random",
+            titleKey: "gatewaysView.random",
+            isSelected: isSelected,
+            onTap: tapAction
+        )
     }
 }
 
 private extension GatewayRandomCell {
     func tapAction() {
-        ImpactGenerator.shared.softImpact()
         if let onTapOverride {
             onTapOverride()
         } else {

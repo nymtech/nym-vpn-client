@@ -1,6 +1,6 @@
 /// <reference types="vite-plugin-svgr/client" />
 
-export { default as Speed } from './speed.svg?react';
-export { default as StopTracking } from './stop-tracking.svg?react';
-export { default as ZeroKnowledge } from './zero-knowledge.svg?react';
-export { default as Welcome } from './welcome.svg?react';
+export { default as DvpnRing } from './dvpn.svg?react';
+export { default as MixnetRing } from './mixnet.svg?react';
+export { default as MixnetMark } from './mixnet-mark.svg?react';
+export { default as AroundGlow } from './around.webp';

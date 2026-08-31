@@ -13,7 +13,7 @@
 	<string name="init_client">Iniciando cliente…</string>
 	<string name="establishing_connection">Estabelecendo conexão</string>
 	<string name="select_mode">Selecionar modo</string>
-	<string name="display_theme">Exibir tema</string>
+	<string name="display_theme">Tema de exibição</string>
 	<string name="light_theme">Tema claro</string>
 	<string name="dark_theme">Tema escuro</string>
 	<string name="automatic">Automático</string>
@@ -27,21 +27,21 @@
 	<string name="terms_of_use">Termos de uso</string>
 	<string name="privacy_policy">Declaração de privacidade</string>
 	<string name="licenses">Licenças</string>
-	<string name="open_github">Abrir um problema no GitHub</string>
-	<string name="check_faq">Verifique as perguntas frequentes</string>
+	<string name="open_github">Abrir uma issue no GitHub</string>
+	<string name="check_faq">Consulte as perguntas frequentes</string>
 	<string name="join_matrix">Junte-se a nós no Matrix</string>
 	<string name="join_discord">Junte-se a nós no Discord</string>
 	<string name="unknown">Desconhecido</string>
-	<string name="no_scm_found">URL do código fonte não encontrado</string>
+	<string name="no_scm_found">URL do código-fonte não encontrada</string>
 	<string name="five_hop">5-saltos</string>
 	<string name="mode">Modo</string>
 	<string name="okay">Ok</string>
 	<string name="two_hop">2-saltos</string>
-	<string name="country_load_failure">Falha ao carregar países de salto</string>
+	<string name="country_load_failure">Falha ao carregar países de conexão</string>
 	<string name="permission_required">É necessária permissão</string>
 	<string name="permission_message">Para garantir que o aplicativo funcione corretamente em seu dispositivo, conceda as seguintes permissões. Essas permissões são necessárias para o funcionamento do aplicativo.</string>
 	<string name="notification_permission_required">Ative a permissão de notificação para a funcionalidade adequada do aplicativo</string>
-	<string name="mode_selection">Modo se seleção</string>
+	<string name="mode_selection">Seleção de modo</string>
 	<string name="five_hop_explanation">Privacidade máxima através de roteamento de 5 saltos (até 1-5 Mbps). Tráfego fictício e ofuscação de tempo para maior anonimato. Perfeito para atividades altamente confidenciais, como pagamentos, emails e mensagens.</string>
 	<string name="continue_reading">Continuar lendo</string>
 	<string name="appearance">Aparência</string>
@@ -72,12 +72,12 @@
 	<string name="action_requires_tunnel_down">A ação requer o fechamento do túnel</string>
 	<string name="device_added_success">Dispositivo adicionado com sucesso à sua conta</string>
 	<string name="invalid_recovery_phrase">Frase de recuperação inválida</string>
-	<string name="recovery_phrase">Frase de recuperação</string>
+	<string name="recovery_phrase">24 palavras de recuperação</string>
 	<string name="log_in">Entrar</string>
 	<string name="log_out">Sair da sessão</string>
 	<string name="new_to_nym">Novo no NymVPN?</string>
 	<string name="account">Conta</string>
-	<string name="mnemonic_example">por exemplo, smoke artefact velvet skull pop palace tortoise damage rough...</string>
+	<string name="mnemonic_example">por exemplo, smoke artefact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Dinâmico</string>
 	<string name="system_wallpaper">Tema do papel de parede do sistema</string>
 	<string name="initializing">Inicializando</string>
@@ -87,7 +87,7 @@
 	<string name="credential_modal_description">Para adicionar esse dispositivo, acesse a página “Dispositivos” da sua conta, remova um dos dispositivos existentes e, em seguida, faça login nesse dispositivo com sua frase de recuperação.</string>
 	<string name="manage_devices">Gerencie seus dispositivos</string>
 	<string name="close">Fechar</string>
-	<string name="enter_access_code">Digite seu código de acesso anônimo.</string>
+	<string name="enter_access_code">Digite ou cole sua frase secreta: 24 palavras separadas por espaços</string>
 	<string name="get_in_touch">Entre em contato com o suporte</string>
 	<string name="loading">Carregando</string>
 	<string name="offline">Sem internet</string>
@@ -98,8 +98,8 @@
 	<string name="entry_location">Local de entrada</string>
 	<string name="no_results_found">Nenhum resultado encontrado.</string>
 	<string name="how_to_run_gateway">como operar um servidor.</string>
-	<string name="or_learn">ou aprender</string>
-	<string name="contact_for_help">Entre em contato conosco para obter ajuda</string>
+	<string name="or_learn">ou saiba</string>
+	<string name="contact_for_help">Fale conosco</string>
 	<string name="try_another_server_name">Tente outro local ou verifique o nome do servidor.</string>
 	<string name="servers">servidores</string>
 	<string name="local_logs">Registros (armazenados localmente)</string>
@@ -109,10 +109,10 @@
     </string>
 	<string name="update_required">Atualização necessária!</string>
 	<string name="update">Atualizar</string>
-	<string name="log_out_title">Você tem certeza que deseja sair?</string>
-	<string name="log_out_body">Você precisará da sua frase de recuperação para iniciar a sessão novamente.</string>
+	<string name="log_out_title">Sair deste dispositivo?</string>
+	<string name="log_out_body">Você precisará das suas 24 palavras para entrar novamente.</string>
 	<string name="cancel">Cancelar</string>
-	<string name="info">Informação</string>
+	<string name="info">Informações</string>
 	<string name="collapse">Minimizar</string>
 	<string name="expand">Expandir</string>
 	<string name="country_flag">Bandeira de %1$s</string>
@@ -125,16 +125,16 @@
 	<string name="bars_2">2 barras</string>
 	<string name="bars_1">1 barra</string>
 	<string name="developer">Desenvolvedor</string>
-	<string name="get_help">Obtenha ajuda</string>
+	<string name="get_help">Ajuda</string>
 	<string name="join_telegram">Junte-se a nós no Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Concluído</string>
 	<string name="button_discard">Descartar</string>
 	<string name="button_add">Adicionar</string>
 	<string name="here">Aqui</string>
-	<string name="score_text_high">alta</string>
+	<string name="score_text_high">Alta</string>
 	<string name="score_text_medium">Média</string>
-	<string name="score_text_low">baixa</string>
+	<string name="score_text_low">Baixa</string>
 	<string name="score_text_offline">Desconectado</string>
 	<string name="skip">Pular</string>
 	<string name="get_started">Vamos começar</string>
@@ -148,14 +148,14 @@
 	<string name="unexpected_error">Ocorreu um erro inesperado:</string>
 	<string name="error_invalid_entry_gateway_country">País inválido para o servidor de entrada. Escolha outro e reconecte-se.</string>
 	<string name="error_invalid_exit_gateway_country">País inválido para o servidor de saída. Escolha outro e reconecte-se.</string>
-	<string name="bandwidth_error">Limite mensal de dados atingido. Entre em contato com o Suporte para obter um aumento rápido de dados.</string>
+	<string name="bandwidth_error">Limite diário de dados atingido. Fale com o Suporte para um aumento rápido de dados.</string>
 	<string name="max_devices_error">Limite de dispositivos da conta excedido. Por favor, remova um dispositivo da sua conta antes de conectar.</string>
 	<string name="device_time_out_of_sync">Hora do dispositivo fora de sincronia</string>
 	<string name="error_ipv6_unavailable">Ipv6 Indisponível</string>
 	<string name="error_device_logged_out">O dispositivo foi desconectado.</string>
 	<string name="error_inactive_account">O status da conta não está “Ativo”.</string>
-	<string name="error_inactive_account_subtitle">Press on Get Started</string>
-	<string name="error_set_dns">Falha ao configurar dns.</string>
+	<string name="error_inactive_account_subtitle">Toque em Começar</string>
+	<string name="error_set_dns">Falha ao configurar DNS.</string>
 	<string name="error_set_firewall_policy">Falha ao definir política de firewall.</string>
 	<string name="error_set_routing">Falha ao configurar roteamento.</string>
 	<string name="error_tun_device">Falha ao configurar o dispositivo do túnel.</string>
@@ -171,25 +171,22 @@
 	<string name="error_expired_subscription_description">O método de pagamento recorrente foi recusado</string>
 	<string name="error_expired_subscription_button">Renovar agora</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Configurando sua conta (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Atualizando lista de servidores (3/6)</string>
-	<string name="connection_state_selecting_gateways">Escolhendo os melhores servidores (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Registrando anonimamente com servidores (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Estabelecendo conexão com o servidor (6/6)</string>
+	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Configurando sua conta (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Atualizando lista de servidores (4/7)</string>
+	<string name="connection_state_selecting_gateways">Escolhendo os melhores servidores (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Registrando anonimamente com servidores (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Estabelecendo conexão com o servidor (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Use o melhor servidor</string>
 	<string name="one_click_mode_fast">Rápido</string>
-	<string name="connect_mode_auto">Automático</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
-	<string name="one_click_nym_exit_node">Sair do servidor</string>
-	<string name="one_click_nym_entry_node">Servidor de postagem</string>
+	<string name="one_click_nym_exit_node">Servidor de saída</string>
+	<string name="one_click_nym_entry_node">Servidor de entrada</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Não protegido</string>
 	<string name="connection_status_fast_mode">Proteção do modo rápido</string>
-	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_anonymous">Proteção Mixnet</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Melhor servidor</string>
 	<string name="gateway_random">Servidor aleatório</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Bem-vindo!</string>
@@ -200,14 +197,14 @@
 	<string name="auth_sign_up_social_button">Cadastre-se com redes sociais *</string>
 	<string name="auth_sign_up_info">* Inscrever-se com uma conta social existente \ndiminui seu anonimato.</string>
 	<string name="auth_log_in_title">Entrar</string>
-	<string name="auth_log_in_passphrase_button">Iniciar sessão com 24 palavras</string>
-	<string name="auth_log_in_social_button">Fazer login usando as redes sociais *</string>
-	<string name="auth_log_in_info">* Você precisa conectar as redes sociais a uma conta existente \nprimeiro antes de usá-los para login. </string>
+	<string name="auth_log_in_passphrase_button">Entrar com 24 palavras</string>
+	<string name="auth_log_in_social_button">Entrar com rede social *</string>
+	<string name="auth_log_in_info">* Conecte uma rede social a uma conta existente antes de usá-la para entrar.</string>
 	<string name="auth_passphrase_login_button">Entrar</string>
-	<string name="auth_passphrase_input_placeholder">24 palavras-senha</string>
+	<string name="auth_passphrase_input_placeholder">Frase secreta de 24 palavras</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censura</string>
-	<string name="settings_passphrase_title">Palavra-chave</string>
+	<string name="settings_passphrase_title">Frase secreta</string>
 	<string name="settings_dns_title">Personalizar DNS</string>
 	<string name="settings_ipv6_title">Suporte IPv6</string>
 	<string name="settings_ipv6_description">Permitir conexões IPv6</string>
@@ -215,31 +212,33 @@
 	<string name="settings_system_tray_description">Manter o aplicativo em execução quando fechado</string>
 	<string name="settings_reset_app_title">Redefinir dados do aplicativo</string>
 	<string name="settings_system_status_title">Status do sistema</string>
-	<string name="settings_mixnet_tuning_title">Ajuste Mixnet</string>
+	<string name="settings_mixnet_tuning_title">Configuração da Mixnet</string>
 	<string name="settings_mixnet_tuning_description">Personalizar os padrões de tráfego do modo anônimo</string>
-	<string name="settings_quit_title">Sair do NymVPN</string>
+	<string name="settings_quit_title">Sair da NymVPN</string>
 	<string name="settings_app_version_line">Versão do app: %1$s</string>
 	<string name="settings_daemon_version_line">Versão do Daemon: %1$s</string>
 	<string name="settings_language_help_title">Ajuda com tradução</string>
 	<string name="settings_language_help_description">Torne o app melhor em seu idioma.</string>
-	<string name="settings_event_lan_reconnecting">Reconectando para aplicar as configurações LAN...</string>
+	<string name="settings_event_lan_reconnecting">Reconectando para aplicar as configurações LAN…</string>
 	<string name="settings_ad_blocking_title">Bloqueio de anúncios</string>
 	<string name="settings_kill_switch_title">Botão de eliminação</string>
 	<string name="settings_kill_switch_description">Desconectar se a internet cair</string>
-	<string name="settings_bypass_lan_title">LAN bypass</string>
+	<string name="settings_bypass_lan_title">Ignorar rede local</string>
 	<string name="settings_bypass_lan_description">Permitir acesso direto à rede local</string>
-	<string name="settings_split_tunneling_title">Ajustar tunelamento</string>
+	<string name="settings_split_tunneling_title">Túnel dividido</string>
 	<string name="settings_startup_title">Iniciar na inicialização</string>
 	<string name="settings_notifications_title">Notificações</string>
 	<string name="settings_power_managment_title">Gerenciamento de energia</string>
 	<string name="settings_shortcuts_title">Atalhos de aplicativos</string>
-	<string name="settings_logs_title">Logs &amp; dados</string>
-	<string name="settings_legal_title">Informações</string>
+	<string name="settings_logs_title">Registros &amp; dados</string>
+	<string name="settings_legal_title">Jurídico</string>
+	<string name="settings_geo_exclusion_title">Exclusão geográfica</string>
+	<string name="settings_geo_exclusion_desciption">Faixas de IP específicas conectam diretamente</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueio de tela necessário para usar atalhos.</string>
 	<string name="shortcut_title">Confirmar ação</string>
 	<string name="shortcut_subtitle_stop">Desbloquear para desconectar a VPN</string>
-	<string name="shortcut_subtitle_start_mixnet">Desbloquear para iniciar o Mixnet</string>
+	<string name="shortcut_subtitle_start_mixnet">Desbloquear para iniciar a Mixnet</string>
 	<string name="shortcut_subtitle_start_wg">Desbloquear para iniciar o Modo rápido</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Para melhor conexão</string>
@@ -247,12 +246,12 @@
 	<string name="battery_opt">Otimização de bateria</string>
 	<string name="battery_opt_settings_text">A configuração de otimização da bateria pode ser alterada a qualquer momento nas configurações do aplicativo.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">Dados &amp; Privacidade</string>
+	<string name="privacy_title">Dados, privacidade e registros</string>
 	<string name="privacy_anonymous_stats_title">Estatísticas de rede anônimas</string>
 	<string name="privacy_anonymous_stats_description">Ajude-nos a construir uma rede mais rápida compartilhando dados anônimos de desempenho da sua região. Usamos esses dados para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor para onde ela é mais necessária. \n\nApenas os dados de desempenho da rede são compartilhados – nunca sua atividade de navegação ou dados pessoais.</string>
 	<string name="privacy_anonymous_stats_link_text">Saiba exatamente o que é compartilhado</string>
 	<string name="privacy_anonymous_stats_link">https://nym.com/pt/anonymous-stats</string>
-	<string name="privacy_error_reports_title">Relatórios de erros &amp; e falhas</string>
+	<string name="privacy_error_reports_title">Relatórios de erros e falhas</string>
 	<string name="privacy_error_reports_description">Envie informações sobre falhas para nos ajudar a corrigir bugs mais rapidamente. Os relatórios passam pelo sistema seguro do Sentry e incluem apenas dados técnicos de depuração.</string>
 	<string name="privacy_error_reports_link_text">Ver a Política de Privacidade do Sentry</string>
 	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
@@ -267,25 +266,25 @@
 	<string name="privacy_diagnostic_tool">Ferramenta de diagnóstico</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continuar</string>
-	<string name="welcome_title">Ajude-nos a melhorar o NymVPN</string>
-	<string name="welcome_description">Escolha quais dados anônimos para compartilhar. Todos os dados são removidos da identificação de informações antes de serem enviados.</string>
+	<string name="welcome_title">Ajude-nos a melhorar a NymVPN</string>
+	<string name="welcome_description">Escolha quais dados anônimos compartilhar. \nTodas as informações de identificação são removidas antes do envio.</string>
 	<string name="welcome_error_reports_title">Compartilhar relatórios de erros</string>
 	<string name="welcome_error_reports_description_start">Ajuda-nos a corrigir erros mais rapidamente, não há dados pessoais coletados (via </string>
 	<string name="welcome_error_reports_link_text">Sentinela</string>
 	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Compartilhar análise de uso</string>
-	<string name="welcome_usage_description">Ajuda a melhorar a rede Nym. Não há registro nem atividade registrada.</string>
+	<string name="welcome_usage_title">Compartilha estatística de uso</string>
+	<string name="welcome_usage_description">Ajuda a melhorar a rede Nym. Nenhum registro ou atividade é rastreado.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">Criar uma conta</string>
+	<string name="onboarding_create_account_button">Criar conta</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Escolha seu nível de \nproteção 🛡️</string>
+	<string name="select_plan_title">Escolha seu \nplano</string>
 	<string name="select_plan_line_0">7 dias de teste gratuito</string>
 	<string name="select_plan_line_1">Todos os recursos incluídos</string>
 	<string name="select_plan_line_2">Sem anúncios</string>
 	<string name="select_plan_line_3">Cancele quando quiser</string>
 	<string name="select_plan_button">Escolha seu plano NymVPN</string>
-	<string name="select_plan_modal_title">Escolha seu plano NymVPN</string>
-	<string name="select_plan_modal_free_trial">Avaliação gratuita: 1 semana</string>
+	<string name="select_plan_modal_title">Escolha seu plano. Todos os recursos, cancele quando quiser.</string>
+	<string name="select_plan_modal_free_trial">Teste grátis de 7 dias começa hoje</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Detalhes do servidor</string>
 	<string name="details_select_server_button">Selecionar servidor</string>
@@ -316,24 +315,28 @@
 	<string name="details_more_details_end">Explorador de rede Nym</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">Ative esses recursos se estiver passando por problemas de conexão ou bloqueios da NymVPN na sua localização.</string>
-	<string name="censorship_learn_more_link_text">Mais informações</string>
+	<string name="censorship_description">Recursos avançados para melhorar a conectividade em redes restritivas ou quando a NymVPN estiver bloqueado.</string>
+	<string name="censorship_learn_more_link_text">Saiba mais</string>
 	<string name="censorship_quic_title">Conexão aprimorada (QUIC)</string>
-	<string name="censorship_quic_description">Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular.\n\nNota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC.</string>
+	<string name="censorship_quic_description">Melhora a conexão em redes restritas encapsulando o WireGuard no QUIC (HTTP/3).
+
+Nota: Limita as opções do servidor de entrada apenas a servidores compatíveis com QUIC.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Conexão à API Furtiva</string>
-	<string name="censorship_stealth_description">Protege contra o bloqueio de VPN usando domínios de capa. Ative para usar sempre ou desative para usar quando conexões normais falharem.</string>
+	<string name="censorship_stealth_description">Protege contra bloqueio de VPN usando fachadas de domínio. Ative para usar sempre, ou deixe desativado para ativar somente quando a conexão normal falhar.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quic_gateway_filter_info_msg">Mostrar apenas localizações e servidores rápidos que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC</string>
-	<string name="censorship_amnezia_title">ofuscação mínima (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Torna o tráfego do WireGuard mais difícil de detectar. Introduz pacotes de descodificação que perturbam regras simples frequentemente usadas por sistemas de censura de Inspeção de Pacotes Profundos (DPI), melhorando a confiabilidade da conexão em ambientes restritivos. \n\nNota: Só implementou o lado do cliente.</string>
+	<string name="quic_gateway_filter_info_msg">Exibindo apenas locais e servidores do Modo rápido compatíveis com o protocolo QUIC. Para ver todos os servidores, desative o QUIC</string>
+	<string name="censorship_amnezia_title">Ofuscação mínima (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Disfarça o tráfego do WireGuard com pacotes de distração para impedir o bloqueio de VPN.
+
+Nota: Implementado apenas no lado do cliente.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/pt-br/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Privacidade Máxima</string>
-	<string name="account_welcome_create_description">Criar uma conta nym anônima, nenhuma informação pessoal necessária</string>
+	<string name="account_welcome_create_title">⚡ Instantâneo e anônimo </string>
+	<string name="account_welcome_create_description">Um toque para começar. Conta anônima gerada no seu dispositivo. Sem senha, sem dados pessoais.</string>
 	<string name="account_welcome_create_button">Criar conta anônima</string>
-	<string name="account_welcome_social_title">⚡ Configuração rápida</string>
+	<string name="account_welcome_social_title">🔑️ Use um login existente</string>
 	<string name="account_welcome_social_description">Use a conta existente como a Google ou carteira cripto através do nosso parceiro de login Privy</string>
 	<string name="account_welcome_social_button">Continuar com a conta social</string>
 	<string name="account_welcome_login_title">Já possui uma conta?</string>
@@ -341,8 +344,8 @@
 	<string name="account_welcome_privacy_middle">e</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Você já está inscrito!</string>
-	<string name="account_subscription_description">Encontramos uma assinatura ativa vinculada à sua conta do Google Play. Pule a inscrição e pule diretamente usando o NymVPN. Basta ter sua senha de 24 palavras pronta.</string>
-	<string name="account_subscription_button">Fazer login com a senha Nym</string>
+	<string name="account_subscription_description">Encontramos uma assinatura ativa vinculada à sua conta do Google Play. Pule o cadastro e comece a usar o NymVPN. Tenha sua frase de 24 palavras em mãos.</string>
+	<string name="account_subscription_button">Entrar com a frase de recuperação Nym</string>
 	<!-- Account Generating screen -->
 	<string name="account_generating_title_1">Gerando pares de chaves criptográficas…</string>
 	<string name="account_generating_title_2">Criando sua identidade anônima…</string>
@@ -353,49 +356,59 @@
 	<string name="account_generating_error">Falha ao registrar a conta. Por favor, tente novamente mais tarde</string>
 	<string name="account_generating_deeplink_title">Iniciando sessão...</string>
 	<string name="account_generating_deeplink_description">Por favor, aguarde enquanto verificamos sua conta</string>
+	<string name="account_login_processing_setting_up">Configurando sua conta anônima
+</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processando seu pagamento com segurança…</string>
 	<string name="account_payment_verifying">Estamos verificando sua assinatura — nenhum dado pessoal está vinculado à sua identidade</string>
-	<string name="account_payment_retrieving">Recuperando suas credenciais de conta anônima (zk-nyms)…</string>
+	<string name="account_payment_retrieving">Buscando suas credenciais de conta anônima (zk-nyms)…</string>
 	<string name="account_payment_credentials">Estas credenciais de conhecimento zero provam que você tem acesso sem revelar quem você é</string>
-	<string name="account_payment_saving">Salvando seu zk-nyms no dispositivo…</string>
+	<string name="account_payment_saving">Salvando seus zk-nyms no dispositivo…</string>
 	<string name="account_payment_anonymous">Suas credenciais de acesso anônimo agora estão armazenadas, privadas e criptografadas com segurança em seu controle</string>
-	<string name="account_payment_welcome">Bem-vindo à privacidade verdadeira 🎉</string>
+	<string name="account_payment_welcome">Bem-vindo à verdadeira privacidade 🎉</string>
 	<string name="account_payment_protected">Agora você está totalmente protegido</string>
-	<string name="account_payment_error">Falha ao adquirir uma assinatura. Por favor, tente novamente mais tarde</string>
+	<string name="account_payment_error">Falha ao adquirir uma assinatura. Tente novamente mais tarde</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Sua senha da conta</string>
 	<string name="passphrase_description">🔒Sua senha da conta mestre: 24 palavras que permitem acesso à sua conta de qualquer dispositivo.</string>
-	<string name="passphrase_description_first">🔒Senha da sua conta mestra:</string>
+	<string name="passphrase_description_first">🔒Sua frase mestre de recuperação:</string>
 	<string name="passphrase_description_last">24 palavras que permitem que você acesse sua conta de qualquer dispositivo.</string>
 	<string name="passphrase_show">Exibir a minha senha</string>
 	<string name="passphrase_copy">Copiar senha</string>
-	<string name="passphrase_save">Salvar no Gerenciador de Senhas</string>
-	<string name="passphrase_download">BAIXAR</string>
+	<string name="passphrase_save">Salvar no gerenciador de senhas</string>
+	<string name="passphrase_download">Baixar</string>
 	<string name="passphrase_lose">⚠️ Perda essas palavras = perder a sua conta para sempre.</string>
-	<string name="passphrase_never">Nunca os compartilhe com ninguém, incluindo o suporte da Nym.</string>
-	<string name="passphrase_saved">Salvei essas 24 palavras em segurança e nunca as partilharei</string>
-	<string name="passphrase_info_title">O que é a frase-chave</string>
+	<string name="passphrase_never">Nunca as compartilhe com ninguém, incluindo o suporte da Nym.</string>
+	<string name="passphrase_saved">Salvei essas 24 palavras em segurança e nunca irei compartilhar</string>
+	<string name="passphrase_info_title">O que é a frase secreta</string>
 	<string name="passphrase_info_description">É um conjunto único de 24 palavras, geradas no seu dispositivo, que atua como seu login seguro. Só você tem acesso a ele — não há backup, reset ou recuperação.\n\n ⚠️ Mantenha-a segura: esta senha é a única maneira de acessar sua conta.</string>
 	<string name="passphrase_info_privacy_removed">Por sua privacidade, nós removemos:</string>
-	<string name="passphrase_info_stored_accounts">Contas armazenadas centralmente</string>
+	<string name="passphrase_info_stored_accounts">Contas armazenadas em servidor central</string>
 	<string name="passphrase_info_personal_logins">Logins com base em dados pessoais</string>
-	<string name="passphrase_info_access_resets">Redefinições de acesso controladas</string>
-	<string name="passphrase_info_use">Você usará uma senha de 24 palavras que:</string>
+	<string name="passphrase_info_access_resets">Redefinições de acesso controladas pelo administrador</string>
+	<string name="passphrase_info_use">Você usará uma frase secreta de 24 palavras que:</string>
 	<string name="passphrase_info_secure_login">Funciona como seu login seguro</string>
 	<string name="passphrase_info_keeps_anonymous">Mantém você anônimo</string>
 	<string name="passphrase_info_belongs">Pertence apenas a você (autocustódia)</string>
 	<!-- Account screen -->
 	<string name="account_title">Conta e dispositivos</string>
-	<string name="account_info_manage_button">Gerencie sua assinatura</string>
+	<string name="account_info_manage_button">Gerenciar assinatura</string>
 	<string name="account_info_id_title">ID da Conta</string>
-	<string name="account_info_id_info">Seguro para compartilhar. Use para entrar em contato com o suporte da Nym.</string>
+	<string name="account_info_id_info">Seguro para compartilhar. Use para falar com o Suporte da Nym.</string>
 	<string name="account_info_device_title">ID do dispositivo</string>
-	<string name="account_info_device_info">Use isso para vincular este dispositivo à sua conta no nym.com</string>
+	<string name="account_info_device_info">Use para vincular este dispositivo à sua conta no nym.com</string>
 	<string name="account_info_status_title">Status da conta</string>
-	<string name="account_info_bandwidth_title">Uso justo gasto</string>
-	<string name="account_info_limit_text">Limitar</string>
-	<string name="account_info_reset_text">Reinicia em</string>
+	<string name="account_info_bandwidth_title">Franquia diária</string>
+	<string name="account_info_limit_text">Limite</string>
+	<string name="account_info_reset_text">Reinicia diariamente às</string>
+	<string name="account_info_data_unavailable">Dados de uso indisponíveis</string>
 	<string name="account_info_valid_text">Plano válido até %s</string>
 	<string name="account_info_expires_text">O plano expira em %s</string>
 	<string name="banner_plan_expires_text">O plano expira em:\n%s</string>
@@ -403,66 +416,66 @@
 	<string name="banner_renew_text">Renove agora\npara ficar protegido</string>
 	<string name="account_info_auto_renew_text">*Renovação automática</string>
 	<string name="account_info_no_plan">Nenhuma assinatura ativa</string>
-	<string name="account_info_contact_support_action">Contact Customer Support</string>
-	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
+	<string name="account_info_contact_support_action">Entre em contato com o Atendimento ao Cliente</string>
+	<string name="account_info_contact_support_suffix"> se atingir sua franquia.</string>
 	<string name="account_info_confirming_payment">Confirmando pagamento</string>
-	<string name="account_info_autologin_fetching">Obtendo código de acesso…</string>
-	<string name="account_info_autologin_error">Falha ao obter o código de acesso. Por favor, tente novamente.</string>
-	<string name="account_info_add_social_action">Adicionar login na rede social</string>
-	<string name="account_info_add_social_suffix">\u0020método para a sua conta.</string>
+	<string name="account_info_autologin_fetching">Buscando código de acesso…</string>
+	<string name="account_info_autologin_error">Falha ao buscar o código de acesso. Tente novamente.</string>
+	<string name="account_info_add_social_action">Adicionar login social</string>
+	<string name="account_info_add_social_suffix"> método para a sua conta.</string>
 	<string name="account_info_backup">Método de login de backup vinculado via Privy.</string>
 	<string name="pin_code_title">Código PIN</string>
 	<string name="pin_code_subtitle">Digite este código na web</string>
 	<string name="pin_code_copy_and_open">Copiar código e abrir a web</string>
 	<string name="pin_code_copied">Copiado!</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Habilitar registro</string>
-	<string name="logs_enable_description">Ative para solucionar problemas. Desative a privacidade. Os logs permanecem no seu dispositivo. O nym nunca tem acesso.</string>
-	<string name="logs_debug_enable_title">Habilitar o log detalhado</string>
-	<string name="logs_debug_enable_description">Ative para obter logs detalhados de DEBUG para auto-depuração ou suporte. Aumenta o consumo de bateria. O tamanho do log pode crescer até 10x.</string>
+	<string name="logs_enable_title">Ativar registros</string>
+	<string name="logs_enable_description">Ative para solucionar problemas. Desative para mais privacidade. Os registros ficam no seu dispositivo. A Nym nunca tem acesso.</string>
+	<string name="logs_debug_enable_title">Ativar registros detalhados</string>
+	<string name="logs_debug_enable_description">Ative para registros detalhados de depuração. Aumenta o consumo de bateria. O tamanho dos registros pode crescer até 10x.</string>
 	<string name="logs_tab_app">Aplicativo</string>
 	<string name="logs_tab_tunnel">Túnel</string>
 	<string name="logs_tab_library">Biblioteca</string>
 	<string name="logs_empty_placeholder">Ainda não há registros</string>
 	<string name="logs_share">Compartilhar</string>
-	<string name="logs_download">BAIXAR</string>
-	<string name="logs_delete">excluir</string>
-	<string name="logs_delete_title">Excluir logs do NymVPN?</string>
-	<string name="logs_delete_description">A exclusão de logs melhora a privacidade mas impede o suporte de diagnosticar seus problemas de conexão.</string>
+	<string name="logs_download">Baixar</string>
+	<string name="logs_delete">Deletar</string>
+	<string name="logs_delete_title">Excluir registros da NymVPN?</string>
+	<string name="logs_delete_description">Excluir os registros melhora sua privacidade, mas impede o suporte de diagnosticar problemas de conexão.</string>
 	<string name="logs_delete_button">Excluir registros</string>
-	<string name="logs_share_title">Compartilhar logs do NymVPN?</string>
-	<string name="logs_share_description">Os arquivos de log compartilhados podem ser vistos pelos destinatários e por qualquer pessoa com quem eles os compartilhem.</string>
+	<string name="logs_share_title">Compartilhar logs da NymVPN?</string>
+	<string name="logs_share_description">Arquivos de registro compartilhados podem ser vistos pelos destinatários e por qualquer pessoa com quem forem compartilhados.</string>
 	<string name="logs_share_button">Compartilhar mesmo assim</string>
-	<string name="logs_download_title">Salvar registros NymVPN como arquivo?</string>
-	<string name="logs_download_description">Logs salvos podem ser acessados por outros apps ou com acesso ao armazenamento do seu dispositivo.</string>
+	<string name="logs_download_title">Salvar registros da NymVPN como arquivo?</string>
+	<string name="logs_download_description">Registros salvos podem ser acessados por outros apps ou por qualquer pessoa com acesso ao armazenamento do seu dispositivo.</string>
 	<string name="logs_download_button">Salvar como arquivo mesmo assim</string>
 	<string name="logs_saved">Registros salvos na pasta de downloads</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling_info_msg">Defina cada aplicativo para usar o NymVPN ou conectar diretamente.</string>
+	<string name="split_tunneling_info_msg">Defina para cada app usar o NymVPN ou conectar diretamente.</string>
 	<string name="split_tunneling_search_apps_hint">Pesquisar aplicativos</string>
 	<string name="split_tunneling_apps">Aplicativos</string>
 	<string name="split_tunneling_direct">Direto</string>
 	<string name="split_tunneling_direct_desc">Ignorar NymVPN</string>
-	<string name="split_tunneling_via_vpn">Através do NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
 	<string name="split_tunneling_via_desc">Protegido quando conectado</string>
 	<string name="split_tunneling_system_applications">Aplicativos do sistema</string>
-	<string name="split_tunnel_info_modal_title">Usando tunelamento dividido</string>
-	<string name="split_tunnel_info_modal_desc">O tunelamento dividido permite otimizar cada app com velocidade máxima ou máxima privacidade. Você pode alterar essas configurações a qualquer momento.</string>
-	<string name="split_tunnel_info_direct_desc">Para serviços como banco, dispositivos inteligentes em casa ou aplicativos de trabalho.</string>
+	<string name="split_tunnel_info_modal_title">Usando o túnel dividido</string>
+	<string name="split_tunnel_info_modal_desc">O túnel dividido permite otimizar cada app para velocidade máxima ou máxima privacidade. Você pode alterar essas configurações a qualquer momento.</string>
+	<string name="split_tunnel_info_direct_desc">Para serviços como banco, dispositivos domésticos inteligentes ou apps de trabalho.</string>
 	<string name="split_tunnel_changes_confirm_modal_title">Aplicar configurações de tunelamento dividido?</string>
-	<string name="split_tunnel_changes_confirm_modal_desc">tunelamento dividido atualizado. Reconecte para aplicar as alterações.\n\nSeus dados permanecem protegidos durante a reconexão.</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Túnel dividido atualizado. Reconecte para aplicar as alterações.\n\nSeus dados ficam protegidos durante a reconexão.</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconectar agora</string>
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Aplicar na próxima conexão</string>
-	<string name="split_tunneling_event_saved">Configurações de tunelamento divididas salvas</string>
-	<string name="split_tunneling_event_reconnecting">Reconectando para aplicar configurações divididas de tunelamento…</string>
+	<string name="split_tunneling_event_saved">Configurações de túnel dividido salvas</string>
+	<string name="split_tunneling_event_reconnecting">Reconectando para aplicar as configurações de túnel dividido…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">Personalização de DNS</string>
 	<string name="dns_description">Por padrão, usando os servidores DNS recomendados da Nym. Configure os servidores personalizados abaixo se necessário.</string>
 	<string name="dns_view_list">Ver DNS padrão</string>
 	<string name="dns_hide_list">Ocultar DNS padrão</string>
-	<string name="dns_list_title">DNS padrão do Nym:</string>
+	<string name="dns_list_title">DNS padrão da Nym:</string>
 	<string name="dns_custom_title">Usar servidores DNS personalizados</string>
-	<string name="dns_custom_description">Configure seu próprio DNS para bloqueio de anúncios, filtragem de conteúdo ou provedores preferidos. Arraste para reordenar a prioridade. ⚠️ Pode limitar conectividade Nym. </string>
+	<string name="dns_custom_description">Configure seu próprio DNS para bloqueio de anúncios, filtragem de conteúdo ou provedores preferidos. Arraste para reordenar a prioridade. ⚠️ Pode limitar a conectividade Nym.</string>
 	<string name="dns_custom_list_title">Digite um servidor DNS</string>
 	<string name="dns_custom_list_entries">Servidores de DNS personalizados (%1$s/5)</string>
 	<string name="dns_custom_list_hint">Endereço IPv4 ou IPv6</string>
@@ -473,36 +486,36 @@
 	<string name="dns_save_dialog_description">Você tem alterações não salvas.</string>
 	<string name="dns_learn_more_text">Saiba mais sobre DNS</string>
 	<string name="dns_event_saved">DNS personalizado salvo</string>
-	<string name="dns_event_reconnecting">Reconectando para aplicar as configurações de DNS personalizadas...</string>
+	<string name="dns_event_reconnecting">Reconectando para aplicar as configurações de DNS personalizadas…</string>
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">Personalize seus padrões de tráfego mixnet</string>
 	<string name="mixnet_tuning_current_title">Desempenho esperado das configurações atuais:</string>
-	<string name="mixnet_tuning_current_speed">Velocidade</string>
+	<string name="mixnet_tuning_current_speed">Taxa de pacote</string>
 	<string name="mixnet_tuning_current_latency">Latência</string>
-	<string name="mixnet_tuning_internet_speed">Velocidade de até internet</string>
-	<string name="mixnet_tuning_current_description">latência de ida e volta esperada (RTT) em uma rede padrão</string>
+	<string name="mixnet_tuning_internet_speed">Até a velocidade da internet</string>
+	<string name="mixnet_tuning_current_description">Latência de ida e volta estimada (RTT) em uma rede padrão</string>
 	<string name="mixnet_tuning_traffic_title">Enviar tráfego continuamente</string>
-	<string name="mixnet_tuning_traffic_off_title">Taxa de tráfego de fundo</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ O tráfego contínuo está desativado. Seus pacotes serão enviados assim que estiverem disponíveis. Isso pode revelar padrões de tráfego.</string>
-	<string name="mixnet_tuning_traffic_on_description">O tráfego da capa é sempre enviado para manter o padrão uniforme. Ajuste a taxa de envio dos seus pacotes.</string>
-	<string name="mixnet_tuning_traffic_off_description">Ainda enviaremos o tráfego de cobertura independentemente do seu tráfego real. Escolha a quantidade de cobertura que você precisa. </string>
-	<string name="mixnet_tuning_traffic_min">Usar menos bateria &amp; dados</string>
-	<string name="mixnet_tuning_traffic_on_low">A Baixa\n0.7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">\nMais 2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">\n1 Mbps Balanceados</string>
+	<string name="mixnet_tuning_traffic_off_title">Taxa de tráfego de cobertura em segundo plano</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Tráfego contínuo desativado. Seus pacotes serão enviados assim que estiverem disponíveis. Isso pode revelar padrões de tráfego.</string>
+	<string name="mixnet_tuning_traffic_on_description">Tráfego de cobertura é sempre enviado para manter o padrão uniforme. Ajuste a taxa de envio dos seus pacotes.</string>
+	<string name="mixnet_tuning_traffic_off_description">Continuaremos enviando tráfego de cobertura independente do seu tráfego real. Escolha o nível de cobertura que você precisa.</string>
+    <string name="mixnet_tuning_traffic_on_low">Baixo\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">Alto\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Balanceado\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Base</string>
-	<string name="mixnet_tuning_traffic_off_high">\n20x alto</string>
-	<string name="mixnet_tuning_traffic_off_balanced">\n5x Balanceado</string>
-	<string name="mixnet_tuning_traffic_off_medium">\nMédia 10x</string>
-	<string name="mixnet_tuning_delays_title">Atraso misturado</string>
-	<string name="mixnet_tuning_delays_description">Ajuste atrasos de tempo para alterar a forma como os seus pacotes são misturados.</string>
-	<string name="mixnet_tuning_delays_min">Velocidade mais rápida</string>
-	<string name="mixnet_tuning_delays_low">Mínima\n0m</string>
-	<string name="mixnet_tuning_delays_high">Alta em\n200 ms</string>
-	<string name="mixnet_tuning_delays_default">Padrão\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Atual\n%1$s</string>
-	<string name="mixnet_tuning_max">Max. anonymity</string>
-	<string name="mixnet_tuning_link_text">Saiba mais sobre parâmetros mixnet</string>
+	<string name="mixnet_tuning_traffic_off_high">Alto\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">Balanceado\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">Médio\n10x</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Configurar o atraso para 0 remove a mixagem, reduzindo o anonimato</string>
+	<string name="mixnet_tuning_delays_title">Atrasos de mixagem</string>
+	<string name="mixnet_tuning_delays_description">Ajuste os atrasos para melhorar a forma como seus pacotes são misturados.</string>
+    <string name="mixnet_tuning_delays_low">Baixo\n0m</string>
+	<string name="mixnet_tuning_delays_high">Alto\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">Padrão
+15 ms</string>
+	<string name="mixnet_tuning_delays_current">Atual
+%1$s</string>
+    <string name="mixnet_tuning_link_text">Saiba mais sobre parâmetros mixnet</string>
 	<string name="mixnet_tuning_save_button">Salvar configurações personalizadas</string>
 	<string name="mixnet_tuning_restore_button">Restaurar configurações padrão</string>
 	<!-- Diagnostic screen -->
@@ -511,11 +524,60 @@
 	<string name="diagnostic_report_title">Relatório de diagnóstico</string>
 	<string name="diagnostic_copy_report">Copiar relatório</string>
 	<string name="diagnostic_copied">Copiado para área de transferência</string>
-	<string name="diagnostic_error">Diagnóstico falhou</string>
+	<string name="diagnostic_error">Falha no diagnóstico</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Proteja-se dos golpes</string>
-	<string name="support_protect_description">Apenas contate o suporte NymVPN através dos canais oficiais listados abaixo. Nunca pediremos sua frase secreta ou entraremos em contato com você primeiro através de mensagens diretas. U\n\nRecebeu um contato inesperado? Provavelmente uma scam.</string>
+	<string name="support_protect_description">Use apenas os canais oficiais listados abaixo para falar com o suporte NymVPN. Nunca pediremos sua frase secreta nem entraremos em contato por mensagem direta.
+
+Recebeu um contato inesperado? Provavelmente é golpe.</string>
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">Desative o DNS privado para usar o bloqueador de anúncios.</string>
 	<string name="private_dns_button">Abrir configurações</string>
+	<!-- Notifications screen -->
+	<string name="notifications_node_families_title">Lembretes de família compartilhada</string>
+	<string name="notifications_node_families_description">Lembra você sobre servidores de família compartilhada</string>
+	<string name="notifications_system_title">Notificações do sistema</string>
+	<string name="notifications_system_description">Mantém o app em execução quando fechado</string>
+	<!-- Node Families -->
+	<string name="node_families_title">Os servidores selecionados estão na mesma família de operadores!</string>
+	<string name="node_families_description_text">Desativar lembretes em </string>
+	<string name="node_families_description_link">configurações de notificação.</string>
+	<string name="node_families_connect_button">Conectar mesmo assim</string>
+	<string name="node_families_error_message">Os servidores selecionados compartilham a mesma família. Escolha outro par ou conecte mesmo assim.</string>
+	<!-- Geo Exclusion -->
+	<string name="geo_exclusion_enable_title">Ativar exclusão geográfica</string>
+	<string name="geo_exclusion_description">Roteia o tráfego de regiões selecionadas fora do túnel VPN, para que apps locais funcionem em velocidade total. Todo o resto permanece protegido.</string>
+	<string name="geo_exclusion_beta_text">Versão beta: apenas China por enquanto. Mais regiões em breve.</string>
+	<string name="geo_exclusion_traffic_bypass_text">O tráfego para regiões excluídas ignora a VPN.</string>
+	<string name="geo_exclusion_sock55_title">Porta SOCKS5</string>
+	<string name="geo_exclusion_custom_port_title">Porta personalizada</string>
+	<string name="geo_exclusion_ports_text">1024–65535</string>
+	<string name="geo_exclusion_ranges_count">%1$s faixas</string>
+	<string name="geo_exclusion_last_updated">Lista atualizada %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">SOCKS5 não detectado</string>
+	<string name="geo_exclusion_error_sock55_text">Proxy SOCKS5 não detectado. Verifique as configurações de porta.</string>
+	<string name="geo_exclusion_error_failed_start_title">Falha ao iniciar o recurso</string>
+	<string name="geo_exclusion_error_failed_start_text">Não foi possível iniciar a exclusão geográfica. Reconecte e tente novamente.</string>
+	<string name="geo_exclusion_error_invalid_port_text">A porta deve estar entre 1024 e 65535.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">A porta 1080 não é permitida. Escolha outra.</string>
+	<string name="geo_exclusion_excluded_regions_label">REGIÕES EXCLUÍDAS</string>
+	<string name="geo_exclusion_china">China</string>
+	<string name="geo_exclusion_add_region_button">Adicionar região</string>
+	<string name="geo_exclusion_copy_proxy_label">Copiar endereço do proxy</string>
+	<!-- Setup instructions screen -->
+	<string name="setup_instructions_title">Instruções de configuração</string>
+	<string name="setup_instructions_description">Configure apps e navegadores para rotear o tráfego pelo proxy SOCKS5 da Nym.</string>
+	<string name="setup_instructions_per_app_title">Por app (app com suporte a SOCKS5)</string>
+	<string name="setup_instructions_per_app_description">O Android não tem configuração SOCKS5 para todo o sistema.</string>
+	<string name="setup_instructions_pert_app_step">Use um app que suporte proxy SOCKS5 diretamente.</string>
+	<string name="setup_instructions_browser_title">Configuração do navegador</string>
+	<string name="setup_instructions_browser_description">Qualquer app com suporte a SOCKS5. Exemplo no Firefox:</string>
+	<string name="setup_instructions_browser_step_1">Configurações → ativar proxy SOCKS — Host</string>
+	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
+	<string name="setup_instructions_browser_step_3">, Porta</string>
+	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
+	<string name="setup_instructions_wallet_title">Carteira Web3</string>
+	<string name="setup_instructions_wallet_step_1">Defina a URL RPC para</string>
+	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
+	<string name="setup_instructions_proxy_title">ENDEREÇO DO PROXY</string>
 </resources>

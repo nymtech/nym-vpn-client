@@ -1,4 +1,5 @@
 import SwiftUI
+import AccountPrefetchGates
 import Theme
 import UIComponents
 
@@ -6,6 +7,7 @@ struct ProcessingAccountView: View {
     @Bindable var viewModel: ProcessingAccountViewModel
     let minHeight: CGFloat
 
+    @Environment(\.scenePhase) private var scenePhase
     @State private var titleBlockHeight: CGFloat = 0
 
     init(viewModel: ProcessingAccountViewModel, minHeight: CGFloat = 0) {
@@ -17,39 +19,88 @@ struct ProcessingAccountView: View {
         ZStack(alignment: .top) {
             measurementLayer
             content
+            if viewModel.flow == .postPurchase {
+                dismissControl
+            }
         }
         .padding(.horizontal, NymSpacing.component)
-        .padding(.vertical, AuthLayout.verticalPadding)
+        .padding(.vertical, AuthLayout.processingCarouselVerticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(height: minHeight > 0 ? minHeight : nil)
-        .task {
-            viewModel.start()
+        .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
+        .onAppear {
+            applyCarouselScenePhase(scenePhase)
+        }
+        .onDisappear {
+            viewModel.noteCarouselInterrupted()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            applyCarouselScenePhase(newPhase)
+        }
+    }
+}
+
+private extension ProcessingAccountView {
+    var dismissControl: some View {
+        HStack {
+            Spacer()
+            Button {
+                viewModel.dismissPostPurchaseProcessing()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(NymColor.gray1)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("cancel".localizedString)
         }
     }
 }
 
 private extension ProcessingAccountView {
     var content: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: AuthLayout.processingCarouselStackSpacing) {
+            AuthDrawerHeader(showsBackButton: false)
             stepIndicator
-            Spacer(minLength: 0)
             WaveDotsView()
-            Spacer(minLength: 0)
-            Group {
-                if viewModel.didShowFinalMessage {
-                    welcomeMessage
-                } else {
-                    switchingTitles
-                }
-            }
-            .frame(height: titleBlockHeight > 0 ? titleBlockHeight : nil)
-            Spacer(minLength: 0)
+                .padding(.top, AuthLayout.carouselLoaderTopSpacing)
+                .padding(.bottom, AuthLayout.carouselLoaderBottomSpacing)
+            titleBlock
         }
+        .frame(maxWidth: .infinity, alignment: .top)
+    }
+
+    @ViewBuilder
+    var titleBlock: some View {
+        Group {
+            switch ProcessingAccountView.titleBlockMode(
+                usesStaticCopy: viewModel.usesStaticCopy,
+                didShowFinalMessage: viewModel.didShowFinalMessage,
+                showsCredentialsCarousel: showsCredentialsCarousel
+            ) {
+            case .staticCopy:
+                staticTitleView
+            case .welcome:
+                welcomeMessage
+            case .credentials:
+                credentialsTitleView
+            case .setupCarousel:
+                switchingTitles
+            }
+        }
+        .frame(
+            height: AuthLayout.processingCarouselTitleReservedHeight(
+                didShowFinalMessage: viewModel.didShowFinalMessage,
+                measuredCarouselTitleHeight: titleBlockHeight
+            )
+        )
     }
 
     var measurementLayer: some View {
         ZStack(alignment: .top) {
-            ForEach(Array(ProcessingAccountView.pairs(for: viewModel.flow).enumerated()), id: \.offset) { _, pair in
+            ForEach(Array(LoginProcessingUI.setupCarouselPairs().enumerated()), id: \.offset) { _, pair in
+                titlePairMeasurement(title: pair.0, subtitle: pair.1)
+            }
+            ForEach(Array(LoginProcessingUI.credentialsCarouselPairs().enumerated()), id: \.offset) { _, pair in
                 titlePairMeasurement(title: pair.0, subtitle: pair.1)
             }
             welcomeMessage
@@ -61,8 +112,19 @@ private extension ProcessingAccountView {
         .allowsHitTesting(false)
     }
 
+    func applyCarouselScenePhase(_ phase: ScenePhase) {
+        switch ProcessingAccountView.carouselSceneAction(for: phase) {
+        case .resume:
+            viewModel.noteCarouselResumed()
+        case .interrupt:
+            viewModel.noteCarouselInterrupted()
+        case .ignore:
+            break
+        }
+    }
+
     func titlePairMeasurement(title: String, subtitle: String) -> some View {
-        VStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .center, spacing: AuthLayout.processingCarouselTitleSpacing) {
             Text(title)
                 .textStyle(.Headline.Medium.regular)
                 .multilineTextAlignment(.center)
@@ -73,28 +135,90 @@ private extension ProcessingAccountView {
         .trackHeight { titleBlockHeight = max(titleBlockHeight, $0) }
     }
 
+    @ViewBuilder
     var stepIndicator: some View {
-        StepView(
-            stepCount: 4,
-            currentStep: Binding(
-                get: { viewModel.currentStep },
-                set: { _ in }
+        if ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy) {
+            StepView(
+                stepCount: 4,
+                currentStep: Binding(
+                    get: { viewModel.currentStep },
+                    set: { _ in }
+                ),
+                animateInitialFill: LoginProcessingUI.stepBarAnimateInitialFill,
+                initialFillLeadIn: LoginProcessingUI.stepBarInitialLeadIn,
+                initialFillStepPause: LoginProcessingUI.stepBarStepPause,
+                forwardFillStepPause: LoginProcessingUI.stepBarStepPause
             )
-        )
+        }
+    }
+
+    @ViewBuilder
+    var credentialsTitleView: some View {
+        if let pair = viewModel.credentialsDisplayPair {
+            VStack(alignment: .center, spacing: AuthLayout.processingCarouselTitleSpacing) {
+                Text(pair.0)
+                    .textStyle(.Headline.Medium.regular)
+                    .foregroundStyle(NymColor.primary)
+                    .multilineTextAlignment(.center)
+                    .contentTransition(.opacity)
+                Text(pair.1)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundColor(NymColor.gray1)
+                    .multilineTextAlignment(.center)
+                    .contentTransition(.opacity)
+            }
+            .animation(
+                .easeInOut(duration: LoginProcessingUI.setupCarouselTextTransitionDuration),
+                value: pair.0
+            )
+        }
+    }
+
+    var staticTitleView: some View {
+        let pair = ProcessingAccountView.staticPair(for: viewModel.flow)
+        return VStack(alignment: .center, spacing: AuthLayout.processingCarouselTitleSpacing) {
+            Text(pair.0)
+                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+            Text(pair.1)
+                .textStyle(.Body.Medium.regular)
+                .foregroundColor(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
     }
 
     var switchingTitles: some View {
         SwitchingTitlesView(
             pairs: ProcessingAccountView.pairs(for: viewModel.flow),
             didFinishAnimating: Binding(
-                get: { viewModel.didFinishAnimatingText },
+                get: { viewModel.didFinishSetupCarousel },
                 set: { newValue in
                     if newValue { viewModel.animationDidFinish() }
                 }
             ),
-            timerDidTick: {
-                viewModel.animationDidAdvance()
+            timerDidTick: {},
+            tickInterval: LoginProcessingUI.setupCarouselTickInterval,
+            stepAdvanceDelay: LoginProcessingUI.setupCarouselStepAdvanceDelay,
+            textTransitionDuration: LoginProcessingUI.setupCarouselTextTransitionDuration,
+            initialDwell: LoginProcessingUI.setupCarouselInitialDwell,
+            retainLastPairOnFinish: true,
+            finalPairDwell: LoginProcessingUI.setupCarouselFinalPairDwell,
+            onIndexChanged: { index in
+                viewModel.noteSetupCarouselStepBarTick(atIndex: index)
             }
+        )
+    }
+
+    var showsCredentialsCarousel: Bool {
+        LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+            usesStaticCopy: viewModel.usesStaticCopy,
+            didShowFinalMessage: viewModel.didShowFinalMessage,
+            isSyncing: viewModel.phase == .syncing,
+            isPrefetching: viewModel.phase == .prefetching,
+            holdsPrefetchCopyThroughAdvance: viewModel.phase == .awaitingAdvance
+                && viewModel.hasReachedPrefetchPhase,
+            didFinishSetupCarousel: viewModel.didFinishSetupCarousel
         )
     }
 
@@ -105,21 +229,73 @@ private extension ProcessingAccountView {
             .multilineTextAlignment(.center)
     }
 
-    static func pairs(for flow: ProcessingFlow) -> [(String, String)] {
-        let prefix: String
+    static func staticPair(for flow: ProcessingFlow) -> (String, String) {
         switch flow {
-        case .createAccount:
-            prefix = "processingAccount.createAccount"
-        case .login:
-            prefix = "processingAccount.login"
+        case .login, .createAccount:
+            return processingCarouselPairs().first ?? ("", "")
         case .postPurchase:
-            prefix = "processingAccount"
-        }
-        return (2...4).map { index in
-            (
-                "\(prefix).title\(index)".localizedString,
-                "\(prefix).subtitle\(index)".localizedString
+            return (
+                PostPurchaseProcessingUI.titleKey.localizedString,
+                PostPurchaseProcessingUI.subtitleKey.localizedString
             )
         }
+    }
+
+    static func pairs(for flow: ProcessingFlow) -> [(String, String)] {
+        switch flow {
+        case .login, .createAccount:
+            return processingCarouselPairs()
+        case .postPurchase:
+            return [staticPair(for: .postPurchase)]
+        }
+    }
+
+    static func processingCarouselPairs() -> [(String, String)] {
+        LoginProcessingUI.setupCarouselPairs()
+    }
+}
+
+enum ProcessingAccountCarouselSceneAction: Equatable {
+    case resume
+    case interrupt
+    case ignore
+}
+
+enum ProcessingAccountTitleBlockMode: Equatable {
+    case staticCopy
+    case welcome
+    case credentials
+    case setupCarousel
+}
+
+extension ProcessingAccountView {
+    static func carouselSceneAction(for phase: ScenePhase) -> ProcessingAccountCarouselSceneAction {
+        switch phase {
+        case .active:
+            return .resume
+        case .background:
+            return .interrupt
+        case .inactive:
+            return .ignore
+        @unknown default:
+            return .ignore
+        }
+    }
+
+    static func titleBlockMode(
+        usesStaticCopy: Bool,
+        didShowFinalMessage: Bool,
+        showsCredentialsCarousel: Bool
+    ) -> ProcessingAccountTitleBlockMode {
+        if usesStaticCopy {
+            return .staticCopy
+        }
+        if didShowFinalMessage {
+            return .welcome
+        }
+        if showsCredentialsCarousel {
+            return .credentials
+        }
+        return .setupCarousel
     }
 }

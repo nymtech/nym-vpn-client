@@ -5,10 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
@@ -23,21 +20,11 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(private val settingsRepository: SettingsRepository, private val vpnConfigRepository: VpnConfigRepository, private val backendManager: BackendManager) :
 	ViewModel() {
 
-	private val _uiState = MutableStateFlow(SettingsUiState())
-	val uiState = _uiState.asStateFlow()
-
 	private val _events = MutableSharedFlow<UiEvent>(
 		extraBufferCapacity = 1,
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
 	val events = _events.asSharedFlow()
-
-	init {
-		viewModelScope.launch {
-			val daemonVersion = backendManager.getDaemonVersion()
-			_uiState.update { it.copy(daemonVersion = daemonVersion) }
-		}
-	}
 
 	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setAutoStart(selected)

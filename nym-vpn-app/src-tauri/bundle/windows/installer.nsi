@@ -68,6 +68,7 @@ ${UnStrTok}
 Var PassiveMode
 Var UpdateMode
 Var NoShortcutMode
+Var ForceVCRedistMode
 Var WixMode
 Var OldMainBinaryName
 Var VpndVersion
@@ -78,6 +79,19 @@ Var VpndVersionMinor
   !define DISPLAYNAME "${PRODUCTNAME} (ARM64)"
 !else
   !define DISPLAYNAME "${PRODUCTNAME}"
+!endif
+
+; ARM64 builds place the NSIS script one directory level deeper than x64
+; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
+; so the relative path to src-tauri/ differs by one level.
+!if "${ARCH}" == "arm64"
+  !define RESPREFIX "..\..\..\..\..\"
+  !define VCREDISTARCH "Arm64"
+  !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.arm64.exe"
+!else
+  !define RESPREFIX "..\..\..\.."
+  !define VCREDISTARCH "X64"
+  !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 !endif
 
 Name "${DISPLAYNAME}"
@@ -215,6 +229,52 @@ FunctionEnd
 !insertmacro VPND_GET_VERSION_FULL "un."
 !insertmacro VPND_UNINSTALL ""
 !insertmacro VPND_UNINSTALL "un."
+
+; Clear the command line arguments of a .lnk shortcut, no-op if it doesn't exist
+;
+; Shortcuts created by installers up to 2026.10 pass `-l -Ldebug`. `-l` is not
+; a real flag: the app accepts it only as a hidden no-op (`Cli::log_file`) so
+; those shortcuts keep launching.
+;
+; Clearing them here does not make that shim removable. The updater relays the
+; old process's arguments to the new binary through /ARGS (see .onInstSuccess),
+; and taskbar and start menu pins are separate .lnk files this never sees, so
+; `-l` keeps reaching the binary from places the installer cannot reach.
+;
+; Outside WiX migration, an update skips shortcut creation altogether (see
+; $UpdateMode), so stale arguments are never overwritten by the normal path and
+; have to be cleared explicitly.
+;
+; `utils.nsh` has no equivalent: its SetShortcutTarget sets only the target
+; path (IShellLink::SetPath) and leaves the arguments alone.
+;
+; This clears every argument, not just `-l`. The app is not meant to be
+; launched from a shortcut with arguments, so anything found there is discarded.
+;
+; Note this modifies $0, $1 and $2
+!macro ClearShortcutArgs shortcut
+  ${If} ${FileExists} "${shortcut}"
+    !insertmacro ComHlpr_CreateInProcInstance ${CLSID_ShellLink} ${IID_IShellLink} r0 ""
+    ${If} $0 P<> 0
+      ${IUnknown::QueryInterface} $0 '("${IID_IPersistFile}",.r1)'
+      ${If} $1 P<> 0
+        ; STGM_READWRITE asks for exclusive access, so Load fails if anything
+        ; else holds the .lnk. Saving anyway would write an empty shortcut over
+        ; a working one, since nothing has set a target on this IShellLink.
+        ${IPersistFile::Load} $1 '("${shortcut}", ${STGM_READWRITE})i.r2'
+        ${If} $2 >= 0
+          ${IShellLink::SetArguments} $0 '(w "")'
+          ${IPersistFile::Save} $1 '("${shortcut}",1)'
+          DetailPrint "cleared shortcut arguments: ${shortcut}"
+        ${Else}
+          DetailPrint "could not open shortcut [$2]: ${shortcut}"
+        ${EndIf}
+        ${IUnknown::Release} $1 ""
+      ${EndIf}
+      ${IUnknown::Release} $0 ""
+    ${EndIf}
+  ${EndIf}
+!macroend
 
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
@@ -473,7 +533,7 @@ Var AppStartMenuFolder
 !insertmacro MUI_PAGE_FINISH
 
 Function RunMainBinary
-  nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+  nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" ""
 FunctionEnd
 
 ; Uninstaller Pages
@@ -544,6 +604,13 @@ Function .onInit
   ${GetOptions} $CMDLINE "/UPDATE" $UpdateMode
   ${IfNot} ${Errors}
     StrCpy $UpdateMode 1
+  ${EndIf}
+
+  ; Force (re)download and (re)install of the VC++ Redistributable, even if
+  ; already present. Intended for testing the VCRedist section in isolation.
+  ${GetOptions} $CMDLINE "/FORCEVCREDIST" $ForceVCRedistMode
+  ${IfNot} ${Errors}
+    StrCpy $ForceVCRedistMode 1
   ${EndIf}
 
   !if "${DISPLAYLANGUAGESELECTOR}" == "true"
@@ -691,6 +758,45 @@ Section WebView2
   ${EndIf}
 SectionEnd
 
+Section VCRedist
+  ; This registry key is written by the redistributable installer for both x64 and
+  ; Arm64, and is intentionally not subject to WOW64 registry redirection, so a
+  ; 32-bit installer process can read it directly regardless of host architecture.
+  ;
+  ; Note: this check also runs when updating, since a user upgrading from a
+  ; pre-VC-redist version of the app can still be missing the runtime.
+  ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
+  ${If} $4 <> 1
+  ${OrIf} $ForceVCRedistMode = 1
+    ; $PLUGINSDIR is a private, installer-only temp directory (created on the
+    ; first plugin call below, deleted automatically when the installer exits),
+    ; unlike the predictable, shared $TEMP path.
+    DetailPrint "Downloading Visual C++ Redistributable (${VCREDISTARCH})"
+    NSISdl::download "${VCREDISTURL}" "$PLUGINSDIR\vc_redist.exe"
+    Pop $5
+    ${If} $5 != "success"
+      DetailPrint "vc_redist.exe download failed: $5"
+      Abort "Failed to download the Visual C++ Redistributable [$5]"
+    ${EndIf}
+    DetailPrint "Visual C++ Redistributable downloaded successfully"
+
+    DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
+    ExecWait '"$PLUGINSDIR\vc_redist.exe" /install /quiet /norestart' $5
+    Delete "$PLUGINSDIR\vc_redist.exe"
+    ${If} $5 = 0
+      DetailPrint "Visual C++ Redistributable installed successfully"
+    ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
+      DetailPrint "Visual C++ Redistributable installed successfully, a reboot is required"
+      SetRebootFlag true
+    ${ElseIf} $5 = 1638 ; ERROR_PRODUCT_VERSION: a matching/newer version is already installed
+      DetailPrint "Visual C++ Redistributable is already installed"
+    ${Else}
+      DetailPrint "vc_redist.exe install failed: $5"
+      Abort "Failed to install the Visual C++ Redistributable [$5]"
+    ${EndIf}
+  ${EndIf}
+SectionEnd
+
 Section Install
   SetOutPath $INSTDIR
 
@@ -702,15 +808,6 @@ Section Install
 
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
-
-  ; ARM64 builds place the NSIS script one directory level deeper than x64
-  ; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
-  ; so the relative path to src-tauri/ differs by one level.
-  !if "${ARCH}" == "arm64"
-    !define RESPREFIX "..\..\..\..\..\"
-  !else
-    !define RESPREFIX "..\..\..\.."
-  !endif
 
   ; Copy vpnd, socks5-proxy and libs
   File "${RESPREFIX}\nym-vpnd.exe"
@@ -819,6 +916,11 @@ Section Install
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     Call CreateOrUpdateStartMenuShortcut
   !insertmacro MUI_STARTMENU_WRITE_END
+
+  ; CreateOrUpdateDesktopShortcut runs only in passive/silent mode or when the
+  ; user ticks the finish page checkbox, so clearing from inside it would leave
+  ; interactive updates broken. The desktop shortcut has to be cleared here.
+  !insertmacro ClearShortcutArgs "$DESKTOP\${PRODUCTNAME}.lnk"
 
   ; Create desktop shortcut for silent and passive installers
   ; because finish page will be skipped
@@ -1040,6 +1142,10 @@ Function un.SkipIfPassive
 FunctionEnd
 
 Function CreateOrUpdateStartMenuShortcut
+  ; Must come first: every branch below can return early
+  !insertmacro ClearShortcutArgs "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk"
+  !insertmacro ClearShortcutArgs "$SMPROGRAMS\${PRODUCTNAME}.lnk"
+
   ; We used to use product name as MAINBINARYNAME
   ; migrate old shortcuts to target the new MAINBINARYNAME
   StrCpy $R0 0
@@ -1047,14 +1153,14 @@ Function CreateOrUpdateStartMenuShortcut
   !insertmacro IsShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
+    !insertmacro SetShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe"'
     StrCpy $R0 1
   ${EndIf}
 
   !insertmacro IsShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
+    !insertmacro SetShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe"'
     StrCpy $R0 1
   ${EndIf}
 
@@ -1073,10 +1179,10 @@ Function CreateOrUpdateStartMenuShortcut
 
   !if "${STARTMENUFOLDER}" != ""
     CreateDirectory "$SMPROGRAMS\$AppStartMenuFolder"
-    CreateShortcut "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+    CreateShortcut "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
     !insertmacro SetLnkAppUserModelId "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk"
   !else
-    CreateShortcut "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+    CreateShortcut "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
     !insertmacro SetLnkAppUserModelId "$SMPROGRAMS\${PRODUCTNAME}.lnk"
   !endif
 FunctionEnd
@@ -1087,7 +1193,7 @@ Function CreateOrUpdateDesktopShortcut
   !insertmacro IsShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
+    !insertmacro SetShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe"'
     Return
   ${EndIf}
 
@@ -1100,6 +1206,6 @@ Function CreateOrUpdateDesktopShortcut
     ${EndIf}
   ${EndIf}
 
-  CreateShortcut "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+  CreateShortcut "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
   !insertmacro SetLnkAppUserModelId "$DESKTOP\${PRODUCTNAME}.lnk"
 FunctionEnd

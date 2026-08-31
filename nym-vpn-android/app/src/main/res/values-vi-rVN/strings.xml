@@ -77,7 +77,7 @@
 	<string name="log_out">Đăng xuất</string>
 	<string name="new_to_nym">Lần đầu đến với NymVPN?</string>
 	<string name="account">Tài khoản</string>
-	<string name="mnemonic_example">ví dụ: smoke artefact velvet skull pop palace tortoise damage rough...</string>
+	<string name="mnemonic_example">ví dụ: smoke artefact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Động</string>
 	<string name="system_wallpaper">Giao diện hình nền hệ thống</string>
 	<string name="initializing">Đang khởi tạo</string>
@@ -146,13 +146,13 @@
 	<string name="unexpected_error">Đã xảy ra lỗi không mong muốn:</string>
 	<string name="error_invalid_entry_gateway_country">Vị trí node vào không hợp lệ. Vui lòng thay đổi vị trí node vào và kết nối lại.</string>
 	<string name="error_invalid_exit_gateway_country">Vị trí node thoát không hợp lệ. Vui lòng thay đổi vị trí node thoát và kết nối lại.</string>
-	<string name="bandwidth_error">Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn.</string>
+	<string name="bandwidth_error">Đã vượt quá băng thông hàng ngày. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng.</string>
 	<string name="max_devices_error">Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.</string>
 	<string name="device_time_out_of_sync">Thời gian thiết bị không đồng bộ</string>
 	<string name="error_ipv6_unavailable">Ipv6 không khả dụng</string>
 	<string name="error_device_logged_out">Thiết bị đã đăng xuất.</string>
 	<string name="error_inactive_account">Tài khoản không trong trạng thái \"Hoạt động\".</string>
-	<string name="error_inactive_account_subtitle">Press on Get Started</string>
+	<string name="error_inactive_account_subtitle">Nhấn vào Bắt đầu</string>
 	<string name="error_set_dns">Không cấu hình được dns.</string>
 	<string name="error_set_firewall_policy">Không thể thiết lập chính sách tường lửa.</string>
 	<string name="error_set_routing">Không cấu hình được định truyến.</string>
@@ -165,29 +165,26 @@
 	<string name="error_gateway_unavailable_exit">Không thể kết nối với máy chủ thoát. Vui lòng thử máy chủ khác!</string>
 	<string name="error_invalid_entry_gateway_identity">Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
 	<string name="error_invalid_exit_gateway_identity">Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
-	<string name="error_expired_subscription_title">Your subscription has expired</string>
-	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
-	<string name="error_expired_subscription_button">Renew Now</string>
+	<string name="error_expired_subscription_title">Gói đăng ký của bạn đã hết hạn</string>
+	<string name="error_expired_subscription_description">Phương thức thanh toán định kỳ đã bị từ chối</string>
+	<string name="error_expired_subscription_button">Gia hạn ngay</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (3/6)</string>
-	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (6/6)</string>
+	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (4/7)</string>
+	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Sử dụng máy chủ tốt nhất</string>
 	<string name="one_click_mode_fast">Nhanh</string>
-	<string name="connect_mode_auto">Tự động</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Máy chủ thoát</string>
 	<string name="one_click_nym_entry_node">Máy chủ vào</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Không được bảo vệ</string>
 	<string name="connection_status_fast_mode">Bảo vệ bởi chế độ Nhanh</string>
-	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_anonymous">Bảo vệ từ mixnet</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Máy chủ tốt nhất</string>
 	<string name="gateway_random">Máy chủ ngẫu nhiên</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Chào mừng!</string>
@@ -233,6 +230,8 @@
 	<string name="settings_shortcuts_title">Phím tắt ứng dụng</string>
 	<string name="settings_logs_title">Nhật ký &amp; dữ liệu</string>
 	<string name="settings_legal_title">Pháp lý</string>
+	<string name="settings_geo_exclusion_title">Loại Trừ Địa Lý</string>
+	<string name="settings_geo_exclusion_desciption">Các dải IP cụ thể kết nối trực tiếp</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Cần khóa màn hình để sử dụng các phím tắt.</string>
 	<string name="shortcut_title">Xác nhận hành động</string>
@@ -266,7 +265,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Tiếp tục</string>
 	<string name="welcome_title">Hãy giúp chúng tôi cải thiện NymVPN</string>
-	<string name="welcome_description">Chọn dữ liệu ẩn danh bạn muốn chia sẻ. Tất cả dữ liệu đều được loại bỏ thông tin định danh trước khi gửi đi.</string>
+	<string name="welcome_description">Chọn dữ liệu ẩn danh bạn muốn chia sẻ. \nTất cả dữ liệu đều được loại bỏ thông tin định danh trước khi gửi đi.</string>
 	<string name="welcome_error_reports_title">Chia sẻ báo cáo lỗi</string>
 	<string name="welcome_error_reports_description_start">Giúp chúng tôi khắc phục lỗi nhanh hơn, không dữ liệu cá nhân bị thu thập (qua </string>
 	<string name="welcome_error_reports_link_text">Sentry</string>
@@ -351,6 +350,14 @@
 	<string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
 	<string name="account_generating_deeplink_title">Đang đăng nhập...</string>
 	<string name="account_generating_deeplink_description">Vui lòng chờ trong khi chúng tôi xác minh tài khoản của bạn</string>
+	<string name="account_login_processing_setting_up">Thiết lập tài khoản ẩn danh của bạn</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Đang xử lý thanh toán của bạn một cách an toàn…</string>
 	<string name="account_payment_verifying">Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn</string>
@@ -391,9 +398,10 @@
 	<string name="account_info_device_title">ID thiết bị</string>
 	<string name="account_info_device_info">Sử dụng thông tin này để liên kết thiết bị này với tài khoản của bạn trên nym.com</string>
 	<string name="account_info_status_title">Trạng thái tài khoản</string>
-	<string name="account_info_bandwidth_title">Lưu lượng đã sử dụng</string>
+	<string name="account_info_bandwidth_title">Mức dung lượng hằng ngày</string>
 	<string name="account_info_limit_text">Giới hạn</string>
-	<string name="account_info_reset_text">Đặt lại</string>
+	<string name="account_info_reset_text">Đặt lại hàng ngày lúc</string>
+	<string name="account_info_data_unavailable">Dữ liệu sử dụng không có sẵn</string>
 	<string name="account_info_valid_text">Gói cước có hiệu lực đến %s</string>
 	<string name="account_info_expires_text">Gói cước hết hạn vào ngày %s</string>
 	<string name="banner_plan_expires_text">Gói cước hết hạn vào ngày:\n%s</string>
@@ -401,8 +409,8 @@
 	<string name="banner_renew_text">Gia hạn ngay\nđể tiếp tục được bảo vệ</string>
 	<string name="account_info_auto_renew_text">*Tự động gia hạn</string>
 	<string name="account_info_no_plan">Không phát hiện gói đăng ký đang hoạt động</string>
-	<string name="account_info_contact_support_action">Contact Customer Support</string>
-	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
+	<string name="account_info_contact_support_action">Liên hệ bộ phận Hỗ Trợ Khách Hàng</string>
+	<string name="account_info_contact_support_suffix"> nếu gói của bạn đạt đến giới hạn.</string>
 	<string name="account_info_confirming_payment">Xác nhận thanh toán</string>
 	<string name="account_info_autologin_fetching">Đang lấy mã truy cập…</string>
 	<string name="account_info_autologin_error">Không thể lấy mã truy cập. Vui lòng thử lại.</string>
@@ -475,7 +483,7 @@
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">Tùy chỉnh các mô hình lưu lượng truy cập mixnet của bạn</string>
 	<string name="mixnet_tuning_current_title">Hiệu năng dự kiến ​​của các thiết lập hiện tại:</string>
-	<string name="mixnet_tuning_current_speed">Tốc độ</string>
+	<string name="mixnet_tuning_current_speed">Tốc độ gói tin</string>
 	<string name="mixnet_tuning_current_latency">Độ trễ</string>
 	<string name="mixnet_tuning_internet_speed">Lên đến tốc độ internet</string>
 	<string name="mixnet_tuning_current_description">Độ trễ khứ hồi (RTT) dự kiến ​​trên mạng tiêu chuẩn</string>
@@ -484,23 +492,21 @@
 	<string name="mixnet_tuning_traffic_warning">⚠️ Chế độ lưu lượng truy cập liên tục đã bị tắt. Gói dữ liệu của bạn sẽ được gửi đi khi khả dụng. Điều này có thể tiết lộ các mô hình lưu lượng truy cập.</string>
 	<string name="mixnet_tuning_traffic_on_description">Lưu lượng truy cập bao phủ luôn được gửi đi để duy trì mô hình đồng nhất. Điều chỉnh tốc độ gửi gói tin của bạn.</string>
 	<string name="mixnet_tuning_traffic_off_description">Chúng tôi vẫn sẽ gửi lưu lượng truy cập che phủ độc lập với lưu lượng truy cập thực của bạn. Hãy chọn mức độ che phủ mà bạn cần. </string>
-	<string name="mixnet_tuning_traffic_min">Sử dụng ít pin &amp; dữ liệu hơn</string>
-	<string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">Cao\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Cân bằng\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Cơ bản</string>
 	<string name="mixnet_tuning_traffic_off_high">Cao\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Cân bằng\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Trung bình\n10x</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Đặt độ trễ về 0 sẽ loại bỏ quá trình trộn, làm giảm tính ẩn danh</string>
 	<string name="mixnet_tuning_delays_title">Độ trễ xáo trộn dữ liệu</string>
 	<string name="mixnet_tuning_delays_description">Điều chỉnh độ trễ thời gian để thay đổi cách các gói dữ liệu được trộn.</string>
-	<string name="mixnet_tuning_delays_min">Faster speed</string>
-	<string name="mixnet_tuning_delays_low">Thấp\n0m</string>
+    <string name="mixnet_tuning_delays_low">Thấp\n0m</string>
 	<string name="mixnet_tuning_delays_high">Cao\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Mặc định\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Hiện tại\n%1$s</string>
-	<string name="mixnet_tuning_max">Ẩn danh tối đa</string>
-	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
+    <string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
 	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>
 	<string name="mixnet_tuning_restore_button">Khôi phục các cài đặt mặc định</string>
 	<!-- Diagnostic screen -->
@@ -516,4 +522,51 @@
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">Tắt DNS riêng tư để sử dụng trình chặn quảng cáo.</string>
 	<string name="private_dns_button">Mở cài đặt</string>
+	<!-- Notifications screen -->
+	<string name="notifications_node_families_title">Lời nhắc nhóm máy chủ</string>
+	<string name="notifications_node_families_description">Luôn nhắc nhở về nhóm máy chủ chung</string>
+	<string name="notifications_system_title">Thông báo hệ thống</string>
+	<string name="notifications_system_description">Giữ cho ứng dụng tiếp tục chạy ngay cả khi đã đóng</string>
+	<!-- Node Families -->
+	<string name="node_families_title">Các máy chủ được chọn đều thuộc cùng một nhóm nhà vận hành!</string>
+	<string name="node_families_description_text">Tắt lời nhắc trong </string>
+	<string name="node_families_description_link">cài đặt thông báo.</string>
+	<string name="node_families_connect_button">Vẫn kết nối</string>
+	<string name="node_families_error_message">Các máy chủ được chọn thuộc cùng một nhóm. Hãy chọn một cặp khác hoặc vẫn kết nối.</string>
+	<!-- Geo Exclusion -->
+	<string name="geo_exclusion_enable_title">Bật Loại Trừ Địa Lý</string>
+	<string name="geo_exclusion_description">VPN này định tuyến lưu lượng truy cập cho các khu vực được chọn ra ngoài VPN tunnel, đảm bảo các ứng dụng trong nước hoạt động với tốc độ tối đa. Mọi thứ khác vẫn được bảo vệ.</string>
+	<string name="geo_exclusion_beta_text">Phiên bản beta: Hiện tại chỉ có ở Trung Quốc. Sẽ mở rộng sang các khu vực khác trong thời gian tới.</string>
+	<string name="geo_exclusion_traffic_bypass_text">Lưu lượng truy cập đến các khu vực bị loại trừ sẽ bỏ qua VPN.</string>
+	<string name="geo_exclusion_sock55_title">Cổng SOCKS5</string>
+	<string name="geo_exclusion_custom_port_title">Cổng tùy chỉnh</string>
+	<string name="geo_exclusion_ports_text">1024–65535</string>
+	<string name="geo_exclusion_ranges_count">phạm vi %1$s</string>
+	<string name="geo_exclusion_last_updated">Danh sách được cập nhật %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">Không phát hiện SOCKS5</string>
+	<string name="geo_exclusion_error_sock55_text">Không phát hiện thấy proxy SOCKS5. Vui lòng kiểm tra cài đặt cổng của bạn.</string>
+	<string name="geo_exclusion_error_failed_start_title">Tính năng không khởi động được</string>
+	<string name="geo_exclusion_error_failed_start_text">Không thể khởi động tính năng loại trừ theo khu vực địa lý. Vui lòng kết nối lại và thử lại.</string>
+	<string name="geo_exclusion_error_invalid_port_text">Cổng phải nằm trong khoảng từ 1024 đến 65535.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">Cổng 1080 bị cấm. Vui lòng chọn cổng khác.</string>
+	<string name="geo_exclusion_excluded_regions_label">CÁC KHU VỰC BỊ LOẠI TRỪ</string>
+	<string name="geo_exclusion_china">Trung Quốc</string>
+	<string name="geo_exclusion_add_region_button">Thêm khu vực</string>
+	<string name="geo_exclusion_copy_proxy_label">Sao chép địa chỉ proxy</string>
+	<!-- Setup instructions screen -->
+	<string name="setup_instructions_title">Hướng dẫn thiết lập</string>
+	<string name="setup_instructions_description">Cấu hình các ứng dụng và trình duyệt để định tuyến lưu lượng truy cập thông qua máy chủ proxy Nym SOCKS5.</string>
+	<string name="setup_instructions_per_app_title">Mỗi ứng dụng (ứng dụng hỗ trợ SOCKS5)</string>
+	<string name="setup_instructions_per_app_description">Android không có thiết lập SOCKS5 toàn hệ thống.</string>
+	<string name="setup_instructions_pert_app_step">Hãy sử dụng ứng dụng hỗ trợ trực tiếp proxy SOCKS5.</string>
+	<string name="setup_instructions_browser_title">Thiết lập trình duyệt</string>
+	<string name="setup_instructions_browser_description">Bất kỳ ứng dụng nào hỗ trợ SOCKS5. Ví dụ: Firefox:</string>
+	<string name="setup_instructions_browser_step_1">Cài đặt → bật proxy SOCKS — Host</string>
+	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
+	<string name="setup_instructions_browser_step_3">, Cổng</string>
+	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
+	<string name="setup_instructions_wallet_title">Ví Web3</string>
+	<string name="setup_instructions_wallet_step_1">Đặt URL RPC thành</string>
+	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
+	<string name="setup_instructions_proxy_title">ĐỊA CHỈ PROXY</string>
 </resources>

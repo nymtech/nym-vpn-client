@@ -1,12 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
+use nym_favorites::RecentGatewayCache;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-use nym_gateway_directory::{GatewayCache, GatewayCacheHandle, GatewayClient};
+use nym_gateway_directory::{
+    Error as GatewayDirectoryError, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayList,
+};
 use nym_vpn_lib_types::{Gateway, GatewayType, UserAgent};
 
 use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
@@ -18,6 +21,16 @@ pub struct NymGatewayCache {
     shutdown_drop_guard: Arc<Mutex<Option<DropGuard>>>,
 }
 
+#[async_trait::async_trait]
+impl RecentGatewayCache for &NymGatewayCache {
+    async fn lookup_gateways(
+        &self,
+        gw_type: nym_gateway_directory::GatewayType,
+    ) -> Result<GatewayList, GatewayDirectoryError> {
+        self.inner_get_gateways(gw_type).await
+    }
+}
+
 #[uniffi::export(async_runtime = "tokio")]
 impl NymGatewayCache {
     // Keep this method async because spawn needs runtime!
@@ -26,6 +39,7 @@ impl NymGatewayCache {
         user_agent: UserAgent,
         environment: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
+        data_dir: PathBuf,
     ) -> Result<Self, VpnError> {
         let shutdown_token = CancellationToken::new();
 
@@ -49,6 +63,10 @@ impl NymGatewayCache {
             gateway_client,
             offline_monitor.inner(),
             shutdown_token.child_token(),
+            data_dir
+                .join(environment.network_name())
+                .join("gateway-cache"),
+            environment.network_name() == "mainnet",
         );
 
         Ok(Self {
@@ -71,8 +89,7 @@ impl NymGatewayCache {
     }
 
     pub async fn get_gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
-        self.inner()
-            .lookup_gateways(gw_type.into())
+        self.inner_get_gateways(gw_type.into())
             .await
             .map(|gateways| {
                 gateways
@@ -90,5 +107,12 @@ impl NymGatewayCache {
 impl NymGatewayCache {
     pub fn inner(&self) -> GatewayCacheHandle {
         self.gateway_cache_handle.clone()
+    }
+
+    async fn inner_get_gateways(
+        &self,
+        gw_type: nym_gateway_directory::GatewayType,
+    ) -> Result<GatewayList, GatewayDirectoryError> {
+        self.inner().lookup_gateways(gw_type).await
     }
 }

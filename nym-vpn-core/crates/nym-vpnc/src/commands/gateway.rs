@@ -5,8 +5,8 @@ use anyhow::{Result, anyhow};
 use tabled::Table;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, GatewayFilter, ListGatewaysOptions, LookupGatewayFilters, NodeIdentity,
-    Recipient,
+    EntryPoint, ExitPoint, GatewayFilter, GetRecentGatewaysParams, ListGatewaysOptions,
+    LookupGatewayFilters, NodeIdentity, Recipient,
 };
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -58,6 +58,12 @@ pub enum Command {
         #[command(flatten)]
         filters: FilterArgs,
     },
+
+    /// List recently connected gateways
+    Recents {
+        /// Tunnel type of the recent connection to the gateways
+        tunnel_type: TunnelType,
+    },
 }
 
 #[derive(Debug, Clone, clap::Args)]
@@ -75,6 +81,11 @@ pub struct SetArgs {
     /// Auto-select entry gateway randomly.
     #[arg(long, action = clap::ArgAction::SetTrue, group = "entry")]
     pub entry_random: bool,
+
+    /// Auto-select entry. If argument is "on", the device's jurisdiction will be excluded from selection.
+    /// Otherwise, if the argument is "off", that jurisdiction will not be excluded.
+    #[arg(long, group = "entry")]
+    pub entry_auto_exclude_jurisdiction: Option<BooleanOption>,
 
     /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
     /// useful when connecting to standalone IPRs.
@@ -96,6 +107,11 @@ pub struct SetArgs {
     /// Auto-select exit gateway randomly.
     #[arg(long, action = clap::ArgAction::SetTrue, group = "exit")]
     pub exit_random: bool,
+
+    /// Auto-select exit. If argument is "on", the device's jurisdiction and the entry gateway's jurisdiction will be excluded from selection.
+    /// Otherwise, if the argument is "off", those jurisdictions will not be excluded.
+    #[arg(long, group = "exit")]
+    pub exit_auto_exclude_jurisdiction: Option<BooleanOption>,
 
     /// Only select residential exit nodes.
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
@@ -187,6 +203,10 @@ impl Args {
                     .await?;
                 Ok(())
             }
+            Command::Recents { tunnel_type } => {
+                self.recent_gateways(rpc_client, tunnel_type).await?;
+                Ok(())
+            }
         }
     }
 
@@ -225,6 +245,54 @@ impl Args {
             gateways.len()
         );
         let models = gateways
+            .into_iter()
+            .map(|gateway| GatewayModel::new(gateway, gw_type))
+            .collect::<Vec<_>>();
+        let mut table = Table::new(models);
+        self.table_style.apply_style(&mut table);
+        println!("{table}");
+
+        Ok(())
+    }
+
+    async fn recent_gateways(
+        &self,
+        mut rpc_client: RpcClient,
+        tunnel_type: TunnelType,
+    ) -> Result<()> {
+        let recent_gateways = rpc_client
+            .get_recent_gateways(GetRecentGatewaysParams {
+                tunnel_type: tunnel_type.into(),
+            })
+            .await?;
+
+        println!(
+            "Recent entry gateways for:  {tunnel_type:?} ({})",
+            recent_gateways.entry.len(),
+        );
+        let gw_type = match tunnel_type {
+            TunnelType::Mixnet => GatewayType::MixnetEntry,
+            TunnelType::Wg => GatewayType::Wg,
+        };
+        let models = recent_gateways
+            .entry
+            .into_iter()
+            .map(|gateway| GatewayModel::new(gateway, gw_type))
+            .collect::<Vec<_>>();
+        let mut table = Table::new(models);
+        self.table_style.apply_style(&mut table);
+        println!("{table}");
+
+        println!(
+            "Recent exit gateways for:  {tunnel_type:?} ({})",
+            recent_gateways.exit.len(),
+        );
+        let gw_type = match tunnel_type {
+            TunnelType::Mixnet => GatewayType::MixnetExit,
+            TunnelType::Wg => GatewayType::Wg,
+        };
+        let models = recent_gateways
+            .exit
             .into_iter()
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
@@ -282,6 +350,10 @@ impl SetArgs {
             }))
         } else if self.entry_random {
             Ok(Some(EntryPoint::Random))
+        } else if let Some(exclude_user_country) = self.entry_auto_exclude_jurisdiction {
+            Ok(Some(EntryPoint::Auto {
+                exclude_user_country: *exclude_user_country,
+            }))
         } else {
             Ok(None)
         }
@@ -310,6 +382,11 @@ impl SetArgs {
             }))
         } else if self.exit_random {
             Ok(Some(ExitPoint::Random))
+        } else if let Some(exclude_jurisdictions) = self.exit_auto_exclude_jurisdiction {
+            Ok(Some(ExitPoint::Auto {
+                exclude_entry_point_country: *exclude_jurisdictions,
+                exclude_user_country: *exclude_jurisdictions,
+            }))
         } else {
             Ok(None)
         }
@@ -332,6 +409,23 @@ impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
             GatewayType::MixnetEntry => Self::MixnetEntry,
             GatewayType::MixnetExit => Self::MixnetExit,
             GatewayType::Wg => Self::Wg,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, clap::ValueEnum)]
+pub enum TunnelType {
+    /// Mixnet tunnel
+    Mixnet,
+    /// Wireguard tunnel
+    Wg,
+}
+
+impl From<TunnelType> for nym_vpn_lib_types::TunnelType {
+    fn from(value: TunnelType) -> Self {
+        match value {
+            TunnelType::Mixnet => nym_vpn_lib_types::TunnelType::Mixnet,
+            TunnelType::Wg => nym_vpn_lib_types::TunnelType::Wireguard,
         }
     }
 }

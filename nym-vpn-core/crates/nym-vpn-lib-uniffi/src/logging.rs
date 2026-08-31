@@ -47,12 +47,11 @@ pub fn initLogger(log_dir: Option<PathBuf>, log_level: LogLevel, sentry_monitori
         let verbosity_level = tracing::Level::from(log_level);
 
         let logging_setup = nym_vpn_lib::logging::setup_logging(nym_vpn_lib::logging::Options {
-            enable_file_log: log_dir.is_some(),
+            verbosity_level,
             enable_stdout_log: false,
             enable_json_log: false,
-            sentry: sentry_monitoring,
-            verbosity_level,
             log_dir: log_dir.clone(),
+            sentry: sentry_monitoring,
         });
 
         tracing::info!(

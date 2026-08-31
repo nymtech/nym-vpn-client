@@ -127,7 +127,7 @@ const NodeList = memo(function NodeList({
                 onNodeDetails={onNodeDetails}
                 vpnMode={vpnMode}
                 quicLabel={quicFilter}
-                inSearchResult
+                fullLocation
               />
             </PanelContent>
           ))}

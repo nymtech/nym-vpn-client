@@ -20,11 +20,11 @@ use tonic::{Request, Response, Status, transport::Server};
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
-    LookupGatewayFilters, TargetState, TunnelEvent,
+    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
-    self, GatewaySelectionAlgorithm, MixnetTrafficConfig,
+    self, MixnetTrafficConfig,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
@@ -39,9 +39,11 @@ const NYM_CERTIFICATE_SERIAL_NUMBER: &str = "4ec9356d8c87f9cf3ccf60e7bdad022f";
 // The MacOS signing requirement signifying that the binary was signed by apple
 // certificate with Nym's identifiers
 #[cfg(target_os = "macos")]
-const CLIENT_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn""#;
+const CLIENT_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and (identifier "net.nymtech.vpn" or identifier "net.nymtech.vpn.cli")"#;
 #[cfg(target_os = "macos")]
 const DAEMON_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn.daemon""#;
+#[cfg(target_os = "linux")]
+const NYM_VPN_GROUP_NAME: &str = "nym-vpn";
 
 pub struct CommandInterface {
     // Send commands to the VPN service
@@ -300,31 +302,6 @@ impl NymVpnService for CommandInterface {
         Ok(Response::new(()))
     }
 
-    async fn set_gateway_selection_algorithm(
-        &self,
-        request: Request<GatewaySelectionAlgorithm>,
-    ) -> std::result::Result<Response<()>, Status> {
-        let gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm =
-            request.into_inner().try_into().map_err(|e| {
-                tonic::Status::invalid_argument(format!(
-                    "Invalid Gateway selection algorithm Request: {e}"
-                ))
-            })?;
-
-        self.send_and_wait(
-            VpnServiceCommand::SetGatewaySelectionAlgorithm,
-            gateway_selection_algorithm,
-        )
-        .await
-        .map_err(|e| {
-            Status::internal(format!(
-                "[set_gateway_selection_algorithm] transport error: {e}"
-            ))
-        })?;
-
-        Ok(Response::new(()))
-    }
-
     async fn set_enable_geo_location(
         &self,
         request: tonic::Request<bool>,
@@ -426,6 +403,26 @@ impl NymVpnService for CommandInterface {
         .await?
         .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         Ok(tonic::Response::new(()))
+    }
+
+    async fn get_recent_gateways(
+        &self,
+        request: tonic::Request<proto::GetRecentGatewaysParams>,
+    ) -> Result<tonic::Response<proto::RecentGateways>> {
+        let tunnel_type =
+            nym_vpn_lib_types::GetRecentGatewaysParams::try_from(request.into_inner())
+                .map_err(|e| {
+                    tonic::Status::invalid_argument(format!("Invalid recent gateway params: {e}"))
+                })?
+                .tunnel_type;
+        let response = self
+            .send_and_wait(VpnServiceCommand::GetRecentGateways, tunnel_type)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get recent gateways: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(response.into()))
     }
 
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
@@ -633,15 +630,10 @@ impl NymVpnService for CommandInterface {
 
     async fn decentralised_obtain_ticketbooks(
         &self,
-        request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let ticketbook_request =
-            nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest::from(request.into_inner());
         let result = self
-            .send_and_wait(
-                VpnServiceCommand::DecentralisedObtainTicketbooks,
-                ticketbook_request,
-            )
+            .send_and_wait(VpnServiceCommand::DecentralisedObtainTicketbooks, ())
             .await?;
 
         let response = proto::AccountCommandResponse {
@@ -880,6 +872,19 @@ impl NymVpnService for CommandInterface {
         let response = proto::AvailableTickets::from(available_tickets);
 
         Ok(tonic::Response::new(response))
+    }
+
+    async fn restock_ticketbooks(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::RestockTicketbooks, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to restock ticketbooks: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
     }
 
     async fn get_account_summary(
@@ -1363,6 +1368,21 @@ impl NymVpnService for CommandInterface {
         #[cfg(not(target_os = "linux"))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
+
+    async fn set_profile(
+        &self,
+        request: tonic::Request<proto::ProfileOptions>,
+    ) -> Result<tonic::Response<()>> {
+        let profile_options = ProfileOptions::try_from(request.into_inner())
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid profile: {e}")))?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetProfile, profile_options.profile)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set profile: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
 }
 
 pub async fn start_command_interface(
@@ -1386,6 +1406,8 @@ pub async fn start_command_interface(
                 daemon_req: DAEMON_SIGNING_REQUIREMENT.to_string(),
                 client_req: CLIENT_SIGNING_REQUIREMENT.to_string(),
             },
+            #[cfg(target_os = "linux")]
+            NYM_VPN_GROUP_NAME,
             #[cfg(unix)]
             shutdown_token.child_token(),
         ),

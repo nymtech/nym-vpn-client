@@ -1,1 +1,1 @@
-VPN suisse, privé et sécurisé. WireGuard, mixnet, proxy décentralisé, sans email
+Швейцарський dVPN з WireGuard, Mixnet, децентралізований проксі, без e-mail.

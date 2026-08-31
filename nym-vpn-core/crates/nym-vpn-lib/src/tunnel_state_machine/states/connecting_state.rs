@@ -92,12 +92,6 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         shared_state.allow_networking().await;
 
-        // Disallow geolocating while connected to prevent incorrect data from being queried
-        shared_state
-            .gateway_provider
-            .set_active_geo_location(false)
-            .await;
-
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver");
@@ -132,20 +126,30 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             let redirect_interface = shared_state.split_tunnel.interface().await;
 
+            let ws_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().endpoints())
+                .unwrap_or_default();
+
+            let lp_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().lp_endpoints())
+                .unwrap_or_default();
+
+            let api_endpoints = shared_state
+                .resolved_api_endpoints
+                .as_ref()
+                .map(|r| r.all_socket_addrs())
+                .unwrap_or_default();
+
             let firewall_policy_params = ConnectingPolicyParameters {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint: None,
                 bridge_endpoints,
-                ws_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().endpoints())
-                    .unwrap_or_default(),
-                lp_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().lp_endpoints())
-                    .unwrap_or_default(),
-                api_endpoints: Vec::new(),
+                ws_entry_endpoints,
+                lp_entry_endpoints,
+                api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
                 dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
                 tunnel_interface: None,
@@ -207,6 +211,10 @@ impl ConnectingState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        #[cfg(target_os = "linux")]
+        shared_state.disable_nm_connectivity_check();
+
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -234,17 +242,33 @@ impl ConnectingState {
 
     async fn reconnect(self, shared_state: &mut SharedState) -> NextTunnelState {
         let next_attempt = self.retry_attempt.saturating_add(1);
-        let next_gateways = if next_attempt.is_multiple_of(2) {
-            None
-        } else {
-            self.selected_gateways
-        };
 
-        tracing::info!("Reconnecting, attempt {next_attempt}");
+        match reconnect_decision(next_attempt) {
+            ReconnectDecision::Retry { reset_gateways } => {
+                let next_gateways = if reset_gateways {
+                    None
+                } else {
+                    self.selected_gateways
+                };
 
-        NextTunnelState::NewState(
-            ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
-        )
+                tracing::info!("Reconnecting, attempt {next_attempt}");
+
+                NextTunnelState::NewState(
+                    ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
+                )
+            }
+            ReconnectDecision::Abort => {
+                tracing::error!(
+                    "Giving up after {} reconnect attempts, entering error state",
+                    self.retry_attempt
+                );
+
+                NextTunnelState::NewState(
+                    ErrorState::enter(ErrorStateReason::ConnectionAttemptsExceeded, shared_state)
+                        .await,
+                )
+            }
+        }
     }
 
     async fn disconnect(
@@ -387,7 +411,7 @@ impl ConnectingState {
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
-            #[cfg(target_os = "ios")]
+            #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
         };
         #[cfg(target_os = "android")]
@@ -401,6 +425,8 @@ impl ConnectingState {
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
+            shared_state.bandwidth_command_tx.clone(),
+            shared_state.skew_manager.clone(),
             shared_state.gateway_provider.clone(),
             shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,
@@ -641,6 +667,10 @@ impl TunnelStateHandler for ConnectingState {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingAccountReadiness);
                         NextTunnelState::NewState((self, new_state))
                     }
+                    TunnelMonitorEvent::AwaitingCredentialsAvailability => {
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingCredentialsAvailability);
+                        NextTunnelState::NewState((self, new_state))
+                    }
                     TunnelMonitorEvent::RefreshingGateways => {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
@@ -698,6 +728,7 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
+                        shared_state.entry_blame.clear();
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
                             *connection_data,
@@ -728,10 +759,19 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
-                        // WG handshake timed out or ICMP connectivity check failed; blacklist
-                        // the gateway so a different one is selected on the next attempt.
+                    TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id, exit_handshake_completed } => {
+                        // WG handshake timed out or connectivity probe failed without a healthy
+                        // metadata path; blacklist the exit so a different one is selected.
                         shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                        // A failure before the exit handshake ever completed may equally be the
+                        // entry gateway's fault. Once the same entry accumulates enough
+                        // pre-handshake failures while exits rotate, blacklist it too.
+                        if shared_state.entry_blame.record_failure(entry_gateway_id, exit_handshake_completed) {
+                            tracing::warn!(
+                                "Blacklisted entry gateway {entry_gateway_id} after repeated connection failures without a completed exit handshake"
+                            );
+                            shared_state.gateway_provider.add_blacklisted_gateway(entry_gateway_id).await;
+                        }
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
@@ -812,6 +852,8 @@ impl TunnelStateHandler for ConnectingState {
                             shared_state
                                 .start_or_stop_socks5_proxy()
                                 .await;
+                        } else if diff.geo_exclusion_excluded_countries_changed() {
+                            shared_state.set_socks5_proxy_excluded_countries();
                         }
 
                         if diff.enable_ad_blocking_changed() {
@@ -917,7 +959,10 @@ impl ConnectingPolicyParameters {
             .map(|addr| {
                 AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -930,7 +975,10 @@ impl ConnectingPolicyParameters {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -949,7 +997,10 @@ impl ConnectingPolicyParameters {
             .for_each(|addr| {
                 let allow_bridge_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -1012,6 +1063,29 @@ impl ConnectingPolicyParameters {
     }
 }
 
+/// Maximum number of consecutive reconnect attempts before transitioning to the error
+/// state instead of silently retrying forever.
+const MAX_RECONNECT_ATTEMPTS: u32 = 3;
+
+/// Decision on what to do for the given reconnect attempt.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ReconnectDecision {
+    /// Keep retrying; when `reset_gateways` is set, the gateway selection is redone.
+    Retry { reset_gateways: bool },
+    /// Give up and surface an error to the user.
+    Abort,
+}
+
+fn reconnect_decision(next_attempt: u32) -> ReconnectDecision {
+    if next_attempt >= MAX_RECONNECT_ATTEMPTS {
+        ReconnectDecision::Abort
+    } else {
+        ReconnectDecision::Retry {
+            reset_gateways: next_attempt.is_multiple_of(2),
+        }
+    }
+}
+
 fn wait_delay(retry_attempt: u32) -> Duration {
     // Use fast retries for the first FAST_RETRY_ATTEMPTS to handle network recovery
     // where the network reports as "online" before DNS/routing are ready.
@@ -1030,6 +1104,43 @@ fn wait_delay(retry_attempt: u32) -> Duration {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn reconnect_keeps_gateways_on_odd_attempts_and_resets_on_even() {
+        assert_eq!(
+            reconnect_decision(1),
+            ReconnectDecision::Retry {
+                reset_gateways: false
+            }
+        );
+        assert_eq!(
+            reconnect_decision(2),
+            ReconnectDecision::Retry {
+                reset_gateways: true
+            }
+        );
+    }
+
+    #[test]
+    fn reconnect_retries_below_max_attempts() {
+        assert!(matches!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1),
+            ReconnectDecision::Retry { .. }
+        ));
+    }
+
+    #[test]
+    fn reconnect_aborts_once_max_attempts_reached() {
+        assert_eq!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS),
+            ReconnectDecision::Abort,
+            "the reconnect loop must not retry silently forever"
+        );
+        assert_eq!(
+            reconnect_decision(MAX_RECONNECT_ATTEMPTS + 5),
+            ReconnectDecision::Abort
+        );
+    }
 
     #[test]
     fn wait_delay_sequence() {
@@ -1052,5 +1163,38 @@ mod test {
             .map(|i| wait_delay(*i))
             .collect();
         assert_eq!(delay_values, expected_delays);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_connecting_peer_endpoints_allow_all_for_fwmark() {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        let params = ConnectingPolicyParameters {
+            enable_ipv6: false,
+            allow_lan: false,
+            wg_entry_endpoint: Some(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
+                51822,
+            )),
+            bridge_endpoints: vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(5, 6, 7, 8)), 4443)],
+            ws_entry_endpoints: vec![SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(9, 10, 11, 12)),
+                9000,
+            )],
+            lp_entry_endpoints: vec![],
+            api_endpoints: vec![],
+            dns_servers: vec![],
+            tunnel_interface: None,
+        };
+
+        let policy = params.as_policy();
+
+        for endpoint in policy.peer_endpoints() {
+            assert!(
+                endpoint.clients.allow_all(),
+                "Linux connecting peer endpoints must use AllowedClients::All so nftables mangle sets fwmark"
+            );
+        }
     }
 }

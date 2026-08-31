@@ -1,23 +1,22 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{pin::Pin, ptr::NonNull};
+use std::pin::Pin;
 
 use objc2::{
     AnyThread, DefinedClass as _, define_class, msg_send, rc::Retained, runtime::ProtocolObject,
 };
-use objc2_core_foundation::CFString;
 use objc2_foundation::{
     NSObject, NSObjectProtocol, NSString, NSXPCConnection, NSXPCInterface, NSXPCListener,
     NSXPCListenerDelegate,
 };
-use objc2_security::{SecCSFlags, SecCode, SecRequirement, errSecSuccess};
 use tokio::sync::mpsc;
 use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 use crate::{
-    AuthenticationMaterial, authentication,
+    AuthenticationMaterial,
+    authentication::{self, skip_authentication_checks},
     xpc::{
         common::{
             ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
@@ -141,43 +140,6 @@ async fn run_task(task: Task, shutdown_token: CancellationToken) {
     }
 }
 
-fn self_is_signed(signing_requirement: &str) -> bool {
-    let mut raw_sec_code: *mut SecCode = std::ptr::null_mut();
-    let status =
-        unsafe { SecCode::copy_self(SecCSFlags::DefaultFlags, NonNull::from(&mut raw_sec_code)) };
-    if status != errSecSuccess {
-        tracing::error!("Could not obtain self code");
-        return false;
-    }
-    let ret = unsafe { Retained::from_raw(raw_sec_code) };
-    let Some(sec_code) = ret else {
-        tracing::error!("SecCodeCopySelf returned null on success");
-        return false;
-    };
-
-    let mut raw_sec_req: *mut SecRequirement = std::ptr::null_mut();
-    let status = unsafe {
-        SecRequirement::create_with_string(
-            &CFString::from_str(signing_requirement),
-            SecCSFlags::DefaultFlags,
-            NonNull::from(&mut raw_sec_req),
-        )
-    };
-    if status != errSecSuccess {
-        tracing::error!("Could not create a string");
-        return false;
-    }
-    let ret = unsafe { Retained::from_raw(raw_sec_req) };
-    let Some(sec_req) = ret else {
-        tracing::error!("Creating a string returned null on success");
-        return false;
-    };
-
-    let status = unsafe { sec_code.check_validity(SecCSFlags::DefaultFlags, Some(&sec_req)) };
-    tracing::debug!("Daemon signature validation check: {status}");
-    status == errSecSuccess
-}
-
 pub(crate) struct XpcService {
     inner: UnboundedReceiverStream<XpcConnection>,
     // needed to keep the XPC listener object alive for the lifetime of this
@@ -189,13 +151,12 @@ impl XpcService {
     pub(crate) fn spawn(auth_material: AuthenticationMaterial) -> std::io::Result<Self> {
         let local_spawner =
             LocalSpawner::new(run_task, auth_material.shutdown_token.child_token())?;
-        let signing_requirement = if self_is_signed(&auth_material.signing_requirements.daemon_req)
-        {
-            tracing::debug!("Daemon will do code signing verification for clients");
-            Some(auth_material.signing_requirements.client_req)
-        } else {
+        let signing_requirement = if skip_authentication_checks(&auth_material) {
             tracing::debug!("Daemon will receive any XPC clients");
             None
+        } else {
+            tracing::debug!("Daemon will do code signing verification for clients");
+            Some(auth_material.signing_requirements.client_req)
         };
 
         let (conn_sender, conn_receiver) = mpsc::unbounded_channel();

@@ -26,6 +26,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
+    case credentialFetchingFailed
+    case noCredentialAvailable
     case apiTimeout
     case apiStatusCode(String)
     case apiResponse(String)
@@ -45,6 +47,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case needFullDiskPermissions
     case splitTunnel
     case needsRelaxedIndependenceCriteria
+    case needsDeviceLocation
+    case connectionAttemptsExceeded
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -70,6 +74,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         case .deviceTimeOutOfSync:
             self = .deviceTimeOutOfSync
         case .ipv6Unavailable:
@@ -104,6 +112,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .splitTunnel
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 #endif
@@ -149,6 +161,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         case .registrationInProgress:
             self = .registrationInProgress
         case .internalError:
@@ -192,6 +208,10 @@ public enum ErrorReason: LocalizedError, Codable {
 #endif
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 
@@ -294,6 +314,14 @@ private extension ErrorReason {
 #endif
         case .needsRelaxedIndependenceCriteria:
             "errorReason.needsRelaxedIndependenceCriteria".localizedString
+        case .needsDeviceLocation:
+            "errorReason.needsDeviceLocation".localizedString
+        case .connectionAttemptsExceeded:
+            "errorReason.connectionAttemptsExceeded".localizedString
+        case .credentialFetchingFailed:
+            "errorReason.credentialFetchingFailed".localizedString
+        case .noCredentialAvailable:
+            "errorReason.noCredentialAvailable".localizedString
         }
     }
 }
@@ -324,6 +352,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
+    case credentialFetchingFailed
+    case noCredentialAvailable
     case apiTimeout
     case apiStatusCode
     case apiResponse
@@ -343,6 +373,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case needFullDiskPermissions
     case splitTunnel
     case needsRelaxedIndependenceCriteria
+    case needsDeviceLocation
+    case connectionAttemptsExceeded
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -372,6 +404,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         case .registrationInProgress:
             self = .registrationInProgress
         case .internalError:
@@ -420,6 +456,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
 #endif
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .needsDeviceLocation:
+            self = .needsDeviceLocation
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 }

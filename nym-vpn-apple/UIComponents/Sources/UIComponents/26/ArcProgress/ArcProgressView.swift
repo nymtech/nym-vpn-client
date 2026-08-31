@@ -11,6 +11,7 @@ public struct ArcProgressView: View {
     public let state: ArcProgressState
     public let mode: ArcProgressMode
     public let connectedDate: Date?
+    public let showsIndependenceWarning: Bool
     public let availableHeight: CGFloat?
 
     @State private var lastStep: ArcProgressState.Step?
@@ -20,11 +21,13 @@ public struct ArcProgressView: View {
         state: ArcProgressState,
         mode: ArcProgressMode = .fast,
         connectedDate: Date? = nil,
+        showsIndependenceWarning: Bool = false,
         availableHeight: CGFloat? = nil
     ) {
         self.state = state
         self.mode = mode
         self.connectedDate = connectedDate
+        self.showsIndependenceWarning = showsIndependenceWarning
         self.availableHeight = availableHeight
     }
 
@@ -42,6 +45,9 @@ public struct ArcProgressView: View {
         }
         .overlay(alignment: .top) {
             timerOverlay
+        }
+        .overlay(alignment: .bottom) {
+            secondaryWarningOverlay
         }
         .scaleEffect(contentScale, anchor: .center)
         .animation(.easeInOut(duration: 0.2), value: contentScale)
@@ -105,7 +111,7 @@ private extension ArcProgressView {
             .overlay(
                 Circle()
                     .fill(Constants.errorTint)
-                    .opacity(state == .failed ? 1 : 0)
+                    .opacity(state == .failed || state == .offline ? 1 : 0)
             )
             .frame(width: Constants.sphereDiameter, height: Constants.sphereDiameter)
             .opacity(sphereOpacity)
@@ -133,6 +139,21 @@ private extension ArcProgressView {
     }
 
     @ViewBuilder
+    var secondaryWarningOverlay: some View {
+        if showsSecondaryWarning {
+            Text("gatewayIndependence.warning.title".localizedString)
+                .font(.system(size: Constants.warningFontSize))
+                .foregroundColor(Color.Nym.textTertiary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: Constants.canvasSize)
+                .offset(y: Constants.warningTopOffset)
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: showsSecondaryWarning)
+        }
+    }
+
+    @ViewBuilder
     var timerOverlay: some View {
         if state == .connected, let connectedDate {
             TimelineView(.periodic(from: connectedDate, by: 1.0)) { context in
@@ -151,11 +172,10 @@ private extension ArcProgressView {
     }
 
     var fillColor: Color {
-        if state == .failed { return Constants.errorFill }
-        switch mode {
-        case .fast:      return Constants.fastFill
-        case .anonymous: return Constants.anonymousFill
+        if state == .failed || state == .offline {
+            return Constants.errorFill
         }
+        return Constants.fastFill
     }
 
     var trackColor: Color {
@@ -164,29 +184,31 @@ private extension ArcProgressView {
 
     var fillOpacity: Double {
         switch state {
-        case .canceling: return 0.15
-        default:         return 1.0
+        case .canceling:
+            return 0.15
+        default:
+            return 1.0
         }
     }
 
     var sphereOpacity: Double {
         switch state {
-        case .disconnected: return 0.85
-        case .step:         return 1.0
-        case .connected:    return 1.0
-        case .failed:       return 1.0
-        case .canceling:    return 0.7
+        case .disconnected:
+            return 0.85
+        case .step, .awaitingGatewayConsent:
+            return 1.0
+        case .connected:
+            return 1.0
+        case .failed, .offline:
+            return 1.0
+        case .canceling:
+            return 0.7
         }
     }
 
     var haloColor: Color {
         guard state == .connected else { return .clear }
-        switch mode {
-        case .fast:
-            return Color.Nym.primary.opacity(0.55)
-        case .anonymous:
-            return Color.Nym.textTertiary.opacity(0.35)
-        }
+        return Color.Nym.primary.opacity(0.55)
     }
 
     var haloRadius: CGFloat {
@@ -197,43 +219,77 @@ private extension ArcProgressView {
         switch state {
         case .disconnected:
             return "arcProgress.notProtected".localizedString
+        case .offline:
+            return "offline".localizedString
         case .connected:
             switch mode {
-            case .fast:      return "arcProgress.fastModeProtection".localizedString
-            case .anonymous: return "arcProgress.anonymousModeProtection".localizedString
+            case .fast:
+                return "arcProgress.fastModeProtection".localizedString
+            case .anonymous:
+                return "arcProgress.anonymousModeProtection".localizedString
             }
         case .failed:
             return "arcProgress.connectionFailed".localizedString
         case .canceling:
             return "arcProgress.disconnecting".localizedString
+        case .awaitingGatewayConsent:
+            return "gatewayIndependence.warning.title".localizedString
         case .step(let step):
             return stepLabel(step)
         }
     }
 
+    var showsSecondaryWarning: Bool {
+        guard showsIndependenceWarning else {
+            return false
+        }
+        // Only while connecting: the connected state owns the timer overlay
+        // that sits where this caption would render.
+        if case .step = state {
+            return true
+        }
+        return false
+    }
+
     var labelColor: Color {
         switch state {
-        case .failed:               return Constants.errorFill
-        case .connected, .step:     return Color.Nym.primary
-        case .disconnected, .canceling: return Color.Nym.textTertiary
+        case .failed, .offline:
+            return Constants.errorFill
+        case .connected, .step, .awaitingGatewayConsent:
+            return Color.Nym.primary
+        case .disconnected, .canceling:
+            return Color.Nym.textTertiary
         }
     }
 
     func progress(for ring: Ring) -> CGFloat {
         switch state {
-        case .connected: return 1.0
-        case .disconnected: return 0.0
-        case .failed: return 1.0
-        case .step(let step): return progressForStep(step, ring: ring)
-        case .canceling:   return progressForStep(lastStep, ring: ring)
+        case .connected:
+            return 1.0
+        case .disconnected:
+            return 0.0
+        case .failed, .offline:
+            return 1.0
+        case .awaitingGatewayConsent:
+            // Hold whatever ring the connect had already reached (macOS loads
+            // up to the middle ring before the error); fall back to the outer
+            // ring when nothing was reached yet (iOS pre-flight). Never unload.
+            return progressForStep(lastStep ?? .authenticatingAccount, ring: ring)
+        case .step(let step):
+            return progressForStep(step, ring: ring)
+        case .canceling:
+            return progressForStep(lastStep, ring: ring)
         }
     }
 
     func progressForStep(_ step: ArcProgressState.Step?, ring: Ring) -> CGFloat {
-        guard let step else { return 0.0 }
+        guard let step else {
+            return 0.0 }
         let activeRing = step.ring
-        if ring.index < activeRing.index { return 1.0 }
-        if ring.index > activeRing.index { return 0.0 }
+        if ring.index < activeRing.index {
+            return 1.0 }
+        if ring.index > activeRing.index {
+            return 0.0 }
         return step.isFirstHalf ? 0.5 : 1.0
     }
 
@@ -249,6 +305,8 @@ private extension ArcProgressView {
             return "arcProgress.step.initializingNym".localizedString
         case .authenticatingAccount:
             return "arcProgress.step.authenticatingAccount".localizedString
+        case .downloadingZkNyms:
+            return "arcProgress.step.downloadingZkNyms".localizedString
         case .updatingServerList:
             return "arcProgress.step.updatingServerList".localizedString
         case .choosingBestServers:
@@ -290,17 +348,23 @@ private extension ArcProgressView {
 
         var diameter: CGFloat {
             switch self {
-            case .outer:  return 92.4 * 2
-            case .middle: return 78.4 * 2
-            case .inner:  return 64.4 * 2
+            case .outer:
+                return 92.4 * 2
+            case .middle:
+                return 78.4 * 2
+            case .inner:
+                return 64.4 * 2
             }
         }
 
         var index: Int {
             switch self {
-            case .outer:  return 0
-            case .middle: return 1
-            case .inner:  return 2
+            case .outer:
+                return 0
+            case .middle:
+                return 1
+            case .inner:
+                return 2
             }
         }
     }
@@ -312,6 +376,8 @@ private extension ArcProgressView {
         static let glowDiameter: CGFloat = 64.4 * 2 * 0.9
 
         static let labelFontSize: CGFloat = 11
+        static let warningFontSize: CGFloat = 10
+        static let warningTopOffset: CGFloat = 18
         static let labelTopSpacing: CGFloat = 14
         static let labelMinHeight: CGFloat = 14
         /// Vertical offset from ArcView's top edge to the timer baseline.
@@ -340,7 +406,6 @@ private extension ArcProgressView {
         static let glowConnectedOpacity: Double = 0.55
 
         static let fastFill      = Color.Nym.primary
-        static let anonymousFill = Color.Nym.textTertiary.opacity(0.60)
         static let track         = Color.white.opacity(0.15)
         static let errorFill     = Color.Nym.error.opacity(0.60)
         static let errorTint     = Color.Nym.error.opacity(0.08)
@@ -350,9 +415,12 @@ private extension ArcProgressView {
 private extension ArcProgressState.Step {
     var ring: ArcProgressView.Ring {
         switch self {
-        case .initializingNym, .authenticatingAccount:        return .outer
-        case .updatingServerList, .choosingBestServers:       return .middle
-        case .registeringWithServers, .establishingConnection: return .inner
+        case .initializingNym, .authenticatingAccount, .downloadingZkNyms:
+            return .outer
+        case .updatingServerList, .choosingBestServers:
+            return .middle
+        case .registeringWithServers, .establishingConnection:
+            return .inner
         }
     }
 
@@ -360,7 +428,7 @@ private extension ArcProgressState.Step {
         switch self {
         case .initializingNym, .updatingServerList, .registeringWithServers:
             return true
-        case .authenticatingAccount, .choosingBestServers, .establishingConnection:
+        case .authenticatingAccount, .downloadingZkNyms, .choosingBestServers, .establishingConnection:
             return false
         }
     }

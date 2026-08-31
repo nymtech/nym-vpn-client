@@ -6,6 +6,7 @@ import AppVersionProvider
 import ConfigurationManager
 import ConnectionTypes
 import CredentialsManager
+import AccountPrefetchGates
 import NymLogger
 #if os(iOS)
 import NymVPNLib
@@ -53,9 +54,17 @@ import Theme
         Env.allCases
     }
 
+#if os(iOS)
+    var storeKitAccountGuidance: String {
+        SantaStoreKitEnvironmentPolicy.guidanceMessage(
+            isTestFlight: configurationManager.isTestFlight
+        )
+    }
+#endif
+
     var libVersion: String {
 #if os(iOS)
-        AppVersionProvider.libVersion
+        AppVersionProvider.realAppVersion()
 #elseif os(macOS)
         grpcManager.daemonVersion
 #endif
@@ -163,16 +172,5 @@ import Theme
         }
         return ByteCountFormatter.string(fromByteCount: Int64(totalSize), countStyle: .file)
     }
-
-#if os(macOS)
-    func updateDaemonInfo() {
-        Task {
-            try? await grpcManager.version()
-            Task { @MainActor in
-                objectWillChange.send()
-            }
-        }
-    }
-#endif
 }
 #endif

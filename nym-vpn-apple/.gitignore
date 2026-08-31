@@ -24,13 +24,19 @@ xcshareddata/swiftpm/
 *.xcresult
 
 NymVPNLib
-NymVPNRpc
 
 NymVPND/nym-vpnd
 NymVPND/nym-setup
 NymVPND/nym-socks5-proxy
+NymVPND/nym-diagnostic
 
 fastlane/report.xml
 fastlane/README.md
 
 .sentryclirc
+
+# Maestro test debug output
+maestro/tests/
+
+# Mock build derived data
+build-macos/

@@ -1,0 +1,88 @@
+name: distribute-release
+
+on:
+  workflow_call:
+    inputs:
+      publish_play:
+        description: Publish to Play Store
+        type: boolean
+        required: true
+      publish_play_metadata:
+        description: Publish Play Store metadata
+        type: boolean
+        required: true
+      publish_testflight:
+        description: Publish to TestFlight
+        type: boolean
+        required: true
+      ios_ipa_name:
+        description: The name of the iOS IPA artifact
+        type: string
+        required: false
+      publish_to_public_testflight:
+        description: Publish to public TestFlight group
+        type: boolean
+        required: true
+      play_artifact_name:
+        description: The name of the Play Store artifact (aab)
+        type: string
+        required: false
+      github_branch:
+        type: string
+        required: true
+      github_sha:
+        type: string
+        required: true
+    secrets:
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+
+jobs:
+  publish-playstore:
+    if: ${{ inputs.publish_play && inputs.play_artifact_name }}
+    uses: ./.github/workflows/publish-nym-vpn-android.yml
+    with:
+      track: alpha
+      publish_bundle: true
+      publish_metadata: ${{ inputs.publish_play_metadata }}
+      play_artifact_name: ${{ inputs.play_artifact_name }}
+    secrets: inherit
+
+  publish-testflight:
+    if: ${{ inputs.publish_testflight && inputs.ios_ipa_name }}
+    uses: ./.github/workflows/publish-nym-vpn-ios.yml
+    with:
+      is_public: ${{ inputs.publish_to_public_testflight }}
+      ios_ipa_name: ${{ inputs.ios_ipa_name }}
+      github_branch: ${{ inputs.github_branch }}
+      github_sha: ${{ inputs.github_sha }}
+    secrets: inherit
+
+  handle-testflight-failures:
+    needs: [publish-testflight]
+    runs-on: arc-linux-latest
+    if: |
+        !cancelled() && needs.publish-testflight.result == 'failure'
+    steps:
+      - name: Print failure message
+        run: |
+          echo "::warning:: Failed to publish to TestFlight!"
+
+  handle-playstore-failures:
+    needs: [publish-playstore]
+    runs-on: arc-linux-latest
+    if: |
+        !cancelled() && needs.publish-playstore.result == 'failure'
+    steps:
+      - name: Print failure message
+        run: |
+          echo "::warning:: Failed to publish to Google Play!"

@@ -4,6 +4,7 @@
 mod account;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
+mod entry_blame;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod gateway_ext;
 mod ipv6_availability;
@@ -21,10 +22,10 @@ mod wintun;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
+
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
 };
 
 #[cfg(target_os = "android")]
@@ -41,7 +42,7 @@ use crate::socks5_proxy::Socks5ProxyManager;
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
@@ -49,11 +50,17 @@ use crate::{
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
+use nym_bandwidth_controller::{
+    error::BandwidthControllerError, requests::BandwidthControllerRequestSender,
+};
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
+use nym_credentials_interface::TicketType;
+use nym_favorites::RecentsManager;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::SkewManager;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use tokio::{
     sync::{mpsc, watch},
@@ -65,11 +72,11 @@ use tokio_util::sync::CancellationToken;
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_gateway_directory::ResolvedConfig;
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
+use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
-    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewayIndependence, GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData,
+    DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
+    EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
     GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
@@ -142,8 +149,7 @@ pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
 
-    /// Type of tunnel. This is persisted across different `GatewaySelectionAlgorithm`s,
-    /// but is disregarded for `GatewaySelectionAlgorithm::Auto` selection
+    /// Type of tunnel.
     pub tunnel_type: TunnelType,
 
     /// Allow LAN connections outside of tunnel.
@@ -183,7 +189,7 @@ pub struct TunnelSettings {
     /// Geo exclusion settings.
     pub geo_exclusion_settings: GeoExclusionSettings,
 
-    /// How the gateways should be selected.
+    /// Configuration of the gateway selection algorithm.
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 
     /// Heuristics for what is accepted as independent entry and exit gateways
@@ -192,18 +198,23 @@ pub struct TunnelSettings {
 
 impl TunnelSettings {
     /// The tunnel type to be used
-    /// If the gateway selection algorithm is set to Auto, the tunnel_type is
-    /// disregarded and Wireguard mode is used, otherwise it's just the
-    /// configured tunnel_type
     pub fn tunnel_type_used(&self) -> TunnelType {
-        if matches!(
-            self.gateway_selection_algorithm_config
-                .gateway_selection_algorithm(),
-            GatewaySelectionAlgorithm::Auto
-        ) {
-            TunnelType::Wireguard
-        } else {
-            self.tunnel_type
+        self.tunnel_type
+    }
+
+    pub fn ticket_types_required(&self, enabled_lp: bool) -> Vec<TicketType> {
+        match self.tunnel_type_used() {
+            TunnelType::Mixnet => {
+                vec![TicketType::V1MixnetEntry]
+            }
+            TunnelType::Wireguard => {
+                let mut types = vec![TicketType::V1WireguardEntry, TicketType::V1WireguardExit];
+                if !enabled_lp {
+                    // Mixnet registration requires a Mixnet Ticket
+                    types.push(TicketType::V1MixnetEntry);
+                }
+                types
+            }
         }
     }
 
@@ -394,14 +405,10 @@ impl TunnelSettings {
         {
             diff.add(TunnelSettingsDiffFields::GeoLocationEnabled);
         }
-        if self
-            .gateway_selection_algorithm_config
-            .gateway_selection_algorithm()
-            != other
-                .gateway_selection_algorithm_config
-                .gateway_selection_algorithm()
+        if self.gateway_selection_algorithm_config.enable_geo_location
+            != other.gateway_selection_algorithm_config.enable_geo_location
         {
-            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithmConfig);
         }
         if self.gateway_independence != other.gateway_independence {
             diff.add(TunnelSettingsDiffFields::GatewayIndependence);
@@ -431,7 +438,7 @@ pub enum TunnelSettingsDiffFields {
     GeoExclusionEnabled,
     GeoExclusionExcludedCountries,
     GeoLocationEnabled,
-    GatewaySelectionAlgorithm,
+    GatewaySelectionAlgorithmConfig,
     GatewayIndependence,
 }
 
@@ -447,7 +454,7 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns
-            | Self::GatewaySelectionAlgorithm
+            | Self::GatewaySelectionAlgorithmConfig
             | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
                 // On android reconnect is necessary due to packet filtering used for adblocking.
@@ -773,9 +780,16 @@ pub struct SharedState {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
+    bandwidth_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     statistics_event_sender: StatisticsSender,
+    #[cfg(target_os = "linux")]
+    nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
+    /// Tracks pre-handshake connection failures to attribute blame to the entry gateway.
+    entry_blame: entry_blame::EntryBlameTracker<NodeIdentity>,
     topology_service: VpnTopologyServiceHandle,
+    recents_manager: RecentsManager<GatewayCacheHandle>,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
     /// API endpoints resolved in connecting state and used for configuring a bypass in error state.
@@ -786,7 +800,7 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Notify discovery and account controller when network is unrestricted.
+    /// Notify discovery, account controller, and gateway cache when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
@@ -795,15 +809,35 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
+        self.gateway_provider.set_gateway_cache_paused(false);
     }
 
-    /// Notify discovery, account controller and geo-location when network is restricted.
+    /// Notify discovery, account controller, geo-location, and gateway cache when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
         self.gateway_provider.set_active_geo_location(false).await;
+        self.gateway_provider.set_gateway_cache_paused(true);
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn disable_nm_connectivity_check(&mut self) {
+        if self.nm_connectivity_check_enabled.is_none()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            self.nm_connectivity_check_enabled = nm.disable_connectivity_check();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn restore_nm_connectivity_check(&mut self) {
+        if let Some(true) = self.nm_connectivity_check_enabled.take()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            nm.enable_connectivity_check();
+        }
     }
 
     async fn enable_ad_blocking(&self, enable: bool) {
@@ -959,9 +993,65 @@ impl SharedState {
     }
 
     #[cfg(not(target_os = "ios"))]
+    fn set_socks5_proxy_excluded_countries(&self) {
+        self.socks5_proxy_manager.set_excluded_countries(
+            self.tunnel_settings
+                .geo_exclusion_settings
+                .excluded_countries
+                .clone(),
+        );
+    }
+
+    #[cfg(not(target_os = "ios"))]
     fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
         let listen_port = self.tunnel_settings.geo_exclusion_settings.listen_port;
-        let data_dir = self.nym_config.data_path.clone();
+
+        // nym-socks5-proxy files are not network-specific so are stored in data_dir, not network_data_dir.
+        // However they used to be stored in the network directory, so migrate them if possible.
+        let old_data_dir = self
+            .nym_config
+            .paths
+            .network_data_dir
+            .join("nym-socks5-proxy");
+        let new_data_dir = self.nym_config.paths.data_dir.join("nym-socks5-proxy");
+        if old_data_dir.exists() && !new_data_dir.exists() {
+            if let Err(err) = std::fs::rename(&old_data_dir, &new_data_dir) {
+                tracing::warn!(
+                    "Failed to migrate nym-socks5-proxy directory from {} to {}: {err}",
+                    old_data_dir.display(),
+                    new_data_dir.display()
+                );
+            } else {
+                tracing::info!(
+                    "Migrated nym-socks5-proxy directory from {} to {}",
+                    old_data_dir.display(),
+                    new_data_dir.display()
+                );
+            }
+        }
+
+        if old_data_dir.exists() {
+            // Either both new and old exists or we failed to migrate.
+            let _ = std::fs::remove_dir(&old_data_dir);
+        }
+
+        // The log file will be written to the actual log directory now, so the old log file can be removed.
+        let old_log_file = new_data_dir.join("nym-socks5-proxy.log");
+        if old_log_file.exists() {
+            let _ = std::fs::remove_file(&old_log_file);
+        }
+
+        // The nym-socks5-proxy directory must exist in order for ProxyConfig::validate() to succeed.
+        if !new_data_dir.exists()
+            && let Err(err) = std::fs::create_dir_all(&new_data_dir)
+        {
+            return Err(format!(
+                "Failed to create directory {}: {err}",
+                new_data_dir.display()
+            ));
+        }
+
+        let log_dir = self.nym_config.paths.log_dir.clone();
 
         let log_level = if cfg!(debug_assertions) {
             "debug"
@@ -978,7 +1068,8 @@ impl SharedState {
 
         let proxy_config = ProxyConfig {
             listen_port,
-            data_dir,
+            data_dir: new_data_dir,
+            log_dir,
             log_level,
             excluded_countries,
         };
@@ -1000,12 +1091,54 @@ pub struct LinuxSplitTunnelConfiguration {
     pub net_cls: Option<u32>,
 }
 
+use crate::paths::NymConfigPaths;
+
 #[derive(Debug, Clone)]
 pub struct NymConfig {
-    pub config_path: PathBuf,
-    pub data_path: PathBuf,
+    pub paths: NymConfigPaths,
     pub gateway_config: GatewayDirectoryConfig,
     pub network_rx: watch::Receiver<Box<Network>>,
+}
+
+const DIAGNOSTICS_SUGGESTION_RETRY_THRESHOLD: u32 = 3;
+
+#[derive(Default)]
+struct DiagnosticsSuggestionTracker {
+    already_suggested: bool,
+}
+
+impl DiagnosticsSuggestionTracker {
+    fn observe(&mut self, state: &TunnelState) -> Option<DiagnosticsSuggestionReason> {
+        match state {
+            TunnelState::Connected { .. } | TunnelState::Disconnected => {
+                self.already_suggested = false;
+                None
+            }
+            TunnelState::Connecting { retry_attempt, .. }
+                if *retry_attempt >= DIAGNOSTICS_SUGGESTION_RETRY_THRESHOLD =>
+            {
+                self.suggest_once(DiagnosticsSuggestionReason::RepeatedConnectionRetries {
+                    attempts: *retry_attempt,
+                })
+            }
+            TunnelState::Error(reason) if reason.suggests_running_diagnostics() => {
+                self.suggest_once(DiagnosticsSuggestionReason::AmbiguousError(reason.clone()))
+            }
+            _ => None,
+        }
+    }
+
+    fn suggest_once(
+        &mut self,
+        reason: DiagnosticsSuggestionReason,
+    ) -> Option<DiagnosticsSuggestionReason> {
+        if self.already_suggested {
+            None
+        } else {
+            self.already_suggested = true;
+            Some(reason)
+        }
+    }
 }
 
 pub struct TunnelStateMachine {
@@ -1013,6 +1146,7 @@ pub struct TunnelStateMachine {
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
+    diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(target_os = "android"))]
@@ -1032,6 +1166,8 @@ impl TunnelStateMachine {
         tunnel_constants: TunnelConstants,
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
+        bandwidth_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         statistics_event_sender: StatisticsSender,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
@@ -1039,6 +1175,7 @@ impl TunnelStateMachine {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         split_tunnel: nym_split_tunnel::SplitTunnelHandle,
         gateway_provider: GatewayProvider<GatewayCacheHandle>,
+        recents_manager: RecentsManager<GatewayCacheHandle>,
         #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
@@ -1056,10 +1193,7 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let adblocker = adblocker::AdBlocker::new(
-            nym_config.data_path.join("ad-blocking"),
-            file_updater_handle,
-        );
+        let adblocker = create_adblocker(&nym_config, file_updater_handle);
         if tunnel_settings.enable_ad_blocking {
             adblocker.enable().await;
         }
@@ -1116,9 +1250,15 @@ impl TunnelStateMachine {
             tun_provider,
             account_command_tx,
             account_controller_state,
+            bandwidth_command_tx,
+            skew_manager,
             statistics_event_sender,
+            #[cfg(target_os = "linux")]
+            nm_connectivity_check_enabled: None,
             gateway_provider,
+            entry_blame: entry_blame::EntryBlameTracker::default(),
             topology_service,
+            recents_manager,
             discovery_refresher_command_tx,
             user_agent,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1153,6 +1293,7 @@ impl TunnelStateMachine {
             shared_state,
             command_receiver,
             event_sender,
+            diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker::default(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(target_os = "android"))]
@@ -1185,7 +1326,15 @@ impl TunnelStateMachine {
                     self.shared_state
                         .statistics_event_sender
                         .report_tunnel_state(state.clone());
+                    let diagnostics_suggestion =
+                        self.diagnostics_suggestion_tracker.observe(&state);
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
+                    if let Some(reason) = diagnostics_suggestion {
+                        tracing::info!("Suggesting diagnostics: {reason}");
+                        let _ = self
+                            .event_sender
+                            .send(TunnelEvent::DiagnosticsSuggested(reason));
+                    }
                 }
                 NextTunnelState::SameState(same_state) => {
                     self.current_state_handler = same_state;
@@ -1220,6 +1369,38 @@ impl TunnelStateMachine {
 
         self.shared_state.adblocker.stop().await;
     }
+}
+
+fn create_adblocker(
+    nym_config: &NymConfig,
+    file_updater_handle: nym_file_updater::FileUpdaterHandle,
+) -> adblocker::AdBlocker {
+    // Ad-blocker files are not network-specific so are stored in data_dir, not network_data_dir.
+    // However they used to be stored in the network directory, so migrate them if possible.
+    let old_adblocker_data_dir = nym_config.paths.network_data_dir.join("ad-blocking");
+    let new_adblocker_data_dir = nym_config.paths.data_dir.join("ad-blocking");
+    if old_adblocker_data_dir.exists() && !new_adblocker_data_dir.exists() {
+        if let Err(err) = std::fs::rename(&old_adblocker_data_dir, &new_adblocker_data_dir) {
+            tracing::warn!(
+                "Failed to migrate ad-blocking directory from {} to {}: {err}",
+                old_adblocker_data_dir.display(),
+                new_adblocker_data_dir.display()
+            );
+        } else {
+            tracing::info!(
+                "Migrated ad-blocking directory from {} to {}",
+                old_adblocker_data_dir.display(),
+                new_adblocker_data_dir.display()
+            );
+        }
+    }
+
+    if old_adblocker_data_dir.exists() {
+        // Either both new and old exists or we failed to migrate.
+        let _ = std::fs::remove_dir(&old_adblocker_data_dir);
+    }
+
+    adblocker::AdBlocker::new(new_adblocker_data_dir, file_updater_handle)
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -1389,22 +1570,32 @@ impl tunnel::Error {
                 GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
                     Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
                 }
+                GatewayProviderError::NeedsDeviceLocation => {
+                    Some(ErrorStateReason::NeedsDeviceLocation)
+                }
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
+            Self::BandwidthMonitor(BandwidthMonitorError::EntryGateway(error)) => {
                 if error.is_no_retry() {
                     Some(ErrorStateReason::CredentialWastedOnEntryGateway)
                 } else {
                     None
                 }
             }
-            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
+            Self::BandwidthMonitor(BandwidthMonitorError::ExitGateway(error)) => {
                 if error.is_no_retry() {
                     Some(ErrorStateReason::CredentialWastedOnExitGateway)
                 } else {
                     None
                 }
             }
+            Self::BandwidthController(BandwidthControllerError::TicketbookFetchFailed { .. }) => {
+                Some(ErrorStateReason::CredentialFetchingFailed)
+            },
+            Self::BandwidthController(BandwidthControllerError::TicketbooksUnavailable) => {
+                Some(ErrorStateReason::NoCredentialAvailable)
+            },
+
             Self::RegistrationClient(e) => match *e {
                 nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
                 nym_registration_client::RegistrationClientError::WireguardExitRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
@@ -1419,6 +1610,7 @@ impl tunnel::Error {
             )),
             Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
+            | Self::BandwidthMonitor(_)
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled

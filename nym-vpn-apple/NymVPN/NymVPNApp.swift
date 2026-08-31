@@ -1,5 +1,6 @@
 import SwiftUI
 import Logging
+import AccountPrefetchGates
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
@@ -19,9 +20,7 @@ import NotificationsManager
 import PurchasesManager
 import SentryManager
 import Theme
-#if os(iOS)
 import NymVPNLib
-#endif
 
 @main
 struct NymVPNApp: App {
@@ -29,7 +28,16 @@ struct NymVPNApp: App {
         let manager = LogFileManager(logFileType: .app)
         initLogger(logDir: LogFileManager.logsDirectory()?.path(), logLevel: .debug, sentryMonitoring: false)
         LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label, logFileManager: manager)
+            let fileLogger = FileLogHandler(label: label, logFileManager: manager)
+
+            #if DEBUG
+                return MultiplexLogHandler([
+                    StreamLogHandler.standardOutput(label: label),
+                    fileLogger
+                ])
+            #else
+                return fileLogger
+            #endif
         }
         return manager
     }()
@@ -84,6 +92,12 @@ struct NymVPNApp: App {
             .animation(.easeInOut, value: splashScreenDidDisplay)
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)
+#if os(iOS)
+                if newPhase == .background {
+                    credentialsManager.shutdownControllers()
+                    BackgroundRefreshScheduler.scheduleAppRefresh()
+                }
+#endif
             }
             .inAppSafari(using: externalLinkManager)
             .overlay {
@@ -91,16 +105,20 @@ struct NymVPNApp: App {
                     LogoView()
                 }
             }
-            .animation(.easeIn, value: isSecureScreenVisible)
             .preferredColorScheme(appearance.colorScheme)
             .onAppear {
                 configureScreenSize()
                 externalLinkManager.deeplinkHandler = { url in
-                    deeplinkManager.handle(url: url)
+                    await deeplinkManager.handleURL(url)
+                }
+                deeplinkManager.onPrivyLoginDeeplink = { callbackURLString in
+                    appFeatureViewModel.beginPrivyLoginProcessing(callbackURLString: callbackURLString)
                 }
             }
             .onOpenURL { incomingURL in
-                if incomingURL.scheme == Constants.appUrlScheme.rawValue {
+                if WebCheckoutReturnPolicy.shouldDismissOnDeeplink(url: incomingURL) {
+                    externalLinkManager.dismissActiveWebCheckoutSessions()
+                } else if incomingURL.scheme == Constants.appUrlScheme.rawValue {
                     externalLinkManager.inAppSafariURL = nil
                 }
                 deeplinkManager.handle(url: incomingURL)
@@ -118,6 +136,11 @@ struct NymVPNApp: App {
             .environmentObject(purchasesManager)
             .environment(deeplinkManager)
         }
+#if os(iOS)
+        .backgroundTask(.appRefresh(BackgroundRefreshScheduler.appRefreshIdentifier)) {
+            await BackgroundRefreshScheduler.runRefresh()
+        }
+#endif
     }
 }
 
@@ -134,6 +157,14 @@ private extension NymVPNApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+#if os(iOS) && SANTA
+            purchasesManager.registerForEnvironmentChanges(
+                configurationManager: configurationManager
+            )
+#endif
+#if os(iOS)
+            BackgroundRefreshScheduler.scheduleAppRefresh()
+#endif
         }
     }
 
@@ -148,13 +179,17 @@ private extension NymVPNApp {
     }
 
     func configureSecureScreen(with newPhase: ScenePhase) {
-        switch newPhase {
-        case .background, .inactive:
-            isSecureScreenVisible = true
-        case .active:
-            isSecureScreenVisible = false
-        @unknown default:
-            break
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            switch newPhase {
+            case .background, .inactive:
+                isSecureScreenVisible = true
+            case .active:
+                isSecureScreenVisible = false
+            @unknown default:
+                break
+            }
         }
     }
 }

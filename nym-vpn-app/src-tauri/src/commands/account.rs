@@ -210,6 +210,18 @@ pub async fn get_account_summary(
     })
 }
 
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn refresh_account_state(
+    force: bool,
+    vpnd: State<'_, VpndClient>,
+) -> Result<(), BackendError> {
+    vpnd.refresh_account_state(force).await.map_err(|e| {
+        error!("failed to refresh account state: {e}");
+        e.into()
+    })
+}
+
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn handle_subscription_payment(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {

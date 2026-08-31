@@ -29,6 +29,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import net.nymtech.vpn.model.RecentGateways
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
@@ -40,6 +41,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.TentativeGateways
+import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 import java.util.Locale
@@ -108,7 +110,7 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 	}
 
-	override suspend fun startTunnel() {
+	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {
 		val restrictedApps = getRestrictedAppsPackages()
 		val initReq = buildInitRequest()
 
@@ -121,6 +123,13 @@ class ServiceBackedBackendManager @Inject constructor(
 
 			runCatching { api.init(initReq) }
 				.onFailure { t -> Timber.tag(TAG).w(t, "Auto-init before connect failed") }
+
+			// Must be applied after init(), which force-syncs the persisted config and
+			// would otherwise re-enable gateway independence from nodeFamiliesNotificationsEnabled.
+			if (relaxGatewayIndependence) {
+				runCatching { api.setGatewayIndependenceEnabled(false) }
+					.onFailure { Timber.tag(TAG).w(it, "relax gateway independence failed") }
+			}
 
 			api.connect()
 		}
@@ -150,13 +159,17 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 	}
 
-	override suspend fun requestReconnect() {
+	override suspend fun requestReconnect(relaxGatewayIndependence: Boolean) {
 		val res = serviceConnectionManager.withApi { api ->
 			runCatching {
 				val restrictedApps = getRestrictedAppsPackages()
 				api.applyUpdates(listOf(CoreVpnConfigUpdate.SetRestrictedApps(restrictedApps)))
 			}.onFailure { t ->
 				Timber.tag(TAG).w(t, "apply restricted apps failed on reconnect")
+			}
+			if (relaxGatewayIndependence) {
+				runCatching { api.setGatewayIndependenceEnabled(false) }
+					.onFailure { Timber.tag(TAG).w(it, "relax gateway independence failed on reconnect") }
 			}
 			api.reconnect()
 		}
@@ -210,6 +223,13 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getGateways(gatewayType: GatewayType) = serviceConnectionManager.withApi { it.getGateways(gatewayType) }
 
+	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = runCatching {
+		serviceConnectionManager.withApi { it.getRecentGateways(tunnelType) }
+	}.getOrElse {
+		Timber.tag(TAG).w(it, "getRecentGateways failed")
+		null
+	}
+
 	override suspend fun getMnemonic(): List<String> = serviceConnectionManager.withApi { it.getStoredMnemonic().split(" ") }
 	override suspend fun createAccount() {
 		serviceConnectionManager.withApi { it.createAccount() }
@@ -230,8 +250,6 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 		_accountSummaryFlow.value = summary
 	}
-
-	override suspend fun getDaemonVersion(): String = serviceConnectionManager.withApi { it.getNetworkVersions()?.core ?: "" }
 
 	override suspend fun getFeatureFlags(): FeatureFlags? = runCatching {
 		serviceConnectionManager.withApi { it.getFeatureFlags() }

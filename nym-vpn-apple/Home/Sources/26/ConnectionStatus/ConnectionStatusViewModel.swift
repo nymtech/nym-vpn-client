@@ -3,6 +3,7 @@ import Foundation
 import ConnectionManager
 import ConnectionTypes
 import ErrorReason
+import NetworkMonitor
 import Theme
 import TunnelStatus
 import UIComponents
@@ -14,17 +15,21 @@ import UIKit
 @Observable
 @MainActor public final class ConnectionStatusViewModel {
     public let connectionManager: ConnectionManager
+    private let networkMonitor: NetworkMonitor
 
     var hasFailure = false
+    var isOnline = true
     var lastConnectingStep: TunnelConnectingState?
     var lastDisplayedStep: ArcProgressState.Step?
     var lastErrorMessage: String?
     var mode: ArcProgressMode = .fast
     var status: TunnelStatus = .unknown
     var connectedDate: Date?
+    var showsIndependenceWarning = false
 
     @ObservationIgnored private var lastErrorSignature: ErrorSignature?
     @ObservationIgnored private var didFireForCurrentError = false
+    @ObservationIgnored private var resumeFromIndependenceConsent = false
 
     /// Invoked when the tunnel reports `.error`. Parent (AppFeatureViewModel)
     /// uses this to surface a snackbar.
@@ -36,8 +41,13 @@ import UIKit
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var queueTask: Task<Void, Never>?
 
-    public init(connectionManager: ConnectionManager) {
+    public init(
+        connectionManager: ConnectionManager,
+        networkMonitor: NetworkMonitor = .shared
+    ) {
         self.connectionManager = connectionManager
+        self.networkMonitor = networkMonitor
+        self.isOnline = networkMonitor.isAvailable
         seedFromCurrentValues()
         observe()
     }
@@ -47,11 +57,26 @@ import UIKit
     }
 
     var arcProgressState: ArcProgressState {
+        if !isOnline {
+            return .offline
+        }
         switch status {
         case .connected:
             return .connected
         case .error:
-            return .failed
+            if GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
+                status: status,
+                lastError: connectionManager.lastError
+            ) {
+                return .awaitingGatewayConsent
+            }
+            if GatewayIndependenceArcPolicy.shouldUseFailedArc(
+                status: status,
+                lastError: connectionManager.lastError
+            ) {
+                return .failed
+            }
+            return .step(lastDisplayedStep ?? .choosingBestServers)
         case .connecting, .reasserting, .restarting, .offlineReconnect:
             return .step(lastDisplayedStep ?? .initializingNym)
         case .disconnecting:
@@ -64,6 +89,8 @@ import UIKit
     public func setMode(_ mode: ArcProgressMode) {
         self.mode = mode
     }
+
+    public var isConnectingLike: Bool { status.isConnectingLike }
 }
 
 private extension ConnectionStatusViewModel {
@@ -76,7 +103,7 @@ private extension ConnectionStatusViewModel {
             connectionType: connectionManager.connectionType
         )
         let error = connectionManager.lastError
-        hasFailure = error != nil
+        hasFailure = GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(error)
         lastErrorMessage = error.map { Self.userFacingMessage(from: $0) }
 
         if status.isConnectingLike {
@@ -128,6 +155,14 @@ private extension ConnectionStatusViewModel {
                 )
             }
             .store(in: &cancellables)
+
+        networkMonitor.$isAvailable
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isAvailable in
+                self?.isOnline = isAvailable
+            }
+            .store(in: &cancellables)
     }
 
     func apply(status newStatus: TunnelStatus) {
@@ -150,10 +185,19 @@ private extension ConnectionStatusViewModel {
         switch newStatus {
         case .connected:
             lastDisplayedStep = .establishingConnection
+            showsIndependenceWarning = false
+            resumeFromIndependenceConsent = false
+            lastErrorSignature = nil
+            didFireForCurrentError = false
             cancelQueue()
 
         case .error:
             cancelQueue()
+            if GatewayIndependenceArcPolicy.isIndependenceConsentError(connectionManager.lastError) {
+                // Keep `lastDisplayedStep` (the reached ring) so the consent
+                // arc holds it and the resume rolls forward — don't unload.
+                resumeFromIndependenceConsent = true
+            }
             fireConnectionFailedIfReady()
 
         case .disconnecting:
@@ -166,11 +210,19 @@ private extension ConnectionStatusViewModel {
             didFireForCurrentError = false
             lastDisplayedStep = nil
             lastConnectingStep = nil
+            resumeFromIndependenceConsent = false
+            showsIndependenceWarning = false
             cancelQueue()
 
         case .connecting, .reasserting, .restarting, .offlineReconnect:
             if !wasConnecting {
-                lastDisplayedStep = nil
+                if resumeFromIndependenceConsent {
+                    lastDisplayedStep = Self.resumedDisplayedStep(current: lastDisplayedStep)
+                } else {
+                    lastDisplayedStep = nil
+                    showsIndependenceWarning = false
+                }
+                resumeFromIndependenceConsent = false
                 onConnectionStarted?()
             }
             scheduleQueueIfNeeded()
@@ -199,13 +251,19 @@ private extension ConnectionStatusViewModel {
         }
         lastErrorSignature = signature
         didFireForCurrentError = false
-        hasFailure = true
+        hasFailure = GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(error)
         lastErrorMessage = Self.userFacingMessage(from: error)
+        if GatewayIndependenceArcPolicy.isIndependenceConsentError(error) {
+            // Keep the reached ring so the consent arc holds it (no unload).
+            resumeFromIndependenceConsent = true
+        }
         fireConnectionFailedIfReady()
     }
 
     func fireConnectionFailedIfReady() {
-        guard status == .error, !didFireForCurrentError, let lastErrorMessage else { return }
+        guard status == .error, !didFireForCurrentError, let lastErrorMessage else {
+            return
+        }
         didFireForCurrentError = true
         onConnectionFailed?(lastErrorMessage)
     }
@@ -312,9 +370,18 @@ extension ConnectionStatusViewModel {
     }
 
     public static func isNeedsRelaxedIndependenceCriteria(_ error: Error?) -> Bool {
-        guard let error else { return false }
-        let reason = (error as? ErrorReason) ?? ErrorReason(nsError: error as NSError)
-        return reason == .needsRelaxedIndependenceCriteria
+        GatewayIndependenceArcPolicy.isIndependenceConsentError(error)
+    }
+
+    /// Displayed step when a connect resumes after gateway-independence
+    /// consent. Keeps whatever ring the connect had already reached so the arc
+    /// only rolls forward (macOS reaches the middle ring before the error);
+    /// falls back to the outer ring when nothing was reached yet (iOS
+    /// pre-flight errors before any step).
+    static func resumedDisplayedStep(
+        current: ArcProgressState.Step?
+    ) -> ArcProgressState.Step? {
+        current ?? .authenticatingAccount
     }
 }
 
@@ -392,6 +459,8 @@ private func arcStep(from step: TunnelConnectingState?) -> ArcProgressState.Step
         return .initializingNym
     case .awaitingAccountReadiness:
         return .authenticatingAccount
+    case .awaitingCredentialsAvailability:
+        return .downloadingZkNyms
     case .refreshingGateways:
         return .updatingServerList
     case .selectingGateways:

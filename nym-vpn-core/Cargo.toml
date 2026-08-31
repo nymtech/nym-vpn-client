@@ -24,15 +24,16 @@ members = [
     "crates/nym-socks5-proxy-ipc",
     "crates/nym-statistics",
     "crates/nym-statistics-api-client",
+    "crates/nym-favorites",
     "crates/nym-file-updater",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
+    "crates/nym-vpn-credential-fetcher",
     "crates/nym-vpn-lib",
     "crates/nym-vpn-lib-types",
     "crates/nym-vpn-lib-uniffi",
     "crates/nym-vpn-network-config",
     "crates/nym-vpn-proto",
-    "crates/nym-vpn-rpc-uniffi",
     "crates/nym-vpn-store",
     "crates/nym-vpnc",
     "crates/nym-vpnd",
@@ -56,17 +57,21 @@ default-members = [
 ]
 
 [workspace.package]
-version = "2026.11.0-beta.1"
+version = "2026.13.0-beta.1"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
 documentation = "https://nymtech.net"
 edition = "2024"
 license = "GPL-3.0-only"
-rust-version = "1.95"
+rust-version = "1.97"
 
 [profile.release]
 lto = true
+
+[profile.ci]
+inherits = "dev"
+debug = 1
 
 [workspace.lints.clippy]
 large_futures = "warn"
@@ -188,7 +193,7 @@ strum = "0.28.0"
 strum_macros = "0.28.0"
 syn = "=1.0"
 sysinfo = { version = "0.39.1", default-features = false }
-system-configuration = "0.7.0"
+system-configuration = "0.8.0"
 tun = "0.8.9"
 tabled = "0.20"
 tap = "1.0.1"
@@ -246,6 +251,7 @@ nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }
 nym-dbus = { path = "crates/nym-dbus" }
 nym-dns = { path = "crates/nym-dns" }
+nym-favorites = { path = "crates/nym-favorites" }
 nym-firewall = { path = "crates/nym-firewall" }
 nym-firewall-config = { path = "crates/nym-firewall-config" }
 nym-gateway-directory = { path = "crates/nym-gateway-directory" }
@@ -263,6 +269,7 @@ nym-statistics = { path = "crates/nym-statistics" }
 nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
 nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "crates/nym-vpn-api-client" }
+nym-vpn-credential-fetcher = { path = "crates/nym-vpn-credential-fetcher" }
 nym-vpn-lib = { path = "crates/nym-vpn-lib" }
 nym-vpn-lib-types = { path = "crates/nym-vpn-lib-types" }
 nym-vpn-network-config = { path = "crates/nym-vpn-network-config" }
@@ -274,49 +281,53 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
-nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.11-xynomizithra" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+
+nym-bridges = { git = "https://github.com/nymtech/nym-bridges", branch = "v0.2.0-2" }
+nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", branch = "v0.2.0-2" }
 
 # For local development
-#[patch."https://github.com/nymtech/nym"]
+# [patch."https://github.com/nymtech/nym"]
 #nym-authenticator-client = { path = "../../nym/nym-authenticator-client" }
 #nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
 #nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
 #nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
+#nym-bandwidth-fetcher = { path = "../../nym/common/bandwidth-fetcher" }
 #nym-bin-common = { path = "../../nym/common/bin-common" }
 #nym-client-core = { path = "../../nym/common/client-core" }
 #nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
@@ -324,15 +335,15 @@ nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/re
 #nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
 #nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests", default-features = false }
 #nym-credential-storage = { path = "../../nym/common/credential-storage" }
-#nym-credential-utils = { path = "../../nym/common/credential-utils" }
 #nym-credentials = { path = "../../nym/common/credentials" }
 #nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
 #nym-crypto = { path = "../../nym/common/crypto" }
 #nym-ecash-time = { path = "../../nym/common/ecash-time" }
-#nym-gateway-requests = { path = "../../nym/common/gateway-requests"}
+#nym-gateway-requests = { path = "../../nym/common/gateway-requests" }
 #nym-http-api-client = { path = "../../nym/common/http-api-client" }
 #nym-http-api-client-macro = { path = "../../nym/common/http-api-client-macro" }
 #nym-lp = { path = "../../nym/common/nym-lp" }
+#nym-lp-data = { path = "../../nym/common/nym-lp-data" }
 #nym-network-defaults = { path = "../../nym/common/network-defaults" }
 #nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
 #nym-ip-packet-client = { path = "../../nym/nym-ip-packet-client" }

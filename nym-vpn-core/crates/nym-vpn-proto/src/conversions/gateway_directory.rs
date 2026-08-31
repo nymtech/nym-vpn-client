@@ -51,6 +51,11 @@ impl TryFrom<proto::EntryNode> for nym_vpn_lib_types::EntryPoint {
                 }
             }
             proto::entry_node::EntryNodeEnum::Random(_) => nym_vpn_lib_types::EntryPoint::Random,
+            proto::entry_node::EntryNodeEnum::Auto(auto_entry) => {
+                nym_vpn_lib_types::EntryPoint::Auto {
+                    exclude_user_country: auto_entry.exclude_user_country,
+                }
+            }
         })
     }
 }
@@ -79,6 +84,13 @@ impl From<nym_vpn_lib_types::EntryPoint> for proto::EntryNode {
             },
             nym_vpn_lib_types::EntryPoint::Random => proto::EntryNode {
                 entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Random(())),
+            },
+            nym_vpn_lib_types::EntryPoint::Auto {
+                exclude_user_country,
+            } => proto::EntryNode {
+                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Auto(proto::AutoEntry {
+                    exclude_user_country,
+                })),
             },
         }
     }
@@ -122,6 +134,10 @@ impl TryFrom<proto::ExitNode> for nym_vpn_lib_types::ExitPoint {
                 }
             }
             proto::exit_node::ExitNodeEnum::Random(_) => nym_vpn_lib_types::ExitPoint::Random,
+            proto::exit_node::ExitNodeEnum::Auto(auto_exit) => nym_vpn_lib_types::ExitPoint::Auto {
+                exclude_entry_point_country: auto_exit.exclude_entry_point_country,
+                exclude_user_country: auto_exit.exclude_user_country,
+            },
         })
     }
 }
@@ -149,6 +165,13 @@ impl From<nym_vpn_lib_types::ExitPoint> for proto::ExitNode {
                 proto::exit_node::ExitNodeEnum::Region(proto::Region { region })
             }
             nym_vpn_lib_types::ExitPoint::Random => proto::exit_node::ExitNodeEnum::Random(()),
+            nym_vpn_lib_types::ExitPoint::Auto {
+                exclude_entry_point_country,
+                exclude_user_country,
+            } => proto::exit_node::ExitNodeEnum::Auto(proto::AutoExit {
+                exclude_entry_point_country,
+                exclude_user_country,
+            }),
         };
         proto::ExitNode {
             exit_node_enum: Some(exit_node_enum),

@@ -1,10 +1,11 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub mod paths;
 pub mod storage;
 
 mod adblocker;
-mod bandwidth_controller;
+mod bandwidth_monitor;
 pub mod cache_refresh;
 pub mod config;
 mod dns_filter;
@@ -17,6 +18,7 @@ pub mod sentry;
 pub mod service;
 #[cfg(not(target_os = "ios"))]
 pub(crate) mod socks5_proxy;
+mod tunnel_health;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod tunnel_provider;
 pub mod tunnel_state_machine;
@@ -54,7 +56,11 @@ static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<Vec<NameServerConfig>> = LazyLock::n
         .chain(QUAD9.https())
         .chain(CLOUDFLARE.tls())
         .chain(CLOUDFLARE.https())
-        .collect()
+        .filter(|ns| {
+            // Exclude IPv6 addresses due to reliability issues
+            ns.ip.is_ipv4()
+        })
+        .collect::<Vec<_>>()
 });
 
 /// Routing table id used for routing all traffic through the tunnel.

@@ -57,6 +57,11 @@ impl DisconnectedState {
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
+
+        #[cfg(target_os = "linux")]
+        shared_state.restore_nm_connectivity_check();
+
+        nym_http_api_client::network_reconfigured();
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -99,6 +104,8 @@ impl TunnelStateHandler for DisconnectedState {
                         #[cfg(not(target_os = "ios"))]
                         if diff.geo_exclusion_enabled_changed() {
                             shared_state.start_or_stop_socks5_proxy().await;
+                        } else if diff.geo_exclusion_excluded_countries_changed() {
+                            shared_state.set_socks5_proxy_excluded_countries();
                         }
 
                         if diff.enable_ad_blocking_changed() {

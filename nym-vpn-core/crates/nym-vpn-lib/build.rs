@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("Failed to perform SQLx migrations");
 
-    println!("cargo:rustc-env=DATABASE_URL=sqlite://{}", &database_path);
+    println!("cargo:rustc-env=DATABASE_URL=sqlite://{}", database_path);
 
     Emitter::default()
         .add_instructions(&BuildBuilder::all_build()?)?

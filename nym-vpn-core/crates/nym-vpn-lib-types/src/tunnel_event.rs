@@ -9,10 +9,8 @@ use si_scale::helpers::bibytes2;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
-use crate::{AccountControllerState, service::VpnServiceConfig};
+use crate::{AccountControllerState, ErrorStateReason, service::VpnServiceConfig};
 
-#[cfg(feature = "nym-type-conversions")]
-use nym_bandwidth_controller::BandwidthStatusMessage;
 #[cfg(feature = "nym-type-conversions")]
 use nym_statistics_common::clients::packet_statistics::{
     MixnetBandwidthStatisticsEvent, PacketRates,
@@ -35,6 +33,7 @@ pub enum TunnelEvent {
     MixnetState(MixnetEvent),
     ConfigChanged(Box<VpnServiceConfig>),
     AccountState(AccountControllerState),
+    DiagnosticsSuggested(DiagnosticsSuggestionReason),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -44,6 +43,40 @@ impl fmt::Display for TunnelEvent {
             Self::MixnetState(event) => event.fmt(f),
             Self::ConfigChanged(config) => config.fmt(f),
             Self::AccountState(account_state) => account_state.fmt(f),
+            Self::DiagnosticsSuggested(reason) => {
+                write!(f, "Diagnostics suggested: {reason}")
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum DiagnosticsSuggestionReason {
+    /// Stuck retrying to connect without ever reaching `Connected`.
+    RepeatedConnectionRetries { attempts: u32 },
+
+    /// Landed in an error state whose cause is ambiguous or network/reachability shaped,
+    /// as opposed to account/billing/permission states that already carry their own
+    /// obvious remediation.
+    AmbiguousError(ErrorStateReason),
+}
+
+impl fmt::Display for DiagnosticsSuggestionReason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::RepeatedConnectionRetries { attempts } => {
+                write!(f, "repeated connection retries ({attempts})")
+            }
+            Self::AmbiguousError(reason) => write!(f, "ambiguous error ({reason})"),
         }
     }
 }
@@ -235,16 +268,6 @@ impl SphinxPacketRates {
 
     pub fn cover_sent(&self) -> String {
         bibytes2(self.cover_packets_sent_size)
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<&BandwidthStatusMessage> for BandwidthEvent {
-    fn from(value: &BandwidthStatusMessage) -> Self {
-        match value {
-            BandwidthStatusMessage::NoBandwidth => Self::NoBandwidth,
-            BandwidthStatusMessage::RemainingBandwidth(value) => Self::RemainingBandwidth(*value),
-        }
     }
 }
 

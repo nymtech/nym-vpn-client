@@ -1,10 +1,13 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{ffi::CString, time::Duration};
 
-use nix::sys::socket::{UnixCredentials, getsockopt, sockopt::PeerCredentials};
-use tokio::{io::AsyncWriteExt, net::UnixStream};
+use nix::{
+    sys::socket::{UnixCredentials, getsockopt, sockopt::PeerCredentials},
+    unistd::{Gid, Uid, User, getgrouplist},
+};
+use tokio::io::AsyncWriteExt;
 use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
 use zbus::Connection;
@@ -250,14 +253,58 @@ pub(crate) async fn is_authenticated(
     stream: &mut Transport,
     auth_material: AuthenticationMaterial,
 ) -> Result<(), AuthenticationError> {
-    authenticate_with_prompt(stream, PolkitPrompter::new(auth_material.shutdown_token)).await
+    let cred = getsockopt(stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
+    if user_in_group(cred.uid().into(), auth_material.nym_vpn_gid) {
+        tracing::debug!("User is part of the nym-vpn group");
+        Ok(())
+    } else {
+        authenticate_with_prompt(cred, PolkitPrompter::new(auth_material.shutdown_token)).await
+    }
+}
+
+fn user_in_group(uid: Uid, gid: Option<Gid>) -> bool {
+    if uid.is_root() {
+        tracing::trace!("User is root");
+        return true;
+    }
+
+    let Ok(Some(user)) = User::from_uid(uid) else {
+        tracing::debug!("User {uid} could not be parsed or it disappeared");
+        return false;
+    };
+    let Some(gid) = gid else {
+        tracing::debug!("No nym-vpn group");
+        return false;
+    };
+    if user.gid == gid {
+        tracing::trace!("User is primary of the group");
+        return true;
+    }
+
+    let Ok(name) = CString::new(user.name.as_bytes()) else {
+        tracing::warn!("User name could not be parsed into CString");
+        return false;
+    };
+    let Ok(group_list) = getgrouplist(&name, user.gid)
+        .inspect_err(|err| tracing::warn!("Could not get the group list: {err:?}"))
+    else {
+        return false;
+    };
+
+    let in_group = group_list.contains(&gid);
+    if !in_group {
+        tracing::info!(
+            "Connecting user is not in the nym-vpn UNIX group. If they would be added, prompt authentication would not be needed anymore"
+        );
+    }
+
+    in_group
 }
 
 async fn authenticate_with_prompt(
-    stream: &mut UnixStream,
+    cred: UnixCredentials,
     prompter: impl Prompter,
 ) -> Result<(), AuthenticationError> {
-    let cred = getsockopt(stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
     let auth_result = prompter.prompt_for_authorization(cred).await?;
 
     if auth_result.is_authorized {
@@ -296,7 +343,10 @@ mod tests {
         task::Poll,
     };
 
-    use tokio::sync::{Mutex, RwLock};
+    use tokio::{
+        net::UnixStream,
+        sync::{Mutex, RwLock},
+    };
 
     use crate::{auth_result::AuthenticaticationResult, authentication::authorize};
 
@@ -458,9 +508,9 @@ mod tests {
 
     #[tokio::test]
     async fn authorized_by_prompt() {
-        let (_, mut server) = UnixStream::pair().unwrap();
+        let (_, server) = UnixStream::pair().unwrap();
         authenticate_with_prompt(
-            &mut server,
+            getsockopt(&server, PeerCredentials).unwrap(),
             MockPrompter {
                 is_authorized: true,
             },
@@ -471,9 +521,9 @@ mod tests {
 
     #[tokio::test]
     async fn denied_by_prompt() {
-        let (_, mut server) = UnixStream::pair().unwrap();
+        let (_, server) = UnixStream::pair().unwrap();
         let err = authenticate_with_prompt(
-            &mut server,
+            getsockopt(&server, PeerCredentials).unwrap(),
             MockPrompter {
                 is_authorized: false,
             },

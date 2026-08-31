@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import AccountPrefetchGates
 import ConnectionTypes
 import Constants
 import ImpactGenerator
@@ -7,7 +8,11 @@ import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
+#if os(iOS)
 import PurchasesManager
+#endif
+import SnackbarManager
+import TunnelStatus
 import UIComponents
 import Theme
 
@@ -25,7 +30,8 @@ import Theme
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
     @State var isLogoutLoading = false
-    @State var isLinkAccountAvailable = false
+    @State var logoutProgressText: String? = nil
+    @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
 
     @Binding private var path: NavigationPath
@@ -40,9 +46,7 @@ import Theme
                     VStack(spacing: 24) {
                         if credentialsManager.isValidCredentialImported {
                             accountStatusSection()
-                            contactSupportText()
                             nymAccountSection()
-                            nymLinkingText()
                             accountIdentifier()
                             accountIdText()
                             deviceIdentifier()
@@ -83,17 +87,28 @@ import Theme
                         isDisplayed: $isLogoutConfirmationDisplayed,
                         configuration: logoutDialogConfiguration,
                         impactGenerator: .shared,
-                        isLoading: $isLogoutLoading
+                        isLoading: $isLogoutLoading,
+                        loadingTextOverride: $logoutProgressText
                     )
                 )
             }
         }
         .task {
-            await updateIsAccountLinkAvailable()
+            await credentialsManager.updateAccountSummary()
+            showAllowanceReachedSnackbarIfNeeded()
+        }
+        .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
+            guard received else { return }
+            autologinState.dismissAfterWebReturn()
+            Task {
+                await credentialsManager.updateAccountSummary()
+                showAllowanceReachedSnackbarIfNeeded()
+            }
         }
         .onChange(of: credentialsManager.didReceiveAccountLinkCallback) { _, _ in
             Task {
-                await updateIsAccountLinkAvailable()
+                await credentialsManager.updateAccountSummary()
+                showAllowanceReachedSnackbarIfNeeded()
             }
         }
     }
@@ -112,34 +127,8 @@ extension AccountAndDevicesView {
         )
     }
 
-    @ViewBuilder
     func nymAccountSection() -> some View {
-        VStack(spacing: 0) {
-            if isLinkAccountAvailable {
-                manageAccountListItem(isFirst: true, isLast: false)
-                SettingsListItem(
-                    viewModel: SettingsListItemViewModel(
-                        accessory: .externalLink,
-                        title: "settings.account.nymAccount".localizedString,
-                        subtitle: accountSubtitle(),
-                        imageName: "person",
-                        position: SettingsListItemPosition(isFirst: false, isLast: true),
-                        action: {
-                            Task {
-                                await linkAccount()
-                            }
-                        }
-                    )
-                )
-            } else {
-                manageAccountListItem(isFirst: true, isLast: true)
-            }
-        }
-    }
-
-    func accountSubtitle() -> String? {
-        guard let accountSummary = credentialsManager.accountSummary else { return nil }
-        return accountSummary.isLinked ? nil : "settings.account.nymAccount.subtitle".localizedString
+        manageAccountListItem(isFirst: true, isLast: true)
     }
 
     func manageAccountListItem(isFirst: Bool, isLast: Bool) -> some View {
@@ -168,22 +157,6 @@ extension AccountAndDevicesView {
         }
     }
 
-    func nymLinkingText() -> some View {
-        HStack(spacing: 0) {
-            Text(linkingTitle())
-                .nymTextStyle(.bodyDefault)
-                .foregroundStyle(Color.Nym.textSecondary)
-            Spacer()
-        }
-    }
-
-    func linkingTitle() -> String {
-        guard let accountSummary = credentialsManager.accountSummary else { return "" }
-        return accountSummary.isLinked
-        ? "⚡️ \("settings.account.nymAccount.linked.subtitle".localizedString)"
-        : "⚠️ \("settings.account.linking".localizedString)"
-    }
-
     @ViewBuilder
     func accountIdentifier() -> some View {
         if let accountIdentifier = credentialsManager.accountIdentifier {
@@ -198,11 +171,28 @@ extension AccountAndDevicesView {
 
     func accountIdText() -> some View {
         HStack(spacing: 0) {
-            Text("settings.account.accountId".localizedString)
-                .nymTextStyle(.bodyDefault)
+            Text(accountIdAttributedString())
+                .tint(Color.Nym.textSecondary)
                 .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
+        .environment(\.openURL, OpenURLAction { url in
+            if url.absoluteString == Constants.supportURL.rawValue {
+                try? externalLinkManager.openExternalURL(urlString: url.absoluteString)
+                return .handled
+            }
+            return .systemAction
+        })
+    }
+
+    func accountIdAttributedString() -> AttributedString {
+        let prefix = AttributedString("settings.account.accountId".localizedString)
+        var link = AttributedString("settings.account.accountId.supportLink".localizedString)
+        link.underlineStyle = .single
+        link.foregroundColor = Color.Nym.textSecondary
+        link.link = URL(string: Constants.supportURL.rawValue)
+        return prefix + link
     }
 
     @ViewBuilder
@@ -274,19 +264,14 @@ extension AccountAndDevicesView {
     }
 }
 
-// MARK: - Helpers -
-extension AccountAndDevicesView {
-    func updateIsAccountLinkAvailable() async {
-        await credentialsManager.updateAccountSummary()
-        guard let accountSummary = credentialsManager.accountSummary else { return }
-        isLinkAccountAvailable = accountSummary.shouldShowLinkAccountRow
-    }
-}
-
 // MARK: - Actions -
 extension AccountAndDevicesView {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    func navigateToRoot() {
+        path = .init()
     }
 
     func navigateToAccount() {
@@ -303,14 +288,50 @@ extension AccountAndDevicesView {
 #endif
     }
 
-    func linkAccount() async {
-        impactGenerator.softImpact()
-        let link = try? await credentialsManager.privyLogin(kind: .privyLink)
-        try? await externalLinkManager.presentPrivyAuthSession(urlString: link)
+    /// Surfaces the daily-allowance-reached error snackbar (critical = red, white, no
+    /// close button) once the summary reports the quota is spent.
+    func showAllowanceReachedSnackbarIfNeeded() {
+        guard credentialsManager.accountSummary?.isDailyAllowanceReached == true else { return }
+        SnackbarManager.shared.enqueue(
+            SnackbarItem(
+                style: .critical,
+                title: "settings.account.allowanceReached.title".localizedString,
+                message: "settings.account.allowanceReached.subtitle".localizedString
+            )
+        )
     }
 
+    func refreshAccount() {
+        guard !isRefreshingAccount else { return }
+        impactGenerator.softImpact()
+        isRefreshingAccount = true
+        Task {
+            defer { isRefreshingAccount = false }
+            do {
+                try await credentialsManager.refreshAccountSummary()
+            } catch {
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .negative,
+                        title: "settings.account.refreshFailed".localizedString
+                    )
+                )
+            }
+        }
+    }
+
+    @MainActor
     func logout() async {
+        await credentialsManager.beginLogout()
+        defer { credentialsManager.endLogout() }
+
+        if LogoutTeardownPolicy.needsDisconnectWait(for: connectionManager.currentTunnelStatus) {
+            logoutProgressText = "disconnecting".localizedString
+        }
         await connectionManager.disconnectBeforeLogout()
+
+        logoutProgressText = "settings.loggingOut".localizedString
         try? await credentialsManager.removeCredential()
+        logoutProgressText = nil
     }
 }

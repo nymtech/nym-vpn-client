@@ -1,11 +1,22 @@
+# Debian12 E2E:
+#   - nightly cron: zigbuild HEAD
+#   - weekday cron: latest published nym-vpn-v*-beta.N core tarball
+#   - release.published (nym-vpn-v*): that release's core tarball
+#   - dispatch: release_tag set → that tarball; empty → zigbuild HEAD
 name: e2e-test
 
 on:
   schedule:
-    # Every weekday (Mon–Fri) at 02:00 UTC
-    - cron: "0 2 * * 1-5"
+    # Nightly zigbuild of the default branch (HEAD).
+    - cron: "0 2 * * *"
+    # Weekday smoke against the newest published beta core archive.
+    - cron: "0 4 * * 1-5"
   workflow_dispatch:
     inputs:
+      release_tag:
+        description: "Optional nym-vpn-v* tag (core tarball). Empty = zigbuild HEAD."
+        required: false
+        type: string
       test_filters:
         description: "Only execute these (space-separated) tests. Can be used in
           conjunction with skip_tests"
@@ -25,24 +36,120 @@ on:
         options:
           - standard.medium
           - standard.large
+  release:
+    types: [published]
 
-permissions:
-  contents: read
+concurrency:
+  group: e2e-mainnet-test-account
+  cancel-in-progress: false
 
 env:
   CARGO_TERM_COLOR: always
   TEST_CRATE_DIR: nym-vpn-core/crates/test
   DEFAULT_INSTANCE_TYPE: standard.medium
+  E2E_SCRIPTS_DIR: .github/scripts/e2e
+  # Must match the schedule: entries above (github.event.schedule).
+  CRON_NIGHTLY_ZIGBUILD: "0 2 * * *"
+  CRON_WEEKDAY_LATEST_BETA: "0 4 * * 1-5"
 
 jobs:
-  build:
-    name: Build test binaries
+  resolve:
+    name: Resolve binary source
+    if: >-
+      github.event_name != 'release' ||
+      startsWith(github.event.release.tag_name, 'nym-vpn-v')
     runs-on: arc-linux-latest
+    permissions:
+      contents: read
+    outputs:
+      release_tag: ${{ steps.pick.outputs.release_tag }}
+      binary_source: ${{ steps.pick.outputs.binary_source }}
+      checkout_ref: ${{ steps.pick.outputs.checkout_ref }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
+
+      - name: Script unit tests
+        run: |
+          chmod +x "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/compose_zulip_e2e_message.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_compose_zulip_e2e_message.sh"
+          pkgs=()
+          command -v jq >/dev/null || pkgs+=(jq)
+          command -v shellcheck >/dev/null || pkgs+=(shellcheck)
+          if [ "${#pkgs[@]}" -gt 0 ]; then
+            sudo apt-get update && sudo apt-get install -y "${pkgs[@]}"
+          fi
+          shellcheck -S warning \
+            "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/compose_zulip_e2e_message.sh" \
+            "${{ env.E2E_SCRIPTS_DIR }}/test_compose_zulip_e2e_message.sh"
+          "${{ env.E2E_SCRIPTS_DIR }}/test_release_core.sh"
+          "${{ env.E2E_SCRIPTS_DIR }}/test_compose_zulip_e2e_message.sh"
+
+      - name: Pick release tag / zigbuild mode
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+          RELEASE_EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+          WORKFLOW_SHA: ${{ github.sha }}
+          CRON_WEEKDAY_LATEST_BETA: ${{ env.CRON_WEEKDAY_LATEST_BETA }}
+        run: |
+          TAG=""
+          if [ "$EVENT_NAME" = "release" ]; then
+            TAG="$RELEASE_EVENT_TAG"
+          elif [ -n "$INPUT_RELEASE_TAG" ]; then
+            TAG="$INPUT_RELEASE_TAG"
+          elif [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE_CRON" = "$CRON_WEEKDAY_LATEST_BETA" ]; then
+            TAG="$("${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" latest-beta)"
+            echo "schedule: latest beta is ${TAG}"
+          elif [ "$EVENT_NAME" = "schedule" ]; then
+            echo "schedule: nightly zigbuild HEAD"
+          fi
+
+          if [ -n "$TAG" ]; then
+            if ! "${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" validate-tag "$TAG"; then
+              echo "::error::release_tag must match nym-vpn-vMAJOR.MINOR.PATCH[-beta.N|-nightly.DATE] (got: ${TAG})"
+              exit 1
+            fi
+            # Core binaries (vpnd/vpnc) come from the published tarball, but the
+            # harness (test-manager, tests, workflow scripts) must come from this
+            # workflow run's commit - otherwise a branch that adds subcommands
+            # like delete-devices fails when pointed at an older release tag.
+            {
+              echo "release_tag=${TAG}"
+              echo "binary_source=release"
+              echo "checkout_ref=${WORKFLOW_SHA}"
+            } >> "$GITHUB_OUTPUT"
+            echo "mode=release tag=${TAG} harness=${WORKFLOW_SHA}"
+          else
+            {
+              echo "release_tag="
+              echo "binary_source=zigbuild"
+              echo "checkout_ref=${WORKFLOW_SHA}"
+            } >> "$GITHUB_OUTPUT"
+            echo "mode=zigbuild ref=${WORKFLOW_SHA}"
+          fi
+
+  build:
+    name: Build test binaries
+    needs: resolve
+    runs-on: arc-linux-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ needs.resolve.outputs.checkout_ref }}
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
@@ -51,6 +158,15 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Install cargo-zigbuild
+        run: cargo install --locked cargo-zigbuild
 
       - name: Install system dependencies
         run: |
@@ -66,7 +182,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore cargo registry cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6.1.0
         with:
           path: |
             ~/.cargo/bin/
@@ -78,7 +194,7 @@ jobs:
             ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-
 
       - name: Restore cargo build cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6.1.0
         with:
           path: nym-vpn-core/target/
           key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
@@ -87,27 +203,42 @@ jobs:
             ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-
 
       - name: Install Go
-        uses: actions/setup-go@v6
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION}}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Build wireguard-go
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Build nym-vpnc and nym-vpnd
-        run: cargo build --release -p nym-vpnc -p nym-vpnd
+      - name: Build nym-vpnc, nym-vpnd and nym-socks5-proxy
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
+        timeout-minutes: 25
+        env:
+          CFLAGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          BINDGEN_EXTRA_CLANG_ARGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -L /usr/lib/x86_64-linux-gnu
+          CARGO_BUILD_JOBS: "4"
+        run: |
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 -p nym-vpnc -p nym-socks5-proxy
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 -p nym-vpnd
         working-directory: nym-vpn-core
 
       - name: Build test-manager, test-runner
+        env:
+          CFLAGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          BINDGEN_EXTRA_CLANG_ARGS_x86_64_unknown_linux_gnu: -I/usr/include/x86_64-linux-gnu
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -L /usr/lib/x86_64-linux-gnu
         run: |
-          cargo build --release \
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu.2.36 \
             -p test-manager -p test-runner
         working-directory: ${{ env.TEST_CRATE_DIR }}
 
       - name: Save cargo registry cache
         if: always()
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6.1.0
         with:
           path: |
             ~/.cargo/bin/
@@ -118,30 +249,55 @@ jobs:
 
       - name: Save cargo build cache
         if: always()
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6.1.0
         with:
           path: nym-vpn-core/target/
           key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
 
       - name: Save Go modules cache
-        if: always()
-        uses: actions/cache/save@v5
+        if: always() && needs.resolve.outputs.binary_source == 'zigbuild'
+        uses: actions/cache/save@v6.1.0
         with:
           path: |
             ~/go/pkg/mod
             ~/.cache/go-build
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
-      - name: Collect binaries
+      - name: Collect zigbuild binaries
+        if: needs.resolve.outputs.binary_source == 'zigbuild'
         run: |
           mkdir -p /tmp/dist
-          cp nym-vpn-core/target/release/nym-vpnc /tmp/dist/
-          cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
-          cp nym-vpn-core/target/release/test-manager /tmp/dist/
-          cp nym-vpn-core/target/release/test-runner /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-vpnc /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-vpnd /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/nym-socks5-proxy /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-manager /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner /tmp/dist/
+
+      - name: Checkout workflow scripts
+        if: needs.resolve.outputs.binary_source == 'release'
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          ref: ${{ github.sha }}
+          sparse-checkout: |
+            .github/scripts/e2e
+          path: workflow-scripts
+
+      - name: Fetch release core binaries
+        if: needs.resolve.outputs.binary_source == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
+        run: |
+          mkdir -p /tmp/dist
+          SCRIPT="workflow-scripts/${{ env.E2E_SCRIPTS_DIR }}/release-core.sh"
+          chmod +x "$SCRIPT"
+          "$SCRIPT" fetch "$RELEASE_TAG" /tmp/dist
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-manager /tmp/dist/
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner /tmp/dist/
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: test-binaries
           path: /tmp/dist/
@@ -149,8 +305,15 @@ jobs:
 
   e2e-test:
     name: Run E2E tests
-    needs: build
+    needs: [resolve, build]
     runs-on: arc-linux-latest
+    permissions:
+      contents: read
+    outputs:
+      has_report: ${{ steps.export-report.outputs.has_report }}
+      report: ${{ steps.export-report.outputs.report }}
+      test_report_url: ${{ steps.upload-report.outputs.artifact-url }}
+      daemon_logs_url: ${{ steps.upload-logs.outputs.artifact-url }}
     env:
       SSH_KEY_PATH: /tmp/exoscale_key
       SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
@@ -166,9 +329,10 @@ jobs:
           echo "value=$TYPE" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
+          ref: ${{ needs.resolve.outputs.checkout_ref }}
 
       - name: Download binaries
         uses: actions/download-artifact@v8
@@ -221,7 +385,7 @@ jobs:
               echo "SSH is ready"
               exit 0
             fi
-            echo "Attempt $i/30 — waiting 10s..."
+            echo "Attempt $i/30 - waiting 10s..."
             sleep 10
           done
           echo "ERROR: SSH never became available after 30 attempts"
@@ -240,6 +404,18 @@ jobs:
           scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.TEST_CRATE_DIR }}/test-manager/test.sh \
             ${{ env.VM_USER }}@${VM_IP}:${{ env.VM_DIST_DIR }}/test.sh
+
+      - name: Purge account devices
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
+        run: |
+          # Delete all devices on the test account (account-level API auth, no
+          # daemon needed) so each run starts clean and never hits MaxDeviceReached
+          printf '%s\n' "$TEST_HARNESS_MNEMONIC" | \
+            ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP} \
+            "${{ env.VM_DIST_DIR }}/test-manager delete-devices"
 
       - name: Configure test VM
         env:
@@ -286,6 +462,41 @@ jobs:
             ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.txt /tmp/test-report.txt 2>/dev/null || \
             echo "No test report found"
 
+      - name: Export test report for Zulip
+        if: always()
+        id: export-report
+        run: |
+          if [ -f /tmp/test-report.txt ]; then
+            {
+              echo "has_report=true"
+              echo "report<<REPORT_EOF"
+              cat /tmp/test-report.txt
+              echo "REPORT_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has_report=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Retrieve daemon logs
+        if: always()
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          mkdir -p /tmp/daemon-logs
+          scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP}:'/tmp/daemon-log-*.log' /tmp/daemon-logs/ 2>/dev/null || \
+            echo "No daemon logs found"
+
+      - name: Upload daemon logs
+        if: always()
+        id: upload-logs
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: daemon-logs
+          path: /tmp/daemon-logs/
+          if-no-files-found: ignore
+          retention-days: 20
+
       - name: Format test report
         if: always()
         run: |
@@ -298,7 +509,8 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v7
+        id: upload-report
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: test-report
           path: |
@@ -335,3 +547,93 @@ jobs:
       - name: Cleanup SSH key
         if: always()
         run: rm -f ${{ env.SSH_KEY_PATH }}
+
+  notify-zulip:
+    name: Zulip E2E status
+    needs: [resolve, build, e2e-test]
+    if: always()
+    runs-on: arc-linux-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout notify scripts
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/e2e
+
+      - name: Compose message
+        id: msg
+        env:
+          RESOLVE_RESULT: ${{ needs.resolve.result }}
+          BINARY_SOURCE: ${{ needs.resolve.outputs.binary_source }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
+          CHECKOUT_REF: ${{ needs.resolve.outputs.checkout_ref }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          E2E_RESULT: ${{ needs.e2e-test.result }}
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          HAS_REPORT: ${{ needs.e2e-test.outputs.has_report }}
+          REPORT: ${{ needs.e2e-test.outputs.report }}
+          TEST_REPORT_URL: ${{ needs.e2e-test.outputs.test_report_url }}
+          DAEMON_LOGS_URL: ${{ needs.e2e-test.outputs.daemon_logs_url }}
+          E2E_SCRIPTS_DIR: ${{ env.E2E_SCRIPTS_DIR }}
+        run: |
+          if [ "$RESOLVE_RESULT" != "success" ]; then
+            STATUS="resolve ${RESOLVE_RESULT}"
+            SOURCE_LINE="(resolve did not complete)"
+          elif [ "$BUILD_RESULT" != "success" ]; then
+            STATUS="build ${BUILD_RESULT}"
+          elif [ "$E2E_RESULT" = "success" ]; then
+            STATUS="passed"
+          elif [ "$E2E_RESULT" = "skipped" ]; then
+            STATUS="e2e skipped"
+          else
+            STATUS="e2e ${E2E_RESULT}"
+          fi
+
+          if [ "$RESOLVE_RESULT" = "success" ]; then
+            if [ "$BINARY_SOURCE" = "release" ] && [ -n "$RELEASE_TAG" ]; then
+              SOURCE_LINE="release tag \`${RELEASE_TAG}\` (published core tarball)"
+            else
+              SOURCE_LINE="zigbuild from \`${CHECKOUT_REF}\`"
+            fi
+          fi
+
+          REPORT_ARGS=()
+          if [ "$HAS_REPORT" = "true" ] && [ -n "$REPORT" ]; then
+            printf '%s\n' "$REPORT" > /tmp/test-report.txt
+            REPORT_ARGS=(--report /tmp/test-report.txt)
+          fi
+
+          chmod +x "${E2E_SCRIPTS_DIR}/compose_zulip_e2e_message.sh"
+          {
+            echo "content<<MSG_EOF"
+            E2E_STATUS="$STATUS" \
+              E2E_BRANCH="$BRANCH" \
+              E2E_SHA="$SHA" \
+              E2E_SOURCE_LINE="$SOURCE_LINE" \
+              E2E_EVENT_NAME="$EVENT_NAME" \
+              E2E_SCHEDULE_CRON="$SCHEDULE_CRON" \
+              E2E_RUN_URL="$RUN_URL" \
+              E2E_TEST_REPORT_URL="$TEST_REPORT_URL" \
+              E2E_DAEMON_LOGS_URL="$DAEMON_LOGS_URL" \
+              "${E2E_SCRIPTS_DIR}/compose_zulip_e2e_message.sh" "${REPORT_ARGS[@]}"
+            echo "MSG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip notification
+        continue-on-error: true
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
+          email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.TEST_HARNESS_ZULIP_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.TEST_HARNESS_ZULIP_TOPIC }}
+          content: ${{ steps.msg.outputs.content }}

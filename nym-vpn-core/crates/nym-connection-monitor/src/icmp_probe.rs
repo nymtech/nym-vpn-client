@@ -165,6 +165,10 @@ impl ProbeError for IcmpProbeError {
             IcmpProbeInnerError::Send(SurgeError::Timeout { .. })
         )
     }
+
+    fn is_send_failure(&self) -> bool {
+        matches!(self.inner, IcmpProbeInnerError::Send(_)) && !self.is_timeout()
+    }
 }
 
 impl From<IcmpProbeError> for BoxedProbeError {

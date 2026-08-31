@@ -14,6 +14,7 @@ public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
     let configPath: String
     let dataPath: String
+    let logPath: String
     let customDns: [IpAddr]
 #endif
     public let entryGateway: EntryGateway
@@ -31,13 +32,14 @@ public struct MixnetConfig: Codable, Equatable {
     public let isServerFamilyRemindersEnabled: Bool
 #endif
 
-    public var name = "NymVPN Mixnet"
+    public var name = "NymVPN"
 #if os(iOS)
     public init(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
         configPath: String,
         dataPath: String,
+        logPath: String,
         customDns: [IpAddr],
         mixnetTuning: MixnetTuningConfig,
         isErrorReportingEnabled: Bool,
@@ -49,12 +51,13 @@ public struct MixnetConfig: Codable, Equatable {
         isTwoHopEnabled: Bool = false,
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(),
         isServerFamilyRemindersEnabled: Bool = true,
-        name: String = "NymVPN Mixnet"
+        name: String = "NymVPN"
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.configPath = configPath
         self.dataPath = dataPath
+        self.logPath = logPath
         self.customDns = customDns
         self.mixnetTuning = mixnetTuning
         self.isErrorReportingEnabled = isErrorReportingEnabled
@@ -78,6 +81,7 @@ extension MixnetConfig {
         VpnConfig(
             configDir: configPath,
             dataDir: dataPath,
+            logDir: logPath,
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,

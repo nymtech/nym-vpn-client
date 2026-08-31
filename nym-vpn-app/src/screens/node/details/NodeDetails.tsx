@@ -6,8 +6,12 @@ import { Trans, useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
-import { UiGateway, isSelectedNodeType } from '../../../types/node';
+import { isSelectedNodeType } from '../../../types/node';
+import { Gateway } from '../../../types/tauri';
+import { favoriteKey, nodeToFavorite } from '../../../types/favorites';
 import { useNodeListState } from '../../../store/nodeListState';
+import { useFavorites } from '../../../store/favoritesState';
+import FavoriteStar from '../FavoriteStar';
 import {
   Button,
   ButtonIconNew,
@@ -35,7 +39,7 @@ import { ScoreIndicator } from '../ScoreIndicator';
 import { LewesIcon } from '../../../assets/index';
 
 type RouteState = {
-  gateway: UiGateway;
+  gateway: Gateway;
   hop: 'entry' | 'exit';
 };
 
@@ -45,14 +49,12 @@ function NodeDetails() {
     entryNode,
     exitNode,
     quic: quicSetting,
-    algoConfig,
   } = useAppStore(
     useShallow((s) => ({
       backendFlags: s.backendFlags,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
       quic: s.quic,
-      algoConfig: s.gatewaySelectionAlgorithmConfig,
     })),
   );
   const location = useLocation() as H.Location<RouteState>;
@@ -82,6 +84,16 @@ function NodeDetails() {
   const asnValue = asn?.asn;
   const asnName = asn?.name;
   const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
+
+  const favorites = useFavorites(hop);
+  const favorite = useMemo(
+    () => nodeToFavorite({ nodeType: 'gateway', id: gateway.id }),
+    [gateway.id],
+  );
+  const isFavorite = useMemo(() => {
+    const key = favoriteKey(favorite);
+    return favorites.some((f) => favoriteKey(f) === key);
+  }, [favorites, favorite]);
   const selectedNode = isSelectedNodeType(gateway, entryNode, exitNode);
   const isSelected = selectedNode === 'exit' || selectedNode === 'entry';
   const quic = backendFlags.quic && gateway.quic;
@@ -110,39 +122,6 @@ function NodeDetails() {
     if (isSelected) return;
 
     const node = { gateway: { id: gateway.id } };
-    // Mirror of Node.tsx: picking an exit while in 'auto' flips us into
-    // 'autoEntryExplicitExit'. Apply the algorithm change first so a failure
-    // aborts before set_node diverges from the daemon; roll back if set_node
-    // later fails.
-    const needsAlgoFlip =
-      hop === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto';
-    if (needsAlgoFlip) {
-      try {
-        await invoke('set_gateway_selection_algorithm', {
-          algorithm: 'autoEntryExplicitExit',
-        });
-        dispatch({
-          type: 'set-gateway-selection-algorithm-config',
-          config: {
-            ...algoConfig,
-            gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
-          },
-        });
-      } catch (error: unknown) {
-        console.error(
-          'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
-          error,
-        );
-        add({
-          id: 'node-select-error',
-          title: t('node-details.error.title'),
-          description: t('node-details.error.description'),
-          type: 'error',
-        });
-        return;
-      }
-    }
-
     try {
       await invoke('set_node', {
         node,
@@ -160,22 +139,6 @@ function NodeDetails() {
         description: t('node-details.error.description'),
         type: 'error',
       });
-      if (needsAlgoFlip) {
-        try {
-          await invoke('set_gateway_selection_algorithm', {
-            algorithm: 'auto',
-          });
-          dispatch({
-            type: 'set-gateway-selection-algorithm-config',
-            config: { ...algoConfig, gatewaySelectionAlgorithm: 'auto' },
-          });
-        } catch (rollbackError: unknown) {
-          console.error(
-            'failed to rollback gateway selection algorithm to [auto]',
-            rollbackError,
-          );
-        }
-      }
       return;
     }
     navigate(routes.root);
@@ -194,7 +157,15 @@ function NodeDetails() {
                 alt={country.code}
                 className="h-6 w-6 shrink-0 rounded-full"
               />
-              <p className="text-text-primary ml-4 text-base">{gateway.name}</p>
+              <p className="text-text-primary ml-4 truncate text-base">
+                {gateway.name}
+              </p>
+              <FavoriteStar
+                favorite={favorite}
+                isFavorite={isFavorite}
+                hop={hop}
+                className="ml-auto"
+              />
             </CardNewHeader>
             <CardDivider />
             <CardNewBody className="flex-col gap-3 py-4">

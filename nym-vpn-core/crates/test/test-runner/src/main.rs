@@ -2,7 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{SinkExt, StreamExt, pin_mut};
+use futures::{SinkExt, StreamExt};
 use std::path::{Path, PathBuf};
 
 use crate::server_nym::NymTestServer;
@@ -10,10 +10,12 @@ use tarpc::server::Channel;
 use test_rpc::{
     Service,
     nym_daemon::{NYMVPN_SOCKET_PATH, ServiceStatus},
-    transport::GrpcForwarder,
+    transport::{
+        ForwardOutcome, GrpcForwarder, SESSION_SYNC_ACK, SESSION_SYNC_PING,
+        forward_framed_bidirectional, length_delimited_framed_halves,
+    },
 };
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio_util::codec::{Decoder, LengthDelimitedCodec};
+use tokio::io::AsyncWriteExt;
 
 mod app_nymvpn;
 mod forward;
@@ -81,19 +83,27 @@ async fn main() -> Result<(), Error> {
 
 /// Forward data between the test manager and Mullvad management interface socket
 async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
-    const IPC_READ_BUF_SIZE: usize = 16 * 1024;
-
-    let mut srv_read_buf = [0u8; IPC_READ_BUF_SIZE];
-    let mut proxy_transport = LengthDelimitedCodec::new().framed(proxy_transport);
+    let (mut proxy_read, mut proxy_write) = length_delimited_framed_halves(proxy_transport);
 
     loop {
         // Wait for input from the test manager before connecting to the UDS or named pipe.
         // Connect at the last moment since the daemon may not even be running when the
         // test runner first starts.
-        let first_message = match proxy_transport.next().await {
+        let first_message = match proxy_read.next().await {
             Some(Ok(bytes)) => {
                 if bytes.is_empty() {
-                    log::debug!("ignoring EOF from client");
+                    continue;
+                }
+                if bytes == SESSION_SYNC_PING {
+                    if let Err(error) = proxy_write
+                        .send(bytes::Bytes::from_static(SESSION_SYNC_ACK))
+                        .await
+                    {
+                        log::error!(
+                            "failed to acknowledge daemon session synchronization: {error}"
+                        );
+                        break;
+                    }
                     continue;
                 }
                 bytes
@@ -115,7 +125,7 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
                 Err(error) => {
                     log::error!("🌚 nym daemon: failed to connect: {error}");
                     // send EOF
-                    let _ = proxy_transport.send(bytes::Bytes::new()).await;
+                    let _ = proxy_write.send(bytes::Bytes::new()).await;
                     continue;
                 }
             };
@@ -127,51 +137,83 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
             continue;
         }
 
-        loop {
-            let srv_read = daemon_socket_endpoint.read(&mut srv_read_buf);
-            pin_mut!(srv_read);
-
-            match futures::future::select(srv_read, proxy_transport.next()).await {
-                futures::future::Either::Left((read, _)) => match read {
-                    Ok(num_bytes) => {
-                        if num_bytes == 0 {
-                            log::debug!("uds EOF; restarting server");
-                            break;
-                        }
-                        if let Err(error) = proxy_transport
-                            .send(srv_read_buf[..num_bytes].to_vec().into())
-                            .await
-                        {
-                            log::error!("writing to client channel failed: {error}");
-                            break;
-                        }
-                    }
-                    Err(error) => {
-                        log::error!("reading from uds failed: {error}");
-                        let _ = proxy_transport.send(bytes::Bytes::new()).await;
-                        break;
-                    }
-                },
-                futures::future::Either::Right((read, _)) => match read {
-                    Some(Ok(bytes)) => {
-                        if bytes.is_empty() {
-                            log::debug!("management interface EOF; restarting server");
-                            break;
-                        }
-                        if let Err(error) = daemon_socket_endpoint.write_all(&bytes).await {
-                            log::error!("writing to uds failed: {error}");
-                            break;
-                        }
-                    }
-                    Some(Err(error)) => {
-                        log::error!("daemon client channel error: {error}");
-                        break;
-                    }
-                    None => break,
-                },
+        log::info!("nym daemon: bidirectional forward starting (stream=daemon UDS, framed=serial)");
+        match forward_framed_bidirectional(
+            daemon_socket_endpoint,
+            &mut proxy_read,
+            &mut proxy_write,
+        )
+        .await
+        {
+            Ok(ForwardOutcome::SessionRestart) => {
+                log::info!("nym daemon: session restart requested by test manager");
+                if let Err(error) = proxy_write
+                    .send(bytes::Bytes::from_static(SESSION_SYNC_ACK))
+                    .await
+                {
+                    log::error!("failed to acknowledge daemon session restart: {error}");
+                    break;
+                }
             }
+            Ok(ForwardOutcome::Eof) => log::debug!("nym daemon forwarding reached EOF"),
+            Err(error) => log::error!("nym daemon forwarding failed: {error}"),
         }
 
         log::info!("🌚 nym daemon: disconnected");
+    }
+}
+
+#[cfg(test)]
+mod daemon_forwarding_tests {
+    use super::{SESSION_SYNC_ACK, SESSION_SYNC_PING, forward_to_nym_daemon_interface};
+    use bytes::Bytes;
+    use futures::{SinkExt, StreamExt};
+    use std::time::Duration;
+    use tokio_util::codec::{Decoder, LengthDelimitedCodec};
+
+    #[tokio::test]
+    async fn idle_daemon_forwarder_acknowledges_session_synchronization() {
+        let (forwarder, peer) = tokio::io::duplex(64);
+        let task = tokio::spawn(forward_to_nym_daemon_interface(forwarder));
+        let mut peer = LengthDelimitedCodec::new().framed(peer);
+
+        peer.send(Bytes::from_static(SESSION_SYNC_PING))
+            .await
+            .expect("send sync marker");
+        let acknowledgement = peer
+            .next()
+            .await
+            .expect("forwarder remains open")
+            .expect("sync acknowledgement is valid");
+
+        assert_eq!(acknowledgement, Bytes::from_static(SESSION_SYNC_ACK));
+        task.abort();
+    }
+
+    #[tokio::test]
+    async fn idle_daemon_forwarder_ignores_a_stray_eof_frame() {
+        let (forwarder, peer) = tokio::io::duplex(64);
+        let task = tokio::spawn(forward_to_nym_daemon_interface(forwarder));
+        let mut peer = LengthDelimitedCodec::new().framed(peer);
+
+        peer.send(Bytes::new()).await.expect("send stray EOF");
+        assert!(
+            tokio::time::timeout(Duration::from_millis(50), peer.next())
+                .await
+                .is_err(),
+            "a stray EOF must not produce a frame the next session would read as an ack"
+        );
+
+        peer.send(Bytes::from_static(SESSION_SYNC_PING))
+            .await
+            .expect("send sync marker");
+        assert_eq!(
+            peer.next()
+                .await
+                .expect("forwarder remains open")
+                .expect("valid frame"),
+            Bytes::from_static(SESSION_SYNC_ACK)
+        );
+        task.abort();
     }
 }

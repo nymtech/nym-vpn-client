@@ -18,6 +18,7 @@ import net.nymtech.vpn.R
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.SingletonHolder
+import net.nymtech.vpn.util.extensions.GatewaySelectionMode
 import net.nymtech.vpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.util.extensions.toHumanReadableString
 import nym_vpn_lib_types.EntryPoint
@@ -172,7 +173,8 @@ internal class VpnNotificationManager private constructor(private val context: C
 			}
 
 			is EntryPoint.Country -> Triple(toDisplayCountry(entry.twoLetterIsoCountryCode), null, null)
-			is EntryPoint.Random -> Triple("random", null, null)
+			is EntryPoint.Random -> Triple(GatewaySelectionMode.RANDOM.value, null, null)
+			is EntryPoint.Auto -> Triple("Safest", null, null)
 		}
 
 		return formatNodeLocation(name, city, countryIso)
@@ -192,7 +194,8 @@ internal class VpnNotificationManager private constructor(private val context: C
 
 			is ExitPoint.Country -> Triple(toDisplayCountry(exit.twoLetterIsoCountryCode), null, null)
 			is ExitPoint.Address -> Triple(exit.address, null, null)
-			is ExitPoint.Random -> Triple("random", null, null)
+			is ExitPoint.Random -> Triple(GatewaySelectionMode.RANDOM.value.lowercase(), null, null)
+			is ExitPoint.Auto -> Triple("safest", null, null)
 		}
 
 		return formatNodeLocation(name, city, countryIso)

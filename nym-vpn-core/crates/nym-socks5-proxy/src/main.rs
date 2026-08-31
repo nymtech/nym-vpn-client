@@ -5,7 +5,7 @@ use nym_file_updater::FileUpdater;
 use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
-    fs::{File, create_dir_all},
+    fs::File,
     io::{Write, stdout},
     mem::discriminant,
     path::Path,
@@ -13,7 +13,7 @@ use std::{
 
 use anyhow::{Context, Result, bail};
 use nym_socks5_proxy_ipc::{
-    DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
+    DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage, validate_country_codes,
 };
 use tokio::{
     io::{AsyncBufReadExt, BufReader, stdin},
@@ -39,24 +39,23 @@ async fn main() -> Result<()> {
         }
     };
 
+    // ProxyConfig::validate() will ensure the data and log directories exist, amongst other things.
+    if let Err(err) = config.validate() {
+        send_error_message(&format!("Invalid configuration: {err}"));
+        bail!("Invalid configuration");
+    }
+
     // Get the default interface addresses and monitor for changes in the routing.
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
 
-    let proxy_dir = config.data_dir.join("nym-socks5-proxy");
-    if let Err(err) = create_dir_all(&proxy_dir).with_context(|| {
-        format!(
-            "Failed to create proxy data directory '{}'",
-            proxy_dir.display()
-        )
-    }) {
-        send_error_message(&format!("{err:#}"));
-        return Err(err);
-    }
+    // Shared geo-exclusion excluded countries list, updatable at runtime without a restart.
+    let (excluded_countries_tx, excluded_countries_rx) =
+        watch::channel(config.excluded_countries.clone());
 
-    if let Err(err) = init_tracing(&proxy_dir, &config.log_level) {
+    if let Err(err) = init_tracing(&config.log_dir, &config.log_level) {
         send_error_message(&format!("{err:#}"));
         return Err(err);
     }
@@ -77,9 +76,9 @@ async fn main() -> Result<()> {
     // Start the SOCKS5 proxy listener.
     if let Err(err) = proxy::run(
         config,
-        &proxy_dir,
         default_interface_rx,
         tunnel_addrs_rx,
+        excluded_countries_rx,
         shutdown_token.clone(),
         file_updater_handle,
         #[cfg(target_os = "android")]
@@ -103,7 +102,7 @@ async fn main() -> Result<()> {
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(&line, &tunnel_addrs_tx, &shutdown_token);
+                        handle_daemon_message(&line, &tunnel_addrs_tx, &excluded_countries_tx, &shutdown_token);
                     }
                     Ok(Some(_)) => {} // blank line — ignore
                     Ok(None) => {
@@ -160,6 +159,7 @@ async fn read_initial_config(
 fn handle_daemon_message(
     line: &str,
     tunnel_addrs_tx: &watch::Sender<InterfaceAddresses>,
+    excluded_countries_tx: &watch::Sender<Vec<String>>,
     shutdown_token: &CancellationToken,
 ) {
     match line.parse::<DaemonMessage>() {
@@ -170,6 +170,16 @@ fn handle_daemon_message(
         Ok(DaemonMessage::SetTunnelAddresses(tunnel_addrs)) => {
             tracing::info!("VPN tunnel addresses changed: {tunnel_addrs:?}");
             let _ = tunnel_addrs_tx.send(tunnel_addrs);
+            send_message(&ProxyMessage::Ack);
+        }
+        Ok(DaemonMessage::SetExcludedCountries(countries)) => {
+            if let Err(err) = validate_country_codes(&countries) {
+                tracing::warn!("Rejected SetExcludedCountries: {err}");
+                send_error_message(&format!("Invalid excluded countries: {err}"));
+                return;
+            }
+            tracing::info!("Geo-exclusion excluded countries changed: {countries:?}");
+            let _ = excluded_countries_tx.send(countries);
             send_message(&ProxyMessage::Ack);
         }
         Ok(DaemonMessage::Terminate) => {
@@ -217,8 +227,8 @@ fn install_signal_handlers(shutdown_token: CancellationToken) {
     });
 }
 
-fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
-    let log_path = proxy_dir.join("nym-socks5-proxy.log");
+fn init_tracing(log_dir: &Path, log_level: &str) -> Result<()> {
+    let log_path = log_dir.join("nym-socks5-proxy.log");
     let file = File::create(&log_path)
         .with_context(|| format!("Failed to open log file '{}'", log_path.display()))?;
 

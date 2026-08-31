@@ -1,0 +1,30 @@
+# Logging back in with a 24-word passphrase returns to the signed-in home screen.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/logout_to_welcome.yaml
+
+- tapOn: "Login to my account"
+
+- extendedWaitUntil:
+    visible:
+      text: "Log in with 24 words"
+    timeout: 10000
+- tapOn: "Log in with 24 words"
+
+- extendedWaitUntil:
+    visible:
+      text: "24 word-passphrase"
+    timeout: 10000
+
+- tapOn: "24 word-passphrase"
+- inputText: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+
+- tapOn: "Login"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 30000
+- assertVisible: "NOT PROTECTED"

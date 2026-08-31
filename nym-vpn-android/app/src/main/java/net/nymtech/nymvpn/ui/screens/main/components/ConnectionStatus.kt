@@ -10,10 +10,13 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,10 +37,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.animations.Pulse
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.EstablishConnectionState
 
 private const val OUTER_RADIUS = 82.4f
@@ -132,13 +137,15 @@ fun ConnectionStatus(
 	val failedLabel = stringResource(R.string.connection_failed)
 	val disconnectingLabel = stringResource(R.string.disconnecting)
 	val notProtectedLabel = stringResource(R.string.connection_status_not_protected)
+	val offlineLabel = stringResource(R.string.offline)
 
 	val currentLabel: String? = when (connectionState) {
 		ConnectionState.Connected -> connectedLabel
 		is ConnectionState.Connecting -> connectionState.label.asString(context)
 		is ConnectionState.Error, is ConnectionState.StartFailure -> failedLabel
 		ConnectionState.Disconnecting -> disconnectingLabel
-		ConnectionState.Disconnected, ConnectionState.Offline, ConnectionState.WaitingForConnection -> notProtectedLabel
+		ConnectionState.Offline, ConnectionState.WaitingForConnection -> offlineLabel
+		ConnectionState.Disconnected -> notProtectedLabel
 	}
 
 	val labelAlpha by animateFloatAsState(
@@ -233,15 +240,27 @@ fun ConnectionStatus(
 			modifier = Modifier.alpha(labelAlpha),
 		) {
 			Spacer(Modifier.height(LABEL_OFFSET.dp))
-			Text(
-				text = (currentLabel ?: "").uppercase(),
-				style = MaterialTheme.typography.labelSmall,
-				color = when {
-					isError -> MaterialTheme.colorScheme.error
-					isConnected -> MaterialTheme.colorScheme.primary
-					else -> MaterialTheme.colorScheme.onSurfaceVariant
-				},
-			)
+			val isOffline = connectionState == ConnectionState.Offline ||
+				connectionState == ConnectionState.WaitingForConnection
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.Center,
+			) {
+				if (isOffline) {
+					Pulse(color = MaterialTheme.colorScheme.error)
+					Spacer(Modifier.width(6.dp))
+				}
+				Text(
+					text = (currentLabel ?: "").uppercase(),
+					style = MaterialTheme.typography.labelSmall,
+					color = when {
+						isError -> MaterialTheme.colorScheme.error
+						isConnected -> MaterialTheme.colorScheme.primary
+						isOffline -> MaterialTheme.colorScheme.error
+						else -> MaterialTheme.colorScheme.onSurfaceVariant
+					},
+				)
+			}
 			Spacer(Modifier.height(8.dp))
 			Text(
 				text = connectionTime ?: "",
@@ -327,7 +346,7 @@ private fun ArcPreviewConnected() {
 private fun ArcPreviewError() {
 	NymVPNTheme(Theme.DARK_MODE) {
 		ConnectionStatus(
-			connectionState = ConnectionState.Error(nym_vpn_lib_types.ErrorStateReason.InactiveSubscription),
+			connectionState = ConnectionState.Error(ErrorStateReason.InactiveSubscription),
 			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
 		)
 	}

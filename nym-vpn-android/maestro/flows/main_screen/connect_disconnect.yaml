@@ -1,0 +1,32 @@
+# Full connect and disconnect round trip in Fast mode.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+  - smoke
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Fast"
+- assertVisible: "NOT PROTECTED"
+
+- runFlow: ../../subflows/connect.yaml
+
+- extendedWaitUntil:
+    visible:
+      text: "FAST MODE PROTECTION"
+    timeout: 30000
+- assertVisible: "Disconnect"
+
+- tapOn: "Disconnect"
+
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 30000
+- assertVisible: "Connect"

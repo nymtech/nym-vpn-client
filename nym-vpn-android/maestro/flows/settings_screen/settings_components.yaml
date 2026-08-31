@@ -1,0 +1,64 @@
+# Every row of the settings screen is present.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- assertVisible: "Settings"
+
+- assertVisible: "Account"
+- assertVisible: "Passphrase"
+- assertVisible: "Support & feedback"
+
+- assertVisible: "Kill switch"
+- assertVisible: "Ad blocking"
+- assertVisible: "LAN bypass"
+- assertVisible: "Customize DNS"
+- assertVisible: "Mixnet tuning"
+- assertVisible: "Split tunneling"
+- assertVisible: "Geo Exclusion"
+
+- scrollUntilVisible:
+    element:
+      text: "Anti-censorship"
+    direction: DOWN
+- assertVisible: "Anti-censorship"
+
+- scrollUntilVisible:
+    element:
+      text: "Appearance"
+    direction: DOWN
+- assertVisible: "Appearance"
+- assertVisible: "Notifications"
+- assertVisible: "App shortcuts"
+
+- scrollUntilVisible:
+    element:
+      text: "Launch at startup"
+    direction: DOWN
+- assertVisible: "Launch at startup"
+- assertVisible: "Power management"
+
+- scrollUntilVisible:
+    element:
+      text: "Logs & data"
+    direction: DOWN
+- assertVisible: "Logs & data"
+
+- scrollUntilVisible:
+    element:
+      text: "Legal"
+    direction: DOWN
+- assertVisible: "Legal"
+
+- scrollUntilVisible:
+    element:
+      text: "Quit NymVPN"
+    direction: DOWN
+- assertVisible: "Quit NymVPN"
+- assertVisible: "Log out"
+
+- assertVisible:
+    text: "App version:.*"

@@ -95,7 +95,7 @@ struct NymVPNDaemonApp: App {
                     appDelegate.bringWindowToFront()
                 }
                 externalLinkManager.deeplinkHandler = { url in
-                    deeplinkManager.handle(url: url)
+                    await deeplinkManager.handleURL(url)
                 }
             }
             .onDisappear {
@@ -159,7 +159,6 @@ private extension NymVPNDaemonApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
-            await ConnectionManager.shared.bootstrapFromDaemonIfNeeded()
         }
     }
 }

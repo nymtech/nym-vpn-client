@@ -1,4 +1,4 @@
-import { SelectedNode } from './types';
+import { SafestNode, SelectedNode } from './types';
 
 // declared in src-tauri/src/events.rs
 export const AppName = 'NymVPN';
@@ -8,10 +8,11 @@ export const DaemonEvent = 'vpnd-status';
 export const MixnetEvent = 'mixnet-event';
 export const VpnConfigEvent = 'vpn-config';
 export const UpdatePendingEvent = 'update-pending';
+export const DiagnosticsSuggestedEvent = 'diagnostics-suggested';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
 
-export const DefaultNode: SelectedNode = 'random';
+export const DefaultNode: SelectedNode = SafestNode;
 export const DefaultThemeMode = 'system';
 // ⚠ keep those in sync with the theme definition in `styles.css`
 export const ColorMainBgLight = '#242b2d';
@@ -56,5 +57,5 @@ export const LocationAccuracyLink =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
 export const MixnetParametersLearnMoreUrl =
-  'https://nym.com/features/mixnet-customization';
+  'https://nym.com/features/mixnet-tuning';
 export const DocsUrl = 'https://nym.com/docs';

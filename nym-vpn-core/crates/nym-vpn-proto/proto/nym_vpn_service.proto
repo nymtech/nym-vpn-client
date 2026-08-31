@@ -48,6 +48,15 @@ message Region {
   string region = 1;
 }
 
+message AutoEntry {
+  bool exclude_user_country = 1;
+}
+
+message AutoExit {
+  bool exclude_entry_point_country = 1;
+  bool exclude_user_country = 2;
+}
+
 message Location {
   string two_letter_iso_country_code = 1;
   double latitude = 2;
@@ -68,6 +77,7 @@ message EntryNode {
     Country country = 2;
     Region region = 3;
     google.protobuf.Empty random = 4;
+    AutoEntry auto = 5;
   }
 }
 
@@ -78,6 +88,7 @@ message ExitNode {
     Country country = 3;
     Region region = 4;
     google.protobuf.Empty random = 5;
+    AutoExit auto = 6;
   }
 }
 
@@ -280,20 +291,8 @@ message GeoExclusionListenPortRequest {
   uint32 listen_port = 1;
 }
 
-message GatewaySelectionAlgorithm {
-  message Explicit {};
-  message AutoEntryExplicitExit {};
-  message Auto {};
-  oneof gateway_selection_algorithm {
-    Explicit explicit = 1;
-    AutoEntryExplicitExit auto_entry_explicit_exit = 2;
-    Auto auto = 3;
-  }
-}
-
 message GatewaySelectionAlgorithmConfig {
   bool enable_geo_location = 1;
-  GatewaySelectionAlgorithm gateway_selection_algorithm = 2;
 }
 
 message GatewayIndependence {
@@ -320,7 +319,7 @@ message VpnServiceConfig {
   MixnetTrafficConfig mixnet_traffic = 25;
   SplitTunnelSettings split_tunnel = 28;
   GeoExclusionSettings geo_exclusion = 29;
-  GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
+  GatewaySelectionAlgorithmConfig gateway_selection_algorithm_config = 30;
   FrontingModes fronting_mode = 31;
   GatewayIndependence gateway_independence = 32;
 }
@@ -396,6 +395,11 @@ message GatewayResponse {
   optional string node_family_name = 14;
 }
 
+message RecentGateways {
+  repeated GatewayResponse entry = 1;
+  repeated GatewayResponse exit = 2;
+}
+
 message KemKeyDigests {
   map<string, string> digests = 1;
 }
@@ -421,10 +425,18 @@ message BridgeInformation {
 message BridgeParameters {
   oneof state {
     QuicClientOptions quic_plain = 1;
+    TlsClientOptions tls_plain = 2;
   }
 }
 
 message QuicClientOptions {
+  repeated SocketAddr addresses = 1;
+  optional string host = 2;
+  string id_pubkey = 3;
+}
+
+
+message TlsClientOptions {
   repeated SocketAddr addresses = 1;
   optional string host = 2;
   string id_pubkey = 3;
@@ -436,6 +448,17 @@ message Performance {
   Score mixnet_score = 5;
   Score load = 3;
   float uptime_percentage_last_24_hours = 4;
+}
+
+message ProfileOptions {
+  Profile profile = 1;
+}
+
+enum Profile {
+  SAFEST = 0;
+  MOST_PRIVATE = 1;
+  FASTEST = 2;
+  RANDOM = 3;
 }
 
 enum Score {
@@ -472,6 +495,7 @@ enum TunnelType {
 enum EstablishConnectionState {
   RESOLVING_API_ADDRESSES = 0;
   AWAITING_ACCOUNT_READINESS = 1;
+  AWAITING_CREDENTIALS_AVAILABILITY = 6;
   REFRESHING_GATEWAYS = 2;
   SELECTING_GATEWAYS = 3;
   REGISTERING_WITH_GATEWAYS = 4;
@@ -558,6 +582,10 @@ message TunnelState {
     NEED_FULL_DISK_PERMISSIONS = 22;
     SPLIT_TUNNEL = 23;
     NEEDS_RELAXED_INDEPENDENCE_CRITERIA = 24;
+    CREDENTIAL_FETCHING_FAILED = 25;
+    NO_CREDENTIAL_AVAILABLE = 26;
+    NEEDS_DEVICE_LOCATION = 27;
+    CONNECTION_ATTEMPTS_EXCEEDED = 28;
     INTERNAL = 17;
   }
 
@@ -605,6 +633,18 @@ message TunnelEvent {
     MixnetEvent mixnet_event = 2;
     ConfigChangedEvent config_changed_event = 3;
     AccountControllerState account_state = 4;
+    DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
+  }
+}
+
+// Advisory hint that running the diagnostic tool might help. Does not change TunnelState.
+message DiagnosticsSuggestedEvent {
+  message RepeatedConnectionRetries {
+    uint32 attempts = 1;
+  }
+  oneof reason {
+    RepeatedConnectionRetries repeated_connection_retries = 1;
+    TunnelState.Error ambiguous_error = 2;
   }
 }
 
@@ -737,7 +777,6 @@ message AccountControllerState {
 
   message LoggedOut {}
   message ReadyToConnect {}
-  message RequestingZkNyms {}
   message Syncing {}
   message Error {
     ErrorStateReason reason = 1;
@@ -747,18 +786,15 @@ message AccountControllerState {
   }
   message Offline {}
   message Decentralised {}
-  message UpgradeMode {}
   message PendingSubscription {}
 
   oneof state {
     LoggedOut logged_out = 1;
     Syncing syncing = 2;
-    RequestingZkNyms requesting_zk_nyms = 7;
     ReadyToConnect ready_to_connect = 3;
     Error error = 4;
     Offline offline = 5;
     Decentralised decentralised = 6;
-    UpgradeMode upgrade_mode = 8;
     PendingSubscription pending_subscription = 9;
   }
 }
@@ -805,10 +841,6 @@ message DecentralisedAccountStoreRequest {
 
 message PrivyAccountStoreRequest {
   string mnemonic = 1;
-}
-
-message DecentralisedObtainTicketbooksRequest {
-  uint64 amount = 1;
 }
 
 message RefreshAccountStateRequest {
@@ -1137,6 +1169,10 @@ message SplitTunnelExcludedProcessList {
   repeated SplitTunnelExcludedProcess processes = 1;
 }
 
+message GetRecentGatewaysParams {
+  TunnelType tunnel_type = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1160,7 +1196,6 @@ service NymVpnService {
   rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionListenPort(GeoExclusionListenPortRequest) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionExcludedCountries(StringList) returns (google.protobuf.Empty) {}
-  rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableGatewayIndependence(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGatewayIndependenceNotifications(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
@@ -1209,7 +1244,7 @@ service NymVpnService {
   rpc AccountBalance(google.protobuf.Empty) returns (AccountBalanceResponse) {}
 
   // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
-  rpc DecentralisedObtainTicketbooks(DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
+  rpc DecentralisedObtainTicketbooks(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
@@ -1258,6 +1293,11 @@ service NymVpnService {
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets(google.protobuf.Empty) returns (AvailableTickets) {}
+
+  // Manually trigger a restock of every ticketbook type running low or about
+  // to expire, via the bandwidth controller. A manual safety valve; the
+  // automatic triggers already keep every type stocked.
+  rpc RestockTicketbooks(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the account summary
   rpc GetAccountSummary(google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
@@ -1341,4 +1381,10 @@ service NymVpnService {
   // Split-tunnel (macOS only)
   // Check whether the app needs TCC approval for split tunneling (macOS)
   rpc NeedFullDiskPermissions(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Get recent gateways
+  rpc GetRecentGateways(GetRecentGatewaysParams) returns (RecentGateways) {}
+
+  // Set a pre-configured batch of settings following a certain profile
+  rpc SetProfile(ProfileOptions) returns (google.protobuf.Empty) {}
 }

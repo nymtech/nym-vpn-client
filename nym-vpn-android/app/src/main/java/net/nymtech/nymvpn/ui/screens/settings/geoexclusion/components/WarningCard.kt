@@ -36,7 +36,7 @@ fun WarningCard(text: String) {
 	val warningColor = LocalNymColors.current.warning
 	Card(
 		shape = WarningCardShape,
-		colors = CardDefaults.cardColors(containerColor = warningColor.copy(alpha = 0.1f)),
+		colors = CardDefaults.cardColors(containerColor = LocalNymColors.current.warningBackground),
 		modifier = Modifier
 			.fillMaxWidth()
 			.drawWithContent {

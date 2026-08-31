@@ -3,6 +3,12 @@ package net.nymtech.nymvpn.util.extensions
 import android.annotation.SuppressLint
 import android.content.Context
 import android.text.format.DateUtils
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -78,6 +84,19 @@ fun NavController.navigateAndForget(route: Route) {
 	}
 }
 
+fun NavController.navigateAndForgetToMain(route: Route) {
+	if (route !is Route.Main && currentBackStackEntry?.isCurrentRoute(route::class) == true) return
+	try {
+		navigate(route) {
+			popUpTo<Route.Main> { inclusive = route is Route.Main }
+			launchSingleTop = true
+		}
+	} catch (e: Exception) {
+		Timber.e("Navigation failed: ${e.message}")
+		goFromRoot(Route.Main())
+	}
+}
+
 fun NavController.replaceCurrentWith(route: Route) {
 	val currentRoute = currentBackStackEntry?.destination?.route ?: return
 	try {
@@ -137,6 +156,9 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
 	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
 
+	ErrorStateReason.CredentialFetchingFailed -> context.getString(R.string.error_credential_fetching_failed)
+	ErrorStateReason.NoCredentialAvailable -> context.getString(R.string.error_no_credential_available)
+
 	ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
 	ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
 	ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
@@ -159,7 +181,9 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.SplitTunnel -> ""
 
 	is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
-	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> ""
+	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> context.getString(R.string.node_families_error_message)
+	ErrorStateReason.NeedsDeviceLocation -> context.getString(R.string.error_needs_device_location)
+	ErrorStateReason.ConnectionAttemptsExceeded -> context.getString(R.string.error_connection_attempts_exceeded)
 }
 
 fun VpnException.toUserMessage(context: Context): String = when (this) {
@@ -168,11 +192,13 @@ fun VpnException.toUserMessage(context: Context): String = when (this) {
 	else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
 }
 
+fun NymGateway.scoreFor(mode: Tunnel.Mode): Score? = when (mode) {
+	Tunnel.Mode.FIVE_HOP_MIXNET -> mixnetScore
+	Tunnel.Mode.TWO_HOP_MIXNET -> wgScore
+}
+
 fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> = this.sortedBy {
-	when (mode) {
-		Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore ?: Score.OFFLINE
-		Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore ?: Score.OFFLINE
-	}
+	it.scoreFor(mode) ?: Score.OFFLINE
 }
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
@@ -188,22 +214,21 @@ internal fun NymGateway.isQuicSupported(): Boolean = run {
 }
 
 @Composable
-fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String> {
+fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String>? {
 	val score = when (gatewayType) {
 		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> mixnetScore
 		GatewayType.WG -> wgScore
 	}
-	return score?.let {
-		getScoreIcon(score)
-	} ?: Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+	return getScoreIcon(score)
 }
 
 @Composable
-fun getScoreIcon(score: Score): Pair<ImageVector, String> = when (score) {
+fun getScoreIcon(score: Score?): Pair<ImageVector, String>? = when (score) {
 	Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
 	Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 	Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
 	Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
+	null -> null
 }
 
 @Composable
@@ -231,8 +256,22 @@ fun Score.displayText(): String = when (this) {
 }
 
 @Composable
+fun FavoriteIcon(isFavorite: Boolean, onToggleFavorite: () -> Unit, modifier: Modifier = Modifier) {
+	val (icon, tint) = if (isFavorite) {
+		Icons.Rounded.Star to LocalNymColors.current.favorite
+	} else {
+		Icons.Rounded.StarBorder to MaterialTheme.colorScheme.onBackground
+	}
+	Icon(
+		imageVector = icon,
+		contentDescription = stringResource(R.string.server_favorite_icon),
+		tint = tint,
+		modifier = modifier.clickable { onToggleFavorite() },
+	)
+}
+
+@Composable
 fun getModeIcon(mode: ConnectMode): ImageVector = when (mode) {
-	ConnectMode.AUTO -> ImageVector.vectorResource(R.drawable.ic_mode_auto)
 	ConnectMode.FAST -> ImageVector.vectorResource(R.drawable.ic_mode_fast)
 	ConnectMode.MIXNET -> ImageVector.vectorResource(R.drawable.ic_mode_mixnet)
 }

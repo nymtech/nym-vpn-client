@@ -14,10 +14,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-wireguard-go-android:
@@ -32,21 +28,22 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
-          targets: aarch64-linux-android,x86_64-linux-android
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
       - name: Install cargo-ndk
         uses: baptiste0928/cargo-install@v3
@@ -75,8 +72,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard-go_aarch64-linux-android
-          path: build/lib/aarch64-linux-android
+          name: wireguard-go_linux-android
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core

@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.RecentGateways
 import net.nymtech.vpn.model.VpnServiceEvent
 import net.nymtech.vpn.model.config.ConfigResult
 import net.nymtech.vpn.model.config.CoreVpnConfig
@@ -19,6 +20,7 @@ import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TentativeGateways
+import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
 
 interface VpnServiceApi {
@@ -57,6 +59,8 @@ interface VpnServiceApi {
 	suspend fun getSystemMessages(): List<SystemMessage>
 
 	suspend fun getGateways(type: GatewayType): List<NymGateway>
+
+	suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways?
 
 	suspend fun getNetworkVersions(): NetworkCompatibility?
 	suspend fun getDeviceIdentity(): String?

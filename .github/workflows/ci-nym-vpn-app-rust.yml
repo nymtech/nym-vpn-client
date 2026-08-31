@@ -12,9 +12,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   check:
@@ -27,7 +24,6 @@ jobs:
 
     steps:
       - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
         shell: bash
         run: |
           ls -la ./
@@ -48,29 +44,15 @@ jobs:
         run: git config --system core.longpaths true
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - name: Enable Redis for sscache (Linux)
-        if: ${{ matrix.os == 'arc-linux-latest' }}
-        run: |
-          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_ENDPOINT }}" >> $GITHUB_ENV
-
-      - name: Enable Redis for sscache (macOS)
-        if: ${{ matrix.os == 'custom-macos-15' }}
-        run: |
-          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $GITHUB_ENV
-
-      - name: Enable Redis for sscache (Windows)
-        if: ${{ matrix.os == 'custom-windows-11' }}
-        run: |
-          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $env:GITHUB_ENV
-
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -79,7 +61,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
           cache: npm

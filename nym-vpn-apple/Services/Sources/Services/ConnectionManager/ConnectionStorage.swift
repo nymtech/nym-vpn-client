@@ -56,8 +56,8 @@ extension ConnectionStorage {
 
 #if SANTA
     func resetGatewaySelectionsForEnvironmentChange() {
-        connectionConfig.entry = .random
-        connectionConfig.exit = .random
+        connectionConfig.entry = .auto
+        connectionConfig.exit = .auto
     }
 
     func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
@@ -69,23 +69,17 @@ extension ConnectionStorage {
 extension ConnectionStorage {
     static func decodeStoredConfig(appSettings: AppSettings) -> ConnectionConfig {
         guard let storedConfig = appSettings.connectionConfig,
-              var decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
+              let decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
         else {
             return generateInitialConfig()
-        }
-        switch decodedConfig.gatewaySelectionAlgorithmConfig.algorithm {
-        case .auto, .autoEntryExplicitExit:
-            decodedConfig.gatewaySelectionAlgorithmConfig.algorithm = .explicit
-        case .explicit:
-            break
         }
         return decodedConfig
     }
 
     static func generateInitialConfig() -> ConnectionConfig {
         ConnectionConfig(
-            entry: .random,
-            exit: .random,
+            entry: .auto,
+            exit: .auto,
             dns: nil,
             allowLan: false,
             disableIpv6: false,
@@ -101,8 +95,7 @@ extension ConnectionStorage {
             ),
             splitTunnelConfig: SplitTunnelConfig(),
             gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig(
-                enableGeoLocation: true,
-                algorithm: .explicit
+                enableGeoLocation: true
             )
         )
     }

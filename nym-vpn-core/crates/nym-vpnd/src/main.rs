@@ -4,7 +4,6 @@
 mod cli;
 mod command_interface;
 mod environment;
-mod paths;
 mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;
@@ -19,11 +18,11 @@ use nym_vpn_lib::{
     UserAgent,
     config::GlobalConfig,
     logging::LogFileRemoverHandle,
+    paths::Paths,
     service::{NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType},
 };
 #[cfg(target_os = "windows")]
 use nym_vpn_lib::{install_split_tunnel_driver_service, uninstall_split_tunnel_driver_service};
-use nym_vpn_lib_types::LogPath;
 use nym_vpn_network_config::NetworkCache;
 #[cfg(target_os = "windows")]
 use windows_service::{
@@ -68,7 +67,9 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result<()> {
-    let global_config = GlobalConfig::read_from_config_dir(&paths::config_dir())
+    let mut paths = Paths::new();
+
+    let global_config = GlobalConfig::read_from_config_dir(&paths.config_dir)
         .await
         .unwrap_or_default();
 
@@ -83,23 +84,26 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
     let run_as_service = cli_args.is_run_as_service();
     let options = nym_vpn_lib::logging::Options {
         verbosity_level: cli_args.verbosity_level(),
-        enable_file_log: run_as_service,
         enable_stdout_log: !run_as_service,
         enable_json_log: cli_args.json_output,
-        log_dir: Some(crate::paths::log_dir()),
+        log_dir: if run_as_service {
+            Some(paths.log_dir.clone())
+        } else {
+            None
+        },
         sentry: sentry_enabled,
     };
     let logging_setup = nym_vpn_lib::logging::setup_logging_with_file_remover(
         options,
         shutdown_token.child_token(),
     );
-    let log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
+    paths.log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
     let remove_log_file_signal = logging_setup
         .as_ref()
         .map(|s| s.log_file_remover_handle.clone());
     let run_parameters = RunParameters {
+        paths,
         user_agent: cli_args.user_agent.unwrap_or_else(|| new_user_agent!()),
-        log_path,
         sentry_enabled,
         disable_client_verification: run_args.disable_client_verification,
     };
@@ -151,7 +155,7 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
 
 #[derive(Debug, Clone)]
 struct RunParameters {
-    log_path: Option<LogPath>,
+    paths: Paths,
     sentry_enabled: bool,
     user_agent: UserAgent,
     disable_client_verification: bool,
@@ -164,7 +168,14 @@ async fn run_standalone(
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
+    parameters
+        .paths
+        .create_directories()
+        .await
+        .context("failed to create base directories")?;
+
     let network_cache = environment::setup_environment(
+        &parameters.paths.config_dir,
         &global_config_file.network_name,
         parameters.user_agent.clone(),
     )
@@ -196,9 +207,7 @@ async fn spawn_vpn_service(
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<JoinHandle<()>> {
     let vpn_service_params = NymVpnServiceParameters {
-        log_path: parameters.log_path,
-        config_dir: paths::config_dir(),
-        data_dir: paths::data_dir(),
+        paths: parameters.paths,
         network_cache,
         sentry_enabled: parameters.sentry_enabled,
         user_agent: parameters.user_agent,

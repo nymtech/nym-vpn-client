@@ -1,4 +1,5 @@
 import Foundation
+import TunnelStatus
 #if os(macOS)
 import GRPCManager
 #endif
@@ -12,7 +13,7 @@ extension ConnectionManager {
     /// the connect is kicked off explicitly.
     public func acceptRelaxedGatewayIndependence() async throws {
 #if os(iOS)
-        await tunnelsManager.send(.setGatewayIndependence(false))
+        try await tunnelsManager.send(message: .setGatewayIndependence(false))
 #elseif os(macOS)
         try await grpcManager.setGatewayIndependence(false)
         // The daemon does not auto-reconnect after relaxing, so kick the

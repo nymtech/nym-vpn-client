@@ -101,6 +101,7 @@ impl fmt::Display for VpnServiceConfig {
             "gateway selection algorithm: {}",
             self.gateway_selection_algorithm_config
         )?;
+        writeln!(f, "gateway independence: {}", self.gateway_independence)?;
 
         Ok(())
     }
@@ -109,8 +110,13 @@ impl fmt::Display for VpnServiceConfig {
 impl Default for VpnServiceConfig {
     fn default() -> Self {
         Self {
-            entry_point: EntryPoint::Random,
-            exit_point: ExitPoint::Random,
+            entry_point: EntryPoint::Auto {
+                exclude_user_country: true,
+            },
+            exit_point: ExitPoint::Auto {
+                exclude_entry_point_country: true,
+                exclude_user_country: true,
+            },
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: true,
@@ -409,9 +415,9 @@ impl ContinuousTrafficSendingRate {
 
     pub fn throughput(&self) -> String {
         match self {
-            Self::Ms10 => "2 Mpbs",
-            Self::Ms20 => "1 Mpbs",
-            Self::Ms30 => "0.7 Mpbs",
+            Self::Ms10 => "2 Mbps",
+            Self::Ms20 => "1 Mbps",
+            Self::Ms30 => "0.7 Mbps",
         }
         .to_owned()
     }
@@ -555,10 +561,8 @@ impl fmt::Display for GeoExclusionSettings {
 
 impl Default for GeoExclusionSettings {
     fn default() -> Self {
-        // Temporary, until there is a way to control it.
-        let enabled = false;
         Self {
-            enabled,
+            enabled: false,
             listen_port: 1081,
             excluded_countries: vec!["CN".to_string()],
         }

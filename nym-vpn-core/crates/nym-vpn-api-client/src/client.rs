@@ -1,16 +1,22 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use backon::Retryable;
-use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::{
+    AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
+    MasterVerificationKeyResponse, PartialVerificationKeysResponse,
+};
 use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
+    reqwest::header::{DATE, HeaderMap},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use time::OffsetDateTime;
-use tokio::sync::RwLock;
+use time::{
+    Date, OffsetDateTime,
+    format_description::{BorrowedFormatItem, well_known::Rfc2822},
+};
 
 use crate::{
     api_urls_to_urls,
@@ -38,15 +44,29 @@ use crate::{
     },
 };
 
+const RFC_3339_DATE: &[BorrowedFormatItem<'static>] =
+    time::macros::format_description!("[year]-[month]-[day]");
+
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// Whether a request that failed with a JWT error should be retried after
+/// synchronizing with the remote time.
+#[derive(Clone, Copy, Debug)]
+enum RemoteTimeRetry {
+    /// Synchronization succeeded: retry the request, using the remote time
+    /// override, or the local time when `None` (clocks are aligned).
+    Retry(Option<VpnApiTime>),
+    /// The remote time could not be determined: keep the original error.
+    GiveUp,
+}
+
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: Client,
-    skew_manager: Arc<RwLock<SkewManager>>,
+    skew_manager: SkewManager,
 }
 
 impl AsRef<Client> for VpnApiClient {
@@ -62,15 +82,27 @@ impl AsMut<Client> for VpnApiClient {
 }
 
 impl VpnApiClient {
+    /// Builds a `RemoteTimeProvider` that queries this VPN API's health endpoint, over its own
+    /// dedicated HTTP client. Useful for constructing a `SkewManager` before any `VpnApiClient`
+    /// exists, so it can be shared (injected via `new`/`from_network`) rather than owned solely
+    /// by the client.
+    pub fn health_endpoint_time_provider(
+        urls: Vec<Url>,
+        user_agent: Option<UserAgent>,
+    ) -> Result<impl RemoteTimeProvider + Send + Sync + 'static> {
+        let inner = fronted_http_client(urls, user_agent, Some(NYM_VPN_API_TIMEOUT))?;
+        Ok(VpnApiRemoteTimeProvider::new(inner))
+    }
+
     pub fn new(urls: Vec<Url>, user_agent: Option<UserAgent>) -> Result<Self> {
         let inner =
             fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
 
-        let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
+        let skew_manager = SkewManager::new(VpnApiRemoteTimeProvider::new(inner.clone()));
 
         Ok(Self {
             inner,
-            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
+            skew_manager,
         })
     }
 
@@ -92,12 +124,20 @@ impl VpnApiClient {
         let inner =
             fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
 
-        let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
+        let skew_manager = SkewManager::new(VpnApiRemoteTimeProvider::new(inner.clone()));
 
         Ok(Self {
             inner,
-            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
+            skew_manager,
         })
+    }
+
+    /// Replaces this client's skew manager with an externally-shared one (e.g. built via
+    /// [`Self::health_endpoint_time_provider`]), so both observe and update the same cache
+    /// instead of the client tracking its own, unshared skew state.
+    pub fn with_skew_manager(mut self, skew_manager: SkewManager) -> Self {
+        self.skew_manager = skew_manager;
+        self
     }
 
     pub fn api_client(&self) -> &impl ApiClient {
@@ -109,7 +149,45 @@ impl VpnApiClient {
     }
 
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
-        self.skew_manager.write().await.get_remote_time().await
+        self.skew_manager.get_remote_time().await
+    }
+
+    async fn device_time(&self) -> OffsetDateTime {
+        self.skew_manager.device_time()
+    }
+
+    async fn remote_time_for_retry(
+        &self,
+        headers: &HeaderMap,
+        time_before: OffsetDateTime,
+        time_after: OffsetDateTime,
+    ) -> RemoteTimeRetry {
+        if let Some(remote_timestamp) = parse_date_header(headers) {
+            match self
+                .skew_manager
+                .sync_with_response_timestamp(time_before, remote_timestamp, time_after)
+                .await
+            {
+                Ok(jwt) => return RemoteTimeRetry::Retry(jwt),
+                Err(err) => {
+                    tracing::warn!(
+                        "Failed to derive remote time from Date header: {err}. Falling back to fetching remote time"
+                    );
+                }
+            }
+        } else {
+            tracing::debug!(
+                "Response has no usable Date header, falling back to fetching remote time"
+            );
+        }
+
+        match self.skew_manager.sync_with_remote_time().await {
+            Ok(jwt) => RemoteTimeRetry::Retry(jwt),
+            Err(err) => {
+                tracing::error!("Failed to get remote time: {err}. Not retrying anymore");
+                RemoteTimeRetry::GiveUp
+            }
+        }
     }
 
     async fn get_query<T>(
@@ -149,8 +227,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -161,28 +237,25 @@ impl VpnApiClient {
                 None
             });
 
+        let time_before = self.device_time().await;
         match self.get_query::<T>(path, account, device, jwt).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { error, .. } = &err
+                let time_after = self.device_time().await;
+                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self
-                        .skew_manager
-                        .write()
+                    if let RemoteTimeRetry::Retry(jwt) = self
+                        .remote_time_for_retry(headers, time_before, time_after)
                         .await
-                        .sync_with_remote_time()
-                        .await
-                        .inspect_err(|err| {
-                            tracing::error!("Failed to get remote time: {err}. Not retring anymore")
-                        })
                     {
-                        // retry with remote vpn api time, and return that only if it succeeds,
-                        // otherwise return the initial error
-                        let res = self.get_query(path, account, device, Some(jwt)).await;
+                        // retry with the freshly synchronized time (remote override, or local
+                        // time when the clocks are aligned), and return the result only if it
+                        // succeeds, otherwise return the initial error
+                        let res = self.get_query(path, account, device, jwt).await;
                         if res.is_ok() {
                             return res;
                         }
@@ -336,8 +409,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -348,35 +419,28 @@ impl VpnApiClient {
                 None
             });
 
+        let time_before = self.device_time().await;
         match self
             .post_query::<T, B>(path, json_body, account, device, jwt)
             .await
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { error, .. } = &err
+                let time_after = self.device_time().await;
+                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self
-                        .skew_manager
-                        .write()
+                    if let RemoteTimeRetry::Retry(jwt) = self
+                        .remote_time_for_retry(headers, time_before, time_after)
                         .await
-                        .sync_with_remote_time()
-                        .await
-                        .inspect_err(|err| {
-                            tracing::error!(
-                                "Failed to get remote time: {err}. Not retrying anymore"
-                            )
-                        })
                     {
-                        // retry with remote vpn api time, and return that only if it succeeds,
-                        // otherwise return the initial error
-                        let res = self
-                            .post_query(path, json_body, account, device, Some(jwt))
-                            .await;
+                        // retry with the freshly synchronized time (remote override, or local
+                        // time when the clocks are aligned), and return the result only if it
+                        // succeeds, otherwise return the initial error
+                        let res = self.post_query(path, json_body, account, device, jwt).await;
                         if res.is_ok() {
                             return res;
                         }
@@ -422,28 +486,37 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        match self.delete_query::<T>(path, account, device, None).await {
+        let jwt = self
+            .skew_manager
+            .current_remote_time()
+            .await
+            .unwrap_or_else(|err| {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time"
+                );
+                None
+            });
+
+        let time_before = self.device_time().await;
+        match self.delete_query::<T>(path, account, device, jwt).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { error, .. } = &err
+                let time_after = self.device_time().await;
+                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self
-                        .skew_manager
-                        .write()
+                    if let RemoteTimeRetry::Retry(jwt) = self
+                        .remote_time_for_retry(headers, time_before, time_after)
                         .await
-                        .sync_with_remote_time()
-                        .await
-                        .inspect_err(|err| {
-                            tracing::error!("Failed to get remote time: {err}. Not retring anymore")
-                        })
                     {
-                        // retry with remote vpn api time, and return that only if it succeeds,
-                        // otherwise return the initial error
-                        let res = self.delete_query(path, account, device, Some(jwt)).await;
+                        // retry with the freshly synchronized time (remote override, or local
+                        // time when the clocks are aligned), and return the result only if it
+                        // succeeds, otherwise return the initial error
+                        let res = self.delete_query(path, account, device, jwt).await;
                         if res.is_ok() {
                             return res;
                         }
@@ -493,32 +566,41 @@ impl VpnApiClient {
         T: DeserializeOwned,
         B: Serialize,
     {
+        let jwt = self
+            .skew_manager
+            .current_remote_time()
+            .await
+            .unwrap_or_else(|err| {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time"
+                );
+                None
+            });
+
+        let time_before = self.device_time().await;
         match self
-            .patch_query::<T, B>(path, json_body, account, device, None)
+            .patch_query::<T, B>(path, json_body, account, device, jwt)
             .await
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { error, .. } = &err
+                let time_after = self.device_time().await;
+                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self
-                        .skew_manager
-                        .write()
+                    if let RemoteTimeRetry::Retry(jwt) = self
+                        .remote_time_for_retry(headers, time_before, time_after)
                         .await
-                        .sync_with_remote_time()
-                        .await
-                        .inspect_err(|err| {
-                            tracing::error!("Failed to get remote time: {err}. Not retring anymore")
-                        })
                     {
-                        // retry with remote vpn api time, and return that only if it succeeds,
-                        // otherwise return the initial error
+                        // retry with the freshly synchronized time (remote override, or local
+                        // time when the clocks are aligned), and return the result only if it
+                        // succeeds, otherwise return the initial error
                         let res = self
-                            .patch_query(path, json_body, account, device, Some(jwt))
+                            .patch_query(path, json_body, account, device, jwt)
                             .await;
                         if res.is_ok() {
                             return res;
@@ -876,6 +958,33 @@ impl VpnApiClient {
     }
 
     // ZK-NYM
+
+    pub async fn delete_device(
+        &self,
+        account: &VpnAccount,
+        device_identity_key: &str,
+    ) -> Result<serde_json::Value> {
+        // Device removal is a PATCH to `delete_me`, not an HTTP DELETE
+        let body = UpdateDeviceRequestBody {
+            status: UpdateDeviceRequestStatus::from(DeviceStatus::DeleteMe),
+        };
+        self.patch_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+                device_identity_key,
+            ],
+            &body,
+            account,
+            None,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::DeleteDevice)
+    }
 
     pub async fn get_device_zk_nyms(
         &self,
@@ -1343,6 +1452,73 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 
+    pub async fn get_directory_zk_nyms_ticketbook_master_verification_key(
+        &self,
+        epoch_id: u64,
+    ) -> Result<MasterVerificationKeyResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::MASTER_VERIFICATION_KEY,
+            ],
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookMasterVerificationKey)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures(
+        &self,
+        epoch_id: u64,
+    ) -> Result<AggregatedCoinIndicesSignaturesResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::AGGREGATED_COIN_INDICES_SIGNATURES,
+            ],
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedCoinIndicesSignatures)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_aggregated_expiration_date_signatures(
+        &self,
+        epoch_id: u64,
+        expiration_date: Date,
+    ) -> Result<AggregatedExpirationDateSignaturesResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::AGGREGATED_EXPIRATION_DATE_SIGNATURES,
+            ],
+            &[
+                (routes::EPOCH_ID, epoch_id.to_string()),
+                (
+                    routes::EXPIRATION_DATE,
+                    expiration_date.format(&RFC_3339_DATE).unwrap(),
+                ),
+            ],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedExpirationDateSignatures)
+    }
+
     pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
         tracing::debug!("Fetching nym vpn network details");
         self.inner
@@ -1377,6 +1553,16 @@ fn jwt_error(error: &str) -> bool {
     error.to_lowercase().contains("jwt")
 }
 
+// Extracts the remote timestamp from the `Date` header of a response. The header is formatted
+// as an RFC 7231 IMF-fixdate (e.g. "Sun, 06 Nov 1994 08:49:37 GMT"), which is a valid RFC 2822
+// date.
+fn parse_date_header(headers: &HeaderMap) -> Option<OffsetDateTime> {
+    let date = headers.get(DATE)?.to_str().ok()?;
+    OffsetDateTime::parse(date, &Rfc2822)
+        .inspect_err(|err| tracing::debug!("Failed to parse Date header '{date}': {err}"))
+        .ok()
+}
+
 #[derive(Debug)]
 struct VpnApiRemoteTimeProvider {
     inner: Client,
@@ -1399,5 +1585,217 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
             .map_err(VpnApiClientError::GetHealth)?;
 
         Ok(res.timestamp_utc)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    use nym_http_api_client::reqwest::header::HeaderValue;
+
+    use super::*;
+    use crate::skew_manager::DeviceTimeProvider;
+
+    // Thu, 16 Jul 2026 12:00:00 UTC
+    fn device_time() -> OffsetDateTime {
+        OffsetDateTime::from_unix_timestamp(1_784_203_200).unwrap()
+    }
+
+    #[derive(Debug)]
+    struct FixedDeviceTimeProvider;
+
+    impl DeviceTimeProvider for FixedDeviceTimeProvider {
+        fn device_time(&self) -> OffsetDateTime {
+            device_time()
+        }
+    }
+
+    #[derive(Debug)]
+    struct CountingRemoteTimeProvider {
+        calls: Arc<AtomicUsize>,
+        remote_time: OffsetDateTime,
+    }
+
+    #[async_trait::async_trait]
+    impl RemoteTimeProvider for CountingRemoteTimeProvider {
+        async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            Ok(self.remote_time)
+        }
+    }
+
+    // Returns a client that never makes real network requests: the device clock is fixed and
+    // remote time requests are counted and answered with `remote_time`.
+    fn test_client(remote_time: OffsetDateTime) -> (VpnApiClient, Arc<AtomicUsize>) {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let remote_time_provider = CountingRemoteTimeProvider {
+            calls: calls.clone(),
+            remote_time,
+        };
+        let skew_manager =
+            SkewManager::new_for_testing(FixedDeviceTimeProvider, remote_time_provider);
+        let inner = fronted_http_client(
+            vec![Url::new("https://nymvpn.test/api/", None).unwrap()],
+            None,
+            Some(NYM_VPN_API_TIMEOUT),
+        )
+        .unwrap();
+        (
+            VpnApiClient {
+                inner,
+                skew_manager,
+            },
+            calls,
+        )
+    }
+
+    fn headers_with_date(date: &str) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.insert(DATE, HeaderValue::from_str(date).unwrap());
+        headers
+    }
+
+    #[test]
+    fn parse_date_header_accepts_imf_fixdate() {
+        let headers = headers_with_date("Sun, 06 Nov 1994 08:49:37 GMT");
+        let parsed = parse_date_header(&headers).expect("valid IMF-fixdate");
+        assert_eq!(parsed.unix_timestamp(), 784_111_777);
+    }
+
+    #[test]
+    fn parse_date_header_rejects_garbage() {
+        assert!(parse_date_header(&headers_with_date("not a date")).is_none());
+        assert!(parse_date_header(&HeaderMap::new()).is_none());
+    }
+
+    #[tokio::test]
+    async fn date_header_skew_avoids_remote_time_request() {
+        let (client, remote_calls) = test_client(device_time());
+        // Remote time is 2 hours behind the device time
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let RemoteTimeRetry::Retry(Some(jwt)) = client
+            .remote_time_for_retry(&headers, device_time(), device_time())
+            .await
+        else {
+            panic!("skew is significant, expected retry with remote time override");
+        };
+
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
+        assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
+
+        // The derived skew is cached and reused without any network request
+        let cached = client
+            .skew_manager
+            .current_remote_time()
+            .await
+            .unwrap()
+            .expect("cached skew is significant");
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
+        assert_eq!(cached.local_time_ahead_skew().whole_hours(), 2);
+    }
+
+    #[tokio::test]
+    async fn date_header_negligible_skew_retries_with_local_time() {
+        let (client, remote_calls) = test_client(device_time());
+        // Remote time is only 30 seconds ahead of the device time: below the threshold
+        let headers = headers_with_date("Thu, 16 Jul 2026 12:00:30 GMT");
+
+        let retry = client
+            .remote_time_for_retry(&headers, device_time(), device_time())
+            .await;
+
+        assert!(matches!(retry, RemoteTimeRetry::Retry(None)));
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn aligned_date_header_corrects_stale_cached_skew_and_retries() {
+        let (client, remote_calls) = test_client(device_time());
+
+        // Seed the cache with a stale skew: the device clock used to be 2 hours ahead
+        client
+            .skew_manager
+            .sync_with_response_timestamp(
+                device_time(),
+                device_time() - Duration::from_hours(2),
+                device_time(),
+            )
+            .await
+            .unwrap()
+            .expect("seeded skew is significant");
+
+        // The failing request's Date header shows the clocks are now aligned
+        let headers = headers_with_date("Thu, 16 Jul 2026 12:00:00 GMT");
+        let retry = client
+            .remote_time_for_retry(&headers, device_time(), device_time())
+            .await;
+
+        // Synchronization succeeded, so the request must still be retried, now
+        // with local time since the clocks are aligned
+        assert!(matches!(retry, RemoteTimeRetry::Retry(None)));
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
+
+        // The stale cached skew was replaced: no override and no network request
+        let cached = client.skew_manager.current_remote_time().await.unwrap();
+        assert!(cached.is_none());
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn missing_date_header_falls_back_to_remote_time_request() {
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+
+        let RemoteTimeRetry::Retry(Some(jwt)) = client
+            .remote_time_for_retry(&HeaderMap::new(), device_time(), device_time())
+            .await
+        else {
+            panic!("skew is significant, expected retry with remote time override");
+        };
+
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
+    }
+
+    #[tokio::test]
+    async fn malformed_date_header_falls_back_to_remote_time_request() {
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+        let headers = headers_with_date("not a date");
+
+        let RemoteTimeRetry::Retry(Some(jwt)) = client
+            .remote_time_for_retry(&headers, device_time(), device_time())
+            .await
+        else {
+            panic!("skew is significant, expected retry with remote time override");
+        };
+
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
+    }
+
+    #[tokio::test]
+    async fn untrustworthy_request_time_falls_back_to_remote_time_request() {
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        // The request appears to have finished before it started, so the Date header
+        // cannot be trusted
+        let RemoteTimeRetry::Retry(Some(jwt)) = client
+            .remote_time_for_retry(
+                &headers,
+                device_time(),
+                device_time() - Duration::from_secs(1),
+            )
+            .await
+        else {
+            panic!("skew is significant, expected retry with remote time override");
+        };
+
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
     }
 }

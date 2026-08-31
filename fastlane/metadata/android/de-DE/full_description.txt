@@ -10,8 +10,8 @@ Die meisten VPNs geben "keine Logs" als Richtlinie an - sie können loggen, vers
 
 ⚡ ZWEI VPN-MODI, EINE APP
 
-• Schneller Modus: AmneziaWG (WireGuard)-basiertes 2-Hop dVPN. Schnelles Streaming und Surfen.
-• Anonymer Modus: 5-hop Noise-Generating-Mixnet, ein privaterer Nachfolger von Tor. Das anonymste VPN für Endverbraucher. Perfekt für Krypto, E-Mail und private Messenger wie Signal.
+- Schneller Modus: AmneziaWG (WireGuard)-basiertes 2-Hop dVPN. Schnelles Streaming und Surfen.
+- Anonymer Modus: 5-hop Noise-Generating-Mixnet, ein privaterer Nachfolger von Tor. Das anonymste VPN für Endverbraucher. Perfekt für Krypto, E-Mail und private Messenger wie Signal.
 
 💰 ANONYM MIT KRYPTO ODER BARGELD BEZAHLEN
 
@@ -19,35 +19,35 @@ NymVPN akzeptiert mehr Kryptowährungen als jedes andere VPN und akzeptiert auch
 
 💎 WARUM NYMVPN ANDERS IST
 
-• Zero-Knowledge-Architektur: Identität für Nym unsichtbar
-• Keine Logs aufgrund der Architektur: Das Netzwerk kann keine aussagekräftigen Traffic-Logs führen
-• Dezentrales Proxy-Netzwerk: kein zentraler Server
-• Schweizer Gerichtsbarkeit: außerhalb der 14 Eyes
-• WireGuard- und Mixnet-Protokolle
-• Anmeldung ohne E-Mail: anonyme Konto-Erstellung
-• Vollständig quelloffen (Open Source), geprüft durch unabhängige Sicherheitsforscher
-• 70+ Länder: weltweites Servernetzwerk
-• Bis zu 10 Geräte mit einem Konto
+- Zero-Knowledge-Architektur: Identität für Nym unsichtbar
+- Keine Logs aufgrund der Architektur: Das Netzwerk kann keine aussagekräftigen Traffic-Logs führen
+- Dezentrales Proxy-Netzwerk: kein zentraler Server
+- Schweizer Gerichtsbarkeit: außerhalb der 14 Eyes
+- WireGuard- und Mixnet-Protokolle
+- Anmeldung ohne E-Mail: anonyme Konto-Erstellung
+- Vollständig quelloffen (Open Source), geprüft durch unabhängige Sicherheitsforscher
+- 70+ Länder: weltweites Servernetzwerk
+- Bis zu 10 Geräte mit einem Konto
 
 🔒 PRIVATSPHÄRE- & SICHERHEITSFEATURES
 
-• Integrierter Killswitch
-• Zensurresistenz: QUIC, AmneziaWG und mehr verhindern VPN-Blockaden
-• Mehrschichtige Onion-Verschlüsselung
-• Auswahl von Eintritts- & Austrittsservern
-• Split-Tunneling: Nur ausgewählte Apps über das VPN leiten
-• Benutzerdefiniertes DNS: Benutze jeden DNS-Server, dem du vertraust
-• Werbe- und Trackerblockierung
+- Integrierter Killswitch
+- Zensurresistenz: QUIC, AmneziaWG und mehr verhindern VPN-Blockaden
+- Mehrschichtige Onion-Verschlüsselung
+- Auswahl von Eintritts- & Austrittsservern
+- Split-Tunneling: Nur ausgewählte Apps über das VPN leiten
+- Benutzerdefiniertes DNS: Benutze jeden DNS-Server, dem du vertraust
+- Werbe- und Trackerblockierung
 
 🌍 WAS DU MIT NYMVPN TUN KANNST
 
-• Anonym surfen, ohne Spuren zu hinterlassen
-• Streame Inhalte von Servern weltweit
-• Verschlüssele deinen Datenverkehr in öffentlichen WLANs
-• Internetzensur in restriktiven Regionen umgehen
-• Schutz sensibler Kommunikation für Journalismus und Aktivismus
-• Hindere Internetanbieter daran, Profile deines Surfverhaltens zu erstellen
-• Blockiere schädliche Webseiten, Tracker und Werbung
+- Anonym surfen, ohne Spuren zu hinterlassen
+- Streame Inhalte von Servern weltweit
+- Verschlüssele deinen Datenverkehr in öffentlichen WLANs
+- Internetzensur in restriktiven Regionen umgehen
+- Schutz sensibler Kommunikation für Journalismus und Aktivismus
+- Hindere Internetanbieter daran, Profile deines Surfverhaltens zu erstellen
+- Blockiere schädliche Webseiten, Tracker und Werbung
 
 🇨🇭 SCHWEIZER PRIVATSPHÄRE DURCH DESIGN
 
@@ -59,9 +59,9 @@ Entwickelt von Nym. Journalisten, Aktivisten und privatsphäre-bewusste Nutzer a
 
 🚫 WAS WIR NICHT TUN
 
-• Wir fragen weder nach deiner E-Mail noch nach deinem Namen
-• Wir können nicht tracken, welche Webseiten du besuchst
-• Wir können deine Daten nicht verkaufen, teilen oder vermieten
+- Wir fragen weder nach deiner E-Mail noch nach deinem Namen
+- Wir können nicht tracken, welche Webseiten du besuchst
+- Wir können deine Daten nicht verkaufen, teilen oder vermieten
 
 📲 JETZT LOSLEGEN
 

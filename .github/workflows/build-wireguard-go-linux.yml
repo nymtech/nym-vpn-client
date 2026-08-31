@@ -12,11 +12,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-libwg:
+  build-libwg-linux:
     strategy:
       matrix:
         include:
-          - os: "ubuntu-22.04"
+          - os: "arc-ubuntu-22.04"
             arch: "x86_64"
           - os: "ubuntu-22.04-arm"
             arch: "aarch64"
@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -33,11 +33,11 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         id: cache
         with:
           path: build/lib
-          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('.github/workflows/build-wireguard-go-linux.yml', 'wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -45,7 +45,7 @@ jobs:
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION}}
           cache-dependency-path: wireguard/libwg/go.sum
@@ -55,9 +55,9 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
-          name: wireguard_go-${{ matrix.arch }}
+          name: wireguard-go_${{ matrix.arch }}-linux-unknown
           path: build/lib
           if-no-files-found: error
           retention-days: 1

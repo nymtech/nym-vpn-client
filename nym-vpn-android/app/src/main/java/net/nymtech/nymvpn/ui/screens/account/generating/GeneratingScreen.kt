@@ -19,8 +19,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -28,11 +28,12 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.theme.*
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
+import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
-	val pendingNavigation by viewModel.pendingNavigation.collectAsStateWithLifecycle()
+	val readyForSelectPlan by viewModel.readyForSelectPlan.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val mode = viewModel.mode
 	val errorText = stringResource(R.string.account_generating_error)
@@ -45,13 +46,9 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 		}
 	}
 
-	LaunchedEffect(animationEnded, pendingNavigation) {
-		val nav = pendingNavigation ?: return@LaunchedEffect
-		if (!animationEnded) return@LaunchedEffect
-		when (nav) {
-			Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
-			else -> navController.navigateAndForget(nav)
-		}
+	LaunchedEffect(animationEnded, readyForSelectPlan) {
+		if (!readyForSelectPlan || !animationEnded) return@LaunchedEffect
+		navController.navigateAndForgetToMain(Route.SelectPlan)
 	}
 
 	GeneratingContent(
@@ -80,10 +77,10 @@ fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
 	LaunchedEffect(isDeepLink) {
 		if (!isDeepLink) {
 			repeat(2) {
-				delay(3000)
+				delay(3000.milliseconds)
 				step++
 			}
-			delay(3000)
+			delay(3000.milliseconds)
 			onAnimationEnd()
 		}
 	}

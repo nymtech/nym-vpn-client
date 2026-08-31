@@ -1,0 +1,22 @@
+name: Get Android version code
+description: >-
+  Read VERSION_CODE from the Android Constants.kt and expose it both as the
+  VERSION_CODE job env var (for later steps) and as a step output. Requires the
+  repo to be checked out first.
+
+outputs:
+  version_code:
+    description: "The Android versionCode read from Constants.kt"
+    value: ${{ steps.read.outputs.version_code }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read VERSION_CODE
+      id: read
+      shell: bash
+      run: |
+        set -euo pipefail
+        version_code=$(grep "VERSION_CODE" "${GITHUB_WORKSPACE}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt" | awk '{print $5}' | tr -d '\n')
+        echo "VERSION_CODE=${version_code}" >> "$GITHUB_ENV"
+        echo "version_code=${version_code}" >> "$GITHUB_OUTPUT"

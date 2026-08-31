@@ -280,6 +280,12 @@ pub enum ErrorStateReason {
     /// Bandwidth Exceeded
     BandwidthExceeded,
 
+    /// Failed to fetch a credential from the credential source.
+    CredentialFetchingFailed,
+
+    /// No credential is available and none is being fetched.
+    NoCredentialAvailable,
+
     /// Account status is not "Active"
     InactiveAccount,
 
@@ -303,6 +309,12 @@ pub enum ErrorStateReason {
 
     /// Gateway pair can be found if user agrees to relax the gateway independence criteria
     NeedsRelaxedIndependenceCriteria,
+
+    /// Selector chosen needs device location data
+    NeedsDeviceLocation,
+
+    /// Gave up connecting after exhausting the maximum number of reconnect attempts.
+    ConnectionAttemptsExceeded,
 
     /// Program errors that must not happen.
     Internal(String),
@@ -331,6 +343,8 @@ impl std::fmt::Display for ErrorStateReason {
             Self::CredentialWastedOnEntryGateway => f.write_str("CredentialWastedOnEntryGateway"),
             Self::CredentialWastedOnExitGateway => f.write_str("CredentialWastedOnExitGateway"),
             Self::BandwidthExceeded => f.write_str("BandwidthExceeded"),
+            Self::CredentialFetchingFailed => f.write_str("CredentialFetchingFailed"),
+            Self::NoCredentialAvailable => f.write_str("NoCredentialAvailable"),
             Self::InactiveAccount => f.write_str("InactiveAccount"),
             Self::InactiveSubscription => f.write_str("InactiveSubscription"),
             Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
@@ -341,6 +355,8 @@ impl std::fmt::Display for ErrorStateReason {
             Self::NeedsRelaxedIndependenceCriteria => {
                 f.write_str("NeedsRelaxedIndependenceCriteria")
             }
+            Self::NeedsDeviceLocation => f.write_str("NeedsDeviceLocation"),
+            Self::ConnectionAttemptsExceeded => f.write_str("ConnectionAttemptsExceeded"),
             Self::Internal(str) => write!(f, "Internal({str})"),
         }
     }
@@ -351,5 +367,20 @@ impl ErrorStateReason {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)
+    }
+
+    pub fn suggests_running_diagnostics(&self) -> bool {
+        matches!(
+            self,
+            Self::SetDns
+                | Self::SetRouting
+                | Self::TunDevice
+                | Self::TunnelProvider
+                | Self::PerformantEntryGatewayUnavailable
+                | Self::PerformantExitGatewayUnavailable
+                | Self::CredentialWastedOnEntryGateway
+                | Self::CredentialWastedOnExitGateway
+                | Self::Internal(_)
+        )
     }
 }

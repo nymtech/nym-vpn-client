@@ -1,0 +1,260 @@
+name: build-nym-vpn-core-macos
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-core-macos.yml"
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: "Orchestrated app version to embed (empty = self-bump as before)"
+        type: string
+        default: ""
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+  NYM_LIB_ARTIFACTS_MACOS: nym_lib_artifacts_macos
+  CORE_ARTIFACTS_MACOS: core_artifacts_macos
+  CORE_ARTIFACTS_MACOS_X86_64: core_artifacts_macos_x86_64
+  CORE_ARTIFACTS_MACOS_ARM64: core_artifacts_macos_arm64
+
+jobs:
+  build-wireguard-go-macos:
+    uses: ./.github/workflows/build-wireguard-go-mac.yml
+
+  build-nym-vpn-core-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cpu_arch: x86_64
+            target: x86_64-apple-darwin
+          - cpu_arch: arm64
+            target: aarch64-apple-darwin
+
+    if: github.actor != 'dependabot[bot]'
+    needs: build-wireguard-go-macos
+    env:
+      UPLOAD_DIR_MACOS: core_artifacts_macos_${{ matrix.cpu_arch }}
+    runs-on: custom-macos-15
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: ${{ matrix.target }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Apply orchestrated version
+        uses: ./.github/actions/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: wireguard-go_apple_universal
+          path: build/lib
+
+      - name: Build nym-vpn-core
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          make -C nym-vpn-core -f macOS.mk nym-setup nym-vpnc nym-vpnd nym-socks5-proxy nym-diagnostic \
+            RELEASE="true" \
+            ARCH="${{ matrix.cpu_arch }}" \
+            UPLOAD_DIR_MAC="${{ github.workspace }}/${{ env.UPLOAD_DIR_MACOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.UPLOAD_DIR_MACOS }}
+          path: ${{ env.UPLOAD_DIR_MACOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+  build-nym-vpn-lib:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
+    needs: build-wireguard-go-macos
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: x86_64-apple-darwin aarch64-apple-darwin
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
+
+      - name: Apply orchestrated version
+        uses: ./.github/actions/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: wireguard-go_apple_universal
+          path: build/lib
+
+      - name: Build swift-package
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          make -C nym-vpn-core -f macOS.mk swift-package RELEASE="true"
+          mkdir "${{ env.NYM_LIB_ARTIFACTS_MACOS }}"
+          mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "${{ env.NYM_LIB_ARTIFACTS_MACOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
+          path: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-core-artifacts-macos:
+    needs: [build-nym-vpn-core-macos, build-nym-vpn-lib]
+    runs-on: custom-macos-15
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Download core artifacts (x86_64)
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}
+
+      - name: Download core artifacts (arm64)
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}
+
+      - name: Download nym-vpn-lib artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
+          path: ${{ env.NYM_LIB_ARTIFACTS_MACOS }}
+
+      - name: Merge x86_64 and arm64 artifacts
+        run: |
+          set -euo pipefail
+
+          mkdir "${{ env.CORE_ARTIFACTS_MACOS }}"
+
+          for filepath in ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}/*; do
+            file=$(basename "$filepath")
+            if [ -f "$filepath" ]; then
+              lipo -create -output "${{ env.CORE_ARTIFACTS_MACOS }}/$file" \
+                "${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}/$file" \
+                "${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}/$file"
+            fi
+          done
+
+          mv "${{ env.NYM_LIB_ARTIFACTS_MACOS }}/NymVPNLib" "${{ env.CORE_ARTIFACTS_MACOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.CORE_ARTIFACTS_MACOS }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS }}
+          if-no-files-found: error
+          retention-days: 1

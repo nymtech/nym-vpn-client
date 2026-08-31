@@ -7,11 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.2] - 2026-08-25
+
+## [2026.12.1] - 2026-08-22
+
+### Added
+
+- Allow marking specific server, country or region as favorite
+- Add Safest server option for entry and exit
+- Add support for Recents - recently connected servers
+
+### Fixed
+
+- Handle `NeedsDeviceLocation` error state
+
+## [2026.11.0] - 2026-07-10
+
 ### Added
 
 - Mixnet tuning settings
 - Node families support
 - Add new "Geo exclusion" settings to allow bypass the VPN tunnel when accessing from certain geographic regions. Currently only China is supported
+- Add account refresh button to account settings page
+- Debug logging settings toggle
 
 ### CHANGED
 

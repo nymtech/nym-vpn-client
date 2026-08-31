@@ -14,6 +14,7 @@ bin/
 /nym-vpn-core/.cargo
 nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/RustFramework.xcframework
 .lldbinit
+__pycache__/
 
 # Wireguard-go artifacts
 wireguard/libwg/versioninfo_windows.syso
@@ -26,8 +27,6 @@ wireguard/libwg/version.h
 nym-vpn-windows/winfw/src/winfw/version.h
 
 # uniffi binaries
-nym-vpn-core/crates/nym-vpn-rpc-uniffi/generated
-nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc
 nym-vpn-core/crates/nym-vpn-lib-uniffi/generated
 nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib
 
@@ -48,3 +47,7 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+
+# Maestro test output
+maestro-report.xml
+maestro-debug/

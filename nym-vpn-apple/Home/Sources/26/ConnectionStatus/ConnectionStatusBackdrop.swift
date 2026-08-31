@@ -13,6 +13,7 @@ struct ConnectionStatusBackdrop: View {
             state: viewModel.arcProgressState,
             mode: viewModel.mode,
             connectedDate: viewModel.connectedDate,
+            showsIndependenceWarning: viewModel.showsIndependenceWarning,
             availableHeight: availableHeight
         )
     }

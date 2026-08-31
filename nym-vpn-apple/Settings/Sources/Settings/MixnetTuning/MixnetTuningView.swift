@@ -8,11 +8,7 @@ import ImpactGenerator
 import SnackbarManager
 import Theme
 import UIComponents
-#if os(iOS)
 import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
-#endif
 
 struct MixnetTuningView: View {
     private let mixnetDefaults = MixnetTrafficDefaults()
@@ -121,7 +117,7 @@ private extension MixnetTuningView {
             Spacer()
                 .frame(height: 12)
             performanceCell(
-                title: "mixnetTuning.speed".localizedString,
+                title: "mixnetTuning.packetRate".localizedString,
                 subtitle: "\("mixnetTuning.upTo".localizedString) \(continuousTrafficMbps.uiThroughput) Mbps"
             )
             separatorLine()
@@ -208,15 +204,15 @@ private extension MixnetTuningView {
 
     @ViewBuilder var coverTrafficSliderSection: some View {
         HStack(spacing: 0) {
-            Text("mixnetTuning.lessBatteryData".localizedString)
+            Text("mixnetTuning.performance".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.maximumAnonimity".localizedString)
+            Text("mixnetTuning.anonymity".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
-        Slider(value: $coverTrafficIndex, in: 0.0...Double(coverTrafficOptions.count - 1), step: 1)
+        Slider(value: snapping($coverTrafficIndex), in: 0.0...Double(coverTrafficOptions.count - 1))
             .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
             .accessibilityValue(coverTrafficAccessibilityValue)
@@ -250,15 +246,15 @@ private extension MixnetTuningView {
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("mixnetTuning.lessBatteryData".localizedString)
+            Text("mixnetTuning.performance".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.maximumAnonimity".localizedString)
+            Text("mixnetTuning.anonymity".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
-        Slider(value: $continuousTrafficIndex, in: 0.0...Double(continuousTrafficOptions.count - 1), step: 1)
+        Slider(value: snapping($continuousTrafficIndex), in: 0.0...Double(continuousTrafficOptions.count - 1))
             .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.sendTrafficContinously".localizedString)
             .accessibilityValue(continuousTrafficAccessibilityValue)
@@ -286,7 +282,7 @@ private extension MixnetTuningView {
 
     var delaySection: some View {
         ElevationSectionView {
-            Text("mixnetTuning.mixingDelays".localizedString)
+            Text("mixnetTuning.packetMixingProfile".localizedString)
                 .nymText(color: Color.Nym.textPrimary, style: .Headline.Small.regular)
             Spacer()
                 .frame(height: 16)
@@ -306,18 +302,17 @@ private extension MixnetTuningView {
 
     @ViewBuilder var sliderValue: some View {
         HStack(spacing: 0) {
-            Text("mixnetTuning.fasterSpeed".localizedString)
+            Text("mixnetTuning.performance".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.maximumAnonimity".localizedString)
+            Text("mixnetTuning.anonymity".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
         Slider(
-            value: $mixingDelayIndex,
-            in: Double(mixnetDefaults.defaultMixingDelay().minValue)...Double(mixnetDefaults.defaultMixingDelay().maxValue),
-            step: 1
+            value: snapping($mixingDelayIndex),
+            in: Double(mixnetDefaults.defaultMixingDelay().minValue)...Double(mixnetDefaults.defaultMixingDelay().maxValue)
         )
             .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.mixingDelays".localizedString)
@@ -396,6 +391,22 @@ private extension MixnetTuningView {
 
 // MARK: - Helpers -
 private extension MixnetTuningView {
+    /// Snaps a continuous slider value to whole steps without passing `step:` to `Slider`.
+    /// Native `Slider(step:)` keeps an internal continuous gesture position that fights the
+    /// snapped value at the boundaries; with few discrete values the gap is large, so the
+    /// thumb visibly oscillates ("vibrates") at the extremes. Rounding in the binding and
+    /// dropping `step:` removes that fight while keeping discrete snapping.
+    func snapping(_ value: Binding<Double>) -> Binding<Double> {
+        Binding(
+            get: { value.wrappedValue },
+            set: { newValue in
+                let rounded = newValue.rounded()
+                guard rounded != value.wrappedValue else { return }
+                value.wrappedValue = rounded
+            }
+        )
+    }
+
     var coverTrafficAccessibilityValue: String {
         switch safeCoverTrafficIndex {
         case 0:

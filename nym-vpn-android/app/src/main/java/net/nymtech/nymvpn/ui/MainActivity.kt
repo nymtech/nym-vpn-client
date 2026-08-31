@@ -51,20 +51,20 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
-import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
-import net.nymtech.nymvpn.ui.screens.hop.HopScreen
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
+import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
+import net.nymtech.nymvpn.ui.screens.server.ServerScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
+import net.nymtech.nymvpn.ui.screens.settings.appearance.appicon.AppIconScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.censorship.CensorshipScreen
@@ -87,6 +87,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
+import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import timber.log.Timber
@@ -135,6 +136,7 @@ class MainActivity : AppCompatActivity() {
 
 			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
 			var onBackClickEventFromRoute by remember { mutableStateOf<Route?>(null) }
+			var serverLocationIsExit by remember { mutableStateOf(false) }
 
 			var navBarEvent by remember { mutableStateOf<NavBarEvent?>(null) }
 
@@ -202,8 +204,10 @@ class MainActivity : AppCompatActivity() {
 									hideBackButton = hideBackButtonInNavBar,
 									onBackClick = { onBackClickEventFromRoute = it },
 									onNavBarEvent = { navBarEvent = it },
+									serverLocationIsExit = serverLocationIsExit,
 									logsEnabled = appState.settings.logsEnabled,
-									onMainThemeClick = { navController.goFromRoot(Route.Display) },
+									selectedProfile = appState.currentProfile,
+									onProfileSelect = appViewModel::onProfileSelected,
 									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
 								)
 							},
@@ -224,12 +228,23 @@ class MainActivity : AppCompatActivity() {
 									popEnterTransition = { fadeIn(tween(200)) },
 								) { SplashScreen(appViewModel, appState, topOffset = padding.calculateTopPadding()) }
 
+								composable<Route.Onboarding>(
+									enterTransition = { fadeIn(tween(200)) },
+									exitTransition = { fadeOut(tween(150)) },
+								) { OnboardingScreen() }
+
 								composable<Route.Main>(
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart, authRoute = AuthRoute.fromName(args.authRoute))
+									MainScreen(
+										appViewModel,
+										appState,
+										args.autoStart,
+										authRoute = AuthRoute.fromName(args.authRoute),
+										loginProcessing = args.loginProcessing,
+									)
 								}
 
 								composable<Route.Permission> {
@@ -252,21 +267,23 @@ class MainActivity : AppCompatActivity() {
 									SettingsScreen(appState, appViewModel, args.showVpnSettings)
 								}
 
-								composable<Route.EntryLocation> {
-									HopScreen(
+								composable<Route.EntryServer> {
+									ServerScreen(
 										gatewayLocation = GatewayLocation.ENTRY,
 										appUiState = appState,
 										navBarEvent = navBarEvent,
 										onNavBarEventConsume = consumeNavBarEvent,
+										onLocationChange = { serverLocationIsExit = it == GatewayLocation.EXIT },
 									)
 								}
 
-								composable<Route.ExitLocation> {
-									HopScreen(
+								composable<Route.ExitServer> {
+									ServerScreen(
 										gatewayLocation = GatewayLocation.EXIT,
 										appUiState = appState,
 										navBarEvent = navBarEvent,
 										onNavBarEventConsume = consumeNavBarEvent,
+										onLocationChange = { serverLocationIsExit = it == GatewayLocation.EXIT },
 									)
 								}
 
@@ -295,6 +312,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Appearance> { AppearanceScreen() }
 								composable<Route.Privacy> { PrivacyScreen(appState) }
 								composable<Route.Display> { DisplayScreen(appState) }
+								composable<Route.AppIcon> { AppIconScreen(appState) }
 								composable<Route.Language> { LanguageScreen(appState, appViewModel) }
 								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
 								composable<Route.SelectPlan> { SelectPlanScreen(appViewModel) }
@@ -395,24 +413,21 @@ class MainActivity : AppCompatActivity() {
 		val path = uri.path
 		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
 			lifecycleScope.launch {
-				val fullUrl = uri.toString()
-				val isLoggedIn = appViewModel.isUserLoggedIn()
-				if (!isLoggedIn) {
-					navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
-				}
-				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
-				navControllerRef?.navigate(destination) {
-					popUpTo(Route.Splash) { inclusive = true }
-				}
+				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
+				navControllerRef?.navigateAndForgetToMain(routeAfterDeepLinkAuth(storeSucceeded))
 			}
 		} else if (host == "account" && path?.startsWith("/response") == true) {
 			lifecycleScope.launch {
-				val fullUrl = uri.toString()
-				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
-				navControllerRef?.navigate(destination) {
-					popUpTo(Route.Splash) { inclusive = true }
-				}
+				appViewModel.handleDeepLinkAuth(uri.toString())
+				appViewModel.dismissAutologin()
+				navControllerRef?.navigateAndForgetToMain(Route.Main(autoStart = false))
 			}
 		}
+	}
+
+	private fun routeAfterDeepLinkAuth(storeSucceeded: Boolean): Route = if (storeSucceeded) {
+		Route.Main(autoStart = false, loginProcessing = true)
+	} else {
+		Route.Main(autoStart = false)
 	}
 }

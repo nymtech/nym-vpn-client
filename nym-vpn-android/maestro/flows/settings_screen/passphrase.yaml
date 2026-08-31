@@ -1,0 +1,44 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+
+- tapOn:
+      text: "Passphrase"
+      index: 1
+
+- assertVisible: "Your account passphrase"
+
+- tapOn: "Show my passphrase"
+
+- scrollUntilVisible:
+      element:
+          text: "Copy passphrase"
+      direction: DOWN
+
+- extendedWaitUntil:
+      visible:
+          text: "Copy passphrase"
+      timeout: 15000
+
+- assertVisible: "Download"
+- tapOn: "Save to password manager"
+
+- scrollUntilVisible:
+      element:
+          text: "I have saved these 24 words securely and will never share them"
+      direction: DOWN
+
+- tapOn: "I have saved these 24 words securely and will never share them"
+
+- scrollUntilVisible:
+      element:
+          text: "Continue"
+      direction: DOWN
+
+- tapOn:
+      text: "Continue"
+
+- assertVisible: "Settings"
+- assertNotVisible: "Show my passphrase"

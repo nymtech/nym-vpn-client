@@ -62,7 +62,7 @@ impl PersistentNetworkDetails {
                 }
             }
             Err(err) if err.should_overwrite_file() => {
-                if err.is_file_not_found() {
+                if !err.is_file_not_found() {
                     trace_err_chain!(err, "failed to deserialize cache");
                 }
                 if network_name == "mainnet" {

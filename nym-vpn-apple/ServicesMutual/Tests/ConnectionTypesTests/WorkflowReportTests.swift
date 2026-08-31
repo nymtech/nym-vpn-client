@@ -25,7 +25,7 @@ import Testing
 /// `AccountReportTests.viewButtonTitleKeys`; Foundation ships no YAML parser and the
 /// assertions don't need full structure.)
 struct WorkflowReportTests {
-    private static let workflowRelativePath = ".github/workflows/build-nym-vpn-apple.yml"
+    private static let workflowRelativePath = ".github/workflows/ci-nym-vpn-app-macos.yml"
     private static let actionRelativePath = ".github/workflows/apple/tests/action.yml"
     /// The composite action's input the workflow passes the report path through.
     private static let reportInputKey = "account-report-path"
@@ -109,6 +109,15 @@ struct WorkflowReportTests {
         (scheme: "Services-Package", target: "ConfigurationManagerTests"),
         (scheme: "Settings", target: "SettingsTests"),
         (scheme: "ServicesMacOS-Package", target: "AppDiscoveryServiceTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/AppSessionReducerTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/AccountPrefetchOrchestratorTests"),
+        (scheme: "Home", target: "HomeTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/EnvironmentChangeIAPPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingFlowTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/AccountTokenByEnvStorageTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerSessionPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerCredentialImportPolicyTests"),
     ])
     func testStepRunsAdditionalSuite(scheme: String, target: String) throws {
         let action = try loadYAML(Self.actionRelativePath)

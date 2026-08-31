@@ -1,0 +1,18 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn:
+    text: "Safest"
+    index: 0
+
+- assertNotVisible: "Mock-Entry-DE-01"
+
+- tapOn: "Search location or server"
+- inputText: "Entry-DE-01"
+
+- assertVisible: "Mock-Entry-DE-01"
+
+- tapOn: "Clear text"
+
+- assertNotVisible: "Mock-Entry-DE-01"

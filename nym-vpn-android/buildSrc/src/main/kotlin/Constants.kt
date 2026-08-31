@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-	const val VERSION_NAME = "v2026.11.0-beta.1"
-    const val VERSION_CODE = 20261100
+	const val VERSION_NAME = "2026.13.0-beta.1"
+    const val VERSION_CODE = 20261300
     const val TARGET_SDK = 36
     const val COMPILE_SDK = 37
     const val MIN_SDK = 24
@@ -31,6 +31,7 @@ object Constants {
 
 	const val FDROID = "fdroid"
 	const val GENERAL = "general"
+	const val MOCK = "mock"
 	const val BUILD_LIB_TASK = "buildDeps"
 
 	//licensee

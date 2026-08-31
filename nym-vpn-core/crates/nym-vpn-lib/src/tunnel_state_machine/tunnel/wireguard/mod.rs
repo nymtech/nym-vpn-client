@@ -4,6 +4,7 @@
 use crate::tunnel_state_machine::TunnelMetadata;
 use nym_registration_common::WireguardConfiguration;
 use std::net::SocketAddr;
+use tokio::sync::oneshot;
 
 use nym_vpn_lib_types::BridgeAddress;
 
@@ -52,20 +53,51 @@ impl ConnectionData {
     }
 }
 
-pub enum MetadataEvent {
+pub struct MetadataEvent {
+    metadata_endpoint_reachable_tx: oneshot::Sender<bool>,
+    event_type: MetadataEventType,
+}
+
+impl MetadataEvent {
+    pub fn new_proxy(
+        metadata_endpoint_reachable_tx: oneshot::Sender<bool>,
+        addr: SocketAddr,
+    ) -> Self {
+        Self {
+            metadata_endpoint_reachable_tx,
+            event_type: MetadataEventType::MetadataProxy(addr),
+        }
+    }
+
+    pub fn new_tunnel(
+        metadata_endpoint_reachable_tx: oneshot::Sender<bool>,
+        tunnel_metadata: TunnelMetadata,
+    ) -> Self {
+        Self {
+            metadata_endpoint_reachable_tx,
+            event_type: MetadataEventType::TunnelMetadata(tunnel_metadata),
+        }
+    }
+}
+
+pub enum MetadataEventType {
     MetadataProxy(SocketAddr),
     TunnelMetadata(TunnelMetadata),
 }
 
 impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
     fn from(event: MetadataEvent) -> Self {
-        match event {
-            MetadataEvent::MetadataProxy(proxy_addr) => {
-                nym_wg_metadata_client::TunUpSendData::TcpProxy(proxy_addr)
-            }
-            MetadataEvent::TunnelMetadata(metadata) => {
-                nym_wg_metadata_client::TunUpSendData::InterfaceName(metadata.interface)
-            }
+        match event.event_type {
+            MetadataEventType::MetadataProxy(proxy_addr) => nym_wg_metadata_client::TunUpSendData {
+                metadata_endpoint_reachable_tx: event.metadata_endpoint_reachable_tx,
+                data_type: nym_wg_metadata_client::TunUpSendDataType::TcpProxy(proxy_addr),
+            },
+            MetadataEventType::TunnelMetadata(metadata) => nym_wg_metadata_client::TunUpSendData {
+                metadata_endpoint_reachable_tx: event.metadata_endpoint_reachable_tx,
+                data_type: nym_wg_metadata_client::TunUpSendDataType::InterfaceName(
+                    metadata.interface,
+                ),
+            },
         }
     }
 }

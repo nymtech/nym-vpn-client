@@ -14,6 +14,7 @@ public struct AccountSummary: Codable {
     public var isActive: Bool
     public var isAutoRenewEnabled: Bool
     public var subscription: Subscription?
+    public var dataUnavailable: Bool
 
     public init(
         validUntilDate: Date?,
@@ -26,7 +27,8 @@ public struct AccountSummary: Codable {
         isLinked: Bool,
         isActive: Bool,
         isAutoRenewEnabled: Bool,
-        subscription: Subscription?
+        subscription: Subscription?,
+        dataUnavailable: Bool = false
     ) {
         self.validUntilDate = validUntilDate
         self.trafficUsedGb = trafficUsedGb
@@ -39,6 +41,7 @@ public struct AccountSummary: Codable {
         self.isActive = isActive
         self.isAutoRenewEnabled = isAutoRenewEnabled
         self.subscription = subscription
+        self.dataUnavailable = dataUnavailable
     }
 
     public init(
@@ -52,7 +55,8 @@ public struct AccountSummary: Codable {
         isLinked: Bool,
         isActive: Bool,
         isAutoRenewEnabled: Bool,
-        subscription: Subscription?
+        subscription: Subscription?,
+        dataUnavailable: Bool = false
     ) {
         self.validUntilDate = validUntilTimeInterval.map { Date(timeIntervalSince1970: TimeInterval($0)) }
         self.trafficUsedGb = trafficUsedGb.flatMap(Int.init(exactly:))
@@ -65,6 +69,7 @@ public struct AccountSummary: Codable {
         self.isActive = isActive
         self.isAutoRenewEnabled = isAutoRenewEnabled
         self.subscription = subscription
+        self.dataUnavailable = dataUnavailable
     }
 
     public var formattedValidUntilDate: String? {

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import type { AppState, InitState } from '../types';
 import { createGatewaysSlice } from './slices/gateways/createGatewaysSlice';
-import type { GatewaysSlice, GatewaysState } from './slices/gateways/types';
+import type { GatewayListsState, GatewaysSlice } from './slices/gateways/types';
 import { createMainSlice } from './slices/createMainSlice';
 import type { MainSlice, StateAction } from './slices/createMainSlice';
 import { createSocks5Slice } from './slices/createSocks5Slice';
@@ -67,6 +67,7 @@ export const useMainState = (): AppState =>
       networkEnv: s.networkEnv,
       version: s.version,
       linuxAppUpdated: s.linuxAppUpdated,
+      diagnosticsSuggestedReason: s.diagnosticsSuggestedReason,
       error: s.error,
       progressMessages: s.progressMessages,
       tunnelConnectedAt: s.tunnelConnectedAt,
@@ -76,6 +77,7 @@ export const useMainState = (): AppState =>
       autostart: s.autostart,
       autoConnect: s.autoConnect,
       monitoring: s.monitoring,
+      debugLogging: s.debugLogging,
       desktopNotifications: s.desktopNotifications,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
@@ -105,7 +107,7 @@ export const useMainState = (): AppState =>
   );
 
 // gateways state
-export const useGateways = (): GatewaysState =>
+export const useGateways = (): GatewayListsState =>
   useAppStore(
     useShallow((s) => ({
       mxEntry: s.mxEntry,
@@ -120,6 +122,8 @@ export const useGateways = (): GatewaysState =>
     })),
   );
 export const useFetchGateways = () => useAppStore((s) => s.fetchGateways);
+
+export const useFetchRecents = () => useAppStore((s) => s.fetchRecents);
 
 export const useLookupGw = () => useAppStore((s) => s.lookupGw);
 

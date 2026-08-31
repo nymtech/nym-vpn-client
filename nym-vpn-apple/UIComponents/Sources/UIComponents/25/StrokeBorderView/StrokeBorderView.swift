@@ -44,11 +44,7 @@ public struct StrokeBorderView<Content: View>: View {
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Small.regular)
                     .padding(.horizontal, 4)
-                    .background(
-                        Rectangle()
-                            .fill(backgroundColor)
-                            .frame(height: 2)
-                    )
+                    .background(isHovered ? backgrounsColorHover : backgroundColor)
                     .offset(x: 8, y: -7)
                 Spacer()
             }

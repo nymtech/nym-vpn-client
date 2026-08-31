@@ -105,7 +105,7 @@ concurrency:
 jobs:
   bump-all:
     name: Update all software versions
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
       - name: Configure git
         run: |
@@ -113,13 +113,24 @@ jobs:
           git config --global user.email "${{ env.GIT_EMAIL }}"
 
       - name: Checkout selected branch
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           ref: ${{ inputs.branch || github.ref }}
 
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
 
@@ -189,11 +200,11 @@ jobs:
           if [[ -n "$PRE_RELEASE_SUFFIX" ]]; then
             CORE_VERSION="${SEMVER}-${PRE_RELEASE_SUFFIX}"
             DEB_VERSION="${SEMVER}~${PRE_RELEASE_SUFFIX}"
-            ANDROID_VERSION_NAME="v${SEMVER}-${PRE_RELEASE_SUFFIX}"
+            ANDROID_VERSION_NAME="${SEMVER}-${PRE_RELEASE_SUFFIX}"
           else
             CORE_VERSION="$SEMVER"
             DEB_VERSION="$SEMVER"
-            ANDROID_VERSION_NAME="v${SEMVER}"
+            ANDROID_VERSION_NAME="${SEMVER}"
           fi
 
           # Formula supports MINOR 0-99 and PATCH 0-99; e.g. 2026.12.0 → 20261200, 2026.99.99 → 20269999
@@ -220,7 +231,7 @@ jobs:
           toml set Cargo.toml workspace.package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
           # update Cargo.lock with new workspace version (no other changes)
-          cargo update --dry-run
+          cargo fetch
 
       # --- tauri app (Linux + Windows) ---
       - name: Update nym-vpn-app/src-tauri/Cargo.toml
@@ -228,7 +239,7 @@ jobs:
         run: |
           toml set Cargo.toml package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+          cargo fetch
 
       - name: Update nym-vpn-app/vpnd_compat.toml
         working-directory: nym-vpn-app
@@ -270,43 +281,78 @@ jobs:
       # --- apple (fastlane) ---
       - name: Update nym-vpn-apple via fastlane
         working-directory: nym-vpn-apple
+        env:
+          FASTLANE_OPT_OUT_USAGE: "YES"
+          APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
+          CORE_VERSION: ${{ steps.version.outputs.core_version }}
+          LC_ALL: "C.utf8"
+          LANG: "C.utf8"
         run: |
-          bundle exec fastlane mac bump_version "${{ steps.version.outputs.apple_version }}"
+          bundle exec fastlane mac bump_version "$APPLE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
 
       # --- Linux installer ---
       - name: Update Linux install script
         working-directory: .pkg/linux
         if: ${{ inputs.update_linux_installer }}
         env:
-          APP_TAG: nym-vpn-app-v${{ steps.version.outputs.core_version }}
-          CORE_TAG: nym-vpn-core-v${{ steps.version.outputs.core_version }}
+          APP_TAG: nym-vpn-v${{ steps.version.outputs.core_version }}
+          CORE_TAG: nym-vpn-v${{ steps.version.outputs.core_version }}
         run: |
           ./bump.sh
 
       # --- CHANGELOG ---
-      - name: Update nym-vpn-core/CHANGELOG.md
-        if: ${{ inputs.update_changelog }}
-        working-directory: nym-vpn-core
-        env:
-          NEW_VERSION: ${{ steps.version.outputs.core_version }}
-          BRANCH: ${{ inputs.branch || github.ref_name }}
-        run: |
-          if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
-            echo "::error:: CHANGELOG.md is missing '## [Unreleased]' section"
-            exit 1
-          fi
 
+      - name: Compute changelog entry
+        id: changelog
+        env:
+          BRANCH: ${{ inputs.branch || github.ref_name }}
+          NEW_VERSION: ${{ steps.version.outputs.core_version }}
+          CURRENT_VERSION: ${{ steps.version.outputs.current_release_version }}
+        run: |
           # Commit the workspace version of release branch when running against develop
-          if [ "${{ env.BRANCH }}" = "develop" ]; then
+          if [ "$BRANCH" = "develop" ]; then
             RELEASE_DATE="TBD"
             VERSION="${{ steps.version.outputs.current_release_version }}"
           else
             RELEASE_DATE=$(date -u "+%F")
-            VERSION="${{ env.NEW_VERSION }}"
+            VERSION="$NEW_VERSION"
           fi
-          sed -i -E "s|^##\s*\[Unreleased\]$|## [Unreleased]\n\n## [$VERSION] - $RELEASE_DATE|" CHANGELOG.md
-          echo "::notice:: Inserted CHANGELOG entry for v$VERSION ($RELEASE_DATE)"
-          head -12 CHANGELOG.md
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+
+      - name: Update nym-vpn-core/CHANGELOG.md
+        if: ${{ inputs.update_changelog }}
+        uses: ./.github/actions/add-changelog-release
+        with:
+          changelog: nym-vpn-core/CHANGELOG.md
+          version: ${{ steps.changelog.outputs.version }}
+          release_date: ${{ steps.changelog.outputs.release_date }}
+
+      - name: Update nym-vpn-android/CHANGELOG.md
+        if: ${{ inputs.update_changelog }}
+        uses: ./.github/actions/add-changelog-release
+        with:
+          changelog: nym-vpn-android/CHANGELOG.md
+          version: ${{ steps.changelog.outputs.version }}
+          release_date: ${{ steps.changelog.outputs.release_date }}
+
+      - name: Update nym-vpn-app/CHANGELOG.md
+        if: ${{ inputs.update_changelog }}
+        uses: ./.github/actions/add-changelog-release
+        with:
+          changelog: nym-vpn-app/CHANGELOG.md
+          version: ${{ steps.changelog.outputs.version }}
+          release_date: ${{ steps.changelog.outputs.release_date }}
+
+      - name: Update nym-vpn-apple/CHANGELOG.md
+        if: ${{ inputs.update_changelog }}
+        uses: ./.github/actions/add-changelog-release
+        with:
+          changelog: nym-vpn-apple/CHANGELOG.md
+          version: ${{ steps.changelog.outputs.version }}
+          release_date: ${{ steps.changelog.outputs.release_date }}
 
       # --- diff + PR ---
       - name: Show diff
@@ -318,20 +364,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH_NAME: "ci/bump-version-v${{ steps.version.outputs.core_version }}"
           BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
+          CORE_VERSION: ${{ steps.version.outputs.core_version }}
+          DEB_VERSION: ${{ steps.version.outputs.deb_version }}
+          ANDROID_VERSION_NAME: ${{ steps.version.outputs.android_version_name }}
+          ANDROID_VERSION_CODE: ${{ steps.version.outputs.android_version_code }}
+          APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
         run: |
           git checkout -b "$BRANCH_NAME"
-          git commit -a -m "ci: bump version to v${{ steps.version.outputs.core_version }} across all platforms"
+          git commit -a -m "ci: bump version to v$CORE_VERSION across all platforms"
           git push origin "$BRANCH_NAME"
           gh pr create \
               --base "$BASE_BRANCH" \
-              --title "Bump version to \`v${{ steps.version.outputs.core_version }}\` across all platforms" \
+              --title "Bump version to \`v$CORE_VERSION\` across all platforms" \
               --milestone "no-milestone" \
               --body "Unified version bump.
 
           - **core** (\`nym-vpn-core/Cargo.toml\`): \`${{ steps.version.outputs.core_version }}\`
-          - **tauri app** (\`nym-vpn-app/src-tauri/Cargo.toml\`, \`vpnd_compat.toml\`, \`tauri.conf.json\`): \`${{ steps.version.outputs.core_version }}\` (deb \`${{ steps.version.outputs.deb_version }}\`)
-          - **android** (\`Constants.kt\`): \`VERSION_NAME = \"${{ steps.version.outputs.android_version_name }}\"\`, \`VERSION_CODE = ${{ steps.version.outputs.android_version_code }}\`
-          - **apple** (\`NymVPN.xcodeproj\`): \`MARKETING_VERSION = ${{ steps.version.outputs.apple_version }}\`"
+          - **tauri app** (\`nym-vpn-app/src-tauri/Cargo.toml\`, \`vpnd_compat.toml\`, \`tauri.conf.json\`): \`${CORE_VERSION}\` (deb \`${DEB_VERSION}\`)
+          - **android** (\`Constants.kt\`): \`VERSION_NAME = \"${ANDROID_VERSION_NAME}\"\`, \`VERSION_CODE = ${ANDROID_VERSION_CODE}\`
+          - **apple** (\`NymVPN.xcodeproj\`): \`MARKETING_VERSION = $APPLE_VERSION\`"
 
       - name: Dry-run summary
         if: ${{ inputs.dry_run == true }}

@@ -276,11 +276,7 @@ impl DnsSettings {
         store: &SCDynamicStore,
         path: S,
     ) -> Result<()> {
-        tracing::trace!(
-            "Setting DNS to [{}] for {}",
-            self.format_addresses(),
-            path.to_string()
-        );
+        tracing::trace!("Setting DNS to [{}] for {}", self.format_addresses(), path);
         if store.set(path, self.dict.clone()) {
             Ok(())
         } else {

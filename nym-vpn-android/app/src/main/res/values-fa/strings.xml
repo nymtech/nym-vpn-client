@@ -148,13 +148,13 @@
 	<string name="unexpected_error">یک خطای غیر‌منتظره رخ داد:</string>
 	<string name="error_invalid_entry_gateway_country">گره کشور خروجی نامعتبر است، گره محل خروجی را تغییر دهید و دوباره متصل شوید.</string>
 	<string name="error_invalid_exit_gateway_country">گره کشور خروجی نامعتبر است، گره محل خروجی را تغییر دهید و دوباره متصل شوید.</string>
-	<string name="bandwidth_error">بسته ماهانه شما به اتمام رسیده. لطفاَ بسته جدید بخرید.</string>
+	<string name="bandwidth_error">محدودیت داده روزانه به پایان رسیده است. برای افزایش وقفه حجم، سریعاً با پشتیبانی تماس بگیرید.</string>
 	<string name="max_devices_error">تعداد دستگاه های متصل به حساب کاربری شما از حداکثر مجاز عبور کرده. لطفاً قبل از اتصال، یکی از دستگاههای متصل را از حساب کاربری خود حذف کنید.</string>
 	<string name="device_time_out_of_sync">ساعت دستگاه همگام‌سازی نشده است</string>
 	<string name="error_ipv6_unavailable">Ipv6 در دسترس نیست</string>
 	<string name="error_device_logged_out">دستگاه از حساب کاربری خارج شده است.</string>
 	<string name="error_inactive_account">وضعیت حساب \"فعال\" نیست.</string>
-	<string name="error_inactive_account_subtitle">Press on Get Started</string>
+	<string name="error_inactive_account_subtitle">برای شروع روی «شروع کنید» بزنید</string>
 	<string name="error_set_dns">پیکربندی Dns با شکست مواجه شد.</string>
 	<string name="error_set_firewall_policy">تنظیم سیاست فایروال ناموفق بود.</string>
 	<string name="error_set_routing">پیکربندی مسیریابی با خطا مواجه شد.</string>
@@ -178,9 +178,7 @@
 	<string name="connection_state_connecting_mixnet_client">در حال ثبت‌نام ناشناس در سرورها ‏(۵/۶)</string>
 	<string name="connection_state_connecting_tunnel">در حال برقراری اتصال با سرور ‏(۶/۶)</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">استفاده از بهترین سرور</string>
 	<string name="one_click_mode_fast">سریع</string>
-	<string name="connect_mode_auto">خودکار</string>
 	<string name="connect_mode_mixnet">میکس‌نت</string>
 	<string name="one_click_nym_exit_node">سرور خروجی</string>
 	<string name="one_click_nym_entry_node">سرور ورودی</string>
@@ -189,7 +187,6 @@
 	<string name="connection_status_fast_mode">محافظت حالت سریع</string>
 	<string name="connection_status_anonymous">محافظت میکس‌نتی</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">بهترین سرور</string>
 	<string name="gateway_random">سرور تصادفی</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">خوش آمدید!</string>
@@ -235,6 +232,8 @@
 	<string name="settings_shortcuts_title">میانبرهای برنامه</string>
 	<string name="settings_logs_title">لاگ‌ها &amp; و داده‌ها</string>
 	<string name="settings_legal_title">قوانین و مقررات</string>
+	<string name="settings_geo_exclusion_title">استثنای جغرافیایی</string>
+	<string name="settings_geo_exclusion_desciption">به بازه‌های مشخص IP مستقیماً متصل می‌شوند</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">برای استفاده از میانبرها ایجاد قفل صفحه لازم است.</string>
 	<string name="shortcut_title">تأیید عملیات</string>
@@ -269,7 +268,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">ادامه</string>
 	<string name="welcome_title">به ما کمک کنید NymVPN را بهبود دهیم</string>
-	<string name="welcome_description">انتخاب کنید کدام داده‌ها را به‌صورت ناشناس به اشتراک بگذارید. پیش از ارسال، همهٔ داده‌ها از اطلاعات شناسایی‌کننده زدوده می‌شوند.</string>
+	<string name="welcome_description">انتخاب کنید چه داده‌های ناشناسی به اشتراک گذاشته شود.\nتمام داده‌ها قبل از ارسال از اطلاعات شناسایی‌کننده پاک می‌شوند.</string>
 	<string name="welcome_error_reports_title">گزارش‌های خطا را به اشتراک بگذارید</string>
 	<string name="welcome_error_reports_description_start">به ما کمک می‌کند باگ‌ها را سریع‌تر برطرف کنیم، هیچ دادهٔ شخصی جمع‌آوری نمی‌شود (از طریق </string>
 	<string name="welcome_error_reports_link_text">Sentry</string>
@@ -354,6 +353,14 @@
 	<string name="account_generating_error">ثبت نام حساب کاربری ناموفق بود. لطفا بعدا دوباره امتحان کنید.</string>
 	<string name="account_generating_deeplink_title">در حال ورود به حساب…</string>
 	<string name="account_generating_deeplink_description">لطفا صبر کنید تا حساب کاربری شما تایید شود</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">در حال پردازش پرداخت شما به صورت امن…</string>
 	<string name="account_payment_verifying">ما در حال تأیید اشتراک شما هستیم—هرگز هیچ اطلاعات شخصی به هویت شما پیوند داده نمی‌شود</string>
@@ -394,9 +401,10 @@
 	<string name="account_info_device_title">شناسه دستگاه</string>
 	<string name="account_info_device_info">از این گزینه برای اتصال این دستگاه به حساب خود در nym.com استفاده کنید.</string>
 	<string name="account_info_status_title">وضعیت حساب کاربری</string>
-	<string name="account_info_bandwidth_title">حجم مصرف‌شده از سهمیه مصرف منصفانه</string>
+	<string name="account_info_bandwidth_title">سهمیه روزانه</string>
 	<string name="account_info_limit_text">محدودیت</string>
-	<string name="account_info_reset_text">بازنشانی</string>
+	<string name="account_info_reset_text">بازنشانی روزانه در</string>
+	<string name="account_info_data_unavailable">داده‌های مصرف در دسترس نیست</string>
 	<string name="account_info_valid_text">اشتراک تا %s معتبر است</string>
 	<string name="account_info_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
 	<string name="banner_plan_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
@@ -404,8 +412,8 @@
 	<string name="banner_renew_text">همین حالا تمدید کنید\nتا محافظت بشوید</string>
 	<string name="account_info_auto_renew_text">*تمدید-خودکار</string>
 	<string name="account_info_no_plan">اشتراک فعالی وجود ندارد</string>
-	<string name="account_info_contact_support_action">Contact Customer Support</string>
-	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
+	<string name="account_info_contact_support_action">تماس با پشتیبانی مشتریان</string>
+	<string name="account_info_contact_support_suffix"> اگر به محدودیت خود برسید.</string>
 	<string name="account_info_confirming_payment">در حال تأیید پرداخت</string>
 	<string name="account_info_autologin_fetching">در حال دریافت کد دسترسی…</string>
 	<string name="account_info_autologin_error">دریافت کد دسترسی ناموفق بود. لطفاً دوباره تلاش کنید.</string>
@@ -478,7 +486,7 @@
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">الگوهای ترافیک mixnet خود را تنظیم کنید</string>
 	<string name="mixnet_tuning_current_title">عملکرد مورد انتظارِ تنظیمات فعلی:</string>
-	<string name="mixnet_tuning_current_speed">سرعت</string>
+	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">تأخیر</string>
 	<string name="mixnet_tuning_internet_speed">تا بیشترین سرعت ممکن</string>
 	<string name="mixnet_tuning_current_description">تأخیر رفت‌وبرگشت مورد انتظار (RTT) در یک شبکه استاندارد</string>
@@ -487,23 +495,21 @@
 	<string name="mixnet_tuning_traffic_warning">ترافیک مداوم غیرفعال است. بسته‌ها به‌محض آماده شدن ارسال می‌شوند که ممکن است الگوهای ترافیکی را آشکار کند.</string>
 	<string name="mixnet_tuning_traffic_on_description">برای یکنواخت نگه‌داشتن الگو، ترافیک پوششی همواره ارسال می‌شود. میزان ارسال بسته‌ها را تنظیم کنید.</string>
 	<string name="mixnet_tuning_traffic_off_description">ما همچنان مستقل از ترافیک واقعی شما، ترافیک پوششی ارسال می‌کنیم. میزان ترافیک پوششی را تعیین کنید. </string>
-	<string name="mixnet_tuning_traffic_min">بهینه برای مصرف باتری &amp; و داده</string>
-	<string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
+    <string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">زیاد\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">بالانس\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">پایه</string>
 	<string name="mixnet_tuning_traffic_off_high">زیاد\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">متعادل\n۵بار</string>
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n۱۰بار</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">تأخیرهای اختلاط</string>
 	<string name="mixnet_tuning_delays_description">با تنظیم تأخیر زمانی، میزان اختلاط بسته‌های خود را تغییر دهید.</string>
-	<string name="mixnet_tuning_delays_min">سرعت بیشتر</string>
-	<string name="mixnet_tuning_delays_low">پایین\n0m</string>
+    <string name="mixnet_tuning_delays_low">پایین\n0m</string>
 	<string name="mixnet_tuning_delays_high">زیاد\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">فعلی\n%1$s</string>
-	<string name="mixnet_tuning_max">حداکثر ناشناسی</string>
-	<string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
+    <string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>
 	<string name="mixnet_tuning_restore_button">بازگردانی تنظیمات پیش‌فرض</string>
 	<!-- Diagnostic screen -->
@@ -519,4 +525,51 @@
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">برای استفاده از مسدودکننده تبلیغات، Private DNS را غیرفعال کنید.</string>
 	<string name="private_dns_button">تنظیمات را باز کنید</string>
+	<!-- Notifications screen -->
+	<string name="notifications_node_families_title">یادآوری‌های خانواده سرور</string>
+	<string name="notifications_node_families_description">یادآوری مداوم خانواده‌های اشتراک‌گذاری‌شده</string>
+	<string name="notifications_system_title">اعلان‌های سیستم</string>
+	<string name="notifications_system_description">برنامه را هنگام بسته بودن نیز فعال نگه می‌دارد</string>
+	<!-- Node Families -->
+	<string name="node_families_title">سرورهای انتخاب‌شده در یک خانواده اپراتوری هستند!</string>
+	<string name="node_families_description_text">غیرفعال‌سازی یادآوری‌ها در </string>
+	<string name="node_families_description_link">تنظیمات اعلان‌ها.</string>
+	<string name="node_families_connect_button">با این حال متصل شو</string>
+	<string name="node_families_error_message">Selected servers share a family. Choose a different pair or connect anyway.</string>
+	<!-- Geo Exclusion -->
+	<string name="geo_exclusion_enable_title">فعال‌سازی استثنای جغرافیایی</string>
+	<string name="geo_exclusion_description">ترافیک را برای مناطق انتخاب‌شده خارج از تونل VPN هدایت می‌کند، بنابراین برنامه‌های داخلی با سرعت کامل کار می‌کنند. سایر موارد همچنان محافظت شده باقی می‌مانند.</string>
+	<string name="geo_exclusion_beta_text">نسخه بتا: فعلاً فقط چین. مناطق بیشتری به‌زودی اضافه می‌شوند.</string>
+	<string name="geo_exclusion_traffic_bypass_text">ترافیک از مناطق مستثنی‌شده از VPN عبور نمی‌کند.</string>
+	<string name="geo_exclusion_sock55_title">پورت SOCKS5</string>
+	<string name="geo_exclusion_custom_port_title">پورت سفارشی</string>
+	<string name="geo_exclusion_ports_text">1024–65535</string>
+	<string name="geo_exclusion_ranges_count">%1$s بازه</string>
+	<string name="geo_exclusion_last_updated">فهرست به‌روزرسانی شد %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">SOCKS5 شناسایی نشد</string>
+	<string name="geo_exclusion_error_sock55_text">پروکسی SOCKS5 شناسایی نشد. تنظیمات پورت خود را بررسی کنید.</string>
+	<string name="geo_exclusion_error_failed_start_title">شروع ویژگی ناموفق بود</string>
+	<string name="geo_exclusion_error_failed_start_text">مستثنی کردن جغرافیایی راه‌اندازی نشد. دوباره متصل شوید و مجدداً تلاش کنید.</string>
+	<string name="geo_exclusion_error_invalid_port_text">پورت باید بین 1024 و 65535 باشد.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">پورت 1080 مجاز نیست. پورت دیگری انتخاب کنید.</string>
+	<string name="geo_exclusion_excluded_regions_label">مناطق مستثنی‌شده</string>
+	<string name="geo_exclusion_china">چین</string>
+	<string name="geo_exclusion_add_region_button">افزودن منطقه</string>
+	<string name="geo_exclusion_copy_proxy_label">کپی آدرس پروکسی</string>
+	<!-- Setup instructions screen -->
+	<string name="setup_instructions_title">دستورالعمل‌های راه‌اندازی</string>
+	<string name="setup_instructions_description">اپلیکیشن‌ها و مرورگرها را برای هدایت ترافیک از طریق پروکسی Nym SOCKS5 پیکربندی کنید.</string>
+	<string name="setup_instructions_per_app_title">برای هر برنامه (برنامه‌های سازگار با SOCKS5)</string>
+	<string name="setup_instructions_per_app_description">اندروید تنظیم SOCKS5 سراسری ندارد.</string>
+	<string name="setup_instructions_pert_app_step">از برنامه‌ای که مستقیماً از پروکسی SOCKS5 پشتیبانی می‌کند استفاده کنید.</string>
+	<string name="setup_instructions_browser_title">تنظیم مرورگر</string>
+	<string name="setup_instructions_browser_description">هر برنامه‌ای با پشتیبانی SOCKS. مثال Firefox:</string>
+	<string name="setup_instructions_browser_step_1">تنظیمات → فعال‌سازی SOCKS proxy – میزبان</string>
+	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
+	<string name="setup_instructions_browser_step_3">پورت</string>
+	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
+	<string name="setup_instructions_wallet_title">کیف پول Web3</string>
+	<string name="setup_instructions_wallet_step_1">تنظیم URL RPC به</string>
+	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
+	<string name="setup_instructions_proxy_title">آدرس پروکسی</string>
 </resources>

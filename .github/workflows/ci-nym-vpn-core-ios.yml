@@ -14,10 +14,6 @@ env:
   IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-wireguard-go-ios:
@@ -29,15 +25,24 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -71,12 +76,12 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib-uniffi --locked
+          cargo build --profile ci --target aarch64-apple-ios -p nym-vpn-lib-uniffi --locked
 
       - name: Generate uniffi
         working-directory: nym-vpn-core
         run: |
           cargo run -p uniffi-bindgen generate \
-            --library target/aarch64-apple-ios/debug/libnym_vpn_lib_uniffi.a  \
+            --library target/aarch64-apple-ios/ci/libnym_vpn_lib_uniffi.a  \
             --config crates/nym-vpn-lib-uniffi/uniffi.toml \
             --language swift --out-dir build -n

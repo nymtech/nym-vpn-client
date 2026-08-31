@@ -39,10 +39,11 @@ mod diagnostic;
 mod gateway;
 mod gateway_independence;
 mod gateway_selection_algorithm;
-mod log_path;
 mod network;
 mod network_stats;
+mod paths;
 mod privy;
+mod profile;
 mod rpc_requests;
 mod service;
 mod socks5;
@@ -63,7 +64,6 @@ pub use account::{
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     deeplink::{AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams},
-    request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     storage::{Mnemonic, StorableAccount},
     ticketbooks::AvailableTickets,
 };
@@ -80,23 +80,25 @@ pub use diagnostic::{
 };
 pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
-    Gateway, GatewayFilter, GatewayType, LewesProtocolDetails, LewesProtocolDetailsData, Location,
+    FavoriteSelector, FavoriteSelectors, Gateway, GatewayFilter, GatewayType,
+    GetRecentGatewaysParams, LewesProtocolDetails, LewesProtocolDetailsData, Location,
     LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
-    QuicClientOptions, Recipient, Score, Socks5, TentativeGateways,
+    QuicClientOptions, RecentGateways, Recipient, Score, Socks5, TentativeGateways,
+    TlsClientOptions,
 };
 pub use gateway_independence::GatewayIndependence;
-pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
-pub use log_path::LogPath;
+pub use gateway_selection_algorithm::GatewaySelectionAlgorithmConfig;
 pub use network::{
     ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
     NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
+pub use paths::LogPath;
 pub use privy::PrivyDerivationMessage;
+pub use profile::{Profile, ProfileOptions};
 pub use rpc_requests::{
-    AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
-    ListGatewaysOptions, StoreAccountRequest,
+    AccountBalanceResponse, AccountCommandResponse, Coin, ListGatewaysOptions, StoreAccountRequest,
 };
 #[cfg(feature = "uniffi-bindings")]
 pub use service::default_vpn_service_config;
@@ -108,8 +110,8 @@ pub use service::{
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 pub use tunnel_event::{
-    BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
-    TunnelEvent,
+    BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, DiagnosticsSuggestionReason,
+    MixnetEvent, SphinxPacketRates, TunnelEvent,
 };
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
 pub use user_agent::UserAgent;

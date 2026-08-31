@@ -13,9 +13,9 @@ import {
   CodeDependency,
   ConnectingState,
   DaemonStatus,
+  DiagnosticsSuggestedReason,
   FeatureFlags,
   FrontingMode,
-  GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
   NetworkCompat,
   NetworkEnv,
@@ -51,6 +51,10 @@ export type StateAction =
   | { type: 'disconnect' }
   | { type: 'set-version'; version: string }
   | { type: 'set-linux-app-updated'; updated: boolean }
+  | {
+      type: 'set-diagnostics-suggested-reason';
+      reason: DiagnosticsSuggestedReason | null;
+    }
   | { type: 'set-tunnel-connected'; tunnel: Tunnel }
   | { type: 'set-tunnel-disconnected' }
   | { type: 'set-tunnel-connecting'; state: ConnectingState }
@@ -59,6 +63,7 @@ export type StateAction =
   | { type: 'set-tunnel-inerror'; error: TunnelError }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; enabled: boolean }
+  | { type: 'set-debug-logging'; enabled: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
   | { type: 'set-gateway-independence-notifications'; enabled: boolean }
   | { type: 'reset' }
@@ -94,11 +99,7 @@ export type StateAction =
   | { type: 'set-split-tunnel-apps'; apps: SplitApp[] }
   | { type: 'set-geo-exclusion-enabled'; enabled: boolean }
   | { type: 'set-geo-exclusion-listen-port'; port: number }
-  | { type: 'set-geo-exclusion-excluded-countries'; countries: string[] }
-  | {
-      type: 'set-gateway-selection-algorithm-config';
-      config: GatewaySelectionAlgorithmConfig;
-    };
+  | { type: 'set-geo-exclusion-excluded-countries'; countries: string[] };
 
 export const initialState: AppState = {
   initialized: false,
@@ -114,6 +115,7 @@ export const initialState: AppState = {
   networkEnv: 'mainnet',
   version: null,
   linuxAppUpdated: false,
+  diagnosticsSuggestedReason: null,
   vpnMode: 'wg',
   uiTheme: 'light',
   themeMode: DefaultThemeMode,
@@ -121,6 +123,7 @@ export const initialState: AppState = {
   autostart: false,
   autoConnect: false,
   monitoring: false,
+  debugLogging: true,
   desktopNotifications: true,
   entryNode: DefaultNode,
   exitNode: DefaultNode,
@@ -162,10 +165,7 @@ export const initialState: AppState = {
   },
   splitTunnel: { enabled: false, apps: [] },
   geoExclusion: { enabled: false, listenPort: 1080, excludedCountries: ['CN'] },
-  gatewaySelectionAlgorithmConfig: {
-    enableGeoLocation: true,
-    gatewaySelectionAlgorithm: 'explicit',
-  },
+  gatewaySelectionAlgorithmConfig: { enableGeoLocation: true },
   gatewayIndependenceNotifications: true,
 };
 
@@ -272,6 +272,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
         set({ monitoring: action.enabled });
         break;
 
+      case 'set-debug-logging':
+        set({ debugLogging: action.enabled });
+        break;
+
       case 'set-ipv6-support':
         set({ ipv6Support: action.enabled });
         break;
@@ -314,6 +318,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-linux-app-updated':
         set({ linuxAppUpdated: action.updated });
+        break;
+
+      case 'set-diagnostics-suggested-reason':
+        set({ diagnosticsSuggestedReason: action.reason });
         break;
 
       case 'set-tunnel-connected':
@@ -518,10 +526,6 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
             excludedCountries: action.countries,
           },
         }));
-        break;
-
-      case 'set-gateway-selection-algorithm-config':
-        set({ gatewaySelectionAlgorithmConfig: action.config });
         break;
 
       case 'reset':

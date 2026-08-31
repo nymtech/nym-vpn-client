@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.settings.appearance.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Contrast
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -55,6 +56,27 @@ fun AppearanceOptions(navController: NavController) {
 					)
 				},
 				onClick = { navController.navigate(Route.Display) },
+			),
+		),
+	)
+	SettingsGroup(
+		items = listOf(
+			SelectionItem(
+				leading = {
+					SettingsIcon(
+						Icons.Outlined.Palette,
+						stringResource(R.string.app_icon_title),
+					)
+				},
+				trailing = {
+					SettingsArrowIcon()
+				},
+				title = {
+					SettingsTitle(
+						stringResource(R.string.app_icon_title),
+					)
+				},
+				onClick = { navController.navigate(Route.AppIcon) },
 			),
 		),
 	)

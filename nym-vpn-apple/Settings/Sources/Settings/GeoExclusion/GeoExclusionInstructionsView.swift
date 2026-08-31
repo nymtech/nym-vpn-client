@@ -1,24 +1,17 @@
 #if os(macOS)
-import AppKit
 import SwiftUI
 import Theme
 import UIComponents
 
 public struct GeoExclusionInstructionsView: View {
     @Binding private var path: NavigationPath
-    @State private var addressCopied = false
     private let listenPort: UInt16
 
     private static let proxyHost = "127.0.0.1"
-    private static let web3RpcURL = "http://127.0.0.1:8545"
 
     public init(path: Binding<NavigationPath>, listenPort: UInt16) {
         _path = path
         self.listenPort = listenPort
-    }
-
-    private var proxyAddress: String {
-        "\(Self.proxyHost):\(listenPort)"
     }
 
     public var body: some View {
@@ -34,10 +27,7 @@ public struct GeoExclusionInstructionsView: View {
                         .foregroundStyle(Color.Nym.textSecondary)
                         .nymTextStyle(.bodyDefault)
 
-                    systemWideSection
-                    appSection
-                    web3Section
-                    proxyAddressCard
+                    appStepsCard
                 }
                 .frame(maxWidth: MagicNumbers.maxWidth)
                 .padding(.vertical, 24)
@@ -61,55 +51,12 @@ private extension GeoExclusionInstructionsView {
         path.removeLast()
     }
 
-    var systemWideSection: some View {
-        section(
-            title: "geoExclusion.setup.systemWide.title",
-            subtitle: "geoExclusion.setup.systemWide.subtitle",
-            steps: [
-                plainStep("geoExclusion.setup.systemWide.step1"),
-                plainStep("geoExclusion.setup.systemWide.step2"),
-                highlightedStep("geoExclusion.setup.systemWide.step3", values: [Self.proxyHost, "\(listenPort)"]),
-                plainStep("geoExclusion.setup.systemWide.step4")
-            ]
-        )
-    }
-
-    var appSection: some View {
-        section(
-            title: "geoExclusion.setup.app.title",
-            subtitle: "geoExclusion.setup.app.subtitle",
-            steps: [
-                plainStep("geoExclusion.setup.app.step1"),
-                highlightedStep("geoExclusion.setup.app.step2", values: [Self.proxyHost, "\(listenPort)"]),
-                plainStep("geoExclusion.setup.app.step3")
-            ]
-        )
-    }
-
-    var web3Section: some View {
-        section(
-            title: "geoExclusion.setup.web3.title",
-            subtitle: nil,
-            steps: [
-                highlightedStep("geoExclusion.setup.web3.step1", values: [Self.web3RpcURL])
-            ]
-        )
-    }
-
-    func section(title: String, subtitle: String?, steps: [Text]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title.localizedString)
-                .foregroundStyle(Color.Nym.textPrimary)
-                .nymTextStyle(.titleSection)
-
-            if let subtitle {
-                Text(subtitle.localizedString)
-                    .foregroundStyle(Color.Nym.textSecondary)
-                    .nymTextStyle(.bodyDefault)
-            }
-
-            stepsCard(steps)
-        }
+    var appStepsCard: some View {
+        stepsCard([
+            plainStep("geoExclusion.setup.app.step1"),
+            highlightedStep("geoExclusion.setup.app.step2", values: [Self.proxyHost, "\(listenPort)"]),
+            plainStep("geoExclusion.setup.app.step3")
+        ])
     }
 
     func stepsCard(_ steps: [Text]) -> some View {
@@ -145,43 +92,6 @@ private extension GeoExclusionInstructionsView {
         }
     }
 
-    var proxyAddressCard: some View {
-        Button(action: copyProxyAddress) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("geoExclusion.setup.proxyAddress".localizedString.uppercased())
-                    .foregroundStyle(Color.Nym.textTertiary)
-                    .nymTextStyle(.bodySmallBold)
-                HStack(spacing: 12) {
-                    Text(proxyAddress)
-                        .foregroundStyle(Color.Nym.textPrimary)
-                        .font(Font.custom("Courier New", size: 15))
-                        .kerning(0.3)
-                    GenericImage(imageName: addressCopied ? "checkmarkSeeThrough" : "copy")
-                        .frame(width: 24, height: 24)
-                    Spacer(minLength: 0)
-                }
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.Nym.surface))
-    }
-
-    func copyProxyAddress() {
-        NSPasteboard.general.prepareForNewContents()
-        NSPasteboard.general.setString(proxyAddress, forType: .string)
-        withAnimation {
-            guard !addressCopied else { return }
-            addressCopied = true
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(3))
-                addressCopied = false
-            }
-        }
-    }
-
     /// A step whose whole text is plain body copy.
     func plainStep(_ key: String) -> Text {
         Text(key.localizedString)
@@ -192,18 +102,22 @@ private extension GeoExclusionInstructionsView {
     func highlightedStep(_ key: String, values: [String]) -> Text {
         let mono = Font.custom("Courier New", size: 14)
         let parts = key.localizedString.components(separatedBy: "%@")
-        var result = Text(verbatim: "")
+        var pieces: [Text] = []
         for (index, part) in parts.enumerated() {
-            result = result + Text(verbatim: part)
-                .font(.Nym.bodyDefault)
-                .foregroundColor(Color.Nym.textPrimary)
+            pieces.append(
+                Text(verbatim: part)
+                    .font(.Nym.bodyDefault)
+                    .foregroundColor(Color.Nym.textPrimary)
+            )
             if index < values.count {
-                result = result + Text(verbatim: values[index])
-                    .font(mono)
-                    .foregroundColor(Color.Nym.primary)
+                pieces.append(
+                    Text(verbatim: values[index])
+                        .font(mono)
+                        .foregroundColor(Color.Nym.primary)
+                )
             }
         }
-        return result
+        return pieces.reduce(Text(verbatim: ""), +)
     }
 }
 #endif

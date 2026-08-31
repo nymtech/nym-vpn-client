@@ -16,18 +16,25 @@ import {
   UiRegion,
   isSelectedNodeType,
 } from '../types/node';
+import { favoriteKey, isNodeFavorite } from '../types/favorites';
 import { useAppStore } from '../store';
+import { useFavorites } from '../store/favoritesState';
 import useLang from './useLang';
 
 function countryToUi(
   country: Country,
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
+  favoriteKeys: ReadonlySet<string>,
 ): UiCountry {
   return {
     ...country,
     nodeType: 'country',
     isSelected: isSelectedNodeType(country, selectedEntry, selectedExit),
+    isFavorite: isNodeFavorite(
+      { nodeType: 'country', code: country.code },
+      favoriteKeys,
+    ),
   };
 }
 
@@ -36,6 +43,7 @@ function gatewaysToUi(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favoriteKeys: ReadonlySet<string>,
 ): UiGateway[] {
   return gateways.reduce<UiGateway[]>((acc, gw) => {
     if (quicFilter && !gw.quic) return acc;
@@ -47,6 +55,10 @@ function gatewaysToUi(
         selectedEntry,
         selectedExit,
       ) as GwSelectedKind,
+      isFavorite: isNodeFavorite(
+        { nodeType: 'gateway', id: gw.id },
+        favoriteKeys,
+      ),
     });
     return acc;
   }, []);
@@ -57,6 +69,7 @@ function regionsToUi(
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
   quicFilter: boolean,
+  favoriteKeys: ReadonlySet<string>,
 ): UiRegion[] {
   return regions.reduce<UiRegion[]>((acc, region) => {
     const gateways = gatewaysToUi(
@@ -64,6 +77,7 @@ function regionsToUi(
       selectedEntry,
       selectedExit,
       quicFilter,
+      favoriteKeys,
     );
     if (gateways.length === 0) return acc;
     acc.push({
@@ -71,6 +85,10 @@ function regionsToUi(
       nodeType: 'region',
       gateways,
       isSelected: isSelectedNodeType(region, selectedEntry, selectedExit),
+      isFavorite: isNodeFavorite(
+        { nodeType: 'region', name: region.name },
+        favoriteKeys,
+      ),
     });
     return acc;
   }, []);
@@ -83,6 +101,7 @@ function buildNodeList(
   quicFilter: boolean,
   getCountryName: (code: string) => string | null | undefined,
   compare: (a: string, b: string) => number,
+  favoriteKeys: ReadonlySet<string>,
 ): UiGatewaysByCountry[] {
   return list
     .reduce<UiGatewaysByCountry[]>((acc, gwByCountry) => {
@@ -93,6 +112,7 @@ function buildNodeList(
         selectedEntry,
         selectedExit,
         quicFilter,
+        favoriteKeys,
       );
       if (gateways.length === 0) return acc;
 
@@ -100,6 +120,7 @@ function buildNodeList(
         gwByCountry.country,
         selectedEntry,
         selectedExit,
+        favoriteKeys,
       );
 
       // Defensive check: regions structure changed in 1.18.0; cached data
@@ -110,6 +131,7 @@ function buildNodeList(
             selectedEntry,
             selectedExit,
             quicFilter,
+            favoriteKeys,
           )
         : [];
 
@@ -129,12 +151,16 @@ function buildNodeList(
 
 export function useNodeListData(hop: NodeHop) {
   const { compare, getCountryName } = useLang();
+  const favorites = useFavorites(hop);
+  const favoriteKeys = useMemo(
+    () => new Set(favorites.map(favoriteKey)),
+    [favorites],
+  );
 
   const {
     vpnMode,
     entryNode,
     exitNode,
-    algo,
     quic,
     backendFlags,
     mxEntry,
@@ -146,12 +172,14 @@ export function useNodeListData(hop: NodeHop) {
     mxEntryError,
     mxExitError,
     wgError,
+    recents,
+    recentsLoading,
+    recentsError,
   } = useAppStore(
     useShallow((s) => ({
       vpnMode: s.vpnMode,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
-      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
       quic: s.quic,
       backendFlags: s.backendFlags,
       mxEntry: s.mxEntry,
@@ -163,12 +191,11 @@ export function useNodeListData(hop: NodeHop) {
       mxEntryError: s.mxEntryError,
       mxExitError: s.mxExitError,
       wgError: s.wgError,
+      recents: s.recents,
+      recentsLoading: s.recentsLoading[s.vpnMode],
+      recentsError: s.recentsError[s.vpnMode],
     })),
   );
-
-  const effectiveEntry: SelectedNode =
-    algo === 'explicit' ? entryNode : 'random';
-  const effectiveExit: SelectedNode = algo === 'auto' ? 'random' : exitNode;
 
   const quicFilter =
     vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
@@ -180,11 +207,12 @@ export function useNodeListData(hop: NodeHop) {
     else rawList = wg;
     return buildNodeList(
       rawList,
-      effectiveEntry,
-      effectiveExit,
+      entryNode,
+      exitNode,
       quicFilter,
       getCountryName,
       compare,
+      favoriteKeys,
     );
   }, [
     vpnMode,
@@ -192,11 +220,12 @@ export function useNodeListData(hop: NodeHop) {
     mxEntry,
     mxExit,
     wg,
-    effectiveEntry,
-    effectiveExit,
+    entryNode,
+    exitNode,
     quicFilter,
     getCountryName,
     compare,
+    favoriteKeys,
   ]);
 
   const gateways = useMemo(() => {
@@ -204,6 +233,20 @@ export function useNodeListData(hop: NodeHop) {
     for (const country of nodes) flat.push(...country.gateways);
     return flat.sort((a, b) => compare(a.name, b.name));
   }, [nodes, compare]);
+
+  // The daemon returns these most-recent-first and they render as a flat list,
+  // so the order is passed through untouched — sorting here destroys it.
+  const recentGateways = useMemo(
+    () =>
+      gatewaysToUi(
+        recents[vpnMode][hop],
+        entryNode,
+        exitNode,
+        quicFilter,
+        favoriteKeys,
+      ),
+    [recents, vpnMode, hop, entryNode, exitNode, quicFilter, favoriteKeys],
+  );
 
   const loading = useMemo(() => {
     if (nodes.length > 0) return false;
@@ -218,5 +261,15 @@ export function useNodeListData(hop: NodeHop) {
     return wgError;
   }, [vpnMode, hop, mxEntryError, mxExitError, wgError]);
 
-  return { nodes, gateways, loading, error, vpnMode, quicFilter };
+  return {
+    nodes,
+    gateways,
+    recentGateways,
+    loading,
+    recentsLoading,
+    error,
+    recentsError,
+    vpnMode,
+    quicFilter,
+  };
 }

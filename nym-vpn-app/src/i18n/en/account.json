@@ -16,7 +16,9 @@
     "data-unavailable": "Usage data temporarily unavailable",
     "resets-daily": "Resets daily",
     "reset-unknown": "Unknown",
-    "renew-now": "Renew now to stay protected"
+    "renew-now": "Renew now to stay protected",
+    "failed-to-refresh-account-state": "Failed to refresh account",
+    "refresh": "Refresh account summary"
   },
   "autologin": {
     "title": "Pin code",

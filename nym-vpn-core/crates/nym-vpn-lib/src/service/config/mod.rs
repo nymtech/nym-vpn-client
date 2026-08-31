@@ -10,10 +10,12 @@ mod geo_exclusion_settings;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
+mod profile;
 mod split_tunnel_settings;
 mod v1;
 mod v10;
 mod v11;
+mod v12;
 mod v2;
 mod v3;
 mod v4;
@@ -27,6 +29,7 @@ mod v9;
 mod tests;
 
 pub use config_manager::VpnServiceConfigManager;
+pub use profile::ProfileSpecifics;
 
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
@@ -40,16 +43,14 @@ use tokio::{
 
 use crate::service::config::{
     circumvention::v9::FrontingMode,
-    entry_exit::v2::{EntryPoint, ExitPoint},
+    entry_exit::v3::{EntryPoint, ExitPoint},
     gateway_independence::v11::GatewayIndependence,
-    gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
+    gateway_selection_algorithm::v12::GatewaySelectionAlgorithmConfig,
     geo_exclusion_settings::v9::GeoExclusionSettings,
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
     split_tunnel_settings::v8::SplitTunnelSettings,
 };
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
 
 pub const DEFAULT_CONFIG_FILE_TOML: &str = "nym-vpnd.toml";
 pub const DEFAULT_CONFIG_FILE_JSON: &str = "nym-vpnd.json";
@@ -109,12 +110,13 @@ enum VpnServiceConfigVersion {
     V9,
     V10,
     V11,
+    V12,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V11
+        VpnServiceConfigVersion::V12
     }
 }
 
@@ -132,6 +134,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V9 => "v9",
             VpnServiceConfigVersion::V10 => "v10",
             VpnServiceConfigVersion::V11 => "v11",
+            VpnServiceConfigVersion::V12 => "v12",
         })
     }
 }
@@ -151,6 +154,7 @@ enum VpnServiceConfigExt {
     V9(v9::VpnServiceConfig),
     V10(v10::VpnServiceConfig),
     V11(v11::VpnServiceConfig),
+    V12(v12::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -167,6 +171,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V9(_) => VpnServiceConfigVersion::V9,
             VpnServiceConfigExt::V10(_) => VpnServiceConfigVersion::V10,
             VpnServiceConfigExt::V11(_) => VpnServiceConfigVersion::V11,
+            VpnServiceConfigExt::V12(_) => VpnServiceConfigVersion::V12,
         }
     }
 }
@@ -187,6 +192,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V9(v9) => nym_vpn_lib_types::VpnServiceConfig::try_from(v9),
             VpnServiceConfigExt::V10(v10) => nym_vpn_lib_types::VpnServiceConfig::try_from(v10),
             VpnServiceConfigExt::V11(v11) => nym_vpn_lib_types::VpnServiceConfig::try_from(v11),
+            VpnServiceConfigExt::V12(v12) => nym_vpn_lib_types::VpnServiceConfig::try_from(v12),
         }
     }
 }
@@ -219,7 +225,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let gateway_independence = GatewayIndependence::from(&value.gateway_independence);
 
-        let v11 = v11::VpnServiceConfig {
+        let v12 = v12::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -241,7 +247,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             gateway_independence,
         };
 
-        Ok(VpnServiceConfigExt::V11(v11))
+        Ok(VpnServiceConfigExt::V12(v12))
     }
 }
 
@@ -407,77 +413,4 @@ where
             file: file_path.to_path_buf(),
             error,
         })
-}
-
-pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
-    let network_data_dir = data_dir.join(network_name);
-
-    fs::create_dir_all(&network_data_dir)
-        .await
-        .map_err(|error| ConfigSetupError::CreateDirectory {
-            dir: network_data_dir.clone(),
-            error,
-        })?;
-
-    tracing::debug!(
-        "Making sure data dir exists at {}",
-        network_data_dir.display()
-    );
-
-    for dir_path in [&network_data_dir, data_dir] {
-        #[cfg(unix)]
-        {
-            // Set directory permissions to 700 (rwx------)
-            let permissions = std::fs::Permissions::from_mode(0o700);
-            fs::set_permissions(dir_path, permissions)
-                .await
-                .map_err(|error| ConfigSetupError::SetPermissions {
-                    dir: dir_path.to_path_buf(),
-                    error,
-                })?;
-        }
-
-        #[cfg(windows)]
-        {
-            set_data_dir_permissions(dir_path).map_err(|error| {
-                ConfigSetupError::SetPermissions {
-                    dir: dir_path.to_path_buf(),
-                    error,
-                }
-            })?;
-        }
-    }
-
-    Ok(())
-}
-
-/// Set directory permissions to Administrators with Full Control.
-#[cfg(windows)]
-fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()> {
-    use nym_windows::security::{
-        AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
-        SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
-    };
-
-    let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
-
-    let allow_admin_group_access = ExplicitAccess::new(
-        Trustee::new(administrators_sid.try_clone()?, TrusteeType::WellKnownGroup),
-        AccessMode::SetAccess,
-        FileAccessRights::FILE_ALL_ACCESS.into(),
-        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
-    );
-
-    let acl = Acl::new(vec![allow_admin_group_access])?;
-
-    set_named_security_info(
-        data_dir,
-        SecurityObjectType::FileObject,
-        SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
-        None,
-        None,
-        Some(&acl),
-    )?;
-
-    Ok(())
 }
