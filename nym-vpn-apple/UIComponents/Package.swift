@@ -33,6 +33,8 @@ let package = Package(
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
+                .product(name: "AccountPrefetchGates", package: "Services"),
                 .product(name: "FeatureFlagsManager", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "Services"),
@@ -47,7 +49,10 @@ let package = Package(
         ),
         .testTarget(
             name: "UIComponentsTests",
-            dependencies: ["UIComponents"]
+            dependencies: [
+                "UIComponents",
+                .product(name: "TunnelStatus", package: "ServicesMutual")
+            ]
         )
     ]
 )

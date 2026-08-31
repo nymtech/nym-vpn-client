@@ -61,7 +61,10 @@ let package = Package(
         ),
         .testTarget(
             name: "HomeTests",
-            dependencies: ["Home"]
+            dependencies: [
+                "Home",
+                .product(name: "AccountPrefetchGates", package: "Services")
+            ]
         )
     ]
 )

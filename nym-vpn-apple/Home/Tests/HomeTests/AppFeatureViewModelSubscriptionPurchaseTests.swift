@@ -35,6 +35,15 @@ final class AppFeatureViewModelSubscriptionPurchaseTests: XCTestCase {
 #endif
     }
 
+    func testRequestWelcomeOpensWelcomeDrawer() {
+        let viewModel = makeViewModel()
+        viewModel.drawerContent = .oneClick
+
+        viewModel.handle(.requestWelcome)
+
+        XCTAssertEqual(viewModel.drawerContent, .welcome)
+    }
+
 #if os(iOS)
     func testRequestInactiveSubscriptionPurchaseRoutesDirectlyToIAP() {
         let viewModel = makeViewModel()
