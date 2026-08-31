@@ -14,6 +14,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.util.extensions.handleLifecycleEventSafely
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.nymvpn.util.extensions.truncateWithEllipsis
 import net.nymtech.vpn.backend.Tunnel
@@ -46,7 +47,9 @@ class VpnQuickTile :
 
 	override fun onStartListening() {
 		super.onStartListening()
-		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+		// a queued onStartListening can be delivered after onDestroy
+		if (lifecycleRegistry.currentState == Lifecycle.State.DESTROYED) return
+		lifecycleRegistry.handleLifecycleEventSafely(Lifecycle.Event.ON_START)
 
 		if (isCollecting) return
 		isCollecting = true
@@ -108,7 +111,7 @@ class VpnQuickTile :
 	}
 
 	override fun onStopListening() {
-		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+		lifecycleRegistry.handleLifecycleEventSafely(Lifecycle.Event.ON_STOP)
 		isCollecting = false
 	}
 
