@@ -319,7 +319,7 @@ class VpnCoreController(
 		events.tryEmit(VpnServiceEvent.Log("core initialized"))
 
 		migrateLegacyConfigIfNeeded()
-		refreshCurrentGateways()
+		refreshCoreStateAfterInit()
 	}
 
 	/**
@@ -356,12 +356,19 @@ class VpnCoreController(
 		}.onFailure { Timber.tag(TAG).e(it, "Legacy config migration failed") }
 	}
 
-	private suspend fun refreshCurrentGateways() {
+	private suspend fun refreshCoreStateAfterInit() {
 		runCatching {
-			val cfg = requireCoreSender { it.getConfig() }
-			currentEntry = cfg.entryPoint
-			currentExit = cfg.exitPoint
-		}.onFailure { Timber.tag(TAG).w(it, "refreshCurrentGateways failed") }
+			val rustConfig = requireCoreSender { it.getConfig() }
+			currentEntry = rustConfig.entryPoint
+			currentExit = rustConfig.exitPoint
+
+			if (!configRepo.hasEnsuredGeoLocationDefault()) {
+				if (!rustConfig.gatewaySelectionAlgorithmConfig.enableGeoLocation) {
+					requireCoreSender { it.setEnableGeoLocation(true) }
+				}
+				configRepo.markGeoLocationDefaultEnsured()
+			}
+		}.onFailure { Timber.tag(TAG).w(it, "refreshCoreStateAfterInit failed") }
 	}
 
 	private fun syncLocalTunSettings(prefs: LocalVpnPrefs) {
@@ -387,6 +394,8 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetEntryPoint -> requireCoreSender { it.setEntryPoint(update.value) }
 			is CoreVpnConfigUpdate.SetExitPoint -> requireCoreSender { it.setExitPoint(update.value) }
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
+			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
+			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
 			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setEnableBridges(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }

@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.util.timber
+package net.nymtech.nymvpn.util.logs.timber
 
 import timber.log.Timber
 

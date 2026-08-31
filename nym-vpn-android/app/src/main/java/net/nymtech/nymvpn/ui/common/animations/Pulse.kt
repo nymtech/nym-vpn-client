@@ -47,7 +47,7 @@ fun MultiplePulsarEffect(nbPulsar: Int = 2, pulsarRadius: Float = 10f, pulsarCol
 		contentAlignment = Alignment.Center,
 	) {
 		Canvas(
-			Modifier,
+			Modifier.matchParentSize(),
 			onDraw = {
 				for (i in 0 until nbPulsar) {
 					val (radius, alpha) = effects[i]

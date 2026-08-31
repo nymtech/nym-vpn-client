@@ -42,6 +42,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
@@ -65,13 +66,13 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.Score
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, loginProcessing: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -358,6 +359,17 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	)
 }
 
+private fun nodeSelectionType(isAuto: Boolean, isRandom: Boolean, currentProfile: Profile?): NodeSelectionType = when {
+	isRandom -> NodeSelectionType.RANDOM
+	isAuto -> when (currentProfile) {
+		Profile.SAFEST, null -> NodeSelectionType.SAFEST
+		Profile.MOST_PRIVATE -> NodeSelectionType.MOST_PRIVATE
+		Profile.FASTEST -> NodeSelectionType.FASTEST
+		Profile.RANDOM -> NodeSelectionType.RANDOM
+	}
+	else -> NodeSelectionType.NODE
+}
+
 @Composable
 private fun MainScreenContent(
 	connectionState: ConnectionState,
@@ -386,24 +398,24 @@ private fun MainScreenContent(
 			name = appUiState.exitPointName,
 			countryCode = appUiState.exitPointCountry,
 			location = appUiState.exitPointLocation,
-			score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
-			selectionType = when (appUiState.vpnConfig.exitPoint) {
-				is ExitPoint.Random -> NodeSelectionType.RANDOM
-				is ExitPoint.Auto -> NodeSelectionType.AUTO
-				else -> NodeSelectionType.NODE
-			},
+			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
+			selectionType = nodeSelectionType(
+				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
+				isRandom = appUiState.vpnConfig.exitPoint is ExitPoint.Random,
+				currentProfile = appUiState.currentProfile,
+			),
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
 			name = appUiState.entryPointName,
 			countryCode = appUiState.entryPointCountry,
 			location = appUiState.entryPointLocation,
-			selectionType = when (appUiState.vpnConfig.entryPoint) {
-				is EntryPoint.Random -> NodeSelectionType.RANDOM
-				is EntryPoint.Auto -> NodeSelectionType.AUTO
-				else -> NodeSelectionType.NODE
-			},
-			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
+			selectionType = nodeSelectionType(
+				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
+				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,
+				currentProfile = appUiState.currentProfile,
+			),
+			score = appUiState.entryPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 		),
 		initialPanelState = initialPanelState,
 		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,

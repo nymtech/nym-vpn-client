@@ -13,6 +13,9 @@ interface LogReader {
 
 	fun start()
 	fun stop()
+
+	/** Writes a line into the app log stream directly, bypassing logcat capture (survives `logcat -c`). */
+	suspend fun writeDiagnostic(tag: String, message: String)
 	suspend fun zipLogFiles(path: String)
 
 	suspend fun deleteAndClearLogs()

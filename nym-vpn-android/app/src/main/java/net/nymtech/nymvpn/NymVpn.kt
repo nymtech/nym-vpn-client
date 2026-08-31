@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn
 
+import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.os.Build
@@ -35,12 +36,13 @@ import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.logs.ExitReasons
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
-import net.nymtech.nymvpn.util.timber.DebugTree
-import net.nymtech.nymvpn.util.timber.NoLogTree
-import net.nymtech.nymvpn.util.timber.ReleaseTree
+import net.nymtech.nymvpn.util.logs.timber.DebugTree
+import net.nymtech.nymvpn.util.logs.timber.NoLogTree
+import net.nymtech.nymvpn.util.logs.timber.ReleaseTree
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -56,6 +58,7 @@ class NymVpn : Application() {
 
 	companion object {
 		private const val TAG = "app"
+		private const val PRIOR_EXIT_REASONS_MAX = 5
 
 		val isInitialized: Boolean get() = ::instance.isInitialized
 
@@ -107,6 +110,9 @@ class NymVpn : Application() {
 	@Volatile
 	private var logReaderStarted: Boolean = false
 
+	@Volatile
+	private var priorExitReasonsLogged: Boolean = false
+
 	private var logsObserverJob: Job? = null
 
 	override fun onCreate() {
@@ -132,6 +138,7 @@ class NymVpn : Application() {
 					applyLoggingConfig(enabled, debugEnabled)
 					if (enabled) {
 						ensureLogReaderStarted()
+						logPriorExitReasonsOnce()
 					}
 				}
 		}
@@ -231,6 +238,32 @@ class NymVpn : Application() {
 		if (!BuildConfig.DEBUG) return
 		StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.LAX)
 		StrictMode.setVmPolicy(StrictMode.VmPolicy.LAX)
+	}
+
+	private suspend fun logPriorExitReasonsOnce() {
+		if (priorExitReasonsLogged) return
+
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+			priorExitReasonsLogged = true
+			return
+		}
+
+		// Written via writeDiagnostic() instead of Timber, since this runs before the log reader
+		// clears logcat and a Timber line here could be wiped before it's captured.
+		runCatching {
+			val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+			activityManager.getHistoricalProcessExitReasons(packageName, 0, PRIOR_EXIT_REASONS_MAX)
+				.forEach { info ->
+					logReader.writeDiagnostic(
+						TAG,
+						ExitReasons.formatLine(info.timestamp, info.reason, info.status, info.importance, info.description),
+					)
+				}
+		}.onSuccess {
+			priorExitReasonsLogged = true
+		}.onFailure { t ->
+			Timber.tag(TAG).w(t, "PriorExitReasonsFailed")
+		}
 	}
 
 	private fun ensureLogReaderStarted() {

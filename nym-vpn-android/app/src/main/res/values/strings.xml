@@ -205,7 +205,7 @@
 	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_mode_fast">Fast</string>
+	<string name="one_click_mode_fast">dVPN</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Exit server</string>
 	<string name="one_click_nym_entry_node">Entry server</string>
@@ -671,4 +671,14 @@
 	<string name="app_icon_change_title">Change app icon?</string>
 	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Only the home-screen icon and label change — notifications and system search still show NymVPN.</string>
 	<string name="app_icon_change_confirm">Change icon</string>
+	<!-- Profiles -->
+	<string name="profiles_title">Profiles</string>
+	<string name="profiles_safest_title">Safest</string>
+	<string name="profiles_safest_description">Optimal for censorship circumvention</string>
+	<string name="profiles_random_title">Random</string>
+	<string name="profiles_random_description">Results vary, may cause slow speed</string>
+	<string name="profiles_most_private_title">Most private</string>
+	<string name="profiles_most_private_description">Metadata resistance and mixnet tuning</string>
+	<string name="profiles_fastest_title">Fastest</string>
+	<string name="profiles_fastest_description">Chooses the closest, best for streaming</string>
 </resources>

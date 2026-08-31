@@ -8,7 +8,7 @@ pub enum FavoritesError {
     #[error("failed to lookup gateway cache")]
     GetGateways {
         tunnel_type: TunnelType,
-        source: nym_gateway_directory::Error,
+        source: Box<nym_gateway_directory::Error>,
     },
 
     #[error("{0}")]
