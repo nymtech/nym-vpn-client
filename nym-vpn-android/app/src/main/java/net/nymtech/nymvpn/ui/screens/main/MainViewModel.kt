@@ -224,10 +224,8 @@ constructor(
 			managerState.isRestarting ->
 				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
 			managerState.tunnelState is Tunnel.State.Offline ->
-				// The backend reports Offline both for a paused-but-armed session (reconnect)
-				// and while fully disconnected with no network; only the former is a "waiting"
-				// state, the latter is a plain offline/disconnected state.
-				if ((managerState.tunnelState as Tunnel.State.Offline).reconnect) {
+				// only a reconnect-armed session is "waiting"; see Tunnel.State.Offline
+				if (managerState.tunnelState.reconnect) {
 					ConnectionState.WaitingForConnection
 				} else {
 					ConnectionState.Offline

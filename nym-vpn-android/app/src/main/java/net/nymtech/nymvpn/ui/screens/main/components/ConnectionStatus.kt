@@ -42,6 +42,7 @@ import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.EstablishConnectionState
 
 private const val OUTER_RADIUS = 82.4f
@@ -345,7 +346,7 @@ private fun ArcPreviewConnected() {
 private fun ArcPreviewError() {
 	NymVPNTheme(Theme.DARK_MODE) {
 		ConnectionStatus(
-			connectionState = ConnectionState.Error(nym_vpn_lib_types.ErrorStateReason.InactiveSubscription),
+			connectionState = ConnectionState.Error(ErrorStateReason.InactiveSubscription),
 			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
 		)
 	}
