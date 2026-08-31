@@ -1,12 +1,9 @@
-package net.nymtech.nymvpn.util
+package net.nymtech.nymvpn.util.logs
 
 import android.app.ApplicationExitInfo
 import java.time.Instant
 
-/**
- * Formats ApplicationExitInfo records into single log lines so log bundles
- * explain why previous processes died (OS kill vs crash vs user swipe).
- */
+/** Formats ApplicationExitInfo records into single log lines. */
 object ExitReasons {
 
 	fun reasonName(reason: Int): String = when (reason) {
@@ -33,6 +30,7 @@ object ExitReasons {
 	fun formatLine(timestampMs: Long, reason: Int, status: Int, importance: Int, description: String?): String {
 		val base = "PriorExit time=${Instant.ofEpochMilli(timestampMs)} reason=${reasonName(reason)} " +
 			"status=$status importance=$importance"
-		return if (description.isNullOrBlank()) base else "$base description=$description"
+		val singleLineDescription = description?.replace(Regex("\\s*[\r\n]+\\s*"), " ")?.trim()
+		return if (singleLineDescription.isNullOrBlank()) base else "$base description=$singleLineDescription"
 	}
 }

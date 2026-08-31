@@ -117,10 +117,10 @@ class LogcatManager(private val pid: Int, logDir: String, maxFileSize: Long, max
 			message = message,
 		)
 		_bufferedLogsApp.emit(logMessage)
-		runCatching {
-			fileManager.writeLog(LogType.LOGCAT, logMessage.toString())
-			fileManager.writeLog(LogType.APP, logMessage.toString())
-		}.onFailure { Timber.tag(TAG).w(it, "DiagnosticWriteFailed") }
+		runCatching { fileManager.writeLog(LogType.LOGCAT, logMessage.toString()) }
+			.onFailure { Timber.tag(TAG).w(it, "DiagnosticWriteFailed") }
+		runCatching { fileManager.writeLog(LogType.APP, logMessage.toString()) }
+			.onFailure { Timber.tag(TAG).w(it, "DiagnosticWriteFailed") }
 	}
 
 	private fun activateTimberFallback() {

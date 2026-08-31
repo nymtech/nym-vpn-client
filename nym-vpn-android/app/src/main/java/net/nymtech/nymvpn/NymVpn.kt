@@ -36,13 +36,13 @@ import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.ExitReasons
+import net.nymtech.nymvpn.util.logs.ExitReasons
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
-import net.nymtech.nymvpn.util.timber.DebugTree
-import net.nymtech.nymvpn.util.timber.NoLogTree
-import net.nymtech.nymvpn.util.timber.ReleaseTree
+import net.nymtech.nymvpn.util.logs.timber.DebugTree
+import net.nymtech.nymvpn.util.logs.timber.NoLogTree
+import net.nymtech.nymvpn.util.logs.timber.ReleaseTree
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -242,20 +242,25 @@ class NymVpn : Application() {
 
 	private suspend fun logPriorExitReasonsOnce() {
 		if (priorExitReasonsLogged) return
-		priorExitReasonsLogged = true
 
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+			priorExitReasonsLogged = true
+			return
+		}
+
+		// Written via writeDiagnostic() instead of Timber, since this runs before the log reader
+		// clears logcat and a Timber line here could be wiped before it's captured.
 		runCatching {
 			val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
 			activityManager.getHistoricalProcessExitReasons(packageName, 0, PRIOR_EXIT_REASONS_MAX)
 				.forEach { info ->
-					// written directly to the log files: lines emitted this early would be
-					// wiped by the log reader's logcat -c
 					logReader.writeDiagnostic(
 						TAG,
 						ExitReasons.formatLine(info.timestamp, info.reason, info.status, info.importance, info.description),
 					)
 				}
+		}.onSuccess {
+			priorExitReasonsLogged = true
 		}.onFailure { t ->
 			Timber.tag(TAG).w(t, "PriorExitReasonsFailed")
 		}
