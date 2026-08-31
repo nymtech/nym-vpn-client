@@ -17,6 +17,8 @@ interface Tunnel {
 		data object InitializingClient : State()
 		data object EstablishingConnection : State()
 		data object Disconnecting : State()
+
+		/** [reconnect] is true while the session is armed to auto-reconnect once back online. */
 		data class Offline(val reconnect: Boolean) : State()
 		data class Error(val reason: ErrorStateReason) : State()
 	}
