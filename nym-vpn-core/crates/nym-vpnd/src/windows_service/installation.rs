@@ -145,18 +145,7 @@ pub fn start_service() -> anyhow::Result<()> {
     if service.query_status()?.current_state != ServiceState::Running {
         service.start(&[] as &[&std::ffi::OsStr])?;
     }
-
-    let start = Instant::now();
-    let timeout = Duration::from_secs(30);
-    while start.elapsed() < timeout {
-        if service.query_status()?.current_state == ServiceState::Running {
-            return Ok(());
-        }
-        std::thread::sleep(Duration::from_secs(1));
-    }
-    Err(anyhow!(
-        "timed out waiting for the service to reach running"
-    ))
+    Ok(())
 }
 
 fn get_service_info() -> ServiceInfo {
