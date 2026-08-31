@@ -313,14 +313,18 @@ private extension OneClickView {
             "disconnecting".localizedString
         case .noInternet:
             "offline".localizedString
-        case .noSubscription:
+        case .noAccount:
             "home.getStarted".localizedString
+        case .noSubscription:
+            "purchasePlan.chooseMyPlan".localizedString
+        case .accountUnreachable:
+            "home.accountUnreachable".localizedString
         }
     }
 
     var connectButtonStyle: NymButton.Style {
         switch viewModel.connectState {
-        case .disconnected, .noSubscription:
+        case .disconnected, .noAccount, .noSubscription, .accountUnreachable:
             .primary
         case .connecting, .disconnecting, .noInternet:
             .connecting
@@ -335,7 +339,7 @@ private extension OneClickView {
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
             true
-        case .disconnected, .stop, .connected, .noSubscription:
+        case .disconnected, .stop, .connected, .noAccount, .noSubscription, .accountUnreachable:
             false
         }
     }

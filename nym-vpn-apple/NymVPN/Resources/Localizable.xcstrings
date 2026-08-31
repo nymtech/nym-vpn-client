@@ -16504,6 +16504,17 @@
         }
       }
     },
+    "home.accountUnreachable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't reach account"
+          }
+        }
+      }
+    },
     "home.installDaemon" : {
       "extractionState" : "manual",
       "localizations" : {
