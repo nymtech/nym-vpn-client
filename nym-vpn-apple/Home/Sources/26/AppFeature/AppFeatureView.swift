@@ -186,7 +186,7 @@ private extension AppFeatureView {
                 }
                 .background { bottomSafeAreaReader }
                 .ignoresSafeArea(.keyboard, edges: .bottom)
-                .animation(.spring, value: viewModel.drawerContent == nil)
+                .animation(drawerPresenceAnimation(viewModel: viewModel), value: viewModel.drawerContent == nil)
                 .navigationDestination(for: HomeLink.self) { link in
                     linkDestination(link: link, path: $viewModel.path)
                 }
@@ -202,25 +202,22 @@ private extension AppFeatureView {
             navigationBar
             ZStack {
                 background
-                ConnectionStatusBackdropLayer(
-                    connectionStatus: viewModel.connectionStatus,
-                    drawerContentIsNil: viewModel.drawerContent == nil,
-                    drawerHeight: drawerHeight,
-                    bottomSafeAreaInset: bottomSafeAreaInset
-                )
+                if !viewModel.purchaseTransitionOverlayVisible {
+                    ConnectionStatusBackdropLayer(
+                        connectionStatus: viewModel.connectionStatus,
+                        drawerContentIsNil: viewModel.drawerContent == nil,
+                        drawerHeight: drawerHeight,
+                        bottomSafeAreaInset: bottomSafeAreaInset
+                    )
+                }
+                if viewModel.purchaseTransitionOverlayVisible {
+                    Color.Nym.background
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                }
             }
             .clipped()
-            if viewModel.purchaseTransitionOverlayVisible {
-                Color.Nym.background
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .allowsHitTesting(false)
-            }
         }
-        .animation(
-            .easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds),
-            value: viewModel.purchaseTransitionOverlayVisible
-        )
     }
 
     @ViewBuilder
@@ -279,19 +276,33 @@ private extension AppFeatureView {
 
     func handlePlanPurchaseNavigationTokenChange(viewModel: AppFeatureViewModel) {
         guard viewModel.navigationIntent == .pushPlanPurchase else { return }
-        guard viewModel.drawerContent == nil else { return }
+        guard PurchaseTransitionPolicy.shouldPushPlanPurchaseAfterDrawerHidden(
+            drawerHidden: viewModel.drawerContent == nil,
+            checkoutNavigationPending: viewModel.isCheckoutNavigationPending
+        ) else { return }
         pushPlanPurchaseNavigation()
         viewModel.consumeNavigationIntent()
         viewModel.checkoutNavigationDidComplete()
     }
 
     func handleDrawerHiddenChange(_ drawerHidden: Bool, viewModel: AppFeatureViewModel) {
-        guard drawerHidden else { return }
         guard viewModel.navigationIntent == .pushPlanPurchase else { return }
-        guard viewModel.planPurchaseNavigationToken > 0 else { return }
+        guard PurchaseTransitionPolicy.shouldPushPlanPurchaseAfterDrawerHidden(
+            drawerHidden: drawerHidden,
+            checkoutNavigationPending: viewModel.isCheckoutNavigationPending
+        ) else { return }
         pushPlanPurchaseNavigation()
         viewModel.consumeNavigationIntent()
         viewModel.checkoutNavigationDidComplete()
+    }
+
+    func drawerPresenceAnimation(viewModel: AppFeatureViewModel) -> Animation {
+        if PurchaseTransitionPolicy.usesTimedDrawerHide(
+            isPlanPurchasePending: viewModel.navigationIntent == .pushPlanPurchase
+        ) {
+            return .easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds)
+        }
+        return .spring
     }
 
     func pushPlanPurchaseNavigation() {
@@ -551,6 +562,5 @@ private extension AppFeatureView {
                 static let size: CGFloat = 24
             }
         }
-
     }
 }

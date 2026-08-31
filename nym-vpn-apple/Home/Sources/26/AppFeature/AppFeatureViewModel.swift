@@ -48,9 +48,7 @@ import GRPCManager
 
     var purchaseTransitionOverlayVisible: Bool {
         DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
-            isDrawerContentNil: drawerContent == nil,
-            isCheckoutNavigationPending: isCheckoutNavigationPending
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive
         )
     }
 
@@ -81,7 +79,10 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
+        self.connectionStatus = ConnectionStatusViewModel(
+            connectionManager: connectionManager,
+            networkMonitor: networkMonitor
+        )
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -108,7 +109,10 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
+        self.connectionStatus = ConnectionStatusViewModel(
+            connectionManager: connectionManager,
+            networkMonitor: networkMonitor
+        )
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -431,8 +435,10 @@ import GRPCManager
 }
 
 private extension AppFeatureViewModel {
-    static let paywallTransitionDuration = 0.35
     static let paywallDrawerDismissDelayMs = 150
+    static var paywallTransitionDuration: TimeInterval {
+        PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds
+    }
 
     func wireConnectionStatusDelegates() {
         connectionStatus.onConnectionFailed = { [weak self] errorMessage in
@@ -721,14 +727,12 @@ private extension AppFeatureViewModel {
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(Self.paywallDrawerDismissDelayMs))
             guard !Task.isCancelled, let self else { return }
-            if self.drawerContent == nil {
-                self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
-                return
+            if self.drawerContent != nil {
+                withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
+                    self.drawerContent = nil
+                }
+                try? await Task.sleep(for: .seconds(Self.paywallTransitionDuration))
             }
-            withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
-                self.drawerContent = nil
-            }
-            try? await Task.sleep(for: .seconds(Self.paywallTransitionDuration))
             guard !Task.isCancelled else { return }
             self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
         }

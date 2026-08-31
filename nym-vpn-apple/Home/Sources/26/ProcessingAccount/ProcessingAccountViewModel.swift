@@ -33,7 +33,7 @@ public final class ProcessingAccountViewModel {
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
     @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
-    /// Seconds the welcome message lingers before navigating (carousel flows only).
+    /// Seconds verifying/welcome copy lingers before navigating to home or plan purchase.
     /// Settable so tests can drive the finalize transition without a real delay.
     @ObservationIgnored var finalMessageDuration: Double = 2
 
@@ -271,8 +271,7 @@ public final class ProcessingAccountViewModel {
 
     private func completeWork() {
         guard !usesStaticCopy else {
-            phase = .finished
-            sessionCoordinator?.handle(.session(.processingFinished))
+            beginFinalizingNavigation()
             return
         }
         phase = .awaitingAdvance
@@ -280,6 +279,17 @@ public final class ProcessingAccountViewModel {
         workCompleted = true
         latchCarouselIfWorkCompleteAndInterrupted()
         updateAnimationReady()
+    }
+
+    private func beginFinalizingNavigation() {
+        phase = .finalizing
+        finalMessageTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .seconds(finalMessageDuration))
+            guard !Task.isCancelled else { return }
+            phase = .finished
+            sessionCoordinator?.handle(.session(.processingFinished))
+        }
     }
 
     private func latchCarouselIfWorkCompleteAndInterrupted() {
@@ -320,14 +330,7 @@ public final class ProcessingAccountViewModel {
                   didFinishAnimatingText: didFinishAnimatingText,
                   requiresCarousel: !usesStaticCopy
               ) else { return }
-        phase = .finalizing
-        finalMessageTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            try? await Task.sleep(for: .seconds(finalMessageDuration))
-            guard !Task.isCancelled else { return }
-            phase = .finished
-            sessionCoordinator?.handle(.session(.processingFinished))
-        }
+        beginFinalizingNavigation()
     }
 
     private static func mapFailure(_ error: Error) -> ProcessingFailure {

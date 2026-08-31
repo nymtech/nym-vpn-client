@@ -41,7 +41,10 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
         return nextStep >= currentStep
     }
 
-    public static func processingFlow(for outcome: AuthCompletionOutcome, authFlow: AuthFlowKind) -> ProcessingFlowKind {
+    public static func processingFlow(
+        for outcome: AuthCompletionOutcome,
+        authFlow: AuthFlowKind
+    ) -> ProcessingFlowKind {
         switch outcome {
         case .registeredNeedsPurchase:
             return .none
@@ -50,6 +53,15 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
         case .loginReady:
             return authFlow == .login ? .login : .postPurchase
         }
+    }
+
+    /// Daemon already has a mnemonic (second app window, retry). Treat as logged in.
+    public static func isExistingAccountStoreError(_ error: Error) -> Bool {
+        let ns = error as NSError
+        let haystack = "\(ns.localizedDescription) \(String(describing: error))".lowercased()
+        return haystack.contains("already stored")
+            || haystack.contains("existingaccount")
+            || haystack.contains("account already exists")
     }
 }
 
@@ -132,13 +144,11 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         !isPurchaseFlowActive
     }
 
-    /// Masks the map while the drawer is hidden during checkout; must not show once the drawer is back.
-    public static func showsPurchaseTransitionOverlay(
-        isPurchaseFlowActive: Bool,
-        isDrawerContentNil: Bool,
-        isCheckoutNavigationPending: Bool = false
-    ) -> Bool {
-        isPurchaseFlowActive && (isDrawerContentNil || isCheckoutNavigationPending)
+    /// Masks the home status backdrop for the whole checkout transition, including
+    /// while the processing drawer is still on screen, so the "Not protected"
+    /// rings cannot jitter behind choose-plan.
+    public static func showsPurchaseTransitionOverlay(isPurchaseFlowActive: Bool) -> Bool {
+        isPurchaseFlowActive
     }
 
     /// Refreshes account summary on foreground when checkout is in flight or subscription may have changed off-device.

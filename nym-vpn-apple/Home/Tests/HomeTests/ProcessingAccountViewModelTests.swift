@@ -246,6 +246,7 @@ struct ProcessingAccountViewModelTests {
         #expect(processing.calls == [.ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
         #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -292,6 +293,7 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
         #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -305,8 +307,27 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
         #expect(viewModel.usesStaticCopy)
         #expect(processing.lastSyncUntilActive == false)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func inactiveLoginHoldsVerifyingScreenBeforePlanNavigation() async {
+        let processing = FakeProcessing()
+        processing.accountActive = false
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+        viewModel.finalMessageDuration = 5
+
+        await viewModel.run()
+
+        #expect(viewModel.usesStaticCopy)
+        #expect(viewModel.phase == .finalizing)
+        #expect(coordinator.actions.isEmpty)
+
+        viewModel.cancel()
+        #expect(viewModel.phase == .finalizing)
+        #expect(coordinator.actions.isEmpty)
     }
 
     @Test func staleInactiveCacheDoesNotSkipCarouselUntilAfterSync() async {
@@ -321,6 +342,7 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
     }
 

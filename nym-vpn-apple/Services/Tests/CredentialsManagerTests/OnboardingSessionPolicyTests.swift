@@ -373,38 +373,9 @@ struct DrawerSessionPolicyTests {
         #expect(DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: false))
     }
 
-    @Test func purchaseTransitionOverlayOnlyWhileDrawerHidden() {
-        #expect(
-            DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: true,
-                isDrawerContentNil: true
-            )
-        )
-        #expect(
-            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: true,
-                isDrawerContentNil: false
-            )
-        )
-        #expect(
-            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: false,
-                isDrawerContentNil: true
-            )
-        )
-        #expect(
-            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: false,
-                isDrawerContentNil: false
-            )
-        )
-        #expect(
-            DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: true,
-                isDrawerContentNil: false,
-                isCheckoutNavigationPending: true
-            )
-        )
+    @Test func purchaseTransitionOverlayCoversHomeForWholeCheckout() {
+        #expect(DrawerSessionPolicy.showsPurchaseTransitionOverlay(isPurchaseFlowActive: true))
+        #expect(!DrawerSessionPolicy.showsPurchaseTransitionOverlay(isPurchaseFlowActive: false))
     }
 
     @Test func foregroundRefreshBypassesThrottleDuringPurchaseOrInactiveAccount() {
@@ -677,5 +648,29 @@ struct DrawerSessionPolicyTests {
                 drawerAllowsCredentialPromotion: true
             )
         )
+    }
+
+    @Test func existingAccountStoreErrorMatchesDaemonMessage() {
+        struct DaemonStoreError: Error, LocalizedError {
+            var errorDescription: String? { "an account is already stored" }
+        }
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(DaemonStoreError()))
+        struct MnemonicStored: Error, LocalizedError {
+            var errorDescription: String? { "mnemonic already stored" }
+        }
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(MnemonicStored()))
+        enum StoreKind: Error {
+            case existingAccount
+        }
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(StoreKind.existingAccount))
+        #expect(
+            OnboardingSessionPolicy.isExistingAccountStoreError(
+                NSError(domain: "vpn", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account already exists"])
+            )
+        )
+        struct OtherError: Error, LocalizedError {
+            var errorDescription: String? { "invalid mnemonic" }
+        }
+        #expect(!OnboardingSessionPolicy.isExistingAccountStoreError(OtherError()))
     }
 }
