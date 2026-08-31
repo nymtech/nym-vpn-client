@@ -17,12 +17,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import net.nymtech.logcatutil.model.LogLevel
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.logcatutil.model.LogType
 import timber.log.Timber
 import java.io.File
+import java.time.Instant
 
-class LogcatManager(pid: Int, logDir: String, maxFileSize: Long, maxFolderSize: Long) :
+class LogcatManager(private val pid: Int, logDir: String, maxFileSize: Long, maxFolderSize: Long) :
 	LogReader,
 	DefaultLifecycleObserver {
 
@@ -102,6 +104,23 @@ class LogcatManager(pid: Int, logDir: String, maxFileSize: Long, maxFolderSize: 
 		}
 
 		isStarted = true
+	}
+
+	override suspend fun writeDiagnostic(tag: String, message: String) {
+		val logMessage = LogMessage(
+			time = Instant.now().toString(),
+			epochMillis = System.currentTimeMillis(),
+			pid = pid.toString(),
+			tid = pid.toString(),
+			level = LogLevel.INFO,
+			tag = tag,
+			message = message,
+		)
+		_bufferedLogsApp.emit(logMessage)
+		runCatching { fileManager.writeLog(LogType.LOGCAT, logMessage.toString()) }
+			.onFailure { Timber.tag(TAG).w(it, "DiagnosticWriteFailed") }
+		runCatching { fileManager.writeLog(LogType.APP, logMessage.toString()) }
+			.onFailure { Timber.tag(TAG).w(it, "DiagnosticWriteFailed") }
 	}
 
 	private fun activateTimberFallback() {
