@@ -144,8 +144,12 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-        #expect(processing.calls == [.isActive, .ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
-        #expect(processing.lastSyncUntilActive == true)
+        #expect(
+            processing.calls == [
+                .isActive, .ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch
+            ]
+        )
+        #expect(processing.lastSyncUntilActive == false)
         await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])

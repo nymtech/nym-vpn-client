@@ -607,14 +607,13 @@ extension CredentialsManager {
                 try? await Task.sleep(for: delay)
             }
             await fetchAccountSummary()
-            if untilActive {
-                if AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(
-                    isSubscriptionActive: accountSummary?.isActive == true
-                ) {
-                    break
-                }
-            } else {
-                if accountSummary != nil { break }
+            if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: untilActive,
+                isSubscriptionActive: accountSummary?.isActive == true,
+                hasAccountSummary: accountSummary != nil,
+                lastFetchFailed: accountSummaryLastFetchFailed
+            ) {
+                break
             }
         }
 #endif

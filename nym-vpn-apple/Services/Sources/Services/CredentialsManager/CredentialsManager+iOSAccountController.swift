@@ -237,17 +237,22 @@ extension CredentialsManager {
                     if delay != .zero {
                         try await Task.sleep(for: delay)
                     }
-                    guard let summary = try await controller.getAccountSummary() else {
-                        continue
-                    }
-                    applyVpnAccountSummary(summary)
-                    if untilActive {
-                        if AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(
-                            isSubscriptionActive: summary.isSubscriptionActive()
+                    if let summary = try await controller.getAccountSummary() {
+                        applyVpnAccountSummary(summary)
+                        if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                            untilActive: untilActive,
+                            isSubscriptionActive: summary.isSubscriptionActive(),
+                            hasAccountSummary: true,
+                            lastFetchFailed: false
                         ) {
                             return
                         }
-                    } else {
+                    } else if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                        untilActive: untilActive,
+                        isSubscriptionActive: false,
+                        hasAccountSummary: false,
+                        lastFetchFailed: false
+                    ) {
                         return
                     }
                 }

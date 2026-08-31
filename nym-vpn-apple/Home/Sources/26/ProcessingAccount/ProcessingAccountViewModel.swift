@@ -168,7 +168,7 @@ public final class ProcessingAccountViewModel {
             phase = .syncing
             syncProgressStep()
         }
-        await processing.updateAccountSummary(force: true, untilActive: !skipsSetupCarousel)
+        await processing.updateAccountSummary(force: true, untilActive: false)
         try Task.checkCancellation()
         let isActive = processing.isAccountActive()
         if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(

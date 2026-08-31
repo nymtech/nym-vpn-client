@@ -32,4 +32,59 @@ struct AccountSummaryRefreshPolicyTests {
             AccountSummaryRefreshPolicy.shouldStopUntilActivePoll(isSubscriptionActive: true)
         )
     }
+
+    @Test func loginPollFinishesOnEmptySuccessfulSummary() {
+        #expect(
+            AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: false,
+                hasAccountSummary: false,
+                lastFetchFailed: false
+            )
+        )
+    }
+
+    @Test func loginPollRetriesWhenFetchFailed() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: false,
+                hasAccountSummary: false,
+                lastFetchFailed: true
+            )
+        )
+    }
+
+    @Test func iapPollDoesNotFinishOnEmptyInactiveSummary() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: true,
+                isSubscriptionActive: false,
+                hasAccountSummary: false,
+                lastFetchFailed: false
+            )
+        )
+    }
+
+    @Test func iapPollDoesNotFinishWhenInactiveSummaryExists() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: true,
+                isSubscriptionActive: false,
+                hasAccountSummary: true,
+                lastFetchFailed: false
+            )
+        )
+    }
+
+    @Test func iapPollFinishesWhenSubscriptionActive() {
+        #expect(
+            AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: true,
+                isSubscriptionActive: true,
+                hasAccountSummary: true,
+                lastFetchFailed: false
+            )
+        )
+    }
 }
