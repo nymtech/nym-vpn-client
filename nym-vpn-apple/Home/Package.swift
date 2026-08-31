@@ -63,7 +63,16 @@ let package = Package(
             name: "HomeTests",
             dependencies: [
                 "Home",
-                .product(name: "AccountPrefetchGates", package: "Services")
+                .product(name: "AccountPrefetchGates", package: "Services"),
+                .product(name: "Theme", package: "Theme"),
+                .product(name: "SnackbarManager", package: "Services"),
+                .product(name: "AppSettings", package: "Services"),
+                .product(name: "ConnectionManager", package: "Services"),
+                .product(name: "CredentialsManager", package: "Services"),
+                .product(name: "GatewayManager", package: "Services"),
+                .product(name: "ImpactGenerator", package: "Services"),
+                .product(name: "NetworkMonitor", package: "Services"),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ]
         )
     ]
