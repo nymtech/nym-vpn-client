@@ -47,8 +47,7 @@ class LifecycleExtensionsTest {
 		registry.handleLifecycleEventSafely(Lifecycle.Event.ON_STOP)
 		registry.handleLifecycleEventSafely(Lifecycle.Event.ON_DESTROY)
 
-		// TileService delivers callbacks through a handler, so a queued
-		// onStartListening can arrive after onDestroy
+		// simulates a queued onStartListening arriving after onDestroy
 		registry.handleLifecycleEventSafely(Lifecycle.Event.ON_START)
 
 		assertEquals(Lifecycle.State.DESTROYED, registry.currentState)
