@@ -284,19 +284,25 @@ class NymVpn : Application() {
 				"https://cf027ef57330e976438c2cbbe1903868@o967446.ingest.us.sentry.io/4506859434082304"
 
 			val sampleRate: Double
-			val sessionSampleRate: Double
+			val profileSampleRate: Double
 			if (BuildConfig.DEBUG) {
 				sampleRate = 1.0
-				sessionSampleRate = 1.0
+				profileSampleRate = 1.0
 			} else {
 				sampleRate = 0.1
-				sessionSampleRate = 0.05
+				profileSampleRate = 0.05
 			}
 
 			options.sampleRate = sampleRate
-			options.profileSessionSampleRate = sessionSampleRate
-			options.sessionReplay.onErrorSampleRate = sampleRate
-			options.sessionReplay.sessionSampleRate = sessionSampleRate
+			options.profileSessionSampleRate = profileSampleRate
+			// Session Replay must stay disabled: its recorder thread holds
+			// ReplayIntegration's lock while encoding video, and the main thread
+			// blocks on that lock on every foreground transition
+			// (LifecycleWatcher.onForeground), causing ANR kills. Both rates must
+			// be zero — a non-zero onErrorSampleRate still runs the recorder in
+			// buffered mode. Explicit zeros also override any manifest meta-data.
+			options.sessionReplay.onErrorSampleRate = 0.0
+			options.sessionReplay.sessionSampleRate = 0.0
 
 			options.beforeSend =
 				SentryOptions.BeforeSendCallback { event: SentryEvent, _: Hint ->
