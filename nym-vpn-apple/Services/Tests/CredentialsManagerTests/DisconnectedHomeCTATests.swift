@@ -58,14 +58,14 @@ struct DisconnectedHomeCTATests {
         )
     }
 
-    @Test func importedWithoutSummaryIsConnectNotGetStarted() {
+    @Test func importedWithoutSummaryIsChoosePlanNotConnect() {
         #expect(
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
                 isAccountActive: false,
                 hasAccountSummary: false
-            ) == .connect
+            ) == .choosePlan
         )
     }
 }

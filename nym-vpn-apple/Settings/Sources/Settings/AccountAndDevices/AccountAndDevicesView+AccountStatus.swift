@@ -170,7 +170,10 @@ extension AccountAndDevicesView {
                     GenericImage(imageName: "bolt")
                         .frame(width: 16, height: 16)
                         .foregroundStyle(color)
-                    Text("settings.account.renewNow".localizedString)
+                    Text(
+                        credentialsManager.accountSummary?.renewButtonTitle
+                            ?? "purchasePlan.chooseMyPlan".localizedString
+                    )
                         .foregroundStyle(color)
                         .nymTextStyle(.bodyDefault)
                     Spacer()

@@ -295,6 +295,31 @@ private extension SettingsViewModel {
         accountSummary.isAutoRenewEnabled
 #endif
     }
+
+    static func noActivePlanChoosePlanSubtitle() -> AttributedString {
+        var first = AttributedString("noActivePlan".localizedString)
+        first.foregroundColor = Color.Nym.error
+        var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
+        second.foregroundColor = Color.Nym.primary
+        return first + second
+    }
+}
+
+extension SettingsViewModel {
+    enum NilSummaryAccountCopy: Equatable {
+        case requestingZkNyms
+        case unreachable
+        case noActivePlan
+    }
+
+    static func nilSummaryAccountCopy(
+        lastFetchFailed: Bool,
+        isRegistrationInFlight: Bool
+    ) -> NilSummaryAccountCopy {
+        if isRegistrationInFlight { return .requestingZkNyms }
+        if lastFetchFailed { return .unreachable }
+        return .noActivePlan
+    }
 }
 
 // MARK: - Sections -
@@ -318,14 +343,20 @@ private extension SettingsViewModel {
                 confirmingPayment.foregroundColor = Color.Nym.error
                 subtitle = confirmingPayment
             } else {
-                var first = AttributedString("noActivePlan".localizedString)
-                first.foregroundColor = Color.Nym.error
-                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
-                second.foregroundColor = Color.Nym.primary
-                subtitle = first + second
+                subtitle = Self.noActivePlanChoosePlanSubtitle()
             }
         } else {
-            subtitle = AttributedString("requestingZkNyms".localizedString)
+            switch Self.nilSummaryAccountCopy(
+                lastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+                isRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight
+            ) {
+            case .requestingZkNyms:
+                subtitle = AttributedString("requestingZkNyms".localizedString)
+            case .unreachable:
+                subtitle = AttributedString("home.accountUnreachable".localizedString)
+            case .noActivePlan:
+                subtitle = Self.noActivePlanChoosePlanSubtitle()
+            }
         }
 
         var viewModels = [

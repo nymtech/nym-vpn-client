@@ -25,7 +25,6 @@ final class FakeProcessing: AccountProcessing {
     var storeDeeplinkError: Error?
     var registerError: Error?
     var accountActive = true
-    var becomesActiveAfterSync = false
     var prefetchDelay: Duration = .zero
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
     private(set) var calls: [Call] = []
@@ -58,9 +57,6 @@ final class FakeProcessing: AccountProcessing {
 
     func updateAccountSummary(force: Bool, untilActive: Bool) async {
         calls.append(.sync)
-        if becomesActiveAfterSync {
-            accountActive = true
-        }
     }
 
     func isAccountActive() -> Bool {
@@ -238,8 +234,9 @@ struct ProcessingAccountViewModelTests {
 
         #expect(processing.calls == [.ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
-        await finishSetupCarousel(viewModel)
+        #expect(viewModel.usesStaticCopy)
         #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func prepareFailurePublishesFailedAndNotifiesCoordinator() async {
@@ -276,19 +273,26 @@ struct ProcessingAccountViewModelTests {
         #expect(viewModel.credentialsDisplayPair == nil)
     }
 
-    @Test func inactiveAccountHoldsSetupBarsUntilCarouselFinishes() async {
+    @Test func inactiveAccountSkipsSetupCarousel() async {
         let processing = FakeProcessing()
         processing.accountActive = false
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
-        #expect(viewModel.credentialsDisplayPair == nil)
-        #expect(!viewModel.didFinishSetupCarousel)
+        #expect(viewModel.usesStaticCopy)
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
 
-        await finishSetupCarousel(viewModel)
-        #expect(viewModel.currentStep == 4)
+    @Test func inactiveLoginSkipsSetupCarousel() async {
+        let processing = FakeProcessing()
+        processing.accountActive = false
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+        #expect(viewModel.usesStaticCopy)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }

@@ -72,7 +72,7 @@ struct OnboardingSessionPolicyTests {
             )
         )
         #expect(
-            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .loginReady,
                 isAccountActive: false
@@ -86,7 +86,7 @@ struct OnboardingSessionPolicyTests {
             )
         )
         #expect(
-            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .registeredNeedsPurchase,
                 isAccountActive: false,
@@ -117,9 +117,9 @@ struct OnboardingSessionPolicyTests {
         )
     }
 
-    @Test func loginProcessingSkipsPurchaseWhenSummaryMissing() {
+    @Test func loginProcessingOffersPurchaseWhenSummaryMissing() {
         #expect(
-            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .registeredNeedsPurchase,
                 isAccountActive: false,

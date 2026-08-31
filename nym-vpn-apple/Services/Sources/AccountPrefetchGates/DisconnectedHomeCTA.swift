@@ -11,7 +11,7 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
         isCredentialImported: Bool,
         accountSummaryLastFetchFailed: Bool,
         isAccountActive: Bool,
-        hasAccountSummary: Bool
+        hasAccountSummary _: Bool
     ) -> Self {
         if !isCredentialImported {
             return .getStarted
@@ -19,7 +19,7 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
         if accountSummaryLastFetchFailed, !isAccountActive {
             return .accountUnreachable
         }
-        if !isAccountActive, hasAccountSummary {
+        if !isAccountActive {
             return .choosePlan
         }
         return .connect

@@ -211,7 +211,7 @@ extension OneClickViewModel {
             sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
             return false
         }
-        return true
+        return false
     }
 
     func handleInactiveSubscriptionErrorIfNeeded() {
@@ -224,7 +224,7 @@ extension OneClickViewModel {
             let nsError = error as NSError
             reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
         }
-        guard reason == .inactiveSubscription else { return }
+        guard reason == .inactiveSubscription || reason == .inactiveAccount else { return }
         sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
     }
 

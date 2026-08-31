@@ -3,11 +3,13 @@ import XCTest
 import AppSettings
 import ConnectionManager
 import CredentialsManager
+import ErrorReason
 import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
 import SnackbarManager
 import Theme
+import TunnelStatus
 
 @MainActor
 private final class SessionCoordinatorSpy: AppSessionCoordinating {
@@ -66,6 +68,24 @@ final class OneClickViewModelCTATapTests: XCTestCase {
 
         XCTAssertTrue(viewModel.handleDisconnectedHomeCTATap())
         XCTAssertEqual(spy.actions, [.requestWelcome])
+    }
+
+    func testInactiveAccountTunnelErrorRequestsPlanPurchase() {
+        let viewModel = makeViewModel()
+        let spy = SessionCoordinatorSpy()
+        viewModel.sessionCoordinator = spy
+        let previousStatus = viewModel.connectionManager.currentTunnelStatus
+        let previousError = viewModel.connectionManager.lastError
+        defer {
+            viewModel.connectionManager.currentTunnelStatus = previousStatus
+            viewModel.connectionManager.lastError = previousError
+        }
+
+        viewModel.connectionManager.currentTunnelStatus = .error
+        viewModel.connectionManager.lastError = ErrorReason.inactiveAccount
+        viewModel.handleInactiveSubscriptionErrorIfNeeded()
+
+        XCTAssertEqual(spy.actions, [.requestInactiveSubscriptionPurchase])
     }
 
     func testNoSubscriptionTapRequestsPlanPurchase() {

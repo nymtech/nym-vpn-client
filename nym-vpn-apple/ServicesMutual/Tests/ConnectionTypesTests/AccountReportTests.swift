@@ -184,7 +184,8 @@ struct AccountReportTests {
                 if !nonButtonTitleKeys.contains(key) { keys.insert(key) }
             }
         }
-        if source.contains(#""settings.account.renewNow".localizedString"#) {
+        if source.contains("renewButtonTitle")
+            || source.contains(#""settings.account.renewNow".localizedString"#) {
             keys.insert("settings.account.renewNow")
         }
         return keys
