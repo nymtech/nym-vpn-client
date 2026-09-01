@@ -193,15 +193,8 @@ impl VpnTopologyService {
         )
         .map_err(VpnTopologyServiceError::CreateHttpClient)?;
 
-        let mut topology_provider = NymApiTopologyProvider::new(
-            clone_config(&self.config),
-            self.nym_api_urls
-                .clone()
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-            validator_client,
-        );
+        let mut topology_provider =
+            NymApiTopologyProvider::new(clone_config(&self.config), validator_client);
 
         let topology = topology_provider
             .get_new_topology()
