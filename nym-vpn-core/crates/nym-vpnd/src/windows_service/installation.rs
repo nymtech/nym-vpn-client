@@ -20,6 +20,9 @@ use windows_service::{
 
 use super::{SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME, SERVICE_TYPE};
 
+const SERVICE_WAIT_TIMEOUT: Duration = Duration::from_secs(30);
+const SERVICE_POLL_INTERVAL: Duration = Duration::from_secs(1);
+
 pub fn install_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
@@ -118,8 +121,7 @@ pub async fn uninstall_service() -> anyhow::Result<()> {
 
     // Poll until service is deleted or timeout.
     let start = Instant::now();
-    let timeout = Duration::from_secs(30);
-    while start.elapsed() < timeout {
+    while start.elapsed() < SERVICE_WAIT_TIMEOUT {
         if let Err(windows_service::Error::Winapi(e)) =
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
             && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32)
@@ -127,7 +129,7 @@ pub async fn uninstall_service() -> anyhow::Result<()> {
             println!("{SERVICE_NAME} service was uninstalled successfully.");
             return Ok(());
         }
-        tokio::time::sleep(Duration::from_secs(1)).await;
+        tokio::time::sleep(SERVICE_POLL_INTERVAL).await;
     }
 
     Err(anyhow!(
@@ -135,7 +137,7 @@ pub async fn uninstall_service() -> anyhow::Result<()> {
     ))
 }
 
-pub fn start_service() -> anyhow::Result<()> {
+pub async fn start_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -145,7 +147,17 @@ pub fn start_service() -> anyhow::Result<()> {
     if service.query_status()?.current_state != ServiceState::Running {
         service.start(&[] as &[&std::ffi::OsStr])?;
     }
-    Ok(())
+
+    let start = Instant::now();
+    while start.elapsed() < SERVICE_WAIT_TIMEOUT {
+        if service.query_status()?.current_state == ServiceState::Running {
+            return Ok(());
+        }
+        tokio::time::sleep(SERVICE_POLL_INTERVAL).await;
+    }
+    Err(anyhow!(
+        "timed out waiting for the service to reach running"
+    ))
 }
 
 fn get_service_info() -> ServiceInfo {
@@ -166,5 +178,20 @@ fn get_service_info() -> ServiceInfo {
         ],
         account_name: None, // run as System
         account_password: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn service_wait_timeout_is_thirty_seconds() {
+        assert_eq!(SERVICE_WAIT_TIMEOUT, Duration::from_secs(30));
+    }
+
+    #[test]
+    fn service_poll_interval_is_one_second() {
+        assert_eq!(SERVICE_POLL_INTERVAL, Duration::from_secs(1));
     }
 }
