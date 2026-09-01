@@ -30,21 +30,24 @@ public enum AccountSummaryRefreshPolicy {
         max(0, pollDelays(untilActive: false).count - 1)
     }
 
-    /// Login may query controller state before the loop and on later empty polls, not on every tick.
+    /// Login may query controller state before the loop and on later polls, not on every tick.
+    /// A stale in-memory summary must not skip the recheck; only IAP (`untilActive`) and
+    /// an already-known inactive controller do.
     public static func shouldRecheckLoginInactiveState(
         untilActive: Bool,
-        hasAccountSummary: Bool,
+        hasAccountSummary _: Bool,
         attemptIndex: Int,
         alreadyKnownInactive: Bool
     ) -> Bool {
-        guard !untilActive, !hasAccountSummary, !alreadyKnownInactive else {
+        guard !untilActive, !alreadyKnownInactive else {
             return false
         }
         return attemptIndex > 0
     }
 
-    /// Login uses untilActive false. A real summary, or a known-inactive
-    /// controller state, is terminal. Empty success while still syncing waits.
+    /// Login uses untilActive false. Controller inactive wins over a stale prior-session
+    /// summary. A freshly fetched summary is terminal; a failed fetch keeps stale data
+    /// and must not finish until inactive or the empty-success timeout.
     public static func shouldFinishSummaryPoll(
         untilActive: Bool,
         isSubscriptionActive: Bool,
@@ -56,10 +59,10 @@ public enum AccountSummaryRefreshPolicy {
         if untilActive {
             return shouldStopUntilActivePoll(isSubscriptionActive: isSubscriptionActive)
         }
-        if hasAccountSummary {
+        if isAccountKnownInactive {
             return true
         }
-        if isAccountKnownInactive {
+        if hasAccountSummary, !lastFetchFailed {
             return true
         }
         if lastFetchFailed {

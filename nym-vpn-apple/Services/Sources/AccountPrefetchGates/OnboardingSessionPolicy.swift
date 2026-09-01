@@ -59,6 +59,11 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
         }
     }
 
+    /// UniFFI `VpnError.ExistingAccount` Display (`nym-vpn-lib-uniffi/src/error.rs`).
+    /// iOS `mapToVPNErrorReason` and macOS `GRPCManager.storeAccount` map to typed
+    /// enums first. This exact string is only for an unmapped leaked `VpnError`.
+    public static let unmappedExistingAccountStoreMessage = "an account is already stored"
+
     /// Daemon already has a mnemonic (second app window, retry). Treat as logged in.
     public static func isExistingAccountStoreError(_ error: Error) -> Bool {
 #if os(iOS)
@@ -71,8 +76,7 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
             return true
         }
 #endif
-        // VpnError.ExistingAccount display in nym-vpn-lib-uniffi/src/error.rs
-        return error.localizedDescription == "an account is already stored"
+        return error.localizedDescription == unmappedExistingAccountStoreMessage
     }
 }
 

@@ -190,7 +190,7 @@ struct AccountSummaryRefreshPolicyTests {
             )
         )
         #expect(
-            !AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+            AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
                 untilActive: false,
                 hasAccountSummary: true,
                 attemptIndex: 2,
@@ -211,6 +211,40 @@ struct AccountSummaryRefreshPolicyTests {
                 hasAccountSummary: false,
                 attemptIndex: 2,
                 alreadyKnownInactive: true
+            )
+        )
+    }
+
+    @Test func loginPollFinishesWhenStaleSummaryAndControllerIsInactive() {
+        #expect(
+            AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: true,
+                hasAccountSummary: true,
+                lastFetchFailed: true,
+                attemptIndex: 1,
+                isAccountKnownInactive: true
+            )
+        )
+    }
+
+    @Test func loginPollDoesNotFinishOnStaleSummaryUntilInactiveOrTimeout() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: true,
+                hasAccountSummary: true,
+                lastFetchFailed: true,
+                attemptIndex: 0,
+                isAccountKnownInactive: false
+            )
+        )
+        #expect(
+            AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: false,
+                hasAccountSummary: true,
+                attemptIndex: 1,
+                alreadyKnownInactive: false
             )
         )
     }

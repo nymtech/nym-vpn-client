@@ -70,6 +70,7 @@ let package = Package(
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "GatewayManager", package: "Services"),
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "NetworkMonitor", package: "Services"),

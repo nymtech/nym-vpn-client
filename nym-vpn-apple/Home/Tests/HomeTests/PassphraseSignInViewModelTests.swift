@@ -3,6 +3,9 @@ import Testing
 import AccountPrefetchGates
 import CredentialsManager
 import ErrorReason
+#if os(iOS)
+import ErrorHandler
+#endif
 @testable import Home
 
 @MainActor
@@ -161,7 +164,9 @@ struct PassphraseSignInViewModelTests {
 
     @Test func alreadyStoredAccountCompletesLoginWithoutSnackbar() async {
         struct AlreadyStored: Error, LocalizedError {
-            var errorDescription: String? { "an account is already stored" }
+            var errorDescription: String? {
+                OnboardingSessionPolicy.unmappedExistingAccountStoreMessage
+            }
         }
         let store = FakePassphraseSignInCredentialStore()
         store.storeError = AlreadyStored()
@@ -193,6 +198,26 @@ struct PassphraseSignInViewModelTests {
     @Test func alreadyStoredTypedErrorCompletesLoginWithoutSnackbar() async {
         let store = FakePassphraseSignInCredentialStore()
         store.storeError = ErrorReason.existingAccount
+        store.accountActive = false
+        let coordinator = FakePassphraseSignInCoordinator()
+        let viewModel = PassphraseSignInViewModel(credentialStore: store)
+        viewModel.sessionCoordinator = coordinator
+        viewModel.passphraseText = "alpha beta gamma"
+
+        viewModel.loginButtonTapped()
+        await viewModel.waitForLoginTask()
+
+        #expect(store.ensureResolvedCount == 1)
+        #expect(viewModel.submissionState == .idle)
+        let completed = PassphraseSignInTestSupport.lastAuthCompleted(from: coordinator.actions)
+        #expect(completed?.0 == .registeredNeedsPurchase)
+    }
+#endif
+
+#if os(iOS)
+    @Test func alreadyStoredTypedVPNErrorCompletesLoginWithoutSnackbar() async {
+        let store = FakePassphraseSignInCredentialStore()
+        store.storeError = VPNErrorReason.existingAccount
         store.accountActive = false
         let coordinator = FakePassphraseSignInCoordinator()
         let viewModel = PassphraseSignInViewModel(credentialStore: store)
