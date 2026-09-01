@@ -328,13 +328,13 @@ private extension OneClickView {
         }
         switch viewModel.connectState {
         case .disconnected, .noAccount, .noSubscription, .accountUnreachable:
-            .primary
+            return .primary
         case .connecting, .disconnecting, .noInternet:
-            .connecting
+            return .connecting
         case .stop:
-            .destructive
+            return .destructive
         case .connected:
-            .connected
+            return .connected
         }
     }
 
@@ -344,9 +344,9 @@ private extension OneClickView {
         }
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
-            true
+            return true
         case .disconnected, .stop, .connected, .noAccount, .noSubscription, .accountUnreachable:
-            false
+            return false
         }
     }
 

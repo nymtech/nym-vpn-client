@@ -146,16 +146,7 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-<<<<<<< Updated upstream
         #expect(processing.calls == [.ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
-=======
-        #expect(
-            processing.calls == [
-                .ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch
-            ]
-        )
-        #expect(processing.lastSyncUntilActive == false)
->>>>>>> Stashed changes
         await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
@@ -299,50 +290,7 @@ struct ProcessingAccountViewModelTests {
         await finishSetupCarousel(viewModel)
         #expect(viewModel.currentStep == 4)
         #expect(viewModel.phase == .finished)
-<<<<<<< Updated upstream
-=======
         #expect(coordinator.actions == [.session(.processingFinished)])
-    }
-
-    @Test func inactiveLoginSkipsSetupCarousel() async {
-        let processing = FakeProcessing()
-        processing.accountActive = false
-        let coordinator = FakeCoordinator()
-        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
-
-        await viewModel.run()
-        #expect(viewModel.usesStaticCopy)
-        #expect(processing.lastSyncUntilActive == false)
-        #expect(viewModel.phase == .finished)
-        #expect(coordinator.actions == [.session(.processingFinished)])
-    }
-
-    @Test func staleInactiveCacheDoesNotSkipCarouselUntilAfterSync() async {
-        let processing = FakeProcessing()
-        processing.accountActive = false
-        let coordinator = FakeCoordinator()
-        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
-
-        #expect(!viewModel.usesStaticCopy)
-        #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
-
-        await viewModel.run()
-
-        #expect(viewModel.usesStaticCopy)
-        #expect(viewModel.phase == .finished)
-    }
-
-    @Test func staleInactiveCacheDoesNotFlipStaticCopyWhenSyncActivates() async {
-        let processing = FakeProcessing()
-        processing.accountActive = false
-        processing.becomesActiveAfterSync = true
-        let coordinator = FakeCoordinator()
-        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
-
-        #expect(!viewModel.usesStaticCopy)
-        await viewModel.run()
-        #expect(!viewModel.usesStaticCopy)
->>>>>>> Stashed changes
     }
 
     @Test func navigationWaitsForCarouselAfterWorkCompletes() async {
