@@ -8,8 +8,7 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: false,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false,
-                hasAccountSummary: false
+                isAccountActive: false
             ) == .getStarted
         )
     }
@@ -19,8 +18,7 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false,
-                hasAccountSummary: true
+                isAccountActive: false
             ) == .choosePlan
         )
     }
@@ -30,8 +28,7 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: true,
-                isAccountActive: false,
-                hasAccountSummary: false
+                isAccountActive: false
             ) == .accountUnreachable
         )
     }
@@ -41,8 +38,7 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: true,
-                isAccountActive: false,
-                hasAccountSummary: true
+                isAccountActive: false
             ) == .accountUnreachable
         )
     }
@@ -52,8 +48,7 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: true,
-                hasAccountSummary: true
+                isAccountActive: true
             ) == .connect
         )
     }
@@ -63,8 +58,7 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false,
-                hasAccountSummary: false
+                isAccountActive: false
             ) == .choosePlan
         )
     }

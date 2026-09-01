@@ -10,8 +10,7 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
     public static func resolve(
         isCredentialImported: Bool,
         accountSummaryLastFetchFailed: Bool,
-        isAccountActive: Bool,
-        hasAccountSummary _: Bool
+        isAccountActive: Bool
     ) -> Self {
         if !isCredentialImported {
             return .getStarted

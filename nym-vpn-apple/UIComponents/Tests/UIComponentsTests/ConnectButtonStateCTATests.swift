@@ -18,8 +18,7 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false,
-                hasAccountSummary: true
+                isAccountActive: false
             ) == .noSubscription
         )
     }
@@ -30,8 +29,7 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: true,
-                isAccountActive: false,
-                hasAccountSummary: false
+                isAccountActive: false
             ) == .accountUnreachable
         )
     }
@@ -42,8 +40,7 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false,
-                hasAccountSummary: false
+                isAccountActive: false
             ) == .noSubscription
         )
     }
@@ -54,8 +51,7 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: true,
-                hasAccountSummary: true
+                isAccountActive: true
             ) == .connect
         )
     }

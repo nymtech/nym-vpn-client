@@ -12,6 +12,7 @@ public enum ConnectButtonState: Equatable {
     case noInternet
     case noInternetReconnect
     case noAccount
+    /// Menu bar / connect-button encoding of `DisconnectedHomeCTA.choosePlan`.
     case noSubscription
     case accountUnreachable
 
@@ -19,8 +20,7 @@ public enum ConnectButtonState: Equatable {
         tunnelStatus: TunnelStatus,
         isCredentialImported: Bool,
         accountSummaryLastFetchFailed: Bool = false,
-        isAccountActive: Bool = true,
-        hasAccountSummary: Bool = false
+        isAccountActive: Bool = true
     ) {
         if isCredentialImported == false {
             self = .noAccount
@@ -35,8 +35,7 @@ public enum ConnectButtonState: Equatable {
             switch DisconnectedHomeCTA.resolve(
                 isCredentialImported: isCredentialImported,
                 accountSummaryLastFetchFailed: accountSummaryLastFetchFailed,
-                isAccountActive: isAccountActive,
-                hasAccountSummary: hasAccountSummary
+                isAccountActive: isAccountActive
             ) {
             case .getStarted:
                 self = .noAccount

@@ -152,8 +152,7 @@ extension OneClickViewModel {
                 DisconnectedHomeCTA.resolve(
                     isCredentialImported: credentialsManager.isValidCredentialImported,
                     accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
-                    isAccountActive: credentialsManager.isAccountActive(),
-                    hasAccountSummary: credentialsManager.accountSummary != nil
+                    isAccountActive: credentialsManager.isAccountActive()
                 )
             )
         }
@@ -209,7 +208,6 @@ extension OneClickViewModel {
         )
         if shouldOfferPurchase {
             sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
-            return false
         }
         return false
     }

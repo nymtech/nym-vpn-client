@@ -185,6 +185,18 @@ struct LoginSessionPolicyTests {
 }
 
 struct ConnectPlanPurchaseGatePolicyTests {
+    @Test func connectOffersPurchaseWhenInactiveWithoutSummary() {
+        #expect(
+            ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                isAccountRegistrationInFlight: false,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
+            )
+        )
+    }
+
     @Test func connectSkipsPurchaseDuringRegistration() {
         #expect(
             !ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
