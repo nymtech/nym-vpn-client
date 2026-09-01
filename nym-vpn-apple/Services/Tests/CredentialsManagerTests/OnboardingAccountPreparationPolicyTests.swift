@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import AccountPrefetchGates
+import TunnelStatus
 
 struct OnboardingAccountPreparationPolicyTests {
     @Test func inactiveSubscriptionIsPreparedForOnboarding() {
@@ -36,6 +37,14 @@ struct OnboardingAccountPreparationPolicyTests {
         )
         #expect(
             !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.pendingSubscription)
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.loginState(
+                from: .error(.inactiveSubscription)
+            ) == .inactiveSubscription
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.loginState(from: .syncing) == .other
         )
     }
 

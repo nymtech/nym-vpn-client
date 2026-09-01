@@ -1,4 +1,5 @@
 import Foundation
+import TunnelStatus
 
 public enum AccountPreparationWaitOutcome: Equatable, Sendable {
     case prepared
@@ -57,11 +58,19 @@ public enum OnboardingAccountPreparationPolicy {
 
     /// Login may finish without a summary once the controller has a terminal inactive error.
     public static func isTerminalInactiveForLogin(_ phase: AccountStatePhase) -> Bool {
+        loginState(from: phase).isTerminalInactiveForLogin
+    }
+
+    public static func loginState(
+        from phase: AccountStatePhase
+    ) -> AccountControllerLoginState {
         switch phase {
-        case .error(.inactiveSubscription), .error(.accountStatusNotActive):
-            return true
+        case .error(.inactiveSubscription):
+            .inactiveSubscription
+        case .error(.accountStatusNotActive):
+            .accountStatusNotActive
         default:
-            return false
+            .other
         }
     }
 

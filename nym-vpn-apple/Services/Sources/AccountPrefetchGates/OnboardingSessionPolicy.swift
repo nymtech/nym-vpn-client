@@ -1,4 +1,8 @@
 import Foundation
+#if os(iOS)
+import ErrorHandler
+#endif
+import ErrorReason
 
 public enum OnboardingPhase: Equatable, Sendable, CaseIterable {
     case creatingMnemonic
@@ -57,11 +61,18 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
 
     /// Daemon already has a mnemonic (second app window, retry). Treat as logged in.
     public static func isExistingAccountStoreError(_ error: Error) -> Bool {
-        let ns = error as NSError
-        let haystack = "\(ns.localizedDescription) \(String(describing: error))".lowercased()
-        return haystack.contains("already stored")
-            || haystack.contains("existingaccount")
-            || haystack.contains("account already exists")
+#if os(iOS)
+        if let reason = error as? VPNErrorReason, case .existingAccount = reason {
+            return true
+        }
+#endif
+#if os(macOS)
+        if let reason = error as? ErrorReason, case .existingAccount = reason {
+            return true
+        }
+#endif
+        // VpnError.ExistingAccount display in nym-vpn-lib-uniffi/src/error.rs
+        return error.localizedDescription == "an account is already stored"
     }
 }
 

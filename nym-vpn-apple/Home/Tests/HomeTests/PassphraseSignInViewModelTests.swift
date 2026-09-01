@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import AccountPrefetchGates
 import CredentialsManager
+import ErrorReason
 @testable import Home
 
 @MainActor
@@ -187,4 +188,24 @@ struct PassphraseSignInViewModelTests {
         }
         #expect(!cancelled)
     }
+
+#if os(macOS)
+    @Test func alreadyStoredTypedErrorCompletesLoginWithoutSnackbar() async {
+        let store = FakePassphraseSignInCredentialStore()
+        store.storeError = ErrorReason.existingAccount
+        store.accountActive = false
+        let coordinator = FakePassphraseSignInCoordinator()
+        let viewModel = PassphraseSignInViewModel(credentialStore: store)
+        viewModel.sessionCoordinator = coordinator
+        viewModel.passphraseText = "alpha beta gamma"
+
+        viewModel.loginButtonTapped()
+        await viewModel.waitForLoginTask()
+
+        #expect(store.ensureResolvedCount == 1)
+        #expect(viewModel.submissionState == .idle)
+        let completed = PassphraseSignInTestSupport.lastAuthCompleted(from: coordinator.actions)
+        #expect(completed?.0 == .registeredNeedsPurchase)
+    }
+#endif
 }

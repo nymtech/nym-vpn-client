@@ -1,6 +1,10 @@
 import Foundation
 import Testing
 import AccountPrefetchGates
+import ErrorReason
+#if os(iOS)
+import ErrorHandler
+#endif
 
 struct OnboardingSessionPolicyTests {
     @Test func progressStepMapping() {
@@ -650,21 +654,27 @@ struct DrawerSessionPolicyTests {
         )
     }
 
-    @Test func existingAccountStoreErrorMatchesDaemonMessage() {
+    @Test func existingAccountStoreErrorMatchesTypedReason() {
         struct DaemonStoreError: Error, LocalizedError {
             var errorDescription: String? { "an account is already stored" }
         }
         #expect(OnboardingSessionPolicy.isExistingAccountStoreError(DaemonStoreError()))
+#if os(macOS)
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(ErrorReason.existingAccount))
+#endif
+#if os(iOS)
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(VPNErrorReason.existingAccount))
+#endif
         struct MnemonicStored: Error, LocalizedError {
             var errorDescription: String? { "mnemonic already stored" }
         }
-        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(MnemonicStored()))
+        #expect(!OnboardingSessionPolicy.isExistingAccountStoreError(MnemonicStored()))
         enum StoreKind: Error {
             case existingAccount
         }
-        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(StoreKind.existingAccount))
+        #expect(!OnboardingSessionPolicy.isExistingAccountStoreError(StoreKind.existingAccount))
         #expect(
-            OnboardingSessionPolicy.isExistingAccountStoreError(
+            !OnboardingSessionPolicy.isExistingAccountStoreError(
                 NSError(domain: "vpn", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account already exists"])
             )
         )

@@ -30,6 +30,19 @@ public enum AccountSummaryRefreshPolicy {
         max(0, pollDelays(untilActive: false).count - 1)
     }
 
+    /// Login may query controller state before the loop and on later empty polls, not on every tick.
+    public static func shouldRecheckLoginInactiveState(
+        untilActive: Bool,
+        hasAccountSummary: Bool,
+        attemptIndex: Int,
+        alreadyKnownInactive: Bool
+    ) -> Bool {
+        guard !untilActive, !hasAccountSummary, !alreadyKnownInactive else {
+            return false
+        }
+        return attemptIndex > 0
+    }
+
     /// Login uses untilActive false. A real summary, or a known-inactive
     /// controller state, is terminal. Empty success while still syncing waits.
     public static func shouldFinishSummaryPoll(

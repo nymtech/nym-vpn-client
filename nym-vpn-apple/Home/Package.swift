@@ -69,6 +69,7 @@ let package = Package(
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
+                .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "GatewayManager", package: "Services"),
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "NetworkMonitor", package: "Services"),

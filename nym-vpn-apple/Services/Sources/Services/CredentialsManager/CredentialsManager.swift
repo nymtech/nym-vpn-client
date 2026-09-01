@@ -606,22 +606,36 @@ extension CredentialsManager {
 #if os(iOS)
         await refreshAccountSummaryOnIOS(untilActive: untilActive)
 #else
-        for (attemptIndex, delay) in AccountSummaryRefreshPolicy.pollDelays(
-            untilActive: untilActive
-        ).enumerated() {
-            if delay != .zero {
-                try? await Task.sleep(for: delay)
-            }
-            await fetchAccountSummary()
-            if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
-                untilActive: untilActive,
-                isSubscriptionActive: accountSummary?.isActive == true,
-                hasAccountSummary: accountSummary != nil,
-                lastFetchFailed: accountSummaryLastFetchFailed,
-                attemptIndex: attemptIndex,
-                isAccountKnownInactive: await grpcManager.isAccountKnownInactiveForLogin()
-            ) {
-                break
+        var knownInactive = false
+        if !untilActive {
+            knownInactive = await grpcManager.isAccountKnownInactiveForLogin()
+        }
+        if !knownInactive {
+            for (attemptIndex, delay) in AccountSummaryRefreshPolicy.pollDelays(
+                untilActive: untilActive
+            ).enumerated() {
+                if delay != .zero {
+                    try? await Task.sleep(for: delay)
+                }
+                await fetchAccountSummary()
+                if AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                    untilActive: untilActive,
+                    hasAccountSummary: accountSummary != nil,
+                    attemptIndex: attemptIndex,
+                    alreadyKnownInactive: knownInactive
+                ) {
+                    knownInactive = await grpcManager.isAccountKnownInactiveForLogin()
+                }
+                if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                    untilActive: untilActive,
+                    isSubscriptionActive: accountSummary?.isActive == true,
+                    hasAccountSummary: accountSummary != nil,
+                    lastFetchFailed: accountSummaryLastFetchFailed,
+                    attemptIndex: attemptIndex,
+                    isAccountKnownInactive: knownInactive
+                ) {
+                    break
+                }
             }
         }
 #endif

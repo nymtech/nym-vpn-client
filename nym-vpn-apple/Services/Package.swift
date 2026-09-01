@@ -107,7 +107,9 @@ let package = Package(
         .target(
             name: "AccountPrefetchGates",
             dependencies: [
-                .product(name: "TunnelStatus", package: "ServicesMutual")
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
+                .product(name: "ErrorReason", package: "ServicesMutual"),
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/AccountPrefetchGates"
         ),
@@ -302,6 +304,7 @@ let package = Package(
                 "CredentialsManager",
                 "SnackbarManager",
                 .product(name: "ErrorHandler", package: "ServicesIOS"),
+                .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib"),
                 .product(name: "Theme", package: "Theme"),
                 .product(name: "TunnelStatus", package: "ServicesMutual")

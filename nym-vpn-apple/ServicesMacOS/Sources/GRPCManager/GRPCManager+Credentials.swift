@@ -2,12 +2,20 @@ import NymVPNLib
 import Constants
 import ConnectionTypes
 import ErrorReason
+import TunnelStatus
 
 extension GRPCManager {
     public func storeAccount(with request: StoreAccountRequest) async throws {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.storeAccount(request: request)
-        }.value
+        do {
+            try await Task.detached { [weak self] in
+                try await self?.rpcClient?.storeAccount(request: request)
+            }.value
+        } catch let error as VpnError {
+            if case .ExistingAccount = error {
+                throw ErrorReason.existingAccount
+            }
+            throw error
+        }
     }
 
     public func forgetAccount() async throws {
@@ -23,19 +31,25 @@ extension GRPCManager {
     }
 
     public func isAccountKnownInactiveForLogin() async -> Bool {
+        await accountControllerLoginState().isTerminalInactiveForLogin
+    }
+
+    public func accountControllerLoginState() async -> AccountControllerLoginState {
         do {
             let state = try await Task.detached { [weak self] in
                 try await self?.rpcClient?.getAccountState()
             }.value
-            guard let state else { return false }
+            guard let state else { return .other }
             switch state {
-            case .error(.inactiveSubscription), .error(.accountStatusNotActive):
-                return true
+            case .error(.inactiveSubscription):
+                return .inactiveSubscription
+            case .error(.accountStatusNotActive):
+                return .accountStatusNotActive
             default:
-                return false
+                return .other
             }
         } catch {
-            return false
+            return .other
         }
     }
 

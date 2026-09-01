@@ -233,6 +233,18 @@ extension CredentialsManager {
                     try await controller.updateAccountState()
                 }
 
+                var knownInactive = false
+                if !untilActive {
+                    let phase = Self.accountPreparationPhase(
+                        from: await controller.getAccountState()
+                    )
+                    knownInactive = OnboardingAccountPreparationPolicy
+                        .isTerminalInactiveForLogin(phase)
+                    if knownInactive {
+                        return
+                    }
+                }
+
                 for (attemptIndex, delay) in AccountSummaryRefreshPolicy.pollDelays(
                     untilActive: untilActive
                 ).enumerated() {
@@ -251,17 +263,25 @@ extension CredentialsManager {
                             return
                         }
                     } else {
-                        let phase = Self.accountPreparationPhase(
-                            from: await controller.getAccountState()
-                        )
+                        if AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                            untilActive: untilActive,
+                            hasAccountSummary: false,
+                            attemptIndex: attemptIndex,
+                            alreadyKnownInactive: knownInactive
+                        ) {
+                            let phase = Self.accountPreparationPhase(
+                                from: await controller.getAccountState()
+                            )
+                            knownInactive = OnboardingAccountPreparationPolicy
+                                .isTerminalInactiveForLogin(phase)
+                        }
                         if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
                             untilActive: untilActive,
                             isSubscriptionActive: false,
                             hasAccountSummary: false,
                             lastFetchFailed: false,
                             attemptIndex: attemptIndex,
-                            isAccountKnownInactive: OnboardingAccountPreparationPolicy
-                                .isTerminalInactiveForLogin(phase)
+                            isAccountKnownInactive: knownInactive
                         ) {
                             return
                         }

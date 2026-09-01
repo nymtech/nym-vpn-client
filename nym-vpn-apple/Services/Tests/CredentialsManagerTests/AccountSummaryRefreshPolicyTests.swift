@@ -171,4 +171,47 @@ struct AccountSummaryRefreshPolicyTests {
             )
         )
     }
+
+    @Test func recheckInactiveStateOnlyOnLaterEmptyLoginPolls() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: false,
+                hasAccountSummary: false,
+                attemptIndex: 0,
+                alreadyKnownInactive: false
+            )
+        )
+        #expect(
+            AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: false,
+                hasAccountSummary: false,
+                attemptIndex: 2,
+                alreadyKnownInactive: false
+            )
+        )
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: false,
+                hasAccountSummary: true,
+                attemptIndex: 2,
+                alreadyKnownInactive: false
+            )
+        )
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: true,
+                hasAccountSummary: false,
+                attemptIndex: 2,
+                alreadyKnownInactive: false
+            )
+        )
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: false,
+                hasAccountSummary: false,
+                attemptIndex: 2,
+                alreadyKnownInactive: true
+            )
+        )
+    }
 }
