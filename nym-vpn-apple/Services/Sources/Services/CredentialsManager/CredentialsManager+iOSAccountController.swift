@@ -250,14 +250,21 @@ extension CredentialsManager {
                         ) {
                             return
                         }
-                    } else if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
-                        untilActive: untilActive,
-                        isSubscriptionActive: false,
-                        hasAccountSummary: false,
-                        lastFetchFailed: false,
-                        attemptIndex: attemptIndex
-                    ) {
-                        return
+                    } else {
+                        let phase = Self.accountPreparationPhase(
+                            from: await controller.getAccountState()
+                        )
+                        if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                            untilActive: untilActive,
+                            isSubscriptionActive: false,
+                            hasAccountSummary: false,
+                            lastFetchFailed: false,
+                            attemptIndex: attemptIndex,
+                            isAccountKnownInactive: OnboardingAccountPreparationPolicy
+                                .isTerminalInactiveForLogin(phase)
+                        ) {
+                            return
+                        }
                     }
                 }
             }

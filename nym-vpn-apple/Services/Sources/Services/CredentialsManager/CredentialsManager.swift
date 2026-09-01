@@ -618,7 +618,8 @@ extension CredentialsManager {
                 isSubscriptionActive: accountSummary?.isActive == true,
                 hasAccountSummary: accountSummary != nil,
                 lastFetchFailed: accountSummaryLastFetchFailed,
-                attemptIndex: attemptIndex
+                attemptIndex: attemptIndex,
+                isAccountKnownInactive: await grpcManager.isAccountKnownInactiveForLogin()
             ) {
                 break
             }

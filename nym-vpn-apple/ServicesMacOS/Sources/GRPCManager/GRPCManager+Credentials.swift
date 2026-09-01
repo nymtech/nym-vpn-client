@@ -22,6 +22,23 @@ extension GRPCManager {
         }.value
     }
 
+    public func isAccountKnownInactiveForLogin() async -> Bool {
+        do {
+            let state = try await Task.detached { [weak self] in
+                try await self?.rpcClient?.getAccountState()
+            }.value
+            guard let state else { return false }
+            switch state {
+            case .error(.inactiveSubscription), .error(.accountStatusNotActive):
+                return true
+            default:
+                return false
+            }
+        } catch {
+            return false
+        }
+    }
+
     public func accountSummary() async throws -> AccountSummary? {
         try await Task.detached { [weak self] in
             guard let summary = try await self?.rpcClient?.getAccountSummary() else { return nil }

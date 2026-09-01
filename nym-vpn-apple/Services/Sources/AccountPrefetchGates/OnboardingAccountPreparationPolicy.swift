@@ -55,6 +55,16 @@ public enum OnboardingAccountPreparationPolicy {
         }
     }
 
+    /// Login may finish without a summary once the controller has a terminal inactive error.
+    public static func isTerminalInactiveForLogin(_ phase: AccountStatePhase) -> Bool {
+        switch phase {
+        case .error(.inactiveSubscription), .error(.accountStatusNotActive):
+            return true
+        default:
+            return false
+        }
+    }
+
     /// Matches `AccountControllerErrorStateReason` display strings from nym-vpn-lib-types.
     public static func userFacingMessage(for kind: AccountStatePhase.ErrorKind) -> String {
         switch kind {

@@ -17,6 +17,28 @@ struct OnboardingAccountPreparationPolicyTests {
         #expect(outcome == .prepared)
     }
 
+    @Test func unregisteredAccountStatusIsTerminalInactiveForLogin() {
+        #expect(
+            OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(
+                .error(.accountStatusNotActive(status: "unregistered"))
+            )
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(
+                .error(.inactiveSubscription)
+            )
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.syncing)
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.readyToConnect)
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.pendingSubscription)
+        )
+    }
+
     @Test func readyToConnectIsPrepared() {
         #expect(
             OnboardingAccountPreparationPolicy.waitOutcome(for: .readyToConnect) == .prepared
