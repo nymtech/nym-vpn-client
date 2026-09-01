@@ -137,7 +137,6 @@ let package = Package(
             name: "DeeplinkManager",
             dependencies: [
                 "CredentialsManager",
-                "ConnectionManager",
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual")
             ],
