@@ -3,7 +3,9 @@
 
 use nym_bandwidth_controller::{FetcherError, error::FetcherErrorKind};
 use nym_credentials_interface::CompactEcashError;
-use nym_vpn_api_client::error::{FAIR_USAGE_DEPLETED_CODE_ID, VpnApiClientError};
+use nym_vpn_api_client::error::{
+    FAIR_USAGE_DEPLETED_CODE_ID, UPSTREAM_UNAVAILABLE_CODE_ID, VpnApiClientError,
+};
 use nym_vpn_lib_types::{VpnApiError, VpnApiErrorResponse};
 
 use crate::{credential_request::ZkNymId, storage::error::PendingCredentialRequestsStorageError};
@@ -76,6 +78,9 @@ pub enum VpnApiFetcherError {
     #[error("no fair usage left")]
     BandwidthExceeded,
 
+    #[error("issuance is briefly unavailable upstream")]
+    UpstreamUnavailable,
+
     // Cryptographic errors
     #[error("failed to create ecash keypair: {0}")]
     CreateEcashKeyPair(String),
@@ -98,7 +103,9 @@ pub enum VpnApiFetcherError {
 
 impl VpnApiFetcherError {
     /// Whether this error is worth retrying: a transient network/availability failure rather than a
-    /// definitive protocol, cryptographic, or server-side rejection.
+    /// definitive protocol, cryptographic, or server-side rejection. Not the full retry picture:
+    /// [`UpstreamUnavailable`](Self::UpstreamUnavailable) is also retried, on its own fixed
+    /// schedule in [`with_retries`](crate::utils::with_retries), deliberately outside this set.
     pub(crate) fn is_retryable(&self) -> bool {
         matches!(
             self,
@@ -112,6 +119,8 @@ impl VpnApiFetcherError {
             Ok(VpnApiError::Response(source)) => {
                 if source.code_reference_id.as_deref() == Some(FAIR_USAGE_DEPLETED_CODE_ID) {
                     Self::BandwidthExceeded
+                } else if source.code_reference_id.as_deref() == Some(UPSTREAM_UNAVAILABLE_CODE_ID) {
+                    Self::UpstreamUnavailable
                 } else {
                     Self::ApiErrorResponse {
                         endpoint: endpoint.into(),
@@ -143,6 +152,7 @@ impl FetcherError for VpnApiFetcherError {
             | VpnApiFetcherError::ApiStatusCodeError { .. }
             | VpnApiFetcherError::ApiErrorResponse { .. }
             | VpnApiFetcherError::Transport { .. }
+            | VpnApiFetcherError::UpstreamUnavailable
             | VpnApiFetcherError::IssuanceError => FetcherErrorKind::Api,
 
             VpnApiFetcherError::InconsistentResponse(_) => FetcherErrorKind::Unexpected,
