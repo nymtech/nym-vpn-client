@@ -25,6 +25,7 @@ final class FakeProcessing: AccountProcessing {
     var storeDeeplinkError: Error?
     var registerError: Error?
     var accountActive = true
+    var hasAccountSummary = true
     var becomesActiveAfterSync = false
     var prefetchDelay: Duration = .zero
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
@@ -61,12 +62,14 @@ final class FakeProcessing: AccountProcessing {
         lastSyncUntilActive = untilActive
         calls.append(.sync)
         if becomesActiveAfterSync {
+            hasAccountSummary = true
             accountActive = true
         }
     }
 
     func isAccountActive() -> Bool {
         calls.append(.isActive)
+        guard hasAccountSummary else { return false }
         return accountActive
     }
 
@@ -352,6 +355,24 @@ struct ProcessingAccountViewModelTests {
         #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
         await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
+    }
+
+    @Test func loginWithNoSummaryYetTreatsAccountInactiveAndKeepsVerifying() async {
+        let processing = FakeProcessing()
+        processing.hasAccountSummary = false
+        processing.accountActive = true
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        #expect(viewModel.usesStaticCopy)
+        await viewModel.run()
+
+        #expect(processing.lastSyncUntilActive == false)
+        #expect(!processing.calls.contains(.prefetch))
+        #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func paidLoginPrefetchesWhenSummaryActivatesAfterSync() async {

@@ -112,6 +112,7 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
             if accountSummaryLastFetchFailed {
                 return false
             }
+            // Missing summary is inactive (offer purchase). Blocking as "unknown" hid checkout; failed fetch is the offline exception.
             if LoginSessionPolicy.isEffectivelyActive(
                 isAccountActive: isAccountActive,
                 validUntilIsFuture: validUntilIsFuture,
