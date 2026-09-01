@@ -61,6 +61,7 @@
   --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
   /* illustration — art-direction only */
   --nv-illustration-accent: #a3cdff;
+  --nv-illustration-noise: #262626;
 }
 
 .dark {
@@ -84,6 +85,7 @@
   --nv-connection-sphere-hi: #2a2a2e;
   --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
   --nv-illustration-accent: #a3cdff;
+  --nv-illustration-noise: #d9d9d9;
 }
 
 @theme inline {
@@ -107,6 +109,7 @@
   --color-connection-sphere-hi: var(--nv-connection-sphere-hi);
   --color-connection-error-tint: var(--nv-connection-error-tint);
   --color-illustration-accent: var(--nv-illustration-accent);
+  --color-illustration-noise: var(--nv-illustration-noise);
 }
 
 @utility transition-noborder {
@@ -296,4 +299,32 @@
 .collapsible-panel[data-starting-style],
 .collapsible-panel[data-ending-style] {
   height: 0;
+}
+
+/* Onboarding noise line: five states cycled 200ms apart for a 1s loop. Each
+ * state carries a negative animation-delay so only one is visible at a time. */
+.noise-line-state {
+  opacity: 0;
+  animation: noise-line-state 1s linear infinite;
+}
+
+@keyframes noise-line-state {
+  0%,
+  19.99% {
+    opacity: 1;
+  }
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noise-line-state {
+    animation: none;
+  }
+
+  .noise-line-state:first-of-type {
+    opacity: 1;
+  }
 }

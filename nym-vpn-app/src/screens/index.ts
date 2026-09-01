@@ -1,5 +1,4 @@
 export { default as IntroSplash } from './IntroSplash';
-export { default as IntroAnim } from './IntroAnim';
 export { default as MainLayout } from './MainLayout';
 export { default as StartupGate } from './StartupGate';
 export { default as Error } from './Error';
