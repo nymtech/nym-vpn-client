@@ -177,6 +177,10 @@ public final class ProcessingAccountViewModel {
             syncProgressStep()
         }
         try Task.checkCancellation()
+<<<<<<< Updated upstream
+=======
+        return isActive
+>>>>>>> Stashed changes
     }
 
     private func applyBackendAccountPhase(
