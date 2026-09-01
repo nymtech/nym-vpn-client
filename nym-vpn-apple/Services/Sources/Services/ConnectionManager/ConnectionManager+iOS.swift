@@ -2,7 +2,6 @@
 import NetworkExtension
 import AppSettings
 import ConfigurationManager
-import Constants
 import ConnectionTypes
 import NymLogger
 import NymVPNLib

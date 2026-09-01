@@ -260,7 +260,6 @@
 		D9CF05E32BA1CDAA00489055 /* libswiftNetwork.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftNetwork.tbd; path = usr/lib/swift/libswiftNetwork.tbd; sourceTree = SDKROOT; };
 		D9CF05E42BA1CDAA00489055 /* ThreadNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ThreadNetwork.framework; path = System/Library/Frameworks/ThreadNetwork.framework; sourceTree = SDKROOT; };
 		D9D336662E7A8EDE00590D81 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
-		D9D954912F7BCDAE0040753C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
 		D9DE893B2CFE54CD006C4071 /* launchLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = launchLogo.png; sourceTree = "<group>"; };
 		D9DE893C2CFE54CD006C4071 /* launchLogo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "launchLogo@2x.png"; sourceTree = "<group>"; };
 		D9DE893D2CFE54CD006C4071 /* launchLogo@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "launchLogo@3x.png"; sourceTree = "<group>"; };
@@ -495,7 +494,6 @@
 				D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */,
 				D9CF05D52BA1CBE000489055 /* Network.framework */,
 				D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */,
-				D9D954912F7BCDAE0040753C /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
