@@ -1024,6 +1024,7 @@ impl VpnApiClient {
             ecash_pubkey,
             expiration_date,
             ticketbook_type,
+            epoch_aware: true,
         };
         tracing::debug!("Request body: {body:#?}");
 
