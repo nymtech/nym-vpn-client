@@ -94,7 +94,6 @@ public final class ProcessingAccountViewModel {
         switch flow {
         case .login, .createAccount:
             currentStep = LoginProcessingUI.initialProgressStep
-            skipSetupCarouselUnlessActive()
         case .postPurchase:
             currentStep = PostPurchaseProcessingUI.progressStep
             didFinishAnimatingText = true
@@ -186,16 +185,9 @@ public final class ProcessingAccountViewModel {
         return isActive
     }
 
-    private func skipSetupCarouselUnlessActive() {
-        if !processing.isAccountActive() {
-            skipsSetupCarousel = true
-        }
-    }
-
     private func applyBackendAccountPhase(
         _ accountPhase: OnboardingAccountPreparationPolicy.AccountStatePhase
     ) {
-        skipSetupCarouselUnlessActive()
         guard let displayPhase = LoginProcessingBackendPhasePolicy.displayPhase(for: accountPhase) else {
             return
         }
