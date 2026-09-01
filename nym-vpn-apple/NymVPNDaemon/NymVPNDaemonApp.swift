@@ -223,7 +223,7 @@ private extension NymVPNDaemonApp {
             Image(nsImage: menuBarNSImage)
         }
         .menuBarExtraStyle(.menu)
-        .onChange(of: connectionManager.currentTunnelStatus) { _, status in
+        .onChange(of: connectionManager.currentTunnelStatus, initial: true) { _, status in
             updateImageName(with: status)
             refreshMenuBarConnectButtonState()
         }
@@ -233,10 +233,7 @@ private extension NymVPNDaemonApp {
         .onChange(of: credentialsManager.accountSummaryLastFetchFailed) { _, _ in
             refreshMenuBarConnectButtonState()
         }
-        .onChange(of: credentialsManager.accountSummary) { _, _ in
-            refreshMenuBarConnectButtonState()
-        }
-        .onAppear {
+        .onChange(of: credentialsManager.accountSummary?.isActive) { _, _ in
             refreshMenuBarConnectButtonState()
         }
     }
