@@ -233,7 +233,9 @@ extension CredentialsManager {
                     try await controller.updateAccountState()
                 }
 
-                for delay in AccountSummaryRefreshPolicy.pollDelays(untilActive: untilActive) {
+                for (attemptIndex, delay) in AccountSummaryRefreshPolicy.pollDelays(
+                    untilActive: untilActive
+                ).enumerated() {
                     if delay != .zero {
                         try await Task.sleep(for: delay)
                     }
@@ -243,7 +245,8 @@ extension CredentialsManager {
                             untilActive: untilActive,
                             isSubscriptionActive: summary.isSubscriptionActive(),
                             hasAccountSummary: true,
-                            lastFetchFailed: false
+                            lastFetchFailed: false,
+                            attemptIndex: attemptIndex
                         ) {
                             return
                         }
@@ -251,7 +254,8 @@ extension CredentialsManager {
                         untilActive: untilActive,
                         isSubscriptionActive: false,
                         hasAccountSummary: false,
-                        lastFetchFailed: false
+                        lastFetchFailed: false,
+                        attemptIndex: attemptIndex
                     ) {
                         return
                     }

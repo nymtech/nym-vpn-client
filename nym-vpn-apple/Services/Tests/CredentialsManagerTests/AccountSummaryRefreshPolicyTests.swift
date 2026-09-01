@@ -33,13 +33,58 @@ struct AccountSummaryRefreshPolicyTests {
         )
     }
 
-    @Test func loginPollFinishesOnEmptySuccessfulSummary() {
+    @Test func loginPollDoesNotFinishOnEmptySuccessBeforeLastAttempt() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: false,
+                hasAccountSummary: false,
+                lastFetchFailed: false,
+                attemptIndex: 0
+            )
+        )
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: false,
+                hasAccountSummary: false,
+                lastFetchFailed: false,
+                attemptIndex: 2
+            )
+        )
+        let lastBeforeTerminal = AccountSummaryRefreshPolicy.loginEmptySuccessMinAttemptIndex - 1
+        #expect(lastBeforeTerminal >= 0)
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: false,
+                hasAccountSummary: false,
+                lastFetchFailed: false,
+                attemptIndex: lastBeforeTerminal
+            )
+        )
+    }
+
+    @Test func loginPollFinishesOnEmptySuccessfulSummaryOnLastAttempt() {
         #expect(
             AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
                 untilActive: false,
                 isSubscriptionActive: false,
                 hasAccountSummary: false,
-                lastFetchFailed: false
+                lastFetchFailed: false,
+                attemptIndex: AccountSummaryRefreshPolicy.loginEmptySuccessMinAttemptIndex
+            )
+        )
+    }
+
+    @Test func loginPollFinishesImmediatelyWhenInactiveSummaryExists() {
+        #expect(
+            AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: false,
+                isSubscriptionActive: false,
+                hasAccountSummary: true,
+                lastFetchFailed: false,
+                attemptIndex: 0
             )
         )
     }

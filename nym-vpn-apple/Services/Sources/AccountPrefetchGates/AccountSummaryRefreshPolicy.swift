@@ -24,17 +24,30 @@ public enum AccountSummaryRefreshPolicy {
         isSubscriptionActive
     }
 
-    /// Login uses untilActive false. An empty successful summary (unregistered) must
-    /// not burn the full delay budget. Failed fetches still retry.
+    /// Empty success is still-syncing until the last login poll. A paid summary
+    /// often arrives after the third attempt (~3s).
+    public static var loginEmptySuccessMinAttemptIndex: Int {
+        max(0, pollDelays(untilActive: false).count - 1)
+    }
+
+    /// Login uses untilActive false. A real summary (active or inactive) is
+    /// terminal. Empty success is terminal only on the last poll attempt.
     public static func shouldFinishSummaryPoll(
         untilActive: Bool,
         isSubscriptionActive: Bool,
         hasAccountSummary: Bool,
-        lastFetchFailed: Bool
+        lastFetchFailed: Bool,
+        attemptIndex: Int = 0
     ) -> Bool {
         if untilActive {
             return shouldStopUntilActivePoll(isSubscriptionActive: isSubscriptionActive)
         }
-        return hasAccountSummary || !lastFetchFailed
+        if hasAccountSummary {
+            return true
+        }
+        if lastFetchFailed {
+            return false
+        }
+        return attemptIndex >= loginEmptySuccessMinAttemptIndex
     }
 }

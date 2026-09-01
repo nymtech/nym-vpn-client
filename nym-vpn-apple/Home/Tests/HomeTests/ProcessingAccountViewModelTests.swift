@@ -330,32 +330,47 @@ struct ProcessingAccountViewModelTests {
         #expect(coordinator.actions.isEmpty)
     }
 
-    @Test func staleInactiveCacheDoesNotSkipCarouselUntilAfterSync() async {
+    @Test func loginHoldsVerifyingUntilSummaryKnown() {
+        let processing = FakeProcessing()
+        processing.accountActive = true
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        #expect(viewModel.usesStaticCopy)
+        #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
+    }
+
+    @Test func inactiveLoginNeverShowsSetupCarousel() async {
         let processing = FakeProcessing()
         processing.accountActive = false
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
 
-        #expect(!viewModel.usesStaticCopy)
-        #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
-
-        await viewModel.run()
-
         #expect(viewModel.usesStaticCopy)
+        await viewModel.run()
+        #expect(viewModel.usesStaticCopy)
+        #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
         await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
     }
 
-    @Test func staleInactiveCacheDoesNotFlipStaticCopyWhenSyncActivates() async {
+    @Test func paidLoginPrefetchesWhenSummaryActivatesAfterSync() async {
         let processing = FakeProcessing()
         processing.accountActive = false
         processing.becomesActiveAfterSync = true
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
 
-        #expect(!viewModel.usesStaticCopy)
+        #expect(viewModel.usesStaticCopy)
         await viewModel.run()
+
+        #expect(processing.calls.contains(.prefetch))
         #expect(!viewModel.usesStaticCopy)
+        #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
+        #expect(viewModel.phase == .awaitingAdvance)
+        await finishSetupCarousel(viewModel)
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func navigationWaitsForCarouselAfterWorkCompletes() async {

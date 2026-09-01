@@ -46,6 +46,7 @@ public final class ProcessingAccountViewModel {
     /// Set when backend prefetch begins; keeps bar segment 4 until navigation advances.
     private(set) var hasReachedPrefetchPhase = false
     @ObservationIgnored private var isCarouselInterrupted = false
+    /// Login/create start on verifying. Unlock the 4-step bar only after an active summary.
     private var skipsSetupCarousel = false
 
     var didFinishAnimatingText = false {
@@ -94,6 +95,7 @@ public final class ProcessingAccountViewModel {
         switch flow {
         case .login, .createAccount:
             currentStep = LoginProcessingUI.initialProgressStep
+            skipsSetupCarousel = true
         case .postPurchase:
             currentStep = PostPurchaseProcessingUI.progressStep
             didFinishAnimatingText = true
@@ -131,15 +133,13 @@ public final class ProcessingAccountViewModel {
                 try await processing.prepareRegisteredAccount { [weak self] accountPhase in
                     self?.applyBackendAccountPhase(accountPhase)
                 }
-                let isActive = try await syncSummaryThenPrefetch()
-                skipsSetupCarousel = !isActive
+                try await syncSummaryThenPrefetch()
                 completeWork()
             case .createAccount:
                 phase = .preparing
                 syncProgressStep()
                 await processing.ensureCredentialImportResolved()
-                let isActive = try await syncSummaryThenPrefetch()
-                skipsSetupCarousel = !isActive
+                try await syncSummaryThenPrefetch()
                 completeWork()
             case .postPurchase:
                 try await runPostPurchase()
@@ -160,8 +160,7 @@ public final class ProcessingAccountViewModel {
     }
 
     /// Login/create-account: sync the account summary, then prefetch zk-nyms when active.
-    /// Returns whether the account is active after the summary sync.
-    private func syncSummaryThenPrefetch() async throws -> Bool {
+    private func syncSummaryThenPrefetch() async throws {
         try Task.checkCancellation()
         if !hasReachedPrefetchPhase {
             phase = .syncing
@@ -170,6 +169,9 @@ public final class ProcessingAccountViewModel {
         await processing.updateAccountSummary(force: true, untilActive: false)
         try Task.checkCancellation()
         let isActive = processing.isAccountActive()
+        if isActive {
+            skipsSetupCarousel = false
+        }
         if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
             isAccountActive: isActive
         ) {
@@ -182,7 +184,6 @@ public final class ProcessingAccountViewModel {
             syncProgressStep()
         }
         try Task.checkCancellation()
-        return isActive
     }
 
     private func applyBackendAccountPhase(

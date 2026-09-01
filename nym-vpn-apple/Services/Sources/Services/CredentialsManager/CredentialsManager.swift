@@ -606,9 +606,9 @@ extension CredentialsManager {
 #if os(iOS)
         await refreshAccountSummaryOnIOS(untilActive: untilActive)
 #else
-        let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
-
-        for delay in delays {
+        for (attemptIndex, delay) in AccountSummaryRefreshPolicy.pollDelays(
+            untilActive: untilActive
+        ).enumerated() {
             if delay != .zero {
                 try? await Task.sleep(for: delay)
             }
@@ -617,7 +617,8 @@ extension CredentialsManager {
                 untilActive: untilActive,
                 isSubscriptionActive: accountSummary?.isActive == true,
                 hasAccountSummary: accountSummary != nil,
-                lastFetchFailed: accountSummaryLastFetchFailed
+                lastFetchFailed: accountSummaryLastFetchFailed,
+                attemptIndex: attemptIndex
             ) {
                 break
             }
