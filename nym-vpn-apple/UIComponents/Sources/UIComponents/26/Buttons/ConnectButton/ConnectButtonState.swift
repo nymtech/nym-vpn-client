@@ -14,6 +14,7 @@ public enum ConnectButtonState: Equatable {
     case noAccount
     case noSubscription
     case accountUnreachable
+    case checkingAccount
 
     public init(
         tunnelStatus: TunnelStatus,
@@ -44,6 +45,8 @@ public enum ConnectButtonState: Equatable {
                 self = .noSubscription
             case .accountUnreachable:
                 self = .accountUnreachable
+            case .checking:
+                self = .checkingAccount
             case .connect:
                 self = .connect
             }
@@ -76,6 +79,8 @@ public enum ConnectButtonState: Equatable {
             "purchasePlan.chooseMyPlan".localizedString
         case .accountUnreachable:
             "home.accountUnreachable".localizedString
+        case .checkingAccount:
+            "requestingZkNyms".localizedString
         }
     }
 
@@ -83,7 +88,7 @@ public enum ConnectButtonState: Equatable {
         switch self {
         case .connect, .noInternet, .noAccount, .noSubscription, .accountUnreachable:
             NymColor.accent
-        case .installingDaemon, .noInternetReconnect:
+        case .installingDaemon, .noInternetReconnect, .checkingAccount:
             NymColor.gray1
         case .stop, .disconnecting, .disconnect:
             NymColor.error
@@ -97,7 +102,7 @@ extension ConnectButtonState {
         switch self {
         case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet:
             true
-        case .disconnecting, .installingDaemon, .noAccount, .noSubscription, .accountUnreachable:
+        case .disconnecting, .installingDaemon, .noAccount, .noSubscription, .accountUnreachable, .checkingAccount:
             false
         }
     }
