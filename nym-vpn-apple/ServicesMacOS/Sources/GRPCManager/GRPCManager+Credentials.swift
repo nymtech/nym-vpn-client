@@ -5,14 +5,26 @@ import ErrorReason
 import TunnelStatus
 
 extension GRPCManager {
+    public nonisolated static func errorReason(
+        forAccountCommand error: AccountCommandError?
+    ) -> ErrorReason? {
+        if case .ExistingAccount? = error {
+            return .existingAccount
+        }
+        return nil
+    }
+
     public func storeAccount(with request: StoreAccountRequest) async throws {
+        guard let rpcClient else {
+            throw ErrorReason.internalError("rpc client unavailable")
+        }
         do {
-            try await Task.detached { [weak self] in
-                try await self?.rpcClient?.storeAccount(request: request)
+            try await Task.detached {
+                try await rpcClient.storeAccount(request: request)
             }.value
-        } catch let error as VpnError {
-            if case .ExistingAccount = error {
-                throw ErrorReason.existingAccount
+        } catch let error as RpcError {
+            if let reason = Self.errorReason(forAccountCommand: error.accountError()) {
+                throw reason
             }
             throw error
         }

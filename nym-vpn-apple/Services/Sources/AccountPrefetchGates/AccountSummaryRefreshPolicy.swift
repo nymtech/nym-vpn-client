@@ -73,4 +73,12 @@ public enum AccountSummaryRefreshPolicy {
         }
         return attemptIndex >= loginEmptySuccessMinAttemptIndex
     }
+
+    /// Transport failure only. A known-inactive controller with no summary is not a failed fetch.
+    public static func shouldSetLastFetchFailedAfterPoll(
+        accountSummaryIsNil: Bool,
+        isAccountKnownInactive: Bool
+    ) -> Bool {
+        accountSummaryIsNil && !isAccountKnownInactive
+    }
 }

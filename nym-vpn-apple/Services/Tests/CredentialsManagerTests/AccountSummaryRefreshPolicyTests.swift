@@ -260,6 +260,30 @@ struct AccountSummaryRefreshPolicyTests {
         )
     }
 
+    @Test func loginPollDoesNotMarkFetchFailedWhenKnownInactiveWithoutSummary() {
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldSetLastFetchFailedAfterPoll(
+                accountSummaryIsNil: true,
+                isAccountKnownInactive: true
+            )
+        )
+    }
+
+    @Test func loginPollMarksFetchFailedWhenSummaryMissingAndControllerNotInactive() {
+        #expect(
+            AccountSummaryRefreshPolicy.shouldSetLastFetchFailedAfterPoll(
+                accountSummaryIsNil: true,
+                isAccountKnownInactive: false
+            )
+        )
+        #expect(
+            !AccountSummaryRefreshPolicy.shouldSetLastFetchFailedAfterPoll(
+                accountSummaryIsNil: false,
+                isAccountKnownInactive: false
+            )
+        )
+    }
+
     @Test func loginPollFinishesWhenStaleSummaryAndControllerIsInactive() {
         #expect(
             AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(

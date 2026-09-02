@@ -304,6 +304,11 @@ let package = Package(
                 .product(name: "ErrorHandler", package: "ServicesIOS"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib"),
+                .product(
+                    name: "GRPCManager",
+                    package: "ServicesMacOS",
+                    condition: .when(platforms: [.macOS])
+                ),
                 .product(name: "Theme", package: "Theme"),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],

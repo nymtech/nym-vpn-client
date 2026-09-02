@@ -218,6 +218,9 @@ private extension AppFeatureView {
             }
             .clipped()
         }
+        .onAppear {
+            viewModel.restoreDashboardDrawerIfNeeded()
+        }
     }
 
     @ViewBuilder

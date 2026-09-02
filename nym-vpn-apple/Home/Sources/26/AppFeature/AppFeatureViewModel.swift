@@ -128,6 +128,15 @@ import GRPCManager
     }
 #endif
 
+    func restoreDashboardDrawerIfNeeded() {
+        guard DrawerSessionPolicy.shouldRestoreDashboardDrawer(
+            isDrawerHidden: drawerContent == nil,
+            isCredentialImported: appSettings.isCredentialImported,
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive
+        ) else { return }
+        applyDrawerDestinationAfterPurchaseDismiss()
+    }
+
     private func finishInit() {
         drawerContent = initialDrawerContent()
         accountSummary = credentialsManager.accountSummary
@@ -262,6 +271,7 @@ import GRPCManager
     }
 
     func handleSceneBecameActive() {
+        restoreDashboardDrawerIfNeeded()
         guard !connectionStatus.isConnectingLike, !isFamilyWarningModalDisplayed else { return }
 
         let now = Date()
@@ -668,7 +678,8 @@ private extension AppFeatureViewModel {
             validUntilIsFuture: LoginSessionPolicy.validUntilIsFuture(
                 validUntil: summary?.validUntilDate
             ),
-            hasAccountSummary: summary != nil
+            hasAccountSummary: summary != nil,
+            isAccountKnownInactive: credentialsManager.isAccountKnownInactive
         )
     }
 

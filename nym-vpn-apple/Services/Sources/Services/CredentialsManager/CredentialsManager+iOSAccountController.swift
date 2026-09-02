@@ -220,6 +220,7 @@ extension CredentialsManager {
         let operationName = trigger == .subscriptionPayment
             ? "handleSubscriptionPayment"
             : "refreshAccountSummary"
+        var knownInactive = false
         try await AccountRegistrationSupport.withAccountStoreRetry(
             operation: operationName,
             logger: logger
@@ -233,21 +234,16 @@ extension CredentialsManager {
                     try await controller.updateAccountState()
                 }
 
-                var knownInactive = false
                 if !untilActive {
                     let phase = Self.accountPreparationPhase(
                         from: await controller.getAccountState()
                     )
                     knownInactive = OnboardingAccountPreparationPolicy
                         .isTerminalInactiveForLogin(phase)
-                    if knownInactive {
-                        return
-                    }
                 }
 
-                for (attemptIndex, delay) in AccountSummaryRefreshPolicy.pollDelays(
-                    untilActive: untilActive
-                ).enumerated() {
+                let pollDelays = AccountSummaryRefreshPolicy.pollDelays(untilActive: untilActive)
+                for (attemptIndex, delay) in pollDelays.enumerated() {
                     if delay != .zero {
                         try await Task.sleep(for: delay)
                     }
@@ -287,10 +283,21 @@ extension CredentialsManager {
                         }
                     }
                 }
+                if !knownInactive {
+                    let phase = Self.accountPreparationPhase(
+                        from: await controller.getAccountState()
+                    )
+                    knownInactive = OnboardingAccountPreparationPolicy
+                        .isTerminalInactiveForLogin(phase)
+                }
             }
         }
 
-        if accountSummary == nil {
+        setAccountKnownInactive(knownInactive)
+        if AccountSummaryRefreshPolicy.shouldSetLastFetchFailedAfterPoll(
+            accountSummaryIsNil: accountSummary == nil,
+            isAccountKnownInactive: knownInactive
+        ) {
             setAccountSummaryLastFetchFailed(true)
             logger.debug("refreshAccountSummary (iOS): no summary after polling")
         }

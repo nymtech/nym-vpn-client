@@ -110,13 +110,14 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         isAccountActive: Bool,
         accountSummaryLastFetchFailed: Bool = false,
         validUntilIsFuture: Bool = false,
-        hasAccountSummary: Bool = false
+        hasAccountSummary: Bool = false,
+        isAccountKnownInactive: Bool = false
     ) -> Bool {
         if processingKind == .login {
             if accountSummaryLastFetchFailed {
                 return false
             }
-            if !hasAccountSummary {
+            if !hasAccountSummary, !isAccountKnownInactive {
                 return false
             }
             if LoginSessionPolicy.isEffectivelyActive(
@@ -246,6 +247,16 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
     ) -> Bool {
         _ = flow
         return hasUsableAccountToken(accountToken)
+    }
+
+    /// Daemon `UnregisteredAccount` never stores a summary. Home still needs a
+    /// dashboard after checkout hide leaves the drawer nil.
+    public static func shouldRestoreDashboardDrawer(
+        isDrawerHidden: Bool,
+        isCredentialImported: Bool,
+        isPurchaseFlowActive: Bool
+    ) -> Bool {
+        isDrawerHidden && isCredentialImported && !isPurchaseFlowActive
     }
 
     public static func shouldStartDrawerProcessing(outcome: AuthCompletionOutcome) -> Bool {

@@ -38,6 +38,23 @@ struct SettingsAccountHonestyTests {
         )
     }
 
+    @Test func nilSummaryKnownInactiveIsChoosePlanNotRequestingZkNyms() {
+        #expect(
+            SettingsViewModel.nilSummaryAccountCopy(
+                lastFetchFailed: false,
+                isRegistrationInFlight: false,
+                isAccountKnownInactive: true
+            ) == .choosePlan
+        )
+        #expect(
+            SettingsViewModel.nilSummaryAccountCopy(
+                lastFetchFailed: true,
+                isRegistrationInFlight: true,
+                isAccountKnownInactive: true
+            ) == .choosePlan
+        )
+    }
+
     @Test func inactiveRenewButtonTitleIsChoosePlanNotRenewNow() {
         let summary = AccountSummary.makeFake(
             daysRemaining: nil,
