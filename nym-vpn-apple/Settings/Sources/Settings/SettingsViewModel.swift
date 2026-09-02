@@ -313,7 +313,7 @@ extension SettingsViewModel {
     enum NilSummaryAccountCopy: Equatable {
         case requestingZkNyms
         case unreachable
-        case noActivePlan
+        case checking
     }
 
     static func nilSummaryAccountCopy(
@@ -322,7 +322,7 @@ extension SettingsViewModel {
     ) -> NilSummaryAccountCopy {
         if isRegistrationInFlight { return .requestingZkNyms }
         if lastFetchFailed { return .unreachable }
-        return .noActivePlan
+        return .checking
     }
 }
 
@@ -354,12 +354,10 @@ private extension SettingsViewModel {
                 lastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
                 isRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight
             ) {
-            case .requestingZkNyms:
+            case .requestingZkNyms, .checking:
                 subtitle = AttributedString("requestingZkNyms".localizedString)
             case .unreachable:
                 subtitle = AttributedString("home.accountUnreachable".localizedString)
-            case .noActivePlan:
-                subtitle = Self.noActivePlanChoosePlanSubtitle()
             }
         }
 

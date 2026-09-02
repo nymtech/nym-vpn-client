@@ -29,12 +29,12 @@ struct SettingsAccountHonestyTests {
         )
     }
 
-    @Test func nilSummaryIdleIsNoActivePlan() {
+    @Test func nilSummaryIdleIsCheckingNotChoosePlan() {
         #expect(
             SettingsViewModel.nilSummaryAccountCopy(
                 lastFetchFailed: false,
                 isRegistrationInFlight: false
-            ) == .noActivePlan
+            ) == .checking
         )
     }
 

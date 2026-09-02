@@ -128,6 +128,37 @@ final class OneClickViewModelCTATapTests: XCTestCase {
         XCTAssertTrue(spy.actions.isEmpty)
     }
 
+    func testPerformConnectDisconnectFromErrorDoesNotRequestPurchase() async {
+        let viewModel = makeViewModel()
+        let spy = SessionCoordinatorSpy()
+        viewModel.sessionCoordinator = spy
+        let previousStatus = viewModel.connectionManager.currentTunnelStatus
+        let previousError = viewModel.connectionManager.lastError
+        defer {
+            viewModel.connectionManager.currentTunnelStatus = previousStatus
+            viewModel.connectionManager.lastError = previousError
+        }
+
+        viewModel.connectionManager.currentTunnelStatus = .error
+        viewModel.connectionManager.lastError = ErrorReason.offline
+        await viewModel.performConnectDisconnect(isConnectingTap: true)
+
+        XCTAssertFalse(spy.actions.contains(.requestInactiveSubscriptionPurchase))
+    }
+
+    func testPerformConnectDisconnectFromConnectingDoesNotRequestPurchase() async {
+        let viewModel = makeViewModel()
+        let spy = SessionCoordinatorSpy()
+        viewModel.sessionCoordinator = spy
+        let previousStatus = viewModel.connectionManager.currentTunnelStatus
+        defer { viewModel.connectionManager.currentTunnelStatus = previousStatus }
+
+        viewModel.connectionManager.currentTunnelStatus = .connecting
+        await viewModel.performConnectDisconnect(isConnectingTap: true)
+
+        XCTAssertFalse(spy.actions.contains(.requestInactiveSubscriptionPurchase))
+    }
+
     func testAccountUnreachableTapStartsRefreshAndIgnoresReentry() async {
         let viewModel = makeViewModel()
         let spy = SessionCoordinatorSpy()
