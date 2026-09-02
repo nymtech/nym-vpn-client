@@ -1024,6 +1024,7 @@ impl VpnApiClient {
             ecash_pubkey,
             expiration_date,
             ticketbook_type,
+            epoch_aware: true,
         };
         tracing::debug!("Request body: {body:#?}");
 
@@ -1435,6 +1436,7 @@ impl VpnApiClient {
 
     pub async fn get_directory_zk_nyms_ticketbook_partial_verification_keys(
         &self,
+        epoch_id: u64,
     ) -> Result<PartialVerificationKeysResponse> {
         self.get_json_with_retry(
             &[
@@ -1445,7 +1447,7 @@ impl VpnApiClient {
                 routes::TICKETBOOK,
                 routes::PARTIAL_VERIFICATION_KEYS,
             ],
-            NO_PARAMS,
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
         )
         .await
         .map_err(Box::new)

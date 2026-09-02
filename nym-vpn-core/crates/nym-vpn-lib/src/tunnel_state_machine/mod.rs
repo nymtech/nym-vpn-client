@@ -1283,6 +1283,7 @@ impl TunnelStateMachine {
             .await
             .is_offline()
         {
+            // No session yet: same as Disconnected while offline (no kill-switch).
             OfflineState::enter(false, None, &mut shared_state).await
         } else {
             DisconnectedState::enter(None, &mut shared_state).await
