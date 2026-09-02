@@ -74,5 +74,18 @@
     "failed-to-get-app-list": "Failed to get app list",
     "app-invalid": "The selected file is not a valid application",
     "app-duplicate": "This app is already in the list"
+  },
+  "fatal": {
+    "title": "Something went wrong",
+    "description": "The app ran into an unexpected problem. Exporting the logs and sharing them with support helps us fix it.",
+    "details": "Error details",
+    "reload": "Reload the app",
+    "export": {
+      "action": "Export logs",
+      "pending": "Preparing the logs archive…",
+      "success": "Logs saved.",
+      "cancelled": "Export cancelled.",
+      "error": "Failed to export the logs."
+    }
   }
 }
