@@ -24,7 +24,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use time::{Date, OffsetDateTime};
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{
     VpnApiFetcherError,
@@ -140,6 +140,42 @@ impl CredentialRequestTask {
         pending_request: PendingCredentialRequest,
     ) -> Result<NymCredential, VpnApiFetcherError> {
         let pending_request_id = pending_request.id.clone();
+
+        match self.download_zk_nym(pending_request).await {
+            Ok(success) => {
+                // Remove the pending request from the storage. We no longer need it.
+                tracing::debug!("Removing pending zk-nym request");
+                self.pending_storage
+                    .remove_pending_request(&pending_request_id)
+                    .await?;
+
+                Ok(success)
+            }
+            // The shares name the epoch they were issued under and the chain never goes back, so
+            // no number of resumes can complete this one. Keeping it would block every later
+            // acquisition of this ticket type: the api still offers it for download, and a
+            // resumable request is always preferred over a fresh one.
+            Err(err @ VpnApiFetcherError::EpochIdMismatch) => {
+                warn!("Discarding a pending zk-nym request that can never complete: {err}");
+                if let Err(remove_err) = self
+                    .pending_storage
+                    .remove_pending_request(&pending_request_id)
+                    .await
+                {
+                    warn!("Failed to remove pending zk-nym request: {remove_err}");
+                }
+
+                Err(err)
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    async fn download_zk_nym(
+        &self,
+        pending_request: PendingCredentialRequest,
+    ) -> Result<NymCredential, VpnApiFetcherError> {
+        let pending_request_id = pending_request.id.clone();
         // Poll the nym-vpn-api for the zk-nym ticketbook to be ready. This could take some time,
         // but likely not more than a few seconds.
         let poll_result = self.poll_zk_nym(&pending_request_id).await?;
@@ -156,23 +192,17 @@ impl CredentialRequestTask {
             }
             NymVpnZkNymStatus::Active => {
                 let credential = self.build_credential(poll_result, pending_request).await?;
+                // Once we successfully manage retreive the zk-nym ticketbook,
+                // we tell the vpn-api that we have downloaded it.
+                if let Err(e) = self.confirm_zk_nym_downloaded(&pending_request_id).await {
+                    warn!("Non-fatal error trying to confirm zk_nym download : {e}");
+                };
                 NymCredential::Ticketbook(Box::new(credential))
             }
             NymVpnZkNymStatus::UpgradeMode => {
                 self.process_upgrade_mode_response(poll_result).await?
             }
         };
-
-        // Once we successfully manage to import the zk-nym ticketbook,
-        // or upgrade mode attestation, we tell the vpn-api that we
-        // have downloaded it.
-        self.confirm_zk_nym_downloaded(&pending_request_id).await?;
-
-        // Remove the pending request from the storage. We no longer need it.$
-        tracing::debug!("Removing pending zk-nym request");
-        self.pending_storage
-            .remove_pending_request(&pending_request_id)
-            .await?;
 
         Ok(success)
     }
