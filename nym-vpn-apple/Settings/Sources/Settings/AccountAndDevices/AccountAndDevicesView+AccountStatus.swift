@@ -14,10 +14,12 @@ extension AccountAndDevicesView {
                 accountStatusBandwidth(accountSummary: accountSummary)
                 sectionDivider()
                 accountStatusResetDate(accountSummary: accountSummary)
-            } else {
+            } else if credentialsManager.accountSummary != nil {
                 accountStatusInactive()
                 sectionDivider()
                 renewNowRow(color: Color.Nym.error, isVisible: true)
+            } else {
+                accountStatusPendingSummary()
             }
         }
         .background(Color.Nym.surface)
@@ -25,20 +27,38 @@ extension AccountAndDevicesView {
     }
 
     func accountStatusInactive() -> some View {
+        accountStatusMessage(
+            systemImageName: "xmark.circle",
+            titleKey: "settings.account.noActivePlan",
+            color: Color.Nym.error
+        )
+    }
+
+    func accountStatusPendingSummary() -> some View {
+        let lastFetchFailed = credentialsManager.accountSummaryLastFetchFailed
+        let titleKey = lastFetchFailed ? "home.accountUnreachable" : "requestingZkNyms"
+        return accountStatusMessage(
+            systemImageName: lastFetchFailed ? "exclamationmark.triangle" : "clock",
+            titleKey: titleKey,
+            color: lastFetchFailed ? Color.Nym.error : Color.Nym.textSecondary
+        )
+    }
+
+    func accountStatusMessage(systemImageName: String, titleKey: String, color: Color) -> some View {
         VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.Nym.error.opacity(0.1))
+                    .fill(color.opacity(0.1))
                     .frame(width: 56, height: 56)
                 Circle()
-                    .stroke(Color.Nym.error, lineWidth: 1)
+                    .stroke(color, lineWidth: 1)
                     .frame(width: 56, height: 56)
-                GenericImage(systemImageName: "xmark.circle")
+                GenericImage(systemImageName: systemImageName)
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(Color.Nym.error)
+                    .foregroundStyle(color)
             }
-            Text("settings.account.noActivePlan".localizedString)
-                .foregroundStyle(Color.Nym.error)
+            Text(titleKey.localizedString)
+                .foregroundStyle(color)
                 .nymTextStyle(.bodyLarge)
         }
         .frame(maxWidth: .infinity)

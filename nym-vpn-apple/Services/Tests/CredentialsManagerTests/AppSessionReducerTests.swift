@@ -584,7 +584,7 @@ struct AppSessionReducerTests {
 }
 
 struct AppSessionReducerUnregisteredHonestyTests {
-    @Test func processingFinished_loginInactiveWithoutSummary_routesToPurchase() {
+    @Test func processingFinishedLoginInactiveWithoutSummaryDoesNotRouteToPurchase() {
         var context = AppSessionContext.initial
         context.lastAuthCompletionOutcome = .loginReady
         let result = AppSessionReducer.reduce(
@@ -595,6 +595,24 @@ struct AppSessionReducerUnregisteredHonestyTests {
                 isAccountActive: false,
                 processingKind: .login,
                 hasAccountSummary: false
+            ),
+            event: .processingFinished
+        )
+        #expect(result.navigationIntent == nil)
+        #expect(result.drawerCommand == .setOneClick)
+    }
+
+    @Test func processingFinishedLoginInactiveWithSummaryRoutesToPurchase() {
+        var context = AppSessionContext.initial
+        context.lastAuthCompletionOutcome = .loginReady
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false,
+                processingKind: .login,
+                hasAccountSummary: true
             ),
             event: .processingFinished
         )

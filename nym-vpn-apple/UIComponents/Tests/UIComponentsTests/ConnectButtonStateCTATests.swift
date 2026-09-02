@@ -18,7 +18,8 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: true
             ) == .noSubscription
         )
     }
@@ -29,19 +30,21 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: true,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: false
             ) == .accountUnreachable
         )
     }
 
-    @Test func importedInactiveWithoutSummaryIsNoSubscription() {
+    @Test func importedWithoutSummaryIsCheckingAccount() {
         #expect(
             ConnectButtonState(
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false
-            ) == .noSubscription
+                isAccountActive: false,
+                hasAccountSummary: false
+            ) == .checkingAccount
         )
     }
 
@@ -51,7 +54,8 @@ struct ConnectButtonStateCTATests {
                 tunnelStatus: .disconnected,
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: true
+                isAccountActive: true,
+                hasAccountSummary: true
             ) == .connect
         )
     }
@@ -60,6 +64,7 @@ struct ConnectButtonStateCTATests {
     @Test func choosePlanMenuBarItemIsLabelOnly() {
         #expect(!ConnectButtonState.noSubscription.menuBarItemIsAction)
         #expect(!ConnectButtonState.accountUnreachable.menuBarItemIsAction)
+        #expect(!ConnectButtonState.checkingAccount.menuBarItemIsAction)
         #expect(ConnectButtonState.connect.menuBarItemIsAction)
     }
 #endif

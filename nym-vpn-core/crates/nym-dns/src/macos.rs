@@ -198,25 +198,38 @@ impl State {
     }
 
     fn reset(&mut self, store: &SCDynamicStore) -> Result<()> {
+        tracing::info!("Restoring DNS state from backup");
         tracing::trace!("Restoring DNS settings to: {:#?}", self.backup);
 
         let actual_state = read_all_dns(store);
         self.update_backup_state(&actual_state);
         self.dns_settings.take();
 
-        let old_backup = std::mem::take(&mut self.backup);
+        let backup = mem::take(&mut self.backup);
+        let mut first_error = None;
 
-        for (service_path, settings) in old_backup {
-            if let Some(settings) = settings {
-                settings.save(store, service_path.as_str())?;
-            } else {
-                tracing::debug!("Removing DNS for {} if it exists", service_path);
-                if !store.remove(CFString::new(&service_path)) {
-                    tracing::debug!("DNS for {service_path} doesn't exist in store");
+        for (service_path, settings) in backup {
+            let restore_result = match &settings {
+                Some(settings) => settings.save(store, service_path.as_str()),
+                None => {
+                    tracing::debug!("Removing DNS for {} if it exists", service_path);
+                    if !store.remove(CFString::new(&service_path)) {
+                        tracing::debug!("DNS for {service_path} doesn't exist in store");
+                    }
+                    Ok(())
                 }
+            };
+            if let Err(error) = restore_result {
+                tracing::error!("Failed changing DNS for '{service_path}': {error}");
+                self.backup.insert(service_path, settings);
+                first_error = first_error.or(Some(error));
             }
         }
-        Ok(())
+
+        match first_error {
+            Some(error) => Err(error),
+            None => Ok(()),
+        }
     }
 }
 
@@ -755,5 +768,27 @@ mod test {
         let merged_state = State::merge_states(&new_state, prev_state, desired_addresses);
 
         assert_eq!(merged_state, expect_state);
+    }
+
+    #[test]
+    fn dns_reset_keeps_failed_backup_entries() {
+        let backup = HashMap::from([
+            ("a".to_owned(), Ok(1)),
+            ("b".to_owned(), Err(2)),
+            ("c".to_owned(), Ok(3)),
+        ]);
+        let mut leftover = HashMap::new();
+        let mut first_error = None;
+        for (path, result) in backup {
+            match result {
+                Ok(_) => {}
+                Err(value) => {
+                    leftover.insert(path, value);
+                    first_error = first_error.or(Some(value));
+                }
+            }
+        }
+        assert_eq!(leftover, HashMap::from([("b".to_owned(), 2)]));
+        assert_eq!(first_error, Some(2));
     }
 }

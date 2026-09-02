@@ -79,7 +79,8 @@ struct OnboardingSessionPolicyTests {
             DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .loginReady,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: true
             )
         )
         #expect(
@@ -90,7 +91,7 @@ struct OnboardingSessionPolicyTests {
             )
         )
         #expect(
-            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .registeredNeedsPurchase,
                 isAccountActive: false,
@@ -121,9 +122,9 @@ struct OnboardingSessionPolicyTests {
         )
     }
 
-    @Test func loginProcessingOffersPurchaseWhenSummaryMissing() {
+    @Test func loginProcessingSkipsPurchaseWhenSummaryMissing() {
         #expect(
-            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .registeredNeedsPurchase,
                 isAccountActive: false,
@@ -189,14 +190,26 @@ struct LoginSessionPolicyTests {
 }
 
 struct ConnectPlanPurchaseGatePolicyTests {
-    @Test func connectOffersPurchaseWhenInactiveWithoutSummary() {
+    @Test func connectSkipsPurchaseWhenInactiveWithoutSummary() {
+        #expect(
+            !ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                isAccountRegistrationInFlight: false,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
+            )
+        )
+    }
+
+    @Test func connectOffersPurchaseWhenInactiveWithSummary() {
         #expect(
             ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
                 isAccountRegistrationInFlight: false,
                 accountSummaryLastFetchFailed: false,
                 isAccountActive: false,
                 validUntilIsFuture: false,
-                hasAccountSummary: false
+                hasAccountSummary: true
             )
         )
     }

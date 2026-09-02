@@ -49,10 +49,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
-    @State private var deeplinkManager = DeeplinkManager(
-        credentialsManager: CredentialsManager.shared,
-        connectionManager: ConnectionManager.shared
-    )
+    @State private var deeplinkManager = DeeplinkManager(credentialsManager: CredentialsManager.shared)
 
     @State private var appFeatureViewModel = AppFeatureViewModel(
         appSettings: .shared,
@@ -243,7 +240,8 @@ private extension NymVPNDaemonApp {
             tunnelStatus: connectionManager.currentTunnelStatus,
             isCredentialImported: credentialsManager.isValidCredentialImported,
             accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
-            isAccountActive: credentialsManager.isAccountActive()
+            isAccountActive: credentialsManager.isAccountActive(),
+            hasAccountSummary: credentialsManager.accountSummary != nil
         )
     }
 

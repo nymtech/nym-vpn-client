@@ -46,8 +46,8 @@ public enum AccountSummaryRefreshPolicy {
     }
 
     /// Login uses untilActive false. Controller inactive wins over a stale prior-session
-    /// summary. A freshly fetched summary is terminal; a failed fetch keeps stale data
-    /// and must not finish until inactive or the empty-success timeout.
+    /// summary. A successful summary is terminal. Failed fetches retry unless the
+    /// controller already reported inactive.
     public static func shouldFinishSummaryPoll(
         untilActive: Bool,
         isSubscriptionActive: Bool,
@@ -57,16 +57,19 @@ public enum AccountSummaryRefreshPolicy {
         isAccountKnownInactive: Bool = false
     ) -> Bool {
         if untilActive {
+            if lastFetchFailed {
+                return false
+            }
             return shouldStopUntilActivePoll(isSubscriptionActive: isSubscriptionActive)
         }
         if isAccountKnownInactive {
             return true
         }
-        if hasAccountSummary, !lastFetchFailed {
-            return true
-        }
         if lastFetchFailed {
             return false
+        }
+        if hasAccountSummary {
+            return true
         }
         return attemptIndex >= loginEmptySuccessMinAttemptIndex
     }

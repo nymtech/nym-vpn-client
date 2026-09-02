@@ -17,6 +17,6 @@ public enum ConnectPlanPurchaseGatePolicy: Equatable, Sendable {
         ) {
             return false
         }
-        return !isAccountActive
+        return hasAccountSummary && !isAccountActive
     }
 }

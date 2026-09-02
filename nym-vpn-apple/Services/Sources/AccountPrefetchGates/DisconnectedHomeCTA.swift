@@ -5,12 +5,14 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
     case getStarted
     case choosePlan
     case accountUnreachable
+    case checking
     case connect
 
     public static func resolve(
         isCredentialImported: Bool,
         accountSummaryLastFetchFailed: Bool,
-        isAccountActive: Bool
+        isAccountActive: Bool,
+        hasAccountSummary: Bool
     ) -> Self {
         if !isCredentialImported {
             return .getStarted
@@ -19,7 +21,7 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
             return .accountUnreachable
         }
         if !isAccountActive {
-            return .choosePlan
+            return hasAccountSummary ? .choosePlan : .checking
         }
         return .connect
     }
