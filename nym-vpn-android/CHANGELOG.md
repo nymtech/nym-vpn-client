@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improved account signup and subscription flow (https://github.com/nymtech/nym-vpn-client/pull/6014)
 
+### Fixed
+- Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
+
 ## [2026.12.0] - TBD
 
 ### Added
