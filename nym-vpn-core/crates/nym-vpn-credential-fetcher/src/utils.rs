@@ -31,9 +31,7 @@ const UPSTREAM_UNAVAILABLE_RETRY_DELAY: Duration = Duration::from_secs(300);
 /// This helper does not itself watch for pause/cancellation; wrap it in
 /// [`run_while_active`](crate::fetcher::VpnApiCredentialFetcher::run_while_active) so a pause cancels
 /// the in-flight attempt and any backoff wait, restarting `op` from scratch on resume.
-pub(crate) async fn with_retries<Fut, T>(
-    op: impl Fn() -> Fut,
-) -> Result<T, VpnApiFetcherError>
+pub(crate) async fn with_retries<Fut, T>(op: impl Fn() -> Fut) -> Result<T, VpnApiFetcherError>
 where
     Fut: Future<Output = Result<T, VpnApiFetcherError>>,
 {

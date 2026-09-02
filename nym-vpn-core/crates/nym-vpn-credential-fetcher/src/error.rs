@@ -119,7 +119,8 @@ impl VpnApiFetcherError {
             Ok(VpnApiError::Response(source)) => {
                 if source.code_reference_id.as_deref() == Some(FAIR_USAGE_DEPLETED_CODE_ID) {
                     Self::BandwidthExceeded
-                } else if source.code_reference_id.as_deref() == Some(UPSTREAM_UNAVAILABLE_CODE_ID) {
+                } else if source.code_reference_id.as_deref() == Some(UPSTREAM_UNAVAILABLE_CODE_ID)
+                {
                     Self::UpstreamUnavailable
                 } else {
                     Self::ApiErrorResponse {

@@ -208,9 +208,7 @@ impl CredentialPublicDataFetcher for VpnApiCredentialFetcher {
         epoch_id: EpochId,
     ) -> Result<EpochVerificationKey, CredentialFetcherError> {
         Ok(self
-            .run_while_active(|| {
-                with_retries(|| self.do_fetch_master_verification_key(epoch_id))
-            })
+            .run_while_active(|| with_retries(|| self.do_fetch_master_verification_key(epoch_id)))
             .await??)
     }
 
@@ -219,9 +217,7 @@ impl CredentialPublicDataFetcher for VpnApiCredentialFetcher {
         epoch_id: EpochId,
     ) -> Result<AggregatedCoinIndicesSignatures, CredentialFetcherError> {
         Ok(self
-            .run_while_active(|| {
-                with_retries(|| self.do_fetch_coin_index_signatures(epoch_id))
-            })
+            .run_while_active(|| with_retries(|| self.do_fetch_coin_index_signatures(epoch_id)))
             .await??)
     }
 
@@ -232,9 +228,7 @@ impl CredentialPublicDataFetcher for VpnApiCredentialFetcher {
     ) -> Result<AggregatedExpirationDateSignatures, CredentialFetcherError> {
         Ok(self
             .run_while_active(|| {
-                with_retries(|| {
-                    self.do_fetch_expiration_date_signatures(expiration_date, epoch_id)
-                })
+                with_retries(|| self.do_fetch_expiration_date_signatures(expiration_date, epoch_id))
             })
             .await??)
     }
@@ -256,9 +250,7 @@ impl CredentialFetcher for VpnApiCredentialFetcher {
             })
             .ok();
         Ok(self
-            .run_while_active(|| {
-                with_retries(|| self.do_fetch_ticketbooks(ticketbook_type))
-            })
+            .run_while_active(|| with_retries(|| self.do_fetch_ticketbooks(ticketbook_type)))
             .await??)
     }
 
