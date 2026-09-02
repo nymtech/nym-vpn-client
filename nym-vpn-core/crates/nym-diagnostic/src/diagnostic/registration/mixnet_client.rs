@@ -245,14 +245,7 @@ async fn setup_topology(network: &Network) -> anyhow::Result<HardcodedTopologyPr
         ignore_egress_epoch_role: true,
     };
 
-    let base_urls: Vec<url::Url> = api_client
-        .base_urls()
-        .iter()
-        .cloned()
-        .map(Into::into)
-        .collect();
-
-    let mut topology_provider = NymApiTopologyProvider::new(DEFAULT_CONFIG, base_urls, api_client);
+    let mut topology_provider = NymApiTopologyProvider::new(DEFAULT_CONFIG, api_client);
 
     let topology = topology_provider
         .get_new_topology()
