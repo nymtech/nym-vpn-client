@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::time::Duration;
+use std::{process::ExitCode, time::Duration};
 
 use crate::cli::{Commands, db_command};
 use crate::favorites::FavoritesState;
@@ -68,6 +68,8 @@ mod updater;
 mod vpnd;
 mod vpnd_check;
 mod window;
+#[cfg(windows)]
+mod windows_startup;
 
 pub const APP_NAME: &str = "NymVPN";
 pub const APP_DIR: &str = "nym-vpn-app";
@@ -85,7 +87,21 @@ const DEFAULT_DEBUG_LOGGING: bool = true;
 build_info::build_info!(fn build_info);
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> ExitCode {
+    match run_application().await {
+        Ok(exit_code) => exit_code,
+        Err(error) => {
+            error!(%error, "fatal application startup error");
+            #[cfg(windows)]
+            windows_startup::show_native_error(windows_startup::NativeStartupError::Unexpected);
+            #[cfg(not(windows))]
+            eprintln!("NymVPN failed to start: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+async fn run_application() -> Result<ExitCode> {
     dotenvy::dotenv().ok();
 
     #[cfg(all(not(debug_assertions), windows))]
@@ -95,7 +111,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     if cli.clean_local_files {
         fs::util::clean_local_files();
-        return Ok(());
+        return Ok(ExitCode::SUCCESS);
     }
     let app_config = AppConfig::read().ok();
     let sentry_enabled = app_config
@@ -128,11 +144,19 @@ async fn main() -> Result<()> {
 
     if cli.build_info {
         cli::print_build_info(pkg_info);
-        return Ok(());
+        return Ok(ExitCode::SUCCESS);
     }
 
     if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
-        return db_command(cmd);
+        db_command(cmd)?;
+        return Ok(ExitCode::SUCCESS);
+    }
+
+    #[cfg(windows)]
+    if let Err(error) = windows_startup::check_prerequisites() {
+        error!(%error, "Windows prerequisite check failed");
+        windows_startup::show_native_error(error.native_error());
+        return Ok(ExitCode::FAILURE);
     }
 
     let sentry_guard = if sentry_enabled {
@@ -236,7 +260,16 @@ async fn main() -> Result<()> {
                 .ok();
             app.manage(db.clone());
 
-            let app_window = AppWindow::create_main_window(app.handle(), &cli)?;
+            let app_window =
+                AppWindow::create_main_window(app.handle(), &cli).inspect_err(|_error| {
+                    #[cfg(windows)]
+                    {
+                        error!(%_error, "failed to initialize the Windows webview");
+                        windows_startup::show_native_error(
+                            windows_startup::NativeStartupError::WebView2Unavailable,
+                        );
+                    }
+                })?;
             app_window.set_bg_color(&db).ok();
             #[cfg(target_os = "linux")]
             app_window.set_max_size(os.display_server.clone()).ok();
@@ -417,8 +450,7 @@ async fn main() -> Result<()> {
             #[cfg(windows)]
             cmd_updater::install_update,
         ])
-        .run(context)
-        .expect("error while running tauri application");
+        .run(context)?;
 
-    Ok(())
+    Ok(ExitCode::SUCCESS)
 }

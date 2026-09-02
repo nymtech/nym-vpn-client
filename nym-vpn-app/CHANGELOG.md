@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [Windows] Show actionable native errors for unsupported Windows versions and missing or damaged WebView2 instead of crashing during startup
+- [Windows] Recheck and repair WebView2 and Visual C++ prerequisites during installation and updates
+
 ## [2026.12.2] - 2026-08-25
 
 ## [2026.12.1] - 2026-08-22
