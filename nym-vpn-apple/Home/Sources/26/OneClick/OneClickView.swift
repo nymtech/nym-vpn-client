@@ -319,6 +319,8 @@ private extension OneClickView {
             "purchasePlan.chooseMyPlan".localizedString
         case .accountUnreachable:
             "home.accountUnreachable".localizedString
+        case .checkingAccount:
+            "requestingZkNyms".localizedString
         }
     }
 
@@ -329,7 +331,7 @@ private extension OneClickView {
         switch viewModel.connectState {
         case .disconnected, .noAccount, .noSubscription, .accountUnreachable:
             return .primary
-        case .connecting, .disconnecting, .noInternet:
+        case .connecting, .disconnecting, .noInternet, .checkingAccount:
             return .connecting
         case .stop:
             return .destructive
@@ -343,7 +345,7 @@ private extension OneClickView {
             return true
         }
         switch viewModel.connectState {
-        case .connecting, .disconnecting, .noInternet:
+        case .connecting, .disconnecting, .noInternet, .checkingAccount:
             return true
         case .disconnected, .stop, .connected, .noAccount, .noSubscription, .accountUnreachable:
             return false
