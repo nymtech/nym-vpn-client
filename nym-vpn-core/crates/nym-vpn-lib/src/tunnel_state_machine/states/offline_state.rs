@@ -42,7 +42,7 @@ impl OfflineState {
             api_endpoints: vec![],
         };
 
-        // reconnect=false: no session (boot/Disconnected/user Disconnect); restore like Disconnected. reconnect=true stays leak-safe.
+        // reconnect=false: no active session to protect (cold start, disconnected, or explicit disconnect); reconnect=true stays leak-safe.
         if reconnect {
             shared_state.disallow_networking().await;
 
