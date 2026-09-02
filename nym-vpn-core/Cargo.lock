@@ -5867,6 +5867,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-endpoint-health"
+version = "2026.13.0-beta.1"
+dependencies = [
+ "nym-offline-monitor",
+ "reqwest 0.13.3",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "wiremock",
+]
+
+[[package]]
 name = "nym-exclude"
 version = "2026.13.0-beta.1"
 dependencies = [
@@ -7247,6 +7262,7 @@ dependencies = [
  "hkdf",
  "nym-bandwidth-controller",
  "nym-bandwidth-fetcher",
+ "nym-coconut-dkg-common",
  "nym-common 2026.13.0-beta.1",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
@@ -7254,6 +7270,7 @@ dependencies = [
  "nym-credentials-interface",
  "nym-crypto",
  "nym-ecash-time",
+ "nym-endpoint-health",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -7398,6 +7415,7 @@ dependencies = [
  "nym-dbus",
  "nym-diagnostic",
  "nym-dns",
+ "nym-endpoint-health",
  "nym-favorites",
  "nym-file-updater",
  "nym-firewall",
@@ -7522,6 +7540,7 @@ dependencies = [
  "nym-bridges-types",
  "nym-common 2026.13.0-beta.1",
  "nym-diagnostic",
+ "nym-endpoint-health",
  "nym-favorites",
  "nym-firewall-config",
  "nym-gateway-directory",
@@ -7557,6 +7576,7 @@ version = "2026.13.0-beta.1"
 dependencies = [
  "itertools 0.14.0",
  "nym-common 2026.13.0-beta.1",
+ "nym-endpoint-health",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -7646,6 +7666,7 @@ dependencies = [
  "eventlog",
  "futures",
  "nym-bin-common",
+ "nym-endpoint-health",
  "nym-ipc",
  "nym-platform-metadata",
  "nym-sdk",

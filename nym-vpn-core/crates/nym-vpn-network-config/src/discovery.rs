@@ -21,6 +21,8 @@ pub struct Discovery {
     nym_api_urls: Vec<ApiUrl>,
     nym_vpn_api_url: url::Url,
     nym_vpn_api_urls: Vec<ApiUrl>,
+    #[serde(default)]
+    nyxd_urls: Vec<url::Url>,
 
     // Additional context
     pub account_management: Option<AccountManagement>,
@@ -95,6 +97,18 @@ impl Discovery {
                 .collect()
         }
     }
+
+    /// Nyxd RPC endpoint pool. Falls back to the bundled defaults for this
+    /// network when the stored discovery doesn't carry any (e.g. a remote
+    /// discovery response predating this field).
+    pub fn nyxd_urls(&self) -> Vec<url::Url> {
+        if !self.nyxd_urls.is_empty() {
+            return self.nyxd_urls.clone();
+        }
+        Self::default_discovery(&self.network_name)
+            .map(|d| d.nyxd_urls)
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -154,12 +168,26 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
         })?;
         let nym_vpn_api_urls = discovery.nym_vpn_api_urls.clone();
 
+        let nyxd_urls = discovery
+            .nyxd_urls
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|raw| {
+                raw.parse::<url::Url>()
+                    .inspect_err(|err| {
+                        tracing::warn!("Skipping invalid nyxd url in discovery: {raw}: {err}")
+                    })
+                    .ok()
+            })
+            .collect();
+
         Ok(Self {
             network_name: discovery.network_name,
             nym_api_url,
             nym_api_urls,
             nym_vpn_api_url,
             nym_vpn_api_urls,
+            nyxd_urls,
             account_management,
             feature_flags,
             system_configuration,
@@ -201,7 +229,7 @@ mod tests {
     }
 
     async fn test_discovery_equality(discovery: Discovery) {
-        let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None, None).unwrap();
         let fetched = fetcher
             .fetch_discovery(&discovery.network_name)
             .await
@@ -285,6 +313,7 @@ mod tests {
                 url: "https://bar.ch/api/".parse().unwrap(),
                 fronts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),
             }],
+            nyxd_urls: vec![],
             account_management: Some(AccountManagement {
                 url: "https://foobar.ch/".parse().unwrap(),
                 paths: AccountManagementPaths {
@@ -335,5 +364,56 @@ mod tests {
             system_configuration: None,
         };
         assert_eq!(network, expected_network);
+    }
+
+    #[test]
+    fn test_mainnet_default_nym_api_pool_includes_signers() {
+        let urls = Discovery::default_mainnet().nym_api_urls();
+        assert_eq!(urls.len(), 15);
+        assert_eq!(urls[0].url, "https://validator.nymtech.net/api/");
+        assert!(urls.iter().any(|u| u.url == "https://nym-api.nodes.guru/"));
+    }
+
+    #[test]
+    fn test_mainnet_default_has_nyxd_pool() {
+        let discovery = Discovery::default_mainnet();
+        let urls = discovery.nyxd_urls();
+        assert_eq!(urls.len(), 4);
+        assert_eq!(urls[0].as_str(), "https://rpc.nymtech.net/");
+    }
+
+    #[test]
+    fn test_nyxd_urls_fall_back_to_bundled_default_when_absent() {
+        // Simulates a remote discovery response that doesn't carry nyxd_urls:
+        // the bundled mainnet pool must still apply.
+        let json = r#"{
+            "network_name": "mainnet",
+            "nym_api_url": "https://validator.nymtech.net/api/",
+            "nym_api_urls": [],
+            "nym_vpn_api_url": "https://nymvpn.com/api/",
+            "nym_vpn_api_urls": []
+        }"#;
+        let response: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
+        let discovery: Discovery = response.try_into().unwrap();
+        assert_eq!(discovery.nyxd_urls().len(), 4);
+    }
+
+    #[test]
+    fn test_nyxd_urls_from_response_override_default() {
+        let json = r#"{
+            "network_name": "mainnet",
+            "nym_api_url": "https://validator.nymtech.net/api/",
+            "nym_api_urls": [],
+            "nym_vpn_api_url": "https://nymvpn.com/api/",
+            "nym_vpn_api_urls": [],
+            "nyxd_urls": ["https://rpc.example.com/", "not a url"]
+        }"#;
+        let response: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
+        let discovery: Discovery = response.try_into().unwrap();
+        // invalid entries skipped with a warning, valid ones kept
+        assert_eq!(
+            discovery.nyxd_urls(),
+            vec!["https://rpc.example.com/".parse::<url::Url>().unwrap()]
+        );
     }
 }

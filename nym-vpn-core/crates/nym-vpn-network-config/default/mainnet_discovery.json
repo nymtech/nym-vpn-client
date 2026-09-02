@@ -8,7 +8,20 @@
     {
       "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
-    }
+    },
+    { "url": "https://nym-api-signer-1.nymtech.net/api/" },
+    { "url": "https://nym-api-signer-2.nymtech.net/api/" },
+    { "url": "https://nym-api-nyx.tpt.systems/" },
+    { "url": "https://nym-api.hoodrun.io/" },
+    { "url": "https://nym-api.nym.atalma.io/" },
+    { "url": "https://nym-api.nocturnallabs.org/" },
+    { "url": "https://nym-api.commodum.io/" },
+    { "url": "https://nym-api.swiss-staking.ch/" },
+    { "url": "https://nym-api.nyx.throbaclabs.com/" },
+    { "url": "https://nym-api.nym.pathrocknetwork.org/" },
+    { "url": "https://nym-api.nyx.fairstaking.com/" },
+    { "url": "https://nym-api.nym.greenfield.xyz/" },
+    { "url": "https://nym-api.nodes.guru/" }
   ],
   "nym_vpn_api_url": "https://nymvpn.com/api/",
   "nym_vpn_api_urls": [
@@ -19,6 +32,12 @@
       "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
     }
+  ],
+  "nyxd_urls": [
+    "https://rpc.nymtech.net/",
+    "https://nym-rpc.polkachu.com/",
+    "https://rpc.nyx.nodes.guru/",
+    "https://nym-mainnet-rpc.commodum.io/"
   ],
   "account_management": {
     "url": "https://nym.com/",

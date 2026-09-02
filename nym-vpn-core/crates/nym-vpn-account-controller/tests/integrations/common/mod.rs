@@ -242,7 +242,9 @@ impl TestBench {
         let mut network_env = Network::mainnet_default().unwrap();
         network_env.nyxd_url = nyxd_server.uri().parse()?;
 
-        let nyxd_client = NyxdClient::new(&network_env);
+        let endpoint_health =
+            std::sync::Arc::new(nym_endpoint_health::EndpointHealthTracker::new());
+        let nyxd_client = NyxdClient::new(&network_env, endpoint_health);
 
         let tempdir = tempfile::tempdir()?;
         let account_controller_config = AccountControllerConfig {

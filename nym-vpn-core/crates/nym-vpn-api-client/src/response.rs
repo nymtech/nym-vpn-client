@@ -735,6 +735,8 @@ pub struct NymWellknownDiscoveryItemResponse {
     pub nym_api_urls: Vec<ApiUrl>,
     pub nym_vpn_api_url: String,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
+    #[serde(default)]
+    pub nyxd_urls: Option<Vec<String>>,
     pub account_management: Option<AccountManagementResponse>,
     pub feature_flags: Option<serde_json::Value>,
     pub system_messages: Option<Vec<SystemMessageResponse>>,

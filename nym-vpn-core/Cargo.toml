@@ -8,6 +8,7 @@ members = [
     "crates/nym-dbus",
     "crates/nym-diagnostic",
     "crates/nym-dns",
+    "crates/nym-endpoint-health",
     "crates/nym-exclude",
     "crates/nym-firewall",
     "crates/nym-firewall-config",
@@ -251,6 +252,7 @@ nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }
 nym-dbus = { path = "crates/nym-dbus" }
 nym-dns = { path = "crates/nym-dns" }
+nym-endpoint-health = { path = "crates/nym-endpoint-health" }
 nym-favorites = { path = "crates/nym-favorites" }
 nym-firewall = { path = "crates/nym-firewall" }
 nym-firewall-config = { path = "crates/nym-firewall-config" }
@@ -288,6 +290,7 @@ nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "v
 nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
+nym-coconut-dkg-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.15-bydgoszcz" }

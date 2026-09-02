@@ -196,7 +196,10 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             AccountCommandError::internal(format!("ecash seed derivation failure: {err}"))
         })?;
 
-        let client = self.nyxd_client.inner_client(&account.get_mnemonic())?;
+        let client = self
+            .nyxd_client
+            .inner_client(&account.get_mnemonic())
+            .await?;
 
         let fetcher = Arc::new(
             NyxdCredentialFetcher::new(

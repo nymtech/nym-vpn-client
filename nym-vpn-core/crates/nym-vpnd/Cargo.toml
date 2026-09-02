@@ -34,6 +34,7 @@ tonic.workspace = true
 tracing.workspace = true
 
 nym-bin-common.workspace = true
+nym-endpoint-health.workspace = true
 nym-sdk.workspace = true
 
 nym-ipc = { workspace = true, features = ["daemon"] }
