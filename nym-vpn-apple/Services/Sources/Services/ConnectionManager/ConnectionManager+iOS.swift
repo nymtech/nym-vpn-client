@@ -2,7 +2,6 @@
 import NetworkExtension
 import AppSettings
 import ConfigurationManager
-import Constants
 import ConnectionTypes
 import NymLogger
 import NymVPNLib
@@ -10,7 +9,6 @@ import PathManager
 import TunnelMixnet
 import Tunnels
 import TunnelStatus
-import WidgetKit
 
 // MARK: - Setup -
 extension ConnectionManager {
@@ -49,7 +47,6 @@ extension ConnectionManager {
                     }
                     self?.currentTunnelStatus = status
                     self?.updateTimeConnected()
-                    self?.updateWidgetState(for: status)
                 }
             }
 
@@ -210,27 +207,6 @@ extension ConnectionManager {
             return
         }
         connectedDate = newConnectedDate
-    }
-}
-
-// MARK: - Widget -
-extension ConnectionManager {
-    func updateWidgetState(for status: TunnelStatus) {
-        let defaults = UserDefaults(suiteName: Constants.groupID.rawValue)
-        if status == .connected {
-            if let code = connectionStorage.entryGateway.countryCode {
-                let name = Locale.current.localizedString(forRegionCode: code) ?? code
-                defaults?.set(name, forKey: "ios_widgetEntryLocation")
-            }
-            if let code = connectionStorage.exitRouter.countryCode {
-                let name = Locale.current.localizedString(forRegionCode: code) ?? code
-                defaults?.set(name, forKey: "ios_widgetExitLocation")
-            }
-        }
-        WidgetCenter.shared.reloadAllTimelines()
-        if #available(iOS 18.0, *) {
-            ControlCenter.shared.reloadAllControls()
-        }
     }
 }
 #endif

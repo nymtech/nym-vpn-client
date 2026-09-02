@@ -328,12 +328,6 @@ jobs:
             --name "NymVPN daemon" \
             --save
 
-          app-store-connect profiles list \
-            --type MAC_APP_DIRECT \
-            --state ACTIVE \
-            --name "NymVPN macOS Widget" \
-            --save
-
           echo "✅ Signing files successfully fetched and imported."
 
       - name: Install Apple WWDR Intermediates
@@ -451,8 +445,6 @@ jobs:
               <string>NymVPN macOS + Daemon</string>
               <key>net.nymtech.vpn.daemon</key>
               <string>NymVPN daemon</string>
-              <key>net.nymtech.vpn.macOSwidget</key>
-              <string>NymVPN macOS Widget</string>
             </dict>
           </dict>
           </plist>
@@ -470,26 +462,22 @@ jobs:
 
           echo "🔐 Resolving macOS provisioning profile specifiers..."
           DAEMON_PROFILE_SPEC=""
-          WIDGET_PROFILE_SPEC=""
 
           for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
             name=$(security cms -D -i "$profile" | plutil -extract Name raw -o - -- -)
             case "$name" in
               "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
-              "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
             esac
           done
 
-          if [[ -z "$DAEMON_PROFILE_SPEC" || -z "$WIDGET_PROFILE_SPEC" ]]; then
+          if [[ -z "$DAEMON_PROFILE_SPEC" ]]; then
             echo "❌ Could not resolve macOS profile specifiers"
             echo "   Daemon: '${DAEMON_PROFILE_SPEC:-NOT FOUND}'"
-            echo "   Widget: '${WIDGET_PROFILE_SPEC:-NOT FOUND}'"
             exit 1
           fi
 
           echo "✅ Daemon profile: $DAEMON_PROFILE_SPEC"
-          echo "✅ Widget profile: $WIDGET_PROFILE_SPEC"
 
           echo "Archiving macOS app..."
           xcodebuild archive \
@@ -502,7 +490,6 @@ jobs:
             DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
             CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
             MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
-            MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp" | xcbeautify --renderer github-actions
 
