@@ -17,8 +17,6 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: unknown, info: React.ErrorInfo) {
-    // console.* is forwarded to the Rust logger, so this lands in the very
-    // archive the error screen's export button produces
     console.error(
       `app crashed: ${describeError(error)}${info.componentStack ?? ''}`,
     );

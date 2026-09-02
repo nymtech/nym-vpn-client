@@ -103,7 +103,7 @@ function renderFatalError(error: unknown) {
   try {
     if (isTauri()) {
       // the main window is only shown once App mounts, so a startup failure
-      // would otherwise leave the user staring at nothing at all
+      // would otherwise leave the user with a blank window
       getCurrentWebviewWindow()
         .show()
         .catch((e: unknown) =>
@@ -145,7 +145,6 @@ dayjs.extend(localizedFormat);
     try {
       useAppStore.setState({ uiTheme: await getTheme() });
     } catch (e) {
-      // a theme we cannot read must not stop the app from starting
       console.error(`failed to resolve the UI theme: ${describeError(e)}`);
     }
     console.info('starting UI');

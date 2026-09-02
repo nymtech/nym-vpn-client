@@ -168,8 +168,6 @@ export function mockTauriIPC() {
       }
 
       if (cmd === 'get_favorites') {
-        // the real command always resolves a Favorites object; leaving it
-        // unmocked makes hydrate() throw an unhandled rejection on startup
         return new Promise<Favorites>((resolve) =>
           resolve({ entry: [], exit: [] }),
         );

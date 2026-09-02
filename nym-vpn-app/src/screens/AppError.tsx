@@ -24,8 +24,6 @@ function AppError({ error, onReload }: AppErrorProps) {
   const handleExportLogs = useCallback(async () => {
     setExportStatus('pending');
     try {
-      // `zip_logs` opens a native save dialog and resolves false when the user
-      // dismisses it, so a cancel must not be reported as a success
       const saved = await invoke<boolean>('zip_logs');
       setExportStatus(saved ? 'success' : 'cancelled');
     } catch (e) {
@@ -71,7 +69,7 @@ function AppError({ error, onReload }: AppErrorProps) {
           <pre
             className={clsx([
               'bg-surface-sunken mt-2 max-h-44 overflow-auto rounded-md p-2',
-              'text-status-error cursor-auto text-xs break-words',
+              'text-status-error cursor-auto text-xs wrap-break-word',
               'whitespace-pre-wrap select-text',
             ])}
           >
