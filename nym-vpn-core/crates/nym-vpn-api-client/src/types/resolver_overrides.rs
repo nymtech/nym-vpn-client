@@ -5,7 +5,6 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use itertools::{Either, Itertools};
 use tokio::task::JoinSet;
 
 use nym_common::ErrorExt;
@@ -20,23 +19,34 @@ pub struct ResolverOverrides {
 }
 
 impl ResolverOverrides {
-    /// Create a new set of resolver overrides from the provided URLs.
-    /// Resolves all domains in parallel for faster startup and reconnection.
-    pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
+    /// Resolve every primary and fronting domain found in `urls` in parallel, without ever
+    /// failing outright.
+    ///
+    /// Returns the successfully resolved overrides together with the set of primary domains
+    /// that failed to resolve. Callers that need "at least one usable primary route" semantics
+    /// (`from_urls`) turn a complete primary failure into an error; callers that only need to
+    /// prune unusable routes (`resolve_and_prune`) can use the partial overrides as-is, even
+    /// when every primary failed but a front still resolved.
+    async fn resolve_all(urls: &[Url]) -> (Self, HashSet<String>) {
         let mut join_set = JoinSet::new();
 
         tracing::debug!("getting overrides for {urls:?}");
 
-        let urls_to_resolve = urls
+        // A domain counts as primary if it's the primary URL for at least one candidate,
+        // as opposed to only ever appearing as a fronting decoy.
+        let primaries: HashSet<url::Url> = urls.iter().map(|url| url.inner_url().clone()).collect();
+
+        let candidates: HashSet<url::Url> = urls
             .iter()
             .flat_map(|url| {
                 [url.inner_url().clone()]
                     .into_iter()
                     .chain(url.fronts().unwrap_or_default().iter().cloned())
             })
-            .collect::<HashSet<_>>();
+            .collect();
 
-        for url in urls_to_resolve {
+        for url in candidates {
+            let is_primary = primaries.contains(&url);
             let Some(domain) = url.domain().map(|s| s.to_owned()) else {
                 tracing::warn!(
                     "Ignoring API URL '{}' for resolver overrides as it does not have a valid domain",
@@ -56,44 +66,161 @@ impl ResolverOverrides {
                             ))
                         );
                     });
-                (domain, result)
+                (domain, is_primary, result)
             });
         }
 
         // Execute all resolution tasks in parallel
         let results = join_set.join_all().await;
 
-        // Collect successful and failed resolutions
-        let (successes, failures): (Vec<(String, HashSet<SocketAddr>)>, HashSet<String>) = results
-            .into_iter()
-            .partition_map(|(domain, result)| match result {
-                Ok(addresses) => Either::Left((domain, HashSet::from_iter(addresses))),
-                Err(_) => Either::Right(domain),
-            });
+        let mut overrides = HashMap::new();
+        let mut failed_primaries = HashSet::new();
+        let mut failed_fronts = HashSet::new();
 
-        if failures.is_empty() {
-            tracing::debug!(
-                "Successfully resolved domains in parallel: {:?}",
-                successes.iter().map(|v| v.0.as_str()).collect::<Vec<_>>()
-            );
-
-            Ok(Self {
-                overrides: HashMap::from_iter(successes),
-            })
-        } else {
-            // At least one resolution failed.
-            tracing::warn!("Failed to resolve one or more URLs: {:?}", failures);
-
-            Err(VpnApiClientError::HostnamesResolutionError {
-                hostnames: failures,
-            })
+        for (domain, is_primary, result) in results {
+            match result {
+                Ok(addresses) => {
+                    overrides.insert(domain, HashSet::from_iter(addresses));
+                }
+                Err(_) if is_primary => {
+                    failed_primaries.insert(domain);
+                }
+                Err(_) => {
+                    failed_fronts.insert(domain);
+                }
+            }
         }
+
+        if !failed_fronts.is_empty() {
+            tracing::warn!(
+                "Ignoring unresolvable fronting domain(s), continuing without them as fallback routes: {:?}",
+                failed_fronts
+            );
+        }
+
+        tracing::debug!(
+            "Successfully resolved domains in parallel: {:?}",
+            overrides.keys().collect::<Vec<_>>()
+        );
+
+        (Self { overrides }, failed_primaries)
+    }
+
+    /// Create a new set of resolver overrides from the provided URLs.
+    /// Resolves all domains in parallel for faster startup and reconnection.
+    ///
+    /// Fronting domains are only ever used as a fallback route, so a front that fails to
+    /// resolve is dropped rather than treated as fatal. Resolution only fails outright if
+    /// none of the primary URLs could be resolved either, meaning there is no usable route
+    /// at all.
+    pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
+        let (overrides, failed_primaries) = Self::resolve_all(urls).await;
+
+        let any_primary_expected = urls.iter().any(|url| url.inner_url().domain().is_some());
+        let resolved_any_primary = urls.iter().any(|url| {
+            url.inner_url()
+                .domain()
+                .is_some_and(|domain| overrides.addresses(domain).is_some())
+        });
+
+        if any_primary_expected && !resolved_any_primary {
+            tracing::warn!(
+                "Failed to resolve any usable primary API URL: {:?}",
+                failed_primaries
+            );
+            return Err(VpnApiClientError::HostnamesResolutionError {
+                hostnames: failed_primaries,
+            });
+        }
+
+        if !failed_primaries.is_empty() {
+            tracing::warn!(
+                "Failed to resolve some primary API URL(s), continuing with the remaining ones: {:?}",
+                failed_primaries
+            );
+        }
+
+        Ok(overrides)
     }
 
     /// Create resolver overrides from the provided ApiUrls
     pub async fn from_api_urls(api_urls: &[ApiUrl]) -> Result<Self, VpnApiClientError> {
         let urls = api_urls_to_urls(api_urls)?;
         Self::from_urls(&urls).await
+    }
+
+    /// Resolve the given URLs and return a pruned copy with every front that failed to
+    /// resolve removed, and any candidate whose primary and every front failed to resolve
+    /// dropped entirely.
+    ///
+    /// This lets an HTTP client built from the result never attempt a host we already know
+    /// is unreachable, instead of finding out at request time (DNS lookup, then most likely
+    /// a firewall-blocked connection attempt).
+    ///
+    /// Never errors: if resolution fails so completely that pruning would leave nothing at
+    /// all, the original, unpruned list is returned so callers still have something to try.
+    ///
+    /// Uses [`Self::resolve_all`] directly rather than [`Self::from_urls`], so a front that
+    /// did resolve is still usable for pruning even when every primary failed.
+    pub async fn resolve_and_prune(urls: &[Url]) -> Vec<Url> {
+        let (overrides, _failed_primaries) = Self::resolve_all(urls).await;
+        let pruned = Self::prune(urls, &overrides);
+        if pruned.is_empty() && !urls.is_empty() {
+            tracing::warn!(
+                "Pruning unresolvable API URLs would leave none usable; keeping the original list instead"
+            );
+            urls.to_vec()
+        } else {
+            pruned
+        }
+    }
+
+    /// Filter out fronts (and whole candidates) that `overrides` couldn't resolve.
+    pub fn prune(urls: &[Url], overrides: &ResolverOverrides) -> Vec<Url> {
+        urls.iter()
+            .filter_map(|url| {
+                let primary_resolved = url
+                    .inner_url()
+                    .domain()
+                    .is_some_and(|domain| overrides.addresses(domain).is_some());
+
+                let resolved_fronts: Vec<url::Url> = url
+                    .fronts()
+                    .unwrap_or_default()
+                    .iter()
+                    .filter(|front| {
+                        front
+                            .domain()
+                            .is_some_and(|domain| overrides.addresses(domain).is_some())
+                    })
+                    .cloned()
+                    .collect();
+
+                if !primary_resolved && resolved_fronts.is_empty() {
+                    tracing::warn!(
+                        "Dropping unusable API URL '{url}': neither its primary domain nor any of its fronts could be resolved"
+                    );
+                    return None;
+                }
+
+                // Nothing was actually pruned: keep the original `Url` rather than rebuilding
+                // it. `Url::new` starts a fresh `current_front` index, which would silently
+                // reset an in-progress fronting fallback back to the first front even though
+                // nothing about resolvability changed.
+                if resolved_fronts.len() == url.fronts().unwrap_or_default().len() {
+                    return Some(url.clone());
+                }
+
+                Url::new(
+                    url.inner_url().clone(),
+                    (!resolved_fronts.is_empty()).then_some(resolved_fronts),
+                )
+                .inspect_err(|err| {
+                    tracing::warn!("Failed to rebuild pruned URL for '{url}': {err}")
+                })
+                .ok()
+            })
+            .collect()
     }
 
     /// Extend the current overrides with another set of overrides.
@@ -174,7 +301,9 @@ mod test {
     }
 
     #[tokio::test]
-    async fn overrides_return_error() -> Result<(), VpnApiClientError> {
+    async fn unresolvable_front_is_tolerated() -> Result<(), VpnApiClientError> {
+        // A front is only ever a fallback route. If it fails to resolve but the primary
+        // URLs are fine, the call should still succeed, just without that front available.
         let urls: Vec<Url> = vec![
             Url::new("https://nymvpn.com", None).unwrap(),
             Url::new(
@@ -184,11 +313,31 @@ mod test {
             .unwrap(),
         ];
 
+        let overrides = ResolverOverrides::from_urls(&urls).await?;
+        assert!(overrides.addresses("nymvpn.com").is_some());
+        assert!(overrides.addresses("validator.nymtech.net").is_some());
+        assert!(overrides.addresses("non-existent.nymtech.net").is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn overrides_return_error_when_no_primary_resolves() -> Result<(), VpnApiClientError> {
+        let urls: Vec<Url> = vec![
+            Url::new("https://non-existent-1.nymtech.net", None).unwrap(),
+            Url::new(
+                "https://non-existent-2.nymtech.net",
+                Some(vec!["https://non-existent-3.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
         let result = ResolverOverrides::from_urls(&urls).await;
         assert!(result.is_err());
 
         let mut expected = HashSet::new();
-        expected.insert("non-existent.nymtech.net".to_string());
+        expected.insert("non-existent-1.nymtech.net".to_string());
+        expected.insert("non-existent-2.nymtech.net".to_string());
         match result {
             Ok(_) => panic!("unreachable"),
             Err(VpnApiClientError::HostnamesResolutionError { hostnames }) => {
@@ -197,5 +346,118 @@ mod test {
             Err(e) => panic!("unexpected err: {e}"),
         }
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn prune_drops_unresolvable_front_but_keeps_working_candidates() {
+        let urls: Vec<Url> = vec![
+            Url::new("https://nymvpn.com", None).unwrap(),
+            Url::new(
+                "https://validator.nymtech.net",
+                Some(vec!["https://non-existent.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), 2);
+
+        let validator = pruned
+            .iter()
+            .find(|url| url.inner_url().domain() == Some("validator.nymtech.net"))
+            .expect("validator.nymtech.net should still be present");
+        assert!(validator.fronts().unwrap_or_default().is_empty());
+
+        let nymvpn = pruned
+            .iter()
+            .find(|url| url.inner_url().domain() == Some("nymvpn.com"))
+            .expect("nymvpn.com should still be present");
+        assert!(nymvpn.fronts().unwrap_or_default().is_empty());
+    }
+
+    #[tokio::test]
+    async fn prune_drops_candidate_with_no_resolvable_route() {
+        let urls: Vec<Url> = vec![
+            Url::new("https://nymvpn.com", None).unwrap(),
+            Url::new(
+                "https://non-existent-1.nymtech.net",
+                Some(vec!["https://non-existent-2.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), 1);
+        assert_eq!(pruned[0].inner_url().domain(), Some("nymvpn.com"));
+    }
+
+    #[tokio::test]
+    async fn resolve_and_prune_falls_back_to_original_when_nothing_resolves() {
+        let urls: Vec<Url> = vec![
+            Url::new("https://non-existent-1.nymtech.net", None).unwrap(),
+            Url::new(
+                "https://non-existent-2.nymtech.net",
+                Some(vec!["https://non-existent-3.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), urls.len());
+    }
+
+    #[tokio::test]
+    async fn resolve_and_prune_keeps_working_front_when_every_primary_fails() {
+        // The primary is unresolvable but its front is fine: pruning should keep just the
+        // front rather than discarding the resolved front data and falling back to the
+        // original, unpruned (and known-bad) primary URL.
+        let urls: Vec<Url> = vec![
+            Url::new(
+                "https://non-existent.nymtech.net",
+                Some(vec!["https://nymvpn.com"]),
+            )
+            .unwrap(),
+        ];
+
+        let pruned = ResolverOverrides::resolve_and_prune(&urls).await;
+        assert_eq!(pruned.len(), 1);
+        assert_eq!(
+            pruned[0].inner_url().domain(),
+            Some("non-existent.nymtech.net")
+        );
+        assert_eq!(
+            pruned[0]
+                .fronts()
+                .unwrap_or_default()
+                .iter()
+                .map(|f| f.domain())
+                .collect::<Vec<_>>(),
+            vec![Some("nymvpn.com")]
+        );
+    }
+
+    #[tokio::test]
+    async fn prune_preserves_current_front_when_nothing_is_pruned() {
+        // Everything here resolves, so `prune` shouldn't need to drop anything.
+        let url = Url::new(
+            "https://nymvpn.com",
+            Some(vec!["https://validator.nymtech.net", "https://example.com"]),
+        )
+        .unwrap();
+
+        // Simulate an in-progress fronting fallback: a prior request already advanced past
+        // the first front.
+        url.update();
+        assert_eq!(url.front_str(), Some("example.com"));
+
+        let overrides = ResolverOverrides::from_urls(std::slice::from_ref(&url))
+            .await
+            .unwrap();
+        let pruned = ResolverOverrides::prune(std::slice::from_ref(&url), &overrides);
+
+        assert_eq!(pruned.len(), 1);
+        // Nothing was pruned, so the advanced front index should have carried over instead of
+        // resetting to the first front.
+        assert_eq!(pruned[0].front_str(), Some("example.com"));
     }
 }

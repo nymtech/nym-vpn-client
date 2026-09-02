@@ -25,13 +25,14 @@ impl Match for HeaderAbsent {
     }
 }
 
-fn client_and_account(server: &MockServer) -> (VpnApiClient, VpnAccount) {
+async fn client_and_account(server: &MockServer) -> (VpnApiClient, VpnAccount) {
     let base = format!("{}/", server.uri().trim_end_matches('/'));
     let url = Url::new(&base, None).expect("base url");
     let client = VpnApiClient::new(
         vec![url],
         Some(UserAgent::from_str("nym-test/0.1.0/ci/wiremock").expect("user agent")),
     )
+    .await
     .expect("vpn api client");
     let account = VpnAccount::new(
         Mnemonic::parse(TEST_MNEMONIC).expect("mnemonic"),
@@ -44,7 +45,7 @@ fn client_and_account(server: &MockServer) -> (VpnApiClient, VpnAccount) {
 #[tokio::test]
 async fn delete_device_uses_account_auth_only() {
     let server = MockServer::start().await;
-    let (client, account) = client_and_account(&server);
+    let (client, account) = client_and_account(&server).await;
     let device_identity = "SomeOrphanedDeviceIdentityKey";
     let expected_path = format!(
         "/public/v1/account/{}/device/{device_identity}",
@@ -72,7 +73,7 @@ async fn delete_device_uses_account_auth_only() {
 #[tokio::test]
 async fn delete_device_propagates_non_success_response() {
     let server = MockServer::start().await;
-    let (client, account) = client_and_account(&server);
+    let (client, account) = client_and_account(&server).await;
 
     Mock::given(method("PATCH"))
         .respond_with(ResponseTemplate::new(500).set_body_json(serde_json::json!({

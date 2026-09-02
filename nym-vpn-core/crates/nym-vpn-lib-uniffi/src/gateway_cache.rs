@@ -57,8 +57,9 @@ impl NymGatewayCache {
         .map_err(|e| VpnError::InternalError {
             details: format!("Failed to create config: {e:#?}"),
         })?;
-        let gateway_client =
-            GatewayClient::new(directory_config, user_agent.into()).map_err(VpnError::internal)?;
+        let gateway_client = GatewayClient::new(directory_config, user_agent.into())
+            .await
+            .map_err(VpnError::internal)?;
         let (gateway_cache_handle, join_handle) = GatewayCache::spawn(
             gateway_client,
             offline_monitor.inner(),

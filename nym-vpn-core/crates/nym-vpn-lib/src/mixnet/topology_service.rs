@@ -8,7 +8,7 @@ use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::C
 use nym_common::trace_err_chain;
 use nym_http_api_client::{Url, UserAgent};
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider};
-use nym_vpn_api_client::{error::VpnApiClientError, fronted_http_client};
+use nym_vpn_api_client::{ResolverOverrides, error::VpnApiClientError, fronted_http_client};
 use tokio::{
     sync::{
         mpsc::{self, UnboundedReceiver, UnboundedSender},
@@ -186,20 +186,19 @@ impl VpnTopologyService {
 
     /// Fetch new topology from the network.
     async fn fetch(&self) -> Result<NymTopology, VpnTopologyServiceError> {
-        let validator_client = fronted_http_client(
-            self.nym_api_urls.clone(),
-            Some(self.user_agent.clone()),
-            None,
-        )
-        .map_err(VpnTopologyServiceError::CreateHttpClient)?;
+        // Prune once and reuse for both the HTTP client and the topology provider, so the
+        // provider's own list of API URLs doesn't reintroduce routes the client already knows
+        // are unusable.
+        let nym_api_urls = ResolverOverrides::resolve_and_prune(&self.nym_api_urls).await;
+
+        let validator_client =
+            fronted_http_client(nym_api_urls.clone(), Some(self.user_agent.clone()), None)
+                .await
+                .map_err(VpnTopologyServiceError::CreateHttpClient)?;
 
         let mut topology_provider = NymApiTopologyProvider::new(
             clone_config(&self.config),
-            self.nym_api_urls
-                .clone()
-                .into_iter()
-                .map(Into::into)
-                .collect(),
+            nym_api_urls.into_iter().map(Into::into).collect(),
             validator_client,
         );
 

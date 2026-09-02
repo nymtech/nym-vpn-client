@@ -236,7 +236,7 @@ impl TestBench {
 
         let urls = api_urls_to_urls(&[api_url])?;
 
-        let nym_vpn_api_client = VpnApiClient::new(urls, Some(mock_user_agent()))?;
+        let nym_vpn_api_client = VpnApiClient::new(urls, Some(mock_user_agent())).await?;
 
         let nyxd_server = MockServer::start().await;
         let mut network_env = Network::mainnet_default().unwrap();
