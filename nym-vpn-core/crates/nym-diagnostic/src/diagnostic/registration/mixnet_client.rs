@@ -50,7 +50,7 @@ impl MixnetClientRegistration {
         tracing::info!("Starting mixnet client");
 
         let disconnected_mixnet_client = match Self::build_mixnet_client(
-            network.nym_network_details().clone(),
+            network.nym_network_details().clone().into(),
             &parameters.gateway,
             Box::new(topology_provider),
         ) {

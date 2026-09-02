@@ -3,10 +3,8 @@
 use super::util::ConnectionGuard;
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::{GatewayCacheHandle, ScoreValue};
-use nym_sdk::{
-    NymNetworkDetails,
-    mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths},
-};
+use nym_network_defaults::v2::NymNetworkDetails;
+use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
 use rand::seq::SliceRandom;
 use std::{
@@ -540,7 +538,7 @@ impl LazySocks5 {
 
         // Configure network environment if provided
         if let Some(ref network_details) = self.config.network_details {
-            builder = builder.network_details(network_details.clone());
+            builder = builder.network_details(network_details.clone().into());
             debug!(
                 "Using network environment: {}",
                 network_details.network_name

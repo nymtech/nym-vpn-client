@@ -4,7 +4,8 @@
 use std::time::Duration;
 
 use nym_http_api_client::Client as HttpApiClient;
-use nym_sdk::{NymNetworkDetails, UserAgent};
+use nym_sdk::UserAgent;
+use nym_network_defaults::v2::NymNetworkDetails;
 use nym_validator_client::nym_api::NymApiClientExt;
 use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls, fronted_http_client};
 
@@ -70,7 +71,7 @@ impl Fetcher {
     /// Fetch network details from the API.
     pub async fn fetch_network_details(&self) -> Result<Box<NymNetworkDetails>> {
         self.api_client
-            .get_network_details()
+            .get_network_details_v2()
             .await
             .map(|response| response.network)
             .map(Box::new)
