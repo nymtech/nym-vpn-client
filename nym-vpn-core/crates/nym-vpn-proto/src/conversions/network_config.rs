@@ -99,9 +99,11 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
             chain_details,
             endpoints,
             contracts,
-            nym_vpn_api_url: details.nym_vpn_api_url,
-            nym_api_urls: Some(nym_api_urls),
-            nym_vpn_api_urls: Some(nym_vpn_api_urls),
+            networking: nym_vpn_lib_types::NymNetworkingSpecifics {
+                nym_api_urls,
+                nym_vpn_api_urls,
+                dns_fallbacks: Vec::new(),
+            },
         })
     }
 }
@@ -204,15 +206,23 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
             .into_iter()
             .map(proto::ValidatorDetails::from)
             .collect();
+        // `nym_vpn_api_url` (singular) no longer exists on the current in-process type,
+        // which only tracks the full url list; derive it the same way the underlying
+        // v2 -> v1 network-defaults conversion does, for wire compatibility.
+        let nym_vpn_api_url = nym_network
+            .networking
+            .nym_vpn_api_urls
+            .first()
+            .map(|url| url.url.clone());
         let nym_api_urls = nym_network
+            .networking
             .nym_api_urls
-            .unwrap_or_default()
             .into_iter()
             .map(proto::ApiUrl::from)
             .collect();
         let nym_vpn_api_urls = nym_network
+            .networking
             .nym_vpn_api_urls
-            .unwrap_or_default()
             .into_iter()
             .map(proto::ApiUrl::from)
             .collect();
@@ -222,7 +232,7 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
             chain_details: Some(nym_network.chain_details.into()),
             endpoints,
             contracts: Some(nym_network.contracts.into()),
-            nym_vpn_api_url: nym_network.nym_vpn_api_url,
+            nym_vpn_api_url,
             nym_api_urls,
             nym_vpn_api_urls,
         }

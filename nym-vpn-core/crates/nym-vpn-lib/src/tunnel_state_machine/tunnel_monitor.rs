@@ -668,7 +668,7 @@ impl TunnelMonitor {
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
             ))
-            .network_env(nym_network)
+            .network_env(nym_network.into())
             .cancel_token(self.shutdown_token.child_token());
 
         #[cfg(unix)]

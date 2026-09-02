@@ -4,11 +4,15 @@
 use std::path::{Path, PathBuf};
 
 use nym_common::trace_err_chain;
-use nym_sdk::NymNetworkDetails;
+use nym_network_defaults::v2::NymNetworkDetails;
 
 use crate::{Error, PersistentRecord, Result};
 
 type CachedNetworkDetails = PersistentRecord<NymNetworkDetails>;
+
+/// Pre-v2 on-disk shape, kept around solely to migrate caches written by older clients.
+/// See [`PersistentNetworkDetails::try_migrate_legacy`].
+type LegacyCachedNetworkDetails = PersistentRecord<nym_network_defaults::NymNetworkDetails>;
 
 /// Persistent network details store that keeps track of last modification date
 #[derive(Debug)]
@@ -63,6 +67,11 @@ impl PersistentNetworkDetails {
             }
             Err(err) if err.should_overwrite_file() => {
                 if !err.is_file_not_found() {
+                    if let Some(migrated) =
+                        Self::try_migrate_legacy(cache_dir.clone(), &path, network_name).await
+                    {
+                        return Ok(migrated);
+                    }
                     trace_err_chain!(err, "failed to deserialize cache");
                 }
                 if network_name == "mainnet" {
@@ -90,6 +99,44 @@ impl PersistentNetworkDetails {
     /// Returns network name referenced by discovery
     pub fn network_name(&self) -> &str {
         &self.cached_network_details.value.network_name
+    }
+
+    /// Attempts to read `path` as a pre-v2 [`nym_network_defaults::NymNetworkDetails`] record
+    /// and, if it parses and its network name matches, converts it into the current shape and
+    /// rewrites the file in place. This lets clients upgrading across the v1 -> v2 on-disk
+    /// format keep their existing cache (e.g. discovery-fetched overrides) instead of it being
+    /// treated as corrupt and discarded. Returns `None` if the file doesn't parse as the legacy
+    /// shape either, or its network name doesn't match, leaving the caller to fall back to its
+    /// usual "no usable cache" handling.
+    async fn try_migrate_legacy(
+        cache_dir: PathBuf,
+        path: &Path,
+        network_name: &str,
+    ) -> Option<Self> {
+        let legacy = crate::serialization::deserialize_from_json_file::<
+            _,
+            LegacyCachedNetworkDetails,
+        >(path)
+        .ok()?;
+
+        if legacy.value.network_name != network_name {
+            return None;
+        }
+
+        let migrated = Self {
+            cache_dir,
+            cached_network_details: PersistentRecord {
+                updated_at: legacy.updated_at,
+                value: legacy.value.into(),
+            },
+        };
+
+        migrated.write().await.ok()?;
+        tracing::info!(
+            "Migrated cached network details for '{network_name}' to the current on-disk format"
+        );
+
+        Some(migrated)
     }
 
     /// Update network details and persist changes on disk.
@@ -220,6 +267,37 @@ mod tests {
                 .await
                 .is_err_and(|err| err.is_inconsistent_network())
         );
+    }
+
+    #[tokio::test]
+    async fn test_migrates_legacy_v1_cache_on_disk() {
+        let cache_dir = tempdir().unwrap();
+        let path = PersistentNetworkDetails::path(cache_dir.path(), "sandbox");
+        tokio::fs::create_dir_all(path.parent().unwrap())
+            .await
+            .unwrap();
+
+        let legacy_value = nym_network_defaults::sandbox::network_details();
+        let legacy_record = LegacyCachedNetworkDetails::up_to_date(legacy_value.clone());
+        crate::serialization::serialize_to_json_file(&path, &legacy_record).unwrap();
+
+        // Without the legacy fallback this would fail with `NoDefaultNetworkDetails`, since
+        // there's no bundled default for non-mainnet networks (see
+        // `test_should_fail_creating_empty_cache_for_non_mainnet`).
+        let migrated =
+            PersistentNetworkDetails::new_from_cache(cache_dir.path().to_path_buf(), "sandbox")
+                .await
+                .unwrap();
+        assert_eq!(migrated.value(), &NymNetworkDetails::from(legacy_value));
+        assert!(!migrated.is_stale());
+
+        // The file on disk should have been rewritten in the current shape, so a subsequent
+        // load doesn't need to migrate again.
+        let reloaded =
+            PersistentNetworkDetails::new_from_cache(cache_dir.path().to_path_buf(), "sandbox")
+                .await
+                .unwrap();
+        assert_eq!(reloaded.value(), migrated.value());
     }
 
     #[tokio::test]
