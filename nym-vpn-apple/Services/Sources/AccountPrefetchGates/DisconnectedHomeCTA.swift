@@ -5,6 +5,7 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
     case getStarted
     case choosePlan
     case accountUnreachable
+    case checking
     case connect
 
     public static func resolve(
@@ -19,8 +20,8 @@ public enum DisconnectedHomeCTA: Equatable, Sendable {
         if accountSummaryLastFetchFailed, !isAccountActive {
             return .accountUnreachable
         }
-        if !isAccountActive, hasAccountSummary {
-            return .choosePlan
+        if !isAccountActive {
+            return hasAccountSummary ? .choosePlan : .checking
         }
         return .connect
     }

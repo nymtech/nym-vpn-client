@@ -36,6 +36,18 @@ struct ConnectButtonStateCTATests {
         )
     }
 
+    @Test func importedWithoutSummaryIsCheckingAccount() {
+        #expect(
+            ConnectButtonState(
+                tunnelStatus: .disconnected,
+                isCredentialImported: true,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                hasAccountSummary: false
+            ) == .checkingAccount
+        )
+    }
+
     @Test func activeAccountIsConnect() {
         #expect(
             ConnectButtonState(

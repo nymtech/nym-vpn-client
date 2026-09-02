@@ -376,8 +376,7 @@ import GRPCManager
 
     public func requestWelcome() {
         path = NavigationPath()
-        pendingDrawerContent = .welcome
-        drawerContent = .welcome
+        stagePreauthDrawer(.welcome)
     }
 
     public func requestInactiveSubscriptionPurchase() {

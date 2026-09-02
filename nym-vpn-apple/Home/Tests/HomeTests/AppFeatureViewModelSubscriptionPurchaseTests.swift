@@ -41,7 +41,13 @@ final class AppFeatureViewModelSubscriptionPurchaseTests: XCTestCase {
 
         viewModel.handle(.requestWelcome)
 
+        XCTAssertEqual(viewModel.pendingDrawerContent, .welcome)
+        XCTAssertEqual(viewModel.drawerContent, .oneClick)
+
+        viewModel.drawerTransitionCompleted()
+
         XCTAssertEqual(viewModel.drawerContent, .welcome)
+        XCTAssertNil(viewModel.pendingDrawerContent)
     }
 
 #if os(iOS)
