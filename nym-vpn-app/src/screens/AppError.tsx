@@ -5,24 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Button, MsIcon } from '../ui';
 import { describeError } from '../errors';
 
-// Every `t` call carries an English fallback: this screen has to render even
-// when i18n is itself what failed, so it must not depend on a loaded bundle.
-const en = {
-  title: 'Something went wrong',
-  description:
-    'The app ran into an unexpected problem. Exporting the logs and sharing them with support helps us fix it.',
-  details: 'Error details',
-  reload: 'Reload the app',
-  export: {
-    action: 'Export logs',
-    pending: 'Preparing the logs archive…',
-    success: 'Logs saved.',
-    cancelled: 'Export cancelled.',
-    error: 'Failed to export the logs.',
-  },
-};
-
-type ExportStatus = keyof typeof en.export;
+type ExportStatus = 'pending' | 'success' | 'cancelled' | 'error';
 
 export type AppErrorProps = {
   error: unknown;
@@ -69,7 +52,7 @@ function AppError({ error, onReload }: AppErrorProps) {
           className="text-xl leading-loose font-medium tracking-wider"
           data-testid="app-error-title"
         >
-          {t('fatal.title', { defaultValue: en.title })}
+          {t('fatal.title')}
         </h1>
       </div>
 
@@ -77,13 +60,13 @@ function AppError({ error, onReload }: AppErrorProps) {
         className="text-text-secondary max-w-md text-center text-sm"
         data-testid="app-error-description"
       >
-        {t('fatal.description', { defaultValue: en.description })}
+        {t('fatal.description')}
       </p>
 
       {details && (
         <details className="w-full max-w-md" data-testid="app-error-details">
           <summary className="text-text-secondary cursor-pointer text-center text-xs">
-            {t('fatal.details', { defaultValue: en.details })}
+            {t('fatal.details')}
           </summary>
           <pre
             className={clsx([
@@ -100,7 +83,7 @@ function AppError({ error, onReload }: AppErrorProps) {
       <div className="flex w-full max-w-xs flex-col items-center gap-3">
         <div className="w-full" data-testid="app-error-reload-button">
           <Button variant="primary" onClick={onReload}>
-            {t('fatal.reload', { defaultValue: en.reload })}
+            {t('fatal.reload')}
           </Button>
         </div>
         <div className="w-full" data-testid="app-error-export-button">
@@ -109,7 +92,7 @@ function AppError({ error, onReload }: AppErrorProps) {
             onClick={() => void handleExportLogs()}
             loading={exportStatus === 'pending'}
           >
-            {t('fatal.export.action', { defaultValue: en.export.action })}
+            {t('fatal.export.action')}
           </Button>
         </div>
         {exportStatus && exportStatus !== 'pending' && (
@@ -123,9 +106,7 @@ function AppError({ error, onReload }: AppErrorProps) {
             role="status"
             data-testid="app-error-export-status"
           >
-            {t(`fatal.export.${exportStatus}`, {
-              defaultValue: en.export[exportStatus],
-            })}
+            {t(`fatal.export.${exportStatus}`)}
           </p>
         )}
       </div>

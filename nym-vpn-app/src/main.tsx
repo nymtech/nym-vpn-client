@@ -12,11 +12,7 @@ import { kvGet } from './kvStore';
 import { InitState, VpndConfig, VpndStatus } from './types';
 import { FatalError, StartupError } from './screens';
 import { ErrorBoundary } from './components';
-import {
-  installGlobalErrorHandlers,
-  markUiMounted,
-  setEscalationHandler,
-} from './errors';
+import { describeError, installGlobalErrorHandlers } from './errors';
 import { init } from './log';
 import { getTheme } from './util';
 import { useAppStore } from './store';
@@ -110,7 +106,9 @@ function renderFatalError(error: unknown) {
       // would otherwise leave the user staring at nothing at all
       getCurrentWebviewWindow()
         .show()
-        .catch((e: unknown) => console.error(`failed to show window: ${e}`));
+        .catch((e: unknown) =>
+          console.error(`failed to show window: ${describeError(e)}`),
+        );
     }
     getRoot().render(
       <React.StrictMode>
@@ -118,16 +116,16 @@ function renderFatalError(error: unknown) {
       </React.StrictMode>,
     );
   } catch (e) {
-    console.error(`failed to render the error screen: ${e}`);
+    console.error(`failed to render the error screen: ${describeError(e)}`);
   }
 }
 
 installGlobalErrorHandlers();
-setEscalationHandler(renderFatalError);
 
 // The error screen reads the theme from the store, which is only populated once
-// the app mounts. Seed it from the OS straight away so a crash before that
-// still renders in the right theme; startup then refines it from the setting.
+// the app mounts. Seed it from the OS straight away so a startup failure before
+// that still renders in the right theme; startup then refines it from the
+// setting.
 useAppStore.setState({
   uiTheme: window.matchMedia('(prefers-color-scheme: dark)').matches
     ? 'dark'
@@ -148,7 +146,7 @@ dayjs.extend(localizedFormat);
       useAppStore.setState({ uiTheme: await getTheme() });
     } catch (e) {
       // a theme we cannot read must not stop the app from starting
-      console.error(`failed to resolve the UI theme: ${e}`);
+      console.error(`failed to resolve the UI theme: ${describeError(e)}`);
     }
     console.info('starting UI');
 
@@ -173,7 +171,6 @@ dayjs.extend(localizedFormat);
           <StartupError error={startupError} theme={theme} />
         </React.StrictMode>,
       );
-      markUiMounted();
       return;
     }
 
@@ -222,11 +219,10 @@ dayjs.extend(localizedFormat);
         </ErrorBoundary>
       </React.StrictMode>,
     );
-    markUiMounted();
   } catch (e) {
     // without this the app boots to a permanently blank window: any rejection
     // above happens before React ever renders, so no boundary can catch it
-    console.error(`failed to start the UI: ${e}`);
+    console.error(`failed to start the UI: ${describeError(e)}`);
     renderFatalError(e);
   }
 })();

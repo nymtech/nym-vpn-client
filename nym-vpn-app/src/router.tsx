@@ -15,6 +15,7 @@ import {
   GeoExclusionSelectRegion,
   GeoExclusionSetup,
   Lang,
+  LayoutError,
   Legal,
   LegalRouteIndex,
   LicenseDetails,
@@ -86,6 +87,9 @@ const router = createBrowserRouter([
   },
   {
     element: <MainLayout />,
+    // for throws in the layout itself; screens are covered one level down so
+    // that their errors keep the layout and stay recoverable by navigation
+    errorElement: <LayoutError />,
     children: [
       {
         errorElement: <Error />,
@@ -242,6 +246,7 @@ const router = createBrowserRouter([
   {
     path: routes.hideout,
     element: <MainLayout noTopBar noNotifications noDaemonDot />,
+    errorElement: <LayoutError />,
     children: [
       {
         errorElement: <Error />,

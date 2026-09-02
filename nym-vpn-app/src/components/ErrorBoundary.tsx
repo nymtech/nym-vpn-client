@@ -1,6 +1,6 @@
 import React from 'react';
 import { FatalError } from '../screens';
-import { describeError, markTreeDown } from '../errors';
+import { describeError } from '../errors';
 
 type Props = { children: React.ReactNode };
 type State = { error: unknown; crashed: boolean };
@@ -22,9 +22,6 @@ class ErrorBoundary extends React.Component<Props, State> {
     console.error(
       `app crashed: ${describeError(error)}${info.componentStack ?? ''}`,
     );
-    // once the tree is down, later unhandled rejections must escalate to the
-    // error screen rather than a toast nobody can see
-    markTreeDown();
   }
 
   render() {

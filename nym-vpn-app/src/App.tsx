@@ -13,7 +13,7 @@ import {
   TopBarProvider,
   TrayProvider,
 } from './contexts';
-import { NonFatalErrorToasts } from './components';
+import { describeError } from './errors';
 import { useLang } from './hooks';
 import { LngTag, detectSystemLocale } from './i18n';
 import { kvGet } from './kvStore';
@@ -55,13 +55,12 @@ function App({ init }: { init: InitState }) {
       }
     };
     setLng().catch((e: unknown) => {
-      console.error(`failed to set the UI language: ${e}`);
+      console.error(`failed to set the UI language: ${describeError(e)}`);
     });
   }, [set]);
 
   return (
     <Toast.Provider timeout={5000}>
-      <NonFatalErrorToasts />
       <MainStateProvider init={init}>
         <TrayProvider>
           <ThemeSetter>
