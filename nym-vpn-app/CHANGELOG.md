@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Replace lottie animations with manual css animations
+
 ## [2026.12.2] - 2026-08-25
 
 ## [2026.12.1] - 2026-08-22
