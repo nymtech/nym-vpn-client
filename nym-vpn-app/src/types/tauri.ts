@@ -287,6 +287,8 @@ export type Performance = {
   uptime24h: number;
 };
 
+export type Profile = 'safest' | 'mostPrivate' | 'fastest' | 'random';
+
 export type RecentGateways = { entry: Array<Gateway>; exit: Array<Gateway> };
 
 export type Region = {

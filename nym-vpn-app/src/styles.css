@@ -27,6 +27,18 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
+
+  --animate-nod: nod 0.4s ease-in-out;
+
+  @keyframes nod {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(10deg);
+    }
+  }
 }
 
 /* ─── semantic tokens — Figma "Brand_palette_v2" ────────────────────────────

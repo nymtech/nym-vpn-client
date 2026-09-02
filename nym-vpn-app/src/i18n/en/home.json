@@ -18,6 +18,7 @@
   "connection-time": "Connection time",
   "random-server": "Random server",
   "safest-server-selection": "Safest server selection",
+  "fastest-server-selection": "Fastest server selection",
   "mode-toggle": {
     "fast": "dVPN",
     "mixnet": "Mixnet"

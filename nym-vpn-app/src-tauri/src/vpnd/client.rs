@@ -14,7 +14,7 @@ use super::{
     events::{DiagnosticsSuggestedReason, MixnetEvent},
     gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
-    tunnel::{FrontingMode, SplitApp, TunnelState},
+    tunnel::{FrontingMode, Profile, SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -412,6 +412,18 @@ impl VpndClient {
         vpnd.set_fronting_mode(mode.into())
             .or_else(async |e| self.handle_rpc_error("set_fronting_mode", e).await)
             .await
+    }
+
+    /// Apply a connection profile
+    #[instrument(skip_all)]
+    pub async fn set_profile(&self, profile: Profile) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_profile(lib::ProfileOptions {
+            profile: profile.into(),
+        })
+        .or_else(async |e| self.handle_rpc_error("set_profile", e).await)
+        .await
     }
 
     /// Enable or disable no-IPv6 mode
