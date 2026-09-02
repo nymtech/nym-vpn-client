@@ -24,7 +24,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use time::{Date, OffsetDateTime};
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{
     VpnApiFetcherError,
