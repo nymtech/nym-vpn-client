@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Local DNS resolver will respond with `serv_fail` on timeout from upstream DNS server (https://github.com/nymtech/nym-vpn-client/pull/6132)
 - Remove IPv6 DNS addresses from default DNS configuration due to reliability issues (https://github.com/nymtech/nym-vpn-client/pull/6132)
 
+### Fixed
+
+- [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected.
+
 
 ## [2026.12.0] - 2026-08-18
 
