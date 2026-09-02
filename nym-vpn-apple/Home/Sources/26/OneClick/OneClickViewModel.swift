@@ -143,6 +143,8 @@ public final class OneClickViewModel {
         case .accountUnreachable:
             startAccountUnreachableRefresh()
             return true
+        case .checkingAccount:
+            return true
         case .disconnected, .connecting, .stop, .connected, .disconnecting, .noInternet:
             return false
         }

@@ -8,7 +8,8 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: false,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: false
             ) == .getStarted
         )
     }
@@ -18,7 +19,8 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: true
             ) == .choosePlan
         )
     }
@@ -28,7 +30,8 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: true,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: false
             ) == .accountUnreachable
         )
     }
@@ -38,7 +41,8 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: true,
-                isAccountActive: false
+                isAccountActive: false,
+                hasAccountSummary: true
             ) == .accountUnreachable
         )
     }
@@ -48,18 +52,20 @@ struct DisconnectedHomeCTATests {
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: true
+                isAccountActive: true,
+                hasAccountSummary: true
             ) == .connect
         )
     }
 
-    @Test func importedWithoutSummaryIsChoosePlanNotConnect() {
+    @Test func importedWithoutSummaryIsUnknownNotConnect() {
         #expect(
             DisconnectedHomeCTA.resolve(
                 isCredentialImported: true,
                 accountSummaryLastFetchFailed: false,
-                isAccountActive: false
-            ) == .choosePlan
+                isAccountActive: false,
+                hasAccountSummary: false
+            ) == .checking
         )
     }
 }

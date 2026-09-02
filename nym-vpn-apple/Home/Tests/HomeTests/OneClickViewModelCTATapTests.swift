@@ -98,11 +98,31 @@ final class OneClickViewModelCTATapTests: XCTestCase {
         XCTAssertEqual(spy.actions, [.requestInactiveSubscriptionPurchase])
     }
 
+    func testCheckingAccountTapDoesNotRouteCoordinatorOrConnect() {
+        let viewModel = makeViewModel()
+        let spy = SessionCoordinatorSpy()
+        viewModel.sessionCoordinator = spy
+        viewModel.connectState = .checkingAccount
+
+        XCTAssertTrue(viewModel.handleDisconnectedHomeCTATap())
+        XCTAssertTrue(spy.actions.isEmpty)
+    }
+
     func testDisconnectedTapDoesNotRouteCoordinator() {
         let viewModel = makeViewModel()
         let spy = SessionCoordinatorSpy()
         viewModel.sessionCoordinator = spy
         viewModel.connectState = .disconnected
+
+        XCTAssertFalse(viewModel.handleDisconnectedHomeCTATap())
+        XCTAssertTrue(spy.actions.isEmpty)
+    }
+
+    func testStopTapIsNotConsumedByDisconnectedHomeCTA() {
+        let viewModel = makeViewModel()
+        let spy = SessionCoordinatorSpy()
+        viewModel.sessionCoordinator = spy
+        viewModel.connectState = .stop
 
         XCTAssertFalse(viewModel.handleDisconnectedHomeCTATap())
         XCTAssertTrue(spy.actions.isEmpty)

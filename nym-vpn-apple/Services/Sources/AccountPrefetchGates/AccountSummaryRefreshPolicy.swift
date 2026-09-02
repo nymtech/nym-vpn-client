@@ -24,17 +24,20 @@ public enum AccountSummaryRefreshPolicy {
         isSubscriptionActive
     }
 
-    /// Login uses untilActive false. An empty successful summary (unregistered) must
-    /// not burn the full delay budget. Failed fetches still retry.
+    /// Login uses untilActive false. A successful summary (including inactive /
+    /// unregistered) finishes the poll. A nil summary or a failed fetch retries.
     public static func shouldFinishSummaryPoll(
         untilActive: Bool,
         isSubscriptionActive: Bool,
         hasAccountSummary: Bool,
         lastFetchFailed: Bool
     ) -> Bool {
+        if lastFetchFailed {
+            return false
+        }
         if untilActive {
             return shouldStopUntilActivePoll(isSubscriptionActive: isSubscriptionActive)
         }
-        return hasAccountSummary || !lastFetchFailed
+        return hasAccountSummary
     }
 }

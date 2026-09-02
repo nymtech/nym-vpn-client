@@ -44,7 +44,7 @@ import PathManager
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
     /// iOS toggles this during `performAccountRegistration`; macOS leaves it false.
-    private(set) public var isAccountRegistrationInFlight = false
+    @Published public private(set) var isAccountRegistrationInFlight = false
 #if os(iOS)
     var registrationCapturedEnvironment: NymEnvironment?
     var registrationCapturedEnvString: String?

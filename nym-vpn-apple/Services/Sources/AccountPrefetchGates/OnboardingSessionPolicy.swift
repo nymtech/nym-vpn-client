@@ -89,6 +89,9 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
             if accountSummaryLastFetchFailed {
                 return false
             }
+            if !hasAccountSummary {
+                return false
+            }
             if LoginSessionPolicy.isEffectivelyActive(
                 isAccountActive: isAccountActive,
                 validUntilIsFuture: validUntilIsFuture,

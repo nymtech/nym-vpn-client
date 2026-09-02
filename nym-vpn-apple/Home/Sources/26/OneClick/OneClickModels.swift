@@ -15,6 +15,7 @@ public enum OneClickConnectState: Equatable {
     case noAccount
     case noSubscription
     case accountUnreachable
+    case checkingAccount
 
     static func disconnected(_ cta: DisconnectedHomeCTA) -> Self {
         switch cta {
@@ -24,6 +25,8 @@ public enum OneClickConnectState: Equatable {
             .noSubscription
         case .accountUnreachable:
             .accountUnreachable
+        case .checking:
+            .checkingAccount
         case .connect:
             .disconnected
         }

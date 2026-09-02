@@ -251,14 +251,18 @@ private extension SettingsViewModel {
             }
             .store(in: &cancellables)
 
-        credentialsManager.$accountSummary
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.updateAccountSectionOnly()
-                }
+        Publishers.Merge3(
+            credentialsManager.$accountSummary.map { _ in () },
+            credentialsManager.$accountSummaryLastFetchFailed.map { _ in () },
+            credentialsManager.$isAccountRegistrationInFlight.map { _ in () }
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.updateAccountSectionOnly()
             }
-            .store(in: &cancellables)
+        }
+        .store(in: &cancellables)
     }
 
     /// Configures sections, to reload all the content - use reloadSections

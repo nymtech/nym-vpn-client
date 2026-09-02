@@ -243,7 +243,8 @@ private extension NymVPNDaemonApp {
             tunnelStatus: connectionManager.currentTunnelStatus,
             isCredentialImported: credentialsManager.isValidCredentialImported,
             accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
-            isAccountActive: credentialsManager.isAccountActive()
+            isAccountActive: credentialsManager.isAccountActive(),
+            hasAccountSummary: credentialsManager.accountSummary != nil
         )
     }
 

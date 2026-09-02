@@ -134,13 +134,24 @@ struct AccountReportTests {
     /// Guards against "button set drift": the title keys wired into the view must
     /// equal the title keys the descriptor can emit (iOS superset, non-TestFlight).
     @Test func descriptorMatchesViewButtonSet() throws {
-        var s = AccountSummary.makeFake(daysRemaining: nil, kind: .oneYear, isAutoRenew: false, baseAddress: "a")
-        s.isLinked = false
-        let descriptorKeys = Set(accountButtons(for: s, platform: .iOS, isTestFlight: false).map(\.titleKey))
+        var inactive = AccountSummary.makeFake(daysRemaining: nil, kind: .oneYear, isAutoRenew: false, baseAddress: "a")
+        inactive.isLinked = false
+        let inactiveKeys = Set(accountButtons(for: inactive, platform: .iOS, isTestFlight: false).map(\.titleKey))
+        let activeExpiring = AccountSummary.makeFake(
+            daysRemaining: 3,
+            kind: .oneMonth,
+            isAutoRenew: false,
+            baseAddress: "a"
+        )
+        let activeKeys = Set(accountButtons(for: activeExpiring, platform: .iOS, isTestFlight: false).map(\.titleKey))
 
         let viewKeys = try Self.viewButtonTitleKeys()
-        #expect(viewKeys == descriptorKeys,
-                "Account view button title-keys diverged from the descriptor. View=\(viewKeys.sorted()) Descriptor=\(descriptorKeys.sorted())")
+        #expect(viewKeys.isSuperset(of: inactiveKeys),
+                "Account view button title-keys diverged from the inactive descriptor. View=\(viewKeys.sorted()) Descriptor=\(inactiveKeys.sorted())")
+        #expect(viewKeys.isSuperset(of: activeKeys),
+                "Account view button title-keys diverged from the active-expiring descriptor. View=\(viewKeys.sorted()) Descriptor=\(activeKeys.sorted())")
+        #expect(inactiveKeys.contains("purchasePlan.chooseMyPlan"))
+        #expect(activeKeys.contains("settings.account.renewNow"))
     }
 
     /// Extracts button title keys from the Account view sources:
@@ -184,8 +195,10 @@ struct AccountReportTests {
                 if !nonButtonTitleKeys.contains(key) { keys.insert(key) }
             }
         }
-        if source.contains("renewButtonTitle")
-            || source.contains(#""settings.account.renewNow".localizedString"#) {
+        if source.contains("renewButtonTitle") {
+            keys.insert("settings.account.renewNow")
+            keys.insert("purchasePlan.chooseMyPlan")
+        } else if source.contains(#""settings.account.renewNow".localizedString"#) {
             keys.insert("settings.account.renewNow")
         }
         return keys

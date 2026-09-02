@@ -15,12 +15,14 @@ public enum ConnectButtonState: Equatable {
     /// Menu bar / connect-button encoding of `DisconnectedHomeCTA.choosePlan`.
     case noSubscription
     case accountUnreachable
+    case checkingAccount
 
     public init(
         tunnelStatus: TunnelStatus,
         isCredentialImported: Bool,
         accountSummaryLastFetchFailed: Bool = false,
-        isAccountActive: Bool = true
+        isAccountActive: Bool = true,
+        hasAccountSummary: Bool = false
     ) {
         if isCredentialImported == false {
             self = .noAccount
@@ -35,7 +37,8 @@ public enum ConnectButtonState: Equatable {
             switch DisconnectedHomeCTA.resolve(
                 isCredentialImported: isCredentialImported,
                 accountSummaryLastFetchFailed: accountSummaryLastFetchFailed,
-                isAccountActive: isAccountActive
+                isAccountActive: isAccountActive,
+                hasAccountSummary: hasAccountSummary
             ) {
             case .getStarted:
                 self = .noAccount
@@ -43,6 +46,8 @@ public enum ConnectButtonState: Equatable {
                 self = .noSubscription
             case .accountUnreachable:
                 self = .accountUnreachable
+            case .checking:
+                self = .checkingAccount
             case .connect:
                 self = .connect
             }
@@ -75,6 +80,8 @@ public enum ConnectButtonState: Equatable {
             "purchasePlan.chooseMyPlan".localizedString
         case .accountUnreachable:
             "home.accountUnreachable".localizedString
+        case .checkingAccount:
+            "requestingZkNyms".localizedString
         }
     }
 
@@ -82,7 +89,7 @@ public enum ConnectButtonState: Equatable {
         switch self {
         case .connect, .noInternet, .noAccount, .noSubscription, .accountUnreachable:
             NymColor.accent
-        case .installingDaemon, .noInternetReconnect:
+        case .installingDaemon, .noInternetReconnect, .checkingAccount:
             NymColor.gray1
         case .stop, .disconnecting, .disconnect:
             NymColor.error
@@ -96,7 +103,7 @@ extension ConnectButtonState {
         switch self {
         case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet:
             true
-        case .disconnecting, .installingDaemon, .noAccount, .noSubscription, .accountUnreachable:
+        case .disconnecting, .installingDaemon, .noAccount, .noSubscription, .accountUnreachable, .checkingAccount:
             false
         }
     }

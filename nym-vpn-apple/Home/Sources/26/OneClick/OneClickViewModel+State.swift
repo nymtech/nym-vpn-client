@@ -152,7 +152,8 @@ extension OneClickViewModel {
                 DisconnectedHomeCTA.resolve(
                     isCredentialImported: credentialsManager.isValidCredentialImported,
                     accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
-                    isAccountActive: credentialsManager.isAccountActive()
+                    isAccountActive: credentialsManager.isAccountActive(),
+                    hasAccountSummary: credentialsManager.accountSummary != nil
                 )
             )
         }
@@ -162,7 +163,7 @@ extension OneClickViewModel {
         isConnectDisconnectInFlight = true
         defer { isConnectDisconnectInFlight = false }
 
-        if isConnectingTap {
+        if isConnectingTap, connectionManager.currentTunnelStatus == .disconnected {
             let canProceed = await passesConnectPreflight()
             guard canProceed else { return }
         }
@@ -208,8 +209,9 @@ extension OneClickViewModel {
         )
         if shouldOfferPurchase {
             sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
+            return false
         }
-        return false
+        return true
     }
 
     func handleInactiveSubscriptionErrorIfNeeded() {
