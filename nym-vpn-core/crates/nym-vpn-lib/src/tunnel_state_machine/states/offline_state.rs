@@ -142,9 +142,9 @@ impl TunnelStateHandler for OfflineState {
                         if self.reconnect {
                             NextTunnelState::SameState(self)
                         } else {
-                            self.reconnect = true;
-                            let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
-                            NextTunnelState::NewState((self, new_state))
+                            NextTunnelState::NewState(
+                                Self::enter(true, self.selected_gateways, shared_state).await,
+                            )
                         }
                     },
                     TunnelCommand::Disconnect => {
