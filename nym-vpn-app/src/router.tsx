@@ -15,6 +15,7 @@ import {
   GeoExclusionSelectRegion,
   GeoExclusionSetup,
   Lang,
+  LayoutError,
   Legal,
   LegalRouteIndex,
   LicenseDetails,
@@ -86,196 +87,175 @@ const router = createBrowserRouter([
   },
   {
     element: <MainLayout />,
+    // for throws in the layout itself; screens are covered one level down so
+    // that their errors keep the layout and stay recoverable by navigation
+    errorElement: <LayoutError />,
     children: [
       {
-        path: routes.root,
-        Component: Home,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.technicalOptin,
-        Component: TechnicalOptin,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.welcome,
-        Component: WelcomeContainer,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.account,
-        Component: AccountRouteIndex,
         errorElement: <Error />,
         children: [
           {
-            path: routes.selectPlan,
-            Component: SelectPlan,
-            errorElement: <Error />,
+            path: routes.root,
+            Component: Home,
+          },
+          {
+            path: routes.technicalOptin,
+            Component: TechnicalOptin,
+          },
+          {
+            path: routes.welcome,
+            Component: WelcomeContainer,
+          },
+          {
+            path: routes.account,
+            Component: AccountRouteIndex,
+            children: [
+              {
+                path: routes.selectPlan,
+                Component: SelectPlan,
+              },
+            ],
+          },
+          {
+            path: routes.settings,
+            Component: SettingsRouteIndex,
+            children: [
+              {
+                path: routes.accountSettings,
+                Component: AccountScreen,
+              },
+              {
+                Component: Settings,
+                index: true,
+              },
+              {
+                path: routes.dev,
+                Component: Dev,
+              },
+              {
+                path: routes.appearance,
+                Component: AppearanceRouteIndex,
+                children: [
+                  {
+                    Component: Appearance,
+                    index: true,
+                  },
+                  {
+                    path: routes.lang,
+                    Component: Lang,
+                  },
+                  {
+                    path: routes.display,
+                    Component: Display,
+                  },
+                ],
+              },
+              {
+                path: routes.dataPrivacy,
+                children: [
+                  {
+                    Component: DataAndPrivacy,
+                    index: true,
+                  },
+                  {
+                    path: routes.logs,
+                    Component: Logs,
+                  },
+                  {
+                    path: routes.diagnostic,
+                    Component: Diagnostic,
+                  },
+                ],
+              },
+              {
+                path: routes.dns,
+                Component: CustomDNS,
+              },
+              {
+                path: routes.mixnetTuning,
+                Component: MixnetTuning,
+              },
+              {
+                path: routes.splitTunneling,
+                Component: SplitTunneling,
+              },
+              {
+                path: routes.geoExclusion,
+                Component: GeoExclusion,
+              },
+              {
+                path: routes.geoExclusionSetup,
+                Component: GeoExclusionSetup,
+              },
+              {
+                path: routes.geoExclusionSelectRegion,
+                Component: GeoExclusionSelectRegion,
+              },
+              {
+                path: routes.antiCensorship,
+                Component: AntiCensorship,
+              },
+              {
+                path: routes.socks5,
+                Component: Socks5,
+              },
+              {
+                path: routes.notifications,
+                Component: Notifications,
+              },
+              {
+                path: routes.support,
+                Component: Support,
+              },
+              {
+                path: routes.legal,
+                Component: LegalRouteIndex,
+                children: [
+                  {
+                    Component: Legal,
+                    index: true,
+                  },
+                  {
+                    path: routes.licensesRust,
+                    element: <LicenseList language="rust" />,
+                  },
+                  {
+                    path: routes.licensesJs,
+                    element: <LicenseList language="js" />,
+                  },
+                  {
+                    path: routes.licenseDetails,
+                    Component: LicenseDetails,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: routes.nodeLocation,
+            Component: NodeLocation,
+          },
+          {
+            path: routes.nodeDetails,
+            Component: NodeDetails,
           },
         ],
-      },
-      {
-        path: routes.settings,
-        Component: SettingsRouteIndex,
-        errorElement: <Error />,
-        children: [
-          {
-            path: routes.accountSettings,
-            Component: AccountScreen,
-            errorElement: <Error />,
-          },
-          {
-            Component: Settings,
-            errorElement: <Error />,
-            index: true,
-          },
-          {
-            path: routes.dev,
-            Component: Dev,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.appearance,
-            Component: AppearanceRouteIndex,
-            errorElement: <Error />,
-            children: [
-              {
-                Component: Appearance,
-                errorElement: <Error />,
-                index: true,
-              },
-              {
-                path: routes.lang,
-                Component: Lang,
-                errorElement: <Error />,
-              },
-              {
-                path: routes.display,
-                Component: Display,
-                errorElement: <Error />,
-              },
-            ],
-          },
-          {
-            path: routes.dataPrivacy,
-            errorElement: <Error />,
-            children: [
-              {
-                Component: DataAndPrivacy,
-                errorElement: <Error />,
-                index: true,
-              },
-              {
-                path: routes.logs,
-                Component: Logs,
-                errorElement: <Error />,
-              },
-              {
-                path: routes.diagnostic,
-                Component: Diagnostic,
-                errorElement: <Error />,
-              },
-            ],
-          },
-          {
-            path: routes.dns,
-            Component: CustomDNS,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.mixnetTuning,
-            Component: MixnetTuning,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.splitTunneling,
-            Component: SplitTunneling,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.geoExclusion,
-            Component: GeoExclusion,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.geoExclusionSetup,
-            Component: GeoExclusionSetup,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.geoExclusionSelectRegion,
-            Component: GeoExclusionSelectRegion,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.antiCensorship,
-            Component: AntiCensorship,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.socks5,
-            Component: Socks5,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.notifications,
-            Component: Notifications,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.support,
-            Component: Support,
-            errorElement: <Error />,
-          },
-          {
-            path: routes.legal,
-            Component: LegalRouteIndex,
-            errorElement: <Error />,
-            children: [
-              {
-                Component: Legal,
-                errorElement: <Error />,
-                index: true,
-              },
-              {
-                path: routes.licensesRust,
-                element: <LicenseList language="rust" />,
-                errorElement: <Error />,
-              },
-              {
-                path: routes.licensesJs,
-                element: <LicenseList language="js" />,
-                errorElement: <Error />,
-              },
-              {
-                path: routes.licenseDetails,
-                Component: LicenseDetails,
-                errorElement: <Error />,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        path: routes.nodeLocation,
-        Component: NodeLocation,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.nodeDetails,
-        Component: NodeDetails,
-        errorElement: <Error />,
       },
     ],
   },
   {
     path: routes.hideout,
     element: <MainLayout noTopBar noNotifications noDaemonDot />,
+    errorElement: <LayoutError />,
     children: [
       {
-        path: routes.onboarding,
-        Component: Onboarding,
         errorElement: <Error />,
+        children: [
+          {
+            path: routes.onboarding,
+            Component: Onboarding,
+          },
+        ],
       },
     ],
   },
