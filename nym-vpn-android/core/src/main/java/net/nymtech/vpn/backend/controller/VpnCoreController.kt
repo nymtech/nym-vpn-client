@@ -218,6 +218,7 @@ class VpnCoreController(
 				currentEntry = event.v1.entryPoint
 				currentExit = event.v1.exitPoint
 				events.tryEmit(Log("TunnelEvent config_changed"))
+				service.updateForegroundNotification(state)
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 		}
@@ -240,7 +241,10 @@ class VpnCoreController(
 			else -> Unit
 		}
 
-		service.updateForegroundNotification(coarse)
+		// retryAttempt > 0 on a Connecting event means this is a mid-session reconnect
+		// (e.g. triggered by an entry/exit gateway timeout), not the user's initial connect.
+		val retryAttempt = (event.v1 as? TunnelState.Connecting)?.retryAttempt
+		service.updateForegroundNotification(coarse, retryAttempt)
 	}
 
 	private fun handleMixnetEvent(event: TunnelEvent.MixnetState) {
