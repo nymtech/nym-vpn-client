@@ -24,9 +24,40 @@ pub struct NymNetworkDetails {
     pub chain_details: ChainDetails,
     pub endpoints: Vec<ValidatorDetails>,
     pub contracts: NymContracts,
-    pub nym_vpn_api_url: Option<String>,
-    pub nym_api_urls: Option<Vec<ApiUrl>>,
-    pub nym_vpn_api_urls: Option<Vec<ApiUrl>>,
+    pub networking: NymNetworkingSpecifics,
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct NymNetworkingSpecifics {
+    pub nym_api_urls: Vec<ApiUrl>,
+    pub nym_vpn_api_urls: Vec<ApiUrl>,
+    pub dns_fallbacks: Vec<DnsFallback>,
+    // pub internal_nameservers: std::any::Any,
+    // pub covert channels: std::any::Any,
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct DnsFallback {
+    pub url: String,
+    pub addresses: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -408,13 +439,36 @@ impl From<nym_vpn_network_config::NymNetworkDetails> for NymNetworkDetails {
                 .map(ValidatorDetails::from)
                 .collect(),
             contracts: NymContracts::from(value.contracts),
-            nym_vpn_api_url: value.nym_vpn_api_url,
-            nym_api_urls: value
-                .nym_api_urls
-                .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),
+            networking: value.networking.clone().into(),
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_network_defaults::v2::NetworkingSpecifics> for NymNetworkingSpecifics {
+    fn from(value: nym_network_defaults::v2::NetworkingSpecifics) -> Self {
+        Self {
+            nym_api_urls: value.nym_api_urls.into_iter().map(ApiUrl::from).collect(),
             nym_vpn_api_urls: value
                 .nym_vpn_api_urls
-                .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),
+                .into_iter()
+                .map(ApiUrl::from)
+                .collect(),
+            dns_fallbacks: value
+                .dns_fallbacks
+                .into_iter()
+                .map(DnsFallback::from)
+                .collect(),
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_network_defaults::v2::DnsFallback> for DnsFallback {
+    fn from(value: nym_network_defaults::v2::DnsFallback) -> Self {
+        Self {
+            url: value.url,
+            addresses: value.addresses,
         }
     }
 }

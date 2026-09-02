@@ -7522,6 +7522,7 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-lp",
  "nym-macos",
+ "nym-network-defaults",
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-registration-client",
