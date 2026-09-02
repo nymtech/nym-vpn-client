@@ -42,7 +42,7 @@ impl OfflineState {
             api_endpoints: vec![],
         };
 
-        // reconnect=false: user already disconnected; do not re-apply kill-switch DNS/pf.
+        // reconnect=false: no session (boot/Disconnected/user Disconnect); restore like Disconnected. reconnect=true stays leak-safe.
         if reconnect {
             shared_state.disallow_networking().await;
 
