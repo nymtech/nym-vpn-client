@@ -1511,12 +1511,23 @@ impl tunnel::Error {
                 GatewayProviderError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-                GatewayProviderError::EntryGatewayUnavailable { .. } => {
-                    Some(ErrorStateReason::PerformantEntryGatewayUnavailable)
-                }
-                GatewayProviderError::ExitGatewayUnavailable { .. } => {
-                    Some(ErrorStateReason::PerformantExitGatewayUnavailable)
-                }
+                GatewayProviderError::EntryGatewayUnavailable(err) => Some(match err {
+                    // Only ever returned for a pinned entry gateway identity: it exists but
+                    // is currently excluded from selection (e.g. blacklisted), or doesn't
+                    // exist at all. Either way, the fix is the same: pick a different one.
+                    nym_gateway_directory::Error::NoMatchingGateway { .. }
+                    | nym_gateway_directory::Error::GatewayFilteredOut { .. } => {
+                        ErrorStateReason::InvalidEntryGatewayIdentity
+                    }
+                    _ => ErrorStateReason::PerformantEntryGatewayUnavailable,
+                }),
+                GatewayProviderError::ExitGatewayUnavailable(err) => Some(match err {
+                    nym_gateway_directory::Error::NoMatchingGateway { .. }
+                    | nym_gateway_directory::Error::GatewayFilteredOut { .. } => {
+                        ErrorStateReason::InvalidExitGatewayIdentity
+                    }
+                    _ => ErrorStateReason::PerformantExitGatewayUnavailable,
+                }),
                 GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
                     Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
                 }

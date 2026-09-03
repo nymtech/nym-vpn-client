@@ -2,13 +2,46 @@ use crate::NodeIdentity;
 use anyhow::{Result, anyhow};
 use std::{
     collections::HashMap,
+    fmt,
     hash::Hash,
     sync::{Arc, RwLock},
     time::{Duration, Instant},
 };
 
+/// Why a gateway was added to the blacklist, kept around so the selector can log a useful
+/// message when it later excludes that gateway, instead of just "it's blacklisted".
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlacklistReason {
+    /// The WG handshake timed out, or a post-handshake connectivity probe failed, without a
+    /// healthy metadata path ever being established through this gateway acting as exit.
+    ConnectionFailed,
+    /// This entry gateway was blamed after several consecutive pre-handshake connection
+    /// failures while the exit gateway kept changing.
+    EntryBlamedForRepeatedFailures,
+    /// Registration with this gateway failed.
+    RegistrationFailed,
+}
+
+impl fmt::Display for BlacklistReason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ConnectionFailed => write!(f, "connection failed"),
+            Self::EntryBlamedForRepeatedFailures => {
+                write!(f, "blamed for repeated pre-handshake failures")
+            }
+            Self::RegistrationFailed => write!(f, "registration failed"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Entry {
+    expiry: Instant,
+    reason: BlacklistReason,
+}
+
 #[derive(Debug, Clone, Default)]
-pub struct BlacklistedGateways(Arc<RwLock<HashMap<NodeIdentity, Instant>>>);
+pub struct BlacklistedGateways(Arc<RwLock<HashMap<NodeIdentity, Entry>>>);
 
 impl BlacklistedGateways {
     const TTL: Duration = Duration::from_mins(20);
@@ -17,12 +50,18 @@ impl BlacklistedGateways {
         Default::default()
     }
 
-    pub fn add(&self, identity: NodeIdentity) -> Result<()> {
+    pub fn add(&self, identity: NodeIdentity, reason: BlacklistReason) -> Result<()> {
         match self.0.write() {
             Ok(mut map) => {
                 let now = Instant::now();
-                map.insert(identity, now + Self::TTL);
-                map.retain(|_, expiry| *expiry >= now); // Housekeeping
+                map.insert(
+                    identity,
+                    Entry {
+                        expiry: now + Self::TTL,
+                        reason,
+                    },
+                );
+                map.retain(|_, entry| entry.expiry >= now); // Housekeeping
                 Ok(())
             }
             Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
@@ -34,7 +73,7 @@ impl BlacklistedGateways {
             Ok(mut map) => {
                 let now = Instant::now();
                 map.remove(identity);
-                map.retain(|_, expiry| *expiry >= now); // Housekeeping
+                map.retain(|_, entry| entry.expiry >= now); // Housekeeping
                 Ok(())
             }
             Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
@@ -52,11 +91,17 @@ impl BlacklistedGateways {
     }
 
     pub fn exists(&self, identity: &NodeIdentity) -> Result<bool> {
+        Ok(self.reason(identity)?.is_some())
+    }
+
+    /// Returns why `identity` is currently blacklisted, or `None` if it isn't (either never
+    /// added, or its entry has expired).
+    pub fn reason(&self, identity: &NodeIdentity) -> Result<Option<BlacklistReason>> {
         match self.0.read() {
-            Ok(map) => match map.get(identity) {
-                Some(expiry) => Ok(*expiry > Instant::now()),
-                None => Ok(false),
-            },
+            Ok(map) => Ok(map
+                .get(identity)
+                .filter(|entry| entry.expiry > Instant::now())
+                .map(|entry| entry.reason)),
             Err(e) => Err(anyhow!("Failed to acquire read lock: {e}")),
         }
     }
@@ -98,8 +143,25 @@ mod tests {
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
         assert!(!blacklist.exists(&identity).unwrap());
-        blacklist.add(identity).unwrap();
+        blacklist
+            .add(identity, BlacklistReason::ConnectionFailed)
+            .unwrap();
         assert!(blacklist.exists(&identity).unwrap());
+    }
+
+    #[test]
+    fn test_reason_is_recorded_and_retrievable() {
+        let blacklist = BlacklistedGateways::new();
+        let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
+
+        assert_eq!(blacklist.reason(&identity).unwrap(), None);
+        blacklist
+            .add(identity, BlacklistReason::RegistrationFailed)
+            .unwrap();
+        assert_eq!(
+            blacklist.reason(&identity).unwrap(),
+            Some(BlacklistReason::RegistrationFailed)
+        );
     }
 
     #[test]
@@ -107,7 +169,9 @@ mod tests {
         let blacklist = BlacklistedGateways::new();
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
-        blacklist.add(identity).unwrap();
+        blacklist
+            .add(identity, BlacklistReason::ConnectionFailed)
+            .unwrap();
         assert!(blacklist.exists(&identity).unwrap());
 
         blacklist.remove(&identity).unwrap();
@@ -120,8 +184,12 @@ mod tests {
         let id1 = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
         let id2 = create_test_identity("HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH");
 
-        blacklist.add(id1).unwrap();
-        blacklist.add(id2).unwrap();
+        blacklist
+            .add(id1, BlacklistReason::ConnectionFailed)
+            .unwrap();
+        blacklist
+            .add(id2, BlacklistReason::ConnectionFailed)
+            .unwrap();
         assert!(!blacklist.is_empty().unwrap());
 
         blacklist.clear().unwrap();
@@ -136,7 +204,9 @@ mod tests {
         assert!(blacklist.is_empty().unwrap());
 
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
-        blacklist.add(identity).unwrap();
+        blacklist
+            .add(identity, BlacklistReason::ConnectionFailed)
+            .unwrap();
         assert!(!blacklist.is_empty().unwrap());
 
         blacklist.remove(&identity).unwrap();
@@ -151,11 +221,18 @@ mod tests {
 
         // Add an entry with an expired timestamp
         if let Ok(mut map) = blacklist.0.write() {
-            map.insert(identity, Instant::now() - Duration::from_secs(1));
+            map.insert(
+                identity,
+                Entry {
+                    expiry: Instant::now() - Duration::from_secs(1),
+                    reason: BlacklistReason::ConnectionFailed,
+                },
+            );
         }
 
         // Should return false because the entry is expired
         assert!(!blacklist.exists(&identity).unwrap());
+        assert_eq!(blacklist.reason(&identity).unwrap(), None);
     }
 
     #[test]
@@ -166,11 +243,19 @@ mod tests {
 
         // Add an expired entry manually
         if let Ok(mut map) = blacklist.0.write() {
-            map.insert(id1, Instant::now() - Duration::from_secs(1));
+            map.insert(
+                id1,
+                Entry {
+                    expiry: Instant::now() - Duration::from_secs(1),
+                    reason: BlacklistReason::ConnectionFailed,
+                },
+            );
         }
 
         // Add a new entry, which should trigger housekeeping
-        blacklist.add(id2).unwrap();
+        blacklist
+            .add(id2, BlacklistReason::ConnectionFailed)
+            .unwrap();
 
         // The expired entry should have been cleaned up
         if let Ok(map) = blacklist.0.read() {
@@ -187,12 +272,20 @@ mod tests {
 
         // Add an expired entry manually
         if let Ok(mut map) = blacklist.0.write() {
-            map.insert(id1, Instant::now() - Duration::from_secs(1));
+            map.insert(
+                id1,
+                Entry {
+                    expiry: Instant::now() - Duration::from_secs(1),
+                    reason: BlacklistReason::ConnectionFailed,
+                },
+            );
         } else {
             panic!("Failed to acquire write lock");
         }
 
-        blacklist.add(id2).unwrap();
+        blacklist
+            .add(id2, BlacklistReason::ConnectionFailed)
+            .unwrap();
 
         // Remove id2, which should trigger housekeeping
         blacklist.remove(&id2).unwrap();
@@ -217,14 +310,18 @@ mod tests {
 
         let handle1 = thread::spawn(move || {
             for _ in 0..100 {
-                blacklist_for_thread1.add(id1).unwrap();
+                blacklist_for_thread1
+                    .add(id1, BlacklistReason::ConnectionFailed)
+                    .unwrap();
                 thread::sleep(Duration::from_micros(10));
             }
         });
 
         let handle2 = thread::spawn(move || {
             for _ in 0..100 {
-                blacklist_for_thread2.add(id2).unwrap();
+                blacklist_for_thread2
+                    .add(id2, BlacklistReason::ConnectionFailed)
+                    .unwrap();
                 thread::sleep(Duration::from_micros(10));
             }
         });
@@ -248,7 +345,9 @@ mod tests {
         let blacklist_clone = blacklist.clone();
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
-        blacklist.add(identity).unwrap();
+        blacklist
+            .add(identity, BlacklistReason::ConnectionFailed)
+            .unwrap();
 
         // Clone should see the same state
         assert!(blacklist_clone.exists(&identity).unwrap());
