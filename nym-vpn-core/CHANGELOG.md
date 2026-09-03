@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052)
 - [Linux] Authenticate also via UNIX group "nym-vpn" membership, or root (https://github.com/nymtech/nym-vpn-client/pull/6100)
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
+- Add end-to-end plumbing for dynamically applying DNS fallbacks from NetworkDetails (https://github.com/nymtech/nym-vpn-client/pull/6279)
 
 ### Changed
 
