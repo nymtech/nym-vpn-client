@@ -1,4 +1,5 @@
 use super::*;
+use crate::BlacklistReason;
 
 #[test]
 fn test_matching_mixnet_score() {
@@ -309,7 +310,9 @@ fn test_gateway_non_blacklisted() {
 
     let blacklisted = gateway_list.gateways[3].identity;
     let blacklisted_gateways = BlacklistedGateways::new();
-    blacklisted_gateways.add(blacklisted).unwrap();
+    blacklisted_gateways
+        .add(blacklisted, BlacklistReason::ConnectionFailed)
+        .unwrap();
 
     for _ in 0..64 {
         let chosen = gateway_list
@@ -319,6 +322,70 @@ fn test_gateway_non_blacklisted() {
             .unwrap();
         assert_ne!(chosen.identity, blacklisted);
     }
+}
+
+#[test]
+fn test_pinned_entry_gateway_respects_blacklist() {
+    let gateway_list = sample_gateway_list(GatewayType::Wg);
+    let pinned = gateway_list.gateways[0].identity;
+
+    let blacklisted_gateways = BlacklistedGateways::new();
+    blacklisted_gateways
+        .add(pinned, BlacklistReason::ConnectionFailed)
+        .unwrap();
+    let filters = GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways)]);
+
+    let entry_point = EntryPoint::Gateway {
+        identity: pinned.into(),
+    };
+    let err = gateway_list
+        .find_best_entry_point_gateway(&entry_point, &filters)
+        .unwrap_err();
+    assert!(
+        matches!(err, Error::GatewayFilteredOut { .. }),
+        "expected GatewayFilteredOut, got {err:?}"
+    );
+}
+
+#[test]
+fn test_pinned_exit_gateway_respects_blacklist() {
+    let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
+    let pinned = gateway_list.gateways[0].identity;
+
+    let blacklisted_gateways = BlacklistedGateways::new();
+    blacklisted_gateways
+        .add(pinned, BlacklistReason::ConnectionFailed)
+        .unwrap();
+    let filters = GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways)]);
+
+    let exit_point = ExitPoint::Gateway {
+        identity: pinned.into(),
+    };
+    let err = gateway_list
+        .find_best_exit_point_gateway(&exit_point, &filters)
+        .unwrap_err();
+    assert!(
+        matches!(err, Error::GatewayFilteredOut { .. }),
+        "expected GatewayFilteredOut, got {err:?}"
+    );
+}
+
+#[test]
+fn test_pinned_gateway_not_in_directory_is_no_matching_gateway() {
+    let gateway_list = sample_gateway_list(GatewayType::Wg);
+    let unknown =
+        NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42").unwrap();
+
+    let entry_point = EntryPoint::Gateway {
+        identity: unknown.into(),
+    };
+    let err = gateway_list
+        .find_best_entry_point_gateway(&entry_point, &GatewayFilters::default())
+        .unwrap_err();
+    assert!(
+        matches!(err, Error::NoMatchingGateway { .. }),
+        "expected NoMatchingGateway, got {err:?}"
+    );
 }
 
 #[test]

@@ -94,7 +94,7 @@ extension GRPCManager {
         case .performantExitGatewayUnavailable:
             ErrorReason.performantExitGatewayUnavailable
         case .invalidEntryGatewayIdentity:
-            ErrorReason.invalidEntryGatewayCountry
+            ErrorReason.invalidEntryGatewayIdentity
         case .invalidExitGatewayIdentity:
             ErrorReason.invalidExitGatewayIdentity
         case .needFullDiskPermissions:
