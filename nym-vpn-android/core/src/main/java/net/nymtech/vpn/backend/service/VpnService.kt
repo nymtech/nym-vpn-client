@@ -237,11 +237,12 @@ class VpnService :
 		connectivity.removeObserver(observer)
 	}
 
-	internal fun updateForegroundNotification(state: Tunnel.State) {
+	internal fun updateForegroundNotification(state: Tunnel.State, retryAttempt: UInt? = null) {
 		foreground.updateForegroundNotification(
 			state = state,
 			entry = core.currentEntry,
 			exit = core.currentExit,
+			retryAttempt = retryAttempt,
 		)
 	}
 }

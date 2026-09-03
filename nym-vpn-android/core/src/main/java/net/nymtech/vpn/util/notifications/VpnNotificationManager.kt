@@ -64,11 +64,15 @@ internal class VpnNotificationManager private constructor(private val context: C
 			?.createNotificationChannel(channel)
 	}
 
-	fun buildVpnNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, gatewaysEntry: List<NymGateway>?, gatewaysExit: List<NymGateway>?): Notification {
+	fun buildVpnNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, gatewaysEntry: List<NymGateway>?, gatewaysExit: List<NymGateway>?, retryAttempt: UInt? = null): Notification {
 		setupChannel()
 
 		val title = context.getString(R.string.vpn_notification_title)
-		val stateText = state.toStateText()
+		val stateText = if (state == Tunnel.State.EstablishingConnection && (retryAttempt ?: 0u) > 0u) {
+			context.getString(R.string.state_reconnecting)
+		} else {
+			state.toStateText()
+		}
 
 		val entryText = entry?.let {
 			context.getString(R.string.notification_entry, formatEntry(it, gatewaysEntry))
@@ -122,7 +126,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 	}
 
 	/** Updates/cancels the foreground notification based on [state]. */
-	internal fun updateVpnNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, gatewaysEntry: List<NymGateway>?, gatewaysExit: List<NymGateway>?) {
+	internal fun updateVpnNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, gatewaysEntry: List<NymGateway>?, gatewaysExit: List<NymGateway>?, retryAttempt: UInt? = null) {
 		withNotificationPermission {
 			val nm = NotificationManagerCompat.from(context)
 			if (state == Tunnel.State.Down) {
@@ -130,7 +134,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			} else {
 				nm.notify(
 					VPN_FOREGROUND_ID,
-					buildVpnNotification(state, entry, exit, gatewaysEntry, gatewaysExit),
+					buildVpnNotification(state, entry, exit, gatewaysEntry, gatewaysExit, retryAttempt),
 				)
 			}
 		}
@@ -206,8 +210,10 @@ internal class VpnNotificationManager private constructor(private val context: C
 		Tunnel.State.Up -> context.getString(R.string.state_connected)
 		Tunnel.State.InitializingClient -> context.getString(R.string.state_initializing)
 		Tunnel.State.EstablishingConnection -> context.getString(R.string.state_establishing)
+		Tunnel.State.Disconnecting -> context.getString(R.string.state_disconnecting)
+		is Tunnel.State.Offline ->
+			if (this.reconnect) context.getString(R.string.state_reconnecting) else context.getString(R.string.state_offline)
 		is Tunnel.State.Error -> this.reason.toHumanReadableString(context)
-		else -> toString()
 	}
 }
 

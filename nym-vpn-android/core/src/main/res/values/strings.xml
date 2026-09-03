@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Disconnected</string>
 	<string name="state_initializing">Initializing client…</string>
 	<string name="state_establishing">Establishing connection…</string>
+	<string name="state_disconnecting">Disconnecting…</string>
+	<string name="state_reconnecting">Reconnecting…</string>
+	<string name="state_offline">Waiting for network…</string>
 	<string name="notification_entry">Entry: %1$s</string>
 	<string name="notification_exit">Exit: %1$s</string>
 
