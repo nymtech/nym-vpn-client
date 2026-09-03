@@ -83,15 +83,23 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
             .clone()
             .map(nym_vpn_lib_types::NymContracts::from)
             .ok_or_else(|| ConversionError::Generic("missing contracts".to_string()))?;
-        let nym_api_urls = details
+        let networking = details
+            .networking
+            .ok_or_else(|| ConversionError::Generic("missing networking specifics".to_string()))?;
+        let nym_api_urls = networking
             .nym_api_urls
             .into_iter()
             .map(nym_vpn_lib_types::ApiUrl::from)
             .collect();
-        let nym_vpn_api_urls = details
+        let nym_vpn_api_urls = networking
             .nym_vpn_api_urls
             .into_iter()
             .map(nym_vpn_lib_types::ApiUrl::from)
+            .collect();
+        let dns_fallbacks = networking
+            .dns_fallbacks
+            .into_iter()
+            .map(nym_vpn_lib_types::DnsFallback::from)
             .collect();
 
         Ok(Self {
@@ -102,9 +110,27 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
             networking: nym_vpn_lib_types::NymNetworkingSpecifics {
                 nym_api_urls,
                 nym_vpn_api_urls,
-                dns_fallbacks: Vec::new(),
+                dns_fallbacks,
             },
         })
+    }
+}
+
+impl From<proto::DnsFallback> for nym_vpn_lib_types::DnsFallback {
+    fn from(value: proto::DnsFallback) -> Self {
+        Self {
+            url: value.url,
+            addresses: value.addresses,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::DnsFallback> for proto::DnsFallback {
+    fn from(value: nym_vpn_lib_types::DnsFallback) -> Self {
+        Self {
+            url: value.url,
+            addresses: value.addresses,
+        }
     }
 }
 
@@ -206,14 +232,7 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
             .into_iter()
             .map(proto::ValidatorDetails::from)
             .collect();
-        // `nym_vpn_api_url` (singular) no longer exists on the current in-process type,
-        // which only tracks the full url list; derive it the same way the underlying
-        // v2 -> v1 network-defaults conversion does, for wire compatibility.
-        let nym_vpn_api_url = nym_network
-            .networking
-            .nym_vpn_api_urls
-            .first()
-            .map(|url| url.url.clone());
+
         let nym_api_urls = nym_network
             .networking
             .nym_api_urls
@@ -226,15 +245,25 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
             .into_iter()
             .map(proto::ApiUrl::from)
             .collect();
+        let dns_fallbacks = nym_network
+            .networking
+            .dns_fallbacks
+            .into_iter()
+            .map(proto::DnsFallback::from)
+            .collect();
+
+        let networking = proto::NymNetworkingSpecifics {
+            nym_api_urls,
+            nym_vpn_api_urls,
+            dns_fallbacks,
+        };
 
         proto::NymNetworkDetails {
             network_name: nym_network.network_name,
             chain_details: Some(nym_network.chain_details.into()),
             endpoints,
             contracts: Some(nym_network.contracts.into()),
-            nym_vpn_api_url,
-            nym_api_urls,
-            nym_vpn_api_urls,
+            networking: Some(networking),
         }
     }
 }
@@ -323,5 +352,87 @@ impl From<nym_vpn_lib_types::FeatureFlags> for proto::GetFeatureFlagsResponse {
         }
 
         response
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_network_details() -> nym_vpn_lib_types::NymNetworkDetails {
+        nym_vpn_lib_types::NymNetworkDetails {
+            network_name: "mainnet".to_string(),
+            chain_details: nym_vpn_lib_types::ChainDetails {
+                bech32_account_prefix: "n".to_string(),
+                mix_denom: nym_vpn_lib_types::DenomDetailsOwned {
+                    base: "unym".to_string(),
+                    display: "nym".to_string(),
+                    display_exponent: 6,
+                },
+                stake_denom: nym_vpn_lib_types::DenomDetailsOwned {
+                    base: "unyx".to_string(),
+                    display: "nyx".to_string(),
+                    display_exponent: 6,
+                },
+            },
+            endpoints: Vec::new(),
+            contracts: nym_vpn_lib_types::NymContracts {
+                mixnet_contract_address: None,
+                vesting_contract_address: None,
+                performance_contract_address: None,
+                ecash_contract_address: None,
+                group_contract_address: None,
+                multisig_contract_address: None,
+                coconut_dkg_contract_address: None,
+            },
+            networking: nym_vpn_lib_types::NymNetworkingSpecifics {
+                nym_api_urls: Vec::new(),
+                nym_vpn_api_urls: Vec::new(),
+                dns_fallbacks: vec![nym_vpn_lib_types::DnsFallback {
+                    url: "harbourmaster.example.com".to_string(),
+                    addresses: vec!["1.2.3.4".to_string(), "::1".to_string()],
+                }],
+            },
+        }
+    }
+
+    #[test]
+    fn dns_fallbacks_survive_proto_round_trip() {
+        let original = sample_network_details();
+        let via_proto = proto::NymNetworkDetails::from(original.clone());
+        let proto_networking = via_proto
+            .networking
+            .as_ref()
+            .expect("networking specifics should be set");
+
+        assert_eq!(
+            proto_networking.dns_fallbacks.len(),
+            1,
+            "dns fallback should be carried onto the proto message"
+        );
+        assert_eq!(
+            proto_networking.dns_fallbacks[0].url,
+            "harbourmaster.example.com"
+        );
+        assert_eq!(
+            proto_networking.dns_fallbacks[0].addresses,
+            vec!["1.2.3.4".to_string(), "::1".to_string()]
+        );
+
+        let round_tripped = nym_vpn_lib_types::NymNetworkDetails::try_from(via_proto)
+            .expect("valid round trip conversion");
+
+        assert_eq!(
+            round_tripped.networking.dns_fallbacks.len(),
+            original.networking.dns_fallbacks.len()
+        );
+        assert_eq!(
+            round_tripped.networking.dns_fallbacks[0].url,
+            original.networking.dns_fallbacks[0].url
+        );
+        assert_eq!(
+            round_tripped.networking.dns_fallbacks[0].addresses,
+            original.networking.dns_fallbacks[0].addresses
+        );
     }
 }
