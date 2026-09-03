@@ -113,11 +113,9 @@ impl PersistentNetworkDetails {
         path: &Path,
         network_name: &str,
     ) -> Option<Self> {
-        let legacy = crate::serialization::deserialize_from_json_file::<
-            _,
-            LegacyCachedNetworkDetails,
-        >(path)
-        .ok()?;
+        let legacy =
+            crate::serialization::deserialize_from_json_file::<_, LegacyCachedNetworkDetails>(path)
+                .ok()?;
 
         if legacy.value.network_name != network_name {
             return None;

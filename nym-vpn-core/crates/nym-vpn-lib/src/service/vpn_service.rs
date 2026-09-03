@@ -33,6 +33,7 @@ use tokio_util::sync::CancellationToken;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
+use nym_http_api_client::HickoryDnsResolver;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -453,6 +454,14 @@ impl NymVpnService {
         let network_env = network_cache
             .network()
             .map_err(|_| Error::NetworkEnvNotInitialized)?;
+
+        HickoryDnsResolver::shared().set_fallback_addrs(
+            network_env
+                .dns_fallback_addr_map()
+                .into_iter()
+                .map(|(host, addrs)| (host, addrs.into_iter().collect()))
+                .collect(),
+        );
 
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -1004,6 +1013,11 @@ impl NymVpnService {
     }
 
     async fn handle_network_change(&mut self, new_network: Box<Network>) {
+        if !self.maybe_update_active_network_details(&new_network) {
+            tracing::debug!("Network environment unchanged, skipping cache refresh");
+            return;
+        }
+
         tracing::info!("Network environment updated");
         let _ = self.network_tx.send_replace(new_network.clone());
 
@@ -1015,6 +1029,25 @@ impl NymVpnService {
             &self.user_agent,
         )
         .await;
+    }
+
+    /// Updates the currently active network environment if `new_network` differs from it.
+    /// Returns whether an update was applied.
+    fn maybe_update_active_network_details(&mut self, new_network: &Network) -> bool {
+        if self.network_tx.borrow().as_ref() == new_network {
+            return false;
+        }
+
+        let addrs = new_network
+            .dns_fallback_addr_map()
+            .into_iter()
+            .map(|(host, addrs)| (host, addrs.into_iter().collect()))
+            .collect();
+
+        HickoryDnsResolver::shared().set_fallback_addrs(addrs);
+
+        let _ = self.network_tx.send_replace(Box::new(new_network.clone()));
+        true
     }
 
     // Wrap handle_service_command in timing code to log long-running commands
