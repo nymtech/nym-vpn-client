@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
             .fetch_network_details()
             .await
             .context("Failed to build non mainnet env : network details")?;
-        crate::Network::new_from_discovery(discovery, (*network_details).into())
+        crate::Network::new_from_discovery(discovery, *network_details)
             .context("Failed to build non mainnet env : build")?
     } else {
         bail!("Unknown network name");
