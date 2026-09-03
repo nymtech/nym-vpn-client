@@ -179,13 +179,23 @@ message NymContracts {
 }
 
 message NymNetworkDetails {
+  reserved 5, 6, 7; // formerly nym_vpn_api_url / nym_api_urls / nym_vpn_api_urls, now nested in `networking`
   string network_name = 1;
   ChainDetails chain_details = 2;
   repeated ValidatorDetails endpoints = 3;
   NymContracts contracts = 4;
-  optional string nym_vpn_api_url = 5;
-  repeated ApiUrl nym_api_urls = 6;
-  repeated ApiUrl nym_vpn_api_urls = 7;
+  NymNetworkingSpecifics networking = 8;
+}
+
+message NymNetworkingSpecifics {
+  repeated ApiUrl nym_api_urls = 1;
+  repeated ApiUrl nym_vpn_api_urls = 2;
+  repeated DnsFallback dns_fallbacks = 3;
+}
+
+message DnsFallback {
+  string url = 1;
+  repeated string addresses = 2;
 }
 
 message NymVpnNetworkDetails {
