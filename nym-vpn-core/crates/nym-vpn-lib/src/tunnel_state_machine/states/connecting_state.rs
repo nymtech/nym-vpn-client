@@ -37,7 +37,7 @@ use nym_firewall::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
     TransportProtocol,
 };
-use nym_gateway_directory::ResolvedConfig;
+use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -762,7 +762,10 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id, exit_handshake_completed } => {
                         // WG handshake timed out or connectivity probe failed without a healthy
                         // metadata path; blacklist the exit so a different one is selected.
-                        shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                        shared_state.gateway_provider.add_blacklisted_gateway(
+                            exit_gateway_id,
+                            BlacklistReason::ConnectionFailed,
+                        ).await;
                         // A failure before the exit handshake ever completed may equally be the
                         // entry gateway's fault. Once the same entry accumulates enough
                         // pre-handshake failures while exits rotate, blacklist it too.
@@ -770,7 +773,10 @@ impl TunnelStateHandler for ConnectingState {
                             tracing::warn!(
                                 "Blacklisted entry gateway {entry_gateway_id} after repeated connection failures without a completed exit handshake"
                             );
-                            shared_state.gateway_provider.add_blacklisted_gateway(entry_gateway_id).await;
+                            shared_state.gateway_provider.add_blacklisted_gateway(
+                                entry_gateway_id,
+                                BlacklistReason::EntryBlamedForRepeatedFailures,
+                            ).await;
                         }
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
@@ -778,7 +784,10 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
                         // Registration with the entry gateway failed; blacklist it to avoid
                         // re-selecting the same failing gateway.
-                        shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                        shared_state.gateway_provider.add_blacklisted_gateway(
+                            gateway_id,
+                            BlacklistReason::RegistrationFailed,
+                        ).await;
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }

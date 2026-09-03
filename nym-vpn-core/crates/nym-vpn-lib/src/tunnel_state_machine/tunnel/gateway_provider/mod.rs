@@ -13,7 +13,7 @@ mod tests;
 use std::{sync::Arc, task::Poll, time::Duration};
 
 use futures::{FutureExt as _, Stream, StreamExt as FuturesStreamExt};
-use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
+use nym_gateway_directory::{BlacklistReason, BlacklistedGateways, GatewayClient, NodeIdentity};
 use nym_vpn_lib_types::TentativeGateways;
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
@@ -292,17 +292,18 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.blacklisted_gateways.clone()
     }
 
-    pub async fn add_blacklisted_gateway(&self, gateway_identifier: NodeIdentity) {
-        if let Err(e) = self.blacklisted_gateways.add(gateway_identifier) {
+    pub async fn add_blacklisted_gateway(
+        &self,
+        gateway_identifier: NodeIdentity,
+        reason: BlacklistReason,
+    ) {
+        if let Err(e) = self.blacklisted_gateways.add(gateway_identifier, reason) {
             tracing::error!(
                 "Failed to add gateway {} to blacklisted gateway list: {e}",
                 gateway_identifier
             );
         } else {
-            tracing::warn!(
-                "Blacklisted gateway {} due to connection or registration failure",
-                gateway_identifier
-            );
+            tracing::warn!("Blacklisted gateway {gateway_identifier} ({reason})");
             // Re-create gateway selection stream to reflect the addition to the blacklist.
             let latest_tunnel_settings = self.latest_tunnel_settings.lock().await.clone();
             let _ = self.set_tunnel_settings(latest_tunnel_settings)
