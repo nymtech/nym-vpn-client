@@ -129,10 +129,16 @@ impl PersistentNetworkDetails {
             },
         };
 
-        migrated.write().await.ok()?;
-        tracing::info!(
-            "Migrated cached network details for '{network_name}' to the current on-disk format"
-        );
+        if let Err(err) = migrated.write().await {
+            trace_err_chain!(
+                err,
+                "Migrated cached network details for '{network_name}' in memory, but failed to persist the rewritten cache"
+            );
+        } else {
+            tracing::info!(
+                "Migrated cached network details for '{network_name}' to the current on-disk format"
+            );
+        }
 
         Some(migrated)
     }
@@ -296,6 +302,49 @@ mod tests {
                 .await
                 .unwrap();
         assert_eq!(reloaded.value(), migrated.value());
+    }
+
+    /// Regression test: if migrating a legacy cache succeeds in memory but rewriting it to disk
+    /// fails (e.g. read-only filesystem), the migrated record must still be returned instead of
+    /// being silently discarded as `None`, which would otherwise make the caller fall back to
+    /// `NoDefaultNetworkDetails` for a network that has no bundled defaults.
+    #[tokio::test]
+    #[cfg(unix)]
+    async fn test_migration_kept_in_memory_when_persisting_rewritten_cache_fails() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let cache_dir = tempdir().unwrap();
+        let path = PersistentNetworkDetails::path(cache_dir.path(), "sandbox");
+        tokio::fs::create_dir_all(path.parent().unwrap())
+            .await
+            .unwrap();
+
+        let legacy_value = nym_network_defaults::sandbox::network_details();
+        let legacy_record = LegacyCachedNetworkDetails::up_to_date(legacy_value.clone());
+        crate::serialization::serialize_to_json_file(&path, &legacy_record).unwrap();
+
+        // Make the cache file itself unwritable so the migration can still read the legacy
+        // record back, but rewriting it to disk in the current shape fails.
+        let mut permissions = std::fs::metadata(&path).unwrap().permissions();
+        permissions.set_mode(0o444);
+        std::fs::set_permissions(&path, permissions).unwrap();
+
+        // Root ignores file permissions, which would make this test meaningless there; skip it
+        // in that case rather than asserting on a condition we can't actually induce.
+        let permission_enforced = std::fs::OpenOptions::new().write(true).open(&path).is_err();
+
+        if permission_enforced {
+            let migrated =
+                PersistentNetworkDetails::new_from_cache(cache_dir.path().to_path_buf(), "sandbox")
+                    .await
+                    .unwrap();
+            assert_eq!(migrated.value(), &NymNetworkDetails::from(legacy_value));
+        }
+
+        // Restore write permission so the tempdir can clean itself up.
+        let mut permissions = std::fs::metadata(&path).unwrap().permissions();
+        permissions.set_mode(0o644);
+        std::fs::set_permissions(&path, permissions).unwrap();
     }
 
     #[tokio::test]
