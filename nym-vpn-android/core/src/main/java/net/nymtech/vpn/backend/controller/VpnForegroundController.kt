@@ -56,7 +56,7 @@ class VpnForegroundController(private val service: VpnService) {
 		}
 	}
 
-	fun updateForegroundNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?) {
+	fun updateForegroundNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, retryAttempt: UInt? = null) {
 		val nm = VpnNotificationManager.getInstance(service)
 		nm.updateVpnNotification(
 			state = state,
@@ -64,6 +64,7 @@ class VpnForegroundController(private val service: VpnService) {
 			exit = exit,
 			gatewaysEntry = null,
 			gatewaysExit = null,
+			retryAttempt = retryAttempt,
 		)
 	}
 }
