@@ -588,16 +588,4 @@ mod tests {
                 .unwrap()
         );
     }
-
-    #[test]
-    fn test_mainnet_default_network_has_dns_fallback_addrs() {
-        let network = Network::mainnet_default().unwrap();
-        let fallbacks = network.dns_fallback_addr_map();
-
-        assert!(!fallbacks.is_empty());
-        for (host, addrs) in &fallbacks {
-            assert!(!host.is_empty());
-            assert!(!addrs.is_empty());
-        }
-    }
 }

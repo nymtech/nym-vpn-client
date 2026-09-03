@@ -335,9 +335,7 @@ fn test_pinned_entry_gateway_respects_blacklist() {
         .unwrap();
     let filters = GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways)]);
 
-    let entry_point = EntryPoint::Gateway {
-        identity: pinned.into(),
-    };
+    let entry_point = EntryPoint::Gateway { identity: pinned };
     let err = gateway_list
         .find_best_entry_point_gateway(&entry_point, &filters)
         .unwrap_err();
@@ -358,9 +356,7 @@ fn test_pinned_exit_gateway_respects_blacklist() {
         .unwrap();
     let filters = GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways)]);
 
-    let exit_point = ExitPoint::Gateway {
-        identity: pinned.into(),
-    };
+    let exit_point = ExitPoint::Gateway { identity: pinned };
     let err = gateway_list
         .find_best_exit_point_gateway(&exit_point, &filters)
         .unwrap_err();
@@ -376,9 +372,7 @@ fn test_pinned_gateway_not_in_directory_is_no_matching_gateway() {
     let unknown =
         NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42").unwrap();
 
-    let entry_point = EntryPoint::Gateway {
-        identity: unknown.into(),
-    };
+    let entry_point = EntryPoint::Gateway { identity: unknown };
     let err = gateway_list
         .find_best_entry_point_gateway(&entry_point, &GatewayFilters::default())
         .unwrap_err();
