@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.4-beta.1] - 2026-09-03
+
 ### Fixed
 
 - [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected.
