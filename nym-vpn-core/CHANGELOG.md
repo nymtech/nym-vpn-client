@@ -12,21 +12,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
 - Implement the "suggest diagnostics" event on Tauri (https://github.com/nymtech/nym-vpn-client/pull/6006)
 - Persist gateway list to disk, seeded from a built-in list (https://github.com/nymtech/nym-vpn-client/pull/6015)
-- If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052)
 - [Linux] Authenticate also via UNIX group "nym-vpn" membership, or root (https://github.com/nymtech/nym-vpn-client/pull/6100)
+- Configuration profiles: Safest, Most Private, Fastest and Random (https://github.com/nymtech/nym-vpn-client/pull/6073)
+- Pin zk-nym credential requests to the DKG epoch (https://github.com/nymtech/nym-vpn-client/pull/6259)
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
 
 ### Changed
 
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
 - Merge rpc-uniffi crate into lib-uniffi (https://github.com/nymtech/nym-vpn-client/pull/6010)
-- Local DNS resolver will respond with `serv_fail` on timeout from upstream DNS server (https://github.com/nymtech/nym-vpn-client/pull/6132)
-- Remove IPv6 DNS addresses from default DNS configuration due to reliability issues (https://github.com/nymtech/nym-vpn-client/pull/6132)
+- Remove "trace only logging" mode and honor `RUST_LOG` when set (https://github.com/nymtech/nym-vpn-client/pull/6131)
 
 ### Fixed
 
-- [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected.
-- Apply the kill-switch when Connect is pressed while still offline.
+- [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected. (https://github.com/nymtech/nym-vpn-client/pull/6261)
+- Apply the kill-switch when Connect is pressed while still offline. (https://github.com/nymtech/nym-vpn-client/pull/6265)
+- Give slow exit handshakes headroom before failing the connection (https://github.com/nymtech/nym-vpn-client/pull/6237)
+- Retry zk-nym credential requests when upstream is unavailable mid-ceremony (https://github.com/nymtech/nym-vpn-client/pull/6258)
+- Prevent gateway refresh storm when the API is unreachable (https://github.com/nymtech/nym-vpn-client/pull/6087)
+- [Windows] Wait for the VPN service to be running after install (https://github.com/nymtech/nym-vpn-client/pull/6245)
+
+## [2026.12.3] - 2026-08-27
+
+## [2026.12.2] - 2026-08-25
+
+### Changed
+
+- Reduce max tunnel reconnect attempts to 3 and surface an error state when exceeded (https://github.com/nymtech/nym-vpn-client/pull/6178, https://github.com/nymtech/nym-vpn-client/pull/6198)
+
+### Fixed
+
+- Treat Greater China (CN, TW, MO) as a single jurisdiction for gateway auto-selection (https://github.com/nymtech/nym-vpn-client/pull/6192)
+- Blacklist entry gateway on repeated pre-handshake failures (https://github.com/nymtech/nym-vpn-client/pull/6178)
+- Don't report exit WireGuard handshake as completed on shutdown (https://github.com/nymtech/nym-vpn-client/pull/6178)
+- [Android] LAN bypass no longer drops the exit metadata address (https://github.com/nymtech/nym-vpn-client/pull/6188)
+
+## [2026.12.1] - 2026-08-21
+
+### Changed
+
+- Local DNS resolver will respond with `serv_fail` on timeout from upstream DNS server (https://github.com/nymtech/nym-vpn-client/pull/6132)
+- Remove IPv6 DNS addresses from default DNS configuration due to reliability issues (https://github.com/nymtech/nym-vpn-client/pull/6132)
 
 ## [2026.12.0] - 2026-08-18
 
@@ -36,18 +62,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recents manager for storing successful gateway connections (https://github.com/nymtech/nym-vpn-client/pull/5903)
 - Favorites manager for storing UI favorites (https://github.com/nymtech/nym-vpn-client/pull/5914)
 - Geo-Exclusion now supports Russia (https://github.com/nymtech/nym-vpn-client/pull/5917)
+- If the host doesn't have an IPv6 address then split tunnelling is disabled for IPv6 (https://github.com/nymtech/nym-vpn-client/pull/6052)
+- Infer device time from VPN API `Date` header and use skew-corrected time for registration and bandwidth top-ups (https://github.com/nymtech/nym-vpn-client/pull/5880, https://github.com/nymtech/nym-vpn-client/pull/5899, https://github.com/nymtech/nym-vpn-client/pull/5912)
+- Move zk-nym credential handling into a dedicated credential fetcher plugged into the bandwidth controller (https://github.com/nymtech/nym-vpn-client/pull/5888)
+- Get recent gateways without a running service (https://github.com/nymtech/nym-vpn-client/pull/5906)
+- Notify HTTP client of network reconfiguration to avoid false interference detection (https://github.com/nymtech/nym-vpn-client/pull/5731)
 
 ### Changed
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 - Use "Auto" for entry and exit selectors independently (https://github.com/nymtech/nym-vpn-client/pull/5962)
 - Shift bridge logic back to `nym-bridges` crate and add dependency without changing underlying interface or model. (https://github.com/nymtech/nym-vpn-client/pull/5928)
+- QUIC bridges wait 21s for the first WireGuard packet (was 10s).
+- Rename VPN bandwidth controller to bandwidth monitor (https://github.com/nymtech/nym-vpn-client/pull/5887)
+- Enable `cgroup2` feature by default (https://github.com/nymtech/nym-vpn-client/pull/5873)
+- Split mixnet tuning into continuous and background cover traffic settings (https://github.com/nymtech/nym-vpn-client/pull/6056)
 
 ### Fixed
 
 - Ad-blocker and nym-socks5-proxy files are no longer stored in the network directory. (https://github.com/nymtech/nym-vpn-client/pull/5826)
 - Improve behavior of forwarding resolver by not sending empty response when hostname resolution fails. Instead simulate timeout to let clients retry more aggressively. (https://github.com/nymtech/nym-vpn-client/pull/5832)
 - When no VPN tunnel is active the geo-exclusion feature rejects non-excluded traffic. (https://github.com/nymtech/nym-vpn-client/pull/5872)
+- Timeout initial location lookup after 5s and fall back to random location on API issues (https://github.com/nymtech/nym-vpn-client/pull/6104)
+- Fix race of initial location querying (https://github.com/nymtech/nym-vpn-client/pull/6103)
+- [Android] Fix stall when connecting with geo location disabled (https://github.com/nymtech/nym-vpn-client/pull/5994)
+- Fix file permissions on the log directory (https://github.com/nymtech/nym-vpn-client/pull/6012)
+- Use correct field names for family and staking data (https://github.com/nymtech/nym-vpn-client/pull/5859)
+- [iOS] Reduce WireGuard socket churn on path updates (https://github.com/nymtech/nym-vpn-client/pull/5868)
+- [Android] Bind metadata client to the tunnel interface (https://github.com/nymtech/nym-vpn-client/pull/5842)
 
 ## [2026.11.0] - 2026-07-10
 

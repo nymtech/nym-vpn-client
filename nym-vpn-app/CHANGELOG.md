@@ -7,23 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support for Recents - recently connected servers (https://github.com/nymtech/nym-vpn-client/pull/6118)
+- Suggest running diagnostics when connection errors occur (https://github.com/nymtech/nym-vpn-client/pull/6006)
+
 ### Fixed
 
-- Replace lottie animations with manual css animations
+- Replace lottie animations with manual css animations (https://github.com/nymtech/nym-vpn-client/pull/6260)
+- Improve error handling to avoid blank screen crashes (https://github.com/nymtech/nym-vpn-client/pull/6260)
+- (windows) Wait for the VPN service to be running after install and refresh daemon status on startup (https://github.com/nymtech/nym-vpn-client/pull/6245)
+- (windows) Don't fail installation if vc_redist is already installed (https://github.com/nymtech/nym-vpn-client/pull/6051)
+
+## [2026.12.3] - 2026-08-27
 
 ## [2026.12.2] - 2026-08-25
 
-## [2026.12.1] - 2026-08-22
+### Fixed
+
+- Show error when connection attempts are exceeded or no credential is available (https://github.com/nymtech/nym-vpn-client/pull/6178)
+
+## [2026.12.1] - 2026-08-21
 
 ### Added
 
-- Allow marking specific server, country or region as favorite
-- Add Safest server option for entry and exit
-- Add support for Recents - recently connected servers
+- Add Server address row to Geo exclusion settings (https://github.com/nymtech/nym-vpn-client/pull/6149)
+
+### Changed
+
+- Simplify Geo exclusion setup instructions (https://github.com/nymtech/nym-vpn-client/pull/6149)
+
+## [2026.12.0] - 2026-08-18
+
+### Added
+
+- Allow marking specific server, country or region as favorite (https://github.com/nymtech/nym-vpn-client/pull/5925)
+- Add Safest server option for entry and exit (https://github.com/nymtech/nym-vpn-client/pull/5991)
+- New onboarding screens (https://github.com/nymtech/nym-vpn-client/pull/5940)
+- Select Auto for entry and exit independently (https://github.com/nymtech/nym-vpn-client/pull/5962)
+- Add Russia to Geo exclusion regions (https://github.com/nymtech/nym-vpn-client/pull/5931)
+- (windows) Install Visual C++ redistributable with the app (https://github.com/nymtech/nym-vpn-client/pull/5953)
+
+### Changed
+
+- Rename "Fast" mode to "dVPN" (https://github.com/nymtech/nym-vpn-client/pull/6093)
+- Replace "Anonymous" with "Mixnet" wording in settings (https://github.com/nymtech/nym-vpn-client/pull/5946)
+- Split mixnet tuning into continuous and background cover traffic controls (https://github.com/nymtech/nym-vpn-client/pull/6056)
+- Unified layout for Appearance settings (https://github.com/nymtech/nym-vpn-client/pull/6093)
+- Remove gray rings color for mixnet mode (https://github.com/nymtech/nym-vpn-client/pull/6035)
 
 ### Fixed
 
-- Handle `NeedsDeviceLocation` error state
+- Handle `NeedsDeviceLocation` error state (https://github.com/nymtech/nym-vpn-client/pull/6108)
+- Fix server details navigation error (https://github.com/nymtech/nym-vpn-client/pull/5943)
+- (windows) Clean up outdated shortcut arguments on update (https://github.com/nymtech/nym-vpn-client/pull/6065)
 
 ## [2026.11.0] - 2026-07-10
 
