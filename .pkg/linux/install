@@ -203,8 +203,11 @@ os="${os,,}"
 if [ -r /etc/os-release ]; then
   os_id="$(. /etc/os-release && printf '%s %s' "${ID:-}" "${ID_LIKE:-}")"
   os_id="${os_id,,}"
+elif [ -r /usr/lib/os-release ]; then
+  os_id="$(. /usr/lib/os-release && printf '%s %s' "${ID:-}" "${ID_LIKE:-}")"
+  os_id="${os_id,,}"
 else
-  os_id="$os"
+  os_id=""
 fi
 install_type=raw
 
