@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2026.12.0] - 2026-08-18
 
+### Fixed
+- Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
+
 ## [2026.12.0] - TBD
 
 ### Added

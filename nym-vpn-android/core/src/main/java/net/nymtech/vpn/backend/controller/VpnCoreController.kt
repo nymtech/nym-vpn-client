@@ -69,6 +69,9 @@ class VpnCoreController(
 	var currentExit: ExitPoint? = null
 		private set
 
+	/** Latest retryAttempt from a TunnelState.Connecting event; feeds the "Reconnecting…" notification text. */
+	private var lastRetryAttempt: UInt? = null
+
 	@Volatile
 	private var lastAppliedConfig: CoreVpnConfig? = null
 
@@ -255,7 +258,12 @@ class VpnCoreController(
 			is TunnelEvent.NewState -> handleTunnelState(event)
 			is TunnelEvent.MixnetState -> handleMixnetEvent(event)
 			is TunnelEvent.AccountState -> events.tryEmit(VpnServiceEvent.AccountStateChanged(event.v1))
-			is TunnelEvent.ConfigChanged -> events.tryEmit(VpnServiceEvent.Log("TunnelEvent config_changed"))
+			is TunnelEvent.ConfigChanged -> {
+				currentEntry = event.v1.entryPoint
+				currentExit = event.v1.exitPoint
+				events.tryEmit(VpnServiceEvent.Log("TunnelEvent config_changed"))
+				service.updateForegroundNotification(state, lastRetryAttempt)
+			}
 		}
 	}
 
@@ -276,7 +284,10 @@ class VpnCoreController(
 			else -> Unit
 		}
 
-		service.updateForegroundNotification(coarse)
+		// retryAttempt > 0 on a Connecting event means this is a mid-session reconnect
+		// (e.g. triggered by an entry/exit gateway timeout), not the user's initial connect.
+		lastRetryAttempt = (event.v1 as? TunnelState.Connecting)?.retryAttempt
+		service.updateForegroundNotification(coarse, lastRetryAttempt)
 	}
 
 	private fun handleMixnetEvent(event: TunnelEvent.MixnetState) {
