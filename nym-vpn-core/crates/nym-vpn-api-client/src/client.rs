@@ -111,14 +111,12 @@ impl VpnApiClient {
         network: &nym_network_defaults::v2::NymNetworkDetails,
         user_agent: Option<UserAgent>,
     ) -> Result<Self> {
-        #[allow(deprecated)]
         let api_urls = network.nym_vpn_api_urls();
         if api_urls.is_empty() {
-            let err: HttpClientError = HttpClientError::GenericRequestFailure(
-                "No Nym VPN API URLs configured in network details".to_string(),
-            );
-            return Err(VpnApiClientError::CreateVpnApiClient(Box::new(err)));
-        };
+            return Err(VpnApiClientError::CreateVpnApiClient(Box::new(
+                HttpClientError::NoUrlsProvided,
+            )));
+        }
 
         let urls = api_urls_to_urls(&api_urls)?;
 
