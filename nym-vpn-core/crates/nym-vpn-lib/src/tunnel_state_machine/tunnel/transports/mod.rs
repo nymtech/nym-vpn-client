@@ -150,12 +150,40 @@ impl UdpForwarder {
     }
 }
 
+async fn recv_first_peer_datagram(
+    sock: &UdpSocket,
+    dn_buf: &mut BytesMut,
+    token: &CancellationToken,
+    timeout: Duration,
+) -> Option<(usize, SocketAddr)> {
+    match token
+        .run_until_cancelled(tokio::time::timeout(
+            timeout,
+            sock.recv_buf_from(&mut *dn_buf),
+        ))
+        .await
+    {
+        Some(Ok(Ok((len, src)))) => Some((len, src)),
+        Some(Ok(Err(e))) => {
+            debug!("error receiving from egress socket: {e}");
+            None
+        }
+        Some(Err(_)) => {
+            debug!("forwarder timed out");
+            None
+        }
+        None => {
+            debug!("forwarder cancelled before initial receive");
+            None
+        }
+    }
+}
+
 pub async fn process_udp<R, W>(
     reader: R,
     writer: W,
     sock: Arc<UdpSocket>,
     mtu: u16,
-    // close_hook: Option<fn(SocketAddr)>,
     close_tx: UnboundedSender<()>,
     token: CancellationToken,
 ) where
@@ -174,44 +202,21 @@ pub async fn process_udp<R, W>(
         .length_field_length(LENGTH_DELIMITER_BYTELEN)
         .new_read(reader);
 
-    // receive (and forward) a first message to establish a consistent peer address
-    let fwd_initial_recv_fut =
-        tokio::time::timeout(INITIAL_CONNECTION_TIMEOUT, sock.recv_buf_from(&mut dn_buf));
-
-    let fwd_addr = match token.run_until_cancelled(fwd_initial_recv_fut).await {
-        Some(res) => {
-            match res {
-                Ok(Ok((len, src))) => {
-                    trace!(" <- [fw] read {len}B");
-                    if let Err(e) = framed_writer.send(dn_buf.copy_to_bytes(len)).await {
-                        debug!("error sending to transport connection: {e}");
-                        None
-                    } else {
-                        trace!("[tr] <- wrote {len}B");
-                        // keep track of the address of the sender for the initial write
-                        Some(src)
-                    }
-                }
-                Ok(Err(e)) => {
-                    debug!("error receiving from egress socket: {e}");
-                    None
-                }
-                Err(_) => {
-                    debug!("forwarder timed out");
-                    None
-                }
-            }
-        }
-        None => {
-            debug!("forwarder cancelled before initial receive");
-            None
-        }
-    };
-
-    let Some(fwd_addr) = fwd_addr else {
+    let Some((len, src)) =
+        recv_first_peer_datagram(&sock, &mut dn_buf, &token, INITIAL_CONNECTION_TIMEOUT).await
+    else {
         close_tx.send(()).ok();
         return;
     };
+
+    trace!(" <- [fw] read {len}B");
+    if let Err(e) = framed_writer.send(dn_buf.copy_to_bytes(len)).await {
+        debug!("error sending to transport connection: {e}");
+        close_tx.send(()).ok();
+        return;
+    }
+    trace!(" [tr]<- wrote {len}B");
+    let fwd_addr = src;
 
     if let Err(e) = sock.connect(fwd_addr).await {
         error!("udp sock config failure: {e}");
@@ -536,4 +541,90 @@ fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {
     let socket = std::net::UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
     Ok(socket)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::sync::mpsc;
+
+    async fn bind_forwarder_socket() -> (Arc<UdpSocket>, SocketAddr) {
+        let sock = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0))
+            .await
+            .expect("bind forwarder");
+        let addr = sock.local_addr().expect("local addr");
+        (Arc::new(sock), addr)
+    }
+
+    #[tokio::test]
+    async fn first_datagram_arrives_before_timeout() {
+        let (sock, listen) = bind_forwarder_socket().await;
+        let token = CancellationToken::new();
+        let timeout = Duration::from_millis(200);
+        let recv = tokio::spawn({
+            let sock = sock.clone();
+            let token = token.clone();
+            async move {
+                let mut buf = BytesMut::with_capacity(1280);
+                recv_first_peer_datagram(&sock, &mut buf, &token, timeout).await
+            }
+        });
+
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        let client = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0))
+            .await
+            .expect("bind client");
+        client
+            .send_to(b"hello-wg", listen)
+            .await
+            .expect("send first datagram");
+
+        let got = tokio::time::timeout(Duration::from_secs(1), recv)
+            .await
+            .expect("timed out waiting for first datagram")
+            .expect("recv task join");
+        let (len, _src) = got.expect("first datagram");
+        assert_eq!(len, b"hello-wg".len());
+    }
+
+    #[tokio::test]
+    async fn timeout_without_datagram_gives_up() {
+        let (sock, _listen) = bind_forwarder_socket().await;
+        let token = CancellationToken::new();
+        let timeout = Duration::from_millis(40);
+        let started = Instant::now();
+        let mut buf = BytesMut::with_capacity(1280);
+        let got = recv_first_peer_datagram(&sock, &mut buf, &token, timeout).await;
+        assert!(got.is_none());
+        let elapsed = started.elapsed();
+        assert!(
+            elapsed >= timeout,
+            "gave up too early: {elapsed:?} < {timeout:?}"
+        );
+        assert!(
+            elapsed < Duration::from_secs(1),
+            "hung after timeout: {elapsed:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn cancel_before_first_datagram_closes_bridge() {
+        let (sock, _listen) = bind_forwarder_socket().await;
+        let (reader, writer) = tokio::io::duplex(4096);
+        let (close_tx, mut close_rx) = mpsc::unbounded_channel();
+        let token = CancellationToken::new();
+
+        let handle = tokio::spawn(process_udp(
+            reader,
+            writer,
+            sock,
+            1280,
+            close_tx,
+            token.clone(),
+        ));
+
+        token.cancel();
+        handle.await.expect("forwarder join");
+        assert_eq!(close_rx.try_recv(), Ok(()));
+    }
 }
