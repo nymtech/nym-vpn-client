@@ -4,13 +4,8 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 #[cfg(target_os = "ios")]
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    sync::Arc,
-};
+use std::{net::IpAddr, sync::Arc};
 
-#[cfg(target_os = "ios")]
-use ipnetwork::IpNetwork;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 use tokio::sync::mpsc;
@@ -29,9 +24,9 @@ use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, Tr
 use nym_http_api_client::HickoryDnsResolver;
 
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
+use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "ios")]
-use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
+use crate::tunnel_state_machine::blocking_tun::blocking_tunnel_settings;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result};
 use crate::tunnel_state_machine::{
@@ -39,15 +34,6 @@ use crate::tunnel_state_machine::{
     TunnelStateHandler,
     states::{ConnectingState, DisconnectedState, OfflineState},
 };
-
-/// Interface addresses used as placeholders when in error state.
-#[cfg(target_os = "ios")]
-const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
-    IpAddr::V4(Ipv4Addr::new(169, 254, 0, 10)),
-    IpAddr::V6(Ipv6Addr::new(
-        0xfdcc, 0x9fc0, 0xe75a, 0x53c3, 0xfa25, 0x241f, 0x21c0, 0x70d0,
-    )),
-];
 
 pub struct ErrorState {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -76,11 +62,11 @@ impl ErrorState {
             .await;
         }
 
-        // todo: activate kill switch on Android
-
-        // Android: traffic should flow freely since there should be no tunnel device at this point
-        // iOS: network extensions bypass the tunnel by default
-        #[cfg(any(target_os = "android", target_os = "ios"))]
+        // Android: cover if possible; publish TunnelProvider when uncovered so the UI does not
+        // show a blocked/account reason while traffic uses the ISP. iOS uses NE settings.
+        #[cfg(target_os = "android")]
+        let reason = shared_state.apply_android_error_cover(reason).await;
+        #[cfg(target_os = "ios")]
         shared_state.allow_networking().await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -193,12 +179,7 @@ impl ErrorState {
         tun_provider: Arc<dyn OSTunProvider>,
         dns_server: IpAddr,
     ) {
-        let tunnel_network_settings = TunnelSettings {
-            remote_addresses: vec![],
-            interface_addresses: BLOCKING_INTERFACE_ADDRS.map(IpNetwork::from).to_vec(),
-            dns_servers: vec![dns_server],
-            mtu: MIN_IPV6_MTU,
-        };
+        let tunnel_network_settings = blocking_tunnel_settings(dns_server);
 
         if let Err(e) = tun_provider
             .set_tunnel_network_settings(tunnel_network_settings)

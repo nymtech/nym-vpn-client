@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod account;
+#[cfg(any(target_os = "android", target_os = "ios", test))]
+mod blocking_tun;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
 mod entry_blame;
@@ -29,9 +31,16 @@ use std::{
 };
 
 #[cfg(target_os = "android")]
+use std::os::fd::{FromRawFd, OwnedFd};
+
+#[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::tunnel_state_machine::blocking_tun::{
+    BLOCKING_INTERFACE_ADDRS, blocking_tunnel_settings,
+};
 
 use crate::adblocker;
 #[cfg(not(target_os = "android"))]
@@ -778,6 +787,12 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
+    /// Held FD for the Android blocking / placeholder VPN interface during Connecting / Error / Offline.
+    #[cfg(target_os = "android")]
+    android_blocking_tun: Option<OwnedFd>,
+    /// Previous live TUN kept when blocking install fails mid-reconnect (avoids ISP window).
+    #[cfg(target_os = "android")]
+    android_tun_hold: Option<tunnel::Tombstone>,
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     bandwidth_command_tx: BandwidthControllerRequestSender,
@@ -800,7 +815,8 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Notify discovery, account controller, and gateway cache when network is unrestricted.
+    /// Unpause discovery / account / gateway cache. This is not a device kill-switch; on Android
+    /// other apps follow the VpnService interface, not this flag.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
@@ -820,6 +836,72 @@ impl SharedState {
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
         self.gateway_provider.set_active_geo_location(false).await;
         self.gateway_provider.set_gateway_cache_paused(true);
+    }
+
+    /// Establish (or replace) the Android blocking VPN interface and retain its FD.
+    #[cfg(target_os = "android")]
+    fn install_android_blocking_tun(&mut self) -> std::io::Result<()> {
+        let settings = blocking_tunnel_settings(BLOCKING_INTERFACE_ADDRS[0]);
+        let raw_fd = self.tun_provider.configure_tunnel(settings)?;
+        // Safety: configure_tunnel returns a freshly owned FD from VpnService.Builder.establish().
+        let owned = unsafe { OwnedFd::from_raw_fd(raw_fd) };
+        self.android_blocking_tun = Some(owned);
+        // Blocking interface replaced any prior live TUN; drop retained tombstone if present.
+        self.android_tun_hold = None;
+        Ok(())
+    }
+
+    /// Install blocking TUN when none is held yet. After a live TUN may have replaced the cover,
+    /// use `prepare_blocking_cover_before_release` so a stale FD cannot skip reinstall.
+    #[cfg(target_os = "android")]
+    fn ensure_android_blocking_tun(&mut self) -> std::io::Result<()> {
+        if self.android_blocking_tun.is_some() {
+            return Ok(());
+        }
+        self.install_android_blocking_tun()
+    }
+
+    /// Install cover if needed, unpause control-plane only when covered, and publish
+    /// `TunnelProvider` when the device has no blocking TUN and no held live TUN.
+    #[cfg(target_os = "android")]
+    async fn apply_android_error_cover(&mut self, requested: ErrorStateReason) -> ErrorStateReason {
+        if let Err(err) = self.ensure_android_blocking_tun() {
+            nym_common::trace_err_chain!(
+                err,
+                "failed to install Android blocking TUN in error state"
+            );
+        }
+        let covered = self.android_blocking_tun.is_some() || self.android_tun_hold.is_some();
+        if covered {
+            self.allow_networking().await;
+        }
+        blocking_tun::android_error_reason_if_uncovered(requested, covered)
+    }
+
+    /// Drop blocking TUN and any retained previous TUN (intentional Disconnect / real tunnel up).
+    #[cfg(target_os = "android")]
+    fn clear_android_blocking_tun(&mut self) {
+        self.android_blocking_tun = None;
+        self.android_tun_hold = None;
+    }
+
+    /// Install blocking cover, then release the previous TUN. On install failure, keep the previous
+    /// TUN in `android_tun_hold` so reconnect/error cannot open an ISP window.
+    #[cfg(target_os = "android")]
+    fn prepare_blocking_cover_before_release(
+        &mut self,
+        mut tombstone: Option<tunnel::Tombstone>,
+    ) -> std::io::Result<()> {
+        match self.install_android_blocking_tun() {
+            Ok(()) => {
+                drop(tombstone.take());
+                Ok(())
+            }
+            Err(err) => {
+                self.android_tun_hold = tombstone;
+                Err(err)
+            }
+        }
     }
 
     #[cfg(target_os = "linux")]
@@ -1248,6 +1330,10 @@ impl TunnelStateMachine {
             status_listener_handle: None,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
+            #[cfg(target_os = "android")]
+            android_blocking_tun: None,
+            #[cfg(target_os = "android")]
+            android_tun_hold: None,
             account_command_tx,
             account_controller_state,
             bandwidth_command_tx,

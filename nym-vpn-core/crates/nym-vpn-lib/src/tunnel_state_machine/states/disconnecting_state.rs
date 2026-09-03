@@ -5,6 +5,11 @@ use futures::future::{BoxFuture, Fuse, FusedFuture, FutureExt};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "android")]
+use nym_common::trace_err_chain;
+#[cfg(target_os = "android")]
+use nym_vpn_lib_types::ErrorStateReason;
+
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
@@ -59,15 +64,48 @@ impl DisconnectingState {
                 DisconnectedState::enter(tombstone, shared_state).await
             }
             PrivateActionAfterDisconnect::Error(reason) => {
+                #[cfg(target_os = "android")]
+                if let Err(err) = shared_state.prepare_blocking_cover_before_release(tombstone) {
+                    trace_err_chain!(
+                        err,
+                        "failed to install Android blocking TUN before error state"
+                    );
+                }
+                #[cfg(not(target_os = "android"))]
+                {
+                    let _ = tombstone;
+                }
                 ErrorState::enter(reason, shared_state).await
             }
             PrivateActionAfterDisconnect::Reconnect => {
+                #[cfg(target_os = "android")]
+                if let Err(err) = shared_state.prepare_blocking_cover_before_release(tombstone) {
+                    trace_err_chain!(
+                        err,
+                        "failed to install Android blocking TUN before reconnect"
+                    );
+                    return ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state).await;
+                }
+                #[cfg(not(target_os = "android"))]
+                {
+                    let _ = tombstone;
+                }
                 ConnectingState::enter(0, None, shared_state).await
             }
             PrivateActionAfterDisconnect::Offline {
                 reconnect,
                 gateways,
-            } => OfflineState::enter(reconnect, gateways, shared_state).await,
+            } => {
+                #[cfg(target_os = "android")]
+                if let Err(err) = shared_state.prepare_blocking_cover_before_release(tombstone) {
+                    trace_err_chain!(err, "failed to install Android blocking TUN before offline");
+                }
+                #[cfg(not(target_os = "android"))]
+                {
+                    let _ = tombstone;
+                }
+                OfflineState::enter(reconnect, gateways, shared_state).await
+            }
         }
     }
 }
