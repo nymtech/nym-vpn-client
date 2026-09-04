@@ -11,14 +11,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
 - Profiles: UI and logic (https://github.com/nymtech/nym-vpn-client/pull/6144)
 - Set geo location for android command sender (https://github.com/nymtech/nym-vpn-client/pull/6144)
+- Log prior process exit reasons on startup (https://github.com/nymtech/nym-vpn-client/pull/6236)
 
 ### Changed
-- Improved account signup and subscription flow (https://github.com/nymtech/nym-vpn-client/pull/6014)
+- Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
 
 ### Fixed
 - Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
+- Fix Quick Tile crash after service destroy (https://github.com/nymtech/nym-vpn-client/pull/6232)
+- Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
 
-## [2026.12.0] - TBD
+## [2026.12.3] - 2026-08-27
+
+### Fixed
+- Hide connection counter while offline, resume with session time (https://github.com/nymtech/nym-vpn-client/pull/6224)
+
+## [2026.12.2] - 2026-08-25
+
+### Added
+- Add Kosovo flag (https://github.com/nymtech/nym-vpn-client/pull/6197)
+
+### Fixed
+- Restore offline "No internet" status and offline action (https://github.com/nymtech/nym-vpn-client/pull/6212)
+- Fix server search crash and search bar height on short screens (https://github.com/nymtech/nym-vpn-client/pull/6197)
+- Add error message for exceeded connection attempts (https://github.com/nymtech/nym-vpn-client/pull/6178)
+
+## [2026.12.1] - 2026-08-21
+
+### Added
+- Add Server row to Geo Exclusion screen. Trim Setup Instructions (https://github.com/nymtech/nym-vpn-client/pull/6151)
+
+### Fixed
+- Fix home screen server score indicator (https://github.com/nymtech/nym-vpn-client/pull/6214)
+
+## [2026.12.0] - 2026-08-18
 
 ### Added
 - Recents support (https://github.com/nymtech/nym-vpn-client/pull/5922)
@@ -33,12 +59,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed Mixnet tuning appearance in Settings (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Update UI and sections for Mixnet Tuning screen (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Update Selected item UI (https://github.com/nymtech/nym-vpn-client/pull/5996)
+- Improved account signup and subscription flow (https://github.com/nymtech/nym-vpn-client/pull/6014)
+- Select Auto for Entry and Exit independently (https://github.com/nymtech/nym-vpn-client/pull/5962)
+- Onboarding colors, spacing and display logic updates (https://github.com/nymtech/nym-vpn-client/pull/5972)
+- Remove Daemon version from Settings (https://github.com/nymtech/nym-vpn-client/pull/6039)
 
 ### Fixed
 - Fix auto-connect getting stuck after boot (https://github.com/nymtech/nym-vpn-client/pull/5924)
 - Fix Search across favorites (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Fix for Geo Exclusion UI (https://github.com/nymtech/nym-vpn-client/pull/5958)
 - Fix Region selection for Entry Server (https://github.com/nymtech/nym-vpn-client/pull/5996)
+- Fix connect stalling when geo location is disabled (https://github.com/nymtech/nym-vpn-client/pull/5994)
+- Fix deeplink flow (https://github.com/nymtech/nym-vpn-client/pull/6039)
+- Fix routing from Generating screen (https://github.com/nymtech/nym-vpn-client/pull/6063)
+- Handle NeedsDeviceLocation error. Fix deeplink routing (https://github.com/nymtech/nym-vpn-client/pull/6106)
 
 ## [v2026.11.3]
 
