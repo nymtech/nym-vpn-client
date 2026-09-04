@@ -25,6 +25,7 @@ final class FakeProcessing: AccountProcessing {
     var storeDeeplinkError: Error?
     var registerError: Error?
     var accountActive = true
+    var becomesActiveAfterSync = false
     var prefetchDelay: Duration = .zero
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
     private(set) var calls: [Call] = []
@@ -57,6 +58,9 @@ final class FakeProcessing: AccountProcessing {
 
     func updateAccountSummary(force: Bool, untilActive: Bool) async {
         calls.append(.sync)
+        if becomesActiveAfterSync {
+            accountActive = true
+        }
     }
 
     func isAccountActive() -> Bool {
@@ -286,6 +290,7 @@ struct ProcessingAccountViewModelTests {
         await finishSetupCarousel(viewModel)
         #expect(viewModel.currentStep == 4)
         #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func navigationWaitsForCarouselAfterWorkCompletes() async {

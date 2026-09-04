@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import ConnectionTypes
 import Theme
 import UIComponents
@@ -11,7 +12,25 @@ public enum OneClickConnectState: Equatable {
     case connected
     case disconnecting
     case noInternet
+    case noAccount
     case noSubscription
+    case accountUnreachable
+    case checkingAccount
+
+    static func disconnected(_ cta: DisconnectedHomeCTA) -> Self {
+        switch cta {
+        case .getStarted:
+            .noAccount
+        case .choosePlan:
+            .noSubscription
+        case .accountUnreachable:
+            .accountUnreachable
+        case .checking:
+            .checkingAccount
+        case .connect:
+            .disconnected
+        }
+    }
 }
 
 public enum OneClickDisplayMode: String, Codable, Equatable, Sendable, CaseIterable {

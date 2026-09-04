@@ -13,6 +13,7 @@ import ImpactGenerator
 import NetworkMonitor
 import TunnelStatus
 import UIComponents
+import Theme
 #if os(macOS)
 import GRPCManager
 #endif
@@ -51,8 +52,10 @@ public final class OneClickViewModel {
 
     @ObservationIgnored var connectDisconnectTask: Task<Void, Never>?
     @ObservationIgnored var resolveTask: Task<Void, Never>?
+    @ObservationIgnored var accountSummaryRefreshTask: Task<Void, Never>?
     @ObservationIgnored var cancellables = Set<AnyCancellable>()
     @ObservationIgnored var isConnectDisconnectInFlight = false
+    var isRefreshingAccountSummary = false
 
 #if os(iOS)
     public init(
@@ -111,11 +114,15 @@ public final class OneClickViewModel {
 #endif
 
     func connectButtonTapped() {
-        guard !isConnectDisconnectInFlight else { return }
+        guard !isConnectDisconnectInFlight, !isRefreshingAccountSummary else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
 
         impactGenerator.impact()
         snackbarManager.clear()
+
+        if handleDisconnectedHomeCTATap() {
+            return
+        }
 
         let isConnectingTap = connectionManager.currentTunnelStatus != .connected
 
@@ -123,6 +130,55 @@ public final class OneClickViewModel {
         connectDisconnectTask = Task { @MainActor [weak self] in
             await self?.performConnectDisconnect(isConnectingTap: isConnectingTap)
         }
+    }
+
+    func handleDisconnectedHomeCTATap() -> Bool {
+        switch connectState {
+        case .noAccount:
+            sessionCoordinator?.handle(.requestWelcome)
+            return true
+        case .noSubscription:
+            sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
+            return true
+        case .accountUnreachable:
+            startAccountUnreachableRefresh()
+            return true
+        case .checkingAccount:
+            return true
+        case .disconnected, .connecting, .stop, .connected, .disconnecting, .noInternet:
+            return false
+        }
+    }
+
+    func startAccountUnreachableRefresh() {
+        guard !isRefreshingAccountSummary else { return }
+        isRefreshingAccountSummary = true
+        accountSummaryRefreshTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer {
+                isRefreshingAccountSummary = false
+                accountSummaryRefreshTask = nil
+            }
+            await credentialsManager.updateAccountSummary(force: true)
+            if credentialsManager.accountSummaryLastFetchFailed {
+                presentAccountUnreachableRetryFailed()
+            }
+        }
+    }
+
+    func presentAccountUnreachableRetryFailed() {
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .critical,
+                title: "home.accountUnreachable".localizedString,
+                message: "error.unexpected".localizedString,
+                actionTitle: "retry".localizedString,
+                onAction: { [weak self] in
+                    self?.snackbarManager.clear()
+                    _ = self?.handleDisconnectedHomeCTATap()
+                }
+            )
+        )
     }
 
     func disconnectFromError() {
@@ -208,7 +264,6 @@ public final class OneClickViewModel {
             }
         }
     }
-
 }
 
 extension OneClickSpeedMode {
