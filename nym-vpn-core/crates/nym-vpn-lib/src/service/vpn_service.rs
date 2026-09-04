@@ -2605,7 +2605,8 @@ mod tests {
             count.load(Ordering::SeqCst),
             2,
             "two independent publishes of the same state must show up as two notifications, \
-             proving the earlier test would fail if the duplicate publish returned"
+             proving the network_change_publishes_update_exactly_once would fail if the \
+             duplicate publish returned"
         );
     }
 
