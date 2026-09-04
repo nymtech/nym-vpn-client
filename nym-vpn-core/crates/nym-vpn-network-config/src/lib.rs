@@ -17,9 +17,9 @@ mod serialization;
 mod system_configuration;
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fmt::Debug,
-    net::SocketAddr,
+    net::{IpAddr, SocketAddr},
     path::{Path, PathBuf},
     str::FromStr,
     time::Duration,
@@ -34,13 +34,14 @@ pub use discovery_refresher::{DiscoveryRefresher, DiscoveryRefresherCommand};
 pub use envs::RegisteredNetworks;
 pub use feature_flags::{FeatureFlags, FlagValue};
 pub use fetcher::Fetcher;
-pub use nym_network_defaults::NymNetworkDetails;
+pub use nym_network_defaults::v2::NymNetworkDetails;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
 use nym_common::trace_err_chain;
 use nym_http_api_client::HttpClientError;
+use nym_network_defaults::v2::DnsFallback;
 use nym_sdk::{UserAgent, mixnet::Recipient};
 use nym_vpn_api_client::str_to_socket_addr;
 
@@ -65,6 +66,35 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
+    dns_fallbacks: HashMap<String, HashSet<IpAddr>>,
+}
+
+fn dns_fallback_addr_map(fallbacks: &[DnsFallback]) -> HashMap<String, HashSet<IpAddr>> {
+    fallbacks
+        .iter()
+        .filter_map(|fallback| {
+            let addrs: HashSet<IpAddr> = fallback
+                .addresses
+                .iter()
+                .filter_map(|addr| {
+                    addr.parse()
+                        .inspect_err(|err| {
+                            tracing::warn!(
+                                "Invalid dns fallback address '{addr}' for '{}': {err}",
+                                fallback.url
+                            );
+                        })
+                        .ok()
+                })
+                .collect();
+
+            if addrs.is_empty() {
+                None
+            } else {
+                Some((fallback.url.clone(), addrs))
+            }
+        })
+        .collect()
 }
 
 impl Network {
@@ -91,6 +121,7 @@ impl Network {
 
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration.clone();
+        let dns_fallbacks = dns_fallback_addr_map(&network_details.networking.dns_fallbacks);
         let endpoint = network_details
             .endpoints
             .first()
@@ -104,7 +135,14 @@ impl Network {
             nym_vpn_network,
             feature_flags,
             system_configuration,
+            dns_fallbacks,
         })
+    }
+
+    /// Map of hostname to fallback IP addresses to use for DNS resolution when the primary
+    /// resolver fails, as configured by discovery.
+    pub fn dns_fallback_addr_map(&self) -> HashMap<String, HashSet<IpAddr>> {
+        self.dns_fallbacks.clone()
     }
 
     pub fn nym_network_details(&self) -> &NymNetworkDetails {
@@ -112,7 +150,7 @@ impl Network {
     }
 
     pub fn export_to_env(&self) {
-        self.nym_network.clone().export_to_env();
+        nym_network_defaults::NymNetworkDetails::from(self.nym_network.clone()).export_to_env();
         self.nym_vpn_network.export_to_env();
     }
 
@@ -121,11 +159,12 @@ impl Network {
     }
 
     pub fn nym_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
-        self.nym_network.nym_api_urls.clone()
+        let urls = self.nym_network.nym_api_urls();
+        (!urls.is_empty()).then_some(urls)
     }
 
     pub fn nym_api_urls_as_urls(&self) -> Option<Vec<url::Url>> {
-        self.nym_network.nym_api_urls.as_ref().map(|urls| {
+        self.nym_api_urls().map(|urls| {
             urls.iter()
                 .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
                 .collect()
@@ -133,11 +172,12 @@ impl Network {
     }
 
     pub fn nym_vpn_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
-        self.nym_network.nym_vpn_api_urls.clone()
+        let urls = self.nym_network.nym_vpn_api_urls();
+        (!urls.is_empty()).then_some(urls)
     }
 
     pub fn nym_vpn_api_urls_as_urls(&self) -> Option<Vec<url::Url>> {
-        self.nym_network.nym_vpn_api_urls.as_ref().map(|urls| {
+        self.nym_vpn_api_urls().map(|urls| {
             urls.iter()
                 .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
                 .collect()
@@ -331,16 +371,11 @@ impl NetworkCache {
         network_details: &mut NymNetworkDetails,
         discovery: &Discovery,
     ) {
-        if network_details.nym_vpn_api_urls.is_none()
-            || network_details
-                .nym_vpn_api_urls
-                .as_ref()
-                .is_some_and(|v| v.is_empty())
-        {
+        if network_details.nym_vpn_api_urls().is_empty() {
             tracing::debug!(
                 "Patching up network details from discovery due to missing network details!"
             );
-            network_details.nym_vpn_api_urls = Some(discovery.nym_vpn_api_urls());
+            network_details.networking.nym_vpn_api_urls = discovery.nym_vpn_api_urls();
         }
     }
 
@@ -552,5 +587,17 @@ mod tests {
                 .await
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn test_mainnet_default_network_has_dns_fallback_addrs() {
+        let network = Network::mainnet_default().unwrap();
+        let fallbacks = network.dns_fallback_addr_map();
+
+        assert!(!fallbacks.is_empty());
+        for (host, addrs) in &fallbacks {
+            assert!(!host.is_empty());
+            assert!(!addrs.is_empty());
+        }
     }
 }

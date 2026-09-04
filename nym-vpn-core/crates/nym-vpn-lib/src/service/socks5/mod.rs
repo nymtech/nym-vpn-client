@@ -16,7 +16,7 @@ use http_rpc::HttpRpc;
 use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error};
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::GatewayCacheHandle;
-use nym_sdk::NymNetworkDetails;
+use nym_network_defaults::v2::NymNetworkDetails;
 use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{sync::RwLock, task::JoinHandle};

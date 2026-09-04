@@ -65,6 +65,7 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
+nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true

@@ -33,6 +33,7 @@ use tokio_util::sync::CancellationToken;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
+use nym_http_api_client::HickoryDnsResolver;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -453,6 +454,14 @@ impl NymVpnService {
         let network_env = network_cache
             .network()
             .map_err(|_| Error::NetworkEnvNotInitialized)?;
+
+        HickoryDnsResolver::shared().set_fallback_addrs(
+            network_env
+                .dns_fallback_addr_map()
+                .into_iter()
+                .map(|(host, addrs)| (host, addrs.into_iter().collect()))
+                .collect(),
+        );
 
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -1004,8 +1013,12 @@ impl NymVpnService {
     }
 
     async fn handle_network_change(&mut self, new_network: Box<Network>) {
+        if !update_active_network(&self.network_tx, &new_network) {
+            tracing::debug!("Network environment unchanged, skipping cache refresh");
+            return;
+        }
+
         tracing::info!("Network environment updated");
-        let _ = self.network_tx.send_replace(new_network.clone());
 
         // Update gateway cache and topology cache for new environment
         crate::cache_refresh::update_caches_for_network(
@@ -2484,5 +2497,128 @@ impl NymVpnService {
     async fn handle_set_profile(&mut self, profile: Profile) {
         self.config_manager.set_profile(profile).await;
         self.update_tunnel_settings_with_throttle();
+    }
+}
+
+/// Updates `network_tx` with `new_network` if it differs from the currently active network,
+/// applying the DNS fallback update as a side effect. Publishes the new value through
+/// `send_replace` exactly once. Returns whether an update was applied.
+fn update_active_network(network_tx: &watch::Sender<Box<Network>>, new_network: &Network) -> bool {
+    if network_tx.borrow().as_ref() == new_network {
+        return false;
+    }
+
+    let addrs = new_network
+        .dns_fallback_addr_map()
+        .into_iter()
+        .map(|(host, addrs)| (host, addrs.into_iter().collect()))
+        .collect();
+
+    HickoryDnsResolver::shared().set_fallback_addrs(addrs);
+
+    let _ = network_tx.send_replace(Box::new(new_network.clone()));
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    fn distinct_networks() -> (Network, Network) {
+        let a = Network::mainnet_default().expect("bundled mainnet network");
+        let mut b = a.clone();
+        b.nyxd_url = "https://example.com".parse().expect("valid url");
+        assert_ne!(a, b, "test networks must be distinct");
+        (a, b)
+    }
+
+    /// Counts every distinct `changed()` notification observed on `network_rx`, giving the
+    /// scheduler a real gap (via `sleep`) between publishes so that back-to-back sends are not
+    /// coalesced into a single wakeup, the way `Receiver::has_changed()` would if checked
+    /// synchronously. This mirrors the production risk: two independent call sites publishing
+    /// the same network state can each wake a subscriber separately.
+    async fn count_notifications(
+        mut network_rx: watch::Receiver<Box<Network>>,
+    ) -> Arc<AtomicUsize> {
+        let count = Arc::new(AtomicUsize::new(0));
+        let count_clone = count.clone();
+        tokio::spawn(async move {
+            while network_rx.changed().await.is_ok() {
+                count_clone.fetch_add(1, Ordering::SeqCst);
+            }
+        });
+        // Let the watcher task start and register its waker before the caller publishes.
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        count
+    }
+
+    /// Regression test: a single logical network change must publish exactly one update on
+    /// `network_tx`. Before this fix, `handle_network_change` called
+    /// `maybe_update_active_network_details` (which itself published via `send_replace`) and
+    /// then published the *same* state again itself, so a subscriber could observe two separate
+    /// notifications for one change. `update_active_network` is now the only place that
+    /// publishes, so exactly one notification is delivered.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+    async fn network_change_publishes_update_exactly_once() {
+        let (network_a, network_b) = distinct_networks();
+        let (network_tx, network_rx) = watch::channel(Box::new(network_a));
+        let count = count_notifications(network_rx).await;
+
+        let updated = update_active_network(&network_tx, &network_b);
+        assert!(updated, "differing network should be applied");
+
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        assert_eq!(
+            count.load(Ordering::SeqCst),
+            1,
+            "subscriber should observe exactly one notification for one network change"
+        );
+        assert_eq!(network_tx.borrow().as_ref(), &network_b);
+    }
+
+    /// Guards against the exact regression this test suite is named for: if a second call site
+    /// were to independently `send_replace` the same state that `update_active_network` already
+    /// published (as `handle_network_change` used to do), the subscriber would see two
+    /// notifications instead of one. This test exercises that duplicated-publish shape directly
+    /// so it fails if the duplication ever comes back.
+    #[tokio::test]
+    async fn duplicate_publish_of_same_state_is_detected_as_two_notifications() {
+        let (network_a, network_b) = distinct_networks();
+        let (network_tx, network_rx) = watch::channel(Box::new(network_a));
+        let count = count_notifications(network_rx).await;
+
+        assert!(update_active_network(&network_tx, &network_b));
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        // Simulates a second, independent call site re-publishing the same state that
+        // `update_active_network` already sent (the bug this fix removes).
+        let _ = network_tx.send_replace(Box::new(network_b.clone()));
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
+        assert_eq!(
+            count.load(Ordering::SeqCst),
+            2,
+            "two independent publishes of the same state must show up as two notifications, \
+             proving the network_change_publishes_update_exactly_once would fail if the \
+             duplicate publish returned"
+        );
+    }
+
+    #[tokio::test]
+    async fn unchanged_network_does_not_publish() {
+        let (network_a, _) = distinct_networks();
+        let (network_tx, network_rx) = watch::channel(Box::new(network_a.clone()));
+        let count = count_notifications(network_rx).await;
+
+        let updated = update_active_network(&network_tx, &network_a);
+
+        assert!(!updated, "identical network should not be applied");
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        assert_eq!(
+            count.load(Ordering::SeqCst),
+            0,
+            "receiver should not observe a change when network is unchanged"
+        );
     }
 }
