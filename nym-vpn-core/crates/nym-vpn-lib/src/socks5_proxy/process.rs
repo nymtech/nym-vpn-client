@@ -6,7 +6,7 @@ use std::{env, path::PathBuf, process::Stdio, result::Result, time::Duration};
 use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig, ProxyMessage};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::{Child, ChildStdin, ChildStdout, Command},
+    process::{Child, ChildStderr, ChildStdin, ChildStdout, Command},
     sync::{mpsc, oneshot},
     task::JoinHandle,
 };
@@ -19,6 +19,32 @@ const PROXY_BINARY_NAME: &str = if cfg!(windows) {
 } else {
     "nym-socks5-proxy"
 };
+
+/// Default maximum time to wait for nym-socks5-proxy to report readiness before
+/// giving up on it. Overridable at runtime via `READY_TIMEOUT_ENV` for slow CI or
+/// constrained environments.
+const READY_TIMEOUT: Duration = Duration::from_secs(30);
+
+const READY_TIMEOUT_ENV: &str = "NYM_SOCKS5_PROXY_READY_TIMEOUT_SECS";
+
+fn ready_timeout() -> Duration {
+    resolve_ready_timeout(env::var(READY_TIMEOUT_ENV).ok())
+}
+
+fn resolve_ready_timeout(raw: Option<String>) -> Duration {
+    match raw {
+        Some(val) => match val.parse::<u64>() {
+            Ok(secs) => Duration::from_secs(secs),
+            Err(_) => {
+                tracing::warn!(
+                    "invalid {READY_TIMEOUT_ENV}={val:?}; using default {READY_TIMEOUT:?}"
+                );
+                READY_TIMEOUT
+            }
+        },
+        None => READY_TIMEOUT,
+    }
+}
 
 pub struct RunningProcess {
     msg_tx: mpsc::UnboundedSender<DaemonMessage>,
@@ -69,8 +95,8 @@ pub async fn spawn(
     command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        // Proxy logs go to its own log file; discard stderr.
-        .stderr(Stdio::null());
+        // Capture stderr and forward it into the daemon log (backup for proxy logs)
+        .stderr(Stdio::piped());
     // Run in own process group on Unix so it doesn't inherit a terminal.
     #[cfg(unix)]
     command.process_group(0);
@@ -85,6 +111,12 @@ pub async fn spawn(
         .stdout
         .take()
         .expect("stdout was piped but is unavailable");
+    let stderr = child
+        .stderr
+        .take()
+        .expect("stderr was piped but is unavailable");
+
+    tokio::spawn(stderr_forwarder(stderr));
 
     // Channel for sending DaemonMessages from handle → writer task → child stdin.
     let (msg_tx, msg_rx) = mpsc::unbounded_channel::<DaemonMessage>();
@@ -108,11 +140,21 @@ pub async fn spawn(
         supervisor_token.clone(),
     ));
 
-    // Wait for the proxy to become ready.
-    match ready_rx.await {
-        Ok(Ok(())) => {}
-        Ok(Err(msg)) => return Err(SpawnError::ProxyError(msg)),
-        Err(_) => return Err(SpawnError::ExitedBeforeReady),
+    // Wait for the proxy to become ready, but never block forever: a proxy that
+    // starts yet never reports ready would otherwise wedge the tunnel state
+    // machine.
+    let ready_timeout = ready_timeout();
+    if let Err(err) = await_ready(ready_rx, ready_timeout).await {
+        if matches!(err, SpawnError::ReadyTimeout(_)) {
+            tracing::warn!(
+                "nym-socks5-proxy did not report ready within {ready_timeout:?}; tearing it down and continuing without it"
+            );
+        }
+        // Safe for all three error variants: cancellation is idempotent and
+        // joining a supervisor that has already exited (ProxyError,
+        // ExitedBeforeReady) or is mid-exit returns immediately without racing.
+        teardown_after_failed_start(&supervisor_token, join_handle).await;
+        return Err(err);
     }
 
     tracing::info!("nym-socks5-proxy is ready");
@@ -122,6 +164,43 @@ pub async fn spawn(
         shutdown_token: supervisor_token,
         join_handle,
     })
+}
+
+/// Classify the proxy readiness outcome, bounded by `timeout`.
+async fn await_ready(
+    ready_rx: oneshot::Receiver<Result<(), String>>,
+    timeout: Duration,
+) -> Result<(), SpawnError> {
+    match tokio::time::timeout(timeout, ready_rx).await {
+        Ok(Ok(Ok(()))) => Ok(()),
+        Ok(Ok(Err(msg))) => Err(SpawnError::ProxyError(msg)),
+        Ok(Err(_)) => Err(SpawnError::ExitedBeforeReady),
+        Err(_) => Err(SpawnError::ReadyTimeout(timeout)),
+    }
+}
+
+async fn teardown_after_failed_start(
+    supervisor_token: &CancellationToken,
+    join_handle: JoinHandle<()>,
+) {
+    supervisor_token.cancel();
+    if let Err(join_err) = join_handle.await {
+        tracing::error!("nym-socks5-proxy supervisor task panicked during teardown: {join_err}");
+    }
+}
+
+async fn stderr_forwarder(stderr: ChildStderr) {
+    let mut lines = BufReader::new(stderr).lines();
+    loop {
+        match lines.next_line().await {
+            Ok(Some(line)) => tracing::warn!("nym-socks5-proxy stderr: {line}"),
+            Ok(None) => break,
+            Err(err) => {
+                tracing::debug!("error reading nym-socks5-proxy stderr: {err}");
+                break;
+            }
+        }
+    }
 }
 
 async fn supervisor(
@@ -143,6 +222,7 @@ async fn supervisor(
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) => {
+                        tracing::debug!("nym-socks5-proxy stdout: {line}");
                         handle_proxy_line(&line, &mut ready_tx, &event_tx);
                     }
                     Ok(None) => {
@@ -302,6 +382,9 @@ pub enum SpawnError {
 
     #[error("Proxy process exited before reporting ready")]
     ExitedBeforeReady,
+
+    #[error("Proxy did not report ready within {0:?}")]
+    ReadyTimeout(Duration),
 
     #[error("Proxy reported an error: {0}")]
     ProxyError(String),
