@@ -220,6 +220,7 @@ extension CredentialsManager {
         let operationName = trigger == .subscriptionPayment
             ? "handleSubscriptionPayment"
             : "refreshAccountSummary"
+        var knownInactive = false
         try await AccountRegistrationSupport.withAccountStoreRetry(
             operation: operationName,
             logger: logger
@@ -233,7 +234,16 @@ extension CredentialsManager {
                     try await controller.updateAccountState()
                 }
 
-                for delay in AccountSummaryRefreshPolicy.pollDelays(untilActive: untilActive) {
+                if !untilActive {
+                    let phase = Self.accountPreparationPhase(
+                        from: await controller.getAccountState()
+                    )
+                    knownInactive = OnboardingAccountPreparationPolicy
+                        .isTerminalInactiveForLogin(phase)
+                }
+
+                let pollDelays = AccountSummaryRefreshPolicy.pollDelays(untilActive: untilActive)
+                for (attemptIndex, delay) in pollDelays.enumerated() {
                     if delay != .zero {
                         try await Task.sleep(for: delay)
                     }
@@ -243,23 +253,51 @@ extension CredentialsManager {
                             untilActive: untilActive,
                             isSubscriptionActive: summary.isSubscriptionActive(),
                             hasAccountSummary: true,
-                            lastFetchFailed: false
+                            lastFetchFailed: false,
+                            attemptIndex: attemptIndex
                         ) {
                             return
                         }
-                    } else if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
-                        untilActive: untilActive,
-                        isSubscriptionActive: false,
-                        hasAccountSummary: false,
-                        lastFetchFailed: false
-                    ) {
-                        return
+                    } else {
+                        if AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                            untilActive: untilActive,
+                            hasAccountSummary: false,
+                            attemptIndex: attemptIndex,
+                            alreadyKnownInactive: knownInactive
+                        ) {
+                            let phase = Self.accountPreparationPhase(
+                                from: await controller.getAccountState()
+                            )
+                            knownInactive = OnboardingAccountPreparationPolicy
+                                .isTerminalInactiveForLogin(phase)
+                        }
+                        if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                            untilActive: untilActive,
+                            isSubscriptionActive: false,
+                            hasAccountSummary: false,
+                            lastFetchFailed: false,
+                            attemptIndex: attemptIndex,
+                            isAccountKnownInactive: knownInactive
+                        ) {
+                            return
+                        }
                     }
+                }
+                if !knownInactive {
+                    let phase = Self.accountPreparationPhase(
+                        from: await controller.getAccountState()
+                    )
+                    knownInactive = OnboardingAccountPreparationPolicy
+                        .isTerminalInactiveForLogin(phase)
                 }
             }
         }
 
-        if accountSummary == nil {
+        setAccountKnownInactive(knownInactive)
+        if AccountSummaryRefreshPolicy.shouldSetLastFetchFailedAfterPoll(
+            accountSummaryIsNil: accountSummary == nil,
+            isAccountKnownInactive: knownInactive
+        ) {
             setAccountSummaryLastFetchFailed(true)
             logger.debug("refreshAccountSummary (iOS): no summary after polling")
         }

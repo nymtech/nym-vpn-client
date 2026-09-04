@@ -1,6 +1,14 @@
 import Foundation
 import Testing
 import AccountPrefetchGates
+import ErrorReason
+#if os(iOS)
+import ErrorHandler
+#endif
+#if os(macOS)
+import GRPCManager
+import NymVPNLib
+#endif
 
 struct OnboardingSessionPolicyTests {
     @Test func progressStepMapping() {
@@ -131,6 +139,20 @@ struct OnboardingSessionPolicyTests {
         )
     }
 
+    @Test func loginProcessingOffersPurchaseWhenKnownInactiveWithoutSummary() {
+        #expect(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false,
+                accountSummaryLastFetchFailed: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false,
+                isAccountKnownInactive: true
+            )
+        )
+    }
+
     @Test func loginProcessingSkipsPurchaseWhenSummaryFetchFailed() {
         #expect(
             !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
@@ -194,6 +216,19 @@ struct ConnectPlanPurchaseGatePolicyTests {
                 isAccountActive: false,
                 validUntilIsFuture: false,
                 hasAccountSummary: false
+            )
+        )
+    }
+
+    @Test func connectOffersPurchaseWhenKnownInactiveWithoutSummary() {
+        #expect(
+            ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                isAccountRegistrationInFlight: false,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false,
+                isAccountKnownInactive: true
             )
         )
     }
@@ -386,36 +421,38 @@ struct DrawerSessionPolicyTests {
         #expect(DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: false))
     }
 
-    @Test func purchaseTransitionOverlayOnlyWhileDrawerHidden() {
+    @Test func purchaseTransitionOverlayCoversHomeForWholeCheckout() {
+        #expect(DrawerSessionPolicy.showsPurchaseTransitionOverlay(isPurchaseFlowActive: true))
+        #expect(!DrawerSessionPolicy.showsPurchaseTransitionOverlay(isPurchaseFlowActive: false))
+    }
+
+    @Test func importedHiddenDrawerRestoresUnlessCheckoutIsActive() {
         #expect(
-            DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: true,
-                isDrawerContentNil: true
+            DrawerSessionPolicy.shouldRestoreDashboardDrawer(
+                isDrawerHidden: true,
+                isCredentialImported: true,
+                isPurchaseFlowActive: false
             )
         )
         #expect(
-            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: true,
-                isDrawerContentNil: false
+            !DrawerSessionPolicy.shouldRestoreDashboardDrawer(
+                isDrawerHidden: true,
+                isCredentialImported: true,
+                isPurchaseFlowActive: true
             )
         )
         #expect(
-            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: false,
-                isDrawerContentNil: true
+            !DrawerSessionPolicy.shouldRestoreDashboardDrawer(
+                isDrawerHidden: false,
+                isCredentialImported: true,
+                isPurchaseFlowActive: false
             )
         )
         #expect(
-            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: false,
-                isDrawerContentNil: false
-            )
-        )
-        #expect(
-            DrawerSessionPolicy.showsPurchaseTransitionOverlay(
-                isPurchaseFlowActive: true,
-                isDrawerContentNil: false,
-                isCheckoutNavigationPending: true
+            !DrawerSessionPolicy.shouldRestoreDashboardDrawer(
+                isDrawerHidden: true,
+                isCredentialImported: false,
+                isPurchaseFlowActive: false
             )
         )
     }
@@ -690,5 +727,51 @@ struct DrawerSessionPolicyTests {
                 drawerAllowsCredentialPromotion: true
             )
         )
+    }
+
+    @Test func existingAccountStoreErrorMatchesTypedReason() {
+#if os(macOS)
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(ErrorReason.existingAccount))
+#endif
+#if os(iOS)
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(VPNErrorReason.existingAccount))
+#endif
+        enum StoreKind: Error {
+            case existingAccount
+        }
+        #expect(!OnboardingSessionPolicy.isExistingAccountStoreError(StoreKind.existingAccount))
+        struct OtherError: Error, LocalizedError {
+            var errorDescription: String? { "invalid mnemonic" }
+        }
+        #expect(!OnboardingSessionPolicy.isExistingAccountStoreError(OtherError()))
+    }
+
+    @Test func existingAccountStoreErrorMatchesUnmappedUniffiDisplay() {
+        struct UnmappedVpnErrorDisplay: Error, LocalizedError {
+            var errorDescription: String? {
+                OnboardingSessionPolicy.unmappedExistingAccountStoreMessage
+            }
+        }
+        #expect(OnboardingSessionPolicy.isExistingAccountStoreError(UnmappedVpnErrorDisplay()))
+        struct MnemonicStored: Error, LocalizedError {
+            var errorDescription: String? { "mnemonic already stored" }
+        }
+        #expect(!OnboardingSessionPolicy.isExistingAccountStoreError(MnemonicStored()))
+        #expect(
+            !OnboardingSessionPolicy.isExistingAccountStoreError(
+                NSError(domain: "vpn", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account already exists"])
+            )
+        )
+    }
+
+    @Test func storeAccountMapsExistingAccountCommandToErrorReason() {
+#if os(macOS)
+        guard case .existingAccount = GRPCManager.errorReason(forAccountCommand: .ExistingAccount) else {
+            Issue.record("ExistingAccount must map to ErrorReason.existingAccount")
+            return
+        }
+        #expect(GRPCManager.errorReason(forAccountCommand: nil) == nil)
+        #expect(GRPCManager.errorReason(forAccountCommand: .Offline) == nil)
+#endif
     }
 }

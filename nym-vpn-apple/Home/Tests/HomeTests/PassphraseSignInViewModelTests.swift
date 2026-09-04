@@ -2,6 +2,10 @@ import Foundation
 import Testing
 import AccountPrefetchGates
 import CredentialsManager
+import ErrorReason
+#if os(iOS)
+import ErrorHandler
+#endif
 @testable import Home
 
 @MainActor
@@ -14,6 +18,7 @@ private final class FakePassphraseSignInCredentialStore: PassphraseSignInCredent
     var accountActive = true
     private(set) var storedCredentials: [String] = []
     private(set) var summarySyncCount = 0
+    private(set) var ensureResolvedCount = 0
 
     func storeLoginCredential(_ credential: String) async throws {
         if let storeError {
@@ -28,6 +33,10 @@ private final class FakePassphraseSignInCredentialStore: PassphraseSignInCredent
 
     func updateAccountSummary(force: Bool, untilActive: Bool) async {
         summarySyncCount += 1
+    }
+
+    func ensureCredentialImportResolved() async {
+        ensureResolvedCount += 1
     }
 }
 
@@ -152,4 +161,76 @@ struct PassphraseSignInViewModelTests {
         }
         #expect(!hasAuthCompleted)
     }
+
+    @Test func alreadyStoredAccountCompletesLoginWithoutSnackbar() async {
+        struct AlreadyStored: Error, LocalizedError {
+            var errorDescription: String? {
+                OnboardingSessionPolicy.unmappedExistingAccountStoreMessage
+            }
+        }
+        let store = FakePassphraseSignInCredentialStore()
+        store.storeError = AlreadyStored()
+        store.accountActive = false
+        let coordinator = FakePassphraseSignInCoordinator()
+        let viewModel = PassphraseSignInViewModel(credentialStore: store)
+        viewModel.sessionCoordinator = coordinator
+        viewModel.passphraseText = "alpha beta gamma"
+
+        viewModel.loginButtonTapped()
+        await viewModel.waitForLoginTask()
+
+        #expect(store.storedCredentials.isEmpty)
+        #expect(store.ensureResolvedCount == 1)
+        #expect(viewModel.submissionState == .idle)
+        let completed = PassphraseSignInTestSupport.lastAuthCompleted(from: coordinator.actions)
+        #expect(completed?.0 == .registeredNeedsPurchase)
+        #expect(completed?.1 == .login)
+        let cancelled = coordinator.actions.contains { action in
+            if case .session(.authHandoffCancelled) = action {
+                return true
+            }
+            return false
+        }
+        #expect(!cancelled)
+    }
+
+#if os(macOS)
+    @Test func alreadyStoredTypedErrorCompletesLoginWithoutSnackbar() async {
+        let store = FakePassphraseSignInCredentialStore()
+        store.storeError = ErrorReason.existingAccount
+        store.accountActive = false
+        let coordinator = FakePassphraseSignInCoordinator()
+        let viewModel = PassphraseSignInViewModel(credentialStore: store)
+        viewModel.sessionCoordinator = coordinator
+        viewModel.passphraseText = "alpha beta gamma"
+
+        viewModel.loginButtonTapped()
+        await viewModel.waitForLoginTask()
+
+        #expect(store.ensureResolvedCount == 1)
+        #expect(viewModel.submissionState == .idle)
+        let completed = PassphraseSignInTestSupport.lastAuthCompleted(from: coordinator.actions)
+        #expect(completed?.0 == .registeredNeedsPurchase)
+    }
+#endif
+
+#if os(iOS)
+    @Test func alreadyStoredTypedVPNErrorCompletesLoginWithoutSnackbar() async {
+        let store = FakePassphraseSignInCredentialStore()
+        store.storeError = VPNErrorReason.existingAccount
+        store.accountActive = false
+        let coordinator = FakePassphraseSignInCoordinator()
+        let viewModel = PassphraseSignInViewModel(credentialStore: store)
+        viewModel.sessionCoordinator = coordinator
+        viewModel.passphraseText = "alpha beta gamma"
+
+        viewModel.loginButtonTapped()
+        await viewModel.waitForLoginTask()
+
+        #expect(store.ensureResolvedCount == 1)
+        #expect(viewModel.submissionState == .idle)
+        let completed = PassphraseSignInTestSupport.lastAuthCompleted(from: coordinator.actions)
+        #expect(completed?.0 == .registeredNeedsPurchase)
+    }
+#endif
 }

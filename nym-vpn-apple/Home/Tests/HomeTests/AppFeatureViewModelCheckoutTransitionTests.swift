@@ -16,7 +16,9 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
     ) async throws {
         let deadline = ContinuousClock.now + .milliseconds(timeoutMs)
         while ContinuousClock.now < deadline {
-            if viewModel.isCheckoutNavigationPending { return }
+            if viewModel.isCheckoutNavigationPending {
+                return
+            }
             try await Task.sleep(for: .milliseconds(20))
         }
         XCTFail("Timed out waiting for checkout navigation pending")
@@ -67,6 +69,23 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
         XCTAssertNotNil(
             viewModel.processingViewModel,
             "Processing carousel stays visible while the drawer slides away"
+        )
+    }
+
+    func testPlanPurchaseTokenDoesNotIncrementWhenDrawerHideMarksCheckoutPending() async throws {
+        let viewModel = makeViewModel()
+        viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
+        XCTAssertEqual(viewModel.drawerContent, .processing)
+        let tokenBefore = viewModel.planPurchaseNavigationToken
+
+        viewModel.handleSessionEvent(.requestPlanPurchase)
+        try await waitForCheckoutNavigationPending(viewModel)
+
+        XCTAssertNil(viewModel.drawerContent)
+        XCTAssertEqual(
+            viewModel.planPurchaseNavigationToken,
+            tokenBefore,
+            "Choose plan push waits until after the drawer hide has settled"
         )
     }
 
@@ -131,9 +150,21 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
 
         viewModel.handleSessionEvent(.requestPlanPurchase)
 
-        XCTAssertFalse(
+        XCTAssertTrue(
             viewModel.purchaseTransitionOverlayVisible,
-            "Stale navigation pending must not force overlay while drawer is visible"
+            "Home status backdrop must stay covered while the processing drawer is still visible"
         )
+    }
+
+    func testPurchaseOverlayCoversHomeBeforeProcessingDrawerHides() {
+        let viewModel = makeViewModel()
+        viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
+        XCTAssertEqual(viewModel.drawerContent, .processing)
+        XCTAssertFalse(viewModel.purchaseTransitionOverlayVisible)
+
+        viewModel.handleSessionEvent(.requestPlanPurchase)
+
+        XCTAssertEqual(viewModel.drawerContent, .processing)
+        XCTAssertTrue(viewModel.purchaseTransitionOverlayVisible)
     }
 }

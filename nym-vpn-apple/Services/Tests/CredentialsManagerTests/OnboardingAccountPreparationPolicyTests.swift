@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import AccountPrefetchGates
+import TunnelStatus
 
 struct OnboardingAccountPreparationPolicyTests {
     @Test func inactiveSubscriptionIsPreparedForOnboarding() {
@@ -15,6 +16,36 @@ struct OnboardingAccountPreparationPolicyTests {
             for: .error(.accountStatusNotActive(status: "pending"))
         )
         #expect(outcome == .prepared)
+    }
+
+    @Test func unregisteredAccountStatusIsTerminalInactiveForLogin() {
+        #expect(
+            OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(
+                .error(.accountStatusNotActive(status: "unregistered"))
+            )
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(
+                .error(.inactiveSubscription)
+            )
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.syncing)
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.readyToConnect)
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.isTerminalInactiveForLogin(.pendingSubscription)
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.loginState(
+                from: .error(.inactiveSubscription)
+            ) == .inactiveSubscription
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.loginState(from: .syncing) == .other
+        )
     }
 
     @Test func readyToConnectIsPrepared() {

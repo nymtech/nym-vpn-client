@@ -233,6 +233,9 @@ private extension NymVPNDaemonApp {
         .onChange(of: credentialsManager.accountSummary?.isActive) { _, _ in
             refreshMenuBarConnectButtonState()
         }
+        .onChange(of: credentialsManager.isAccountKnownInactive) { _, _ in
+            refreshMenuBarConnectButtonState()
+        }
     }
 
     func refreshMenuBarConnectButtonState() {
@@ -241,7 +244,8 @@ private extension NymVPNDaemonApp {
             isCredentialImported: credentialsManager.isValidCredentialImported,
             accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
             isAccountActive: credentialsManager.isAccountActive(),
-            hasAccountSummary: credentialsManager.accountSummary != nil
+            hasAccountSummary: credentialsManager.accountSummary != nil,
+            isAccountKnownInactive: credentialsManager.isAccountKnownInactive
         )
     }
 

@@ -40,6 +40,32 @@ struct PurchaseTransitionPolicyTests {
         )
     }
 
+    @Test func doesNotPushPlanPurchaseUntilDrawerHideHasSettled() {
+        #expect(
+            !PurchaseTransitionPolicy.shouldPushPlanPurchaseAfterDrawerHidden(
+                drawerHidden: true,
+                checkoutNavigationPending: false
+            )
+        )
+        #expect(
+            !PurchaseTransitionPolicy.shouldPushPlanPurchaseAfterDrawerHidden(
+                drawerHidden: false,
+                checkoutNavigationPending: true
+            )
+        )
+        #expect(
+            PurchaseTransitionPolicy.shouldPushPlanPurchaseAfterDrawerHidden(
+                drawerHidden: true,
+                checkoutNavigationPending: true
+            )
+        )
+    }
+
+    @Test func usesTimedDrawerHideWhenPlanPurchaseIsPending() {
+        #expect(PurchaseTransitionPolicy.usesTimedDrawerHide(isPlanPurchasePending: true))
+        #expect(!PurchaseTransitionPolicy.usesTimedDrawerHide(isPlanPurchasePending: false))
+    }
+
     @Test func navigationPushDelayIsPositive() {
         #expect(PurchaseTransitionPolicy.navigationPushDelayAfterDrawerHiddenMs > 0)
     }

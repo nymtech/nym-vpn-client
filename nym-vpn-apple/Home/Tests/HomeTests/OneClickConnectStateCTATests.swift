@@ -22,6 +22,18 @@ final class OneClickConnectStateCTATests: XCTestCase {
         XCTAssertEqual(OneClickConnectState.disconnected(cta), .checkingAccount)
     }
 
+    func testKnownInactiveWithoutSummaryIsChoosePlanAndNoSubscription() {
+        let cta = DisconnectedHomeCTA.resolve(
+            isCredentialImported: true,
+            accountSummaryLastFetchFailed: false,
+            isAccountActive: false,
+            hasAccountSummary: false,
+            isAccountKnownInactive: true
+        )
+        XCTAssertEqual(cta, .choosePlan)
+        XCTAssertEqual(OneClickConnectState.disconnected(cta), .noSubscription)
+    }
+
     func testImportedInactiveWithSummaryIsChoosePlanAndNoSubscription() {
         let cta = DisconnectedHomeCTA.resolve(
             isCredentialImported: true,

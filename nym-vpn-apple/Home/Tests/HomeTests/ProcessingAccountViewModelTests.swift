@@ -25,6 +25,7 @@ final class FakeProcessing: AccountProcessing {
     var storeDeeplinkError: Error?
     var registerError: Error?
     var accountActive = true
+    var hasAccountSummary = true
     var becomesActiveAfterSync = false
     var prefetchDelay: Duration = .zero
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
@@ -61,12 +62,14 @@ final class FakeProcessing: AccountProcessing {
         lastSyncUntilActive = untilActive
         calls.append(.sync)
         if becomesActiveAfterSync {
+            hasAccountSummary = true
             accountActive = true
         }
     }
 
     func isAccountActive() -> Bool {
         calls.append(.isActive)
+        guard hasAccountSummary else { return false }
         return accountActive
     }
 
@@ -246,6 +249,7 @@ struct ProcessingAccountViewModelTests {
         #expect(processing.calls == [.ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
         #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -292,6 +296,7 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
         #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -305,35 +310,88 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
         #expect(viewModel.usesStaticCopy)
         #expect(processing.lastSyncUntilActive == false)
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
-    @Test func staleInactiveCacheDoesNotSkipCarouselUntilAfterSync() async {
+    @Test func inactiveLoginHoldsVerifyingScreenBeforePlanNavigation() async {
+        let processing = FakeProcessing()
+        processing.accountActive = false
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+        viewModel.finalMessageDuration = 5
+
+        await viewModel.run()
+
+        #expect(viewModel.usesStaticCopy)
+        #expect(viewModel.phase == .finalizing)
+        #expect(coordinator.actions.isEmpty)
+
+        viewModel.cancel()
+        #expect(viewModel.phase == .finalizing)
+        #expect(coordinator.actions.isEmpty)
+    }
+
+    @Test func loginHoldsVerifyingUntilSummaryKnown() {
+        let processing = FakeProcessing()
+        processing.accountActive = true
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        #expect(viewModel.usesStaticCopy)
+        #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
+    }
+
+    @Test func inactiveLoginNeverShowsSetupCarousel() async {
         let processing = FakeProcessing()
         processing.accountActive = false
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
 
-        #expect(!viewModel.usesStaticCopy)
-        #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
-
-        await viewModel.run()
-
         #expect(viewModel.usesStaticCopy)
+        await viewModel.run()
+        #expect(viewModel.usesStaticCopy)
+        #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
+        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
     }
 
-    @Test func staleInactiveCacheDoesNotFlipStaticCopyWhenSyncActivates() async {
+    @Test func loginWithNoSummaryYetTreatsAccountInactiveAndKeepsVerifying() async {
+        let processing = FakeProcessing()
+        processing.hasAccountSummary = false
+        processing.accountActive = true
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        #expect(viewModel.usesStaticCopy)
+        await viewModel.run()
+
+        #expect(processing.lastSyncUntilActive == false)
+        #expect(!processing.calls.contains(.prefetch))
+        #expect(viewModel.usesStaticCopy)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func paidLoginPrefetchesWhenSummaryActivatesAfterSync() async {
         let processing = FakeProcessing()
         processing.accountActive = false
         processing.becomesActiveAfterSync = true
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
 
-        #expect(!viewModel.usesStaticCopy)
+        #expect(viewModel.usesStaticCopy)
         await viewModel.run()
+
+        #expect(processing.calls.contains(.prefetch))
         #expect(!viewModel.usesStaticCopy)
+        #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy))
+        #expect(viewModel.phase == .awaitingAdvance)
+        await finishSetupCarousel(viewModel)
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func navigationWaitsForCarouselAfterWorkCompletes() async {

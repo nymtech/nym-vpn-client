@@ -24,20 +24,61 @@ public enum AccountSummaryRefreshPolicy {
         isSubscriptionActive
     }
 
-    /// Login uses untilActive false. A successful summary (including inactive /
-    /// unregistered) finishes the poll. A nil summary or a failed fetch retries.
+    /// Empty success while still syncing is not unregistered. Stop on the last
+    /// attempt only if the controller never reports inactive.
+    public static var loginEmptySuccessMinAttemptIndex: Int {
+        max(0, pollDelays(untilActive: false).count - 1)
+    }
+
+    /// Login may query controller state before the loop and on later polls, not on every tick.
+    /// A stale in-memory summary must not skip the recheck; only IAP (`untilActive`) and
+    /// an already-known inactive controller do.
+    public static func shouldRecheckLoginInactiveState(
+        untilActive: Bool,
+        hasAccountSummary _: Bool,
+        attemptIndex: Int,
+        alreadyKnownInactive: Bool
+    ) -> Bool {
+        guard !untilActive, !alreadyKnownInactive else {
+            return false
+        }
+        return attemptIndex > 0
+    }
+
+    /// Login uses untilActive false. Controller inactive wins over a stale prior-session
+    /// summary. A successful summary is terminal. Failed fetches retry unless the
+    /// controller already reported inactive.
     public static func shouldFinishSummaryPoll(
         untilActive: Bool,
         isSubscriptionActive: Bool,
         hasAccountSummary: Bool,
-        lastFetchFailed: Bool
+        lastFetchFailed: Bool,
+        attemptIndex: Int = 0,
+        isAccountKnownInactive: Bool = false
     ) -> Bool {
+        if untilActive {
+            if lastFetchFailed {
+                return false
+            }
+            return shouldStopUntilActivePoll(isSubscriptionActive: isSubscriptionActive)
+        }
+        if isAccountKnownInactive {
+            return true
+        }
         if lastFetchFailed {
             return false
         }
-        if untilActive {
-            return shouldStopUntilActivePoll(isSubscriptionActive: isSubscriptionActive)
+        if hasAccountSummary {
+            return true
         }
-        return hasAccountSummary
+        return attemptIndex >= loginEmptySuccessMinAttemptIndex
+    }
+
+    /// Transport failure only. A known-inactive controller with no summary is not a failed fetch.
+    public static func shouldSetLastFetchFailedAfterPoll(
+        accountSummaryIsNil: Bool,
+        isAccountKnownInactive: Bool
+    ) -> Bool {
+        accountSummaryIsNil && !isAccountKnownInactive
     }
 }

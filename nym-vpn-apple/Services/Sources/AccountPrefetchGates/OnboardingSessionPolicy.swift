@@ -1,4 +1,8 @@
 import Foundation
+#if os(iOS)
+import ErrorHandler
+#endif
+import ErrorReason
 
 public enum OnboardingPhase: Equatable, Sendable, CaseIterable {
     case creatingMnemonic
@@ -41,7 +45,10 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
         return nextStep >= currentStep
     }
 
-    public static func processingFlow(for outcome: AuthCompletionOutcome, authFlow: AuthFlowKind) -> ProcessingFlowKind {
+    public static func processingFlow(
+        for outcome: AuthCompletionOutcome,
+        authFlow: AuthFlowKind
+    ) -> ProcessingFlowKind {
         switch outcome {
         case .registeredNeedsPurchase:
             return .none
@@ -50,6 +57,26 @@ public enum OnboardingSessionPolicy: Equatable, Sendable {
         case .loginReady:
             return authFlow == .login ? .login : .postPurchase
         }
+    }
+
+    /// UniFFI `VpnError.ExistingAccount` Display (`nym-vpn-lib-uniffi/src/error.rs`).
+    /// iOS `mapToVPNErrorReason` and macOS `GRPCManager.storeAccount` map to typed
+    /// enums first. This exact string is only for an unmapped leaked `VpnError`.
+    public static let unmappedExistingAccountStoreMessage = "an account is already stored"
+
+    /// Daemon already has a mnemonic (second app window, retry). Treat as logged in.
+    public static func isExistingAccountStoreError(_ error: Error) -> Bool {
+#if os(iOS)
+        if let reason = error as? VPNErrorReason, case .existingAccount = reason {
+            return true
+        }
+#endif
+#if os(macOS)
+        if let reason = error as? ErrorReason, case .existingAccount = reason {
+            return true
+        }
+#endif
+        return error.localizedDescription == unmappedExistingAccountStoreMessage
     }
 }
 
@@ -83,13 +110,14 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         isAccountActive: Bool,
         accountSummaryLastFetchFailed: Bool = false,
         validUntilIsFuture: Bool = false,
-        hasAccountSummary: Bool = false
+        hasAccountSummary: Bool = false,
+        isAccountKnownInactive: Bool = false
     ) -> Bool {
         if processingKind == .login {
             if accountSummaryLastFetchFailed {
                 return false
             }
-            if !hasAccountSummary {
+            if !hasAccountSummary, !isAccountKnownInactive {
                 return false
             }
             if LoginSessionPolicy.isEffectivelyActive(
@@ -135,13 +163,11 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         !isPurchaseFlowActive
     }
 
-    /// Masks the map while the drawer is hidden during checkout; must not show once the drawer is back.
-    public static func showsPurchaseTransitionOverlay(
-        isPurchaseFlowActive: Bool,
-        isDrawerContentNil: Bool,
-        isCheckoutNavigationPending: Bool = false
-    ) -> Bool {
-        isPurchaseFlowActive && (isDrawerContentNil || isCheckoutNavigationPending)
+    /// Masks the home status backdrop for the whole checkout transition, including
+    /// while the processing drawer is still on screen, so the "Not protected"
+    /// rings cannot jitter behind choose-plan.
+    public static func showsPurchaseTransitionOverlay(isPurchaseFlowActive: Bool) -> Bool {
+        isPurchaseFlowActive
     }
 
     /// Refreshes account summary on foreground when checkout is in flight or subscription may have changed off-device.
@@ -221,6 +247,16 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
     ) -> Bool {
         _ = flow
         return hasUsableAccountToken(accountToken)
+    }
+
+    /// Daemon `UnregisteredAccount` never stores a summary. Home still needs a
+    /// dashboard after checkout hide leaves the drawer nil.
+    public static func shouldRestoreDashboardDrawer(
+        isDrawerHidden: Bool,
+        isCredentialImported: Bool,
+        isPurchaseFlowActive: Bool
+    ) -> Bool {
+        isDrawerHidden && isCredentialImported && !isPurchaseFlowActive
     }
 
     public static func shouldStartDrawerProcessing(outcome: AuthCompletionOutcome) -> Bool {
