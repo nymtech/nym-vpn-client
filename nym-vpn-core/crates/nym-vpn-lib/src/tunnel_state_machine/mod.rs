@@ -1461,11 +1461,11 @@ pub enum Error {
 
     #[error("failed to get tunnel device name")]
     #[cfg(any(target_os = "ios", target_os = "android"))]
-    GetTunDeviceName(#[source] tun_name::GetTunNameError),
+    GetTunDeviceName(#[source] nym_ifconfig::Error),
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[error("failed to set tunnel device ipv6 address")]
-    SetTunDeviceIpv6Addr(#[source] std::io::Error),
+    SetTunDeviceIpv6Addr(#[source] nym_ifconfig::Error),
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[error("failed to add routes")]
