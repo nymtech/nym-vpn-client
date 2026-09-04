@@ -582,3 +582,41 @@ struct AppSessionReducerTests {
         #expect(result.context == context)
     }
 }
+
+struct AppSessionReducerUnregisteredHonestyTests {
+    @Test func processingFinishedLoginInactiveWithoutSummaryDoesNotRouteToPurchase() {
+        var context = AppSessionContext.initial
+        context.lastAuthCompletionOutcome = .loginReady
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false,
+                processingKind: .login,
+                hasAccountSummary: false
+            ),
+            event: .processingFinished
+        )
+        #expect(result.navigationIntent == nil)
+        #expect(result.drawerCommand == .setOneClick)
+    }
+
+    @Test func processingFinishedLoginInactiveWithSummaryRoutesToPurchase() {
+        var context = AppSessionContext.initial
+        context.lastAuthCompletionOutcome = .loginReady
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false,
+                processingKind: .login,
+                hasAccountSummary: true
+            ),
+            event: .processingFinished
+        )
+        #expect(result.navigationIntent == .pushPlanPurchase)
+        #expect(result.drawerCommand == .stageOneClickForCheckout)
+    }
+}
