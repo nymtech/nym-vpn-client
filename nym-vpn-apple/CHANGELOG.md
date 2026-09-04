@@ -7,11 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.12.0] - TBD
-
 ### Removed
 
 - Widget support for both iOS & macOS
+
+## [2026.12.0] - TBD
+
 
 ### Fixed
 
