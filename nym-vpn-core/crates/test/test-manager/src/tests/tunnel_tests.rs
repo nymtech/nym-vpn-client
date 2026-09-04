@@ -20,7 +20,7 @@ use std::{
 use test_macro::test_function_nym;
 use test_rpc::{
     NymServiceClient,
-    nym_daemon::{ObservedTunnelState, ObservedTunnelType},
+    nym_daemon::{ObservedTunnelState, ObservedTunnelType, Verbosity},
 };
 
 /// Parse `resolvectl dns` link lines, e.g. `Link 5 (tun1): 127.111.152.46`.
@@ -130,6 +130,28 @@ mod resolvectl_tests {
     fn returns_nothing_for_output_without_link_lines() {
         assert!(parse_resolvectl_dns("Global: 1.1.1.1\n").is_empty());
         assert!(parse_resolvectl_dns("").is_empty());
+    }
+}
+
+#[cfg(test)]
+mod bash_ws_conclusion_tests {
+    use super::bash_ws_conclusion_mentions_leak;
+
+    #[test]
+    fn detects_leak_word_case_insensitively() {
+        assert!(bash_ws_conclusion_mentions_leak("DNS may be leaking"));
+        assert!(bash_ws_conclusion_mentions_leak("LEAK DETECTED"));
+        assert!(bash_ws_conclusion_mentions_leak("possible Leak via ISP"));
+        // Substring match: "not leaking" still contains "leak".
+        assert!(bash_ws_conclusion_mentions_leak("DNS is not leaking"));
+    }
+
+    #[test]
+    fn ignores_conclusions_without_leak_substring() {
+        assert!(!bash_ws_conclusion_mentions_leak("Looks good"));
+        assert!(!bash_ws_conclusion_mentions_leak(""));
+        assert!(!bash_ws_conclusion_mentions_leak("OK"));
+        assert!(!bash_ws_conclusion_mentions_leak("No issues found"));
     }
 }
 
@@ -394,116 +416,161 @@ pub async fn test_dns_leak(
     rpc: NymServiceClient,
     nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    let nym_client =
-        dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
-
-    let pre_vpn_nameservers = get_vm_nameservers(&rpc).await?;
-    log::info!("Pre-VPN nameservers (in VM): {:?}", pre_vpn_nameservers);
-    ensure!(
-        !pre_vpn_nameservers.is_empty(),
-        "VM should have at least one nameserver"
+    // TRACE (-vv) unmasks hickory_* crates so CI daemon logs show remote DoT connect/timeout.
+    log::info!(
+        "Setting daemon log level to TRACE (-vv) for hickory upstream visibility in guest nym-vpnd.log"
     );
+    rpc.set_daemon_log_level(Verbosity::Trace).await?;
 
-    let reachable_before = reachable_resolvers(&rpc, &pre_vpn_nameservers).await;
-    log::info!("Pre-VPN resolvers reachable on TCP: {:?}", reachable_before);
+    let body = async {
+        let nym_client =
+            dc_and_ensure_logged_in(&rpc, nym_client, &test_context.rpc_provider, false).await?;
 
-    let nym_client =
-        helpers_nym::set_enable_two_hop_with_recovery(&test_context.rpc_provider, nym_client, true)
-            .await?;
-    log::info!("Connecting tunnel for DNS leak test...");
-    let nym_client =
-        helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client).await?;
-    let (_, nym_client) = wait_for_tunnel_state(
-        &rpc,
-        nym_client,
-        &test_context.rpc_provider,
-        ExpectedTunnelState::Connected,
-    )
-    .await?;
-
-    // Under systemd-resolved the daemon sets DNS per link and never rewrites
-    // /etc/resolv.conf, so that file still lists the DHCP nameserver by design.
-    match get_tunnel_link_nameservers(&rpc).await? {
-        Some(tunnel_nameservers) => {
-            log::info!("Tunnel link nameservers (in VM): {:?}", tunnel_nameservers);
-            ensure!(
-                !tunnel_nameservers.is_empty(),
-                "tunnel interface has no nameservers configured while connected"
-            );
-            let leaked: Vec<_> = tunnel_nameservers
-                .iter()
-                .filter(|ns| pre_vpn_nameservers.contains(ns))
-                .collect();
-            ensure!(
-                leaked.is_empty(),
-                "DNS LEAK: tunnel interface still resolves via pre-VPN nameservers: {:?}",
-                leaked,
-            );
-        }
-        None => {
-            let post_vpn_nameservers = get_vm_nameservers(&rpc).await?;
-            log::info!("Post-VPN nameservers (in VM): {:?}", post_vpn_nameservers);
-            let leaked: Vec<_> = post_vpn_nameservers
-                .iter()
-                .filter(|ns| pre_vpn_nameservers.contains(ns))
-                .collect();
-            ensure!(
-                leaked.is_empty(),
-                "DNS LEAK: post-VPN resolv.conf still contains pre-VPN nameservers: {:?}",
-                leaked,
-            );
-        }
-    }
-
-    if reachable_before.is_empty() {
-        log::warn!(
-            "No pre-VPN resolver answered on TCP/53, so reachability while connected proves nothing"
-        );
-    } else {
-        let still_reachable = reachable_resolvers(
-            &rpc,
-            &reachable_before
-                .iter()
-                .map(|addr| addr.ip().to_string())
-                .collect::<Vec<_>>(),
-        )
-        .await;
+        let pre_vpn_nameservers = get_vm_nameservers(&rpc).await?;
+        log::info!("Pre-VPN nameservers (in VM): {:?}", pre_vpn_nameservers);
         ensure!(
-            still_reachable.is_empty(),
-            "DNS LEAK: pre-VPN resolvers still reachable while connected: {:?}. \
-             The harness enables allow_lan, which may be exposing the LAN resolver",
-            still_reachable,
+            !pre_vpn_nameservers.is_empty(),
+            "VM should have at least one nameserver"
         );
-        log::info!("Pre-VPN resolvers are unreachable while connected");
-    }
 
-    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT)
-        .await
-        .context("DNS resolution failed inside VM while VPN is connected")?;
-    log::info!("Resolved nym.com inside VM: {:?}", addrs);
+        let reachable_before = reachable_resolvers(&rpc, &pre_vpn_nameservers).await;
+        log::info!("Pre-VPN resolvers reachable on TCP: {:?}", reachable_before);
 
-    let dest = SocketAddr::new(addrs[0].ip(), 443);
-    rpc.send_tcp(None, "0.0.0.0:0".parse().unwrap(), dest)
-        .await
-        .context("TCP connectivity check failed inside VM while VPN is connected")?;
-    log::info!("TCP connectivity to {} verified inside VM", dest);
+        let nym_client = helpers_nym::set_enable_two_hop_with_recovery(
+            &test_context.rpc_provider,
+            nym_client,
+            true,
+        )
+        .await?;
+        log::info!("Connecting tunnel for DNS leak test...");
+        let nym_client =
+            helpers_nym::connect_tunnel_with_recovery(&test_context.rpc_provider, nym_client)
+                .await?;
+        let (_, nym_client) = wait_for_tunnel_state(
+            &rpc,
+            nym_client,
+            &test_context.rpc_provider,
+            ExpectedTunnelState::Connected,
+        )
+        .await?;
 
-    let bash_ws_result = check_dns_leak_bash_ws(&rpc, &pre_vpn_nameservers).await;
-    match bash_ws_result {
-        Ok(()) => log::info!("bash.ws DNS leak check passed"),
-        Err(e) => {
-            let msg = format!("{e:#}");
-            if msg.contains("DNS LEAK") {
-                bail!("{e}");
+        helpers_nym::log_in_tunnel_dns_diagnostics(&rpc).await;
+
+        // Under systemd-resolved the daemon sets DNS per link and never rewrites
+        // /etc/resolv.conf, so that file still lists the DHCP nameserver by design.
+        match get_tunnel_link_nameservers(&rpc).await? {
+            Some(tunnel_nameservers) => {
+                log::info!("Tunnel link nameservers (in VM): {:?}", tunnel_nameservers);
+                ensure!(
+                    !tunnel_nameservers.is_empty(),
+                    "tunnel interface has no nameservers configured while connected"
+                );
+                let leaked: Vec<_> = tunnel_nameservers
+                    .iter()
+                    .filter(|ns| pre_vpn_nameservers.contains(ns))
+                    .collect();
+                ensure!(
+                    leaked.is_empty(),
+                    "DNS LEAK: tunnel interface still resolves via pre-VPN nameservers: {:?}",
+                    leaked,
+                );
             }
-            log::warn!("bash.ws check could not complete (service may be down): {e}");
+            None => {
+                let post_vpn_nameservers = get_vm_nameservers(&rpc).await?;
+                log::info!("Post-VPN nameservers (in VM): {:?}", post_vpn_nameservers);
+                let leaked: Vec<_> = post_vpn_nameservers
+                    .iter()
+                    .filter(|ns| pre_vpn_nameservers.contains(ns))
+                    .collect();
+                ensure!(
+                    leaked.is_empty(),
+                    "DNS LEAK: post-VPN resolv.conf still contains pre-VPN nameservers: {:?}",
+                    leaked,
+                );
+            }
         }
+
+        if reachable_before.is_empty() {
+            log::warn!(
+                "No pre-VPN resolver answered on TCP/53, so reachability while connected proves nothing"
+            );
+        } else {
+            let still_reachable = reachable_resolvers(
+                &rpc,
+                &reachable_before
+                    .iter()
+                    .map(|addr| addr.ip().to_string())
+                    .collect::<Vec<_>>(),
+            )
+            .await;
+            ensure!(
+                still_reachable.is_empty(),
+                "DNS LEAK: pre-VPN resolvers still reachable while connected: {:?}. \
+                 The harness enables allow_lan, which may be exposing the LAN resolver",
+                still_reachable,
+            );
+            log::info!("Pre-VPN resolvers are unreachable while connected");
+        }
+
+        let addrs = match resolve_hostname_with_retry(&rpc, "nym.com", ROUNDTRIP_DNS_TIMEOUT).await
+        {
+            Ok(addrs) => addrs,
+            Err(error) => {
+                helpers_nym::log_in_tunnel_dns_diagnostics(&rpc).await;
+                return Err(error)
+                    .context("DNS resolution failed inside VM while VPN is connected");
+            }
+        };
+        log::info!("Resolved nym.com inside VM: {:?}", addrs);
+
+        let dest = SocketAddr::new(addrs[0].ip(), 443);
+        rpc.send_tcp(None, "0.0.0.0:0".parse().unwrap(), dest)
+            .await
+            .context("TCP connectivity check failed inside VM while VPN is connected")?;
+        log::info!("TCP connectivity to {} verified inside VM", dest);
+
+        let bash_ws_result = check_dns_leak_bash_ws(&rpc, &pre_vpn_nameservers).await;
+        match bash_ws_result {
+            Ok(()) => log::info!("bash.ws DNS leak check passed"),
+            Err(e) => {
+                let msg = format!("{e:#}");
+                if msg.contains("DNS LEAK") {
+                    bail!("{e}");
+                }
+                log::warn!("bash.ws check could not complete (service may be down): {e}");
+            }
+        }
+
+        log::info!("Disconnecting...");
+        helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
+
+        Ok(())
+    }
+    .await;
+
+    // Restore Info (no -v) to match ssh-setup.sh baseline ExecStart.
+    let restore = rpc
+        .set_daemon_log_level(Verbosity::Info)
+        .await
+        .context("failed to restore daemon log level to Info");
+    if restore.is_ok() {
+        log::info!("Restored daemon log level to Info");
     }
 
-    log::info!("Disconnecting...");
-    helpers_nym::disconnect_and_wait(&rpc, nym_client, &test_context.rpc_provider).await?;
+    match (body, restore) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Ok(()), Err(restore_err)) => Err(restore_err),
+        (Err(body_err), Ok(())) => Err(body_err),
+        (Err(body_err), Err(restore_err)) => Err(body_err.context(format!(
+            "also failed to restore daemon log level to Info: {restore_err:#}"
+        ))),
+    }
+}
 
-    Ok(())
+/// Whether bash.ws conclusion text mentions a leak (case-insensitive).
+/// Informational only - harness pass/fail does not use this.
+fn bash_ws_conclusion_mentions_leak(conclusion: &str) -> bool {
+    conclusion.to_ascii_lowercase().contains("leak")
 }
 
 /// end to end DNS leak check using bash.ws
@@ -571,7 +638,14 @@ async fn check_dns_leak_bash_ws(
                     _ => String::new(),
                 }
             ),
-            "conclusion" => log::info!("bash.ws conclusion: {ip}"),
+            "conclusion" => {
+                log::info!("bash.ws conclusion: {ip}");
+                if bash_ws_conclusion_mentions_leak(ip) {
+                    log::warn!(
+                        "bash.ws conclusion is informational; harness only fails on pre-VPN nameserver IPs"
+                    );
+                }
+            }
             other => log::debug!("bash.ws: unknown entry type '{other}': {ip}"),
         }
     }
@@ -598,7 +672,7 @@ async fn check_dns_leak_bash_ws(
         }
     }
     log::info!(
-        "No DNS leak detected via bash.ws ({} DNS resolvers checked)",
+        "Harness oracle: no pre-VPN nameserver observed by bash.ws ({} resolvers checked)",
         dns_entries.len()
     );
     Ok(())
