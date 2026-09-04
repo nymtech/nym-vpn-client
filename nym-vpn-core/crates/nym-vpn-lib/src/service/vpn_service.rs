@@ -1030,17 +1030,6 @@ impl NymVpnService {
         .await;
     }
 
-    /// Updates the currently active network environment if `new_network` differs from it.
-    /// Returns whether an update was applied.
-    fn maybe_update_active_network_details(&mut self, new_network: &Network) -> bool {
-        if self.network_tx.borrow().as_ref() == new_network {
-            return false;
-        }
-
-        let _ = self.network_tx.send_replace(Box::new(new_network.clone()));
-        true
-    }
-
     // Wrap handle_service_command in timing code to log long-running commands
     async fn handle_service_command_timed(&mut self, command: VpnServiceCommand) {
         let start = Instant::now();
