@@ -781,6 +781,20 @@ impl TunnelStateHandler for ConnectingState {
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
+                    TunnelMonitorEvent::EntryHandshakeFailed { entry_gateway_id } => {
+                        // The entry WireGuard handshake never completed: the entry hop is dead
+                        // from this network, so blame it alone and pick another entry. The exit
+                        // was never reached and stays eligible.
+                        tracing::warn!(
+                            "Blacklisted entry gateway {entry_gateway_id}: WireGuard handshake never completed"
+                        );
+                        shared_state.gateway_provider.add_blacklisted_gateway(
+                            entry_gateway_id,
+                            BlacklistReason::EntryHandshakeFailed,
+                        ).await;
+                        self.selected_gateways = None;
+                        NextTunnelState::SameState(self)
+                    }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
                         // Registration with the entry gateway failed; blacklist it to avoid
                         // re-selecting the same failing gateway.
