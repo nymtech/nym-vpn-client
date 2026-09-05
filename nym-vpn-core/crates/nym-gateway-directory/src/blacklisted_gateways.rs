@@ -20,6 +20,9 @@ pub enum BlacklistReason {
     EntryBlamedForRepeatedFailures,
     /// Registration with this gateway failed.
     RegistrationFailed,
+    /// The WG handshake with this entry gateway never completed: the entry hop is dead from
+    /// the current network (e.g. its WG port is blackholed), regardless of the exit gateway.
+    EntryHandshakeFailed,
 }
 
 impl fmt::Display for BlacklistReason {
@@ -30,6 +33,7 @@ impl fmt::Display for BlacklistReason {
                 write!(f, "blamed for repeated pre-handshake failures")
             }
             Self::RegistrationFailed => write!(f, "registration failed"),
+            Self::EntryHandshakeFailed => write!(f, "entry WireGuard handshake failed"),
         }
     }
 }
@@ -356,5 +360,13 @@ mod tests {
 
         // Original should see the removal
         assert!(!blacklist.exists(&identity).unwrap());
+    }
+
+    #[test]
+    fn entry_handshake_failed_reason_is_human_readable() {
+        assert_eq!(
+            BlacklistReason::EntryHandshakeFailed.to_string(),
+            "entry WireGuard handshake failed"
+        );
     }
 }

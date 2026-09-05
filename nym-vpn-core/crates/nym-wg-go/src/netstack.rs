@@ -17,6 +17,7 @@ use nym_windows::net::AddressFamily;
 
 use super::{
     Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result, uapi::UapiConfigBuilder,
+    wireguard_go::TunnelStats,
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
@@ -91,6 +92,31 @@ pub struct Tunnel {
     tunnel_handle: i32,
 }
 
+/// Reads live peer stats of a netstack WireGuard tunnel via the UAPI GET interface.
+///
+/// Once the owning [`Tunnel`] is stopped the Go side no longer knows the handle and
+/// [`TunnelStatsReader::get_stats`] fails with [`Error::GetUapiConfig`].
+#[derive(Debug, Clone)]
+pub struct TunnelStatsReader {
+    tunnel_handle: i32,
+}
+
+impl TunnelStatsReader {
+    pub fn get_stats(&self) -> Result<TunnelStats> {
+        if self.tunnel_handle < 0 {
+            return Err(Error::TunnelStopped);
+        }
+        let raw = unsafe { wgNetGetConfig(self.tunnel_handle) };
+        if raw.is_null() {
+            return Err(Error::GetUapiConfig);
+        }
+        let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
+        unsafe { wgFreePtr(raw as *mut c_void) };
+        tracing::trace!("Netstack TunnelStats: '{s}'");
+        Ok(TunnelStats::parse(&s))
+    }
+}
+
 impl Tunnel {
     pub fn start(config: Config) -> Result<Self> {
         let interface_mtu = config.interface.mtu;
@@ -116,6 +142,13 @@ impl Tunnel {
             Ok(Self { tunnel_handle })
         } else {
             Err(Error::StartTunnel(tunnel_handle))
+        }
+    }
+
+    /// Create a stats reader that can query live peer stats without owning the tunnel.
+    pub fn stats_reader(&self) -> TunnelStatsReader {
+        TunnelStatsReader {
+            tunnel_handle: self.tunnel_handle,
         }
     }
 
@@ -403,7 +436,6 @@ unsafe extern "C" {
     unsafe fn wgNetSetConfig(net_tunnel_handle: i32, settings: *const c_char) -> i64;
 
     /// Returns the config of the WireGuard interface.
-    #[allow(unused)]
     unsafe fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
 
     /// Start UDP connection proxy through the netstack tunnel.
@@ -456,7 +488,6 @@ unsafe extern "C" {
     unsafe fn wgNetRebindTunnelSocket(address_family: u16, interface_index: u32);
 
     /// Frees a pointer allocated by the go runtime - useful to free return value of wgGetConfig
-    #[allow(unused)]
     unsafe fn wgFreePtr(ptr: *mut c_void);
 }
 
