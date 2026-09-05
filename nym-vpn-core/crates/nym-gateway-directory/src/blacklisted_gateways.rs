@@ -1,16 +1,18 @@
 use crate::NodeIdentity;
 use anyhow::{Result, anyhow};
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fmt,
     hash::Hash,
-    sync::{Arc, RwLock},
-    time::{Duration, Instant},
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex, RwLock},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 /// Why a gateway was added to the blacklist, kept around so the selector can log a useful
 /// message when it later excludes that gateway, instead of just "it's blacklisted".
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BlacklistReason {
     /// The WG handshake timed out, or a post-handshake connectivity probe failed, without a
     /// healthy metadata path ever being established through this gateway acting as exit.
@@ -23,6 +25,30 @@ pub enum BlacklistReason {
     /// The WG handshake with this entry gateway never completed: the entry hop is dead from
     /// the current network (e.g. its WG port is blackholed), regardless of the exit gateway.
     EntryHandshakeFailed,
+}
+
+impl BlacklistReason {
+    /// How long a gateway stays excluded for this reason.
+    const TRANSIENT_TTL: Duration = Duration::from_mins(20);
+    const PERSISTENT_TTL: Duration = Duration::from_hours(24);
+
+    /// Whether the exclusion is worth keeping across restarts. Entry-side verdicts describe
+    /// the path between this network and the gateway, which does not heal by restarting the
+    /// app, so they are persisted; exit/registration failures are transient and stay in memory.
+    pub fn is_persistent(&self) -> bool {
+        match self {
+            Self::EntryHandshakeFailed | Self::EntryBlamedForRepeatedFailures => true,
+            Self::ConnectionFailed | Self::RegistrationFailed => false,
+        }
+    }
+
+    pub fn ttl(&self) -> Duration {
+        if self.is_persistent() {
+            Self::PERSISTENT_TTL
+        } else {
+            Self::TRANSIENT_TTL
+        }
+    }
 }
 
 impl fmt::Display for BlacklistReason {
@@ -40,58 +66,225 @@ impl fmt::Display for BlacklistReason {
 
 #[derive(Debug, Clone, Copy)]
 struct Entry {
-    expiry: Instant,
+    expires_at: SystemTime,
     reason: BlacklistReason,
 }
 
+impl Entry {
+    fn is_live(&self, now: SystemTime) -> bool {
+        self.expires_at > now
+    }
+}
+
+/// On-disk form of a persisted blacklist entry.
+#[derive(Debug, Serialize, Deserialize)]
+struct PersistedEntry {
+    expires_at_unix_secs: u64,
+    reason: BlacklistReason,
+}
+
+#[derive(Debug, Default)]
+struct Inner {
+    map: HashMap<NodeIdentity, Entry>,
+    /// When set, persistent entries are mirrored to this file after every change.
+    path: Option<PathBuf>,
+    /// Bumped on every change so that out-of-order writers never clobber a newer snapshot.
+    generation: u64,
+}
+
+/// What a change wants written to disk, captured while holding the state lock so that the
+/// actual file IO can happen after the lock is released.
+struct Snapshot {
+    path: PathBuf,
+    generation: u64,
+    persisted: HashMap<String, PersistedEntry>,
+}
+
+/// Serialises writers and remembers the newest generation on disk.
+#[derive(Debug, Default)]
+struct Persister {
+    last_written_generation: u64,
+}
+
+impl Persister {
+    /// Write `snapshot` unless a newer one has already been written. Failures are logged,
+    /// never propagated: a gateway must still get blacklisted in memory when the disk is
+    /// unavailable.
+    fn persist(&mut self, snapshot: Snapshot) {
+        if snapshot.generation <= self.last_written_generation {
+            return;
+        }
+        match write_atomically(&snapshot.path, &snapshot.persisted) {
+            Ok(()) => self.last_written_generation = snapshot.generation,
+            Err(err) => tracing::warn!(
+                "Failed to persist blacklisted gateways to {}: {err}",
+                snapshot.path.display()
+            ),
+        }
+    }
+}
+
+impl Inner {
+    fn prune(&mut self, now: SystemTime) {
+        self.map.retain(|_, entry| entry.is_live(now));
+    }
+
+    /// Capture the live persistent entries for writing once the lock is released. Returns
+    /// `None` for an in-memory only blacklist.
+    fn snapshot(&mut self, now: SystemTime) -> Option<Snapshot> {
+        let path = self.path.clone()?;
+        self.generation += 1;
+        let persisted: HashMap<String, PersistedEntry> = self
+            .map
+            .iter()
+            .filter(|(_, entry)| entry.reason.is_persistent() && entry.is_live(now))
+            .map(|(identity, entry)| {
+                let expires_at_unix_secs = entry
+                    .expires_at
+                    .duration_since(UNIX_EPOCH)
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0);
+                (
+                    identity.to_base58_string(),
+                    PersistedEntry {
+                        expires_at_unix_secs,
+                        reason: entry.reason,
+                    },
+                )
+            })
+            .collect();
+        Some(Snapshot {
+            path,
+            generation: self.generation,
+            persisted,
+        })
+    }
+}
+
+fn write_atomically(path: &Path, persisted: &HashMap<String, PersistedEntry>) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let tmp_path = path.with_extension("json.tmp");
+    let json = serde_json::to_vec_pretty(persisted)?;
+    std::fs::write(&tmp_path, json)?;
+    std::fs::rename(&tmp_path, path)?;
+    Ok(())
+}
+
+fn load_persisted(path: &Path, now: SystemTime) -> HashMap<NodeIdentity, Entry> {
+    let contents = match std::fs::read(path) {
+        Ok(contents) => contents,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => return HashMap::new(),
+        Err(err) => {
+            tracing::warn!(
+                "Failed to read blacklisted gateways from {}: {err}",
+                path.display()
+            );
+            return HashMap::new();
+        }
+    };
+    let persisted: HashMap<String, PersistedEntry> = match serde_json::from_slice(&contents) {
+        Ok(persisted) => persisted,
+        Err(err) => {
+            tracing::warn!(
+                "Ignoring corrupt blacklisted gateways file {}: {err}",
+                path.display()
+            );
+            return HashMap::new();
+        }
+    };
+    persisted
+        .into_iter()
+        .filter_map(|(identity, entry)| {
+            let identity = NodeIdentity::from_base58_string(&identity).ok()?;
+            let expires_at = UNIX_EPOCH + Duration::from_secs(entry.expires_at_unix_secs);
+            let entry = Entry {
+                expires_at,
+                reason: entry.reason,
+            };
+            entry.is_live(now).then_some((identity, entry))
+        })
+        .collect()
+}
+
 #[derive(Debug, Clone, Default)]
-pub struct BlacklistedGateways(Arc<RwLock<HashMap<NodeIdentity, Entry>>>);
+pub struct BlacklistedGateways(Arc<RwLock<Inner>>, Arc<Mutex<Persister>>);
 
 impl BlacklistedGateways {
-    const TTL: Duration = Duration::from_mins(20);
-
+    /// In-memory only blacklist; nothing survives a restart.
     pub fn new() -> Self {
         Default::default()
     }
 
-    pub fn add(&self, identity: NodeIdentity, reason: BlacklistReason) -> Result<()> {
-        match self.0.write() {
-            Ok(mut map) => {
-                let now = Instant::now();
-                map.insert(
-                    identity,
-                    Entry {
-                        expiry: now + Self::TTL,
-                        reason,
-                    },
-                );
-                map.retain(|_, entry| entry.expiry >= now); // Housekeeping
-                Ok(())
-            }
-            Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
+    /// Blacklist backed by `path` (when given): persistent entries recorded there by a previous
+    /// run are loaded, minus the expired ones, and every later change is mirrored back. A
+    /// missing or unreadable file yields an empty blacklist.
+    pub fn load_or_new(path: Option<PathBuf>) -> Self {
+        let Some(path) = path else {
+            return Self::new();
+        };
+        let map = load_persisted(&path, SystemTime::now());
+        if !map.is_empty() {
+            tracing::info!(
+                "Loaded {} persisted blacklisted gateway(s) from {}",
+                map.len(),
+                path.display()
+            );
         }
+        Self(
+            Arc::new(RwLock::new(Inner {
+                map,
+                path: Some(path),
+                generation: 0,
+            })),
+            Arc::default(),
+        )
+    }
+
+    /// Apply `mutate` under the state lock, then mirror the result to disk (if this blacklist
+    /// is file-backed) with the lock already released, so readers are never blocked on IO.
+    /// The file write is synchronous; call from a blocking context when on an async runtime.
+    fn mutate_and_persist(&self, mutate: impl FnOnce(&mut Inner, SystemTime)) -> Result<()> {
+        let now = SystemTime::now();
+        let snapshot = match self.0.write() {
+            Ok(mut inner) => {
+                mutate(&mut inner, now);
+                inner.snapshot(now)
+            }
+            Err(e) => return Err(anyhow!("Failed to acquire write lock: {e}")),
+        };
+        if let Some(snapshot) = snapshot {
+            match self.1.lock() {
+                Ok(mut persister) => persister.persist(snapshot),
+                Err(e) => return Err(anyhow!("Failed to acquire persistence lock: {e}")),
+            }
+        }
+        Ok(())
+    }
+
+    pub fn add(&self, identity: NodeIdentity, reason: BlacklistReason) -> Result<()> {
+        self.mutate_and_persist(|inner, now| {
+            inner.map.insert(
+                identity,
+                Entry {
+                    expires_at: now + reason.ttl(),
+                    reason,
+                },
+            );
+            inner.prune(now); // Housekeeping
+        })
     }
 
     pub fn remove(&self, identity: &NodeIdentity) -> Result<()> {
-        match self.0.write() {
-            Ok(mut map) => {
-                let now = Instant::now();
-                map.remove(identity);
-                map.retain(|_, entry| entry.expiry >= now); // Housekeeping
-                Ok(())
-            }
-            Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
-        }
+        self.mutate_and_persist(|inner, now| {
+            inner.map.remove(identity);
+            inner.prune(now); // Housekeeping
+        })
     }
 
     pub fn clear(&self) -> Result<()> {
-        match self.0.write() {
-            Ok(mut map) => {
-                map.clear();
-                Ok(())
-            }
-            Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
-        }
+        self.mutate_and_persist(|inner, _now| inner.map.clear())
     }
 
     pub fn exists(&self, identity: &NodeIdentity) -> Result<bool> {
@@ -102,17 +295,21 @@ impl BlacklistedGateways {
     /// added, or its entry has expired).
     pub fn reason(&self, identity: &NodeIdentity) -> Result<Option<BlacklistReason>> {
         match self.0.read() {
-            Ok(map) => Ok(map
-                .get(identity)
-                .filter(|entry| entry.expiry > Instant::now())
-                .map(|entry| entry.reason)),
+            Ok(inner) => {
+                let now = SystemTime::now();
+                Ok(inner
+                    .map
+                    .get(identity)
+                    .filter(|entry| entry.is_live(now))
+                    .map(|entry| entry.reason))
+            }
             Err(e) => Err(anyhow!("Failed to acquire read lock: {e}")),
         }
     }
 
     pub fn is_empty(&self) -> Result<bool> {
         match self.0.read() {
-            Ok(map) => Ok(map.is_empty()),
+            Ok(inner) => Ok(inner.map.is_empty()),
             Err(e) => Err(anyhow!("Failed to acquire read lock: {e}")),
         }
     }
@@ -224,11 +421,11 @@ mod tests {
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
         // Add an entry with an expired timestamp
-        if let Ok(mut map) = blacklist.0.write() {
-            map.insert(
+        if let Ok(mut inner) = blacklist.0.write() {
+            inner.map.insert(
                 identity,
                 Entry {
-                    expiry: Instant::now() - Duration::from_secs(1),
+                    expires_at: SystemTime::now() - Duration::from_secs(1),
                     reason: BlacklistReason::ConnectionFailed,
                 },
             );
@@ -246,11 +443,11 @@ mod tests {
         let id2 = create_test_identity("HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH");
 
         // Add an expired entry manually
-        if let Ok(mut map) = blacklist.0.write() {
-            map.insert(
+        if let Ok(mut inner) = blacklist.0.write() {
+            inner.map.insert(
                 id1,
                 Entry {
-                    expiry: Instant::now() - Duration::from_secs(1),
+                    expires_at: SystemTime::now() - Duration::from_secs(1),
                     reason: BlacklistReason::ConnectionFailed,
                 },
             );
@@ -262,9 +459,9 @@ mod tests {
             .unwrap();
 
         // The expired entry should have been cleaned up
-        if let Ok(map) = blacklist.0.read() {
-            assert!(!map.contains_key(&id1));
-            assert!(map.contains_key(&id2));
+        if let Ok(inner) = blacklist.0.read() {
+            assert!(!inner.map.contains_key(&id1));
+            assert!(inner.map.contains_key(&id2));
         }
     }
 
@@ -275,11 +472,11 @@ mod tests {
         let id2 = create_test_identity("HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH");
 
         // Add an expired entry manually
-        if let Ok(mut map) = blacklist.0.write() {
-            map.insert(
+        if let Ok(mut inner) = blacklist.0.write() {
+            inner.map.insert(
                 id1,
                 Entry {
-                    expiry: Instant::now() - Duration::from_secs(1),
+                    expires_at: SystemTime::now() - Duration::from_secs(1),
                     reason: BlacklistReason::ConnectionFailed,
                 },
             );
@@ -295,9 +492,9 @@ mod tests {
         blacklist.remove(&id2).unwrap();
 
         // Both entries should be gone (id1 expired, id2 removed)
-        if let Ok(map) = blacklist.0.read() {
-            assert!(!map.contains_key(&id1));
-            assert!(!map.contains_key(&id2));
+        if let Ok(inner) = blacklist.0.read() {
+            assert!(!inner.map.contains_key(&id1));
+            assert!(!inner.map.contains_key(&id2));
         } else {
             panic!("Failed to acquire read lock");
         }
@@ -368,5 +565,176 @@ mod tests {
             BlacklistReason::EntryHandshakeFailed.to_string(),
             "entry WireGuard handshake failed"
         );
+    }
+
+    const ID_A: &str = "24h2yanCFU5iy7xNQmW6RowFa6EzmAYQdM1bs8Y1X6iH";
+    const ID_B: &str = "26ZmTxTVBKHZg8MTKwypHkXZVJhDC7QHuv3BdsyRyTuk";
+    const ID_C: &str = "27GwHdmXLULVieyXmxZ6v9DHzRJtTEjfode1dzbptEAK";
+    const ID_D: &str = "28tXg9mEW4mifgU1TdetVVAN5PvmhtLpHzFRMfJBT6ND";
+
+    #[test]
+    fn entry_side_reasons_are_persisted_across_reload_but_transient_ones_are_not() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("blacklist.json");
+
+        let blacklist = BlacklistedGateways::load_or_new(Some(path.clone()));
+        blacklist
+            .add(
+                create_test_identity(ID_A),
+                BlacklistReason::EntryHandshakeFailed,
+            )
+            .unwrap();
+        blacklist
+            .add(
+                create_test_identity(ID_B),
+                BlacklistReason::EntryBlamedForRepeatedFailures,
+            )
+            .unwrap();
+        blacklist
+            .add(
+                create_test_identity(ID_C),
+                BlacklistReason::ConnectionFailed,
+            )
+            .unwrap();
+        blacklist
+            .add(
+                create_test_identity(ID_D),
+                BlacklistReason::RegistrationFailed,
+            )
+            .unwrap();
+
+        let reloaded = BlacklistedGateways::load_or_new(Some(path));
+        assert_eq!(
+            reloaded.reason(&create_test_identity(ID_A)).unwrap(),
+            Some(BlacklistReason::EntryHandshakeFailed)
+        );
+        assert_eq!(
+            reloaded.reason(&create_test_identity(ID_B)).unwrap(),
+            Some(BlacklistReason::EntryBlamedForRepeatedFailures)
+        );
+        assert!(
+            !reloaded.exists(&create_test_identity(ID_C)).unwrap(),
+            "an exit connection failure is transient and must not survive a restart"
+        );
+        assert!(!reloaded.exists(&create_test_identity(ID_D)).unwrap());
+    }
+
+    #[test]
+    fn persistent_reasons_get_a_long_ttl_and_transient_ones_keep_the_short_one() {
+        for reason in [
+            BlacklistReason::EntryHandshakeFailed,
+            BlacklistReason::EntryBlamedForRepeatedFailures,
+        ] {
+            assert!(reason.is_persistent(), "{reason} should be persisted");
+            assert!(
+                reason.ttl() >= Duration::from_hours(12),
+                "{reason} ttl too short"
+            );
+        }
+        for reason in [
+            BlacklistReason::ConnectionFailed,
+            BlacklistReason::RegistrationFailed,
+        ] {
+            assert!(!reason.is_persistent(), "{reason} should stay in memory");
+            assert_eq!(reason.ttl(), Duration::from_mins(20));
+        }
+    }
+
+    #[test]
+    fn remove_and_clear_are_reflected_in_the_persisted_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("blacklist.json");
+        let id_a = create_test_identity(ID_A);
+        let id_b = create_test_identity(ID_B);
+
+        let blacklist = BlacklistedGateways::load_or_new(Some(path.clone()));
+        blacklist
+            .add(id_a, BlacklistReason::EntryHandshakeFailed)
+            .unwrap();
+        blacklist
+            .add(id_b, BlacklistReason::EntryHandshakeFailed)
+            .unwrap();
+        blacklist.remove(&id_a).unwrap();
+
+        let reloaded = BlacklistedGateways::load_or_new(Some(path.clone()));
+        assert!(!reloaded.exists(&id_a).unwrap());
+        assert!(reloaded.exists(&id_b).unwrap());
+
+        reloaded.clear().unwrap();
+        let reloaded = BlacklistedGateways::load_or_new(Some(path));
+        assert!(reloaded.is_empty().unwrap());
+    }
+
+    #[test]
+    fn expired_persisted_entries_are_dropped_on_load() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("blacklist.json");
+        std::fs::write(
+            &path,
+            format!(
+                r#"{{"{ID_A}":{{"expires_at_unix_secs":1,"reason":"EntryHandshakeFailed"}},
+                   "{ID_B}":{{"expires_at_unix_secs":4102444800,"reason":"EntryHandshakeFailed"}}}}"#
+            ),
+        )
+        .unwrap();
+
+        let blacklist = BlacklistedGateways::load_or_new(Some(path));
+        assert!(!blacklist.exists(&create_test_identity(ID_A)).unwrap());
+        assert!(blacklist.exists(&create_test_identity(ID_B)).unwrap());
+    }
+
+    #[test]
+    fn corrupt_or_missing_file_falls_back_to_an_empty_blacklist() {
+        let dir = tempfile::tempdir().unwrap();
+        let missing = BlacklistedGateways::load_or_new(Some(dir.path().join("nope.json")));
+        assert!(missing.is_empty().unwrap());
+
+        let corrupt_path = dir.path().join("corrupt.json");
+        std::fs::write(&corrupt_path, "not json at all").unwrap();
+        let corrupt = BlacklistedGateways::load_or_new(Some(corrupt_path.clone()));
+        assert!(corrupt.is_empty().unwrap());
+
+        // and it recovers: the next persistent add rewrites the file
+        corrupt
+            .add(
+                create_test_identity(ID_A),
+                BlacklistReason::EntryHandshakeFailed,
+            )
+            .unwrap();
+        let reloaded = BlacklistedGateways::load_or_new(Some(corrupt_path));
+        assert!(reloaded.exists(&create_test_identity(ID_A)).unwrap());
+    }
+
+    #[test]
+    fn concurrent_persistent_adds_all_reach_the_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("blacklist.json");
+        let blacklist = BlacklistedGateways::load_or_new(Some(path.clone()));
+
+        let handles: Vec<_> = [ID_A, ID_B, ID_C, ID_D]
+            .into_iter()
+            .map(|id| {
+                let blacklist = blacklist.clone();
+                thread::spawn(move || {
+                    blacklist
+                        .add(
+                            create_test_identity(id),
+                            BlacklistReason::EntryHandshakeFailed,
+                        )
+                        .unwrap()
+                })
+            })
+            .collect();
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        let reloaded = BlacklistedGateways::load_or_new(Some(path));
+        for id in [ID_A, ID_B, ID_C, ID_D] {
+            assert!(
+                reloaded.exists(&create_test_identity(id)).unwrap(),
+                "{id} was lost by a racing writer"
+            );
+        }
     }
 }

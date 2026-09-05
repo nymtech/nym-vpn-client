@@ -73,11 +73,14 @@ impl<C: GatewayCache> GatewayProvider<C> {
         geo_ip_client: impl GeoIpClient,
         tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
+        blacklist_path: Option<std::path::PathBuf>,
         shutdown_token: CancellationToken,
     ) -> (Self, JoinHandle<()>) {
         let latest_tunnel_settings = Arc::new(Mutex::new(tunnel_settings.clone()));
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
-        let blacklisted_gateways = BlacklistedGateways::new();
+        // Entry-side verdicts (dead entry hop from this network) are persisted so that a restart
+        // does not send the user back to the same unreachable gateway.
+        let blacklisted_gateways = BlacklistedGateways::load_or_new(blacklist_path);
         let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
         let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
 
@@ -297,7 +300,15 @@ impl<C: GatewayCache> GatewayProvider<C> {
         gateway_identifier: NodeIdentity,
         reason: BlacklistReason,
     ) {
-        if let Err(e) = self.blacklisted_gateways.add(gateway_identifier, reason) {
+        // Persisting the blacklist does file IO, so run it on a blocking worker rather than on
+        // the state machine task.
+        let blacklisted_gateways = self.blacklisted_gateways.clone();
+        let added = tokio::task::spawn_blocking(move || {
+            blacklisted_gateways.add(gateway_identifier, reason)
+        })
+        .await
+        .unwrap_or_else(|join_err| Err(anyhow::anyhow!("blacklist task panicked: {join_err}")));
+        if let Err(e) = added {
             tracing::error!(
                 "Failed to add gateway {} to blacklisted gateway list: {e}",
                 gateway_identifier
