@@ -237,6 +237,7 @@ async fn error_stream() {
         MockGeoIpClient::new(),
         tunnel_settings,
         WireguardKeysDb::Ephemeral(Default::default()),
+        None,
         shutdown_token.child_token(),
     );
     // No gateways come out of the stream when there are no gateways to select from
@@ -264,6 +265,7 @@ async fn geo_location_disabled() {
         MockGeoIpClient::new(),
         tunnel_settings,
         WireguardKeysDb::Ephemeral(Default::default()),
+        None,
         shutdown_token.child_token(),
     );
     // No gateways come out of the stream when there are no gateways to select from
@@ -296,6 +298,7 @@ async fn set_and_stream() {
         MockGeoIpClient::new(),
         tunnel_settings,
         WireguardKeysDb::Ephemeral(Default::default()),
+        None,
         shutdown_token.child_token(),
     );
     gw_provider
@@ -338,6 +341,7 @@ async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
         MockGeoIpClient::new(),
         tunnel_settings.clone(),
         WireguardKeysDb::Ephemeral(Default::default()),
+        None,
         shutdown_token.child_token(),
     );
 
