@@ -96,6 +96,9 @@ type Seed = [u8; 32];
 
 type Locale = String;
 
+/// Network-specific file (in `network_data_dir`) holding persisted blacklisted gateways.
+const BLACKLISTED_GATEWAYS_FILE: &str = "blacklisted_gateways.json";
+
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, strum::Display)]
 pub enum VpnServiceCommand {
@@ -709,6 +712,12 @@ impl NymVpnService {
             nym_vpn_api_client,
             tunnel_settings.clone(),
             wireguard_keys_db,
+            Some(
+                nym_config
+                    .paths
+                    .network_data_dir
+                    .join(BLACKLISTED_GATEWAYS_FILE),
+            ),
             state_machine_shutdown_token.child_token(),
         );
 
