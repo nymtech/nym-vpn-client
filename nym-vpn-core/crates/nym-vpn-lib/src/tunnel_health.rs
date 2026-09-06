@@ -82,6 +82,49 @@ pub fn should_defer_probe_teardown(
         && health.is_some_and(|h| h.is_recently_healthy(grace))
 }
 
+/// What the tunnel monitor does with a connectivity probe `Failed` verdict.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProbeFailureAction {
+    /// The in-tunnel metadata path succeeded recently and the deferral budget is not spent:
+    /// give the probe another interval before believing it.
+    DeferTeardown,
+    /// The deferral budget is spent but the metadata path is still fresh: keep the tunnel.
+    KeepAlive,
+    /// Nothing vouches for the tunnel any more: tear it down.
+    TearDown,
+}
+
+impl ProbeFailureAction {
+    /// Whether the next `Failed` verdict must be evaluated afresh instead of being dropped as a
+    /// repeat of this one. Only a teardown ends the story; the other two outcomes hinge on the
+    /// metadata grace window, which expires with time, so a repeated `Failed` status must reach
+    /// the decision again or a dead tunnel stays "connected" forever.
+    pub fn reevaluates_next_failure(self) -> bool {
+        !matches!(self, Self::TearDown)
+    }
+}
+
+/// Decide what a connectivity probe `Failed` verdict means for the tunnel.
+pub fn probe_failure_action(
+    uses_metadata_endpoint: bool,
+    health: Option<&MetadataPathHealth>,
+    grace: Duration,
+    consecutive_deferred_failures: u32,
+) -> ProbeFailureAction {
+    if should_defer_probe_teardown(
+        uses_metadata_endpoint,
+        health,
+        grace,
+        consecutive_deferred_failures,
+    ) {
+        ProbeFailureAction::DeferTeardown
+    } else if should_treat_metadata_as_connect_viable(uses_metadata_endpoint, health, grace) {
+        ProbeFailureAction::KeepAlive
+    } else {
+        ProbeFailureAction::TearDown
+    }
+}
+
 /// Update metadata-path health from a bandwidth check interval.
 ///
 /// Records success only when both legs succeed; clears any prior success when either leg fails
@@ -225,5 +268,55 @@ mod tests {
             Some(&health),
             METADATA_PATH_HEALTH_GRACE,
         ));
+    }
+
+    fn healthy_now() -> MetadataPathHealth {
+        let health = MetadataPathHealth::new();
+        health.record_success();
+        health
+    }
+
+    #[test]
+    fn probe_failure_is_deferred_while_budget_remains_and_metadata_is_fresh() {
+        assert_eq!(
+            probe_failure_action(true, Some(&healthy_now()), METADATA_PATH_HEALTH_GRACE, 0),
+            ProbeFailureAction::DeferTeardown
+        );
+    }
+
+    #[test]
+    fn probe_failure_keeps_tunnel_alive_once_budget_is_spent_but_metadata_is_fresh() {
+        assert_eq!(
+            probe_failure_action(
+                true,
+                Some(&healthy_now()),
+                METADATA_PATH_HEALTH_GRACE,
+                MAX_CONSECUTIVE_DEFERRED_PROBE_FAILURES,
+            ),
+            ProbeFailureAction::KeepAlive
+        );
+    }
+
+    #[test]
+    fn probe_failure_tears_down_when_nothing_vouches_for_the_tunnel() {
+        let stale = MetadataPathHealth::new();
+        assert_eq!(
+            probe_failure_action(true, Some(&stale), METADATA_PATH_HEALTH_GRACE, 0),
+            ProbeFailureAction::TearDown
+        );
+        assert_eq!(
+            probe_failure_action(false, Some(&healthy_now()), METADATA_PATH_HEALTH_GRACE, 0),
+            ProbeFailureAction::TearDown,
+            "mixnet tunnels have no metadata path to vouch for them"
+        );
+    }
+
+    #[test]
+    fn every_outcome_that_keeps_the_tunnel_must_reevaluate_the_next_failure() {
+        // Regression: a dead tunnel stayed "Connected" for minutes because a KeepAlive verdict
+        // left the repeated `Failed` status deduplicated, so the grace expiry was never noticed.
+        assert!(ProbeFailureAction::DeferTeardown.reevaluates_next_failure());
+        assert!(ProbeFailureAction::KeepAlive.reevaluates_next_failure());
+        assert!(!ProbeFailureAction::TearDown.reevaluates_next_failure());
     }
 }
