@@ -33,6 +33,7 @@ import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/vi';
 import 'dayjs/locale/zh';
+import 'dayjs/locale/zh-tw';
 
 console.log('env', window._APP);
 
