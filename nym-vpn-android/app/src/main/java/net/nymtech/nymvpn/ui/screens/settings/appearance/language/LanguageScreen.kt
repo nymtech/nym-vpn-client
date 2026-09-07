@@ -176,11 +176,7 @@ fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange
 			items(locales, key = { it.toLanguageTag() }) { locale ->
 				SelectionItemButton(
 					buttonText = locale.getDisplayLanguage(locale).capitalize(locale) +
-						when {
-							locale.script.isNotEmpty() -> " (${locale.getDisplayScript(locale).capitalize(locale)})"
-							locale.toLanguageTag().contains("-") -> " (${locale.getDisplayCountry(locale).capitalize(locale)})"
-							else -> ""
-						},
+						if (locale.toLanguageTag().contains("-")) " (${locale.getDisplayCountry(locale).capitalize(locale)})" else "",
 					onClick = {
 						onLocaleChange(locale.toLanguageTag())
 					},

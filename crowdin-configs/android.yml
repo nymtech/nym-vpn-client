@@ -18,7 +18,7 @@ languages_mapping:
     uk: uk
     vi: vi-rVN
     zh-CN: zh-rCN
-    zh-TW: "b+zh+Hant"
+    zh-TW: zh-rTW
   # Mapping for Fastlane / Google Play Store Metadata
   locale: &play-locale
     ar: ar
