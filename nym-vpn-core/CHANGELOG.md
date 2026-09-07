@@ -14,15 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected.
+- [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected. (https://github.com/nymtech/nym-vpn-client/pull/6261)
+- Apply the kill-switch when Connect is pressed while still offline. (https://github.com/nymtech/nym-vpn-client/pull/6265)
+- Give slow exit handshakes headroom before failing the connection (https://github.com/nymtech/nym-vpn-client/pull/6237)
+- Retry zk-nym credential requests when upstream is unavailable mid-ceremony (https://github.com/nymtech/nym-vpn-client/pull/6258)
+- Prevent gateway refresh storm when the API is unreachable (https://github.com/nymtech/nym-vpn-client/pull/6087)
+- [Windows] Wait for the VPN service to be running after install (https://github.com/nymtech/nym-vpn-client/pull/6245)
+- Avoid blocking daemon command loop when handling recents which may perform network calls (https://github.com/nymtech/nym-vpn-client/pull/6294)
+
 
 ## [2026.12.3] - 2026-08-27
 
-## [2026.12.3-beta.1] - 2026-08-27
-
 ## [2026.12.2] - 2026-08-25
-
-## [2026.12.2-beta.1] - 2026-08-23
 
 ## [2026.12.1] - 2026-08-21
 
