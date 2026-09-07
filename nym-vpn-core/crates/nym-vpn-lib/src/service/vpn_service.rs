@@ -1349,7 +1349,7 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetRecentGateways(tx, gateway_type) => {
-                let _ = tx.send(self.handle_get_recent_gateways(gateway_type).await);
+                self.handle_get_recent_gateways(tx, gateway_type);
             }
             VpnServiceCommand::SetProfile(tx, profile) => {
                 self.handle_set_profile(profile).await;
@@ -2471,14 +2471,19 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_get_recent_gateways(
-        &mut self,
+    fn handle_get_recent_gateways(
+        &self,
+        tx: oneshot::Sender<Result<RecentGateways, ListGatewaysError>>,
         tunnel_type: TunnelType,
-    ) -> Result<RecentGateways, ListGatewaysError> {
-        self.recents_manager
-            .get_recent(tunnel_type)
-            .await
-            .map_err(ListGatewaysError::GetRecentGateways)
+    ) {
+        let recents_manager = self.recents_manager.clone();
+        tokio::spawn(async move {
+            let res = recents_manager
+                .get_recent(tunnel_type)
+                .await
+                .map_err(ListGatewaysError::GetRecentGateways);
+            let _ = tx.send(res);
+        });
     }
 
     async fn handle_set_profile(&mut self, profile: Profile) {
