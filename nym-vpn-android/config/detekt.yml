@@ -1,16 +1,7 @@
-build:
-    maxIssues: 0
-    excludeCorrectable: false
-    weights:
-    # complexity: 2
-    # LongParameterList: 1
-    # style: 1
-    # comments: 1
-
 config:
     validation: true
     # when writing own rules with new properties, exclude the property path e.g.: 'my_rule_set,.*>.*>[my_property]'
-    excludes: ""
+    excludes: []
 
 processors:
     active: true
@@ -37,7 +28,7 @@ comments:
 complexity:
     active: true
     NestedBlockDepth:
-        threshold: 6
+        allowedDepth: 6
     LongParameterList:
         active: false
     TooManyFunctions:
@@ -45,9 +36,9 @@ complexity:
     LongMethod:
         active: false
     ComplexCondition:
-        threshold: 5
+        allowedConditions: 5
     CyclomaticComplexMethod:
-        threshold: 26
+        allowedComplexity: 26
         ignoreAnnotated:
             - "Composable"
 
@@ -144,13 +135,11 @@ style:
         active: false
     OptionalUnit:
         active: true
-    PreferToOverPairSyntax:
-        active: true
     RedundantExplicitType:
         active: true
     ReturnCount:
         active: false
-    SpacingBetweenPackageAndImports:
+    SpacingAfterPackageAndImports:
         active: true
     ThrowsCount:
         active: true
@@ -161,14 +150,20 @@ style:
         active: true
     UnnecessaryParentheses:
         active: true
-    UnnecessaryAbstractClass:
+    AbstractClassCanBeConcreteClass:
         ignoreAnnotated:
             - Module
-    UntilInsteadOfRangeTo:
+    AbstractClassCanBeInterface:
+        ignoreAnnotated:
+            - Module
+    RangeUntilInsteadOfRangeTo:
         active: true
-    UnusedImports:
+    UnusedImport:
         active: true
-    UnusedPrivateMember:
+    UnusedPrivateFunction:
+        # We need to disable this otherwise we'd need to @Suppress all Composable previews...
+        active: false
+    UnusedPrivateProperty:
         # We need to disable this otherwise we'd need to @Suppress all Composable previews...
         active: false
     UseArrayLiteralsInAnnotations:
@@ -201,8 +196,6 @@ compose:
         active: false
     ModifierHeightWithText:
         active: false
-    ModifierParameterPosition:
-        active: false
     ModifierDefaultValue:
         active: true
     MissingModifierDefaultValue:
@@ -211,7 +204,6 @@ compose:
         active: true
     TopLevelComposableFunctions:
         active: true
-        allowInObjects: false
     ComposableFunctionName:
         active: true
     ConditionCouldBeLifted:
