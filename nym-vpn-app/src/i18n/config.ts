@@ -41,7 +41,7 @@ export const languages = [
   { code: 'uk', name: 'Українська' },
   { code: 'vi', name: 'Tiếng Việt' },
   { code: 'zh', name: '简体中文' },
-  { code: 'zh-TW', name: '繁體中文' },
+  { code: 'zh-Hant', name: '繁體中文' },
 
   // { code: 'cs', name: 'Čeština (Czech)' },
   // { code: 'hu', name: 'Magyar (Hungarian)' },

@@ -20,7 +20,7 @@ export function matchSupportedLocale(osLocale: string): LngTag {
   // to zh-TW and everything else zh-* to Simplified, before the primary-subtag
   // fallback below collapses every zh-* onto zh.
   if (lower.startsWith('zh')) {
-    return /hant|-tw|-hk|-mo/.test(lower) ? 'zh-TW' : 'zh';
+    return /hant|-tw|-hk|-mo/.test(lower) ? 'zh-Hant' : 'zh';
   }
 
   // Fall back to the primary language subtag (e.g. "en-US" → "en")

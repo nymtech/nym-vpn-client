@@ -7,8 +7,9 @@ preserve_hierarchy: true
 files:
   - source: "nym-vpn-app/src/i18n/en/*.json"
     translation: "nym-vpn-app/src/i18n/%two_letters_code%/%original_file_name%"
-    # zh-TW would collapse to `zh` under %two_letters_code% and collide with
-    # Simplified Chinese; map it explicitly so it lands in src/i18n/zh-TW/.
+    # Traditional Chinese is Crowdin language `zh-TW`; emit it as the script code
+    # `zh-Hant` (region-neutral), not %two_letters_code%'s `zh`, which would
+    # collide with Simplified in src/i18n/zh/.
     languages_mapping:
       two_letters_code:
-        zh-TW: zh-TW
+        zh-TW: zh-Hant

@@ -43,7 +43,8 @@ function useLang() {
         kvSet('ui-language', lng);
       }
       await i18n.changeLanguage(lng);
-      dayjs.locale(lng);
+      // dayjs has no `zh-hant`; Traditional Chinese maps to its `zh-tw` locale.
+      dayjs.locale(lng === 'zh-Hant' ? 'zh-tw' : lng);
 
       document.documentElement.setAttribute('dir', i18n.dir());
       document.documentElement.setAttribute('lang', lng);
