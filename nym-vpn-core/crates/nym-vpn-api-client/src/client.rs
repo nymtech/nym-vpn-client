@@ -152,6 +152,10 @@ impl VpnApiClient {
         self.skew_manager.get_remote_time().await
     }
 
+    pub async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
+        self.skew_manager.current_remote_time().await
+    }
+
     async fn device_time(&self) -> OffsetDateTime {
         self.skew_manager.device_time()
     }

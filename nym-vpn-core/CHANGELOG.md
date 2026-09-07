@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Poll terminal account errors every hour instead of every two minutes, and reuse the cached VPN API clock on summary fetch.
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
 - Merge rpc-uniffi crate into lib-uniffi (https://github.com/nymtech/nym-vpn-client/pull/6010)
 - Remove "trace only logging" mode and honor `RUST_LOG` when set (https://github.com/nymtech/nym-vpn-client/pull/6131)

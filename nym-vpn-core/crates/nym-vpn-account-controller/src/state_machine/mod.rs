@@ -46,6 +46,9 @@ pub(crate) use decentralised_state::DecentralisedState;
 // The interval at which we update the account state when in error state
 const ACCOUNT_UPDATE_INTERVAL_ERROR: Duration = Duration::from_secs(2 * 60);
 
+// Terminal (non-retryable) error. Named so Ready can change independently.
+const ACCOUNT_UPDATE_INTERVAL_ERROR_TERMINAL: Duration = Duration::from_secs(60 * 60);
+
 // The interval at which we update the account state when in ready state
 const ACCOUNT_UPDATE_INTERVAL_READY: Duration = Duration::from_secs(60 * 60);
 

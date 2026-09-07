@@ -7,9 +7,9 @@ use crate::{
     SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
-        ACCOUNT_UPDATE_INTERVAL_ERROR, AccountControllerStateHandler, LoggedOutState,
-        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncMode,
-        SyncingNetworkState,
+        ACCOUNT_UPDATE_INTERVAL_ERROR, ACCOUNT_UPDATE_INTERVAL_ERROR_TERMINAL,
+        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
+        PrivateAccountControllerState, SyncMode, SyncingNetworkState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -46,7 +46,12 @@ impl ErrorState {
         // fetcher around trying to top up.
         let _ = shared_state.clear_credential_fetcher().await;
 
-        let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL_ERROR));
+        let refresh_after = if reason.is_retryable() {
+            ACCOUNT_UPDATE_INTERVAL_ERROR
+        } else {
+            ACCOUNT_UPDATE_INTERVAL_ERROR_TERMINAL
+        };
+        let refresh_timer = Box::pin(tokio::time::sleep(refresh_after));
         tracing::error!("Account Controller entering error state : {reason:#?}");
         (
             Box::new(Self {

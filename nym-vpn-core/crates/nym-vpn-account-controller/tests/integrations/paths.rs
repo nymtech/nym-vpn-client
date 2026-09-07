@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::Duration;
+
 use crate::common::{TestBench, account_summary::*, endpoints, nyxd_endpoints};
 
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
@@ -499,4 +501,124 @@ async fn optimistic_refresh_falls_back_but_force_refresh_surfaces_error_test() -
         ))
         .await;
     Ok(())
+}
+
+#[tokio::test]
+async fn error_timer_inactive_subscription_skips_two_minute_poll() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_with_inactive_sub()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::InactiveSubscription,
+        ))
+        .await;
+
+    let before = vpn_api_request_count(&test_bench).await;
+    tokio::time::pause();
+    tokio::time::advance(Duration::from_secs(2 * 60 + 1)).await;
+    for _ in 0..32 {
+        tokio::task::yield_now().await;
+    }
+    let after = vpn_api_request_count(&test_bench).await;
+    assert_eq!(
+        before, after,
+        "non-retryable Error must not poll at the 2-minute interval"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn error_timer_api_failure_resyncs_after_two_minutes() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_403(unrelated_error()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::ApiFailure {
+                context: "SYNCING_NETWORK_STATE".into(),
+                details: "API returned an error: 55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
+            },
+        ))
+        .await;
+
+    let before = vpn_api_request_count(&test_bench).await;
+    tokio::time::pause();
+    tokio::time::advance(Duration::from_secs(2 * 60 + 1)).await;
+    for _ in 0..32 {
+        tokio::task::yield_now().await;
+    }
+    let after = vpn_api_request_count(&test_bench).await;
+    assert!(
+        after > before,
+        "ApiFailure must still poll at the 2-minute interval (before={before}, after={after})"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn fetch_summary_reuses_cached_remote_time() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_with_inactive_sub()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::InactiveSubscription,
+        ))
+        .await;
+
+    let health_before = health_request_count(&test_bench).await;
+    assert!(health_before > 0, "first sync must hit /health");
+
+    assert_eq!(
+        test_bench.command_sender.refresh_account_state(false).await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::InactiveSubscription,
+        ))
+        .await;
+
+    let health_after = health_request_count(&test_bench).await;
+    assert_eq!(
+        health_before, health_after,
+        "second fetch_summary must reuse the skew cache"
+    );
+    Ok(())
+}
+
+async fn vpn_api_request_count(test_bench: &TestBench) -> usize {
+    test_bench
+        .vpn_api_server
+        .received_requests()
+        .await
+        .map(|requests| requests.len())
+        .unwrap_or(0)
+}
+
+async fn health_request_count(test_bench: &TestBench) -> usize {
+    test_bench
+        .vpn_api_server
+        .received_requests()
+        .await
+        .map(|requests| {
+            requests
+                .iter()
+                .filter(|request| request.url.path() == "/public/v1/health")
+                .count()
+        })
+        .unwrap_or(0)
 }

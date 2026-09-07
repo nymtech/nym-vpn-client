@@ -10,7 +10,7 @@ use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnRegisterAccountResponse,
-    types::{Device, DeviceStatus, Platform, VpnAccount, VpnAccountMode},
+    types::{Device, DeviceStatus, Platform, VpnAccount, VpnAccountMode, VpnApiTime},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
@@ -23,6 +23,7 @@ use nym_vpn_store::{
     account_summary::AccountSummaryStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
 };
+use time::OffsetDateTime;
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
 
@@ -417,13 +418,17 @@ impl NymVpnAccountStorage {
 
         // Each call uses the VPN API client HTTP timeout (`NYM_VPN_API_TIMEOUT`, 30s in
         // `nym-vpn-api-client/src/client.rs`).
-        let remote_time =
-            vpn_api_client
-                .get_remote_time()
-                .await
-                .map_err(|err| VpnError::InternalError {
-                    details: format!("Failed to get remote time: {err}"),
-                })?;
+        let remote_time = match vpn_api_client.current_remote_time().await.map_err(|err| {
+            VpnError::InternalError {
+                details: format!("Failed to get remote time: {err}"),
+            }
+        })? {
+            Some(t) => t,
+            None => {
+                let now = OffsetDateTime::now_utc();
+                VpnApiTime::from_estimated_remote_time(now, now)
+            }
+        };
 
         let api_summary = vpn_api_client
             .get_account_summary_with_device(account, device)

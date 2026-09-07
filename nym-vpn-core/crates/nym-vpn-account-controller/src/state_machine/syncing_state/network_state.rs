@@ -18,11 +18,12 @@ use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
-    types::{Device, VpnAccount},
+    types::{Device, VpnAccount, VpnApiTime},
 };
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
 };
+use time::OffsetDateTime;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -161,7 +162,13 @@ impl SyncingNetworkState {
         // Fetch the remote time so the summary can record whether our clock is acceptably synced
         // (a desync would make zk-nyms fail to verify on gateways). The desync itself is surfaced
         // later, during the local checks, via `VpnAccountSummary::time_synced`.
-        let remote_time = vpn_api_client.get_remote_time().await?;
+        let remote_time = match vpn_api_client.current_remote_time().await? {
+            Some(t) => t,
+            None => {
+                let now = OffsetDateTime::now_utc();
+                VpnApiTime::from_estimated_remote_time(now, now)
+            }
+        };
 
         let summary = vpn_api_client
             .get_account_summary_with_device(vpn_api_account, device)
