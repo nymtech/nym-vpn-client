@@ -86,7 +86,7 @@ use crate::{
     bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
     tunnel_health::{
-        METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown,
+        METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, ProbeFailureAction, probe_failure_action,
         should_treat_metadata_as_connect_viable,
     },
     tunnel_state_machine::{
@@ -978,37 +978,45 @@ impl TunnelMonitor {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
                             ConnectionStatusEvent::Failed => {
-                                if should_defer_probe_teardown(
+                                let action = probe_failure_action(
                                     uses_metadata_endpoint,
                                     metadata_path_health.as_ref(),
                                     METADATA_PATH_HEALTH_GRACE,
                                     consecutive_deferred_probe_failures,
-                                ) {
-                                    consecutive_deferred_probe_failures =
-                                        consecutive_deferred_probe_failures.saturating_add(1);
-                                    tracing::warn!(
-                                        consecutive_deferred_probe_failures,
-                                        max_consecutive_deferred_probe_failures =
-                                            crate::tunnel_health::MAX_CONSECUTIVE_DEFERRED_PROBE_FAILURES,
-                                        "Probe declared tunnel down but in-tunnel metadata path recently succeeded; deferring teardown"
-                                    );
+                                );
+                                if action.reevaluates_next_failure() {
+                                    // The verdict depends on the metadata grace window, so the
+                                    // next `Failed` must not be dropped as a duplicate.
                                     last_connection_status = None;
-                                } else if should_treat_metadata_as_connect_viable(
-                                    uses_metadata_endpoint,
-                                    metadata_path_health.as_ref(),
-                                    METADATA_PATH_HEALTH_GRACE,
-                                ) {
-                                    if !has_sent_up_event {
-                                        tracing::info!(
-                                            "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
+                                }
+                                match action {
+                                    ProbeFailureAction::DeferTeardown => {
+                                        consecutive_deferred_probe_failures =
+                                            consecutive_deferred_probe_failures.saturating_add(1);
+                                        tracing::warn!(
+                                            consecutive_deferred_probe_failures,
+                                            max_consecutive_deferred_probe_failures =
+                                                crate::tunnel_health::MAX_CONSECUTIVE_DEFERRED_PROBE_FAILURES,
+                                            "Probe declared tunnel down but in-tunnel metadata path recently succeeded; deferring teardown"
                                         );
-                                        has_sent_up_event = true;
-                                        self.send_event(TunnelMonitorEvent::Up {
-                                            tunnel_interface: tunnel_interface.clone(),
-                                            connection_data: connection_data.clone(),
-                                        });
                                     }
-                                } else {
+                                    ProbeFailureAction::KeepAlive => {
+                                        if !has_sent_up_event {
+                                            tracing::info!(
+                                                "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
+                                            );
+                                            has_sent_up_event = true;
+                                            self.send_event(TunnelMonitorEvent::Up {
+                                                tunnel_interface: tunnel_interface.clone(),
+                                                connection_data: connection_data.clone(),
+                                            });
+                                        } else {
+                                            tracing::warn!(
+                                                "Probe keeps failing; keeping tunnel only while the in-tunnel metadata path stays fresh"
+                                            );
+                                        }
+                                    }
+                                    ProbeFailureAction::TearDown => {
                                     tracing::info!("Tunnel connection is down. Exiting");
                                     let exit_handshake_completed = match tunnel_handle.as_wireguard() {
                                         Some(wg) => exit_handshake_completed_now(exit_handshake_completed, || wg.get_exit_stats()),
@@ -1024,6 +1032,7 @@ impl TunnelMonitor {
                                         exit_handshake_completed,
                                     });
                                     break;
+                                    }
                                 }
                             }
                         }

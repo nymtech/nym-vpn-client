@@ -1349,7 +1349,7 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetRecentGateways(tx, gateway_type) => {
-                let _ = tx.send(self.handle_get_recent_gateways(gateway_type).await);
+                spawn_recent_gateways_lookup(self.recents_manager.clone(), gateway_type, tx);
             }
             VpnServiceCommand::SetProfile(tx, profile) => {
                 self.handle_set_profile(profile).await;
@@ -2471,18 +2471,88 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_get_recent_gateways(
-        &mut self,
-        tunnel_type: TunnelType,
-    ) -> Result<RecentGateways, ListGatewaysError> {
-        self.recents_manager
-            .get_recent(tunnel_type)
-            .await
-            .map_err(ListGatewaysError::GetRecentGateways)
-    }
-
     async fn handle_set_profile(&mut self, profile: Profile) {
         self.config_manager.set_profile(profile).await;
         self.update_tunnel_settings_with_throttle();
+    }
+}
+
+/// Answer a recent-gateways request off the command loop.
+///
+/// The lookup goes through the gateway cache, which may refresh the directory over the network
+/// with a 30s timeout and retries; through a dead or slow tunnel that is minutes. The service
+/// loop handles one command at a time, so awaiting it inline stalled mode switches, status polls
+/// and even shutdown behind a UI read. Like the gateway list handlers, reply from a task instead.
+fn spawn_recent_gateways_lookup<C>(
+    recents_manager: RecentsManager<C>,
+    tunnel_type: TunnelType,
+    completion_tx: oneshot::Sender<Result<RecentGateways, ListGatewaysError>>,
+) where
+    C: nym_favorites::RecentGatewayCache + Clone + 'static,
+{
+    tokio::spawn(async move {
+        let result = recents_manager
+            .get_recent(tunnel_type)
+            .await
+            .map_err(ListGatewaysError::GetRecentGateways);
+        completion_tx.send(result).ok();
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use nym_favorites::RecentGatewayCache;
+    use nym_gateway_directory::{GatewayList, GatewayType};
+    use tokio::sync::{Notify, oneshot};
+
+    use super::*;
+
+    /// A gateway cache whose lookups hang until released, standing in for a directory refresh
+    /// that is stuck on a dead or slow tunnel.
+    #[derive(Clone)]
+    struct StalledCache {
+        release: Arc<Notify>,
+    }
+
+    #[async_trait::async_trait]
+    impl RecentGatewayCache for StalledCache {
+        async fn lookup_gateways(
+            &self,
+            gw_type: GatewayType,
+        ) -> Result<GatewayList, nym_gateway_directory::Error> {
+            self.release.notified().await;
+            Ok(GatewayList::new(Some(gw_type), vec![]))
+        }
+    }
+
+    #[tokio::test]
+    async fn recent_gateways_lookup_does_not_block_the_caller_while_the_cache_is_stalled() {
+        let dir = tempfile::tempdir().unwrap();
+        let release = Arc::new(Notify::new());
+        let recents_manager = RecentsManager::new(
+            dir.path().to_path_buf(),
+            StalledCache {
+                release: release.clone(),
+            },
+        )
+        .await;
+        let (tx, mut rx) = oneshot::channel();
+
+        // Must return at once: the command loop calling this has other commands to drain.
+        spawn_recent_gateways_lookup(recents_manager, TunnelType::Wireguard, tx);
+        assert!(
+            matches!(rx.try_recv(), Err(oneshot::error::TryRecvError::Empty)),
+            "the lookup is still stalled, so no answer yet, but the caller already got control back"
+        );
+
+        release.notify_waiters();
+        release.notify_one();
+        let recents = rx
+            .await
+            .expect("lookup task dropped the reply channel")
+            .unwrap();
+        assert!(recents.entry.is_empty() && recents.exit.is_empty());
     }
 }
