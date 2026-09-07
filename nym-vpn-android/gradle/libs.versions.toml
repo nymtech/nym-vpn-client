@@ -37,7 +37,7 @@ biometric = "1.4.0-alpha07"
 credentials = "1.7.0-alpha02"
 
 gradlePlugins-licensee = "1.14.1"
-gradlePlugins-detekt = "1.23.8"
+gradlePlugins-detekt = "2.0.0-alpha.6"
 gradlePlugins-gross = "0.4.6"
 material = "1.14.0"
 gradlePlugins-ktlint = "14.2.0"
@@ -126,6 +126,6 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 licensee = { id = "app.cash.licensee", version.ref = "gradlePlugins-licensee" }
 gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-detekt" }
+detekt = { id = "dev.detekt", version.ref = "gradlePlugins-detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }

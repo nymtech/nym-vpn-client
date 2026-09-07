@@ -46,7 +46,7 @@ subprojects {
 		config.setFrom(rootProject.files("config/detekt.yml"))
 		buildUponDefaultConfig = true
 	}
-	tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+	tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
 		exclude("**/nym_vpn_lib/**", "**/nym_vpn_lib_types/**", "**/tun_provider/**", "**/nym_bridges_types/**")
 	}
 }
