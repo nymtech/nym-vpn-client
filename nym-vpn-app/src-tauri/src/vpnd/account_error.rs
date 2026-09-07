@@ -107,9 +107,6 @@ impl From<lib::AccountControllerErrorStateReason> for BackendError {
             lib::AccountControllerErrorStateReason::MaxDeviceReached => {
                 BackendError::new("AC max devices reached", ErrorKey::MaxDeviceReached)
             }
-            lib::AccountControllerErrorStateReason::DeviceTimeDesynced => {
-                BackendError::new("AC device time desynced", ErrorKey::DeviceTimeDesync)
-            }
         }
     }
 }

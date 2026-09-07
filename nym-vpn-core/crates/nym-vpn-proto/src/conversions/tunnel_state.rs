@@ -56,7 +56,6 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::InactiveAccount => Self::InactiveAccount,
             Reason::InactiveSubscription => Self::InactiveSubscription,
             Reason::MaxDevicesReached => Self::MaxDevicesReached,
-            Reason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             Reason::DeviceLoggedOut => Self::DeviceLoggedOut,
             Reason::NeedFullDiskPermissions => Self::NeedFullDiskPermissions,
             Reason::SplitTunnel => Self::SplitTunnel,
@@ -155,10 +154,6 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::MaxDevicesReached => Self {
                 reason: Reason::MaxDevicesReached.into(),
-                message: None,
-            },
-            ErrorStateReason::DeviceTimeOutOfSync => Self {
-                reason: Reason::DeviceTimeOutOfSync.into(),
                 message: None,
             },
             ErrorStateReason::DeviceLoggedOut => Self {

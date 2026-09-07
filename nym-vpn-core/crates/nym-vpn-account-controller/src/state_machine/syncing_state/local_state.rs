@@ -148,8 +148,6 @@ impl SyncingLocalState {
             } else {
                 Self::register_device(&vpn_api_client, &vpn_api_account, &device).await
             }
-        } else if !summary.time_synced {
-            Err(SyncError::DeviceTimeDesynced)
         } else {
             Ok(false)
         };
@@ -305,7 +303,6 @@ enum SyncError {
     UnregisteredDevice { details: String },
     InactiveSubscription,
     PendingSubscription,
-    DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,
 }
@@ -322,7 +319,6 @@ impl SyncError {
                 AccountControllerErrorStateReason::AccountStatusNotActive { status }
             }
             InactiveSubscription => AccountControllerErrorStateReason::InactiveSubscription,
-            DeviceTimeDesynced => AccountControllerErrorStateReason::DeviceTimeDesynced,
             MaxDeviceReached => AccountControllerErrorStateReason::MaxDeviceReached,
             FairUsageDepleted => AccountControllerErrorStateReason::BandwidthExceeded {
                 context: SYNCING_LOCAL_STATE_CONTEXT.into(),

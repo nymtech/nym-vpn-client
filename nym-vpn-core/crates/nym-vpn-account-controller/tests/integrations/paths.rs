@@ -126,28 +126,6 @@ async fn unregistered_account_test() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn desynced_device_test() -> anyhow::Result<()> {
-    // Get the test_bench
-    let mut test_bench = TestBench::new().await?;
-
-    // Adding behavior to the VPN API
-    let mocks = vec![
-        endpoints::desynced_health(),
-        endpoints::account_summary_with_device_200(account_ready_to_connect()),
-    ];
-    test_bench.register_vpn_api_mocks(mocks).await;
-
-    test_bench.store_mock_account().await?;
-
-    test_bench
-        .assert_state(AccountControllerState::Error(
-            AccountControllerErrorStateReason::DeviceTimeDesynced,
-        ))
-        .await;
-    Ok(())
-}
-
-#[tokio::test]
 async fn inactive_account_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;

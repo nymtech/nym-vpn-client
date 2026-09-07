@@ -295,9 +295,6 @@ pub enum ErrorStateReason {
     /// Max device numbers reached
     MaxDevicesReached,
 
-    /// Device time is off by too much, Zk-nyms use will fail
-    DeviceTimeOutOfSync,
-
     /// Device is logged out
     DeviceLoggedOut,
 
@@ -348,7 +345,6 @@ impl std::fmt::Display for ErrorStateReason {
             Self::InactiveAccount => f.write_str("InactiveAccount"),
             Self::InactiveSubscription => f.write_str("InactiveSubscription"),
             Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
-            Self::DeviceTimeOutOfSync => f.write_str("DeviceTimeOutOfSync"),
             Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),
             Self::NeedFullDiskPermissions => f.write_str("NeedFullDiskPermissions"),
             Self::SplitTunnel => f.write_str("SplitTunnel"),
