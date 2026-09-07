@@ -290,9 +290,6 @@ pub struct VpnAccountSummary {
     /// Whether the current device is registered and active on this account.
     pub is_device_active: bool,
 
-    /// Whether the time was acceptably synced when the summary was built
-    pub time_synced: bool,
-
     /// Additional staleness flag
     pub stale: bool,
 
@@ -379,7 +376,6 @@ impl VpnAccountSummary {
     pub fn from_parts(
         api_summary: &nym_vpn_api_client::response::NymVpnAccountSummaryWithDeviceResponse,
         account_mode: nym_vpn_api_client::types::VpnAccountMode,
-        remote_time: nym_vpn_api_client::types::VpnApiTime,
     ) -> Result<Self, nym_vpn_api_client::error::VpnApiClientError> {
         let account_summary = &api_summary.account_summary;
         let traffic_reset_time = account_summary
@@ -425,7 +421,6 @@ impl VpnAccountSummary {
             account_status: account_summary.account.status.clone().into(),
             remaining_devices: account_summary.devices.remaining,
             is_device_active: api_summary.active_device.is_some(),
-            time_synced: remote_time.is_acceptable_synced(),
             stale: false,
             last_synced_utc: OffsetDateTime::now_utc(),
         })
@@ -740,13 +735,6 @@ mod tests {
 
     use super::*;
 
-    /// A `VpnApiTime` reporting zero skew, so summaries built in tests count as
-    /// time-synced.
-    fn synced_api_time() -> VpnApiTime {
-        let now = OffsetDateTime::now_utc();
-        VpnApiTime::from_estimated_remote_time(now, now)
-    }
-
     /// Build a `VpnAccountSummary` the way production code does: wrap the bare
     /// API summary in a with-device response (no active device) and run it
     /// through `from_parts` in API mode with a synced clock.
@@ -757,7 +745,7 @@ mod tests {
             account_summary: summary.clone(),
             active_device: None,
         };
-        VpnAccountSummary::from_parts(&with_device, VpnAccountMode::Api, synced_api_time())
+        VpnAccountSummary::from_parts(&with_device, VpnAccountMode::Api)
     }
 
     fn far_future_active_subscription() -> ApiNymVpnSubscription {
@@ -1029,7 +1017,6 @@ mod fair_usage_left_semantics_tests {
             account_status: VpnAccountStatus::Active,
             remaining_devices: 10,
             is_device_active: false,
-            time_synced: true,
             stale: false,
             last_synced_utc: OffsetDateTime::now_utc(),
         }

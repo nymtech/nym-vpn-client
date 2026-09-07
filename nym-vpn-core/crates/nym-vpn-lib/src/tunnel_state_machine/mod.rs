@@ -1657,9 +1657,6 @@ impl account::Error {
                 AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
                     Some(ErrorStateReason::MaxDevicesReached)
                 }
-                AcError::ErrorState(AccountControllerErrorStateReason::DeviceTimeDesynced) => {
-                    Some(ErrorStateReason::DeviceTimeOutOfSync)
-                }
                 AcError::ErrorState(AccountControllerErrorStateReason::Internal {
                     context,
                     details,

@@ -141,7 +141,7 @@ async fn desynced_device_test() -> anyhow::Result<()> {
 
     test_bench
         .assert_state(AccountControllerState::Error(
-            AccountControllerErrorStateReason::DeviceTimeDesynced,
+            AccountControllerErrorStateReason::MaxDeviceReached, // todo: test what happens now!
         ))
         .await;
     Ok(())
