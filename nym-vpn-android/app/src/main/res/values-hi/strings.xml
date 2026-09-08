@@ -148,7 +148,6 @@
 	<string name="error_invalid_exit_gateway_country">एग्ज़िट सर्वर के लिए अमान्य देश। कृपया कोई और चुनें और पुनः कनेक्ट करें।</string>
 	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
 	<string name="max_devices_error">अकाउंट डिवाइस सीमा से अधिक हो गई है। कृपया कनेक्ट करने से पहले अपने अकाउंट से एक डिवाइस हटा दें।</string>
-	<string name="device_time_out_of_sync">डिवाइस समय समन्वयित नहीं है</string>
 	<string name="error_ipv6_unavailable">Ipv6 उपलब्ध नहीं है</string>
 	<string name="error_device_logged_out">डिवाइस लॉग आउट हो गया है।</string>
 	<string name="error_inactive_account">अकाउंट स्थिति \"ऐक्टिव\" नहीं है।</string>

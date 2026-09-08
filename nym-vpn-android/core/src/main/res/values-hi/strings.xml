@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">आपका अकाउंट निष्क्रिय है।</string>
 	<string name="error_reason_inactive_subscription">आपकी सब्स्क्रिप्शन निष्क्रिय है।</string>
 	<string name="error_reason_max_devices_reached">अधिकतम डिवाइस सीमा पूरी हो गई है।</string>
-	<string name="error_reason_device_time_out_of_sync">डिवाइस का समय सिंक में नहीं है।</string>
 	<string name="error_reason_device_logged_out">डिवाइस लॉग आउट हो गया है।</string>
 	<string name="error_reason_internal">आंतरिक एरर: %1$s</string>
 </resources>

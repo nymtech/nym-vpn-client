@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">Hesabınız aktif değil.</string>
 	<string name="error_reason_inactive_subscription">Aboneliğiniz aktif değil.</string>
 	<string name="error_reason_max_devices_reached">Maksimum cihaz sayısına ulaşıldı.</string>
-	<string name="error_reason_device_time_out_of_sync">Cihaz saati senkronize değil.</string>
 	<string name="error_reason_device_logged_out">Cihazdan çıkış yapıldı.</string>
 	<string name="error_reason_internal">Dahili hata: %1$s</string>
 </resources>

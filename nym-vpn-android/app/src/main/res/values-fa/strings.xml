@@ -150,7 +150,6 @@
 	<string name="error_invalid_exit_gateway_country">گره کشور خروجی نامعتبر است، گره محل خروجی را تغییر دهید و دوباره متصل شوید.</string>
 	<string name="bandwidth_error">محدودیت داده روزانه به پایان رسیده است. برای افزایش وقفه حجم، سریعاً با پشتیبانی تماس بگیرید.</string>
 	<string name="max_devices_error">تعداد دستگاه های متصل به حساب کاربری شما از حداکثر مجاز عبور کرده. لطفاً قبل از اتصال، یکی از دستگاههای متصل را از حساب کاربری خود حذف کنید.</string>
-	<string name="device_time_out_of_sync">ساعت دستگاه همگام‌سازی نشده است</string>
 	<string name="error_ipv6_unavailable">Ipv6 در دسترس نیست</string>
 	<string name="error_device_logged_out">دستگاه از حساب کاربری خارج شده است.</string>
 	<string name="error_inactive_account">وضعیت حساب \"فعال\" نیست.</string>

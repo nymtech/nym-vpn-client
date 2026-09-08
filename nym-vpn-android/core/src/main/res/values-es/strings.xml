@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">Tu cuenta está inactiva.</string>
 	<string name="error_reason_inactive_subscription">Tu suscripción está inactiva.</string>
 	<string name="error_reason_max_devices_reached">Número máximo de dispositivos alcanzado.</string>
-	<string name="error_reason_device_time_out_of_sync">La hora del dispositivo está fuera de sincronización.</string>
 	<string name="error_reason_device_logged_out">El dispositivo está desconectado.</string>
 	<string name="error_reason_internal">Error interno: %1$s</string>
 </resources>

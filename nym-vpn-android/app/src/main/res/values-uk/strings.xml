@@ -148,7 +148,6 @@
 	<string name="error_invalid_exit_gateway_country">Неправильна країна для вихідного сервера. Виберіть іншу і підключіться знову.</string>
 	<string name="bandwidth_error">Досягнуто щоденний ліміт трафіку. Зверніться до служби підтримки, щоб швидко збільшити обсяг трафіку.</string>
 	<string name="max_devices_error">Перевищено ліміт пристроїв в акаунті. Будь ласка, видаліть пристрій з акаунта перед підключенням.</string>
-	<string name="device_time_out_of_sync">Час пристрою не синхронізовано</string>
 	<string name="error_ipv6_unavailable">Ipv6 недоступний</string>
 	<string name="error_device_logged_out">Пристрій вимкнено.</string>
 	<string name="error_inactive_account">Статус облікового запису не є «Активним».</string>

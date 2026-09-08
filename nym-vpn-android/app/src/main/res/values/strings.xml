@@ -169,7 +169,6 @@
 	<string name="error_credential_fetching_failed">Couldn\'t obtain the credentials needed to connect. Please try again.</string>
 	<string name="error_no_credential_available">No credentials are available to connect. Please try again.</string>
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
-	<string name="device_time_out_of_sync">Device time out of sync</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_device_logged_out">Device is logged out.</string>
 	<string name="error_inactive_account">Account status is not "Active".</string>
