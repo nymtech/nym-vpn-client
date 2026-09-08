@@ -59,11 +59,7 @@ pub struct DefaultRouteInterfaces {
 /// Windows, Linux, and macOS - not available on mobile platforms, where the
 /// OS itself only allows one active VPN configuration at a time.
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub async fn get_default_route_interfaces(
-    family: AddressFamily,
-) -> std::result::Result<DefaultRouteInterfaces, Error> {
-    imp::get_default_route_interfaces(family).await
-}
+pub use imp::get_default_route_interfaces;
 
 #[cfg(target_os = "linux")]
 use rtnetlink::packet_route::route::RouteHeader;
