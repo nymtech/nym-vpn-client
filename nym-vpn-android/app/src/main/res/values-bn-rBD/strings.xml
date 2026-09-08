@@ -148,7 +148,6 @@
 	<string name="error_invalid_exit_gateway_country">এক্সিট সার্ভারের জন্য নির্বাচিত দেশটি বৈধ নয়। অনুগ্রহ করে অন্য দেশ নির্বাচন করে পুনরায় সংযোগ করুন।</string>
 	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
 	<string name="max_devices_error">অ্যাকাউন্টে অনুমোদিত ডিভাইস সংখ্যা অতিক্রম করেছে। সংযোগ করার আগে অনুগ্রহ করে আপনার অ্যাকাউন্ট থেকে একটি ডিভাইস সরান।</string>
-	<string name="device_time_out_of_sync">ডিভাইসের সময় সিঙ্ক্রোনাইজ হয়নি</string>
 	<string name="error_ipv6_unavailable">IPv6 উপলব্ধ নেই</string>
 	<string name="error_device_logged_out">ডিভাইস থেকে লগ আউট করা হয়েছে।</string>
 	<string name="error_inactive_account">অ্যাকাউন্টের অবস্থা \"Active\" নয়।</string>

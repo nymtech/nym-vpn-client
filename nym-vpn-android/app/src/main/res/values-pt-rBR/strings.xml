@@ -150,7 +150,6 @@
 	<string name="error_invalid_exit_gateway_country">País inválido para o servidor de saída. Escolha outro e reconecte-se.</string>
 	<string name="bandwidth_error">Limite diário de dados atingido. Fale com o Suporte para um aumento rápido de dados.</string>
 	<string name="max_devices_error">Limite de dispositivos da conta excedido. Por favor, remova um dispositivo da sua conta antes de conectar.</string>
-	<string name="device_time_out_of_sync">Hora do dispositivo fora de sincronia</string>
 	<string name="error_ipv6_unavailable">Ipv6 Indisponível</string>
 	<string name="error_device_logged_out">O dispositivo foi desconectado.</string>
 	<string name="error_inactive_account">O status da conta não está “Ativo”.</string>

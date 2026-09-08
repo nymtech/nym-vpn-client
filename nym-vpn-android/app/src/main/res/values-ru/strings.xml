@@ -150,7 +150,6 @@
 	<string name="error_invalid_exit_gateway_country">Недопустимая страна для выходного шлюза. Выберите другую и подключитесь повторно.</string>
 	<string name="bandwidth_error">Дневной лимит данных исчерпан. Обратитесь в поддержку для быстрого пополнения.</string>
 	<string name="max_devices_error">Превышен лимит устройств для аккаунта. Пожалуйста, удалите одно из устройств из аккаунта перед подключением.</string>
-	<string name="device_time_out_of_sync">Время на устройстве не синхронизировано</string>
 	<string name="error_ipv6_unavailable">Ipv6 недоступен</string>
 	<string name="error_device_logged_out">Устройство вышло из системы.</string>
 	<string name="error_inactive_account">Статус учетной записи не \"Активен\".</string>

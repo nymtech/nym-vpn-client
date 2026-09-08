@@ -148,7 +148,6 @@
 	<string name="error_invalid_exit_gateway_country">Çıkış sunucusu için geçersiz bir ülke seçtiniz. Başka bir ülke seçip yeniden bağlanın.</string>
 	<string name="bandwidth_error">Günlük veri limitiniz doldu. Ek veri limiti almak için Destek ile iletişime geçin.</string>
 	<string name="max_devices_error">Hesap cihaz limitiniz aşıldı. Bağlanmadan önce hesabınızdan bir cihazı kaldırın.</string>
-	<string name="device_time_out_of_sync">Cihaz saati senkronize değil</string>
 	<string name="error_ipv6_unavailable">Ipv6 Kullanılamıyor</string>
 	<string name="error_device_logged_out">Cihazdan çıkış yapıldı.</string>
 	<string name="error_inactive_account">Hesap durumu \"Aktif\" değil.</string>

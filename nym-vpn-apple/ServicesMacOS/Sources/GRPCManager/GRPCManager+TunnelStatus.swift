@@ -71,8 +71,6 @@ extension GRPCManager {
             ErrorReason.setDns
         case let .internal(code):
             ErrorReason.internalError(code)
-        case .deviceTimeOutOfSync:
-            ErrorReason.deviceTimeOutOfSync
         case .ipv6Unavailable:
             ErrorReason.ipv6Unavailable
         case .inactiveSubscription:
@@ -149,8 +147,6 @@ extension ErrorReason {
             self = .inactiveAccount
         case .maxDevicesReached:
             self = .maxDevicesReached
-        case .deviceTimeOutOfSync:
-            self = .deviceTimeOutOfSync
         case .deviceLoggedOut:
             self = .deviceLoggedOut
         case .internal:

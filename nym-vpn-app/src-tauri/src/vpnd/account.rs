@@ -2,8 +2,7 @@ use crate::error::BackendError;
 
 use nym_vpn_lib_types as lib;
 use serde::Serialize;
-use tracing::{debug, instrument};
-use tracing::{info, warn};
+use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
 #[derive(strum::AsRefStr, Default, Serialize, Clone, Debug, TS)]
@@ -62,9 +61,6 @@ pub fn log_account_state(state: &lib::AccountControllerState) {
             lib::AccountControllerErrorStateReason::ApiFailure { context, details }
             | lib::AccountControllerErrorStateReason::Internal { context, details } => {
                 warn!("account state error: {e:?}, context: {context}, details: {details}",)
-            }
-            lib::AccountControllerErrorStateReason::DeviceTimeDesynced => {
-                warn!("account state error: {e:?}")
             }
             _ => info!("account state error: {e:?}"),
         },

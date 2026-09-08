@@ -150,7 +150,6 @@
 	<string name="error_invalid_exit_gateway_country">País no válido para el servidor de salida. Elige otro y vuelve a conectar.</string>
 	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
 	<string name="max_devices_error">Se ha superado el límite de dispositivo de cuenta. Elimina un dispositivo de tu cuenta antes de conectarte.</string>
-	<string name="device_time_out_of_sync">El tiempo del dispositivo no está sincronizado</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_device_logged_out">El dispositivo está desconectado.</string>
 	<string name="error_inactive_account">El estado de la cuenta no es \"Activo\".</string>

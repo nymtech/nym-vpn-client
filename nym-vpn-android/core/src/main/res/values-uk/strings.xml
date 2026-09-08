@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">Ваш обліковий запис неактивний.</string>
 	<string name="error_reason_inactive_subscription">Ваша підписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Досягнуто максимальної кількості пристроїв.</string>
-	<string name="error_reason_device_time_out_of_sync">Час пристрою не синхронізовано.</string>
 	<string name="error_reason_device_logged_out">Пристрій вимкнено.</string>
 	<string name="error_reason_internal">Внутрішня помилка: %1$s</string>
 </resources>

@@ -205,7 +205,6 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		accountStatus = VpnAccountStatus.ACTIVE,
 		remainingDevices = 4uL,
 		isDeviceActive = true,
-		timeSynced = true,
 		stale = false,
 		lastSyncedUtc = 1767225600L, // 2026-01-01
 	)
