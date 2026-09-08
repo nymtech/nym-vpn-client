@@ -24,6 +24,7 @@ use super::{
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
+use crate::stats::StatsReader;
 
 /// Classic WireGuard interface configuration.
 pub struct InterfaceConfig {
@@ -415,8 +416,8 @@ pub struct TunnelStatsReader {
     tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
 }
 
-impl TunnelStatsReader {
-    pub fn get_stats(&self) -> Result<TunnelStats> {
+impl StatsReader for TunnelStatsReader {
+    fn get_stats(&self) -> Result<TunnelStats> {
         let handle = self
             .tunnel_handle
             .read()
@@ -433,7 +434,9 @@ impl TunnelStatsReader {
         tracing::trace!("TunnelStats: '{s}'");
         Ok(Self::parse_tunnel_stats(&s))
     }
+}
 
+impl TunnelStatsReader {
     fn parse_tunnel_stats(response: &str) -> TunnelStats {
         let mut listen_port: Option<u16> = None;
         let mut peers: Vec<PeerStats> = Vec::new();

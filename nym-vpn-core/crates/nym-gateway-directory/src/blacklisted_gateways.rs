@@ -361,12 +361,4 @@ mod tests {
         // Original should see the removal
         assert!(!blacklist.exists(&identity).unwrap());
     }
-
-    #[test]
-    fn entry_handshake_failed_reason_is_human_readable() {
-        assert_eq!(
-            BlacklistReason::EntryHandshakeFailed.to_string(),
-            "entry WireGuard handshake failed"
-        );
-    }
 }

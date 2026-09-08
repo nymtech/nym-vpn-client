@@ -21,6 +21,7 @@ use super::{
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
+use crate::stats::StatsReader;
 
 /// Netstack interface configuration.
 pub struct InterfaceConfig {
@@ -101,8 +102,8 @@ pub struct TunnelStatsReader {
     tunnel_handle: i32,
 }
 
-impl TunnelStatsReader {
-    pub fn get_stats(&self) -> Result<TunnelStats> {
+impl StatsReader for TunnelStatsReader {
+    fn get_stats(&self) -> Result<TunnelStats> {
         if self.tunnel_handle < 0 {
             return Err(Error::TunnelStopped);
         }

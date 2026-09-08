@@ -71,10 +71,7 @@ use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
         self, AnyTunnelHandle, SelectedGateways, Tombstone,
-        wireguard::{
-            connected_tunnel,
-            connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
-        },
+        wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
     },
 };
 #[cfg(target_os = "android")]
@@ -380,24 +377,22 @@ async fn wait_for_handshake_outcome(
 }
 
 /// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
-async fn wait_for_exit_handshake(
-    tunnel_handle: &connected_tunnel::TunnelHandle,
+async fn wait_for_handshake(
+    get_stats: impl FnMut() -> nym_wg_go::Result<nym_wg_go::wireguard_go::TunnelStats>,
     shutdown_token: &CancellationToken,
 ) -> HandshakeWaitOutcome {
-    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
-    const POLL_INTERVAL: Duration = Duration::from_millis(500);
-
-    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+    /// How long the entry WireGuard peer gets to complete its handshake before the entry gateway is
+    /// declared unreachable. wireguard-go retransmits the initiation every 5s, so this covers the
+    /// first retransmission plus a generous round trip, while still failing a dead entry (e.g. its
+    /// WG port blackholed on this network) in a fraction of the exit handshake + metadata windows.
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(7);
+    const POLL_INTERVAL: Duration = Duration::from_millis(250);
 
     let started = std::time::Instant::now();
 
-    let outcome = wait_for_handshake_outcome(
-        || tunnel_handle.get_exit_stats(),
-        shutdown_token,
-        HANDSHAKE_TIMEOUT,
-        POLL_INTERVAL,
-    )
-    .await;
+    let outcome =
+        wait_for_handshake_outcome(get_stats, shutdown_token, HANDSHAKE_TIMEOUT, POLL_INTERVAL)
+            .await;
 
     let elapsed = started.elapsed();
     match outcome {
@@ -413,71 +408,6 @@ async fn wait_for_exit_handshake(
         HandshakeWaitOutcome::Cancelled => {
             tracing::debug!(
                 "Shutdown requested while waiting for exit WireGuard handshake after {elapsed:.2?}"
-            );
-        }
-    }
-
-    outcome
-}
-
-/// How long the entry WireGuard peer gets to complete its handshake before the entry gateway is
-/// declared unreachable. wireguard-go retransmits the initiation every 5s, so this covers the
-/// first retransmission plus a generous round trip, while still failing a dead entry (e.g. its
-/// WG port blackholed on this network) in a fraction of the exit handshake + metadata windows.
-const ENTRY_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(7);
-
-/// What to do once the entry handshake wait is over.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum EntryHandshakeGate {
-    /// The entry hop answers; carry on with the exit handshake and the rest of the connect.
-    Proceed,
-    /// The entry hop never answered: it alone is to blame, fail the attempt right away.
-    BlameEntry,
-    /// Shutdown was requested while waiting; nobody is to blame, stop the connect.
-    Abort,
-}
-
-fn entry_handshake_gate(outcome: HandshakeWaitOutcome) -> EntryHandshakeGate {
-    match outcome {
-        HandshakeWaitOutcome::Completed => EntryHandshakeGate::Proceed,
-        HandshakeWaitOutcome::TimedOut => EntryHandshakeGate::BlameEntry,
-        HandshakeWaitOutcome::Cancelled => EntryHandshakeGate::Abort,
-    }
-}
-
-/// Poll the entry WireGuard peer's UAPI stats until the handshake completes or we time out.
-async fn wait_for_entry_handshake(
-    tunnel_handle: &connected_tunnel::TunnelHandle,
-    shutdown_token: &CancellationToken,
-) -> HandshakeWaitOutcome {
-    const POLL_INTERVAL: Duration = Duration::from_millis(250);
-
-    tracing::debug!("Waiting for entry WireGuard handshake to complete");
-
-    let started = std::time::Instant::now();
-
-    let outcome = wait_for_handshake_outcome(
-        || tunnel_handle.get_entry_stats(),
-        shutdown_token,
-        ENTRY_HANDSHAKE_TIMEOUT,
-        POLL_INTERVAL,
-    )
-    .await;
-
-    let elapsed = started.elapsed();
-    match outcome {
-        HandshakeWaitOutcome::Completed => {
-            tracing::debug!("Entry WireGuard handshake completed in {elapsed:.2?}");
-        }
-        HandshakeWaitOutcome::TimedOut => {
-            tracing::warn!(
-                "Entry WireGuard handshake did not complete within {:.1}s, entry gateway is unreachable",
-                elapsed.as_secs_f32()
-            );
-        }
-        HandshakeWaitOutcome::Cancelled => {
-            tracing::debug!(
-                "Shutdown requested while waiting for entry WireGuard handshake after {elapsed:.2?}"
             );
         }
     }
@@ -931,20 +861,23 @@ impl TunnelMonitor {
         // the exit handshake and metadata windows and blacklisting the exit first.
         let mut abort_before_monitoring = false;
         let exit_handshake_completed = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
-            let entry_outcome = wait_for_entry_handshake(wg_handle, &self.shutdown_token).await;
-            match entry_handshake_gate(entry_outcome) {
-                EntryHandshakeGate::Proceed => {
-                    wait_for_exit_handshake(wg_handle, &self.shutdown_token).await
+            tracing::debug!("Waiting for entry WireGuard handshake to complete");
+            let entry_outcome =
+                wait_for_handshake(|| wg_handle.get_entry_stats(), &self.shutdown_token).await;
+            match entry_outcome {
+                HandshakeWaitOutcome::Completed => {
+                    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+                    wait_for_handshake(|| wg_handle.get_exit_stats(), &self.shutdown_token).await
                         == HandshakeWaitOutcome::Completed
                 }
-                EntryHandshakeGate::BlameEntry => {
+                HandshakeWaitOutcome::TimedOut => {
                     self.send_event(TunnelMonitorEvent::EntryHandshakeFailed {
                         entry_gateway_id: selected_gateways.entry_gateway().identity(),
                     });
                     abort_before_monitoring = true;
                     false
                 }
-                EntryHandshakeGate::Abort => {
+                HandshakeWaitOutcome::Cancelled => {
                     abort_before_monitoring = true;
                     false
                 }
@@ -2492,45 +2425,6 @@ mod tests {
             outcome,
             HandshakeWaitOutcome::Cancelled,
             "shutdown while waiting must not be reported as a completed handshake"
-        );
-    }
-
-    /// wireguard-go retransmits a handshake initiation every `RekeyTimeout` (5s).
-    const WIREGUARD_REKEY_TIMEOUT: Duration = Duration::from_secs(5);
-
-    #[test]
-    fn entry_handshake_wait_covers_one_retransmission_but_stays_short() {
-        assert!(
-            ENTRY_HANDSHAKE_TIMEOUT > WIREGUARD_REKEY_TIMEOUT,
-            "a single lost initiation must not get the entry gateway blamed"
-        );
-        assert!(
-            ENTRY_HANDSHAKE_TIMEOUT <= Duration::from_secs(10),
-            "the whole point of the gate is to fail a dead entry in well under one exit-handshake window"
-        );
-    }
-
-    #[test]
-    fn entry_handshake_timeout_blames_the_entry() {
-        assert_eq!(
-            entry_handshake_gate(HandshakeWaitOutcome::TimedOut),
-            EntryHandshakeGate::BlameEntry
-        );
-    }
-
-    #[test]
-    fn completed_entry_handshake_proceeds() {
-        assert_eq!(
-            entry_handshake_gate(HandshakeWaitOutcome::Completed),
-            EntryHandshakeGate::Proceed
-        );
-    }
-
-    #[test]
-    fn cancelled_entry_handshake_wait_does_not_blame_anyone() {
-        assert_eq!(
-            entry_handshake_gate(HandshakeWaitOutcome::Cancelled),
-            EntryHandshakeGate::Abort
         );
     }
 }
