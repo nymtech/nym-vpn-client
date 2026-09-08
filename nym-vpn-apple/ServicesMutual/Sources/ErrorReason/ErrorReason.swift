@@ -33,7 +33,6 @@ public enum ErrorReason: LocalizedError, Codable {
     case apiResponse(String)
     case registrationInProgress
     case internalError(String)
-    case deviceTimeOutOfSync
     case ipv6Unavailable
     case inactiveSubscription
     case tunDevice
@@ -78,8 +77,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .credentialFetchingFailed
         case .noCredentialAvailable:
             self = .noCredentialAvailable
-        case .deviceTimeOutOfSync:
-            self = .deviceTimeOutOfSync
         case .ipv6Unavailable:
             self = .ipv6Unavailable
         case .inactiveSubscription:
@@ -169,8 +166,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .registrationInProgress
         case .internalError:
             self = .internalError(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .deviceTimeOutOfSync:
-            self = .deviceTimeOutOfSync
         case .apiTimeout:
             self = .apiTimeout
         case .apiStatusCode:
@@ -278,8 +273,6 @@ private extension ErrorReason {
             "errorReason.registrationInProgress".localizedString
         case let .internalError(message):
             message
-        case .deviceTimeOutOfSync:
-            "errorReason.deviceTimeOutOfSync".localizedString
         case .apiTimeout:
             "errorReason.apiTimeout".localizedString
         case let .apiStatusCode(code):
@@ -359,7 +352,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case apiResponse
     case internalError
     case registrationInProgress
-    case deviceTimeOutOfSync
     case ipv6Unavailable
     case inactiveSubscription
     case tunDevice
@@ -412,8 +404,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .registrationInProgress
         case .internalError:
             self = .internalError
-        case .deviceTimeOutOfSync:
-            self = .deviceTimeOutOfSync
         case .apiTimeout:
             self = .apiTimeout
         case .apiStatusCode:

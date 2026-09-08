@@ -1,457 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "errorReason.connectionAttemptsExceeded" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't establish the connection after several attempts. Please try again."
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.amneziaBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AmneziaWG"
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.blocking" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avoid VPN blocking with "
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.disguise" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disguise WireGuard with "
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.firewalls" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get around firewalls with "
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.postQuantum" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " security"
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.postQuantumBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Post-quantum"
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.quicBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "QUIC"
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.stealthBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stealth Connect"
-          }
-        }
-      }
-    },
-    "onboarding26.censorship.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nym gets you around"
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.amnezia" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " fork of WireGuard"
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.amneziaBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AmneziaWG"
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.decentralized" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " 2-hop network"
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.decentralizedBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Decentralized"
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.privacy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Privacy for all your web activities"
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.tagline" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Can’t snitch - won’t snitch network design."
-          }
-        }
-      }
-    },
-    "onboarding26.dvpn.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your dVPN"
-          }
-        }
-      }
-    },
-    "onboarding26.getStarted" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get started"
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.anonymous" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The most "
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.anonymousBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "anonymous"
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.anonymousSuffix" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " way to be online"
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.hops" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5-hop "
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.mixnetBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "mixnet"
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.noise" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " with "
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.noiseBold" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "noise"
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.patterns" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Customize your traffic patterns"
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.tagline" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protecting metadata fingerprints."
-          }
-        }
-      }
-    },
-    "onboarding26.mixnet.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your mixnet"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.communityFavorite" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NYM COMMUNITY FAVORITE"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.freeTrial" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+ %@ free trial"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.oneMonth" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 month"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.price" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ / month"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.save" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "save %@"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.startingAt" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Starting at "
-          }
-        }
-      }
-    },
-    "onboarding26.plan.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What plan works for you?"
-          }
-        }
-      }
-    },
-    "onboarding26.plan.try" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Or try for "
-          }
-        }
-      }
-    },
-    "onboarding26.plan.trySuffix" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ", no commitment."
-          }
-        }
-      }
-    },
-    "onboarding26.plan.yearPlan" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1-year plan & "
-          }
-        }
-      }
-    },
-    "onboarding26.welcome.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your private access to\nan "
-          }
-        }
-      }
-    },
-    "onboarding26.welcome.subtitleEmphasis" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "internet without walls"
-          }
-        }
-      }
-    },
-    "onboarding26.welcome.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome to NymVPN"
-          }
-        }
-      }
-    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -8317,6 +7866,17 @@
         }
       }
     },
+    "errorReason.connectionAttemptsExceeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't establish the connection after several attempts. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.createLogFailed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8638,107 +8198,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "设备已登出。"
-          }
-        }
-      }
-    },
-    "errorReason.deviceTimeOutOfSync" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "وقت الجهاز غير متزامن. الرجاء مزامنة وقت جهازك مع الإنترنت."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Gerätezeit ist nicht synchronisiert. Bitte synchronisieren Sie die Zeit Ihres Geräts mit dem Internet."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Device time is out of sync. Please synchronize your device's time with the internet."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La hora del dispositivo está fuera de sincronización. Por favor, sincronice la hora de su dispositivo con Internet."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ساعت دستگاه همگام‌سازی نشده است. لطفا ساعت دستگاه خود را از طریق اینترنت همگام‌سازی کنید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'heure de votre appareil n'est pas synchronisée. Veuillez synchroniser l'heure de votre appareil avec celle d'Internet."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "\"डिवाइस का समय समन्वय में नहीं है। कृपया अपने डिवाइस के समय को इंटरनेट के साथ समन्वयित करें।\""
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il tempo del dispositivo non è sincronizzato. Si prega di sincronizzare l'ora del dispositivo con Internet."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "端末の時刻が同期されていません。端末の時刻をインターネットと同期してください。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O tempo do dispositivo está fora de sincronização. Por favor, sincronize o tempo do seu dispositivo com a internet."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O tempo do dispositivo está fora de sincronização. Por favor, sincronize o tempo do seu dispositivo com a internet."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Время устройства не синхронизировано. Пожалуйста, синхронизируйте время вашего устройства с интернетом."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Час пристрою не синхронізовано. Будь ласка, синхронізуйте час вашого пристрою з Інтернетом."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设备时间不同步，请将设备时间和互联网时间同步。"
           }
         }
       }
@@ -13787,6 +13246,83 @@
         }
       }
     },
+    "gatewaysView.favorite.add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Add to favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.favorite.remove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Remove from favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.allServers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "All servers"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.favorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Favorites"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.noFavorites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No favorite servers yet"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.noRecents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No recently used servers yet"
+          }
+        }
+      }
+    },
+    "gatewaysView.filter.recent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Recent"
+          }
+        }
+      }
+    },
     "gatewaysView.nodes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13996,83 +13532,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在这里"
-          }
-        }
-      }
-    },
-    "gatewaysView.favorite.add" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Add to favorites"
-          }
-        }
-      }
-    },
-    "gatewaysView.favorite.remove" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Remove from favorites"
-          }
-        }
-      }
-    },
-    "gatewaysView.filter.allServers" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "All servers"
-          }
-        }
-      }
-    },
-    "gatewaysView.filter.favorites" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Favorites"
-          }
-        }
-      }
-    },
-    "gatewaysView.filter.noFavorites" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "No favorite servers yet"
-          }
-        }
-      }
-    },
-    "gatewaysView.filter.noRecents" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "No recently used servers yet"
-          }
-        }
-      }
-    },
-    "gatewaysView.filter.recent" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Recent"
           }
         }
       }
@@ -15555,6 +15014,17 @@
         }
       }
     },
+    "geoExclusion.server" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
+          }
+        }
+      }
+    },
     "geoExclusion.setup.app.step1" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15760,17 +15230,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setup instructions"
-          }
-        }
-      }
-    },
-    "geoExclusion.server" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server"
           }
         }
       }
@@ -21244,6 +20703,446 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Speed when you need it. Privacy when it matters."
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.amneziaBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AmneziaWG"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.blocking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoid VPN blocking with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.disguise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disguise WireGuard with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.firewalls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get around firewalls with "
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.postQuantum" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " security"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.postQuantumBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Post-quantum"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.quicBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.stealthBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stealth Connect"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nym gets you around"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.amnezia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " fork of WireGuard"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.amneziaBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AmneziaWG"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.decentralized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 2-hop network"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.decentralizedBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decentralized"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy for all your web activities"
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t snitch - won’t snitch network design."
+          }
+        }
+      }
+    },
+    "onboarding26.dvpn.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your dVPN"
+          }
+        }
+      }
+    },
+    "onboarding26.getStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get started"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.anonymous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The most "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.anonymousBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "anonymous"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.anonymousSuffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " way to be online"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.hops" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5-hop "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.mixnetBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mixnet"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.noise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " with "
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.noiseBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "noise"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.patterns" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customize your traffic patterns"
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protecting metadata fingerprints."
+          }
+        }
+      }
+    },
+    "onboarding26.mixnet.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your mixnet"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.communityFavorite" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NYM COMMUNITY FAVORITE"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.freeTrial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ %@ free trial"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.oneMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 month"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.price" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ / month"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "save %@"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.startingAt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting at "
+          }
+        }
+      }
+    },
+    "onboarding26.plan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What plan works for you?"
+          }
+        }
+      }
+    },
+    "onboarding26.plan.try" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Or try for "
+          }
+        }
+      }
+    },
+    "onboarding26.plan.trySuffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", no commitment."
+          }
+        }
+      }
+    },
+    "onboarding26.plan.yearPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-year plan & "
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your private access to\nan "
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.subtitleEmphasis" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "internet without walls"
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to NymVPN"
           }
         }
       }
