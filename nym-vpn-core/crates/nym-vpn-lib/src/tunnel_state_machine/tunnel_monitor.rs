@@ -29,7 +29,7 @@ use nym_gateway_directory::{
 };
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tun::AbstractDevice;
 #[cfg(windows)]
@@ -761,7 +761,7 @@ impl TunnelMonitor {
             StartTunnelResult {
                 tunnel_interface,
                 tunnel_conn_data,
-                mut tunnel_handle,
+                tunnel_handle,
             },
             wg_tunnel_runtime,
             mixnet_client_token,
@@ -859,7 +859,6 @@ impl TunnelMonitor {
         // answers at all: an entry whose handshake never completes is dead from this network
         // regardless of the exit, so it is failed fast and blamed alone instead of waiting out
         // the exit handshake and metadata windows and blacklisting the exit first.
-        let mut abort_before_monitoring = false;
         let exit_handshake_completed = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
             tracing::debug!("Waiting for entry WireGuard handshake to complete");
             let entry_outcome =
@@ -874,12 +873,22 @@ impl TunnelMonitor {
                     self.send_event(TunnelMonitorEvent::EntryHandshakeFailed {
                         entry_gateway_id: selected_gateways.entry_gateway().identity(),
                     });
-                    abort_before_monitoring = true;
-                    false
+                    return Ok(Self::await_shutdown(
+                        wg_tunnel_runtime,
+                        None,
+                        tunnel_handle,
+                        shutdown_guard,
+                    )
+                    .await);
                 }
                 HandshakeWaitOutcome::Cancelled => {
-                    abort_before_monitoring = true;
-                    false
+                    return Ok(Self::await_shutdown(
+                        wg_tunnel_runtime,
+                        None,
+                        tunnel_handle,
+                        shutdown_guard,
+                    )
+                    .await);
                 }
             }
         } else {
@@ -976,9 +985,6 @@ impl TunnelMonitor {
         });
 
         loop {
-            if abort_before_monitoring {
-                break;
-            }
             tokio::select! {
                 event = tunnel_connection_monitor_rx.recv() => {
                     let Some(event) = event else {
@@ -1110,6 +1116,23 @@ impl TunnelMonitor {
             }
         }
 
+        Ok(Self::await_shutdown(
+            wg_tunnel_runtime,
+            Some(tunnel_connection_monitor_handle),
+            tunnel_handle,
+            shutdown_guard,
+        )
+        .await)
+    }
+
+    async fn await_shutdown(
+        wg_tunnel_runtime: Option<WgTunnelRuntime>,
+        tunnel_connection_monitor_handle: Option<
+            JoinHandle<Result<(), nym_connection_monitor::Error>>,
+        >,
+        mut tunnel_handle: AnyTunnelHandle,
+        shutdown_guard: DropGuard,
+    ) -> Tombstone {
         // Trigger cancellation since many other tasks depend on shutdown token
         drop(shutdown_guard);
 
@@ -1132,7 +1155,9 @@ impl TunnelMonitor {
             }
         }
 
-        if let Err(e) = tunnel_connection_monitor_handle.await {
+        if let Some(tunnel_connection_monitor_handle) = tunnel_connection_monitor_handle
+            && let Err(e) = tunnel_connection_monitor_handle.await
+        {
             tracing::error!("Tunnel connection monitor exited with error: {}", e);
         }
 
@@ -1149,7 +1174,7 @@ impl TunnelMonitor {
 
         tracing::info!("Tunnel monitor finished");
 
-        Ok(tun_devices)
+        tun_devices
     }
 
     async fn await_account_readiness_with_retry(&mut self) -> Result<(), Error> {
