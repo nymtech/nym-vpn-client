@@ -1,5 +1,17 @@
 # Nym VPN Core
 
+[![Coverage Status](https://coveralls.io/repos/github/nymtech/nym-vpn-client/badge.svg?branch=develop)](https://coveralls.io/github/nymtech/nym-vpn-client?branch=develop)
+
+## How we test
+
+Coveralls is line coverage for a named Rust crate set (`ci-coverage.yml`), not the whole client and not a product %.
+
+- Core: `cargo test --workspace` on Linux / macOS / Windows (`ci-nym-vpn-core-*.yml`). Privileged `nym-ifconfig` is a separate job.
+- Testharness: 18 live Debian cases against real `nym-vpnd` (`e2e-test.yml`, `crates/test`). That is the Linux tunnel primary-path suite, not the majority of tests in this repo.
+- Apple: XCTest under `nym-vpn-apple`.
+- Desktop UI: Playwright (`ci-playwright-tauri.yml`).
+- Mobile UI: Maestro Android / iOS.
+
 ## Clone Git repository
 
 Use the following command to clone repository with submodules:
