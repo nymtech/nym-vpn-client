@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
+- Verify the entry handshake and blacklist entry early if needed (https://github.com/nymtech/nym-vpn-client/pull/6308)
 
 ### Fixed
 

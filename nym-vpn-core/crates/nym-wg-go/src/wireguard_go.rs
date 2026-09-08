@@ -24,6 +24,7 @@ use super::{
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
+use crate::stats::StatsReader;
 
 /// Classic WireGuard interface configuration.
 pub struct InterfaceConfig {
@@ -404,14 +405,19 @@ impl TunnelStats {
     pub fn all_peers_connected(&self) -> bool {
         !self.peers.is_empty() && self.peers.iter().all(|p| p.has_completed_handshake())
     }
+
+    /// Parse the textual UAPI `get=1` response of a WireGuard device.
+    pub fn parse(response: &str) -> Self {
+        TunnelStatsReader::parse_tunnel_stats(response)
+    }
 }
 
 pub struct TunnelStatsReader {
     tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
 }
 
-impl TunnelStatsReader {
-    pub fn get_stats(&self) -> Result<TunnelStats> {
+impl StatsReader for TunnelStatsReader {
+    fn get_stats(&self) -> Result<TunnelStats> {
         let handle = self
             .tunnel_handle
             .read()
@@ -425,10 +431,11 @@ impl TunnelStatsReader {
         }
         let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
         unsafe { wgFreePtr(raw as *mut c_void) };
-        tracing::trace!("TunnelStats: '{s}'");
         Ok(Self::parse_tunnel_stats(&s))
     }
+}
 
+impl TunnelStatsReader {
     fn parse_tunnel_stats(response: &str) -> TunnelStats {
         let mut listen_port: Option<u16> = None;
         let mut peers: Vec<PeerStats> = Vec::new();
@@ -621,5 +628,40 @@ impl WgLogLevel {
             x if x == WgLogLevel::Verbose as u32 => Some(WgLogLevel::Verbose),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const UAPI_TWO_PEERS: &str = "private_key=00\n\
+listen_port=51820\n\
+public_key=1111111111111111111111111111111111111111111111111111111111111111\n\
+endpoint=1.2.3.4:51820\n\
+last_handshake_time_sec=1700000000\n\
+last_handshake_time_nsec=5\n\
+rx_bytes=10\n\
+tx_bytes=20\n\
+public_key=2222222222222222222222222222222222222222222222222222222222222222\n\
+endpoint=5.6.7.8:51820\n\
+last_handshake_time_sec=0\n\
+last_handshake_time_nsec=0\n\
+rx_bytes=0\n\
+tx_bytes=30\n\
+errno=0\n";
+
+    #[test]
+    fn parse_reports_per_peer_handshake_state() {
+        let stats = TunnelStats::parse(UAPI_TWO_PEERS);
+
+        assert_eq!(stats.listen_port, Some(51820));
+        assert_eq!(stats.peers.len(), 2);
+        assert!(stats.peers[0].has_completed_handshake());
+        assert!(
+            !stats.peers[1].has_completed_handshake(),
+            "a zero handshake timestamp means the peer never handshaked"
+        );
+        assert!(!stats.all_peers_connected());
     }
 }
