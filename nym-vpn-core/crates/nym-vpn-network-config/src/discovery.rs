@@ -4,7 +4,8 @@
 use crate::{
     AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
 };
-use nym_vpn_api_client::response::{ApiUrl, NymWellknownDiscoveryItemResponse};
+pub use nym_network_defaults::v2::{DnsFallback, NetworkingSpecifics};
+use nym_vpn_api_client::response::NymWellknownDiscoveryItemResponse;
 
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
 static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
@@ -25,21 +26,6 @@ pub struct Discovery {
 
     #[serde(default)]
     pub system_messages: SystemMessages,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct NetworkingSpecifics {
-    pub nym_api_urls: Vec<ApiUrl>,
-    pub nym_vpn_api_urls: Vec<ApiUrl>,
-    pub dns_fallbacks: Vec<DnsFallback>,
-    // pub internal_nameservers: std::any::Any,
-    // pub covert channels: std::any::Any,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct DnsFallback {
-    pub url: String,
-    pub addresses: Vec<String>,
 }
 
 impl Discovery {
@@ -74,25 +60,11 @@ impl Discovery {
     }
 
     pub fn nym_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
-        self.networking
-            .nym_api_urls
-            .iter()
-            .map(|api_url| nym_network_defaults::ApiUrl {
-                url: api_url.url.clone(),
-                front_hosts: api_url.fronts.clone(),
-            })
-            .collect()
+        self.networking.nym_api_urls.clone()
     }
 
     pub fn nym_vpn_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
-        self.networking
-            .nym_vpn_api_urls
-            .iter()
-            .map(|api_url| nym_network_defaults::ApiUrl {
-                url: api_url.url.clone(),
-                front_hosts: api_url.fronts.clone(),
-            })
-            .collect()
+        self.networking.nym_vpn_api_urls.clone()
     }
 }
 
@@ -122,24 +94,14 @@ impl From<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
-        let networking = discovery
-            .networking
-            .map(|networking| NetworkingSpecifics {
-                nym_api_urls: networking.nym_api_urls,
-                nym_vpn_api_urls: networking.nym_vpn_api_urls,
-                dns_fallbacks: networking
-                    .dns_fallbacks
-                    .into_iter()
-                    .map(|fallback| DnsFallback {
-                        url: fallback.url,
-                        addresses: fallback.addresses,
-                    })
-                    .collect(),
-            })
-            .unwrap_or_else(|| {
-                tracing::warn!("Discovery response is missing the networking section");
-                NetworkingSpecifics::default()
-            });
+        let networking = discovery.networking.unwrap_or_else(|| {
+            tracing::warn!("Discovery response is missing the networking section");
+            NetworkingSpecifics {
+                nym_api_urls: Vec::new(),
+                nym_vpn_api_urls: Vec::new(),
+                dns_fallbacks: Vec::new(),
+            }
+        });
 
         Self {
             network_name: discovery.network_name,
@@ -241,13 +203,13 @@ mod tests {
                 "nym_api_urls": [
                     {
                         "url": "https://foo.ch/api/",
-                        "fronts": ["foobar.ch", "qux.baz"]
+                        "front_hosts": ["foobar.ch", "qux.baz"]
                     }
                 ],
                 "nym_vpn_api_urls": [
                     {
                         "url": "https://bar.ch/api/",
-                        "fronts": ["quxbar.ch", "qux.baz"]
+                        "front_hosts": ["quxbar.ch", "qux.baz"]
                     }
                 ],
                 "dns_fallbacks": [
@@ -302,13 +264,13 @@ mod tests {
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
             networking: NetworkingSpecifics {
-                nym_api_urls: vec![ApiUrl {
+                nym_api_urls: vec![nym_network_defaults::ApiUrl {
                     url: "https://foo.ch/api/".to_owned(),
-                    fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
+                    front_hosts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
                 }],
-                nym_vpn_api_urls: vec![ApiUrl {
+                nym_vpn_api_urls: vec![nym_network_defaults::ApiUrl {
                     url: "https://bar.ch/api/".to_owned(),
-                    fronts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),
+                    front_hosts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),
                 }],
                 dns_fallbacks: vec![DnsFallback {
                     url: "foo.ch".to_owned(),

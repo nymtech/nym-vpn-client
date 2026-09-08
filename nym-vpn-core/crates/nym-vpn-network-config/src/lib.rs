@@ -65,14 +65,14 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
-    dns_fallbacks: HashMap<String, Vec<IpAddr>>,
+    dns_fallbacks: HashMap<String, HashSet<IpAddr>>,
 }
 
-fn dns_fallback_addr_map(fallbacks: &[discovery::DnsFallback]) -> HashMap<String, Vec<IpAddr>> {
+fn dns_fallback_addr_map(fallbacks: &[discovery::DnsFallback]) -> HashMap<String, HashSet<IpAddr>> {
     fallbacks
         .iter()
         .filter_map(|fallback| {
-            let addrs: Vec<IpAddr> = fallback
+            let addrs: HashSet<IpAddr> = fallback
                 .addresses
                 .iter()
                 .filter_map(|addr| {
@@ -140,7 +140,7 @@ impl Network {
 
     /// Map of hostname to fallback IP addresses to use for DNS resolution when the primary
     /// resolver fails, as configured by discovery.
-    pub fn dns_fallback_addr_map(&self) -> HashMap<String, Vec<IpAddr>> {
+    pub fn dns_fallback_addr_map(&self) -> HashMap<String, HashSet<IpAddr>> {
         self.dns_fallbacks.clone()
     }
 
@@ -616,10 +616,8 @@ mod tests {
             },
         ]);
 
-        assert_eq!(
-            addrs.get("good.example.com"),
-            Some(&vec!["1.2.3.4".parse().unwrap()])
-        );
+        let expected = HashSet::from(["1.2.3.4".parse().unwrap()]);
+        assert_eq!(addrs.get("good.example.com"), Some(&expected));
         assert!(!addrs.contains_key("all-bad.example.com"));
     }
 }
