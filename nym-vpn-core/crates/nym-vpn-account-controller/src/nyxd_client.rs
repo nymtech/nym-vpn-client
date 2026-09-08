@@ -3,7 +3,7 @@
 
 use nym_validator_client::{
     DirectSigningHttpRpcNyxdClient,
-    nyxd::{Coin, Config, CosmWasmClient, cosmwasm_client::types::Account},
+    nyxd::{Coin, Config, TendermintRpcClientExt, cosmwasm_client::types::Account},
 };
 use nym_vpn_lib_types::{AccountCommandError, Mnemonic};
 use nym_vpn_network_config::Network;
