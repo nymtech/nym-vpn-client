@@ -729,7 +729,7 @@ mod tests {
             NymVpnSubscriptionKind as ApiNymVpnSubscriptionKind,
             NymVpnSubscriptionStatus as ApiNymVpnSubscriptionStatus,
         },
-        types::{VpnAccountMode, VpnApiTime},
+        types::VpnAccountMode,
     };
     use tracing_test::traced_test;
 
