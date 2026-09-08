@@ -88,6 +88,15 @@ impl CredentialRequestTask {
                 pending_request.id
             );
             return self.finalize_zk_nym_request(pending_request).await;
+        } else if let failed_pending = self.failed_requests_of_type(ticketbook_type).await?
+            && !failed_pending.is_empty()
+        {
+            // do a cleanup of pending requests before creating new ones
+            for p in failed_pending {
+                if let Err(err) = self.pending_storage.remove_pending_request(&p.id).await {
+                    tracing::warn!("Could not remove failed pending request: {err}");
+                }
+            }
         }
 
         let pending_request = self.create_pending_zk_nym_request(ticketbook_type).await?;
@@ -296,6 +305,51 @@ impl CredentialRequestTask {
         Ok(pending
             .into_iter()
             .find(|request| available_ids.contains(&request.id)))
+    }
+
+    async fn failed_requests_of_type(
+        &self,
+        ticketbook_type: TicketType,
+    ) -> Result<Vec<PendingCredentialRequest>, VpnApiFetcherError> {
+        let pending = self.pending_storage.get_pending_requests().await?;
+
+        if pending.is_empty() {
+            // early return to avoid unnecessary network call
+            return Ok(vec![]);
+        }
+
+        let ticketbook_type = ticketbook_type.to_string();
+        let all_ids = self
+            .vpn_api_client
+            .get_device_zk_nyms(&self.account, &self.device)
+            .await
+            .map_err(VpnApiFetcherError::vpn_api_error("get_device_zk_nyms"))?
+            .items
+            .into_iter()
+            .map(
+                |NymVpnZkNym {
+                     id,
+                     status,
+                     ticketbook_type,
+                     ..
+                 }| { (id, (ticketbook_type, status)) },
+            )
+            .collect::<HashMap<_, _>>();
+        let failed_pending = pending
+            .into_iter()
+            .filter(|p| {
+                let Some((typ, status)) = all_ids.get(&p.id) else {
+                    return true;
+                };
+                if *typ != ticketbook_type {
+                    return false;
+                }
+                matches!(status, NymVpnZkNymStatus::Error)
+                    || matches!(status, NymVpnZkNymStatus::Revoked)
+            })
+            .collect();
+
+        Ok(failed_pending)
     }
 
     /// Returns the `(id, ticketbook_type)` of every zk-nym the API has ready for us to download.
