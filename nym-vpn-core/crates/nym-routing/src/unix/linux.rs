@@ -903,6 +903,13 @@ impl NetworkInterface {
     /// Linux (WireGuard, OpenVPN/TAP, PPP-based clients, NetworkManager's
     /// generic tun devices).
     fn is_tunnel_like(&self) -> bool {
+        if matches!(
+            self.link_layer_type,
+            LinkLayerType::Tunnel | LinkLayerType::Tunnel6 | LinkLayerType::Ppp
+        ) {
+            return true;
+        }
+
         const TUNNEL_PREFIXES: &[&str] = &["wg", "tun", "tap", "ppp"];
         TUNNEL_PREFIXES
             .iter()
@@ -917,7 +924,7 @@ impl NetworkInterface {
 /// Opens its own short-lived netlink connection rather than reusing a
 /// running [`RouteManagerImpl`], since this is meant to be a cheap,
 /// standalone, read-only query.
-pub(crate) async fn get_default_route_interfaces(
+pub async fn get_default_route_interfaces(
     family: crate::AddressFamily,
 ) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
     let (connection, mut handle, _) = rtnetlink::new_connection().map_err(Error::Connect)?;
