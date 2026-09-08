@@ -655,3 +655,99 @@ fn create_response_nym_gateway(
         family_data: None,
     }
 }
+
+fn gw_at_latitude(id: &str, latitude: f64, score: ScoreValue) -> Gateway {
+    Gateway::builder()
+        .identity(NodeIdentity::from_base58_string(id).unwrap())
+        .location(Location {
+            two_letter_iso_country_code: "XX".to_owned(),
+            latitude,
+            longitude: 0.0,
+            city: String::new(),
+            region: String::new(),
+            asn: None,
+        })
+        .performance(Performance {
+            last_updated_utc: String::new(),
+            score,
+            mixnet_score: score,
+            load: ScoreValue::Low,
+            uptime_percentage_last_24_hours: 1f32,
+        })
+        .build()
+}
+
+fn latitude_distance_to_equator(gw1: &Gateway, gw2: &Gateway) -> std::cmp::Ordering {
+    let lat = |gw: &Gateway| {
+        gw.location
+            .as_ref()
+            .map(|l| l.latitude.abs())
+            .unwrap_or(f64::MAX)
+    };
+    lat(gw1).total_cmp(&lat(gw2))
+}
+
+const CLOSEST_IDS: [&str; 6] = [
+    "24h2yanCFU5iy7xNQmW6RowFa6EzmAYQdM1bs8Y1X6iH",
+    "26ZmTxTVBKHZg8MTKwypHkXZVJhDC7QHuv3BdsyRyTuk",
+    "27GwHdmXLULVieyXmxZ6v9DHzRJtTEjfode1dzbptEAK",
+    "28tXg9mEW4mifgU1TdetVVAN5PvmhtLpHzFRMfJBT6ND",
+    "29U3LythwEaqigL5YajXALw1c7DE7YNcRW7Vn7KcYMQL",
+    "2aZj5UjC4N3SMjfJNjFiaHPqg1sgKDBYwaLozxGePQxW",
+];
+
+#[test]
+fn closest_pick_is_spread_over_the_nearest_candidates_only() {
+    // Gateways sit at increasing distance from the reference (the equator).
+    let gateways = CLOSEST_IDS
+        .iter()
+        .enumerate()
+        .map(|(i, id)| gw_at_latitude(id, i as f64 * 10.0, ScoreValue::High))
+        .collect();
+    let list = GatewayList::new(Some(GatewayType::Wg), gateways);
+
+    let mut picked = std::collections::HashSet::new();
+    for _ in 0..300 {
+        let gw = list
+            .find_best_ordering_criteria_gateway(
+                latitude_distance_to_equator,
+                &GatewayFilters::default(),
+            )
+            .unwrap();
+        picked.insert(gw.identity().to_base58_string());
+    }
+
+    let nearest: std::collections::HashSet<String> = CLOSEST_IDS[..CLOSEST_GATEWAY_CANDIDATES]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    assert!(
+        picked.is_subset(&nearest),
+        "only the {CLOSEST_GATEWAY_CANDIDATES} nearest gateways may be picked, got {picked:?}"
+    );
+    assert!(
+        picked.len() > 1,
+        "the pick must be spread across candidates so one dead node does not hit every user"
+    );
+}
+
+#[test]
+fn closest_pick_still_prefers_the_better_score_tier_over_distance() {
+    let mut gateways: Vec<Gateway> = CLOSEST_IDS[..3]
+        .iter()
+        .enumerate()
+        .map(|(i, id)| gw_at_latitude(id, i as f64, ScoreValue::Medium))
+        .collect();
+    gateways.push(gw_at_latitude(CLOSEST_IDS[5], 80.0, ScoreValue::High));
+    let list = GatewayList::new(Some(GatewayType::Wg), gateways);
+
+    for _ in 0..50 {
+        let gw = list
+            .find_best_ordering_criteria_gateway(
+                latitude_distance_to_equator,
+                &GatewayFilters::default(),
+            )
+            .unwrap();
+        assert_eq!(gw.identity().to_base58_string(), CLOSEST_IDS[5]);
+    }
+}
