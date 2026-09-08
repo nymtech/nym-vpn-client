@@ -2478,7 +2478,7 @@ impl NymVpnService {
         self.recents_manager
             .get_recent(tunnel_type)
             .await
-            .map_err(|error| ListGatewaysError::GetRecentGateways(Box::new(error)))
+            .map_err(ListGatewaysError::GetRecentGateways)
     }
 
     async fn handle_set_profile(&mut self, profile: Profile) {

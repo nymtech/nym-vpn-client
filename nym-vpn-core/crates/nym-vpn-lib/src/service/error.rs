@@ -113,7 +113,7 @@ pub enum ListGatewaysError {
     },
 
     #[error("failed to get recent gateways ({0})")]
-    GetRecentGateways(Box<FavoritesError>),
+    GetRecentGateways(FavoritesError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
