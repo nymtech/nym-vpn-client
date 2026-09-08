@@ -617,10 +617,8 @@ mod tests {
             },
         ]);
 
-        assert_eq!(
-            addrs.get("good.example.com"),
-            Some(&vec!["1.2.3.4".parse().unwrap()])
-        );
+        let expected = HashSet::from(["1.2.3.4".parse().unwrap()]);
+        assert_eq!(addrs.get("good.example.com"), Some(&expected));
         assert!(!addrs.contains_key("all-bad.example.com"));
     }
 }

@@ -7,7 +7,7 @@
       },
       {
         "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
-        "fronts": ["yelp.global.ssl.fastly.net"]
+        "front_hosts": ["yelp.global.ssl.fastly.net"]
       }
     ],
     "nym_vpn_api_urls": [
@@ -16,7 +16,7 @@
       },
       {
         "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
-        "fronts": ["yelp.global.ssl.fastly.net"]
+        "front_hosts": ["yelp.global.ssl.fastly.net"]
       }
     ],
     "dns_fallbacks": [
