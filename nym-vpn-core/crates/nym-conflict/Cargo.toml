@@ -17,7 +17,9 @@ tokio = { workspace = true, features = ["net", "time", "rt"] }
 nym-routing.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
-mnl = { workspace = true, features = ["mnl-1-0-4"] }
+netlink-sys = "0.8.8"
+netlink-packet-core = "0.9.0"
+netlink-packet-netfilter = "0.4.0"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }
