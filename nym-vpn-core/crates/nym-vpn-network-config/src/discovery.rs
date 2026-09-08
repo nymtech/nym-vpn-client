@@ -5,13 +5,14 @@ use crate::{
     AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
 };
 pub use nym_network_defaults::v2::{DnsFallback, NetworkingSpecifics};
-use nym_vpn_api_client::response::NymWellknownDiscoveryItemResponse;
+use nym_vpn_api_client::response::{ApiUrl as LegacyApiUrl, NymWellknownDiscoveryItemResponse};
 
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
 static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(from = "DiscoveryOnDisk")]
 pub struct Discovery {
     // Base network setup
     pub network_name: String,
@@ -26,6 +27,93 @@ pub struct Discovery {
 
     #[serde(default)]
     pub system_messages: SystemMessages,
+}
+
+/// On-disk shapes accepted when deserializing a [`Discovery`], oldest tried last.
+///
+/// Prior to the introduction of the nested `networking` field, a persisted `Discovery` stored
+/// `nym_api_url`/`nym_api_urls`/`nym_vpn_api_url`/`nym_vpn_api_urls` directly on the struct. This
+/// lets clients that persisted the old shape upgrade without hitting a deserialization error and
+/// losing/refetching their cached discovery.
+#[derive(serde::Deserialize)]
+#[serde(untagged)]
+enum DiscoveryOnDisk {
+    Current(CurrentDiscovery),
+    LegacyFlatNetworking(LegacyDiscovery),
+}
+
+#[derive(serde::Deserialize)]
+struct CurrentDiscovery {
+    network_name: String,
+    networking: NetworkingSpecifics,
+    account_management: Option<AccountManagement>,
+    feature_flags: Option<FeatureFlags>,
+    system_configuration: Option<SystemConfiguration>,
+    #[serde(default)]
+    system_messages: SystemMessages,
+}
+
+#[derive(serde::Deserialize)]
+struct LegacyDiscovery {
+    network_name: String,
+    nym_api_url: url::Url,
+    nym_api_urls: Vec<LegacyApiUrl>,
+    nym_vpn_api_url: url::Url,
+    nym_vpn_api_urls: Vec<LegacyApiUrl>,
+    account_management: Option<AccountManagement>,
+    feature_flags: Option<FeatureFlags>,
+    system_configuration: Option<SystemConfiguration>,
+    #[serde(default)]
+    system_messages: SystemMessages,
+}
+
+impl From<DiscoveryOnDisk> for Discovery {
+    fn from(value: DiscoveryOnDisk) -> Self {
+        match value {
+            DiscoveryOnDisk::Current(current) => Self {
+                network_name: current.network_name,
+                networking: current.networking,
+                account_management: current.account_management,
+                feature_flags: current.feature_flags,
+                system_configuration: current.system_configuration,
+                system_messages: current.system_messages,
+            },
+            DiscoveryOnDisk::LegacyFlatNetworking(legacy) => legacy.into(),
+        }
+    }
+}
+
+impl From<LegacyDiscovery> for Discovery {
+    fn from(legacy: LegacyDiscovery) -> Self {
+        let to_api_urls = |single: url::Url, many: Vec<LegacyApiUrl>| {
+            if many.is_empty() {
+                vec![nym_network_defaults::ApiUrl {
+                    url: single.to_string(),
+                    front_hosts: None,
+                }]
+            } else {
+                many.into_iter()
+                    .map(|api_url| nym_network_defaults::ApiUrl {
+                        url: api_url.url,
+                        front_hosts: api_url.fronts,
+                    })
+                    .collect()
+            }
+        };
+
+        Self {
+            network_name: legacy.network_name,
+            networking: NetworkingSpecifics {
+                nym_api_urls: to_api_urls(legacy.nym_api_url, legacy.nym_api_urls),
+                nym_vpn_api_urls: to_api_urls(legacy.nym_vpn_api_url, legacy.nym_vpn_api_urls),
+                dns_fallbacks: Vec::new(),
+            },
+            account_management: legacy.account_management,
+            feature_flags: legacy.feature_flags,
+            system_configuration: legacy.system_configuration,
+            system_messages: legacy.system_messages,
+        }
+    }
 }
 
 impl Discovery {
@@ -327,5 +415,84 @@ mod tests {
             system_configuration: None,
         };
         assert_eq!(network, expected_network);
+    }
+
+    /// Prior to the `networking` field being introduced, a persisted [`Discovery`] stored its
+    /// api urls flattened directly on the struct (`nym_api_url`, `nym_api_urls`,
+    /// `nym_vpn_api_url`, `nym_vpn_api_urls`). Clients that persisted a cache in that shape must
+    /// be able to load it after upgrading instead of hitting a deserialization error.
+    #[test]
+    fn test_deserialize_legacy_flat_networking_format() {
+        let json = r#"{
+            "network_name": "mainnet",
+            "nym_api_url": "https://api.foo.ch/",
+            "nym_api_urls": [
+                {
+                    "url": "https://api.foo.ch/",
+                    "fronts": ["foobar.ch"]
+                }
+            ],
+            "nym_vpn_api_url": "https://vpn-api.foo.ch/",
+            "nym_vpn_api_urls": [],
+            "account_management": null,
+            "feature_flags": null,
+            "system_configuration": null,
+            "system_messages": []
+        }"#;
+
+        let discovery: Discovery = serde_json::from_str(json).unwrap();
+
+        assert_eq!(discovery.network_name, "mainnet");
+        assert_eq!(
+            discovery.networking.nym_api_urls,
+            vec![nym_network_defaults::ApiUrl {
+                url: "https://api.foo.ch/".to_owned(),
+                front_hosts: Some(vec!["foobar.ch".to_owned()]),
+            }]
+        );
+        // Falls back to the singular field since the plural one is empty, matching the
+        // pre-migration getter behaviour.
+        assert_eq!(
+            discovery.networking.nym_vpn_api_urls,
+            vec![nym_network_defaults::ApiUrl {
+                url: "https://vpn-api.foo.ch/".to_owned(),
+                front_hosts: None,
+            }]
+        );
+        assert!(discovery.networking.dns_fallbacks.is_empty());
+        assert_eq!(discovery.account_management, None);
+        assert_eq!(discovery.feature_flags, None);
+        assert_eq!(discovery.system_configuration, None);
+    }
+
+    /// Round-tripping through [`PersistentRecord`] (i.e. the actual on-disk cache format) must
+    /// also tolerate the legacy shape, since that's the type that gets serialized to/read from
+    /// disk by [`crate::persistent_discovery::PersistentDiscovery`].
+    #[test]
+    fn test_deserialize_legacy_persistent_record() {
+        let json = r#"{
+            "updated_at": null,
+            "value": {
+                "network_name": "sandbox",
+                "nym_api_url": "https://api.sandbox.ch/",
+                "nym_api_urls": [],
+                "nym_vpn_api_url": "https://vpn-api.sandbox.ch/",
+                "nym_vpn_api_urls": [],
+                "account_management": null,
+                "feature_flags": null,
+                "system_configuration": null,
+                "system_messages": []
+            }
+        }"#;
+
+        let record: crate::PersistentRecord<Box<Discovery>> = serde_json::from_str(json).unwrap();
+        assert_eq!(record.value.network_name, "sandbox");
+        assert_eq!(
+            record.value.networking.nym_api_urls,
+            vec![nym_network_defaults::ApiUrl {
+                url: "https://api.sandbox.ch/".to_owned(),
+                front_hosts: None,
+            }]
+        );
     }
 }

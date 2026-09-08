@@ -191,6 +191,64 @@ mod tests {
         );
     }
 
+    /// A cache file written by a client prior to the introduction of the nested `networking`
+    /// field must still load without a deserialization error, and its contents must be used
+    /// as-is rather than silently discarded in favour of the pre-bundled defaults.
+    #[tokio::test]
+    async fn test_load_legacy_flat_networking_cache_format() {
+        let cache_dir = tempdir().unwrap();
+        let mainnet_store = PersistentDiscovery::path(cache_dir.path(), "mainnet");
+        tokio::fs::create_dir_all(mainnet_store.parent().unwrap())
+            .await
+            .unwrap();
+
+        // Deliberately different from the bundled default mainnet discovery so that a
+        // successful load can only be explained by parsing this legacy payload.
+        let legacy_json = r#"{
+            "updated_at": null,
+            "value": {
+                "network_name": "mainnet",
+                "nym_api_url": "https://legacy.example.com/api/",
+                "nym_api_urls": [],
+                "nym_vpn_api_url": "https://legacy.example.com/vpn-api/",
+                "nym_vpn_api_urls": [],
+                "account_management": null,
+                "feature_flags": null,
+                "system_configuration": null,
+                "system_messages": []
+            }
+        }"#;
+        tokio::fs::write(&mainnet_store, legacy_json).await.unwrap();
+
+        let persistent_discovery =
+            PersistentDiscovery::new_from_cache(cache_dir.path().to_path_buf(), "mainnet")
+                .await
+                .unwrap();
+
+        assert_eq!(persistent_discovery.value().network_name, "mainnet");
+        assert_eq!(
+            persistent_discovery.value().nym_api_urls(),
+            vec![nym_network_defaults::ApiUrl {
+                url: "https://legacy.example.com/api/".to_owned(),
+                front_hosts: None,
+            }]
+        );
+        assert_eq!(
+            persistent_discovery.value().nym_vpn_api_urls(),
+            vec![nym_network_defaults::ApiUrl {
+                url: "https://legacy.example.com/vpn-api/".to_owned(),
+                front_hosts: None,
+            }]
+        );
+        assert!(
+            persistent_discovery
+                .value()
+                .networking
+                .dns_fallbacks
+                .is_empty()
+        );
+    }
+
     #[tokio::test]
     async fn test_should_prohibit_inconsistent_update() {
         let cache_dir = tempdir().unwrap();
