@@ -79,7 +79,7 @@ pub enum Error {
 
 /// Get every interface currently holding a default-route-shaped entry, for
 /// the given address family. See [`crate::DefaultRouteInterfaces`].
-pub(crate) async fn get_default_route_interfaces(
+pub async fn get_default_route_interfaces(
     family: crate::AddressFamily,
 ) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
     route_dump::get_default_route_interfaces(family)

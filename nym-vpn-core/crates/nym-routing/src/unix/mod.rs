@@ -33,7 +33,7 @@ mod imp;
 pub use imp::Error as PlatformError;
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-pub(crate) use imp::get_default_route_interfaces;
+pub use imp::get_default_route_interfaces;
 
 /// Errors that can be encountered whilst initializing route manager
 #[derive(thiserror::Error, Debug)]
