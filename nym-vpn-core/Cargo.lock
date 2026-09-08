@@ -1491,6 +1491,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 
 [[package]]
+name = "convert_case"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1635,7 +1641,7 @@ dependencies = [
  "cosmwasm-core",
  "cosmwasm-crypto",
  "cosmwasm-derive",
- "derive_more",
+ "derive_more 1.0.0",
  "hex",
  "rand_core 0.6.4",
  "rmp-serde",
@@ -2209,6 +2215,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab63b0e2bf4d5928aff72e83a7dace85d7bba5fe12dcc3c5a572d78caffd3f3c"
 dependencies = [
  "derive_builder_core",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "derive_more"
+version = "0.99.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6edb4b64a43d977b8e99788fe3a04d483834fba1215a7e02caa415b626497f7f"
+dependencies = [
+ "convert_case",
+ "proc-macro2",
+ "quote",
+ "rustc_version",
  "syn 2.0.117",
 ]
 
@@ -4917,6 +4936,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "netlink-packet-core"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d6e2daf9a8c2e21302714706860a0e6be02e03d17294ecc66b354ea7d4059dd"
+
+[[package]]
+name = "netlink-packet-netfilter"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c185c39f3e48167a2eec4f73138b0f24066d9300016e7df9fbb513ae85f706ed"
+dependencies = [
+ "bitflags 2.11.0",
+ "derive_more 0.99.20",
+ "libc",
+ "netlink-packet-core 0.9.0",
+ "zerocopy",
+]
+
+[[package]]
 name = "netlink-packet-route"
 version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4925,7 +4963,7 @@ dependencies = [
  "bitflags 2.11.0",
  "libc",
  "log",
- "netlink-packet-core",
+ "netlink-packet-core 0.8.1",
 ]
 
 [[package]]
@@ -4937,7 +4975,7 @@ dependencies = [
  "bytes",
  "futures",
  "log",
- "netlink-packet-core",
+ "netlink-packet-core 0.8.1",
  "netlink-sys",
  "thiserror 2.0.18",
 ]
@@ -5592,7 +5630,9 @@ name = "nym-conflict"
 version = "2026.13.0-beta.1"
 dependencies = [
  "ipnetwork",
- "mnl",
+ "netlink-packet-core 0.9.0",
+ "netlink-packet-netfilter",
+ "netlink-sys",
  "nym-routing",
  "tokio",
  "tracing",
@@ -9420,7 +9460,7 @@ dependencies = [
  "futures-channel",
  "futures-util",
  "log",
- "netlink-packet-core",
+ "netlink-packet-core 0.8.1",
  "netlink-packet-route",
  "netlink-proto",
  "netlink-sys",
