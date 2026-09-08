@@ -31,7 +31,8 @@ sealed interface ConnectionState {
 			Tunnel.State.Down -> Disconnected
 			Tunnel.State.Up -> Connected
 			Tunnel.State.Disconnecting -> Disconnecting
-			Tunnel.State.Offline -> WaitingForConnection
+			// only a reconnect-armed session is "waiting"; see Tunnel.State.Offline
+			is Tunnel.State.Offline -> if (tunnelState.reconnect) WaitingForConnection else Offline
 
 			is Tunnel.State.Error -> Error(tunnelState.reason)
 

@@ -4,7 +4,7 @@ import AccountPrefetchGates
 @testable import Home
 
 @MainActor
-private final class FakeProcessing: AccountProcessing {
+final class FakeProcessing: AccountProcessing {
     enum Call: Equatable, Sendable {
         case ensure
         case prepare
@@ -102,7 +102,7 @@ private final class FakeProcessing: AccountProcessing {
 }
 
 @MainActor
-private final class FakeCoordinator: AppSessionCoordinating {
+final class FakeCoordinator: AppSessionCoordinating {
     private(set) var actions: [CoordinatorAction] = []
 
     func handle(_ action: CoordinatorAction) {
@@ -111,7 +111,7 @@ private final class FakeCoordinator: AppSessionCoordinating {
 }
 
 @MainActor
-private func makeViewModel(
+func makeViewModel(
     flow: ProcessingFlow,
     processing: FakeProcessing,
     coordinator: FakeCoordinator,
@@ -128,6 +128,12 @@ private func makeViewModel(
 }
 
 @MainActor
+func finishSetupCarousel(_ viewModel: ProcessingAccountViewModel) async {
+    viewModel.animationDidFinish()
+    await viewModel.awaitFinalMessage()
+}
+
+@MainActor
 struct ProcessingAccountViewModelTests {
     @Test func loginRunsImportPrepSyncPrefetchThenAdvances() async {
         let processing = FakeProcessing()
@@ -137,7 +143,7 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls == [.ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
-        await viewModel.awaitFinalMessage()
+        await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -164,8 +170,8 @@ struct ProcessingAccountViewModelTests {
             .isActive,
             .prefetch
         ])
-        #expect(viewModel.phase == .finished || viewModel.phase == .finalizing)
-        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .awaitingAdvance)
+        await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -203,7 +209,7 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls == [.ensure, .sync, .isActive, .prefetch])
-        await viewModel.awaitFinalMessage()
+        await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
     }
 
@@ -228,7 +234,7 @@ struct ProcessingAccountViewModelTests {
 
         #expect(processing.calls == [.ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
-        await viewModel.awaitFinalMessage()
+        await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
     }
 
@@ -252,48 +258,47 @@ struct ProcessingAccountViewModelTests {
         }
     }
 
-    @Test func advanceWhenWorkCompletesWithoutWaitingForCarousel() async {
+    @Test func workCompleteBeforeCarousel_holdsFirstSegmentUntilSetupTicks() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
 
-        #expect(viewModel.didFinishSetupCarousel)
-        #expect(viewModel.didFinishAnimatingText)
-        #expect(viewModel.currentStep == 4)
-
-        await viewModel.awaitFinalMessage()
-        #expect(viewModel.phase == .finished)
-        #expect(coordinator.actions == [.session(.processingFinished)])
+        #expect(!viewModel.didFinishSetupCarousel)
+        #expect(!viewModel.didFinishAnimatingText)
+        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
+        #expect(coordinator.actions.isEmpty)
+        #expect(viewModel.credentialsDisplayPair == nil)
     }
 
-    @Test func inactiveAccountAdvancesToStepFourWithoutPrefetch() async {
+    @Test func inactiveAccountHoldsSetupBarsUntilCarouselFinishes() async {
         let processing = FakeProcessing()
         processing.accountActive = false
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
         #expect(viewModel.credentialsDisplayPair == nil)
-        #expect(viewModel.didFinishSetupCarousel)
+        #expect(!viewModel.didFinishSetupCarousel)
 
-        await viewModel.awaitFinalMessage()
+        await finishSetupCarousel(viewModel)
+        #expect(viewModel.currentStep == 4)
         #expect(viewModel.phase == .finished)
     }
 
-    @Test func navigationAdvancesWhenWorkCompletesBeforeCarousel() async {
+    @Test func navigationWaitsForCarouselAfterWorkCompletes() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
+        #expect(coordinator.actions.isEmpty)
 
+        await finishSetupCarousel(viewModel)
         #expect(viewModel.didFinishSetupCarousel)
         #expect(viewModel.didFinishAnimatingText)
-
-        await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
         #expect(coordinator.actions == [.session(.processingFinished)])
     }
@@ -432,7 +437,7 @@ struct ProcessingAccountViewModelTests {
         #expect(deviceIndex < prepareIndex)
     }
 
-    @Test func prefetchCompletingBeforeCarouselDoesNotRegressProgressBar() async {
+    @Test func prefetchCompletingBeforeCarousel_sequencesBarsThenHoldsFourth() async {
         let processing = FakeProcessing()
         processing.prefetchDelay = .zero
         let coordinator = FakeCoordinator()
@@ -441,13 +446,21 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
+        #expect(!viewModel.didFinishSetupCarousel)
+        #expect(viewModel.credentialsDisplayPair == nil)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 1)
+        #expect(viewModel.currentStep == 2)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 2)
+        #expect(viewModel.currentStep == 3)
+
+        viewModel.animationDidFinish()
         #expect(viewModel.currentStep == 4)
         #expect(viewModel.didFinishSetupCarousel)
 
         viewModel.noteSetupCarouselStepBarTick(atIndex: 0)
-        #expect(viewModel.currentStep == 4)
-
-        viewModel.noteSetupCarouselStepBarTick(atIndex: 1)
         #expect(viewModel.currentStep == 4)
 
         await viewModel.awaitFinalMessage()
@@ -482,18 +495,18 @@ struct ProcessingAccountViewModelTests {
 
         #expect(viewModel.phase == .prefetching)
         #expect(viewModel.hasReachedPrefetchPhase)
-        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
         #expect(viewModel.setupCarouselIndex == 0)
         #expect(!viewModel.didFinishSetupCarousel)
-        #expect(viewModel.credentialsDisplayPair != nil)
+        #expect(viewModel.credentialsDisplayPair == nil)
 
         processing.releasePrepare()
         await runTask.value
-        await viewModel.awaitFinalMessage()
+        await finishSetupCarousel(viewModel)
         #expect(viewModel.phase == .finished)
     }
 
-    @Test func syncSummaryRefresh_keepsPrefetchPhaseWhenLatchSet() async {
+    @Test func syncSummaryRefresh_keepsPrefetchPhaseAfterSetupFinishes() async {
         let processing = FakeProcessing()
         processing.preparePhaseScript = [.requestingZkNyms]
         let coordinator = FakeCoordinator()
@@ -502,6 +515,8 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
+        viewModel.animationDidFinish()
         #expect(viewModel.currentStep == 4)
     }
 }

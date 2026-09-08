@@ -47,12 +47,14 @@ impl CachedData {
             tracing::info!("Fetching partial verification keys for epoch: {epoch_id}");
             let issuers = self
                 .vpn_api_client
-                .get_directory_zk_nyms_ticketbook_partial_verification_keys()
+                .get_directory_zk_nyms_ticketbook_partial_verification_keys(epoch_id)
                 .await
                 .map_err(VpnApiFetcherError::vpn_api_error(
                     "get_directory_zk_nyms_ticketbook_partial_verification_keys",
                 ))?;
 
+            // a vpn-api deployed without the `epoch-id` param ignores it and answers with the
+            // current epoch, which is indistinguishable from never having asked
             if issuers.epoch_id != epoch_id {
                 return Err(VpnApiFetcherError::EpochIdMismatch);
             }

@@ -34,6 +34,7 @@ pub enum TunnelError {
     NeedsDeviceLocation,
     CredentialFetchingFailed,
     NoCredentialAvailable,
+    ConnectionAttemptsExceeded,
 }
 
 impl From<lib::ErrorStateReason> for TunnelError {
@@ -79,6 +80,9 @@ impl From<lib::ErrorStateReason> for TunnelError {
                 TunnelError::CredentialFetchingFailed
             }
             lib::ErrorStateReason::NoCredentialAvailable => TunnelError::NoCredentialAvailable,
+            lib::ErrorStateReason::ConnectionAttemptsExceeded => {
+                TunnelError::ConnectionAttemptsExceeded
+            }
         }
     }
 }

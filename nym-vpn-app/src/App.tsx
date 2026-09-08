@@ -13,6 +13,7 @@ import {
   TopBarProvider,
   TrayProvider,
 } from './contexts';
+import { describeError } from './errors';
 import { useLang } from './hooks';
 import { LngTag, detectSystemLocale } from './i18n';
 import { kvGet } from './kvStore';
@@ -53,7 +54,9 @@ function App({ init }: { init: InitState }) {
         await set(lng, false);
       }
     };
-    setLng();
+    setLng().catch((e: unknown) => {
+      console.error(`failed to set the UI language: ${describeError(e)}`);
+    });
   }, [set]);
 
   return (

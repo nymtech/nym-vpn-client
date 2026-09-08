@@ -24,7 +24,11 @@ async function logToRust(level: Level, message: string) {
 }
 
 function forwardConsole(fnName: ConsoleFn, level: Level) {
-  const original = console[fnName];
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  const original = console[fnName] as (
+    message?: unknown,
+    ...rest: unknown[]
+  ) => void;
   console[fnName] = (message?: unknown, ...rest: unknown[]) => {
     original(message, ...rest);
     const messageStr =

@@ -42,6 +42,9 @@ pub struct RequestZkNymRequestBody {
     pub ecash_pubkey: String,
     pub expiration_date: String,
     pub ticketbook_type: String,
+    /// Make sure credential proxy knows we can differentiate between epochs
+    /// (allows us to request during DKG ceremony)
+    pub epoch_aware: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

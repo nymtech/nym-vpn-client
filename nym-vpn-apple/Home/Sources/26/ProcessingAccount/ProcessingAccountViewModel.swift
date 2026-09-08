@@ -45,6 +45,7 @@ public final class ProcessingAccountViewModel {
     private(set) var setupCarouselIndex = 0
     /// Set when backend prefetch begins; keeps bar segment 4 until navigation advances.
     private(set) var hasReachedPrefetchPhase = false
+    @ObservationIgnored private var isCarouselInterrupted = false
 
     var didFinishAnimatingText = false {
         didSet { evaluateAdvance() }
@@ -75,7 +76,8 @@ public final class ProcessingAccountViewModel {
         guard let keys = LoginProcessingProgressPolicy.credentialsCopyKeys(
             isSyncing: phase == .syncing,
             isPrefetching: phase == .prefetching,
-            holdsPrefetchCopyThroughAdvance: holdsPrefetchCopyThroughAdvance
+            holdsPrefetchCopyThroughAdvance: holdsPrefetchCopyThroughAdvance,
+            didFinishSetupCarousel: didFinishSetupCarousel
         ) else { return nil }
         return (keys.title.localizedString, keys.subtitle.localizedString)
     }
@@ -100,7 +102,6 @@ public final class ProcessingAccountViewModel {
     func start() {
         switch phase {
         case .awaitingAdvance:
-            latchSetupCarouselIfNeeded()
             updateAnimationReady()
             evaluateAdvance()
             return
@@ -246,6 +247,17 @@ public final class ProcessingAccountViewModel {
         updateAnimationReady()
     }
 
+    /// Background / teardown only. Foreground work-complete still waits for animation (#6156).
+    func noteCarouselInterrupted() {
+        isCarouselInterrupted = true
+        latchCarouselIfWorkCompleteAndInterrupted()
+    }
+
+    func noteCarouselResumed() {
+        latchCarouselIfWorkCompleteAndInterrupted()
+        isCarouselInterrupted = false
+    }
+
     /// Awaits the post-advance welcome-message delay. Test hook only.
     func awaitFinalMessage() async {
         await finalMessageTask?.value
@@ -259,15 +271,16 @@ public final class ProcessingAccountViewModel {
         }
         phase = .awaitingAdvance
         syncProgressStep()
-        latchSetupCarouselIfNeeded()
         workCompleted = true
+        latchCarouselIfWorkCompleteAndInterrupted()
         updateAnimationReady()
     }
 
-    private func latchSetupCarouselIfNeeded() {
-        guard !usesStaticCopy, !didFinishSetupCarousel else { return }
-        didFinishSetupCarousel = true
-        syncProgressStep()
+    private func latchCarouselIfWorkCompleteAndInterrupted() {
+        guard !usesStaticCopy, workCompleted, isCarouselInterrupted, !didFinishSetupCarousel else {
+            return
+        }
+        animationDidFinish()
     }
 
     private func updateAnimationReady() {

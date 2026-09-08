@@ -14,7 +14,7 @@ pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_vpn_api_client::types::{GatewayMinPerformance, NaiveFloat, Percent};
 
 pub use crate::{
-    blacklisted_gateways::BlacklistedGateways,
+    blacklisted_gateways::{BlacklistReason, BlacklistedGateways},
     entries::{
         auth_addresses::AuthAddress,
         country::Country,

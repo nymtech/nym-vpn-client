@@ -56,7 +56,11 @@ static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<Vec<NameServerConfig>> = LazyLock::n
         .chain(QUAD9.https())
         .chain(CLOUDFLARE.tls())
         .chain(CLOUDFLARE.https())
-        .collect()
+        .filter(|ns| {
+            // Exclude IPv6 addresses due to reliability issues
+            ns.ip.is_ipv4()
+        })
+        .collect::<Vec<_>>()
 });
 
 /// Routing table id used for routing all traffic through the tunnel.

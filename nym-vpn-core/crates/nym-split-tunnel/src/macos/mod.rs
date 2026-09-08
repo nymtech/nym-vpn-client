@@ -552,12 +552,12 @@ impl State {
                     Err(error) => {
                         return Err(ErrorWithTransition {
                             error: error.into(),
-                            next_state: Some(State::Active {
+                            next_state: Some(Box::new(State::Active {
                                 route_manager,
                                 process,
                                 tun_handle,
                                 vpn_interface: old_vpn_interface,
-                            }),
+                            })),
                         });
                     }
                 };
@@ -592,10 +592,10 @@ impl State {
                     Err(error) => {
                         return Err(ErrorWithTransition {
                             error: error.into(),
-                            next_state: Some(State::ProcessMonitorOnly {
+                            next_state: Some(Box::new(State::ProcessMonitorOnly {
                                 route_manager,
                                 process,
-                            }),
+                            })),
                         });
                     }
                 };
@@ -666,7 +666,7 @@ impl State {
                 error,
                 next_state: Some(next_state),
             }) => {
-                *self = next_state;
+                *self = *next_state;
                 Err(error)
             }
             Err(ErrorWithTransition {
@@ -694,7 +694,7 @@ async fn classify_packet(packet: &PktapPacket, proc_states: ProcessStates) -> Ro
 
 struct ErrorWithTransition {
     error: Error,
-    next_state: Option<State>,
+    next_state: Option<Box<State>>,
 }
 
 impl<T: Into<Error>> From<T> for ErrorWithTransition {

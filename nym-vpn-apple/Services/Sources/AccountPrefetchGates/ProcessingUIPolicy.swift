@@ -116,8 +116,10 @@ public enum LoginProcessingProgressPolicy: Sendable {
     public static func credentialsCopyKeys(
         isSyncing: Bool,
         isPrefetching: Bool,
-        holdsPrefetchCopyThroughAdvance: Bool = false
+        holdsPrefetchCopyThroughAdvance: Bool = false,
+        didFinishSetupCarousel: Bool = false
     ) -> (title: String, subtitle: String)? {
+        guard didFinishSetupCarousel else { return nil }
         if isPrefetching || holdsPrefetchCopyThroughAdvance {
             return (
                 LoginProcessingUI.almostReadyTitleKey,
@@ -138,7 +140,8 @@ public enum LoginProcessingProgressPolicy: Sendable {
         isAwaitingAdvance: Bool,
         hasReachedPrefetchPhase: Bool = false
     ) -> Int {
-        if isPrefetching || isAwaitingAdvance || hasReachedPrefetchPhase {
+        // Lockstep: bars 1-3 follow setup copy. Prefetch must not skip to 4 mid-carousel.
+        if didFinishSetupCarousel && (isPrefetching || isAwaitingAdvance || hasReachedPrefetchPhase) {
             return LoginProcessingUI.progressStep
         }
         if didFinishSetupCarousel {
@@ -154,9 +157,10 @@ public enum LoginProcessingCarouselVisibilityPolicy: Sendable {
         didShowFinalMessage: Bool,
         isSyncing: Bool,
         isPrefetching: Bool,
-        holdsPrefetchCopyThroughAdvance: Bool = false
+        holdsPrefetchCopyThroughAdvance: Bool = false,
+        didFinishSetupCarousel: Bool = false
     ) -> Bool {
-        guard !usesStaticCopy, !didShowFinalMessage else { return false }
+        guard !usesStaticCopy, !didShowFinalMessage, didFinishSetupCarousel else { return false }
         return isSyncing || isPrefetching || holdsPrefetchCopyThroughAdvance
     }
 }

@@ -62,6 +62,7 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::SplitTunnel => Self::SplitTunnel,
             Reason::NeedsRelaxedIndependenceCriteria => Self::NeedsRelaxedIndependenceCriteria,
             Reason::NeedsDeviceLocation => Self::NeedsDeviceLocation,
+            Reason::ConnectionAttemptsExceeded => Self::ConnectionAttemptsExceeded,
             Reason::Internal => Self::Internal(value.message.unwrap_or_default()),
         })
     }
@@ -178,6 +179,10 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::NeedsDeviceLocation => Self {
                 reason: Reason::NeedsDeviceLocation.into(),
+                message: None,
+            },
+            ErrorStateReason::ConnectionAttemptsExceeded => Self {
+                reason: Reason::ConnectionAttemptsExceeded.into(),
                 message: None,
             },
             ErrorStateReason::Internal(message) => Self {

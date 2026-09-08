@@ -1,14 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { OsType, type } from '@tauri-apps/plugin-os';
-import {
-  ButtonIconNew,
-  CardNew,
-  CardNewBody,
-  CardNewHeader,
-  PageAnim,
-} from '../../../ui';
-import { useClipboard } from '../../../hooks';
+import { CardNew, CardNewBody, PageAnim } from '../../../ui';
 import { useGeoExclusion } from './utils/useGeoExclusion';
 
 const Platforms = [
@@ -49,7 +42,6 @@ function StepList({ steps }: { steps: string[] }) {
 }
 
 function SetupInstructions() {
-  const { copy } = useClipboard();
   const { t } = useTranslation('settings');
   const { listenPort } = useGeoExclusion();
   const os = type();
@@ -89,25 +81,6 @@ function SetupInstructions() {
           )}
         </div>
       ))}
-
-      <CardNew>
-        <CardNewHeader>
-          <div className="flex flex-col">
-            <p className="text-text-secondary text-xs uppercase">
-              {t('geo-exclusion.setup-instructions.proxy-address')}
-            </p>
-            <div className="flex items-center gap-2">
-              <p className="text-text-primary font-mono">{`127.0.0.1:${listenPort}`}</p>
-              <ButtonIconNew
-                icon="content_copy"
-                onClick={() => copy(`127.0.0.1:${listenPort}`)}
-                clickFeedback
-                noDefaultSize
-              />
-            </div>
-          </div>
-        </CardNewHeader>
-      </CardNew>
     </PageAnim>
   );
 }

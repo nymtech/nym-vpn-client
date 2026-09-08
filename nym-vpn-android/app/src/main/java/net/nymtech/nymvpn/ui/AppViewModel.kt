@@ -26,6 +26,8 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
+import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
+import net.nymtech.nymvpn.ui.screens.main.profiles.toCoreProfile
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.util.Constants
@@ -187,6 +189,11 @@ constructor(
 
 	fun setWelcomeShown() = viewModelScope.launch {
 		settingsRepository.setWelcomeShown(true)
+	}
+
+	fun onProfileSelected(profile: Profile) = viewModelScope.launch {
+		Timber.tag(TAG).i("ProfileSelected profile=%s", profile)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetProfile(profile.toCoreProfile()))
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {

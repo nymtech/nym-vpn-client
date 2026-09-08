@@ -13,6 +13,11 @@ pub const UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID: &str = "235ba475-8c64-4c46-814
 // https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/zknym/route.ts#L255
 pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
 
+// The credential proxy refused issuance on a condition that clears by itself within minutes, most
+// notably while the network rotates its signing keys. Retrying the same request later succeeds.
+// https://github.com/nymtech/websites/blob/27bb28f1f765703e3f26e0c04995f8386246f9a4/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/zknym/route.ts#L284
+pub const UPSTREAM_UNAVAILABLE_CODE_ID: &str = "b4f0a4a9-7c31-4e7c-9b0e-52c1f8e2d6a7";
+
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
     #[error("failed to create vpn api client")]

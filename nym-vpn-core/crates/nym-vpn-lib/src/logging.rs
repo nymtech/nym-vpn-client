@@ -3,6 +3,7 @@
 
 use std::{path::PathBuf, sync::Arc};
 
+use itertools::Itertools;
 use opentelemetry::trace::TracerProvider;
 use sentry::integrations::tracing as sentry_tracing;
 use tokio::{
@@ -35,18 +36,7 @@ pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
-/// Targets which we do not want any logs under normal (up to debug) circumstances. For example the
-/// hickory resolver when configured for use with client traffic can log DNS lookups at the DEBUG
-/// level. We do not want information related to client traffic logged except in controlled trace
-/// situations (away from platform apps).
-static TRACE_ONLY_LOGGING: [&str; 3] = [
-    "hickory_resolver",
-    // proto is probably okay, but disabling for now.
-    "hickory_proto",
-    "hickory_net",
-];
-
-static INFO_TARGETS: [&str; 13] = [
+static INFO_TARGETS: [&str; 16] = [
     "hyper",
     "netlink_proto",
     "hyper_util",
@@ -60,6 +50,9 @@ static INFO_TARGETS: [&str; 13] = [
     "nym_client_core::client::real_messages_control",
     "nym_client_core::client::received_buffer",
     "tonic::transport::server",
+    "hickory_resolver",
+    "hickory_proto",
+    "hickory_net",
 ];
 
 static WARN_TARGETS: [&str; 3] = ["hickory_server", "quinn::connection", "zbus"];
@@ -295,37 +288,27 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     // ! This does not configure any additional telemetry, it's just additional data added locally !
     let enable_opentelemetry = options.enable_json_log;
 
-    let mut env_filter = EnvFilter::builder()
-        .with_default_directive(options.verbosity_level.into())
-        .from_env_lossy();
-
-    for crate_name in INFO_TARGETS {
-        env_filter = env_filter.add_directive(
-            format!("{crate_name}=info")
-                .parse()
-                .expect("failed to parse directive"),
-        );
-    }
-    for crate_name in WARN_TARGETS {
-        env_filter = env_filter.add_directive(
-            format!("{crate_name}=warn")
-                .parse()
-                .expect("failed to parse directive"),
-        );
-    }
-
-    let level = if options.verbosity_level == Level::TRACE {
-        "trace"
+    // Setup from RUST_LOG if set and not empty. Otherwise use production configuration
+    let env_filter = if std::env::var(EnvFilter::DEFAULT_ENV).is_ok_and(|s| !s.trim().is_empty()) {
+        EnvFilter::builder()
+            .with_default_directive(options.verbosity_level.into())
+            .from_env_lossy()
     } else {
-        "off"
+        let default_directives = std::iter::once(options.verbosity_level.to_string())
+            .chain(
+                INFO_TARGETS
+                    .iter()
+                    .map(|crate_name| format!("{crate_name}=info"))
+                    .chain(
+                        WARN_TARGETS
+                            .iter()
+                            .map(|crate_name| format!("{crate_name}=warn")),
+                    ),
+            )
+            .join(",");
+
+        EnvFilter::new(default_directives)
     };
-    for crate_name in TRACE_ONLY_LOGGING {
-        env_filter = env_filter.add_directive(
-            format!("{crate_name}={level}")
-                .parse()
-                .expect("failed to parse directive"),
-        );
-    }
 
     let mut layers = Vec::new();
 

@@ -121,6 +121,9 @@ pub struct RouteManagerImpl {
     /// Example: Interface "en0" (1) with IP 192.168.1.222, and with router_ip 192.168.1.1.
     best_default_route: IpMap<interface::DefaultRoute>,
 
+    /// Last non-None physical default per family (monitor may report None after grace timeout).
+    last_physical_default: IpMap<interface::DefaultRoute>,
+
     /// Message to notify `default_route_listeners` when `best_default_route` changes.
     best_default_route_update: IpMap<DefaultRouteEvent>,
 
@@ -175,12 +178,15 @@ impl RouteManagerImpl {
             }
         }
 
+        let last_physical_default = best_default_route.clone();
+
         Ok(Self {
             routing_table,
             non_tunnel_routes: HashSet::new(),
             tunnel_default_routes: IpMap::new(),
             applied_routes: BTreeMap::new(),
             best_default_route,
+            last_physical_default,
             best_default_route_update: IpMap::new(),
             default_route_listeners: vec![],
             best_default_route_rx_v4: best_route_rx_v4,
@@ -513,6 +519,9 @@ impl RouteManagerImpl {
             (interface::Family::V6, false) => DefaultRouteEvent::RemovedV6,
         };
         self.best_default_route_update.insert(family, event);
+        if let Some(ref route) = new_best_route {
+            self.last_physical_default.insert(family, route.clone());
+        }
         self.best_default_route.set(family, new_best_route);
         self.unhandled_default_route_changes = true;
         self.update_trigger.trigger();
@@ -707,7 +716,12 @@ impl RouteManagerImpl {
     /// Add back unscoped default route for the given `family`, if it is still missing. This
     /// function returns true when no route had to be added.
     async fn restore_default_route(&mut self, family: interface::Family) -> bool {
-        let Some(desired_default_route) = self.best_default_route.get(family).cloned() else {
+        let Some(desired_default_route) = self
+            .best_default_route
+            .get(family)
+            .or(self.last_physical_default.get(family))
+            .cloned()
+        else {
             return true;
         };
         let desired_default_route = RouteMessage::from(desired_default_route);
@@ -791,4 +805,39 @@ fn default_route_msg(family: interface::Family) -> RouteMessage {
 fn route_matches_interface(default_route: &RouteMessage, interface_route: &RouteMessage) -> bool {
     default_route.gateway_ip() == interface_route.gateway_ip()
         && default_route.interface_index() == interface_route.interface_index()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::{IpAddr, Ipv4Addr};
+
+    fn route(interface: &str) -> DefaultRoute {
+        DefaultRoute {
+            interface: interface.to_owned(),
+            interface_index: 14,
+            ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 20)),
+            router_ip: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+        }
+    }
+
+    #[test]
+    fn restore_default_route_uses_last_physical_when_current_is_none() {
+        let mut last = IpMap::new();
+        last.insert(interface::Family::V4, route("en0"));
+
+        assert_eq!(
+            None.or(last.get(interface::Family::V4))
+                .map(|r| r.interface.as_str()),
+            Some("en0")
+        );
+
+        let current = route("en1");
+        assert_eq!(
+            Some(&current)
+                .or(last.get(interface::Family::V4))
+                .map(|r| r.interface.as_str()),
+            Some("en1")
+        );
+    }
 }

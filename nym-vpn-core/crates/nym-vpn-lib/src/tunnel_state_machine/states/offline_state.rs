@@ -35,13 +35,6 @@ impl OfflineState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        shared_state.disallow_networking().await;
-
-        #[cfg(target_os = "macos")]
-        if Self::set_local_dns_resolver(shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
-        }
-
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = BlockedPolicyParameters {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
@@ -49,9 +42,26 @@ impl OfflineState {
             api_endpoints: vec![],
         };
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
-            trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
+        // reconnect=false: no active session to protect (cold start, disconnected, or explicit disconnect); reconnect=true stays leak-safe.
+        if reconnect {
+            shared_state.disallow_networking().await;
+
+            #[cfg(target_os = "macos")]
+            if Self::set_local_dns_resolver(shared_state).await.is_err() {
+                return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
+            }
+
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+                trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
+            }
+        } else {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            {
+                Self::reset_dns(shared_state).await;
+                Self::reset_firewall_policy(shared_state);
+            }
+            shared_state.allow_networking().await;
         }
 
         (
@@ -132,18 +142,36 @@ impl TunnelStateHandler for OfflineState {
                         if self.reconnect {
                             NextTunnelState::SameState(self)
                         } else {
-                            self.reconnect = true;
-                            let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
-                            NextTunnelState::NewState((self, new_state))
+                            NextTunnelState::NewState(
+                                Self::enter(true, self.selected_gateways, shared_state).await,
+                            )
                         }
                     },
                     TunnelCommand::Disconnect => {
-                        if self.reconnect {
-                            self.reconnect = false;
-                            let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
-                            NextTunnelState::NewState((self, new_state))
-                        } else {
-                            NextTunnelState::SameState(self)
+                        // An explicit user-initiated disconnect while offline should tear the
+                        // tunnel down immediately rather than only disarming auto-reconnect and
+                        // lingering in the offline state. Otherwise the first disconnect merely
+                        // re-emits `Offline`, which races the client's optimistic `Down` and
+                        // resurrects the offline UI, forcing the user to press disconnect twice.
+                        #[cfg(target_os = "android")]
+                        {
+                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                        }
+                        #[cfg(not(target_os = "android"))]
+                        {
+                            if self.reconnect {
+                                self.reconnect = false;
+                                #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                                {
+                                    Self::reset_dns(shared_state).await;
+                                    Self::reset_firewall_policy(shared_state);
+                                }
+                                shared_state.allow_networking().await;
+                                let new_state = PrivateTunnelState::Offline { reconnect: self.reconnect };
+                                NextTunnelState::NewState((self, new_state))
+                            } else {
+                                NextTunnelState::SameState(self)
+                            }
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
@@ -177,7 +205,9 @@ impl TunnelStateHandler for OfflineState {
                             if diff.allow_lan_changed() {
                                 self.firewall_policy_params.allow_lan = shared_state.tunnel_settings.allow_lan;
 
-                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                if self.reconnect
+                                    && let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
+                                {
                                     trace_err_chain!(e, "failed to set firewall policy");
                                 }
                             }

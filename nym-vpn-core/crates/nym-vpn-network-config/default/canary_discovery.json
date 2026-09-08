@@ -1,9 +1,9 @@
 {
   "network_name": "canary",
-  "nym_api_url": "https://canary-api.performance.nymte.ch/api/",
+  "nym_api_url": "https://canary-nym-api.le.nymte.ch/api/",
   "nym_api_urls": [
     {
-      "url": "https://canary-api.performance.nymte.ch/api/"
+      "url": "https://canary-nym-api.le.nymte.ch/api/"
     },
     {
       "url": "https://nym-frontdoor.vercel.app/canary/nym-api/",

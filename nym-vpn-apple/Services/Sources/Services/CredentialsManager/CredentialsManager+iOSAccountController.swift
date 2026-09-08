@@ -75,6 +75,7 @@ extension CredentialsManager {
                     )
                 }
             }
+            hasPreparedRegisteredAccountThisSession = true
         } catch let error as VpnError {
             throw AccountRegistrationSupport.mapToVPNErrorReason(error)
         }

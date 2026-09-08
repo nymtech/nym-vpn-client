@@ -13,3 +13,17 @@ echo "Running postinstall at $(date)"
 
 # Install launchd config
 "$NYM_SETUP_BIN" install-service
+
+# Launch the app so the user sees the installation succeeded. This script runs
+# as root, so launch in the GUI session of the logged-in console user instead
+# of root. Skipped for headless installs (installer CLI over ssh), where no
+# user owns the console.
+CONSOLE_USER="$(stat -f%Su /dev/console)"
+if [ -n "$CONSOLE_USER" ] && [ "$CONSOLE_USER" != "root" ] && [ "$CONSOLE_USER" != "_mbsetupuser" ]; then
+    CONSOLE_UID="$(id -u "$CONSOLE_USER")"
+    echo "Launching NymVPN.app as $CONSOLE_USER (uid $CONSOLE_UID)"
+    launchctl asuser "$CONSOLE_UID" sudo -u "$CONSOLE_USER" \
+        open -a "$INSTALL_DIR/NymVPN.app" || echo "Failed to launch NymVPN.app"
+else
+    echo "No console user, skipping app launch"
+fi

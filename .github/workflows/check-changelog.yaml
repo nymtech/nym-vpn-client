@@ -1,0 +1,55 @@
+name: check-changelog
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+    paths:
+      - "fastlane/metadata/android/en-US/changelogs/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check-changelog:
+    name: Check Changelog
+    if: github.event.action != 'edited' || github.event.changes.base != null
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check new changelog files against Play Store char limit
+        run: |
+          set -euo pipefail
+          CHANGELOG_DIR="fastlane/metadata/android/en-US/changelogs"
+
+          ADDED_FILES=$(git diff --diff-filter=A --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            -- "$CHANGELOG_DIR")
+
+          if [ -z "$ADDED_FILES" ]; then
+            echo "No new changelog files added, skipping check."
+            exit 0
+          fi
+
+          FAILED=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            LEN=$(wc -m < "$file" | tr -d ' ')
+            echo "$file: $LEN chars"
+            if [ "$LEN" -gt 500 ]; then
+              echo "::error file=$file::Changelog exceeds Play Store limit of 500 characters ($LEN chars)."
+              FAILED=1
+            fi
+          done <<< "$ADDED_FILES"
+
+          exit $FAILED

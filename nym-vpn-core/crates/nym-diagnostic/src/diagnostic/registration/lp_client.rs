@@ -14,7 +14,10 @@ use nym_sdk::mixnet::{ed25519, x25519};
 use nym_validator_client::client::NymApiClientExt;
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
-use rand09::SeedableRng;
+use rand10::{
+    SeedableRng,
+    rngs::{StdRng, SysRng},
+};
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::net::TcpStream;
 
@@ -62,9 +65,20 @@ impl LpClientRegistration {
 
         // dVPN registration
         tracing::info!("Registering with entry gateway");
+        let mut rng = match StdRng::try_from_rng(&mut SysRng) {
+            Ok(rng) => rng,
+            Err(e) => {
+                registration_report.lp_based_dvpn_registration = Some(DiagnosticResult::from_err(
+                    format!("Failed to seed RNG from OS: {e}"),
+                ));
+                // Close credential storage before early return so OS file handles are released promptly.
+                registration_config.bandwidth_provider.close().await;
+                return None;
+            }
+        };
         let dvpn_result = lp_client
             .register_dvpn(
-                &mut rand09::rngs::StdRng::from_os_rng(),
+                &mut rng,
                 &registration_config.local_wg_keypair,
                 &registration_config.gateway_id_key,
                 &registration_config.bandwidth_provider,
@@ -113,7 +127,7 @@ async fn setup_registration(
 
     let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rngs::OsRng));
     let local_dh_keypair = Arc::new(x25519::DHKeyPair::new(
-        &mut rand09::rngs::StdRng::from_os_rng(),
+        &mut StdRng::try_from_rng(&mut SysRng).context("Failed to seed RNG from OS")?,
     ));
 
     let gateway_ip = *gateway

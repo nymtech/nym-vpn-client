@@ -20,8 +20,12 @@ import Theme
     @Published var portText = "\(GeoExclusionConfig.defaultPort)"
     @Published var portError: String?
     @Published var portCopied = false
+    @Published var serverCopied = false
 
     private(set) var listenPort = GeoExclusionConfig.defaultPort
+
+    /// The loopback host shown in the Server row; the proxy always listens on 127.0.0.1.
+    let serverAddress = "127.0.0.1"
 
     /// Beta: the excluded region list is hardcoded to China.
     let excludedCountryName = "geoExclusion.china".localizedString
@@ -120,6 +124,19 @@ import Theme
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))
                 portCopied = false
+            }
+        }
+    }
+
+    func copyServer() {
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(serverAddress, forType: .string)
+        withAnimation {
+            guard !serverCopied else { return }
+            serverCopied = true
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                serverCopied = false
             }
         }
     }

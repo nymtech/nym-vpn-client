@@ -383,8 +383,11 @@ extension GatewayManager {
         defer { isLoading = false }
         do {
             let result = try await worker.fetchGateways()
+            logger.info(
+                "Fetched gateways entry=\(result.entry.count) exit=\(result.exit.count) vpn=\(result.vpn.count)"
+            )
 
-            guard !result.entry.isEmpty, !result.exit.isEmpty, !result.vpn.isEmpty
+            guard !result.entry.isEmpty || !result.exit.isEmpty || !result.vpn.isEmpty
             else {
                 logger.info("Empty gateways from API")
                 return

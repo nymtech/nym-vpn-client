@@ -18,7 +18,7 @@ jobs:
           ref: ${{ github.ref_name }}
 
       - name: crowdin action
-        uses: crowdin/github-action@v2
+        uses: crowdin/github-action@v3
         with:
           upload_sources: false
           upload_translations: false

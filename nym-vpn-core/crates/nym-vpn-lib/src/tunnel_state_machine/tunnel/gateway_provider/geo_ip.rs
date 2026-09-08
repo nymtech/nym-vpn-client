@@ -36,13 +36,33 @@ fn geo_distance(x: &Location, y: &Location) -> f64 {
     Haversine.distance(p1, p2)
 }
 
+/// Groups of ISO country codes that are treated as a single jurisdiction for
+/// gateway-safety purposes, beyond an exact country-code match. Membership is
+/// symmetric: for any two codes in the same group, neither is offered as an
+/// entry or exit relative to the other (or to a user located in the group).
+const JURISDICTION_GROUPS: &[&[&str]] = &[
+    // Greater China: mainland China, Taiwan, Macau.
+    &["CN", "TW", "MO"],
+];
+
+/// Returns true if two ISO country codes belong to the same safety jurisdiction
+/// group. Exact-match equality is handled separately by [`same_jurisdiction`].
+fn same_jurisdiction_group(a: &str, b: &str) -> bool {
+    JURISDICTION_GROUPS
+        .iter()
+        .any(|group| group.contains(&a) && group.contains(&b))
+}
+
 pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
-    if x.two_letter_iso_country_code == y.two_letter_iso_country_code
-        && x.two_letter_iso_country_code == "US"
-    {
-        return x.region == y.region;
+    let (a, b) = (
+        x.two_letter_iso_country_code.as_str(),
+        y.two_letter_iso_country_code.as_str(),
+    );
+    if a == b {
+        // US gateways are distinguished per-region rather than per-country.
+        return a != "US" || x.region == y.region;
     }
-    x.two_letter_iso_country_code == y.two_letter_iso_country_code
+    same_jurisdiction_group(a, b)
 }
 
 // Compare two gateways' distance to a given reference point
@@ -247,6 +267,28 @@ impl GeoIpProvider {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    #[test]
+    fn greater_china_shares_jurisdiction() {
+        let group = ["CN", "TW", "MO"];
+        // Every pair within the group shares a jurisdiction (symmetric),
+        // including each code with itself.
+        for a in group {
+            for b in group {
+                assert!(
+                    same_jurisdiction_group(a, b),
+                    "{a}/{b} should share a jurisdiction",
+                );
+            }
+        }
+        // Codes outside the group are not affected (Hong Kong is intentionally excluded).
+        assert!(!same_jurisdiction_group("HK", "CN"));
+        assert!(!same_jurisdiction_group("HK", "TW"));
+        assert!(!same_jurisdiction_group("CN", "US"));
+        assert!(!same_jurisdiction_group("TW", "JP"));
+        assert!(!same_jurisdiction_group("US", "GB"));
+        assert!(!same_jurisdiction_group("DE", "FR"));
+    }
 
     #[derive(Clone)]
     pub struct MockGeoIpClient {}

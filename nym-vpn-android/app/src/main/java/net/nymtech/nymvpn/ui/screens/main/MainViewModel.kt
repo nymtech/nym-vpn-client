@@ -66,7 +66,6 @@ constructor(
 	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
-	private var lastConnectedAt: Long? = null
 	private var pendingNodeFamiliesConfirmAction: (suspend () -> Unit)? = null
 	private var nodeFamiliesEventHandled = false
 
@@ -198,7 +197,6 @@ constructor(
 
 	fun onDisconnect() = viewModelScope.launch {
 		Timber.tag(TAG).i("DisconnectRequested")
-		lastConnectedAt = null
 		stopConnectionTimerInternal()
 		runCatching { backendManager.stopTunnel() }
 			.onFailure { Timber.tag(TAG).e(it, "DisconnectFailed") }
@@ -225,6 +223,13 @@ constructor(
 				ConnectionState.Disconnecting
 			managerState.isRestarting ->
 				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+			managerState.tunnelState is Tunnel.State.Offline ->
+				// only a reconnect-armed session is "waiting"; see Tunnel.State.Offline
+				if (managerState.tunnelState.reconnect) {
+					ConnectionState.WaitingForConnection
+				} else {
+					ConnectionState.Offline
+				}
 			managerState.tunnelState !is Tunnel.State.Down &&
 				managerState.tunnelState !is Tunnel.State.Error &&
 				networkStatus == NetworkStatus.Disconnected ->
@@ -254,35 +259,10 @@ constructor(
 	}
 
 	private fun handleTunnelStateChange(tunnelState: Tunnel.State, connectedAt: Long?) {
-		when (tunnelState) {
-			is Tunnel.State.Up -> {
-				if (connectedAt != null) {
-					lastConnectedAt = connectedAt
-					startConnectionTimer(connectedAt)
-				}
-			}
-			is Tunnel.State.Disconnecting -> {
-				lastConnectedAt = null
-				stopConnectionTimerInternal()
-			}
-			is Tunnel.State.InitializingClient,
-			is Tunnel.State.EstablishingConnection,
-			is Tunnel.State.Offline,
-			-> {
-				if (connectedAt != null) {
-					lastConnectedAt = connectedAt
-					startConnectionTimer(connectedAt)
-				} else {
-					lastConnectedAt = null
-					stopConnectionTimerInternal()
-				}
-			}
-			is Tunnel.State.Down,
-			is Tunnel.State.Error,
-			-> {
-				if (connectedAt == null) lastConnectedAt = null
-				stopConnectionTimerInternal()
-			}
+		when (val command = ConnectionTimerPolicy.evaluate(tunnelState, connectedAt)) {
+			is ConnectionTimerPolicy.Command.Start -> startConnectionTimer(command.connectedAtSeconds)
+			ConnectionTimerPolicy.Command.Stop -> stopConnectionTimerInternal()
+			ConnectionTimerPolicy.Command.None -> Unit
 		}
 	}
 

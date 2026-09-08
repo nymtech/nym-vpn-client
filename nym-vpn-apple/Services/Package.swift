@@ -137,9 +137,7 @@ let package = Package(
             name: "DeeplinkManager",
             dependencies: [
                 "CredentialsManager",
-                "ConnectionManager",
-                .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "ConnectionTypes", package: "ServicesMutual")
+                .product(name: "Constants", package: "ServicesMutual")
             ],
             path: "Sources/Services/DeeplinkManager"
         ),
@@ -300,6 +298,7 @@ let package = Package(
                 "AccountPrefetchGates",
                 "AppSettings",
                 "CredentialsManager",
+                "SnackbarManager",
                 .product(name: "ErrorHandler", package: "ServicesIOS"),
                 .product(name: "NymVPNLib", package: "NymVPNLib"),
                 .product(name: "Theme", package: "Theme"),

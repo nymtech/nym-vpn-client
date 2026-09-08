@@ -34,7 +34,4 @@
    <FileRef
       location = "group:UIComponents">
    </FileRef>
-   <FileRef
-      location = "group:WidgetShared">
-   </FileRef>
 </Workspace>

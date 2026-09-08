@@ -1,12 +1,12 @@
 [versions]
 accompanist = "0.37.3"
-agp = "9.2.1"
+agp = "9.4.0"
 coreSplashscreen = "1.2.0"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.6.2"
 jna = "5.18.1"
-kotlin = "2.3.21"
-ksp = "2.3.7"
+kotlin = "2.4.10"
+ksp = "2.3.11"
 coreKtx = "1.18.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -14,8 +14,8 @@ espressoCore = "3.7.0"
 lottieCompose = "6.7.1"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.8"
-hiltNavigationCompose = "1.3.0"
-lifecycle-compose = "2.10.0"
+hiltNavigationCompose = "1.4.0"
+lifecycle-compose = "2.11.0"
 activityCompose = "1.13.0"
 composeBom = "2026.03.00"
 datastorePreferences = "1.2.1"
@@ -24,22 +24,22 @@ securityCrypto = "1.1.0"
 semver4j = "6.0.0"
 timber = "5.0.1"
 kotlinx-serialization-json = "1.11.0"
-hiltAndroid = "2.59.2"
+hiltAndroid = "2.60.1"
 kotlinxCoroutinesCore = "1.11.0"
-uiautomator = "2.3.0"
+uiautomator = "2.4.0"
 window = "1.5.1"
 windowCoreAndroid = "1.5.1"
 desugar = "2.1.5"
 zxingAndroidEmbedded = "4.3.0"
-sentry = "8.37.1"
+sentry = "8.55.0"
 billing-client = "8.3.0"
-biometric = "1.4.0-alpha06"
+biometric = "1.4.0-alpha07"
 credentials = "1.7.0-alpha02"
 
 gradlePlugins-licensee = "1.14.1"
-gradlePlugins-detekt = "1.23.8"
+gradlePlugins-detekt = "2.0.0-alpha.6"
 gradlePlugins-gross = "0.4.6"
-material = "1.13.0"
+material = "1.14.0"
 gradlePlugins-ktlint = "14.2.0"
 gradlePlugins-grgit = "5.3.3"
 
@@ -126,6 +126,6 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 licensee = { id = "app.cash.licensee", version.ref = "gradlePlugins-licensee" }
 gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-detekt" }
+detekt = { id = "dev.detekt", version.ref = "gradlePlugins-detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }

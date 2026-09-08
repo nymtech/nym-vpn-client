@@ -180,7 +180,7 @@ impl MixnetClientRegistration {
     async fn wireguard_registration(
         mixnet_client: MixnetClient,
         wg_registration_config: &WgRegistrationConfig,
-    ) -> Result<WireguardConfiguration, RegistrationError> {
+    ) -> Result<WireguardConfiguration, Box<RegistrationError>> {
         let address = *mixnet_client.nym_address();
 
         let mixnet_listener =
@@ -207,7 +207,7 @@ impl MixnetClientRegistration {
         // Stopping mixnet client
         mixnet_listener.stop().await;
 
-        auth_res
+        auth_res.map_err(Box::new)
     }
 
     async fn mixnet_ipr_connect(
@@ -245,14 +245,7 @@ async fn setup_topology(network: &Network) -> anyhow::Result<HardcodedTopologyPr
         ignore_egress_epoch_role: true,
     };
 
-    let base_urls: Vec<url::Url> = api_client
-        .base_urls()
-        .iter()
-        .cloned()
-        .map(Into::into)
-        .collect();
-
-    let mut topology_provider = NymApiTopologyProvider::new(DEFAULT_CONFIG, base_urls, api_client);
+    let mut topology_provider = NymApiTopologyProvider::new(DEFAULT_CONFIG, api_client);
 
     let topology = topology_provider
         .get_new_topology()

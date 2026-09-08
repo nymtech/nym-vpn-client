@@ -64,12 +64,12 @@ fun SurfaceSelectionGroupButton(
 						it.onClick()
 					}
 					.fillMaxWidth()
-					.padding(horizontal = 8.dp, vertical = 6.dp)
 					.border(
 						width = 1.dp,
 						color = if (it.selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-						shape = RoundedCornerShape(12.dp),
-					),
+						shape = RoundedCornerShape(14.dp),
+					)
+					.padding(horizontal = 8.dp, vertical = 6.dp),
 			) {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,

@@ -1,20 +1,17 @@
 import { useRouteError } from 'react-router';
+import AppError from './AppError';
 
-type routerErrorType = {
-  statusText: string;
-  message: string;
-};
-
+// Route-level error element. Rendered inside `MainLayout`'s outlet so the top
+// bar survives and the user can still navigate away.
 export default function Error() {
-  const error = useRouteError() as routerErrorType;
+  const error = useRouteError();
 
   return (
-    <div id="error-page">
-      <h1>Oops!</h1>
-      <p>Sorry, an unexpected error has occurred.</p>
-      <p>
-        <i>{error.statusText || error.message}</i>
-      </p>
-    </div>
+    <AppError
+      error={error}
+      onReload={() => {
+        window.location.reload();
+      }}
+    />
   );
 }

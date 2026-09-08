@@ -51,7 +51,7 @@ hickory-resolver = { workspace = true, features = [
     "https-ring",
 ] }
 pnet_packet.workspace = true
-rand09.workspace = true
+rand10.workspace = true
 rand.workspace = true
 rustls = { workspace = true, features = ["ring"] }
 semver.workspace = true

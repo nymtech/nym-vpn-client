@@ -3,11 +3,14 @@ package net.nymtech.vpn.config
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.Profile
 
 sealed class CoreVpnConfigUpdate {
 	data class SetEntryPoint(val value: EntryPoint) : CoreVpnConfigUpdate()
 	data class SetExitPoint(val value: ExitPoint) : CoreVpnConfigUpdate()
 	data class SetMode(val value: Tunnel.Mode) : CoreVpnConfigUpdate()
+	data class SetProfile(val value: Profile) : CoreVpnConfigUpdate()
+	data class SetEnableGeoLocation(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetBypassLan(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetEnableBridges(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetCustomDnsEnabled(val value: Boolean) : CoreVpnConfigUpdate()

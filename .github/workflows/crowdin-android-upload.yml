@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 1
 
       - name: crowdin action
-        uses: crowdin/github-action@v2
+        uses: crowdin/github-action@v3
         with:
           upload_sources: true
           upload_translations: false

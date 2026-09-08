@@ -55,6 +55,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_GEO_EXCLUSION_COUNTRIES = stringPreferencesKey("GEO_EXCLUSION_COUNTRIES")
 
 		private val KEY_MIGRATED_TO_RUST_CONFIG = booleanPreferencesKey("MIGRATED_TO_RUST_CONFIG")
+		private val KEY_ENSURED_GEO_LOCATION_DEFAULT = booleanPreferencesKey("ENSURED_GEO_LOCATION_DEFAULT")
 
 		private const val SEP = "|"
 		private const val MAX_DNS = 5
@@ -81,6 +82,14 @@ class CoreVpnConfigStore(private val context: Context) {
 	suspend fun markMigratedToRustConfig() {
 		context.coreVpnDataStore.edit { prefs ->
 			prefs[KEY_MIGRATED_TO_RUST_CONFIG] = true
+		}
+	}
+
+	suspend fun hasEnsuredGeoLocationDefault(): Boolean = context.coreVpnDataStore.data.first()[KEY_ENSURED_GEO_LOCATION_DEFAULT] ?: false
+
+	suspend fun markGeoLocationDefaultEnsured() {
+		context.coreVpnDataStore.edit { prefs ->
+			prefs[KEY_ENSURED_GEO_LOCATION_DEFAULT] = true
 		}
 	}
 

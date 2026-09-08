@@ -69,22 +69,34 @@ struct LoginProcessingPolicyTests {
     @Test func credentialsCopyKeys_syncingAndPrefetch() {
         #expect(LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: false, isPrefetching: false) == nil)
 
-        let syncing = LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: true, isPrefetching: false)
+        let syncing = LoginProcessingProgressPolicy.credentialsCopyKeys(
+            isSyncing: true,
+            isPrefetching: false,
+            didFinishSetupCarousel: true
+        )
         #expect(syncing?.title == LoginProcessingUI.loadingCredentialsTitleKey)
         #expect(syncing?.subtitle == LoginProcessingUI.loadingCredentialsSubtitleKey)
 
-        let prefetching = LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: false, isPrefetching: true)
+        let prefetching = LoginProcessingProgressPolicy.credentialsCopyKeys(
+            isSyncing: false,
+            isPrefetching: true,
+            didFinishSetupCarousel: true
+        )
         #expect(prefetching?.title == LoginProcessingUI.almostReadyTitleKey)
         #expect(prefetching?.subtitle == LoginProcessingUI.almostReadySubtitleKey)
 
         #expect(
-            LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: true, isPrefetching: true)?.title
-                == LoginProcessingUI.almostReadyTitleKey
+            LoginProcessingProgressPolicy.credentialsCopyKeys(
+                isSyncing: true,
+                isPrefetching: true,
+                didFinishSetupCarousel: true
+            )?.title == LoginProcessingUI.almostReadyTitleKey
         )
         let awaitingAfterPrefetch = LoginProcessingProgressPolicy.credentialsCopyKeys(
             isSyncing: false,
             isPrefetching: false,
-            holdsPrefetchCopyThroughAdvance: true
+            holdsPrefetchCopyThroughAdvance: true,
+            didFinishSetupCarousel: true
         )
         #expect(awaitingAfterPrefetch?.title == LoginProcessingUI.almostReadyTitleKey)
     }
@@ -145,24 +157,81 @@ struct LoginProcessingPolicyTests {
         )
     }
 
-    @Test func progressStep_latchAfterPrefetchPreventsRegressionDuringCarousel() {
+    @Test func progressStep_prefetchDuringSetup_staysOnCarouselSegment() {
         #expect(
             LoginProcessingProgressPolicy.progressStep(
                 setupCarouselIndex: 0,
                 didFinishSetupCarousel: false,
-                isPrefetching: false,
+                isPrefetching: true,
                 isAwaitingAdvance: false,
                 hasReachedPrefetchPhase: true
-            ) == 4
+            ) == 1
         )
         #expect(
             LoginProcessingProgressPolicy.progressStep(
                 setupCarouselIndex: 1,
                 didFinishSetupCarousel: false,
-                isPrefetching: false,
+                isPrefetching: true,
+                isAwaitingAdvance: false,
+                hasReachedPrefetchPhase: true
+            ) == 2
+        )
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 2,
+                didFinishSetupCarousel: false,
+                isPrefetching: true,
+                isAwaitingAdvance: false,
+                hasReachedPrefetchPhase: true
+            ) == 3
+        )
+    }
+
+    @Test func progressStep_fourthSegmentOnlyAfterSetupFinishes() {
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 0,
+                didFinishSetupCarousel: true,
+                isPrefetching: true,
                 isAwaitingAdvance: false,
                 hasReachedPrefetchPhase: true
             ) == 4
+        )
+    }
+
+    @Test func credentialsCopy_hiddenUntilSetupCarouselFinishes() {
+        #expect(
+            LoginProcessingProgressPolicy.credentialsCopyKeys(
+                isSyncing: true,
+                isPrefetching: true,
+                didFinishSetupCarousel: false
+            ) == nil
+        )
+        #expect(
+            !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+                usesStaticCopy: false,
+                didShowFinalMessage: false,
+                isSyncing: true,
+                isPrefetching: true,
+                didFinishSetupCarousel: false
+            )
+        )
+    }
+
+    @Test func credentialsCopy_defaultHidesUntilSetupFinishes() {
+        #expect(
+            LoginProcessingProgressPolicy.credentialsCopyKeys(
+                isSyncing: true,
+                isPrefetching: true
+            ) == nil
+        )
+        #expect(
+            !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+                usesStaticCopy: false,
+                didShowFinalMessage: false,
+                isSyncing: true,
+                isPrefetching: true
+            )
         )
     }
 
@@ -189,7 +258,8 @@ struct LoginProcessingPolicyTests {
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
                 isSyncing: true,
-                isPrefetching: false
+                isPrefetching: false,
+                didFinishSetupCarousel: true
             )
         )
         #expect(
@@ -197,7 +267,8 @@ struct LoginProcessingPolicyTests {
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
                 isSyncing: false,
-                isPrefetching: true
+                isPrefetching: true,
+                didFinishSetupCarousel: true
             )
         )
         #expect(

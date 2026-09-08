@@ -32,7 +32,8 @@
     "needs-relaxed-independence-criteria": "Needs relaxed independence criteria",
     "needs-device-location": "Safest routing isn't available right now. Try again later or choose your own servers.",
     "credential-fetching-failed": "Couldn't obtain the credentials needed to connect. Please try again.",
-    "no-credential-available": "No credentials available to connect. Please try again."
+    "no-credential-available": "No credentials available to connect. Please try again.",
+    "connection-attempts-exceeded": "Couldn't establish the connection after several attempts. Please try again."
   },
   "account": {
     "internal": "Internal account error",
@@ -73,5 +74,18 @@
     "failed-to-get-app-list": "Failed to get app list",
     "app-invalid": "The selected file is not a valid application",
     "app-duplicate": "This app is already in the list"
+  },
+  "fatal": {
+    "title": "Something went wrong",
+    "description": "The app ran into an unexpected problem. Exporting the logs and sharing them with support helps us fix it.",
+    "details": "Error details",
+    "reload": "Reload the app",
+    "export": {
+      "action": "Export logs",
+      "pending": "Preparing the logs archive…",
+      "success": "Logs saved.",
+      "cancelled": "Export cancelled.",
+      "error": "Failed to export the logs."
+    }
   }
 }

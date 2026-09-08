@@ -47,6 +47,23 @@ function Socks5PortCard({ listenPort, onCommitPort }: Socks5PortCardProps) {
       <CardNewHeader>
         <div className="flex w-full items-center justify-between">
           <p className="text-text-secondary select-none">
+            {t('geo-exclusion.port.server')}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-text-primary font-mono">127.0.0.1</span>
+            <ButtonIconNew
+              icon="content_copy"
+              onClick={() => copy('127.0.0.1', false)}
+              clickFeedback
+              size="small"
+            />
+          </div>
+        </div>
+      </CardNewHeader>
+      <CardDivider className="" />
+      <CardNewHeader>
+        <div className="flex w-full items-center justify-between">
+          <p className="text-text-secondary select-none">
             {t('geo-exclusion.port.socks5-port')}
           </p>
           <div className="flex items-center gap-2">

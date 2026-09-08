@@ -66,7 +66,8 @@ class VpnCoreController(
 
 	@Volatile
 	var currentExit: ExitPoint? = null
-		private set
+
+	private var lastRetryAttempt: UInt? = null
 
 	@get:Synchronized
 	@set:Synchronized
@@ -218,6 +219,7 @@ class VpnCoreController(
 				currentEntry = event.v1.entryPoint
 				currentExit = event.v1.exitPoint
 				events.tryEmit(Log("TunnelEvent config_changed"))
+				service.updateForegroundNotification(state, lastRetryAttempt)
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 		}
@@ -229,33 +231,34 @@ class VpnCoreController(
 
 		when (val ts = event.v1) {
 			is TunnelState.Connecting ->
-				events.tryEmit(VpnServiceEvent.EstablishConnection(ts.state, ts.connectionData))
+				events.tryEmit(EstablishConnection(ts.state, ts.connectionData))
 
 			is TunnelState.Connected ->
-				events.tryEmit(VpnServiceEvent.Connected(ts.connectionData))
+				events.tryEmit(Connected(ts.connectionData))
 
 			is TunnelState.Error ->
-				events.tryEmit(VpnServiceEvent.FatalError(ts.v1))
+				events.tryEmit(FatalError(ts.v1))
 
 			else -> Unit
 		}
 
-		service.updateForegroundNotification(coarse)
+		lastRetryAttempt = (event.v1 as? TunnelState.Connecting)?.retryAttempt
+		service.updateForegroundNotification(coarse, lastRetryAttempt)
 	}
 
 	private fun handleMixnetEvent(event: TunnelEvent.MixnetState) {
 		when (val mx = event.v1) {
 			is MixnetEvent.Connection ->
-				events.tryEmit(VpnServiceEvent.MixnetConnectionEvent(mx.v1))
+				events.tryEmit(MixnetConnectionEvent(mx.v1))
 
 			else ->
-				events.tryEmit(VpnServiceEvent.Log("MixnetEvent=${mx::class.java.simpleName}"))
+				events.tryEmit(Log("MixnetEvent=${mx::class.java.simpleName}"))
 		}
 	}
 
 	fun publishState(newState: Tunnel.State) {
 		state = newState
-		events.tryEmit(VpnServiceEvent.StateChanged(newState))
+		events.tryEmit(StateChanged(newState))
 		service.updateForegroundNotification(newState)
 	}
 
@@ -319,7 +322,7 @@ class VpnCoreController(
 		events.tryEmit(VpnServiceEvent.Log("core initialized"))
 
 		migrateLegacyConfigIfNeeded()
-		refreshCurrentGateways()
+		refreshCoreStateAfterInit()
 	}
 
 	/**
@@ -356,12 +359,19 @@ class VpnCoreController(
 		}.onFailure { Timber.tag(TAG).e(it, "Legacy config migration failed") }
 	}
 
-	private suspend fun refreshCurrentGateways() {
+	private suspend fun refreshCoreStateAfterInit() {
 		runCatching {
-			val cfg = requireCoreSender { it.getConfig() }
-			currentEntry = cfg.entryPoint
-			currentExit = cfg.exitPoint
-		}.onFailure { Timber.tag(TAG).w(it, "refreshCurrentGateways failed") }
+			val rustConfig = requireCoreSender { it.getConfig() }
+			currentEntry = rustConfig.entryPoint
+			currentExit = rustConfig.exitPoint
+
+			if (!configRepo.hasEnsuredGeoLocationDefault()) {
+				if (!rustConfig.gatewaySelectionAlgorithmConfig.enableGeoLocation) {
+					requireCoreSender { it.setEnableGeoLocation(true) }
+				}
+				configRepo.markGeoLocationDefaultEnsured()
+			}
+		}.onFailure { Timber.tag(TAG).w(it, "refreshCoreStateAfterInit failed") }
 	}
 
 	private fun syncLocalTunSettings(prefs: LocalVpnPrefs) {
@@ -387,6 +397,8 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetEntryPoint -> requireCoreSender { it.setEntryPoint(update.value) }
 			is CoreVpnConfigUpdate.SetExitPoint -> requireCoreSender { it.setExitPoint(update.value) }
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
+			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
+			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
 			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setEnableBridges(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }

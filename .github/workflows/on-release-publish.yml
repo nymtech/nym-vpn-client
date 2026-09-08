@@ -23,6 +23,11 @@ name: on-release-publish
 # Assumes this workflow + its callees exist on the release commit / default
 # branch (reusable callees resolve at the caller's ref).
 on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        type: string
+        description: Release tag
   release:
     types: [released]
 
@@ -38,7 +43,7 @@ jobs:
     # Guard: only act on the unified ship tag (nym-vpn-v*). Ignores legacy
     # (nym-vpn-core-v*, nym-vpn-app-v*) and nightly (nym-vpn-nightly-*) tags --
     # none of those share the 'nym-vpn-v' prefix.
-    if: ${{ startsWith(github.event.release.tag_name, 'nym-vpn-v') }}
+    if: ${{ startsWith(github.event.release.tag_name || inputs.tag_name, 'nym-vpn-v') }}
     runs-on: arc-linux-latest
     outputs:
       tag: ${{ steps.v.outputs.tag }}
@@ -47,7 +52,7 @@ jobs:
       - name: Resolve tag + version
         id: v
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag_name }}
         run: |
           set -euo pipefail
           version="${TAG#nym-vpn-v}"
@@ -190,9 +195,9 @@ jobs:
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
   macos-updater:
-    needs: [setup, win-sigs]
-    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    needs: [setup]
     uses: ./.github/workflows/macos-updater.yml
+    secrets: inherit
     permissions:
       contents: write
       pull-requests: write

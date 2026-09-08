@@ -212,8 +212,15 @@ impl Gateway {
     }
 
     pub fn is_whitelisted(&self, blacklisted_gateways: &BlacklistedGateways) -> bool {
-        match blacklisted_gateways.exists(&self.identity) {
-            Ok(exists) => !exists,
+        match blacklisted_gateways.reason(&self.identity) {
+            Ok(Some(reason)) => {
+                tracing::debug!(
+                    "Excluding gateway {} from selection: blacklisted ({reason})",
+                    self.identity
+                );
+                false
+            }
+            Ok(None) => true,
             Err(e) => {
                 tracing::error!("Error testing gateway whitelisting: {e}");
                 false
@@ -840,11 +847,21 @@ impl GatewayList {
         match &entry_point {
             EntryPoint::Gateway { identity } => {
                 tracing::debug!("Selecting gateway by identity: {identity}");
-                self.gateway_with_identity(identity)
-                    .ok_or_else(|| Error::NoMatchingGateway {
-                        requested_identity: identity.to_string(),
+                // Score tiering doesn't apply to a pinned identity: there's only one
+                // candidate, so `optional_filters` (MinScore) is deliberately not applied
+                // here, only the caller's real constraints (e.g. NotBlacklisted).
+                self.gateway_with_identity_filtered(identity, base_filters)
+                    .ok_or_else(|| {
+                        if self.gateway_with_identity(identity).is_some() {
+                            Error::GatewayFilteredOut {
+                                requested_identity: identity.to_string(),
+                            }
+                        } else {
+                            Error::NoMatchingGateway {
+                                requested_identity: identity.to_string(),
+                            }
+                        }
                     })
-                    .cloned()
             }
             EntryPoint::Country {
                 two_letter_iso_country_code,
@@ -971,21 +988,35 @@ impl GatewayList {
 
                 // Now fetch the gateway that the IPR is connected to, and override its IPR address
                 let mut gateway = self
-                    .gateway_with_identity(&gateway_address)
-                    .ok_or_else(|| Error::NoMatchingGateway {
-                        requested_identity: gateway_address.to_string(),
-                    })
-                    .cloned()?;
+                    .gateway_with_identity_filtered(&gateway_address, base_filters)
+                    .ok_or_else(|| {
+                        if self.gateway_with_identity(&gateway_address).is_some() {
+                            Error::GatewayFilteredOut {
+                                requested_identity: gateway_address.to_string(),
+                            }
+                        } else {
+                            Error::NoMatchingGateway {
+                                requested_identity: gateway_address.to_string(),
+                            }
+                        }
+                    })?;
                 gateway.ipr_address = Some(ipr_address);
                 Ok(gateway)
             }
             ExitPoint::Gateway { identity } => {
                 tracing::debug!("Selecting exit gateway by identity: {identity}");
-                self.gateway_with_identity(identity)
-                    .ok_or_else(|| Error::NoMatchingGateway {
-                        requested_identity: identity.to_string(),
+                self.gateway_with_identity_filtered(identity, base_filters)
+                    .ok_or_else(|| {
+                        if self.gateway_with_identity(identity).is_some() {
+                            Error::GatewayFilteredOut {
+                                requested_identity: identity.to_string(),
+                            }
+                        } else {
+                            Error::NoMatchingGateway {
+                                requested_identity: identity.to_string(),
+                            }
+                        }
                     })
-                    .cloned()
             }
             ExitPoint::Country {
                 two_letter_iso_country_code,
@@ -1034,6 +1065,15 @@ impl GatewayList {
         exit_point: &ExitPoint,
         base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
+        if matches!(
+            exit_point,
+            ExitPoint::Gateway { .. } | ExitPoint::Address { .. }
+        ) {
+            // A specific gateway/address has exactly one candidate, so score tiering can
+            // only ever exclude it, never help find it: apply the caller's real
+            // constraints (e.g. NotBlacklisted) without the MinScore tiers.
+            return self.find_exit_gateway(exit_point, base_filters);
+        }
         for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
             tracing::debug!("Looking for entry gateway with minimum score: {score}");
 
@@ -1078,6 +1118,15 @@ impl GatewayList {
         exit_point: &ExitPoint,
         base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
+        if matches!(
+            exit_point,
+            ExitPoint::Gateway { .. } | ExitPoint::Address { .. }
+        ) {
+            // A specific gateway/address has exactly one candidate, so score tiering can
+            // only ever exclude it, never help find it: apply the caller's real
+            // constraints (e.g. NotBlacklisted) without the MinSocks5Score tiers.
+            return self.find_exit_gateway(exit_point, base_filters);
+        }
         for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
             tracing::debug!("Looking for exit gateway with minimum SOCKS5 score: {score}");
 

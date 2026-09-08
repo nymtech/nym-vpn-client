@@ -56,7 +56,9 @@ async fn main() -> anyhow::Result<()> {
         #[cfg(windows)]
         Command::StartService => {
             println!("Starting {SERVICE_NAME} service...");
-            start_service().context("Failed to start Windows service")?;
+            start_service()
+                .await
+                .context("Failed to start Windows service")?;
             Ok(())
         }
         Command::RunStandalone => run_vpn_service(cli_args, RunArgs::default()).await,

@@ -94,7 +94,7 @@ extension GRPCManager {
         case .performantExitGatewayUnavailable:
             ErrorReason.performantExitGatewayUnavailable
         case .invalidEntryGatewayIdentity:
-            ErrorReason.invalidEntryGatewayCountry
+            ErrorReason.invalidEntryGatewayIdentity
         case .invalidExitGatewayIdentity:
             ErrorReason.invalidExitGatewayIdentity
         case .needFullDiskPermissions:
@@ -109,6 +109,8 @@ extension GRPCManager {
             ErrorReason.credentialFetchingFailed
         case .noCredentialAvailable:
             ErrorReason.noCredentialAvailable
+        case .connectionAttemptsExceeded:
+            ErrorReason.connectionAttemptsExceeded
         }
     }
 }
@@ -173,6 +175,8 @@ extension ErrorReason {
             self = .credentialFetchingFailed
         case .noCredentialAvailable:
             self = .noCredentialAvailable
+        case .connectionAttemptsExceeded:
+            self = .connectionAttemptsExceeded
         }
     }
 }

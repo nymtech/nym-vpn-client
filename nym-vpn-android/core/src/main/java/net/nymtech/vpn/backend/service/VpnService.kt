@@ -80,7 +80,7 @@ class VpnService :
 			if (caps.ownerUid == Process.myUid()) return
 
 			val currentState = core.state
-			if (currentState == Tunnel.State.Down || currentState == Tunnel.State.Offline) return
+			if (currentState == Tunnel.State.Down || currentState is Tunnel.State.Offline) return
 
 			Timber.tag(TAG).w("Competing VPN detected (network=$network uid=${caps.ownerUid}), disconnecting")
 			_events.tryEmit(VpnServiceEvent.CompetingVpnDetected)
@@ -189,7 +189,7 @@ class VpnService :
 
 			ioScope.launch {
 				core.ensureReadyForManagementBestEffort()
-				if (core.state == Tunnel.State.Down || core.state == Tunnel.State.Offline) {
+				if (core.state == Tunnel.State.Down || core.state is Tunnel.State.Offline) {
 					core.connectLocked()
 				}
 			}
@@ -237,11 +237,12 @@ class VpnService :
 		connectivity.removeObserver(observer)
 	}
 
-	internal fun updateForegroundNotification(state: Tunnel.State) {
+	internal fun updateForegroundNotification(state: Tunnel.State, retryAttempt: UInt? = null) {
 		foreground.updateForegroundNotification(
 			state = state,
 			entry = core.currentEntry,
 			exit = core.currentExit,
+			retryAttempt = retryAttempt,
 		)
 	}
 }

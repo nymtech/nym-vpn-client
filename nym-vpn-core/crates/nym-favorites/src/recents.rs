@@ -158,7 +158,7 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
             .await
             .map_err(|source| FavoritesError::GetGateways {
                 tunnel_type,
-                source,
+                source: Box::new(source),
             })
     }
 }

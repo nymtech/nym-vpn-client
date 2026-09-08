@@ -31,6 +31,7 @@ public struct NymSnackbar: View {
         .padding(NymSpacing.large)
         .background(item.style.backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: Constants.cornerRadius, style: .continuous))
         .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 2)
     }
 }
@@ -113,6 +114,11 @@ private extension NymSnackbar {
                 .scaledToFit()
                 .frame(width: Constants.CloseIcon.size, height: Constants.CloseIcon.size)
                 .foregroundStyle(item.style.textColor)
+                .frame(
+                    width: AccessibilityConstants.MinTapTarget.size,
+                    height: AccessibilityConstants.MinTapTarget.size,
+                    alignment: .top
+                )
                 .contentShape(Rectangle())
         }
         .accessibilityLabel(Text("close".localizedString))
@@ -144,6 +150,7 @@ private struct SnackbarChromeButton<Label: View>: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .focusEffectDisabled(!voiceOverEnabled)
 #if os(macOS)
         .focusable(voiceOverEnabled)
@@ -198,10 +205,6 @@ private extension SnackbarItem.Style {
         default:
             Color.Nym.textPrimary
         }
-    }
-
-    var showsCloseButton: Bool {
-        self != .critical
     }
 
     var actionBackground: Color {
@@ -260,6 +263,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
                 .frame(maxWidth: NymSpacing.drawerMaxWidth)
                 .padding(.horizontal, NymSpacing.standard)
                 .padding(.top, Constants.topInset)
+                .fixedSize(horizontal: false, vertical: true)
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
         }

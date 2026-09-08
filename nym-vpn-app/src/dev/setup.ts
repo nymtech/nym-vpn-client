@@ -4,6 +4,7 @@ import {
   AccountLinks,
   Cli,
   DbKey,
+  Favorites,
   FeatureFlags,
   Gateway,
   GatewayType,
@@ -163,6 +164,12 @@ export function mockTauriIPC() {
       if (cmd === 'get_recent_gateways') {
         return new Promise<RecentGateways>((resolve) =>
           resolve(recents[(args as ArgsObj<VpnMode>).vpnMode]),
+        );
+      }
+
+      if (cmd === 'get_favorites') {
+        return new Promise<Favorites>((resolve) =>
+          resolve({ entry: [], exit: [] }),
         );
       }
 
