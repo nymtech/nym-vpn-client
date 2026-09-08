@@ -40,6 +40,7 @@ async fn tunnel_interfaces_with_default_route() -> usize {
 #[cfg(all(test, not(any(target_os = "android", target_os = "ios"))))]
 mod manual_smoke_test {
     #[tokio::test]
+    #[ignore = "manual smoke test; run with --ignored --nocapture"]
     async fn print_scan_result() {
         println!("scan(): {:?}", super::detect().await);
     }
