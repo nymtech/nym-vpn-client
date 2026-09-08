@@ -41,7 +41,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
             value={setting.title}
             onClick={setting.onClick}
             className={clsx([
-              'cursor-default',
+              'group cursor-default',
               'relative flex min-h-16 px-5 py-2 focus:outline-hidden',
               'bg-surface-elev hover:bg-surface-hair',
               'transition duration-75',

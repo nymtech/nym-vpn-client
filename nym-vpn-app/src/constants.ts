@@ -1,4 +1,4 @@
-import { SafestNode, SelectedNode } from './types';
+import { Profile, SafestNode, SelectedNode } from './types';
 
 // declared in src-tauri/src/events.rs
 export const AppName = 'NymVPN';
@@ -59,3 +59,14 @@ export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
 export const MixnetParametersLearnMoreUrl =
   'https://nym.com/features/mixnet-tuning';
 export const DocsUrl = 'https://nym.com/docs';
+
+export const PROFILES: { id: Profile; icon: string }[] = [
+  { id: 'safest', icon: 'explore' },
+  { id: 'random', icon: 'casino' },
+  { id: 'mostPrivate', icon: 'shield_lock' },
+  { id: 'fastest', icon: 'cruelty_free' },
+];
+
+export const PROFILE_ICONS = Object.fromEntries(
+  PROFILES.map(({ id, icon }) => [id, icon]),
+) as Record<Profile, string>;

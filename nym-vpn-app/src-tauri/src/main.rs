@@ -335,6 +335,7 @@ async fn main() -> Result<()> {
             tunnel::set_node,
             tunnel::set_quic,
             tunnel::set_fronting_mode,
+            tunnel::set_profile,
             tunnel::get_default_dns,
             tunnel::set_custom_dns,
             tunnel::set_custom_dns_enabled,

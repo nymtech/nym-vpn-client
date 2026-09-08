@@ -6,7 +6,9 @@ import {
   SelectedNode,
 } from './tauri';
 import {
+  NodeHop,
   SelectableNode,
+  SelectedAuto,
   isCountry,
   isGateway,
   isRegion,
@@ -29,6 +31,22 @@ export const SafestNode: SelectedNode = {
     exclude_entry_point_country: true,
   },
 };
+
+// Tells whether an `Auto` node's exclude flags represent the Safest profile.
+// The daemon sets these flags per the active connection profile:
+// - Safest: entry excludes the user's country; exit excludes both the
+//   user's country and the entry point's country.
+// - Fastest: no exclusions.
+// For entry, `exclude_entry_point_country` isn't meaningful (there is no
+// prior hop to exclude), so only `exclude_user_country` is considered.
+// Mixed exit flag combinations can't arise from a profile switch (only from
+// manual daemon config) and are treated as Fastest-style.
+export function isSafestAuto(node: SelectedAuto, hop: NodeHop): boolean {
+  const { exclude_user_country, exclude_entry_point_country } = node.auto;
+  return hop === 'entry'
+    ? exclude_user_country
+    : exclude_user_country && exclude_entry_point_country;
+}
 
 export type UiCountry = Country & {
   nodeType: 'country';

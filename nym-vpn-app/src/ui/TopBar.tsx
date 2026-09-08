@@ -7,7 +7,9 @@ import { NymVpnTextLogo } from '../assets';
 import { useDialog, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes, UiTheme } from '../types';
+import { useSetProfile } from '../hooks';
 import { ActionMenu } from '../screens';
+import ProfilesMenu from '../screens/home/ProfilesMenu';
 import { useSystemTheme } from '../state';
 import { useAppStore } from '../store';
 import BetaPill from './BetaPill';
@@ -17,6 +19,7 @@ import { StaggeredText } from './StaggeredText';
 type NavLocation = {
   title?: string | ReactNode;
   leftIcon?: string;
+  leftComponent?: ReactNode;
   handleLeftNav?: () => void;
   rightIcon?: string;
   rightComponent?: ReactNode;
@@ -48,6 +51,7 @@ export default function TopBar() {
   const { customLeftNavHandler } = useTopBar();
 
   const { handleThemeChange } = useSystemTheme();
+  const setProfile = useSetProfile();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -90,10 +94,7 @@ export default function TopBar() {
       },
       '/home': {
         title: <TopNymLogo uiTheme={uiTheme} />,
-        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
-        handleLeftNav: () => {
-          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
-        },
+        leftComponent: <ProfilesMenu onSelect={setProfile} />,
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
@@ -211,6 +212,7 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/profiles': backNav(t('profiles.title')),
       '/settings/socks5': {
         title: t('app-proxy.title', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',
@@ -341,7 +343,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, show, uiTheme, handleThemeChange]);
+  }, [t, navigate, show, uiTheme, handleThemeChange, setProfile]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -367,6 +369,18 @@ export default function TopBar() {
     return <div data-testid="top-bar-title-empty"></div>;
   };
 
+  const {
+    title,
+    leftIcon,
+    leftComponent,
+    handleLeftNav,
+    rightIcon,
+    rightComponent,
+    rightIconClassName,
+    handleRightNav,
+    noBackground,
+  } = currentNavLocation;
+
   return (
     <motion.nav
       initial={{
@@ -383,50 +397,48 @@ export default function TopBar() {
         'text-text-primary',
         'z-30 h-16 cursor-default text-xl select-none',
         'px-4 py-2',
-        currentNavLocation.noBackground ? 'bg-surface-bg' : 'bg-surface-elev',
+        noBackground ? 'bg-surface-bg' : 'bg-surface-elev',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}
-      data-test-no-background={
-        currentNavLocation.noBackground ? 'true' : 'false'
-      }
+      data-test-no-background={noBackground ? 'true' : 'false'}
     >
-      {currentNavLocation.leftIcon ? (
+      {leftIcon || leftComponent ? (
         <motion.div
           initial={{ translateX: -4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          <ButtonIconNew
-            icon={currentNavLocation.leftIcon}
-            onClick={
-              customLeftNavHandler ??
-              currentNavLocation.handleLeftNav ??
-              defaultLeftNavHandler
-            }
-          />
+          {leftComponent}
+          {leftIcon && (
+            <ButtonIconNew
+              icon={leftIcon}
+              onClick={
+                customLeftNavHandler ?? handleLeftNav ?? defaultLeftNavHandler
+              }
+            />
+          )}
         </motion.div>
       ) : (
         <div className="mx-4 w-6" data-testid="top-bar-left-spacer" />
       )}
       <div data-testid="top-bar-title-container" className="text-xl">
-        {renderTitle(currentNavLocation.title)}
+        {renderTitle(title)}
       </div>
-      {currentNavLocation.rightIcon || currentNavLocation.rightComponent ? (
+      {rightIcon || rightComponent ? (
         <motion.div
           initial={{ translateX: 4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-right-button-container"
         >
-          {currentNavLocation.rightComponent &&
-            currentNavLocation.rightComponent}
-          {currentNavLocation.rightIcon && (
+          {rightComponent}
+          {rightIcon && (
             <ButtonIconNew
-              icon={currentNavLocation.rightIcon}
-              onClick={currentNavLocation.handleRightNav!}
-              className={currentNavLocation.rightIconClassName}
+              icon={rightIcon}
+              onClick={handleRightNav!}
+              className={rightIconClassName}
             />
           )}
         </motion.div>

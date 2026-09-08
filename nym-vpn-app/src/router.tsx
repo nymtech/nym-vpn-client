@@ -27,6 +27,7 @@ import {
   NodeLocation,
   Notifications,
   Onboarding,
+  Profiles,
   SelectPlan,
   Settings,
   SettingsRouteIndex,
@@ -50,6 +51,7 @@ export const routes = {
   lang: '/settings/appearance/lang',
   dns: '/settings/dns',
   antiCensorship: '/settings/anti-censorship',
+  profiles: '/settings/profiles',
   socks5: '/settings/socks5',
   dataPrivacy: '/settings/data-privacy',
   logs: '/settings/data-privacy/logs',
@@ -194,6 +196,10 @@ const router = createBrowserRouter([
               {
                 path: routes.antiCensorship,
                 Component: AntiCensorship,
+              },
+              {
+                path: routes.profiles,
+                Component: Profiles,
               },
               {
                 path: routes.socks5,

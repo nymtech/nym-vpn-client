@@ -9,9 +9,11 @@ import { NodeHop, isAuto, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
+  isSafestAuto,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, MsIcon, PageAnim, SmileyIcon, TextInput } from '../../ui';
+import { PROFILE_ICONS } from '../../constants';
+import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
 import { useI18nError, useLang, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
@@ -179,10 +181,10 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const randomActive = storedNode === 'random';
-  // "Safest" is the daemon's `Auto` selection. Ignore the stored flag values —
-  // a selection round-tripped from the daemon still highlights correctly
-  // whatever it reports back.
-  const safestActive = isAuto(storedNode);
+  // "Safest" is the daemon's `Auto` selection with the Safest profile's
+  // exclusion flags set — a bare `Auto` (no exclusions) is the Fastest
+  // profile and must not light up this quick pick.
+  const safestActive = isAuto(storedNode) && isSafestAuto(storedNode, node);
 
   const handleNodeDetails = (gateway: UiGateway) => {
     navigate(routes.nodeDetails, {
@@ -300,7 +302,10 @@ function Node({ node }: { node: NodeHop }) {
                         })}
                         data-testid="node-quick-pick-safest"
                       >
-                        <SmileyIcon className="h-6 w-6" />
+                        <MsIcon
+                          icon={PROFILE_ICONS.safest}
+                          className="text-text-primary"
+                        />
                         <span className="text-text-primary text-base">
                           {t('quick-pick.safest')}
                         </span>

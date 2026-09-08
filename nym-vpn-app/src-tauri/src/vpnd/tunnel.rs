@@ -415,3 +415,24 @@ impl Display for FrontingMode {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum Profile {
+    Safest,
+    MostPrivate,
+    Fastest,
+    Random,
+}
+
+impl From<Profile> for lib::Profile {
+    fn from(profile: Profile) -> Self {
+        match profile {
+            Profile::Safest => lib::Profile::Safest,
+            Profile::MostPrivate => lib::Profile::MostPrivate,
+            Profile::Fastest => lib::Profile::Fastest,
+            Profile::Random => lib::Profile::Random,
+        }
+    }
+}

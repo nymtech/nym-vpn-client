@@ -8,7 +8,7 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
+        tunnel::{ConnectingState, FrontingMode, Profile, SplitApp, TunnelState},
     },
 };
 use std::net::IpAddr;
@@ -160,6 +160,16 @@ pub async fn set_fronting_mode(
     mode: FrontingMode,
 ) -> Result<(), BackendError> {
     vpnd.set_fronting_mode(mode).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_profile(
+    vpnd: State<'_, VpndClient>,
+    profile: Profile,
+) -> Result<(), BackendError> {
+    vpnd.set_profile(profile).await?;
     Ok(())
 }
 

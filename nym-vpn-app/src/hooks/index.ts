@@ -19,5 +19,6 @@ export { default as useConnect } from './useConnect';
 export { default as useGatewayIndependenceWatcher } from './useGatewayIndependenceWatcher';
 export { default as useDeviceLocationErrorToast } from './useDeviceLocationErrorToast';
 export { default as useRefreshAccountSummary } from './useRefreshAccountSummary';
+export { default as useSetProfile } from './useSetProfile';
 
 export * from './useToast';

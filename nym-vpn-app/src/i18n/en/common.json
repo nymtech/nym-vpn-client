@@ -16,5 +16,26 @@
   "default": "Default",
   "current": "Current",
   "close": "Close",
-  "restart": "Restart"
+  "restart": "Restart",
+  "profiles": {
+    "title": "Profiles",
+    "intro": "Profiles are connection templates that we baked in for you, to start experimenting with the privacy–speed balance that best suits your needs.",
+    "error": "Failed to apply profile",
+    "safest": {
+      "title": "Safest",
+      "desc": "Optimal for legal protection"
+    },
+    "random": {
+      "title": "Random",
+      "desc": "Results vary, may cause slow speed"
+    },
+    "mostPrivate": {
+      "title": "Most private",
+      "desc": "Metadata resistance and mixnet tuning"
+    },
+    "fastest": {
+      "title": "Fastest",
+      "desc": "Closest servers, best for streaming"
+    }
+  }
 }
