@@ -29,7 +29,7 @@ use nym_gateway_directory::{
 };
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tun::AbstractDevice;
 #[cfg(windows)]
@@ -71,10 +71,7 @@ use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
         self, AnyTunnelHandle, SelectedGateways, Tombstone,
-        wireguard::{
-            connected_tunnel,
-            connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
-        },
+        wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
     },
 };
 #[cfg(target_os = "android")]
@@ -266,6 +263,13 @@ pub enum TunnelMonitorEvent {
         reply_tx: tokio::sync::oneshot::Sender<()>,
     },
 
+    /// The entry WireGuard handshake never completed, so the entry gateway is unreachable
+    /// from the current network. Nothing can be said about the exit gateway.
+    EntryHandshakeFailed {
+        /// Entry gateway whose handshake never completed.
+        entry_gateway_id: NodeIdentity,
+    },
+
     /// Connection has failed
     ConnectionFailed {
         /// Entry gateway used during the failed attempt.
@@ -373,24 +377,22 @@ async fn wait_for_handshake_outcome(
 }
 
 /// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
-async fn wait_for_exit_handshake(
-    tunnel_handle: &connected_tunnel::TunnelHandle,
+async fn wait_for_handshake(
+    get_stats: impl FnMut() -> nym_wg_go::Result<nym_wg_go::wireguard_go::TunnelStats>,
     shutdown_token: &CancellationToken,
 ) -> HandshakeWaitOutcome {
-    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
-    const POLL_INTERVAL: Duration = Duration::from_millis(500);
-
-    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+    /// How long the entry WireGuard peer gets to complete its handshake before the entry gateway is
+    /// declared unreachable. wireguard-go retransmits the initiation every 5s, so this covers the
+    /// first retransmission plus a generous round trip, while still failing a dead entry (e.g. its
+    /// WG port blackholed on this network) in a fraction of the exit handshake + metadata windows.
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(7);
+    const POLL_INTERVAL: Duration = Duration::from_millis(250);
 
     let started = std::time::Instant::now();
 
-    let outcome = wait_for_handshake_outcome(
-        || tunnel_handle.get_exit_stats(),
-        shutdown_token,
-        HANDSHAKE_TIMEOUT,
-        POLL_INTERVAL,
-    )
-    .await;
+    let outcome =
+        wait_for_handshake_outcome(get_stats, shutdown_token, HANDSHAKE_TIMEOUT, POLL_INTERVAL)
+            .await;
 
     let elapsed = started.elapsed();
     match outcome {
@@ -759,7 +761,7 @@ impl TunnelMonitor {
             StartTunnelResult {
                 tunnel_interface,
                 tunnel_conn_data,
-                mut tunnel_handle,
+                tunnel_handle,
             },
             wg_tunnel_runtime,
             mixnet_client_token,
@@ -853,10 +855,42 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
+        // The firewall now allows traffic through the tunnel. First make sure the entry hop
+        // answers at all: an entry whose handshake never completes is dead from this network
+        // regardless of the exit, so it is failed fast and blamed alone instead of waiting out
+        // the exit handshake and metadata windows and blacklisting the exit first.
         let exit_handshake_completed = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
-            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await
-                == HandshakeWaitOutcome::Completed
+            tracing::debug!("Waiting for entry WireGuard handshake to complete");
+            let entry_outcome =
+                wait_for_handshake(|| wg_handle.get_entry_stats(), &self.shutdown_token).await;
+            match entry_outcome {
+                HandshakeWaitOutcome::Completed => {
+                    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+                    wait_for_handshake(|| wg_handle.get_exit_stats(), &self.shutdown_token).await
+                        == HandshakeWaitOutcome::Completed
+                }
+                HandshakeWaitOutcome::TimedOut => {
+                    self.send_event(TunnelMonitorEvent::EntryHandshakeFailed {
+                        entry_gateway_id: selected_gateways.entry_gateway().identity(),
+                    });
+                    return Ok(Self::await_shutdown(
+                        wg_tunnel_runtime,
+                        None,
+                        tunnel_handle,
+                        shutdown_guard,
+                    )
+                    .await);
+                }
+                HandshakeWaitOutcome::Cancelled => {
+                    return Ok(Self::await_shutdown(
+                        wg_tunnel_runtime,
+                        None,
+                        tunnel_handle,
+                        shutdown_guard,
+                    )
+                    .await);
+                }
+            }
         } else {
             // Mixnet tunnels have no WireGuard handshake to observe, so failures are
             // never attributed to the entry gateway based on it.
@@ -1082,6 +1116,23 @@ impl TunnelMonitor {
             }
         }
 
+        Ok(Self::await_shutdown(
+            wg_tunnel_runtime,
+            Some(tunnel_connection_monitor_handle),
+            tunnel_handle,
+            shutdown_guard,
+        )
+        .await)
+    }
+
+    async fn await_shutdown(
+        wg_tunnel_runtime: Option<WgTunnelRuntime>,
+        tunnel_connection_monitor_handle: Option<
+            JoinHandle<Result<(), nym_connection_monitor::Error>>,
+        >,
+        mut tunnel_handle: AnyTunnelHandle,
+        shutdown_guard: DropGuard,
+    ) -> Tombstone {
         // Trigger cancellation since many other tasks depend on shutdown token
         drop(shutdown_guard);
 
@@ -1104,7 +1155,9 @@ impl TunnelMonitor {
             }
         }
 
-        if let Err(e) = tunnel_connection_monitor_handle.await {
+        if let Some(tunnel_connection_monitor_handle) = tunnel_connection_monitor_handle
+            && let Err(e) = tunnel_connection_monitor_handle.await
+        {
             tracing::error!("Tunnel connection monitor exited with error: {}", e);
         }
 
@@ -1121,7 +1174,7 @@ impl TunnelMonitor {
 
         tracing::info!("Tunnel monitor finished");
 
-        Ok(tun_devices)
+        tun_devices
     }
 
     async fn await_account_readiness_with_retry(&mut self) -> Result<(), Error> {

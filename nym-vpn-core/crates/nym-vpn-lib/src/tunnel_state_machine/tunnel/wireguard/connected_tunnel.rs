@@ -22,7 +22,7 @@ use nym_routing::{Callback, CallbackHandle, EventType};
 use nym_wg_go::wireguard_go::TunnelFd;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
-use nym_wg_go::{amnezia::AmneziaConfig, netstack, wireguard_go};
+use nym_wg_go::{amnezia::AmneziaConfig, netstack, stats::StatsReader, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::{self as winnet, AddressFamily};
 #[cfg(any(windows, target_os = "ios"))]
@@ -215,7 +215,8 @@ impl ConnectedTunnel {
         let wintun_entry_interface = entry_tunnel.wintun_interface().clone();
         #[cfg(windows)]
         let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
-        let exit_stats_reader = exit_tunnel.stats_reader();
+        let entry_stats_reader = Box::new(entry_tunnel.stats_reader());
+        let exit_stats_reader = Box::new(exit_tunnel.stats_reader());
 
         let event_handler_task = tokio::spawn(async move {
             #[cfg(windows)]
@@ -265,6 +266,7 @@ impl ConnectedTunnel {
         Ok(TunnelHandle {
             shutdown_token,
             event_handler_task,
+            entry_stats_reader,
             exit_stats_reader,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
@@ -403,7 +405,8 @@ impl ConnectedTunnel {
 
         #[cfg(windows)]
         let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
-        let exit_stats_reader = exit_tunnel.stats_reader();
+        let entry_stats_reader = Box::new(entry_tunnel.stats_reader());
+        let exit_stats_reader = Box::new(exit_tunnel.stats_reader());
 
         let child_shutdown_token = shutdown_token.child_token();
         let event_handler_task = tokio::spawn(async move {
@@ -538,6 +541,7 @@ impl ConnectedTunnel {
         Ok(TunnelHandle {
             shutdown_token,
             event_handler_task,
+            entry_stats_reader,
             exit_stats_reader,
             #[cfg(windows)]
             wintun_entry_interface: None,
@@ -669,7 +673,8 @@ pub struct NetstackTunnelOptions {
 pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
-    exit_stats_reader: wireguard_go::TunnelStatsReader,
+    entry_stats_reader: Box<dyn StatsReader + Send + Sync>,
+    exit_stats_reader: Box<dyn StatsReader + Send + Sync>,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
     #[cfg(windows)]
@@ -687,6 +692,11 @@ impl TunnelHandle {
     /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
     pub async fn wait(self) -> Result<Tombstone, JoinError> {
         self.event_handler_task.await
+    }
+
+    /// Query live stats for the entry WireGuard peer via the UAPI GET interface.
+    pub fn get_entry_stats(&self) -> nym_wg_go::Result<wireguard_go::TunnelStats> {
+        self.entry_stats_reader.get_stats()
     }
 
     /// Query live stats for the exit WireGuard peer via the UAPI GET interface.
