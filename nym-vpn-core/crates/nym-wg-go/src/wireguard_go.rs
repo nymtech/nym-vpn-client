@@ -431,7 +431,6 @@ impl StatsReader for TunnelStatsReader {
         }
         let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
         unsafe { wgFreePtr(raw as *mut c_void) };
-        tracing::trace!("TunnelStats: '{s}'");
         Ok(Self::parse_tunnel_stats(&s))
     }
 }
