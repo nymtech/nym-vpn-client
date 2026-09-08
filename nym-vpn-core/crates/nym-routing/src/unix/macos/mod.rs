@@ -32,7 +32,6 @@ mod data;
 mod default_routes;
 mod interface;
 mod ip_map;
-mod route_dump;
 mod routing_socket;
 mod watch;
 
@@ -71,10 +70,6 @@ pub enum Error {
     /// Failed to create SCDynamicStore
     #[error("failed to create SCDynamicStore")]
     CreateDynamicStore,
-
-    /// Failed to dump the routing table
-    #[error("failed to dump the routing table")]
-    RouteDump(#[source] route_dump::Error),
 }
 
 /// Get every interface currently holding a default-route-shaped entry, for
@@ -82,9 +77,44 @@ pub enum Error {
 pub async fn get_default_route_interfaces(
     family: crate::AddressFamily,
 ) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
-    route_dump::get_default_route_interfaces(family)
-        .map_err(Error::RouteDump)
-        .map_err(Into::into)
+    let address_family = match family {
+        crate::AddressFamily::Ipv4 => libc::AF_INET,
+        crate::AddressFamily::Ipv6 => libc::AF_INET6,
+    };
+
+    let table = watch::RoutingTable::new().map_err(Error::RoutingTable)?;
+    let routes = table
+        .dump_routes(address_family)
+        .map_err(Error::RoutingTable)?;
+
+    let mut result = crate::DefaultRouteInterfaces::default();
+    for route in routes {
+        if route.is_default().unwrap_or(false) {
+            let interface_index = u32::from(route.interface_index());
+            if is_tunnel_like_interface(route.interface_index()) {
+                result.virtual_.insert(interface_index);
+            } else {
+                result.physical.insert(interface_index);
+            }
+        }
+    }
+
+    Ok(result)
+}
+
+fn is_tunnel_like_interface(interface_index: u16) -> bool {
+    const TUNNEL_PREFIXES: [&str; 4] = ["utun", "tun", "tap", "ppp"];
+
+    let Ok(name) = nix::net::if_::if_indextoname(u32::from(interface_index)) else {
+        return false;
+    };
+    let Ok(name) = name.into_string() else {
+        return false;
+    };
+
+    TUNNEL_PREFIXES
+        .iter()
+        .any(|prefix| name.starts_with(prefix))
 }
 
 /// Route manager can be in 1 of 4 states -
