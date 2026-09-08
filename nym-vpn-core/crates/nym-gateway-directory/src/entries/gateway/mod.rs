@@ -730,6 +730,12 @@ pub struct GatewayList {
     gateways: Vec<Gateway>,
 }
 
+/// How many of the best-ranked gateways an ordering-criteria selection (e.g. "closest to the
+/// user") picks from at random. Always taking the single best one sends every user in a region
+/// to the same node, so one gateway that is unreachable from that region breaks the first
+/// connect for all of them; spreading over a few also evens out load.
+pub const CLOSEST_GATEWAY_CANDIDATES: usize = 3;
+
 impl GatewayList {
     pub fn new(gw_type: Option<GatewayType>, gateways: Vec<Gateway>) -> Self {
         GatewayList { gw_type, gateways }
@@ -798,6 +804,24 @@ impl GatewayList {
         F: FnMut(&Gateway, &Gateway) -> Ordering,
     {
         self.filter(filters).into_iter().min_by(cmp)
+    }
+
+    /// Pick one of the `candidates` smallest gateways under `cmp`, uniformly at random.
+    pub fn filtered_random_among_min_by<F>(
+        &self,
+        filters: &GatewayFilters,
+        cmp: F,
+        candidates: usize,
+    ) -> Option<Gateway>
+    where
+        F: FnMut(&Gateway, &Gateway) -> Ordering,
+    {
+        let mut filtered = self.filter(filters);
+        filtered.sort_by(cmp);
+        filtered
+            .into_iter()
+            .take(candidates)
+            .choose(&mut rand::thread_rng())
     }
 
     pub fn retain_gateways_by<F>(&mut self, pred: F)
@@ -965,7 +989,11 @@ impl GatewayList {
 
             let filters = base_filters.with(&[GatewayFilter::MinScore(score)]);
 
-            if let Some(gateway) = self.filtered_min_by(&filters, &mut ordering_criteria) {
+            if let Some(gateway) = self.filtered_random_among_min_by(
+                &filters,
+                &mut ordering_criteria,
+                CLOSEST_GATEWAY_CANDIDATES,
+            ) {
                 return Ok(gateway);
             }
         }
