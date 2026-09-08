@@ -118,7 +118,7 @@ impl RouteMessage {
             .unwrap_or(false))
     }
 
-    fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
+    pub(crate) fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
         let header: rt_msghdr = rt_msghdr::from_bytes(buffer)?;
 
         let msg_len = usize::from(header.rtm_msglen);
