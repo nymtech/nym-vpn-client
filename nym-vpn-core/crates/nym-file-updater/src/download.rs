@@ -45,7 +45,8 @@ pub(crate) async fn download_file(
         .and_then(|builder| {
             builder
                 .with_reqwest_builder(
-                    nym_http_api_client::registry::default_builder().connect_timeout(CONNECT_TIMEOUT),
+                    nym_http_api_client::registry::default_builder()
+                        .connect_timeout(CONNECT_TIMEOUT),
                 )
                 .build()
         })
@@ -57,7 +58,12 @@ pub(crate) async fn download_file(
     // Step 1: HEAD request to read the server's current ETag without downloading.
     if let Some(ref stored) = current_etag {
         let head_request = http_client
-            .create_request(Method::HEAD, "", nym_http_api_client::NO_PARAMS, None::<&()>)
+            .create_request(
+                Method::HEAD,
+                "",
+                nym_http_api_client::NO_PARAMS,
+                None::<&()>,
+            )
             .map_err(|error| FileUpdaterError::Request {
                 url: url.to_string(),
                 error,
