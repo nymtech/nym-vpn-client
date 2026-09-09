@@ -3,16 +3,18 @@ import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react';
 import { PROFILES } from '../../constants';
 import { Profile } from '../../types';
-import { MsIcon } from '../../ui';
+import { MsIcon, ProfileIcon } from '../../ui';
 import { useAppStore } from '../../store';
 
 type ProfileItemProps = {
   profile: Profile;
-  icon: string;
   onSelect?: (profile: Profile) => void;
 };
 
-function ProfileItem({ profile, icon, onSelect }: ProfileItemProps) {
+const rampClasses =
+  'text-text-tertiary group-hover:text-text-primary group-active:text-brand-primary transition-colors';
+
+function ProfileItem({ profile, onSelect }: ProfileItemProps) {
   const { t } = useTranslation();
 
   return (
@@ -23,15 +25,18 @@ function ProfileItem({ profile, icon, onSelect }: ProfileItemProps) {
         'hover:bg-black/5 dark:hover:bg-white/5',
       )}
     >
-      <MsIcon
-        icon={icon}
-        className="text-text-secondary group-hover:animate-nod group-hover:text-brand-primary text-2xl"
+      <ProfileIcon
+        profile={profile}
+        className={clsx(
+          rampClasses,
+          'group-hover:animate-nod group-active:animate-nod-deep',
+        )}
       />
       <div className="flex flex-col">
-        <span className="text-text-primary group-hover:text-brand-primary text-base">
+        <span className={clsx(rampClasses, 'text-base')}>
           {t(`profiles.${profile}.title`)}
         </span>
-        <span className="text-text-secondary text-sm">
+        <span className="text-text-tertiary text-sm">
           {t(`profiles.${profile}.desc`)}
         </span>
       </div>
@@ -53,7 +58,7 @@ function ProfilesMenu({ onSelect }: ProfilesMenuProps) {
         aria-label={t('profiles.title')}
         className={clsx(
           'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-          'text-text-secondary hover:bg-surface-sunken dark:text-text-tertiary',
+          'text-text-secondary hover:bg-surface-sunken',
           'focus-visible:outline focus-visible:-outline-offset-1',
         )}
       >
@@ -74,11 +79,10 @@ function ProfilesMenu({ onSelect }: ProfilesMenuProps) {
               'dark:outline-text-secondary dark:bg-surface-elev dark:shadow-none dark:-outline-offset-1',
             )}
           >
-            {PROFILES.map(({ id, icon }) => (
+            {PROFILES.map((profile) => (
               <ProfileItem
-                key={id}
-                profile={id}
-                icon={icon}
+                key={profile}
+                profile={profile}
                 onSelect={onSelect}
               />
             ))}

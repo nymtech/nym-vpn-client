@@ -28,7 +28,9 @@
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
 
+  /* profile icons tilt left on hover, and deeper while pressed */
   --animate-nod: nod 0.4s ease-in-out;
+  --animate-nod-deep: nod-deep 0.4s ease-in-out;
 
   @keyframes nod {
     0%,
@@ -36,7 +38,17 @@
       transform: rotate(0deg);
     }
     50% {
-      transform: rotate(10deg);
+      transform: rotate(-5deg);
+    }
+  }
+
+  @keyframes nod-deep {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(-10deg);
     }
   }
 }

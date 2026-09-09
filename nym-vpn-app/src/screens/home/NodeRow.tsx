@@ -7,23 +7,25 @@ import {
   ButtonIconNew,
   FlagIcon,
   MsIcon,
+  ProfileIcon,
   Skeleton,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
 import { useLang } from '../../hooks';
 import {
-  Gateway,
-  Score,
-  SelectedAuto,
-  SelectedNode,
+  type Gateway,
+  type Profile,
+  type Score,
+  type SelectedAuto,
+  type SelectedNode,
   isAuto,
   isCountry,
   isGateway,
   isRegion,
   isSafestAuto,
 } from '../../types';
-import { PROFILE_ICONS, countriesWithRegions } from '../../constants';
+import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
@@ -302,14 +304,14 @@ export function NodeRow({ type }: NodeRowProps) {
   // gateway is still unknown, and ScoreIndicator maps an undefined score to a
   // full-strength bar — i.e. a confident signal reading for no server. Until
   // then show the icon of the matching profile flavor instead.
-  const placeholderIcon = useMemo(() => {
+  const placeholderProfile = useMemo<Profile | null>(() => {
     if (gateway) return null;
-    if (userSelectedNode === 'random') return PROFILE_ICONS.random;
+    if (userSelectedNode === 'random') return 'random';
     if (isAuto(userSelectedNode)) {
       return autoSelectionLabelKey(userSelectedNode, type) ===
         'safest-server-selection'
-        ? PROFILE_ICONS.safest
-        : PROFILE_ICONS.fastest;
+        ? 'safest'
+        : 'fastest';
     }
     return null;
   }, [gateway, type, userSelectedNode]);
@@ -341,10 +343,11 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
-              {placeholderIcon ? (
-                <MsIcon
-                  icon={placeholderIcon}
-                  className="text-text-secondary text-2xl"
+              {placeholderProfile ? (
+                <ProfileIcon
+                  profile={placeholderProfile}
+                  size="sm"
+                  className="text-text-secondary"
                 />
               ) : (
                 <ScoreIndicator score={nodeDetails.score} />
