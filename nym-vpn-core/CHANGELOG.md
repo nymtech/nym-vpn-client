@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent gateway refresh storm when the API is unreachable (https://github.com/nymtech/nym-vpn-client/pull/6087)
 - [Windows] Wait for the VPN service to be running after install (https://github.com/nymtech/nym-vpn-client/pull/6245)
 - Avoid blocking daemon command loop when handling recents which may perform network calls (https://github.com/nymtech/nym-vpn-client/pull/6294)
+- [Android] Don't use `reqwest` HTTP client to avoid `rustls-platform-verifier` panic (https://github.com/nymtech/nym-vpn-client/pull/6316)
 
 
 ## [2026.12.3] - 2026-08-27
