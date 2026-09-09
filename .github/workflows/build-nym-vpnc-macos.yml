@@ -152,7 +152,7 @@ jobs:
           echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Install Apple WWDR Intermediates
-        uses: ./.github/workflows/apple/install-wwdr
+        uses: ./.github/actions/install-wwdr
         with:
           keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
