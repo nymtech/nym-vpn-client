@@ -60,13 +60,10 @@ export const MixnetParametersLearnMoreUrl =
   'https://nym.com/features/mixnet-tuning';
 export const DocsUrl = 'https://nym.com/docs';
 
-export const PROFILES: { id: Profile; icon: string }[] = [
-  { id: 'safest', icon: 'explore' },
-  { id: 'random', icon: 'casino' },
-  { id: 'mostPrivate', icon: 'shield_lock' },
-  { id: 'fastest', icon: 'cruelty_free' },
+// listed in display order; the matching icon lives in `ui/ProfileIcon`
+export const PROFILES: Profile[] = [
+  'safest',
+  'random',
+  'mostPrivate',
+  'fastest',
 ];
-
-export const PROFILE_ICONS = Object.fromEntries(
-  PROFILES.map(({ id, icon }) => [id, icon]),
-) as Record<Profile, string>;

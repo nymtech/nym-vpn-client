@@ -7,13 +7,12 @@ import { Button } from '@headlessui/react';
 import { useDialog } from '../../contexts';
 import { NodeHop, isAuto, isGateway } from '../../types';
 import {
-  SelectedUiNode,
-  UiGateway,
+  type SelectedUiNode,
+  type UiGateway,
   isSafestAuto,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { PROFILE_ICONS } from '../../constants';
-import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
+import { Link, PageAnim, ProfileIcon, TextInput } from '../../ui';
 import { useI18nError, useLang, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
@@ -302,8 +301,9 @@ function Node({ node }: { node: NodeHop }) {
                         })}
                         data-testid="node-quick-pick-safest"
                       >
-                        <MsIcon
-                          icon={PROFILE_ICONS.safest}
+                        <ProfileIcon
+                          profile="safest"
+                          size="sm"
                           className="text-text-primary"
                         />
                         <span className="text-text-primary text-base">
@@ -316,7 +316,11 @@ function Node({ node }: { node: NodeHop }) {
                           'border-brand-primary-active border-2': randomActive,
                         })}
                       >
-                        <MsIcon icon="shuffle" className="text-text-primary" />
+                        <ProfileIcon
+                          profile="random"
+                          size="sm"
+                          className="text-text-primary"
+                        />
                         <span className="text-text-primary text-base">
                           {t('quick-pick.random')}
                         </span>
