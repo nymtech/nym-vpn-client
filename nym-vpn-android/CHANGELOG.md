@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Profiles: UI and logic (https://github.com/nymtech/nym-vpn-client/pull/6144)
 - Set geo location for android command sender (https://github.com/nymtech/nym-vpn-client/pull/6144)
 - Log prior process exit reasons on startup (https://github.com/nymtech/nym-vpn-client/pull/6236)
+- Add Profiles screen to Settings (https://github.com/nymtech/nym-vpn-client/pull/6319)
 
 ### Changed
 - Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
