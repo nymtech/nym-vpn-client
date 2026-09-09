@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">سجلات &amp; البيانات</string>
 	<string name="settings_legal_title">قانوني</string>
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
-	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">قفل الشاشة مطلوب لاستخدام الاختصار.</string>
 	<string name="shortcut_title">تأكيد الإجراء</string>

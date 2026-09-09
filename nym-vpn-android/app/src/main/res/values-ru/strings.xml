@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">Логи &amp; данные</string>
 	<string name="settings_legal_title">Юридическая информация</string>
 	<string name="settings_geo_exclusion_title">Исключение по геолокации</string>
-	<string name="settings_geo_exclusion_desciption">Определённые диапазоны IP подключаются напрямую</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для использования горячих клавиш требуется блокировка экрана.</string>
 	<string name="shortcut_title">Подтвердите действие</string>

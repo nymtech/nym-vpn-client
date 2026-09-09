@@ -229,6 +229,10 @@ fun NavBar(
 				titleRes = R.string.setup_instructions_title,
 				onBack = { navController.safePopBackStack() },
 			)
+			route.startsWith(Route.Profiles::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.profiles_title,
+				onBack = { navController.safePopBackStack() },
+			)
 
 			else -> NavBarState.Hidden
 		}

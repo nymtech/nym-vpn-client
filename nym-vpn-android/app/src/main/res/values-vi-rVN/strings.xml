@@ -230,7 +230,7 @@
 	<string name="settings_logs_title">Nhật ký &amp; dữ liệu</string>
 	<string name="settings_legal_title">Pháp lý</string>
 	<string name="settings_geo_exclusion_title">Loại Trừ Địa Lý</string>
-	<string name="settings_geo_exclusion_desciption">Các dải IP cụ thể kết nối trực tiếp</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Cần khóa màn hình để sử dụng các phím tắt.</string>
 	<string name="shortcut_title">Xác nhận hành động</string>

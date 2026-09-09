@@ -230,7 +230,7 @@
 	<string name="settings_logs_title">लॉग &amp; डेटा</string>
 	<string name="settings_legal_title">कानूनी</string>
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
-	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">शॉर्टकट का उपयोग करने के लिए स्क्रीन लॉक आवश्यक है।</string>
 	<string name="shortcut_title">कन्फ़र्म करें</string>

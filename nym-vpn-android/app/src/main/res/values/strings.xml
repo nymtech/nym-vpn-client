@@ -279,7 +279,9 @@
 	<string name="settings_logs_title">Logs &amp; data</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
-	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
+	<string name="settings_geo_exclusion_description">Specific IP ranges connect directly</string>
+	<string name="settings_profiles_title">Connection profiles</string>
+	<string name="settings_profiles_description">Let us help you connect</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
 	<string name="shortcut_title">Confirm action</string>
@@ -680,4 +682,7 @@
 	<string name="profiles_most_private_description">Metadata resistance and mixnet tuning</string>
 	<string name="profiles_fastest_title">Fastest</string>
 	<string name="profiles_fastest_description">Chooses the closest, best for streaming</string>
+	<string name="profiles_description">Profiles are connection templates, that we baked in for you to start experimenting with the privacy - speed experience that’s best suits your needs.</string>
+	<string name="profiles_learn_more_text">Learn more about profiles here</string>
+	<string name="profiles_learn_more_link"></string>
 </resources>
