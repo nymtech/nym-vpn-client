@@ -292,7 +292,7 @@ impl ConnectingState {
     async fn handle_tunnel_close(
         tombstone: Tombstone,
         shared_state: &mut SharedState,
-    ) -> std::io::Result<()> {
+    ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
@@ -739,11 +739,10 @@ impl TunnelStateHandler for ConnectingState {
                         } else {
                             if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
                                 let tombstone = tunnel_monitor_handle.wait().await;
-                                if let Err(reason) = unexpected_down_after_cover(
-                                    Self::handle_tunnel_close(tombstone, shared_state).await,
-                                ) {
+
+                                if Self::handle_tunnel_close(tombstone, shared_state).await.is_err() {
                                     return NextTunnelState::NewState(
-                                        ErrorState::enter(reason, shared_state).await,
+                                        ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state).await,
                                     );
                                 }
                             }
@@ -1093,17 +1092,6 @@ enum ReconnectDecision {
     Abort,
 }
 
-fn unexpected_down_after_cover(cover: std::io::Result<()>) -> Result<(), ErrorStateReason> {
-    cover
-        .inspect_err(|err| {
-            trace_err_chain!(
-                err,
-                "failed to install Android blocking TUN before tunnel close"
-            );
-        })
-        .map_err(|_| ErrorStateReason::TunnelProvider)
-}
-
 fn reconnect_decision(next_attempt: u32) -> ReconnectDecision {
     if next_attempt >= MAX_RECONNECT_ATTEMPTS {
         ReconnectDecision::Abort
@@ -1155,15 +1143,6 @@ mod test {
             reconnect_decision(MAX_RECONNECT_ATTEMPTS - 1),
             ReconnectDecision::Retry { .. }
         ));
-    }
-
-    #[test]
-    fn unexpected_down_cover_failure_is_tunnel_provider_not_reconnect() {
-        assert_eq!(
-            unexpected_down_after_cover(Err(std::io::Error::other("configure_tunnel"))),
-            Err(ErrorStateReason::TunnelProvider)
-        );
-        assert_eq!(unexpected_down_after_cover(Ok(())), Ok(()));
     }
 
     #[test]

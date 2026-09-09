@@ -840,9 +840,12 @@ impl SharedState {
 
     /// Establish (or replace) the Android blocking VPN interface and retain its FD.
     #[cfg(target_os = "android")]
-    fn install_android_blocking_tun(&mut self) -> std::io::Result<()> {
+    fn install_android_blocking_tun(&mut self) -> Result<()> {
         let settings = blocking_tunnel_settings(BLOCKING_INTERFACE_ADDRS[0]);
-        let raw_fd = self.tun_provider.configure_tunnel(settings)?;
+        let raw_fd = self
+            .tun_provider
+            .configure_tunnel(settings)
+            .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
         // Safety: configure_tunnel returns a freshly owned FD from VpnService.Builder.establish().
         let owned = unsafe { OwnedFd::from_raw_fd(raw_fd) };
         self.android_blocking_tun = Some(owned);
@@ -854,11 +857,11 @@ impl SharedState {
     /// Install blocking TUN when none is held yet. After a live TUN may have replaced the cover,
     /// use `prepare_blocking_cover_before_release` so a stale FD cannot skip reinstall.
     #[cfg(target_os = "android")]
-    fn ensure_android_blocking_tun(&mut self) -> std::io::Result<()> {
-        if self.android_blocking_tun.is_some() {
-            return Ok(());
+    fn ensure_android_blocking_tun(&mut self) -> Result<()> {
+        match self.android_blocking_tun.as_ref() {
+            Some(_) => Ok(()),
+            None => self.install_android_blocking_tun(),
         }
-        self.install_android_blocking_tun()
     }
 
     /// Install cover if needed, unpause control-plane only when covered, and publish
@@ -891,7 +894,7 @@ impl SharedState {
     fn prepare_blocking_cover_before_release(
         &mut self,
         mut tombstone: Option<tunnel::Tombstone>,
-    ) -> std::io::Result<()> {
+    ) -> Result<()> {
         match self.install_android_blocking_tun() {
             Ok(()) => {
                 drop(tombstone.take());
