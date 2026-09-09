@@ -35,6 +35,14 @@ fn production_code_never_bypasses_the_http_client_registry() {
     ))
     .unwrap();
     let cfg_test_mod = Regex::new(r"(?m)^\s*#\[cfg\(test\)\]").unwrap();
+    // `use reqwest::Client;` (optionally renamed via `as`, or grouped in braces) lets code
+    // call the constructor unqualified afterwards, which the fully-qualified regex above
+    // would miss. Resolve just that one level of indirection rather than the general case.
+    let use_reqwest = Regex::new(
+        r"(?m)^\s*use\s+reqwest\s*::\s*(?:\{([^}]*)\}|(\w+(?:\s*as\s*\w+)?))\s*;",
+    )
+    .unwrap();
+    let import_item = Regex::new(r"(ClientBuilder|Client)(?:\s*as\s*(\w+))?").unwrap();
 
     let mut violations = Vec::new();
     visit_rust_files(&crates_dir, &mut |path, contents| {
@@ -57,12 +65,51 @@ fn production_code_never_bypasses_the_http_client_registry() {
             None => contents,
         };
 
+        let mut client_aliases = Vec::new();
+        let mut builder_aliases = Vec::new();
+        for cap in use_reqwest.captures_iter(scope) {
+            let body = cap
+                .get(1)
+                .or_else(|| cap.get(2))
+                .map(|m| m.as_str())
+                .unwrap_or_default();
+            for item in body.split(',') {
+                let Some(m) = import_item.captures(item) else {
+                    continue;
+                };
+                let alias = m
+                    .get(2)
+                    .map(|a| a.as_str().to_string())
+                    .unwrap_or_else(|| m[1].to_string());
+                if &m[1] == "ClientBuilder" {
+                    builder_aliases.push(alias);
+                } else {
+                    client_aliases.push(alias);
+                }
+            }
+        }
+        let alias_banned = (!client_aliases.is_empty() || !builder_aliases.is_empty()).then(
+            || {
+                let mut parts: Vec<String> = client_aliases
+                    .iter()
+                    .map(|a| format!(r"\b{}\s*::\s*(builder|new)\s*\(", regex::escape(a)))
+                    .collect();
+                parts.extend(
+                    builder_aliases
+                        .iter()
+                        .map(|a| format!(r"\b{}\s*::\s*new\s*\(", regex::escape(a))),
+                );
+                Regex::new(&parts.join("|")).unwrap()
+            },
+        );
+
         for (line_no, line) in scope.lines().enumerate() {
             let trimmed = line.trim_start();
             if trimmed.starts_with("//") {
                 continue;
             }
-            if banned.is_match(line) {
+            let aliased_hit = alias_banned.as_ref().is_some_and(|re| re.is_match(line));
+            if banned.is_match(line) || aliased_hit {
                 violations.push(format!("{}:{}: {}", path.display(), line_no + 1, trimmed));
             }
         }
