@@ -6,14 +6,18 @@ import { LngTag } from './types';
  * supported language tag. Falls back to 'en' if no match is found.
  */
 export function matchSupportedLocale(osLocale: string): LngTag {
-  // Try exact match first (e.g. "en" → "en")
   const lower = osLocale.toLowerCase();
-  if ((supportedLngs as readonly string[]).includes(lower)) {
-    return lower as LngTag;
+
+  // Exact match, case-insensitive (e.g. "zh-TW" → "zh-TW", "EN" → "en")
+  const exact = (supportedLngs as readonly string[]).find(
+    (code) => code.toLowerCase() === lower,
+  );
+  if (exact) {
+    return exact as LngTag;
   }
 
-  // Try matching just the primary language subtag (e.g. "en-US" → "en", "zh-Hans-CN" → "zh")
-  const lang = osLocale.split(/[-_]/)[0].toLowerCase();
+  // Fall back to the primary language subtag (e.g. "en-US" → "en", "zh-HK" → "zh")
+  const lang = lower.split(/[-_]/)[0];
   if ((supportedLngs as readonly string[]).includes(lang)) {
     return lang as LngTag;
   }
