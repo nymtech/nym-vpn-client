@@ -34,6 +34,11 @@ impl DisconnectedState {
         // Drop tombstone to close tunnel devices.
         drop(tombstone);
 
+        // Intentional disconnect: release Android blocking / held TUN so ISP path is available again
+        // (OS Always-On / block-without-VPN remain a user choice).
+        #[cfg(target_os = "android")]
+        shared_state.clear_android_blocking_tun();
+
         // Clear addresses from the pre-resolve table in the (shared) DNS resolver.
         HickoryDnsResolver::shared().clear_preresolve();
 

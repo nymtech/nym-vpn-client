@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
+
 ## [2026.12.3] - 2026-08-27
 
 ## [2026.12.3-beta.1] - 2026-08-27
