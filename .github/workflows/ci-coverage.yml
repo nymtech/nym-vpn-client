@@ -1,0 +1,97 @@
+name: ci-coverage
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
+      - ".github/workflows/ci-coverage.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
+      - ".github/workflows/ci-coverage.yml"
+  workflow_dispatch:
+
+env:
+  CI_TESTING: true
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1
+
+jobs:
+  build-wireguard-go-linux:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-wireguard-go-linux.yml
+
+  coverage:
+    runs-on: arc-linux-latest
+    needs: build-wireguard-go-linux
+    permissions:
+      contents: read
+
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip jq
+
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@d0a56edc74279820eabbe34477511327e710d0de # v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # rust-toolchain
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: llvm-tools-preview
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
+        with:
+          version: "21.12"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: wireguard-go_x86_64-linux-unknown
+          path: build/lib
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Generate code coverage
+        id: coverage
+        working-directory: nym-vpn-core
+        run: |
+          cargo llvm-cov --locked --ignore-run-fail --lcov --output-path lcov.info \
+            -p nym-vpn-lib \
+            -p nym-vpn-account-controller \
+            -p nym-vpn-api-client \
+            -p nym-gateway-directory \
+            -p nym-wg-metadata-client
+
+      - name: Coveralls upload
+        if: hashFiles('nym-vpn-core/lcov.info') != ''
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: nym-vpn-core/lcov.info
+          format: lcov
+
+      - name: Fail if lcov missing
+        if: hashFiles('nym-vpn-core/lcov.info') == ''
+        run: |
+          echo '::error::lcov.info missing after llvm-cov'
+          exit 1
