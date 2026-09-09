@@ -72,10 +72,6 @@ impl HttpRpc {
         let proxy = reqwest::Proxy::all(&socks5_url)
             .map_err(|e| HttpRpcError::Internal(format!("Failed to create proxy: {}", e)))?;
 
-        // Use the registered default builder (rather than `reqwest::Client::builder()`
-        // directly) so platform-specific TLS backend configuration - such as the
-        // webpki-preconfigured backend registered on Android to avoid depending on
-        // `rustls-platform-verifier`'s JNI initialization - applies to this client too.
         let http_client = nym_http_api_client::registry::default_builder()
             .proxy(proxy)
             .timeout(self.config.request_timeout)
