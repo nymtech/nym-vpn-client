@@ -143,11 +143,18 @@ jobs:
             --allow-all-applications # todo: restore --allow-app
             # --allow-app codesign \
             # --allow-app productsign
+          echo "✅ Keychain and certificates imported successfully."
 
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
+          echo "✅ Shared key partition with apple tools."
 
           rm -f developer_id.p12 developer_id_installer.p12
           echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Install Apple WWDR Intermediates
+        uses: ./.github/workflows/apple/install-wwdr
+        with:
+          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
       - name: Codesign binary
         env:
