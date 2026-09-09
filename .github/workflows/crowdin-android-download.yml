@@ -24,7 +24,7 @@ jobs:
           upload_translations: false
           download_translations: true
           config: "crowdin-configs/android.yml"
-          command_args: "-l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN"
+          command_args: "-l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN -l zh-TW"
           localization_branch_name: "l10n_crowdin_android_${{ github.ref_name }}"
           create_pull_request: true
           pull_request_title: "Localization: Update Android Translations (${{ github.ref_name }})"
