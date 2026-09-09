@@ -38,6 +38,17 @@ class VpnTunController(private val service: VpnService) {
 				runCatching { builder.addDisallowedApplication(pkg) }
 			}
 
+			// Blocking placeholder: exclude this app so control-plane can use the physical
+			// interface while other apps stay covered. Failure here traps the app in the cover
+			// and reintroduces the registration-timeout bug - surface it to Rust.
+			if (config.excludeVpnApp) {
+				try {
+					builder.addDisallowedApplication(service.packageName)
+				} catch (t: Throwable) {
+					throw VpnException.InternalException("Failed to exclude VPN app from tunnel: ${t.message}")
+				}
+			}
+
 			config.ipv4Settings?.addresses.orEmpty().forEach { cidr ->
 				val parts = cidr.split("/")
 				val addr = parts.getOrNull(0)?.trim() ?: return@forEach
