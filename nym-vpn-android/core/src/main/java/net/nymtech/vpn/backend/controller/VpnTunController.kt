@@ -79,7 +79,7 @@ class VpnTunController(private val service: VpnService) {
 			throw e
 		} catch (t: Throwable) {
 			Timber.tag(TAG).e(t, "TunnelConfigureFailed")
-			-1
+			throw VpnException.InternalException("Failed to configure VPN tunnel. Reason: $t")
 		}
 	}
 
