@@ -8,7 +8,6 @@ use std::{
 
 use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
-use nym_http_api_client::ReqwestClientBuilder;
 use nym_wireguard_private_metadata_client::WireguardMetadataApiClient;
 use nym_wireguard_private_metadata_shared::{AvailableBandwidth, Version, v1, v2};
 use tokio::sync::{OnceCell, oneshot};
@@ -67,7 +66,12 @@ impl LazyMetadataClient {
         sent_data: TunUpSendData,
     ) -> Result<Self> {
         let mut interface_name = None;
-        let reqwest_builder = ReqwestClientBuilder::new();
+        // Start from the registered default builder (rather than `ReqwestClientBuilder::new()`)
+        // so platform-specific TLS backend configuration - such as the webpki-preconfigured
+        // backend registered on Android to avoid depending on `rustls-platform-verifier`'s JNI
+        // initialization - applies here too, even though `.with_reqwest_builder()` below
+        // otherwise bypasses it.
+        let reqwest_builder = nym_http_api_client::registry::default_builder();
         let reqwest_builder = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {
                 #[cfg(any(target_os = "linux", target_os = "ios"))]

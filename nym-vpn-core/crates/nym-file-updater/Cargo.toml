@@ -18,6 +18,7 @@ wiremock = { workspace = true }
 
 [dependencies]
 futures = { workspace = true }
+nym-http-api-client = { workspace = true }
 reqwest = { workspace = true, features = ["rustls", "stream"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["fs", "sync", "io-util", "macros"] }
