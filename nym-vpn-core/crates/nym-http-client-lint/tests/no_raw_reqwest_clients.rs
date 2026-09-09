@@ -38,10 +38,9 @@ fn production_code_never_bypasses_the_http_client_registry() {
     // `use reqwest::Client;` (optionally renamed via `as`, or grouped in braces) lets code
     // call the constructor unqualified afterwards, which the fully-qualified regex above
     // would miss. Resolve just that one level of indirection rather than the general case.
-    let use_reqwest = Regex::new(
-        r"(?m)^\s*use\s+reqwest\s*::\s*(?:\{([^}]*)\}|(\w+(?:\s*as\s*\w+)?))\s*;",
-    )
-    .unwrap();
+    let use_reqwest =
+        Regex::new(r"(?m)^\s*use\s+reqwest\s*::\s*(?:\{([^}]*)\}|(\w+(?:\s*as\s*\w+)?))\s*;")
+            .unwrap();
     let import_item = Regex::new(r"(ClientBuilder|Client)(?:\s*as\s*(\w+))?").unwrap();
 
     let mut violations = Vec::new();
@@ -88,20 +87,18 @@ fn production_code_never_bypasses_the_http_client_registry() {
                 }
             }
         }
-        let alias_banned = (!client_aliases.is_empty() || !builder_aliases.is_empty()).then(
-            || {
-                let mut parts: Vec<String> = client_aliases
+        let alias_banned = (!client_aliases.is_empty() || !builder_aliases.is_empty()).then(|| {
+            let mut parts: Vec<String> = client_aliases
+                .iter()
+                .map(|a| format!(r"\b{}\s*::\s*(builder|new)\s*\(", regex::escape(a)))
+                .collect();
+            parts.extend(
+                builder_aliases
                     .iter()
-                    .map(|a| format!(r"\b{}\s*::\s*(builder|new)\s*\(", regex::escape(a)))
-                    .collect();
-                parts.extend(
-                    builder_aliases
-                        .iter()
-                        .map(|a| format!(r"\b{}\s*::\s*new\s*\(", regex::escape(a))),
-                );
-                Regex::new(&parts.join("|")).unwrap()
-            },
-        );
+                    .map(|a| format!(r"\b{}\s*::\s*new\s*\(", regex::escape(a))),
+            );
+            Regex::new(&parts.join("|")).unwrap()
+        });
 
         for (line_no, line) in scope.lines().enumerate() {
             let trimmed = line.trim_start();
