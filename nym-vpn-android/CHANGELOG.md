@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
 - Fix Quick Tile crash after service destroy (https://github.com/nymtech/nym-vpn-client/pull/6232)
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
-- Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6016)
+- Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 
 ## [2026.12.3] - 2026-08-27
 
