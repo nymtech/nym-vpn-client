@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pin zk-nym credential requests to the DKG epoch (https://github.com/nymtech/nym-vpn-client/pull/6259)
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
 - Verify the entry handshake and blacklist entry early if needed (https://github.com/nymtech/nym-vpn-client/pull/6308)
+- Add `six_months` subscription kind to the vpn-api models and gRPC proto (https://github.com/nymtech/nym-vpn-client/pull/6320)
 
 ### Changed
 
