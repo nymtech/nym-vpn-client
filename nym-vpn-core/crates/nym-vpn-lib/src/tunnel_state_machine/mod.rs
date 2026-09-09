@@ -1158,6 +1158,7 @@ impl DiagnosticsSuggestionTracker {
 /// loop, not just on state transitions.
 #[derive(Default)]
 struct ConflictTracker {
+    checked_connecting: bool,
     checked_dns: bool,
     pending_scan_cancellation: Option<CancellationToken>,
 }
@@ -1165,6 +1166,7 @@ struct ConflictTracker {
 impl ConflictTracker {
     fn poll(&mut self, state: &TunnelState, enabled: bool) -> Vec<nym_conflict::ConflictCheck> {
         if !enabled {
+            self.checked_connecting = false;
             self.checked_dns = false;
             self.cancel_pending_scan();
         }
@@ -1173,23 +1175,21 @@ impl ConflictTracker {
                 retry_attempt: 0,
                 state: EstablishConnectionState::ResolvingApiAddresses,
                 ..
-            } => {
+            } if enabled && !self.checked_connecting => {
+                self.checked_connecting = true;
                 self.checked_dns = false;
                 self.cancel_pending_scan();
-                if enabled {
-                    vec![
-                        nym_conflict::ConflictCheck::CompetingVpn,
-                        nym_conflict::ConflictCheck::CompetingFirewall,
-                    ]
-                } else {
-                    Vec::new()
-                }
+                vec![
+                    nym_conflict::ConflictCheck::CompetingVpn,
+                    nym_conflict::ConflictCheck::CompetingFirewall,
+                ]
             }
             TunnelState::Connected { .. } if enabled && !self.checked_dns => {
                 self.checked_dns = true;
                 vec![nym_conflict::ConflictCheck::InterceptedDns]
             }
             TunnelState::Disconnected => {
+                self.checked_connecting = false;
                 self.checked_dns = false;
                 self.cancel_pending_scan();
                 Vec::new()
