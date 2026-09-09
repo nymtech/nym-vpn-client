@@ -464,6 +464,7 @@ pub enum NymVpnSubscriptionKind {
     OneYear,
     TwoYears,
     Freepass,
+    SixMonths,
     #[cfg_attr(feature = "serde", serde(untagged))]
     Other(String),
 }
@@ -483,6 +484,9 @@ impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscr
             }
             nym_vpn_api_client::response::NymVpnSubscriptionKind::Freepass => {
                 NymVpnSubscriptionKind::Freepass
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::SixMonths => {
+                NymVpnSubscriptionKind::SixMonths
             }
             nym_vpn_api_client::response::NymVpnSubscriptionKind::Other(value) => {
                 NymVpnSubscriptionKind::Other(value)

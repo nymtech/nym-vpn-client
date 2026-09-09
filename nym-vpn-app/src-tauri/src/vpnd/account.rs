@@ -245,6 +245,7 @@ pub enum VpnSubscriptionKind {
     OneYear,
     TwoYears,
     Freepass,
+    SixMonths,
     Other(String),
 }
 
@@ -255,6 +256,7 @@ impl From<lib::NymVpnSubscriptionKind> for VpnSubscriptionKind {
             lib::NymVpnSubscriptionKind::OneYear => VpnSubscriptionKind::OneYear,
             lib::NymVpnSubscriptionKind::TwoYears => VpnSubscriptionKind::TwoYears,
             lib::NymVpnSubscriptionKind::Freepass => VpnSubscriptionKind::Freepass,
+            lib::NymVpnSubscriptionKind::SixMonths => VpnSubscriptionKind::SixMonths,
             lib::NymVpnSubscriptionKind::Other(value) => VpnSubscriptionKind::Other(value),
         }
     }
