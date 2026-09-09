@@ -137,7 +137,7 @@ impl Resolvconf {
             }
         };
 
-        PathBuf::from(format!("/proc/{}/", &pid)).exists()
+        PathBuf::from(format!("/proc/{}/", pid)).exists()
     }
 
     // Have to check whether dnsmasq has been configured to ignore
