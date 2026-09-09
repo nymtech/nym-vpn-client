@@ -74,9 +74,8 @@ jobs:
       - name: Generate code coverage
         id: coverage
         working-directory: nym-vpn-core
-        continue-on-error: true
         run: |
-          cargo llvm-cov --locked --no-fail-fast --lcov --output-path lcov.info \
+          cargo llvm-cov --locked --ignore-run-fail --lcov --output-path lcov.info \
             -p nym-vpn-lib \
             -p nym-vpn-account-controller \
             -p nym-vpn-api-client \
@@ -84,17 +83,15 @@ jobs:
             -p nym-wg-metadata-client
 
       - name: Coveralls upload
-        if: always() && hashFiles('nym-vpn-core/lcov.info') != ''
+        if: hashFiles('nym-vpn-core/lcov.info') != ''
         uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: nym-vpn-core/lcov.info
           format: lcov
 
-      - name: Skip Coveralls when lcov missing
-        if: always() && hashFiles('nym-vpn-core/lcov.info') == ''
-        run: echo '::notice::lcov.info missing; skipping Coveralls upload'
-
-      - name: Fail if llvm-cov failed
-        if: steps.coverage.outcome == 'failure'
-        run: exit 1
+      - name: Fail if lcov missing
+        if: hashFiles('nym-vpn-core/lcov.info') == ''
+        run: |
+          echo '::error::lcov.info missing after llvm-cov'
+          exit 1
