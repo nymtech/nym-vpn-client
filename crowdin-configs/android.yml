@@ -12,6 +12,8 @@ languages_mapping:
     fa: fa
     fr: fr
     hi: hi
+    id: in
+    it: it
     pt-BR: pt-rBR
     ru: ru
     tr: tr
@@ -29,6 +31,8 @@ languages_mapping:
     fa: fa
     fr: fr-FR
     hi: hi-IN
+    id: id
+    it: it-IT
     pt-BR: pt-BR
     ru: ru-RU
     tr: tr-TR
