@@ -293,6 +293,7 @@ pub struct AllowedDns {
     non_tunnel_dns: Vec<Endpoint>,
 }
 
+#[cfg(not(target_os = "android"))]
 impl AllowedDns {
     /// Initialize `AllowedDns` with two separate sets of tunnel and non-tunnel DNS.
     /// No sanity checks are performed on the input.
