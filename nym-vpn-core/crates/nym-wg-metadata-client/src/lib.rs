@@ -294,3 +294,48 @@ impl MetadataClient {
         Ok(upgrade_mode_enabled)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        net::{IpAddr, Ipv4Addr},
+        time::Duration,
+    };
+
+    use super::*;
+
+    fn gateway_id() -> NodeIdentity {
+        NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42").unwrap()
+    }
+
+    fn new_client(signal_channel: TunUpReceiver) -> MetadataClient {
+        MetadataClient::new(
+            Url::parse("http://127.0.0.1:9/").unwrap(),
+            gateway_id(),
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+            signal_channel,
+            0,
+            Duration::from_millis(10),
+        )
+    }
+
+    #[test]
+    fn metadata_client_gateway_id_is_stored() {
+        let (_tx, rx) = oneshot::channel();
+        assert_eq!(new_client(rx).gateway_id(), gateway_id());
+    }
+
+    #[tokio::test]
+    async fn metadata_client_dropped_signal_is_internal() {
+        let (tx, rx) = oneshot::channel();
+        drop(tx);
+        let mut client = new_client(rx);
+        client.lazy_init().await;
+        assert_eq!(client.interface_name().await, None);
+        let err = client.query_bandwidth().await.unwrap_err();
+        let MetadataClientError::Internal(msg) = err else {
+            panic!("expected Internal, got {err:?}");
+        };
+        assert!(msg.contains("interface up signal never sent"), "{msg}");
+    }
+}
