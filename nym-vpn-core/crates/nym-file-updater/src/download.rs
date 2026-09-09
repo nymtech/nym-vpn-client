@@ -66,7 +66,7 @@ pub(crate) async fn download_file(
             )
             .map_err(|error| FileUpdaterError::Request {
                 url: url.to_string(),
-                error,
+                error: Box::new(error),
             })?;
         let head = cancel_token
             .run_until_cancelled(http_client.send(head_request))
@@ -74,7 +74,7 @@ pub(crate) async fn download_file(
             .ok_or(FileUpdaterError::Cancelled)?
             .map_err(|error| FileUpdaterError::Request {
                 url: url.to_string(),
-                error,
+                error: Box::new(error),
             })?;
 
         // Step 2: Compare with stored ETag.
@@ -96,7 +96,7 @@ pub(crate) async fn download_file(
         .create_request(Method::GET, "", nym_http_api_client::NO_PARAMS, None::<&()>)
         .map_err(|error| FileUpdaterError::Request {
             url: url.to_string(),
-            error,
+            error: Box::new(error),
         })?;
     let response = cancel_token
         .run_until_cancelled(http_client.send(get_request))
@@ -104,7 +104,7 @@ pub(crate) async fn download_file(
         .ok_or(FileUpdaterError::Cancelled)?
         .map_err(|error| FileUpdaterError::Request {
             url: url.to_string(),
-            error,
+            error: Box::new(error),
         })?;
 
     match response.status() {

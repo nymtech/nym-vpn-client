@@ -15,7 +15,7 @@ pub enum FileUpdaterError {
     #[error("HTTP request failed for {url}: {error}")]
     Request {
         url: String,
-        error: nym_http_api_client::HttpClientError,
+        error: Box<nym_http_api_client::HttpClientError>,
     },
 
     #[error("Failed to download chunk from {url}: {error}")]
