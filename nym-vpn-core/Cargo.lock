@@ -6043,6 +6043,7 @@ name = "nym-file-updater"
 version = "2026.13.0-beta.1"
 dependencies = [
  "futures",
+ "nym-http-api-client",
  "reqwest 0.13.4",
  "tempfile",
  "thiserror 2.0.20",

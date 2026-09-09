@@ -72,7 +72,7 @@ impl HttpRpc {
         let proxy = reqwest::Proxy::all(&socks5_url)
             .map_err(|e| HttpRpcError::Internal(format!("Failed to create proxy: {}", e)))?;
 
-        let http_client = Client::builder()
+        let http_client = nym_http_api_client::registry::default_builder()
             .proxy(proxy)
             .timeout(self.config.request_timeout)
             .build()
