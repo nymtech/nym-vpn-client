@@ -239,14 +239,13 @@ fn parse_rule(family: u8, msg: NfTablesMessage) -> Option<RuleInfo> {
                         _ => {}
                     }
                 }
-                if sreg.is_some() && sreg == dport_reg {
-                    if let Some(d) = cmp_data {
-                        if let Some(port) = as_be_uint(&d) {
-                            if BOOTSTRAP_DNS_PORTS.contains(&port) {
-                                matches_bootstrap_port = true;
-                            }
-                        }
-                    }
+                if sreg.is_some()
+                    && sreg == dport_reg
+                    && let Some(d) = cmp_data
+                    && let Some(port) = as_be_uint(&d)
+                    && BOOTSTRAP_DNS_PORTS.contains(&port)
+                {
+                    matches_bootstrap_port = true;
                 }
             }
             Expressions::Immediate(i) => {
@@ -295,34 +294,33 @@ fn parse_rule(family: u8, msg: NfTablesMessage) -> Option<RuleInfo> {
                             to_data = attr_data_value(&attr_value(attr));
                         }
                     }
-                    if sreg.is_some() && sreg == dport_reg {
-                        if let (Some(from), Some(to)) = (from_data, to_data) {
-                            matches_bootstrap_port |= BOOTSTRAP_DNS_PORTS
-                                .iter()
-                                .any(|&port| (from..=to).contains(&port));
-                        }
+                    if sreg.is_some()
+                        && sreg == dport_reg
+                        && let (Some(from), Some(to)) = (from_data, to_data)
+                    {
+                        matches_bootstrap_port |= BOOTSTRAP_DNS_PORTS
+                            .iter()
+                            .any(|&port| (from..=to).contains(&port));
                     }
                 }
                 "redir" => has_redirect_verdict = true,
                 "nat" => {
                     for attr in attributes.iter() {
-                        if attr.kind() == NFTA_NAT_TYPE {
-                            if as_be_u32(&attr_value(attr)) == Some(NFT_NAT_DNAT) {
-                                has_redirect_verdict = true;
-                            }
+                        if attr.kind() == NFTA_NAT_TYPE
+                            && as_be_u32(&attr_value(attr)) == Some(NFT_NAT_DNAT)
+                        {
+                            has_redirect_verdict = true;
                         }
                     }
                 }
                 "target" => {
                     for attr in attributes.iter() {
-                        if attr.kind() == NFTA_TARGET_NAME {
-                            if let Some(tname) = as_cstr(&attr_value(attr)) {
-                                if tname.eq_ignore_ascii_case("REDIRECT")
-                                    || tname.eq_ignore_ascii_case("DNAT")
-                                {
-                                    has_redirect_verdict = true;
-                                }
-                            }
+                        if attr.kind() == NFTA_TARGET_NAME
+                            && let Some(tname) = as_cstr(&attr_value(attr))
+                            && (tname.eq_ignore_ascii_case("REDIRECT")
+                                || tname.eq_ignore_ascii_case("DNAT"))
+                        {
+                            has_redirect_verdict = true;
                         }
                     }
                 }
@@ -476,10 +474,10 @@ fn dump_blocking<T>(
 
             if let NetlinkPayload::InnerMessage(nf_msg) = rx_packet.payload {
                 let family = u8::from(nf_msg.header.family);
-                if let NetfilterMessageInner::NfTables(nft_msg) = nf_msg.inner {
-                    if let Some(item) = parse(family, nft_msg) {
-                        results.push(item);
-                    }
+                if let NetfilterMessageInner::NfTables(nft_msg) = nf_msg.inner
+                    && let Some(item) = parse(family, nft_msg)
+                {
+                    results.push(item);
                 }
             }
 
@@ -495,10 +493,4 @@ fn dump_blocking<T>(
     }
 
     Some(results)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    // Add stub tests here
 }
