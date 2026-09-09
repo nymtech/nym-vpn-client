@@ -1,12 +1,12 @@
 use aes_gcm::{
-    Aes256Gcm, Nonce,
     aead::{Aead, KeyInit},
+    Aes256Gcm, Nonce,
 };
 use hkdf::Hkdf;
 use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
-use rand::{RngCore, rngs::OsRng};
+use rand::{rngs::OsRng, RngCore};
 use sha2::{Sha256, Sha512};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
@@ -343,4 +343,163 @@ pub enum DeeplinkError {
 
     #[error("deeplink with id {0} has expired")]
     DeeplinkExpired(u64),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nym_vpn_lib_types::DeeplinkKind;
+
+    fn params(kind: DeeplinkKind) -> CreateDeeplinkParams {
+        CreateDeeplinkParams {
+            kind,
+            name: "test".to_string(),
+            base_url: Url::parse("https://account.example/").unwrap(),
+        }
+    }
+
+    fn query_map(url: &Url) -> HashMap<String, String> {
+        url.query_pairs()
+            .map(|(k, v)| (k.into_owned(), v.into_owned()))
+            .collect()
+    }
+
+    fn encrypt_mnemonic_payload(recipient: &Deeplink, entropy: &[u8; 32]) -> String {
+        let mut rng = OsRng;
+        let sender = KeyPair::new(&mut rng);
+        let shared = sender
+            .private_key()
+            .diffie_hellman(recipient.keypair.public_key());
+        let mut salt = [0u8; 16];
+        let mut iv = [0u8; 12];
+        rng.fill_bytes(&mut salt);
+        rng.fill_bytes(&mut iv);
+        let hk = Hkdf::<Sha256>::new(Some(&salt), &shared);
+        let mut key = [0u8; 32];
+        hk.expand(b"nym-deeplink-v1", &mut key)
+            .expect("hkdf expand");
+        let cipher = Aes256Gcm::new_from_slice(&key).expect("aes key");
+        let ciphertext = cipher
+            .encrypt(Nonce::from_slice(&iv), entropy.as_slice())
+            .expect("encrypt");
+        let mut packet = Vec::with_capacity(32 + 16 + 12 + ciphertext.len());
+        packet.extend_from_slice(&sender.public_key().to_bytes());
+        packet.extend_from_slice(&salt);
+        packet.extend_from_slice(&iv);
+        packet.extend_from_slice(&ciphertext);
+        bs58::encode(packet).into_string()
+    }
+
+    #[test]
+    fn deeplink_create_url_query_pairs() {
+        for (kind, link_account) in [
+            (DeeplinkKind::Privy, Some("0")),
+            (DeeplinkKind::PrivyLink, Some("1")),
+            (DeeplinkKind::CreateAccount, None),
+        ] {
+            let deeplink = Deeplink::new(&params(kind));
+            let q = query_map(&deeplink.create_url(&params(kind).base_url));
+            assert!(q
+                .get("deeplink_id")
+                .and_then(|id| id.parse::<u64>().ok())
+                .is_some());
+            assert!(!q.get("pubkey").map(String::as_str).unwrap_or("").is_empty());
+            assert_eq!(q.get("link_account").map(String::as_str), link_account);
+        }
+    }
+
+    #[test]
+    fn deeplink_fresh_is_not_expired() {
+        assert!(!Deeplink::new(&params(DeeplinkKind::Privy)).is_expired());
+    }
+
+    #[test]
+    fn deeplink_autologin_query_and_pin() {
+        for kind in [
+            DeeplinkKind::AutologinView,
+            DeeplinkKind::AutologinRenew,
+            DeeplinkKind::Privy,
+        ] {
+            let deeplink = Deeplink::new(&params(kind));
+            let autologin = deeplink
+                .create_autologin_url(&params(kind).base_url, "test-mnemonic".to_string())
+                .unwrap();
+            let q = query_map(&Url::parse(&autologin.url).unwrap());
+            assert!(!q.get("encmn").map(String::as_str).unwrap_or("").is_empty());
+            assert_eq!(q.get("redirect").map(String::as_str), kind.redirect());
+            assert_eq!(autologin.pin_code.len(), 6);
+            assert!(!autologin.pin_code.chars().any(|c| c == '1' || c == '0'));
+            assert_eq!(autologin.pin_code, autologin.pin_code.to_lowercase());
+        }
+    }
+
+    #[test]
+    fn deeplink_derive_mnemonic_rejects_bad_callback() {
+        let mut deeplinks = Deeplinks::default();
+        let stored = deeplinks
+            .create_deeplink(&params(DeeplinkKind::Privy))
+            .unwrap();
+        let live_id = stored.id;
+
+        assert!(matches!(
+            deeplinks.derive_mnemonic("not a url"),
+            Err(DeeplinkError::InvalidUrl(_))
+        ));
+        assert!(matches!(
+            deeplinks.derive_mnemonic("https://account.example/?payload=aa"),
+            Err(DeeplinkError::MissingDeeplinkId(_))
+        ));
+        assert!(matches!(
+            deeplinks.derive_mnemonic("https://account.example/?deeplink_id=nope&payload=aa"),
+            Err(DeeplinkError::InvalidDeeplinkId(_))
+        ));
+        assert!(matches!(
+            deeplinks.derive_mnemonic("https://account.example/?deeplink_id=1"),
+            Err(DeeplinkError::MissingPayload(_))
+        ));
+        assert!(matches!(
+            deeplinks.derive_mnemonic("https://account.example/?deeplink_id=1&payload=aa"),
+            Err(DeeplinkError::DeeplinkNotFound(1))
+        ));
+        assert!(matches!(
+            deeplinks.derive_mnemonic(&format!(
+                "https://account.example/?deeplink_id={live_id}&payload=aa"
+            )),
+            Err(DeeplinkError::InvalidPayload(_))
+        ));
+    }
+
+    #[test]
+    fn deeplink_derive_mnemonic_decrypts_known_entropy() {
+        let mut deeplinks = Deeplinks::default();
+        let kind = DeeplinkKind::PrivyLink;
+        let stored = deeplinks.create_deeplink(&params(kind)).unwrap();
+        let id = stored.id;
+        let entropy = [0x11u8; 32];
+        let expected = bip39::Mnemonic::from_entropy(&entropy).unwrap();
+        let payload = encrypt_mnemonic_payload(stored, &entropy);
+        let got = deeplinks
+            .derive_mnemonic(&format!(
+                "https://account.example/?deeplink_id={id}&payload={payload}"
+            ))
+            .unwrap();
+        assert_eq!(got.kind, kind);
+        assert_eq!(got.mnemonic, expected);
+    }
+
+    #[test]
+    fn deeplink_remove_expired_keeps_fresh() {
+        let mut deeplinks = Deeplinks::default();
+        let id = deeplinks
+            .create_deeplink(&params(DeeplinkKind::Privy))
+            .unwrap()
+            .id;
+        deeplinks.remove_expired();
+        assert!(matches!(
+            deeplinks.derive_mnemonic(&format!(
+                "https://account.example/?deeplink_id={id}&payload=aa"
+            )),
+            Err(DeeplinkError::InvalidPayload(_))
+        ));
+    }
 }
