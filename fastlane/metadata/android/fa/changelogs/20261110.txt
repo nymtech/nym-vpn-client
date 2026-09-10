@@ -1,13 +1,13 @@
-New beta feature: MIXNET TUNING allows for customizing traffic patterns over the mixnet to increase anonymity or performance.
+ویژگی بتای جدید: تنظیم MIXNET امکان سفارشی‌سازی الگوهای ترافیک در میکس‌نت را برای افزایش ناشناس‌بودن یا عملکرد فراهم می‌کند.
 
-Introducing SERVER FAMILIES: NymVPN now alerts you to when the servers you’ve chosen may belong to the same operator family to ensure decentralization in your use of the network.
+معرفی خانواده‌های سرور: NymVPN اکنون به شما هشدار می‌دهد که سروری که انتخاب کرده‌اید ممکن است به یک خانوادهٔ اپراتور واحد تعلق داشته باشد تا تمرکززدایی در استفاده از شبکهٔ شما تضمین شود.
 
-Better access in restricted regions and improved connectivity on heavily filtered networks.
+دسترسی بهتر در مناطق محدود و اتصال بهبودیافته در شبکه‌های شدیداً فیلترشده.
 
-New daily data allowance: fair-usage limits are now a daily allowance instead of a monthly one.
+محدودیت جدید مصرف روزانه: محدودیت‌های مصرف منصفانه اکنون به‌جای ماهانه، روزانه اعمال می‌شوند.
 
-Android Auto fix: Android Auto is no longer routed through the VPN, so in-car connections work normally.
+رفع مشکل Android Auto: Android Auto دیگر از طریق VPN مسیریابی نمی‌شود، بنابراین اتصالات داخل خودرو به‌طور عادی کار می‌کنند.
 
-Connection reliability and performance improvements.
+بهبود قابلیت اطمینان و عملکرد اتصال.
 
-Disguise the app: switch to an alternate app icon to keep NymVPN discreet.
+اپلیکیشن را مخفی کنید: برای مخفی نگه‌داشتن NymVPN، به آیکون یک اپلیکیشن جایگزین تغییر دهید.

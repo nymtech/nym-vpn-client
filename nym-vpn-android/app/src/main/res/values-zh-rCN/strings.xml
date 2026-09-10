@@ -154,7 +154,6 @@
 	<string name="error_credential_fetching_failed">建立 VPN 连接所需的匿名凭证获取失败，请重试。</string>
 	<string name="error_no_credential_available">没有可用凭证用来建立 VPN 连接，请重试。</string>
 	<string name="max_devices_error">设备数量已达上限，请从账号中移除一个设备然后重新连接。</string>
-	<string name="device_time_out_of_sync">设备时间未同步</string>
 	<string name="error_ipv6_unavailable">IPv6 不可用</string>
 	<string name="error_device_logged_out">已登出此设备。</string>
 	<string name="error_inactive_account">账号未激活。</string>
@@ -171,14 +170,16 @@
 	<string name="error_gateway_unavailable_exit">无法连接到出口服务器。请尝试其他服务器！</string>
 	<string name="error_invalid_entry_gateway_identity">入口服务器离线。请切换服务器并尝试重新连接。</string>
 	<string name="error_invalid_exit_gateway_identity">出口服务器离线。请切换服务器并尝试重新连接。</string>
+	<string name="error_needs_device_location">目前无法使用最安全的路由。请稍后重试或自行选择服务器。</string>
+	<string name="error_connection_attempts_exceeded">多次尝试后仍无法建立连接。请重试。</string>
 	<string name="error_expired_subscription_title">您的订阅已过期</string>
 	<string name="error_expired_subscription_description">重复的支付已被拒绝</string>
 	<string name="error_expired_subscription_button">立即续订</string>
 	<string name="error_no_subscription_title">没有有效订阅</string>
-	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
-	<string name="error_no_subscription_button">Select Plan</string>
-	<string name="account_subscription_pending_title">Subscription pending</string>
-	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
+	<string name="error_no_subscription_description">选择一个套餐，开始使用 NymVPN</string>
+	<string name="error_no_subscription_button">选择套餐</string>
+	<string name="account_subscription_pending_title">订阅待处理</string>
+	<string name="account_subscription_pending_description">我们正在等待您的付款确认。对于某些支付方式，此过程可能需要一些时间。</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">正在初始化 NymVPN（1/7）</string>
 	<string name="connection_state_awaiting_readiness">正在设置您的账号 (2/7)</string>
@@ -188,7 +189,7 @@
 	<string name="connection_state_connecting_mixnet_client">正在匿名注册服务器（6/7）</string>
 	<string name="connection_state_connecting_tunnel">正在建立服务器连接（7/7）</string>
 	<!-- One-click mode -->
-	<string name="one_click_mode_fast">快速</string>
+	<string name="one_click_mode_fast">dVPN</string>
 	<string name="connect_mode_mixnet">混合网络</string>
 	<string name="one_click_nym_exit_node">出口服务器</string>
 	<string name="one_click_nym_entry_node">入口服务器</string>
@@ -565,7 +566,7 @@
 	<string name="mixnet_tuning_delays_high">高\n200 毫秒</string>
 	<string name="mixnet_tuning_delays_default">默认\n15 毫秒</string>
 	<string name="mixnet_tuning_delays_current">当前\n%1$s 毫秒</string>
-	<string name="mixnet_tuning_slider_faster_label">Faster</string>
+	<string name="mixnet_tuning_slider_faster_label">更快</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ 匿名性</string>
 	<string name="mixnet_tuning_link_text">了解更多关于自定义混合网络参数的信息</string>
 	<string name="mixnet_tuning_save_button">保存自定义设置</string>
@@ -599,6 +600,7 @@
 	<string name="geo_exclusion_description">将特定区域的流量排除在 VPN 隧道之外，从而使国内应用程序直连互联网，同时其他所有流量均保持安全。</string>
 	<string name="geo_exclusion_beta_text">测试版本：当前仅支持中国，随后我们会推出更多地区。</string>
 	<string name="geo_exclusion_traffic_bypass_text">选定区域的流量不会经过 VPN 隧道。</string>
+	<string name="geo_exclusion_server_title">服务器</string>
 	<string name="geo_exclusion_sock55_title">SOCKS5 端口</string>
 	<string name="geo_exclusion_custom_port_title">自定义端口</string>
 	<string name="geo_exclusion_ports_text">1024–65535</string>
@@ -616,7 +618,12 @@
 	<string name="geo_exclusion_copy_proxy_label">复制代理地址</string>
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">设置说明</string>
-	<string name="setup_instructions_description">配置应用和浏览器以通过 Nym 的 SOCKS5 代理来路由流量。</string>
+	<string name="setup_instructions_step_manual">“设置” → “网络设置” → “手动代理”。</string>
+	<string name="setup_instructions_step_socks_host">SOCKS 主机</string>
+	<string name="setup_instructions_step_socks_port">，端口</string>
+	<string name="setup_instructions_step_socks_suffix">，选择 SOCKS v5。</string>
+	<string name="setup_instructions_step_dns">使用 SOCKS v5 时请勾选“代理 DNS”（可防止 DNS 泄漏）。</string>
+	<string name="setup_instructions_description">在 Firefox 或允许 SOCKS5 配置的浏览器上。</string>
 	<string name="setup_instructions_per_app_title">应用（仅限兼容 SOCKS5 的应用）</string>
 	<string name="setup_instructions_per_app_description">Android 没有系统级的 SOCKS5 设置。</string>
 	<string name="setup_instructions_pert_app_step">请确保应用程序支持 SOCKS5 代理。</string>
@@ -639,4 +646,14 @@
 	<string name="app_icon_change_title">更改应用图标？</string>
 	<string name="app_icon_change_body">NymVPN 会暂时退出以应用新的应用程序图标。只有您的主屏幕的应用图标会更改——系统通知以及搜索仍会显示 NymVPN。</string>
 	<string name="app_icon_change_confirm">更改图标</string>
+	<!-- Profiles -->
+	<string name="profiles_title">个人资料</string>
+	<string name="profiles_safest_title">最安全</string>
+	<string name="profiles_safest_description">最适合规避审查</string>
+	<string name="profiles_random_title">随机</string>
+	<string name="profiles_random_description">结果因人而异，可能会导致速度变慢</string>
+	<string name="profiles_most_private_title">最私密的</string>
+	<string name="profiles_most_private_description">元数据抗性与混网调优</string>
+	<string name="profiles_fastest_title">最快</string>
+	<string name="profiles_fastest_description">选择距离最近的，最适合流媒体传输</string>
 </resources>

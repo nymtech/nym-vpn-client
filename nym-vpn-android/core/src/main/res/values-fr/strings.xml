@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Déconnecté</string>
 	<string name="state_initializing">Initialisation du client…</string>
 	<string name="state_establishing">Établissement de la connexion…</string>
+	<string name="state_disconnecting">Déconnexion en cours…</string>
+	<string name="state_reconnecting">Reconnexion en cours…</string>
+	<string name="state_offline">En attente de connexion au réseau…</string>
 	<string name="notification_entry">Entrée : %1$s</string>
 	<string name="notification_exit">Sortie : %1$s</string>
 	<string name="error_reason_set_firewall_policy">Échec de l\'application de la politique de pare-feu.</string>
@@ -26,12 +29,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">La passerelle d\'entrée ne répond pas.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">La passerelle de sortie ne répond pas.</string>
 	<string name="error_reason_bandwidth_exceeded">Limite de bande passante dépassée.</string>
-	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
-	<string name="error_reason_no_credential_available">No credentials available.</string>
+	<string name="error_reason_credential_fetching_failed">Échec de la récupération des identifiants.</string>
+	<string name="error_reason_no_credential_available">Aucune information d\'identification n\'est disponible.</string>
 	<string name="error_reason_inactive_account">Votre compte est inactif.</string>
 	<string name="error_reason_inactive_subscription">Votre abonnement est inactif.</string>
 	<string name="error_reason_max_devices_reached">Nombre maximum d\'appareils atteint.</string>
-	<string name="error_reason_device_time_out_of_sync">L\'heure de l\'appareil n\'est pas synchronisée.</string>
 	<string name="error_reason_device_logged_out">L\'appareil est déconnecté.</string>
+	<string name="error_reason_needs_device_location">L\'itinéraire le plus sûr n\'est pas disponible ; l\'emplacement de l\'appareil n\'a pas pu être déterminé.</string>
+	<string name="error_reason_connection_attempts_exceeded">Impossible de se connecter après plusieurs tentatives.</string>
 	<string name="error_reason_internal">Erreur interne : %1$s</string>
 </resources>

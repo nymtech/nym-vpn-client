@@ -1,0 +1,11 @@
+Tính năng kết nối nhanh hiện mặc định chọn các máy chủ "an toàn nhất": NymVPN sẽ chọn một máy chủ tối ưu ở quốc gia lân cận thay vì ở chính quốc gia của bạn.
+
+Quy trình làm quen người dùng được thiết kế lại bao gồm các tính năng, việc chọn gói dịch vụ và tạo tài khoản.
+
+Biểu tượng ngụy trang: ẩn ứng dụng sau các biểu tượng thay thế kín đáo trong mục Cài đặt > Giao diện.
+
+Màn hình tinh chỉnh Mixnet đã được cập nhật với cách diễn đạt rõ ràng hơn và các cải tiến về giao diện.
+
+Đã khắc phục lỗi tính năng tự động kết nối bị kẹt sau khi khởi động lại thiết bị.
+
+Thông báo lỗi rõ ràng hơn khi máy chủ không đáp ứng được các quy tắc về tính độc lập của mạng lưới.

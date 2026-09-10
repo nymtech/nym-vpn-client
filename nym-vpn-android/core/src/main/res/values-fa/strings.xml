@@ -8,6 +8,9 @@
 	<string name="state_disconnected">اتصال قطع شده</string>
 	<string name="state_initializing">درحال راه‌اندازی کلاینت…</string>
 	<string name="state_establishing">در حال برقراری اتصال…</string>
+	<string name="state_disconnecting">قطع اتصال…</string>
+	<string name="state_reconnecting">در حال برقراری مجدد اتصال…</string>
+	<string name="state_offline">در حال انتظار برای شبکه…</string>
 	<string name="notification_entry">ورودی: %1$s</string>
 	<string name="notification_exit">خروجی: %1$s</string>
 	<string name="error_reason_set_firewall_policy">اعمال سیاست فایروال ناموفق بود.</string>
@@ -26,12 +29,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">گیت‌وی ورودی پاسخ‌گو نیست.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">گیت‌وی خروجی پاسخ‌گو نیست.</string>
 	<string name="error_reason_bandwidth_exceeded">از سقف مجاز پهنای باند عبور کرده‌اید.</string>
-	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
-	<string name="error_reason_no_credential_available">No credentials available.</string>
+	<string name="error_reason_credential_fetching_failed">بازیابی اعتبارنامه‌ها ناموفق بود.</string>
+	<string name="error_reason_no_credential_available">هیچ اعتبارنامه‌ای در دسترس نیست.</string>
 	<string name="error_reason_inactive_account">حساب شما غیرفعال است.</string>
 	<string name="error_reason_inactive_subscription">اشتراک شما غیرفعال است.</string>
 	<string name="error_reason_max_devices_reached">حداکثر تعداد دستگاه‌ها استفاده شده است.</string>
-	<string name="error_reason_device_time_out_of_sync">زمان دستگاه همگام نیست.</string>
 	<string name="error_reason_device_logged_out">دستگاه از حساب کاربری خارج شده است.</string>
+	<string name="error_reason_needs_device_location">امن‌ترین مسیریابی در دسترس نیست؛ مکان دستگاه قابل تعیین نبود.</string>
+	<string name="error_reason_connection_attempts_exceeded">پس از چندین تلاش، اتصال برقرار نشد.</string>
 	<string name="error_reason_internal">خطای داخلی: %1$s</string>
 </resources>

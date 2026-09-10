@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Отключено</string>
 	<string name="state_initializing">Инициализация клиента…</string>
 	<string name="state_establishing">Устанавливаем соединение…</string>
+	<string name="state_disconnecting">Отключаемся…</string>
+	<string name="state_reconnecting">Переподключаемся…</string>
+	<string name="state_offline">Ожидаем подключения к сети…</string>
 	<string name="notification_entry">Вход: %1$s</string>
 	<string name="notification_exit">Выход: %1$s</string>
 	<string name="error_reason_set_firewall_policy">Не удалось применить политику брандмауэра.</string>
@@ -31,7 +34,8 @@
 	<string name="error_reason_inactive_account">Ваш аккаунт неактивен.</string>
 	<string name="error_reason_inactive_subscription">Ваша подписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Достигнуто максимальное количество устройств.</string>
-	<string name="error_reason_device_time_out_of_sync">Время на устройстве не синхронизировано.</string>
 	<string name="error_reason_device_logged_out">Устройство вышло из системы.</string>
+	<string name="error_reason_needs_device_location">Маршрутизация с максимальной безопасностью недоступна; не удалось определить местоположение устройства.</string>
+	<string name="error_reason_connection_attempts_exceeded">Не удалось подключиться после нескольких попыток.</string>
 	<string name="error_reason_internal">Внутренняя ошибка: %1$s</string>
 </resources>

@@ -149,10 +149,9 @@
 	<string name="error_invalid_entry_gateway_country">এন্ট্রি সার্ভারের জন্য দেশটি অবৈধ। অন্য একটি দেশ নির্বাচন করে পুনরায় সংযোগ করুন।</string>
 	<string name="error_invalid_exit_gateway_country">এন্ট্রি সার্ভারের জন্য দেশটি অবৈধ। অন্য একটি দেশ নির্বাচন করে পুনরায় সংযোগ করুন।</string>
 	<string name="bandwidth_error">দৈনিক ডেটা সীমা শেষ হয়ে গেছে। দ্রুত ডেটা বাড়ানোর জন্য সাপোর্টে যোগাযোগ করুন।</string>
-	<string name="error_credential_fetching_failed">Couldn\'t obtain the credentials needed to connect. Please try again.</string>
-	<string name="error_no_credential_available">No credentials are available to connect. Please try again.</string>
+	<string name="error_credential_fetching_failed">সংযোগ করতে প্রয়োজনীয় শংসাপত্রগুলি সংগ্রহ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+	<string name="error_no_credential_available">সংযোগ করার জন্য কোনো শংসাপত্র উপলব্ধ নেই। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
 	<string name="max_devices_error">অ্যাকাউন্টের ডিভাইস সীমা অতিক্রম করা হয়েছে। সংযোগ করার আগে অনুগ্রহ করে আপনার অ্যাকাউন্ট থেকে ডিভাইসটি সরিয়ে ফেলুন।</string>
-	<string name="device_time_out_of_sync">ডিভাইসের সময় অসঙ্গত</string>
 	<string name="error_ipv6_unavailable">IPv6 উপলব্ধ নেই</string>
 	<string name="error_device_logged_out">ডিভাইস থেকে লগ আউট করা হয়েছে।</string>
 	<string name="error_inactive_account">অ্যাকাউন্টের অবস্থা \"সচল\" নয়।</string>
@@ -169,24 +168,26 @@
 	<string name="error_gateway_unavailable_exit">এক্সিট সার্ভারে পৌঁছানো যাচ্ছে না। অন্যটি চেষ্টা করুন!</string>
 	<string name="error_invalid_entry_gateway_identity">এন্ট্রি সার্ভার অফলাইন। অন্য একটি বেছে নিন এবং পুনরায় সংযোগ করুন।</string>
 	<string name="error_invalid_exit_gateway_identity">এক্সিট সার্ভার অফলাইন। অন্য একটি সার্ভার বেছে নিয়ে পুনরায় সংযোগ করুন।</string>
+	<string name="error_needs_device_location">সবচেয়ে নিরাপদ রাউটিং বর্তমানে উপলব্ধ নেই। পরে আবার চেষ্টা করুন অথবা আপনার নিজস্ব সার্ভার নির্বাচন করুন।</string>
+	<string name="error_connection_attempts_exceeded">কয়েকবার চেষ্টা করার পরও সংযোগ স্থাপন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
 	<string name="error_expired_subscription_title">আপনার সাবস্ক্রিপশনের মেয়াদ শেষ হয়ে গেছে।</string>
 	<string name="error_expired_subscription_description">পুনরাবৃত্ত পেমেন্ট পদ্ধতিটি প্রত্যাখ্যান করা হয়েছে</string>
 	<string name="error_expired_subscription_button">এখনই নবায়ন করুন</string>
 	<string name="error_no_subscription_title">কোনো সক্রিয় সাবস্ক্রিপশন নেই</string>
-	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
-	<string name="error_no_subscription_button">Select Plan</string>
-	<string name="account_subscription_pending_title">Subscription pending</string>
-	<string name="account_subscription_pending_description">We\'re waiting for your payment to be confirmed. This can take a little while for some payment methods.</string>
+	<string name="error_no_subscription_description">NymVPN ব্যবহার শুরু করতে একটি প্ল্যান নির্বাচন করুন</string>
+	<string name="error_no_subscription_button">পরিকল্পনা নির্বাচন করুন</string>
+	<string name="account_subscription_pending_title">সাবস্ক্রিপশন পেন্ডিং</string>
+	<string name="account_subscription_pending_description">আমরা আপনার পেমেন্ট নিশ্চিত হওয়ার অপেক্ষায় আছি। কিছু পেমেন্ট পদ্ধতির ক্ষেত্রে এতে কিছুটা সময় লাগতে পারে।</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/7)</string>
-	<string name="connection_state_awaiting_readiness">Setting up your account (2/7)</string>
-	<string name="connection_state_awaiting_credentials">Preparing credentials (3/7)</string>
-	<string name="connection_state_refreshing_gateways">Updating server list (4/7)</string>
-	<string name="connection_state_selecting_gateways">Choosing best servers (5/7)</string>
-	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (6/7)</string>
-	<string name="connection_state_connecting_tunnel">Establishing server connection (7/7)</string>
+	<string name="connection_state_resolving_addresses">NymVPN ইনিশিয়ালাইজ করা হচ্ছে (১/৭)</string>
+	<string name="connection_state_awaiting_readiness">আপনার অ্যাকাউন্ট সেটআপ (২/৭)</string>
+	<string name="connection_state_awaiting_credentials">প্রমাণপত্র প্রস্তুত করা হচ্ছে (৩/৭)</string>
+	<string name="connection_state_refreshing_gateways">সার্ভার তালিকা আপডেট হচ্ছে (৪/৭)</string>
+	<string name="connection_state_selecting_gateways">সেরা সার্ভার নির্বাচন (৫/৭)</string>
+	<string name="connection_state_connecting_mixnet_client">সার্ভারগুলোর সাথে অজ্ঞাতনামায় নিবন্ধন (৬/৭)</string>
+	<string name="connection_state_connecting_tunnel">সার্ভার সংযোগ স্থাপন (৭/৭)</string>
 	<!-- One-click mode -->
-	<string name="one_click_mode_fast">দ্রুত</string>
+	<string name="one_click_mode_fast">ডিভিপিএন</string>
 	<string name="connect_mode_mixnet">মিক্সনেট</string>
 	<string name="one_click_nym_exit_node">এক্সিট সার্ভার</string>
 	<string name="one_click_nym_entry_node">এন্ট্রি সার্ভার</string>
@@ -195,7 +196,7 @@
 	<string name="connection_status_fast_mode">ফাস্ট মোড সুরক্ষা</string>
 	<string name="connection_status_anonymous">মিক্সনেট সুরক্ষা</string>
 	<!-- Server Screen -->
-	<string name="gateway_safest">Safest server</string>
+	<string name="gateway_safest">সবচেয়ে নিরাপদ সার্ভার</string>
 	<string name="gateway_random">এলোমেলো সার্ভার</string>
 	<string name="server_entry_tab">এন্ট্রি</string>
 	<string name="server_exit_tab">এক্সিট</string>
@@ -209,12 +210,12 @@
 		<item quantity="other">%1$s nodes</item>
 	</plurals>
 	<string name="server_countries_nodes_combined_text">%1$s · %2$s</string>
-	<string name="server_favorite_icon">Favorite</string>
-	<string name="server_favorites_tab">Favorites</string>
-	<string name="server_recent_tab">Recent</string>
-	<string name="server_all_tab">All servers</string>
-	<string name="server_no_favorites_text">No favorites yet</string>
-	<string name="server_no_recents_text">No recent servers yet</string>
+	<string name="server_favorite_icon">প্রিয়</string>
+	<string name="server_favorites_tab">প্রিয়</string>
+	<string name="server_recent_tab">সাম্প্রতিক</string>
+	<string name="server_all_tab">সমস্ত সার্ভার</string>
+	<string name="server_no_favorites_text">এখনো কোনো প্রিয় নেই</string>
+	<string name="server_no_recents_text">এখনো কোনো সাম্প্রতিক সার্ভার নেই</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">স্বাগতম!</string>
 	<string name="auth_welcome_description">বিশ্বের সবচেয়ে গোপনীয় VPN-এ</string>
@@ -240,7 +241,7 @@
 	<string name="settings_reset_app_title">অ্যাপ ডেটা মুছে দিন</string>
 	<string name="settings_system_status_title">সিস্টেম অবস্থা</string>
 	<string name="settings_mixnet_tuning_title">Mixnet টিউনিং</string>
-	<string name="settings_mixnet_tuning_description">Fine tune your mixnet parameters</string>
+	<string name="settings_mixnet_tuning_description">আপনার মিক্সনেট প্যারামিটারগুলো সূক্ষ্মভাবে টিউন করুন</string>
 	<string name="settings_quit_title">NymVPN থেকে বের হন</string>
 	<string name="settings_app_version_line">অ্যাপ সংস্করণ: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon সংস্করণ: %1$s</string>
@@ -304,25 +305,25 @@
 	<!-- Onboarding screen -->
 	<string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
 	<string name="onboarding_welcome_title">NymVPN-এ স্বাগতম</string>
-	<string name="onboarding_welcome_description">Your private access to \nan **internet without walls.**</string>
-	<string name="onboarding_modes_title_dvpn">Your dVPN</string>
-	<string name="onboarding_modes_description_dvpn">Privacy for all your web activities \n**Decentralized** 2-hop network \n**AmneziaWG** fork of WireGuard</string>
-	<string name="onboarding_modes_title_mixnet">Your mixnet</string>
-	<string name="onboarding_modes_description_mixnet">The most **anonymous** way to be online \n5-hop **mixnet** with **noise** \ncustomize your traffic patterns.</string>
-	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch network design.</string>
-	<string name="onboarding_modes_tagline_mixnet">Protecting metadata fingerprints.</string>
-	<string name="onboarding_around_title">Nym gets you around</string>
-	<string name="onboarding_around_description">Disguise WireGuard with **AmneziaWG** \nget around firewalls with **QUIC** \navoid VPN blocking with **Stealth Connect** \n**Post-quantum** security</string>
-	<string name="onboarding_plan_title">What plan works for you?</string>
-	<string name="onboarding_plan_community_favorite">NYM COMMUNITY FAVORITE</string>
-	<string name="onboarding_plan_year_plan_prefix">1-year plan &amp; </string>
-	<string name="onboarding_plan_save_percent">save %1$s</string>
-	<string name="onboarding_plan_free_trial">+ %1$d-day free trial</string>
-	<string name="onboarding_plan_starting_at_prefix">Starting at </string>
-	<string name="onboarding_plan_price_per_month">%1$s / month</string>
-	<string name="onboarding_plan_try_prefix">Or try for </string>
-	<string name="onboarding_plan_one_month">1 month</string>
-	<string name="onboarding_plan_try_suffix">, no commitment.</string>
+	<string name="onboarding_welcome_description">আপনার ব্যক্তিগত প্রবেশাধিকার **দেয়ালবিহীন ইন্টারনেটে।**</string>
+	<string name="onboarding_modes_title_dvpn">আপনার dVPN</string>
+	<string name="onboarding_modes_description_dvpn">আপনার সমস্ত ওয়েব কার্যকলাপের জন্য গোপনীয়তা \n **বিকেন্দ্রীকৃত** ২-হপ নেটওয়ার্ক \n **AmneziaWG** WireGuard-এর ফর্ক</string>
+	<string name="onboarding_modes_title_mixnet">আপনার মিক্সনেট</string>
+	<string name="onboarding_modes_description_mixnet">অনলাইনে থাকার সবচেয়ে **অজ্ঞাতনামা** উপায় \n ৫-হপ **মিক্সনেট** **নয়েজ** সহ \n আপনার ট্র্যাফিক প্যাটার্ন কাস্টমাইজ করুন।</string>
+	<string name="onboarding_modes_tagline_dvpn">চোঁচি মারতে পারি না - মারবও না নেটওয়ার্ক ডিজাইন।</string>
+	<string name="onboarding_modes_tagline_mixnet">মেটাডেটা ফিঙ্গারপ্রিন্ট সুরক্ষিত করা।</string>
+	<string name="onboarding_around_title">নিম আপনাকে ঘুরে বেড়াতে সাহায্য করে</string>
+	<string name="onboarding_around_description">**AmneziaWG** দিয়ে WireGuard লুকিয়ে রাখুন \n**QUIC** দিয়ে ফায়ারওয়াল এড়িয়ে যান \n**Stealth Connect** দিয়ে VPN ব্লকিং এড়িয়ে যান \n**কোয়ান্টাম-পরবর্তী** নিরাপত্তা</string>
+	<string name="onboarding_plan_title">কোন প্ল্যান আপনার জন্য কাজ করে?</string>
+	<string name="onboarding_plan_community_favorite">NYM কমিউনিটি ফেভারিট</string>
+	<string name="onboarding_plan_year_plan_prefix">১-বছরের পরিকল্পনা এবং </string>
+	<string name="onboarding_plan_save_percent">%1$s সংরক্ষণ করুন</string>
+	<string name="onboarding_plan_free_trial">+ %1$d দিনের বিনামূল্যে ট্রায়াল</string>
+	<string name="onboarding_plan_starting_at_prefix">শুরুতে </string>
+	<string name="onboarding_plan_price_per_month">%1$s / মাস</string>
+	<string name="onboarding_plan_try_prefix">অথবা চেষ্টা করুন </string>
+	<string name="onboarding_plan_one_month">১ মাস</string>
+	<string name="onboarding_plan_try_suffix">, কোনো প্রতিশ্রুতি নেই।</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">\nআপনার সুরক্ষা স্তর নির্বাচন করুন</string>
 	<string name="select_plan_line_0">৭ দিনের ফ্রি ট্রায়াল</string>
@@ -338,15 +339,15 @@
 	<string name="details_performance_title">কর্মক্ষমতা মেট্রিক্স</string>
 	<string name="details_connection_title">সংযোগের বিবরণ</string>
 	<string name="details_build_info_title">তথ্য তৈরি করুন</string>
-	<string name="details_select_server_button">Select node</string>
+	<string name="details_select_server_button">নোড নির্বাচন করুন</string>
 	<string name="details_advanced_privacy">উন্নত গোপনীয়তা</string>
 	<string name="details_with_mixnet">মিক্সনেট</string>
-	<string name="details_streaming_content">Streaming &amp; IP</string>
+	<string name="details_streaming_content">স্ট্রিমিং ও আইপি</string>
 	<string name="details_residental_ip">রেসিডেন্সিয়াল আইপি</string>
 	<string name="details_datacenter_ip">ডেটাসেন্টার আইপি</string>
 	<string name="details_post_quantum_secure_keys">পোস্ট-কোয়ান্টাম সুরক্ষিত কী</string>
 	<string name="details_lewes_protocol">Lewes প্রোটোকল</string>
-	<string name="details_standard_key_exchange">Standard key exchange</string>
+	<string name="details_standard_key_exchange">স্ট্যান্ডার্ড কী এক্সচেঞ্জ</string>
 	<string name="details_family_membership">পারিবারিক সদস্যপদ</string>
 	<string name="details_anti_censorship">সেন্সরশিপ-বিরোধী</string>
 	<string name="details_quic_protocol">QUIC প্রটোকল</string>
@@ -357,7 +358,7 @@
 	<string name="details_server_load">সার্ভার লোড\'</string>
 	<string name="details_uptime">আপটাইম</string>
 	<string name="not_applicable">কোনো ডেটা নেই</string>
-	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update: %1$s.</string>
+	<string name="details_performance_calculated">সার্ভার লোড এবং আপটাইম থেকে পারফরম্যান্স স্কোর গণনা করা হয়েছে। আপটাইম হিসেবে গত ২৪ ঘণ্টার গড় নেওয়া হয়েছে। সর্বশেষ আপডেট: %1$s।</string>
 	<string name="details_exit_ipv4">এক্সিট IPv4</string>
 	<string name="details_exit_ipv6">এক্সিট IPv6</string>
 	<string name="details_ip_link">https://ipinfo.io/%1$s</string>
@@ -546,11 +547,11 @@
 	<string name="mixnet_tuning_current_latency">লেটেন্সি</string>
 	<string name="mixnet_tuning_internet_speed">ইন্টারনেট গতি পর্যন্ত</string>
 	<string name="mixnet_tuning_current_description">একটি স্ট্যান্ডার্ড নেটওয়ার্কে প্রত্যাশিত রাউন্ড-ট্রিপ লেটেন্সি (RTT)</string>
-	<string name="mixnet_tuning_traffic_title">Send continuous traffic</string>
+	<string name="mixnet_tuning_traffic_title">অবিরত ট্র্যাফিক পাঠান</string>
 	<string name="mixnet_tuning_traffic_off_title">পটভূমি কভার ট্র্যাফিক রেট</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ অবিচ্ছিন্ন ট্র্যাফিক বন্ধ করা হয়েছে। আপনার প্যাকেটগুলো উপলব্ধ হওয়া মাত্রই পাঠানো হবে। এর ফলে ট্র্যাফিকের ধরন প্রকাশ পেতে পারে।</string>
 	<string name="mixnet_tuning_traffic_on_description">ধরণ অভিন্ন রাখতে সর্বদা কভার ট্র্যাফিক পাঠানো হয়। আপনার প্যাকেট পাঠানোর হার সামঞ্জস্য করুন।</string>
-	<string name="mixnet_tuning_traffic_off_description">Choose how much cover you need.</string>
+	<string name="mixnet_tuning_traffic_off_description">আপনি কতটা কভার চান তা নির্বাচন করুন।</string>
 	<string name="mixnet_tuning_traffic_on_low">সর্বনিম্ন\n০.৭ Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">সর্বোচ্চ\n২ Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">ভারসাম্যপূর্ণ\n১ Mbps</string>
@@ -561,13 +562,13 @@
 	<string name="mixnet_tuning_delays_warning">⚠️ ডিলে ০-তে সেট করলে মিক্সিং বন্ধ হয়ে যায়, ফলে পরিচয় গোপন থাকার সম্ভাবনা কমে যায়</string>
 	<string name="mixnet_tuning_delays_title">মিক্সিং বিলম্ব</string>
 	<string name="mixnet_tuning_delays_description">আপনার প্যাকেটগুলো কতটা ভালোভাবে মিশ্রিত হবে তা পরিবর্তন করতে টাইমিং ডিলে সমন্বয় করুন।</string>
-	<string name="mixnet_tuning_delays_low">Low\n0 ms</string>
+	<string name="mixnet_tuning_delays_low">নিম্ন\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">উচ্চ\n২০০ ms</string>
 	<string name="mixnet_tuning_delays_default">ডিফল্ট\n১৫ ms</string>
-	<string name="mixnet_tuning_delays_current">Current\n%1$s ms</string>
-	<string name="mixnet_tuning_slider_faster_label">Faster</string>
-	<string name="mixnet_tuning_slider_anonymity_label">+ Anonymity</string>
-	<string name="mixnet_tuning_link_text">Learn more about mixnet tuning</string>
+	<string name="mixnet_tuning_delays_current">বর্তমান\n%1$s ms</string>
+	<string name="mixnet_tuning_slider_faster_label">দ্রুততর</string>
+	<string name="mixnet_tuning_slider_anonymity_label">+ অজ্ঞাতনামা</string>
+	<string name="mixnet_tuning_link_text">মিক্সনেট টিউনিং সম্পর্কে আরও জানুন</string>
 	<string name="mixnet_tuning_save_button">কাস্টম সেটিংস সংরক্ষণ করুন</string>
 	<string name="mixnet_tuning_restore_button">ডিফল্ট সেটিংস পুনরুদ্ধার করুন</string>
 	<!-- Diagnostic screen -->
@@ -599,6 +600,7 @@
 	<string name="geo_exclusion_description">নির্বাচিত অঞ্চলগুলোর ট্র্যাফিক VPN টানেলের বাইরে দিয়ে পাঠানো হয়, ফলে দেশীয় অ্যাপগুলো পূর্ণ গতিতে কাজ করে। বাকি সবকিছু সুরক্ষিত থাকে।</string>
 	<string name="geo_exclusion_beta_text">বিটা সংস্করণ: আপাতত শুধু চীনের জন্য। শীঘ্রই আরও অঞ্চলের জন্য উন্মুক্ত করা হবে।</string>
 	<string name="geo_exclusion_traffic_bypass_text">নিষিদ্ধ অঞ্চলগুলিতে পাঠানো ট্র্যাফিক VPN-কে বাইপাস করে।</string>
+	<string name="geo_exclusion_server_title">সার্ভার</string>
 	<string name="geo_exclusion_sock55_title">SOCKS5 পোর্ট</string>
 	<string name="geo_exclusion_custom_port_title">কাস্টম পোর্ট</string>
 	<string name="geo_exclusion_ports_text">1024–65535</string>
@@ -616,7 +618,12 @@
 	<string name="geo_exclusion_copy_proxy_label">প্রক্সি এড্রেস কপি করুন</string>
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">সেটআপ নির্দেশাবলী</string>
-	<string name="setup_instructions_description">Nym SOCKS5 প্রক্সির মাধ্যমে ট্রাফিক আদান-প্রদান করার জন্য অ্যাপ ও ব্রাউজারগুলো কনফিগার করুন।</string>
+	<string name="setup_instructions_step_manual">সেটিংস → নেটওয়ার্ক সেটিংস → ম্যানুয়াল প্রক্সি।</string>
+	<string name="setup_instructions_step_socks_host">SOCKS হোস্ট</string>
+	<string name="setup_instructions_step_socks_port">, পোর্ট</string>
+	<string name="setup_instructions_step_socks_suffix">, SOCKS v5 নির্বাচন করুন।</string>
+	<string name="setup_instructions_step_dns">SOCKS v5 ব্যবহার করার সময় প্রক্সি DNS চেক করুন (DNS লিক প্রতিরোধ করে)।</string>
+	<string name="setup_instructions_description">ফায়ারফক্স বা এমন ব্রাউজারগুলিতে যেখানে SOCKS5 কনফিগারেশন অনুমোদিত।</string>
 	<string name="setup_instructions_per_app_title">অ্যাপ-ভিত্তিক (SOCKS5-সক্ষম অ্যাপ)</string>
 	<string name="setup_instructions_per_app_description">Android-এ সিস্টেম-ব্যাপী কোনো SOCKS5 সেটিং নেই।</string>
 	<string name="setup_instructions_pert_app_step">এমন একটি অ্যাপ ব্যবহার করুন যা সরাসরি SOCKS5 প্রক্সি সমর্থন করে।</string>
@@ -639,4 +646,14 @@
 	<string name="app_icon_change_title">এপ আইকন চেঞ্জ?</string>
 	<string name="app_icon_change_body">নতুন আইকনটি প্রয়োগ করার জন্য অ্যাপটি কিছুক্ষণের জন্য বন্ধ হবে। শুধুমাত্র হোম-স্ক্রিনের আইকন এবং লেবেল পরিবর্তিত হবে — নোটিফিকেশন এবং সিস্টেম সার্চে আগের মতোই NymVPN দেখা যাবে।</string>
 	<string name="app_icon_change_confirm">আইকন চেঞ্জ করুন</string>
+	<!-- Profiles -->
+	<string name="profiles_title">প্রোফাইলসমূহ</string>
+	<string name="profiles_safest_title">সবচেয়ে নিরাপদ</string>
+	<string name="profiles_safest_description">সেন্সরশিপ এড়ানোর জন্য সর্বোত্তম</string>
+	<string name="profiles_random_title">এলোমেলো</string>
+	<string name="profiles_random_description">ফলাফল ভিন্ন হতে পারে, ধীর গতির কারণ হতে পারে</string>
+	<string name="profiles_most_private_title">সবচেয়ে ব্যক্তিগত</string>
+	<string name="profiles_most_private_description">মেটাডেটা প্রতিরোধ এবং মিক্সনেট টিউনিং</string>
+	<string name="profiles_fastest_title">দ্ৰুততম</string>
+	<string name="profiles_fastest_description">সবচেয়ে কাছের এবং স্ট্রিমিংয়ের জন্য সেরাটি বেছে নেয়</string>
 </resources>

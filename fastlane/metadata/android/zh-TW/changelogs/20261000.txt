@@ -1,0 +1,4 @@
+新增內容：
+- 使用 DoH（基於 HTTPS 的 DNS）和 DoT（基於 TLS 的 DNS）來增強廣告攔截效果 
+- 非 Google Play 版本現在也可以在應用內創建賬號 
+- 修復了 Hickory 系統解析器崩潰問題

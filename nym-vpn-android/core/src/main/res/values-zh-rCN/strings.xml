@@ -8,6 +8,9 @@
 	<string name="state_disconnected">未连接</string>
 	<string name="state_initializing">初始化客户端…</string>
 	<string name="state_establishing">正在建立连接……</string>
+	<string name="state_disconnecting">正在断开连接……</string>
+	<string name="state_reconnecting">正在重新连接……</string>
+	<string name="state_offline">正在等待网络连接……</string>
 	<string name="notification_entry">入口: %1$s</string>
 	<string name="notification_exit">出口: %1$s</string>
 	<string name="error_reason_set_firewall_policy">防火墙策略配置失败。</string>
@@ -31,7 +34,8 @@
 	<string name="error_reason_inactive_account">您的账号未激活。</string>
 	<string name="error_reason_inactive_subscription">您的订阅未激活。</string>
 	<string name="error_reason_max_devices_reached">设备数量已达上限。</string>
-	<string name="error_reason_device_time_out_of_sync">设备时间未同步。</string>
 	<string name="error_reason_device_logged_out">已登出此设备。</string>
+	<string name="error_reason_needs_device_location">无法提供最安全的路线；无法确定设备位置。</string>
+	<string name="error_reason_connection_attempts_exceeded">多次尝试后仍无法连接。</string>
 	<string name="error_reason_internal">内部错误： %1$s</string>
 </resources>
