@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
 
 ### Fixed
+- Bind the VPN process to the physical network only while the cover TUN is up (registration). Unbind on the data TUN so in-tunnel metadata at 10.1.0.1 can complete on kernels that ignore uid-exclude
 - Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 
 ## [2026.12.3] - 2026-08-27

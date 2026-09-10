@@ -1,5 +1,7 @@
 package net.nymtech.vpn.backend.controller
 
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.util.extensions.addRoutes
@@ -13,6 +15,15 @@ import timber.log.Timber
 class VpnTunController(private val service: VpnService) {
 	companion object {
 		private const val TAG = "core-vpn"
+
+		// Kernel 3.4 ignores uid-exclude; bind the process to a non-VPN network instead.
+		internal fun matchesUnderlyingInternet(hasInternet: Boolean, isVpn: Boolean): Boolean {
+			if (!hasInternet) return false
+			if (isVpn) return false
+			return true
+		}
+
+		internal fun bindsProcessToUnderlying(excludeVpnApp: Boolean): Boolean = excludeVpnApp
 	}
 
 	@Volatile private var disallowedApps: List<String> = emptyList()
@@ -83,6 +94,12 @@ class VpnTunController(private val service: VpnService) {
 
 			val fd = pfd.detachFd()
 
+			if (bindsProcessToUnderlying(config.excludeVpnApp)) {
+				bindProcessToUnderlyingNetwork()
+			} else {
+				unbindProcessFromUnderlyingNetwork()
+			}
+
 			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
 
 			fd
@@ -95,6 +112,31 @@ class VpnTunController(private val service: VpnService) {
 	}
 
 	fun closeInterfaceSafely() {
-		// Rust will close the FD when the tunnel is stopped or reconfigured.
+		unbindProcessFromUnderlyingNetwork()
+	}
+
+	private fun bindProcessToUnderlyingNetwork() {
+		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
+		val underlying = cm.allNetworks.firstOrNull { network ->
+			val caps = cm.getNetworkCapabilities(network) ?: return@firstOrNull false
+			matchesUnderlyingInternet(
+				hasInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+				isVpn = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN),
+			)
+		}
+		if (underlying == null) {
+			Timber.tag(TAG).w("No underlying internet network to bind process")
+			return
+		}
+		runCatching { cm.bindProcessToNetwork(underlying) }
+			.onSuccess { Timber.tag(TAG).i("Bound process to underlying network (cover)") }
+			.onFailure { Timber.tag(TAG).w(it, "bindProcessToNetwork failed") }
+	}
+
+	private fun unbindProcessFromUnderlyingNetwork() {
+		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
+		runCatching { cm.bindProcessToNetwork(null) }
+			.onSuccess { Timber.tag(TAG).i("Unbound process from underlying network (data tun)") }
+			.onFailure { Timber.tag(TAG).w(it, "unbindProcessFromNetwork failed") }
 	}
 }
