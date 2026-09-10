@@ -18,6 +18,7 @@ languages_mapping:
     uk: uk
     vi: vi-rVN
     zh-CN: zh-rCN
+    zh-TW: zh-rTW
   # Mapping for Fastlane / Google Play Store Metadata
   locale: &play-locale
     ar: ar
@@ -34,6 +35,7 @@ languages_mapping:
     uk: uk
     vi: vi
     zh-CN: zh-CN
+    zh-TW: zh-TW
 files:
   - source: "nym-vpn-android/app/src/main/res/values/strings.xml"
     translation: "nym-vpn-android/app/src/main/res/values-%android_code%/strings.xml"

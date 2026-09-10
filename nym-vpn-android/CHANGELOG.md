@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set geo location for android command sender (https://github.com/nymtech/nym-vpn-client/pull/6144)
 - Log prior process exit reasons on startup (https://github.com/nymtech/nym-vpn-client/pull/6236)
 - Add Profiles screen to Settings (https://github.com/nymtech/nym-vpn-client/pull/6319)
+- Add error handling for Connect button (http://github.com/nymtech/nym-vpn-client/pull/6329)
 
 ### Changed
 - Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
 - Fix Quick Tile crash after service destroy (https://github.com/nymtech/nym-vpn-client/pull/6232)
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
+- Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 
 ## [2026.12.3] - 2026-08-27
 

@@ -7,3 +7,9 @@ preserve_hierarchy: true
 files:
   - source: "nym-vpn-app/src/i18n/en/*.json"
     translation: "nym-vpn-app/src/i18n/%two_letters_code%/%original_file_name%"
+    # Traditional Chinese is Crowdin language `zh-TW`; keep it as `zh-TW` so
+    # %two_letters_code% doesn't collapse it to `zh` and collide with Simplified
+    # in src/i18n/zh/.
+    languages_mapping:
+      two_letters_code:
+        zh-TW: zh-TW

@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+
 mod auth_result;
 pub mod client;
 #[cfg(feature = "daemon")]
