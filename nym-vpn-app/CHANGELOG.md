@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for Recents - recently connected servers (https://github.com/nymtech/nym-vpn-client/pull/6118)
 - Suggest running diagnostics when connection errors occur (https://github.com/nymtech/nym-vpn-client/pull/6006)
 - Add support for Profiles - tailored settings configuration (https://github.com/nymtech/nym-vpn-client/pull/6141)
+- Add `six-months` subscription kind (https://github.com/nymtech/nym-vpn-client/pull/6320)
 
 ### Fixed
 

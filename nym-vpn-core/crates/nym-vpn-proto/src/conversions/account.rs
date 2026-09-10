@@ -678,6 +678,9 @@ impl TryFrom<proto::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
             proto::nym_vpn_subscription_kind::Kind::FreePass(
                 proto::nym_vpn_subscription_kind::Freepass {},
             ) => NymVpnSubscriptionKind::Freepass,
+            proto::nym_vpn_subscription_kind::Kind::SixMonths(
+                proto::nym_vpn_subscription_kind::SixMonths {},
+            ) => NymVpnSubscriptionKind::SixMonths,
             proto::nym_vpn_subscription_kind::Kind::Other(
                 proto::nym_vpn_subscription_kind::Other { other },
             ) => NymVpnSubscriptionKind::Other(other),
@@ -699,6 +702,9 @@ impl From<NymVpnSubscriptionKind> for proto::NymVpnSubscriptionKind {
             ),
             NymVpnSubscriptionKind::Freepass => proto::nym_vpn_subscription_kind::Kind::FreePass(
                 proto::nym_vpn_subscription_kind::Freepass {},
+            ),
+            NymVpnSubscriptionKind::SixMonths => proto::nym_vpn_subscription_kind::Kind::SixMonths(
+                proto::nym_vpn_subscription_kind::SixMonths {},
             ),
             NymVpnSubscriptionKind::Other(other) => proto::nym_vpn_subscription_kind::Kind::Other(
                 proto::nym_vpn_subscription_kind::Other { other },

@@ -1016,6 +1016,7 @@ message NymVpnSubscriptionKind {
   message OneYear {}
   message TwoYears {}
   message Freepass {}
+  message SixMonths {}
   message Other {
     string other = 1;
   }
@@ -1026,6 +1027,7 @@ message NymVpnSubscriptionKind {
     TwoYears two_years = 3;
     Freepass free_pass = 4;
     Other other = 5;
+    SixMonths six_months = 6;
   }
 }
 
