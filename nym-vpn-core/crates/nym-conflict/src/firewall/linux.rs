@@ -6,7 +6,10 @@
 //! see `nym_http_api_client::dns`'s `default_nameserver_group`) before
 //! NymVPN's own firewall chain ever evaluates it.
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    str,
+};
 
 use netlink_packet_core::{
     NLM_F_DUMP, NLM_F_REQUEST, NetlinkHeader, NetlinkMessage, NetlinkPayload, Nla,
@@ -358,7 +361,7 @@ fn as_be_uint(value: &[u8]) -> Option<u64> {
 
 fn as_cstr(value: &[u8]) -> Option<&str> {
     let value = value.split(|&byte| byte == 0).next().unwrap_or(value);
-    std::str::from_utf8(value).ok()
+    str::from_utf8(value).ok()
 }
 
 fn attr_value(attr: &impl netlink_packet_core::Nla) -> Vec<u8> {

@@ -7,6 +7,7 @@ use std::{
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     num::NonZeroI32,
+    result,
     sync::LazyLock,
 };
 
@@ -926,7 +927,7 @@ impl NetworkInterface {
 /// standalone, read-only query.
 pub async fn get_default_route_interfaces(
     family: crate::AddressFamily,
-) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
+) -> result::Result<crate::DefaultRouteInterfaces, super::Error> {
     let (connection, mut handle, _) = rtnetlink::new_connection().map_err(Error::Connect)?;
     tokio::spawn(connection);
 
