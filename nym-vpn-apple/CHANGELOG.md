@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Six-month subscription kind (https://github.com/nymtech/nym-vpn-client/pull/6320)
+
 ### Removed
 
 - Widget support for both iOS & macOS (https://github.com/nymtech/nym-vpn-client/pull/6255)

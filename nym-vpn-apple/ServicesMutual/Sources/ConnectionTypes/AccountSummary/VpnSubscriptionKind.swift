@@ -5,6 +5,7 @@ public enum VpnSubscriptionKind: Equatable, Hashable, Codable {
     case oneYear
     case twoYears
     case freepass
+    case sixMonths
     case other(String)
 
     public init(from kind: NymVpnSubscriptionKind) {
@@ -17,6 +18,8 @@ public enum VpnSubscriptionKind: Equatable, Hashable, Codable {
             self = .twoYears
         case .freepass:
             self = .freepass
+        case .sixMonths:
+            self = .sixMonths
         case let .other(value):
             self = .other(value)
         }
