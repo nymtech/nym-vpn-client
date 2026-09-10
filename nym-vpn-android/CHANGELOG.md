@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.4] - 2026-08-27
+
+### Added
+- Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
+- Log prior process exit reasons on startup (https://github.com/nymtech/nym-vpn-client/pull/6236)
+- Add error handling for Connect button (http://github.com/nymtech/nym-vpn-client/pull/6329)
+
+### Changed
+- Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
+
 ### Fixed
 - Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 
