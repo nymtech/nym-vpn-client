@@ -15,6 +15,7 @@ use std::{
     collections::{BTreeMap, HashSet},
     net::{IpAddr, SocketAddr},
     pin::Pin,
+    result,
     sync::Weak,
     time::Duration,
 };
@@ -76,16 +77,13 @@ pub enum Error {
 /// the given address family. See [`crate::DefaultRouteInterfaces`].
 pub async fn get_default_route_interfaces(
     family: crate::AddressFamily,
-) -> std::result::Result<crate::DefaultRouteInterfaces, super::Error> {
+) -> result::Result<crate::DefaultRouteInterfaces, super::Error> {
     let address_family = match family {
         crate::AddressFamily::Ipv4 => libc::AF_INET,
         crate::AddressFamily::Ipv6 => libc::AF_INET6,
     };
 
-    let table = watch::RoutingTable::new().map_err(Error::RoutingTable)?;
-    let routes = table
-        .dump_routes(address_family)
-        .map_err(Error::RoutingTable)?;
+    let routes = watch::RoutingTable::dump_routes(address_family).map_err(Error::RoutingTable)?;
 
     let mut result = crate::DefaultRouteInterfaces::default();
     for route in routes {
