@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">Logs &amp; Daten</string>
 	<string name="settings_legal_title">Rechtliches</string>
 	<string name="settings_geo_exclusion_title">Geografische Ausschlüsse</string>
-	<string name="settings_geo_exclusion_desciption">Bestimmte IP-Bereiche stellen eine direkte Verbindung her</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bildschirmsperre erforderlich, um Verknüpfungen zu verwenden.</string>
 	<string name="shortcut_title">Vorgang bestätigen</string>

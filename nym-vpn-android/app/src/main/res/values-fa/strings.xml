@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">لاگ‌ها &amp; و داده‌ها</string>
 	<string name="settings_legal_title">قوانین و مقررات</string>
 	<string name="settings_geo_exclusion_title">استثنای جغرافیایی</string>
-	<string name="settings_geo_exclusion_desciption">به بازه‌های مشخص IP مستقیماً متصل می‌شوند</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">برای استفاده از میانبرها ایجاد قفل صفحه لازم است.</string>
 	<string name="shortcut_title">تأیید عملیات</string>

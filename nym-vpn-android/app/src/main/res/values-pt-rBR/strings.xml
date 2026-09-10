@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">Registros &amp; dados</string>
 	<string name="settings_legal_title">Jurídico</string>
 	<string name="settings_geo_exclusion_title">Exclusão geográfica</string>
-	<string name="settings_geo_exclusion_desciption">Faixas de IP específicas conectam diretamente</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueio de tela necessário para usar atalhos.</string>
 	<string name="shortcut_title">Confirmar ação</string>

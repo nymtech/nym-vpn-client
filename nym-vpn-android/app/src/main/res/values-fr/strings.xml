@@ -230,7 +230,7 @@
 	<string name="settings_logs_title">Logs &amp; données</string>
 	<string name="settings_legal_title">Mentions légales</string>
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
-	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Le verrouillage de l\'écran est requis pour utiliser les raccourcis.</string>
 	<string name="shortcut_title">Confirmer l\'action</string>

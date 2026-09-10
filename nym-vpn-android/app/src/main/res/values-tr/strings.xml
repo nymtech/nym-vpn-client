@@ -230,7 +230,7 @@
 	<string name="settings_logs_title">Günlükler ve veri</string>
 	<string name="settings_legal_title">Yasal</string>
 	<string name="settings_geo_exclusion_title">Bölgesel hariç tutma</string>
-	<string name="settings_geo_exclusion_desciption">Belirli IP aralıkları doğrudan bağlanır</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Kısayolları kullanabilmek için önce cihazınızın ekran kilidini açmanız gerekiyor.</string>
 	<string name="shortcut_title">İşlemi onaylayın</string>

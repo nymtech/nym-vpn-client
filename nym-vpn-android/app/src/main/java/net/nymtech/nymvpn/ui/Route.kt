@@ -96,4 +96,7 @@ sealed class Route {
 
 	@Serializable
 	data object Setup : Route()
+
+	@Serializable
+	data object Profiles : Route()
 }

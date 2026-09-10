@@ -230,7 +230,7 @@
 	<string name="settings_logs_title">Журнали &amp; та дані</string>
 	<string name="settings_legal_title">Правові</string>
 	<string name="settings_geo_exclusion_title">Географічне виключення</string>
-	<string name="settings_geo_exclusion_desciption">Певні діапазони IP-адрес підключаються безпосередньо</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для використання ярликів необхідне блокування екрану.</string>
 	<string name="shortcut_title">Підтвердити дію</string>

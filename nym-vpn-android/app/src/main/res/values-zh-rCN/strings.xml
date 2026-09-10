@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">日志和数据</string>
 	<string name="settings_legal_title">法律</string>
 	<string name="settings_geo_exclusion_title">地理隧道分流</string>
-	<string name="settings_geo_exclusion_desciption">特定范围的 IP 地址不会经过 VPN 隧道</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">需要先锁屏才能开启应用快捷方式。</string>
 	<string name="shortcut_title">确认</string>

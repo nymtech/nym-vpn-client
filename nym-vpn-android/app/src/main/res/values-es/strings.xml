@@ -232,7 +232,7 @@
 	<string name="settings_logs_title">Registros &amp; datos</string>
 	<string name="settings_legal_title">Legal</string>
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
-	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
+
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueo de pantalla necesario para usar accesos directos.</string>
 	<string name="shortcut_title">Confirmar acción</string>
