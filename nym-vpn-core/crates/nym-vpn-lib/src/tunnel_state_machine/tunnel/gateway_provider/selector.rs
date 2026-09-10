@@ -421,7 +421,7 @@ pub async fn select_gateways(
                     all_gateways
                         .clone()
                         .into_iter()
-                        .filter(|gw| gw.bridge_params.is_some())
+                        .filter(Gateway::is_quic_enabled)
                         .collect(),
                 )
             } else {

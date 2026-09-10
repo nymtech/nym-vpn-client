@@ -83,8 +83,8 @@ pub use gateway::{
     FavoriteSelector, FavoriteSelectors, Gateway, GatewayFilter, GatewayType,
     GetRecentGatewaysParams, LewesProtocolDetails, LewesProtocolDetailsData, Location,
     LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
-    QuicClientOptions, RecentGateways, Recipient, Score, Socks5, TentativeGateways,
-    TlsClientOptions,
+    QuicClientOptions, RecentGateways, Recipient, Score, Socks5, SshClientOptions,
+    TentativeGateways, TlsClientOptions,
 };
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::GatewaySelectionAlgorithmConfig;
