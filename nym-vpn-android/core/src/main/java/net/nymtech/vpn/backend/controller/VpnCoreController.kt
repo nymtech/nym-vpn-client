@@ -269,6 +269,7 @@ class VpnCoreController(
 
 	private fun handleTunnelState(event: TunnelEvent.NewState) {
 		val coarse = event.asTunnelState()
+		Timber.tag(TAG).d("handleTunnelState raw=%s coarse=%s", event.v1, coarse)
 		if (coarse != state) publishState(coarse)
 
 		when (val ts = event.v1) {
