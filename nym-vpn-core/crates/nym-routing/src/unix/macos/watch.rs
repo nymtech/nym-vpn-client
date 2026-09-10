@@ -6,7 +6,7 @@ use super::{
     data::{self, MessageType, RouteMessage, RouteSocketMessage},
     routing_socket,
 };
-use std::io;
+use std::{ffi::c_int, io, mem, ptr};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -186,5 +186,79 @@ impl RoutingTable {
                 MessageType::RTM_GET,
             )),
         }
+    }
+
+    /// One-shot dump of the macOS routing table via `sysctl(NET_RT_DUMP)`
+    pub fn dump_routes(address_family: c_int) -> Result<Vec<data::RouteMessage>> {
+        let mut mib: [c_int; 6] = [
+            libc::CTL_NET,
+            libc::PF_ROUTE,
+            0,
+            address_family,
+            1, // NET_RT_DUMP
+            0,
+        ];
+
+        let mut needed: libc::size_t = 0;
+        let ret = unsafe {
+            libc::sysctl(
+                mib.as_mut_ptr(),
+                mib.len() as u32,
+                ptr::null_mut(),
+                &mut needed,
+                ptr::null_mut(),
+                0,
+            )
+        };
+        if ret < 0 {
+            return Err(Error::RoutingSocket(routing_socket::Error::Write(
+                io::Error::last_os_error(),
+            )));
+        }
+        if needed == 0 {
+            return Ok(Vec::new());
+        }
+
+        let mut buffer = vec![0u8; needed + needed / 2];
+        let mut len = buffer.len() as libc::size_t;
+        let ret = unsafe {
+            libc::sysctl(
+                mib.as_mut_ptr(),
+                mib.len() as u32,
+                buffer.as_mut_ptr().cast(),
+                &mut len,
+                ptr::null_mut(),
+                0,
+            )
+        };
+        if ret < 0 {
+            return Err(Error::RoutingSocket(routing_socket::Error::Write(
+                io::Error::last_os_error(),
+            )));
+        }
+        buffer.truncate(len);
+
+        let mut routes = Vec::new();
+        let mut offset = 0;
+        while offset + mem::size_of::<libc::rt_msghdr>() <= buffer.len() {
+            let header: libc::rt_msghdr =
+                unsafe { ptr::read_unaligned(buffer[offset..].as_ptr().cast()) };
+            let msg_len = usize::from(header.rtm_msglen);
+            if msg_len < mem::size_of::<libc::rt_msghdr>() || offset + msg_len > buffer.len() {
+                tracing::warn!(
+                    "Stopping routing table dump early: malformed rt_msghdr (msg_len={msg_len}, offset={offset}, buffer_len={})",
+                    buffer.len()
+                );
+                break;
+            }
+
+            if let Ok(msg) = data::RouteMessage::from_byte_buffer(&buffer[offset..offset + msg_len])
+            {
+                routes.push(msg);
+            }
+            offset += msg_len;
+        }
+
+        Ok(routes)
     }
 }

@@ -6,9 +6,6 @@
 #![allow(rustdoc::private_intra_doc_links)]
 #![deny(missing_docs)]
 
-use ipnetwork::IpNetwork;
-use std::{fmt, net::IpAddr};
-
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 /// Burst guard
 pub mod debounce;
@@ -24,13 +21,57 @@ pub use imp::{Callback, CallbackHandle, EventType, InterfaceAndGateway, get_best
 #[path = "unix/mod.rs"]
 mod imp;
 
-#[cfg(target_os = "linux")]
-use rtnetlink::packet_route::route::RouteHeader;
+/// Get every interface currently holding a default-route-shaped entry, for
+/// the given address family. See [`DefaultRouteInterfaces`]. Implemented for
+/// Windows, Linux, and macOS - not available on mobile platforms, where the
+/// OS itself only allows one active VPN configuration at a time.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub use imp::get_default_route_interfaces;
 
 #[cfg(target_os = "macos")]
 pub use imp::{DefaultRouteEvent, InterfaceEvent, PlatformError, imp::RouteError};
 
 pub use imp::{Error, RouteManagerHandle};
+
+use std::{fmt, net::IpAddr};
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use std::collections::HashSet;
+
+#[cfg(target_os = "linux")]
+use rtnetlink::packet_route::route::RouteHeader;
+
+use ipnetwork::IpNetwork;
+
+/// Address family for [`get_default_route_interfaces`].
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AddressFamily {
+    /// IPv4 address family.
+    Ipv4,
+    /// IPv6 address family.
+    Ipv6,
+}
+
+/// The set of distinct interfaces (identified by OS interface index) that
+/// currently hold a default-route-shaped entry - either a literal default
+/// route, or the `0.0.0.0/1` + `128.0.0.0/1` split some VPN clients install
+/// instead of replacing the default route directly - split into physical
+/// and virtual/tunnel interfaces.
+///
+/// Unlike [`get_best_default_route`] (Windows-only), this doesn't pick a
+/// single "best" route or filter out virtual interfaces - it's meant for
+/// callers that need to know about *every* interface competing for
+/// default-route ownership, e.g. to detect whether more than one VPN tunnel
+/// is active at once.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Debug, Default, Clone)]
+pub struct DefaultRouteInterfaces {
+    /// Physical (non-tunnel) interfaces holding a default-route-shaped entry.
+    pub physical: HashSet<u32>,
+    /// Virtual/tunnel interfaces holding a default-route-shaped entry.
+    pub virtual_: HashSet<u32>,
+}
 
 /// Link-layer/MAC adress
 #[cfg(target_os = "macos")]

@@ -12,6 +12,7 @@ use std::{
     ffi::{c_int, c_uchar, c_ushort},
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
+    ptr,
 };
 
 /// Message that describes a route - either an added, removed, changed or plainly retrieved route.
@@ -118,7 +119,7 @@ impl RouteMessage {
             .unwrap_or(false))
     }
 
-    fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
+    pub(crate) fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
         let header: rt_msghdr = rt_msghdr::from_bytes(buffer)?;
 
         let msg_len = usize::from(header.rtm_msglen);
@@ -1000,7 +1001,7 @@ pub struct RouteSockAddrIterator<'a> {
 }
 
 impl<'a> RouteSockAddrIterator<'a> {
-    fn new(buffer: &'a [u8], flags: AddressFlag) -> Self {
+    pub(crate) fn new(buffer: &'a [u8], flags: AddressFlag) -> Self {
         Self {
             buffer,
             flags_iter: flags.iter(),
@@ -1106,8 +1107,10 @@ impl rt_msghdr {
         if buf.len() >= ROUTE_MESSAGE_HEADER_SIZE {
             let ptr = buf.as_ptr();
             // SAFETY: `ptr` is backed by enough valid bytes to contain a rt_msghdr value and it's
-            // readable. rt_msghdr doesn't contain any pointers so any values are valid.
-            Ok(unsafe { std::ptr::read(ptr as *const _) })
+            // readable. rt_msghdr doesn't contain any pointers so any values are valid. `ptr` is
+            // not guaranteed to be aligned, since it comes from an offset into a larger buffer
+            // that accumulates variable-length messages, so `read_unaligned` is required here.
+            Ok(unsafe { ptr::read_unaligned(ptr as *const _) })
         } else {
             Err(Error::BufferTooSmall {
                 message_type: "rt_msghdr",
@@ -1148,7 +1151,9 @@ impl rt_msghdr_short {
             let ptr = buf.as_ptr();
             // SAFETY: `ptr` is backed by enough valid bytes to contain a rt_msghdr_short value and
             // is readable. `rt_msghdr_short` doesn't contain any pointers so any values are valid.
-            Some(unsafe { std::ptr::read(ptr as *const rt_msghdr_short) })
+            // `ptr` is not guaranteed to be aligned, since it comes from an offset into a larger
+            // buffer that accumulates variable-length messages, so `read_unaligned` is required.
+            Some(unsafe { ptr::read_unaligned(ptr as *const rt_msghdr_short) })
         } else {
             None
         }

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    AccountControllerState, BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent,
-    DiagnosticsSuggestionReason, ErrorStateReason, MixnetEvent, SphinxPacketRates, TunnelEvent,
-    TunnelState,
+    AccountControllerState, BandwidthEvent, ConflictDetected, ConnectionEvent,
+    ConnectionStatisticsEvent, DiagnosticsSuggestionReason, ErrorStateReason, MixnetEvent,
+    SphinxPacketRates, TunnelEvent, TunnelState,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -36,6 +36,9 @@ impl TryFrom<proto::TunnelEvent> for TunnelEvent {
             proto::tunnel_event::Event::DiagnosticsSuggestedEvent(event) => {
                 TunnelEvent::DiagnosticsSuggested(DiagnosticsSuggestionReason::try_from(event)?)
             }
+            proto::tunnel_event::Event::ConflictDetectedEvent(event) => {
+                TunnelEvent::ConflictDetected(ConflictDetected::try_from(event)?)
+            }
         })
     }
 }
@@ -62,8 +65,47 @@ impl From<TunnelEvent> for proto::TunnelEvent {
                     proto::DiagnosticsSuggestedEvent::from(reason),
                 )
             }
+            TunnelEvent::ConflictDetected(conflict) => {
+                proto::tunnel_event::Event::ConflictDetectedEvent(
+                    proto::ConflictDetectedEvent::from(conflict),
+                )
+            }
         };
         Self { event: Some(event) }
+    }
+}
+
+impl TryFrom<proto::ConflictDetectedEvent> for ConflictDetected {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::ConflictDetectedEvent) -> Result<Self, Self::Error> {
+        let conflict = proto::conflict_detected_event::Conflict::try_from(value.conflict)
+            .map_err(|e| ConversionError::Decode("ConflictDetectedEvent.conflict", e))?;
+
+        Ok(match conflict {
+            proto::conflict_detected_event::Conflict::InterceptedDns => Self::InterceptedDns,
+            proto::conflict_detected_event::Conflict::CompetingVpn => Self::CompetingVpn,
+            proto::conflict_detected_event::Conflict::CompetingFirewall => Self::CompetingFirewall,
+        })
+    }
+}
+
+impl From<ConflictDetected> for proto::ConflictDetectedEvent {
+    fn from(value: ConflictDetected) -> Self {
+        let conflict = match value {
+            ConflictDetected::InterceptedDns => {
+                proto::conflict_detected_event::Conflict::InterceptedDns
+            }
+            ConflictDetected::CompetingVpn => {
+                proto::conflict_detected_event::Conflict::CompetingVpn
+            }
+            ConflictDetected::CompetingFirewall => {
+                proto::conflict_detected_event::Conflict::CompetingFirewall
+            }
+        };
+        Self {
+            conflict: conflict as i32,
+        }
     }
 }
 

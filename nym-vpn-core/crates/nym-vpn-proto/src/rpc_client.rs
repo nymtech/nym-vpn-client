@@ -146,6 +146,18 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_conflict_detection(
+        &mut self,
+        enable_conflict_detection: bool,
+    ) -> Result<()> {
+        self.0
+            .set_enable_conflict_detection(enable_conflict_detection)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
         self.0
             .set_netstack(netstack)
@@ -936,7 +948,7 @@ impl RpcClient {
         RecentGateways::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub async fn is_split_tunnel_supported(&mut self) -> Result<bool> {
         self.0
             .is_split_tunnel_supported(())

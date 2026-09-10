@@ -11,7 +11,9 @@ use futures::{
         oneshot,
     },
 };
-pub use get_best_default_route::{InterfaceAndGateway, get_best_default_route};
+pub use get_best_default_route::{
+    InterfaceAndGateway, get_best_default_route, get_default_route_interfaces,
+};
 use net::AddressFamily;
 use nym_common::trace_err_chain;
 use nym_windows::net;
