@@ -49,6 +49,8 @@ fun Project.languageList(): List<String> {
 		"fa",      // Persian
 		"fr",      // French
 		"hi",      // Hindi
+		"in",      // Indonesian (legacy Java code → values-in)
+		"it",      // Italian
 		"pt-rBR",  // Portuguese (Brazil)
 		"ru",      // Russian
 		"tr",      // Turkish

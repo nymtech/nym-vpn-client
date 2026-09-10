@@ -759,6 +759,8 @@
 				"zh-Hant",
 				de,
 				hi,
+				id,
+				it,
 				fa,
 				es,
 				tr,
