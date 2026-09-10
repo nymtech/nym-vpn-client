@@ -385,8 +385,8 @@ async fn wait_for_handshake(
     /// declared unreachable. wireguard-go retransmits the initiation every 5s, so this covers the
     /// first retransmission plus a generous round trip, while still failing a dead entry (e.g. its
     /// WG port blackholed on this network) in a fraction of the exit handshake + metadata windows.
-    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(7);
-    const POLL_INTERVAL: Duration = Duration::from_millis(250);
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+    const POLL_INTERVAL: Duration = Duration::from_millis(500);
 
     let started = std::time::Instant::now();
 
