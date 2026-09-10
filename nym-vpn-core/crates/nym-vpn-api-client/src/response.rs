@@ -731,14 +731,11 @@ pub struct ApiUrl {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymWellknownDiscoveryItemResponse {
     pub network_name: String,
-    pub nym_api_url: String,
-    pub nym_api_urls: Vec<ApiUrl>,
-    pub nym_vpn_api_url: String,
-    pub nym_vpn_api_urls: Vec<ApiUrl>,
     pub account_management: Option<AccountManagementResponse>,
     pub feature_flags: Option<serde_json::Value>,
     pub system_messages: Option<Vec<SystemMessageResponse>>,
     pub system_configuration: Option<SystemConfigurationResponse>,
+    pub networking: Option<nym_network_defaults::v2::NetworkingSpecifics>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
