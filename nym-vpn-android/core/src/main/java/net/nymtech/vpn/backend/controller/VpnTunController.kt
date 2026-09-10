@@ -22,6 +22,8 @@ class VpnTunController(private val service: VpnService) {
 			if (isVpn) return false
 			return true
 		}
+
+		internal fun bindsProcessToUnderlying(excludeVpnApp: Boolean): Boolean = excludeVpnApp
 	}
 
 	@Volatile private var disallowedApps: List<String> = emptyList()
@@ -92,7 +94,11 @@ class VpnTunController(private val service: VpnService) {
 
 			val fd = pfd.detachFd()
 
-			bindProcessToUnderlyingNetwork()
+			if (bindsProcessToUnderlying(config.excludeVpnApp)) {
+				bindProcessToUnderlyingNetwork()
+			} else {
+				unbindProcessFromUnderlyingNetwork()
+			}
 
 			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
 
@@ -123,12 +129,14 @@ class VpnTunController(private val service: VpnService) {
 			return
 		}
 		runCatching { cm.bindProcessToNetwork(underlying) }
+			.onSuccess { Timber.tag(TAG).i("Bound process to underlying network (cover)") }
 			.onFailure { Timber.tag(TAG).w(it, "bindProcessToNetwork failed") }
 	}
 
 	private fun unbindProcessFromUnderlyingNetwork() {
 		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
 		runCatching { cm.bindProcessToNetwork(null) }
+			.onSuccess { Timber.tag(TAG).i("Unbound process from underlying network (data tun)") }
 			.onFailure { Timber.tag(TAG).w(it, "unbindProcessFromNetwork failed") }
 	}
 }

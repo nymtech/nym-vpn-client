@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
 
 ### Fixed
-- Bind the VPN process to the physical network after TUN establish so LP and API sockets work on kernels that ignore uid-exclude
+- Bind the VPN process to the physical network only while the cover TUN is up (registration). Unbind on the data TUN so in-tunnel metadata at 10.1.0.1 can complete on kernels that ignore uid-exclude (https://github.com/nymtech/nym-vpn-client/pull/6333)
 - Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
 - Fix Quick Tile crash after service destroy (https://github.com/nymtech/nym-vpn-client/pull/6232)
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
