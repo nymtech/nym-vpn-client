@@ -756,6 +756,7 @@
 				fr,
 				ar,
 				"zh-Hans",
+				"zh-Hant",
 				de,
 				hi,
 				fa,
