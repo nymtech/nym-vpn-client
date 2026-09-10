@@ -1,4 +1,4 @@
 क्या नया है:
-- DoH (DNS over HTTPS) and DoT (DNS over TLS) to enhance ad blocking 
-- De-googled Android in-app account creation 
-- Fixed Hickory system resolver panicking
+विज्ञापन अवरोधन को बेहतर बनाने के लिए DoH (डीएनएस ओवर एचटीटीपीएस) और DoT (डीएनएस ओवर टीएलएस) 
+- गूगल-रहित एंड्रॉइड इन-ऐप खाता निर्माण 
+- हिकोरी सिस्टम रिज़ॉल्वर के पैनिक होने की समस्या ठीक की गई।

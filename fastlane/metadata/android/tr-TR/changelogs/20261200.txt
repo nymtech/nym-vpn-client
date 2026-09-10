@@ -1,0 +1,11 @@
+Hızlı bağlantı artık varsayılan olarak "en güvenli" sunucuları kullanıyor: NymVPN, kendi ülkenizdeki değil, komşu bir ülkedeki en uygun sunucuyu seçiyor.
+
+Yeniden tasarlanan kullanıcı karşılama süreci, özellikleri, plan seçimi ve hesap oluşturmayı kapsamaktadır.
+
+Kamuflaj simgesi: Uygulamayı Ayarlar > Görünüm bölümündeki göze çarpmayan alternatif simgelerin arkasına gizleyin.
+
+Mixnet Ayarları ekranı, daha net ifadelerle ve arayüz düzeltmeleriyle güncellendi.
+
+Cihazın yeniden başlatılmasından sonra otomatik bağlanmanın takılma sorunu giderildi.
+
+Bir sunucu, ağın bağımsızlık kurallarına uymadığında daha net hatalar görüntülenir.

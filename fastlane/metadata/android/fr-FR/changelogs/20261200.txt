@@ -1,0 +1,11 @@
+La connexion rapide utilise désormais par défaut les serveurs « les plus sûrs » : NymVPN choisit un serveur optimal situé dans un pays voisin, et non dans le vôtre.
+
+Le processus d'intégration repensé couvre les fonctionnalités, le choix d'un forfait et la création d'un compte.
+
+Icône de camouflage : masquez l'application derrière des icônes alternatives discrètes dans Réglages > Apparence.
+
+Mise à jour de l'écran « Mixnet Tuning » avec une formulation plus claire et des corrections apportées à l'interface.
+
+Correction d'un problème de blocage de la connexion automatique après le redémarrage d'un appareil.
+
+Afficher des messages d'erreur plus clairs lorsqu'un serveur ne respecte pas les règles d'indépendance du réseau.

@@ -1,14 +1,14 @@
-2026.11.3: Fixes to kernel and added 32-bit arch support to address reported connection problems with exit servers on Android 7-14 devices.
+2026.11.3: কার্নেলে সংশোধন এবং 32-বিট আর্চ সমর্থনের সংযোজন, যা Android 7–14 ডিভাইসে এক্সিট সার্ভারগুলির সাথে রিপোর্টকৃত সংযোগ সমস্যাগুলি সমাধান করে।
 
-2026.11:
-- New beta feature: MIXNET TUNING allows for customizing traffic patterns over the mixnet to increase anonymity or performance.
+২০২৬.১১:
+নতুন বিটা ফিচার: MIXNET TUNING আপনাকে মিক্সনেটে ট্র্যাফিকের ধরণ কাস্টমাইজ করতে দেয়, যাতে অজ্ঞাতনামা বা কর্মক্ষমতা বাড়ানো যায়।
 
-- Introducing SERVER FAMILIES: NymVPN now alerts you to when the servers you’ve chosen may belong to the same operator family to ensure decentralization in your use of the network.
+- সার্ভার পরিবার পরিচিতি: NymVPN এখন আপনাকে সতর্ক করে যখন আপনি যে সার্ভারগুলো বেছে নিয়েছেন সেগুলো একই অপারেটর পরিবারের অন্তর্গত হতে পারে, যাতে নেটওয়ার্ক ব্যবহারে বিকেন্দ্রীকরণ নিশ্চিত হয়।
 
-- Better access in restricted regions and improved connectivity on heavily filtered networks.
+সীমিত অঞ্চলে আরও উন্নত প্রবেশাধিকার এবং কঠোরভাবে ফিল্টার করা নেটওয়ার্কে উন্নত সংযোগ।
 
-- New daily data allowance: fair-usage limits are now a daily allowance instead of a monthly one.
+নতুন দৈনিক ডেটা বরাদ্দ: ন্যায্য ব্যবহারের সীমা এখন মাসিক বরাদ্দের পরিবর্তে দৈনিক বরাদ্দ।
 
-- Android Auto fix: Android Auto is no longer routed through the VPN, so in-car connections work normally.
+- অ্যান্ড্রয়েড অটো সমাধান: অ্যান্ড্রয়েড অটো আর VPN-এর মাধ্যমে রাউট হচ্ছে না, তাই গাড়ির ভিতরের সংযোগগুলো স্বাভাবিকভাবে কাজ করছে।
 
-- Connection reliability and performance improvements.
+- সংযোগের নির্ভরযোগ্যতা এবং কর্মক্ষমতা উন্নতি।

@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Від\'єднано</string>
 	<string name="state_initializing">Ініціалізація клієнта…</string>
 	<string name="state_establishing">Встановлення з\'єднання…</string>
+	<string name="state_disconnecting">Відключення…</string>
+	<string name="state_reconnecting">Відновлюємо з’єднання…</string>
+	<string name="state_offline">Очікування підключення до мережі…</string>
 	<string name="notification_entry">Вхід: %1$s</string>
 	<string name="notification_exit">Вихід: %1$s</string>
 	<string name="error_reason_set_firewall_policy">Не вдалося застосувати політику брандмауера.</string>
@@ -31,7 +34,8 @@
 	<string name="error_reason_inactive_account">Ваш обліковий запис неактивний.</string>
 	<string name="error_reason_inactive_subscription">Ваша підписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Досягнуто максимальної кількості пристроїв.</string>
-	<string name="error_reason_device_time_out_of_sync">Час пристрою не синхронізовано.</string>
 	<string name="error_reason_device_logged_out">Пристрій вимкнено.</string>
+	<string name="error_reason_needs_device_location">Найбезпечніший маршрут недоступний; місцезнаходження пристрою не вдалося визначити.</string>
+	<string name="error_reason_connection_attempts_exceeded">Не вдалося встановити з’єднання після кількох спроб.</string>
 	<string name="error_reason_internal">Внутрішня помилка: %1$s</string>
 </resources>

@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Đã ngắt kết nối</string>
 	<string name="state_initializing">Đang khởi tạo máy khách…</string>
 	<string name="state_establishing">Đang thiết lập kết nối…</string>
+	<string name="state_disconnecting">Đang ngắt kết nối…</string>
+	<string name="state_reconnecting">Đang kết nối lại…</string>
+	<string name="state_offline">Đang chờ mạng…</string>
 	<string name="notification_entry">Vào: %1$s</string>
 	<string name="notification_exit">Thoát: %1$s</string>
 	<string name="error_reason_set_firewall_policy">Không thể áp dụng chính sách tường lửa.</string>
@@ -31,7 +34,8 @@
 	<string name="error_reason_inactive_account">Tài khoản không hoạt động.</string>
 	<string name="error_reason_inactive_subscription">Gói đăng ký của bạn đã bị hủy kích hoạt.</string>
 	<string name="error_reason_max_devices_reached">Đã đạt số lượng thiết bị tối đa.</string>
-	<string name="error_reason_device_time_out_of_sync">Thời gian thiết bị không đồng bộ.</string>
 	<string name="error_reason_device_logged_out">Thiết bị đã đăng xuất.</string>
+	<string name="error_reason_needs_device_location">Chế độ định tuyến an toàn nhất không khả dụng; không thể xác định vị trí thiết bị.</string>
+	<string name="error_reason_connection_attempts_exceeded">Không thể kết nối sau nhiều lần thử.</string>
 	<string name="error_reason_internal">Lỗi nội bộ: %1$s</string>
 </resources>

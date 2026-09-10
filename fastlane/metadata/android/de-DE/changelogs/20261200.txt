@@ -1,0 +1,11 @@
+Die Schnellverbindung wählt nun standardmäßig die „sichersten“ Server aus: NymVPN wählt einen optimalen Server in einem Nachbarland aus, nicht in Ihrem eigenen.
+
+Das neu gestaltete Onboarding umfasst Funktionen, die Auswahl eines Tarifs und die Kontoeröffnung.
+
+Camouflage-Symbol: Blenden Sie die App hinter unauffälligen alternativen Symbolen unter „Einstellungen“ > „Darstellung“ aus.
+
+Der Bildschirm „Mixnet-Einstellungen“ wurde mit klareren Formulierungen und Korrekturen an der Benutzeroberfläche aktualisiert.
+
+Das Problem, dass die automatische Verbindung nach einem Neustart des Geräts hängen blieb, wurde behoben.
+
+Deutlichere Fehlermeldungen, wenn ein Server die Unabhängigkeitsregeln des Netzwerks nicht erfüllen kann.

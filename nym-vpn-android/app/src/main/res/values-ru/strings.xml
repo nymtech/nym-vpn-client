@@ -154,7 +154,6 @@
 	<string name="error_credential_fetching_failed">Не удалось получить данные для подключения. Пожалуйста, попробуйте снова.</string>
 	<string name="error_no_credential_available">Нет данных для подключения. Пожалуйста, попробуйте снова.</string>
 	<string name="max_devices_error">Превышен лимит устройств для аккаунта. Пожалуйста, удалите одно из устройств из аккаунта перед подключением.</string>
-	<string name="device_time_out_of_sync">Время на устройстве не синхронизировано</string>
 	<string name="error_ipv6_unavailable">Ipv6 недоступен</string>
 	<string name="error_device_logged_out">Устройство вышло из системы.</string>
 	<string name="error_inactive_account">Статус учетной записи не \"Активен\".</string>
@@ -171,6 +170,8 @@
 	<string name="error_gateway_unavailable_exit">Не удается подключиться к серверу выхода. Попробуйте другой!</string>
 	<string name="error_invalid_entry_gateway_identity">Сервер входа недоступен. Выберите другой и подключитесь повторно.</string>
 	<string name="error_invalid_exit_gateway_identity">Сервер выхода недоступен. Выберите другой и подключитесь повторно.</string>
+	<string name="error_needs_device_location">Маршрутизация с максимальной безопасностью сейчас недоступна. Попробуйте позже или выберите серверы вручную.</string>
+	<string name="error_connection_attempts_exceeded">Не удалось установить соединение после нескольких попыток. Пожалуйста, попробуйте еще раз.</string>
 	<string name="error_expired_subscription_title">Срок действия вашей подписки истек</string>
 	<string name="error_expired_subscription_description">Ваш платёжный метод для автопродления отклонён</string>
 	<string name="error_expired_subscription_button">Обновить сейчас</string>
@@ -188,7 +189,7 @@
 	<string name="connection_state_connecting_mixnet_client">Анонимная регистрация на серверах (6/7)</string>
 	<string name="connection_state_connecting_tunnel">Установка соединения с сервером (7/7)</string>
 	<!-- One-click mode -->
-	<string name="one_click_mode_fast">Быстрый</string>
+	<string name="one_click_mode_fast">dVPN</string>
 	<string name="connect_mode_mixnet">Микснет</string>
 	<string name="one_click_nym_exit_node">Сервер выхода</string>
 	<string name="one_click_nym_entry_node">Сервер входа</string>
@@ -605,6 +606,7 @@
 	<string name="geo_exclusion_description">Направляет трафик для выбранных регионов вне VPN-туннеля, чтобы локальные приложения работали на полной скорости. Всё остальное остаётся под защитой.</string>
 	<string name="geo_exclusion_beta_text">Бета-версия: пока доступна только в Китае. Вскоре добавим другие регионы.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Трафик к исключённым регионам обходит VPN.</string>
+	<string name="geo_exclusion_server_title">Сервер</string>
 	<string name="geo_exclusion_sock55_title">Порт SOCKS5</string>
 	<string name="geo_exclusion_custom_port_title">Пользовательский порт</string>
 	<string name="geo_exclusion_ports_text">1024–65535</string>
@@ -622,7 +624,12 @@
 	<string name="geo_exclusion_copy_proxy_label">Скопировать адрес прокси</string>
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Инструкция по установке</string>
-	<string name="setup_instructions_description">Настройте приложения и браузеры на маршрутизацию трафика через SOCKS5-прокси Nym.</string>
+	<string name="setup_instructions_step_manual">Настройки → Сетевые настройки → Ручная настройка прокси.</string>
+	<string name="setup_instructions_step_socks_host">Хост SOCKS</string>
+	<string name="setup_instructions_step_socks_port">, Порт</string>
+	<string name="setup_instructions_step_socks_suffix">, выберите SOCKS v5.</string>
+	<string name="setup_instructions_step_dns">Установите флажок Proxy DNS при использовании SOCKS v5 (предотвращает утечки DNS).</string>
+	<string name="setup_instructions_description">На Firefox или браузерах, которые допускают настройки SOCKS5.</string>
 	<string name="setup_instructions_per_app_title">Для каждого приложения (с поддержкой SOCKS5)</string>
 	<string name="setup_instructions_per_app_description">В Android нет системной настройки SOCKS5.</string>
 	<string name="setup_instructions_pert_app_step">Используйте приложение с прямой поддержкой SOCKS5-прокси.</string>
@@ -645,4 +652,14 @@
 	<string name="app_icon_change_title">Сменить значок приложения?</string>
 	<string name="app_icon_change_body">Приложение ненадолго закроется, чтобы применить новую иконку. Изменятся только иконка и название на главном экране — уведомления и системный поиск по-прежнему будут показывать NymVPN.</string>
 	<string name="app_icon_change_confirm">Сменить иконку</string>
+	<!-- Profiles -->
+	<string name="profiles_title">Профили</string>
+	<string name="profiles_safest_title">Самый безопасный</string>
+	<string name="profiles_safest_description">Оптимально для обхода цензуры</string>
+	<string name="profiles_random_title">Случайный</string>
+	<string name="profiles_random_description">Эффект варьируется, возможна низкая скорость</string>
+	<string name="profiles_most_private_title">Максимально приватно</string>
+	<string name="profiles_most_private_description">Устойчивость к анализу метаданных и настройка микснета</string>
+	<string name="profiles_fastest_title">Быстрейший</string>
+	<string name="profiles_fastest_description">Выбирает ближайший, лучший для стриминга</string>
 </resources>

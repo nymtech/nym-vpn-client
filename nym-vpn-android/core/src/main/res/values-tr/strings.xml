@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Bağlantı kesildi</string>
 	<string name="state_initializing">İstemci başlatılıyor…</string>
 	<string name="state_establishing">Bağlantı kuruluyor...</string>
+	<string name="state_disconnecting">Bağlantı kesiliyor…</string>
+	<string name="state_reconnecting">Yeniden bağlanıyor…</string>
+	<string name="state_offline">Ağ bekleniyor…</string>
 	<string name="notification_entry">Giriş: %1$s</string>
 	<string name="notification_exit">Çıkış: %1$s</string>
 	<string name="error_reason_set_firewall_policy">Güvenlik duvarı politikası uygulanamadı.</string>
@@ -26,12 +29,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Giriş sunucusu yanıt vermiyor.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Çıkış sunucusu yanıt vermiyor.</string>
 	<string name="error_reason_bandwidth_exceeded">Bant genişliği limiti aşıldı.</string>
-	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
-	<string name="error_reason_no_credential_available">No credentials available.</string>
+	<string name="error_reason_credential_fetching_failed">Kimlik bilgileri alınamadı.</string>
+	<string name="error_reason_no_credential_available">Kullanıcı bilgileri mevcut değil.</string>
 	<string name="error_reason_inactive_account">Hesabınız aktif değil.</string>
 	<string name="error_reason_inactive_subscription">Aboneliğiniz aktif değil.</string>
 	<string name="error_reason_max_devices_reached">Maksimum cihaz sayısına ulaşıldı.</string>
-	<string name="error_reason_device_time_out_of_sync">Cihaz saati senkronize değil.</string>
 	<string name="error_reason_device_logged_out">Cihazdan çıkış yapıldı.</string>
+	<string name="error_reason_needs_device_location">En güvenli rota mevcut değil; cihazın konumu belirlenemedi.</string>
+	<string name="error_reason_connection_attempts_exceeded">Birkaç denemeden sonra bağlantı kurulamadı.</string>
 	<string name="error_reason_internal">Dahili hata: %1$s</string>
 </resources>

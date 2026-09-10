@@ -8,6 +8,9 @@
 	<string name="state_disconnected">Desconectado</string>
 	<string name="state_initializing">Iniciando cliente…</string>
 	<string name="state_establishing">Estabilizando conexão…</string>
+	<string name="state_disconnecting">Desconectando…</string>
+	<string name="state_reconnecting">Reconectando…</string>
+	<string name="state_offline">Aguardando conexão com a rede…</string>
 	<string name="notification_entry">Entrada: %1$s</string>
 	<string name="notification_exit">Saída: %1$s</string>
 	<string name="error_reason_set_firewall_policy">Falha ao aplicar política de firewall.</string>
@@ -26,12 +29,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">O gateway de entrada não é responsivo.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">O gateway de saída não é responsivo.</string>
 	<string name="error_reason_bandwidth_exceeded">Limite de banda excedido.</string>
-	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
-	<string name="error_reason_no_credential_available">No credentials available.</string>
+	<string name="error_reason_credential_fetching_failed">Falha ao obter credenciais.</string>
+	<string name="error_reason_no_credential_available">Nenhuma credencial disponível.</string>
 	<string name="error_reason_inactive_account">Sua conta está inativa.</string>
 	<string name="error_reason_inactive_subscription">Sua assinatura está inativa.</string>
 	<string name="error_reason_max_devices_reached">Número máximo de dispositivos atingido.</string>
-	<string name="error_reason_device_time_out_of_sync">O tempo do dispositivo está fora de sincronia.</string>
 	<string name="error_reason_device_logged_out">O dispositivo foi desconectado.</string>
+	<string name="error_reason_needs_device_location">O roteamento mais seguro não está disponível; não foi possível determinar a localização do dispositivo.</string>
+	<string name="error_reason_connection_attempts_exceeded">Não foi possível se conectar após várias tentativas.</string>
 	<string name="error_reason_internal">Erro interno: %1$s</string>
 </resources>

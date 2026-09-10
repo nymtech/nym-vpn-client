@@ -8,6 +8,9 @@
 	<string name="state_disconnected">সংযোগ বিচ্ছিন্ন হয়েছে</string>
 	<string name="state_initializing">ক্লায়েন্ট শুরু করা হচ্ছে…</string>
 	<string name="state_establishing">সংযোগ স্থাপন করা হচ্ছে…</string>
+	<string name="state_disconnecting">বিচ্ছিন্ন হচ্ছে…</string>
+	<string name="state_reconnecting">পুনঃসংযোগ হচ্ছে…</string>
+	<string name="state_offline">নেটওয়ার্কের জন্য অপেক্ষা…</string>
 	<string name="notification_entry">এন্ট্রি: %1$s</string>
 	<string name="notification_exit">এক্সিট: %1$s</string>
 	<string name="error_reason_set_firewall_policy">ফায়ারওয়াল নীতি প্রয়োগ করা সম্ভব হয়নি।</string>
@@ -26,12 +29,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">এন্ট্রি গেটওয়ে সাড়া দিচ্ছে না।</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">এক্সিট গেটওয়ে সাড়া দিচ্ছে না।</string>
 	<string name="error_reason_bandwidth_exceeded">ব্যান্ডউইথের সীমা অতিক্রম করা হয়েছে।</string>
-	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
-	<string name="error_reason_no_credential_available">No credentials available.</string>
+	<string name="error_reason_credential_fetching_failed">প্রমাণপত্র সংগ্রহ করতে ব্যর্থ হয়েছে।</string>
+	<string name="error_reason_no_credential_available">কোনও শংসাপত্র উপলব্ধ নেই।</string>
 	<string name="error_reason_inactive_account">আপনার অ্যাকাউন্টটি নিষ্ক্রিয়।</string>
 	<string name="error_reason_inactive_subscription">আপনার সাবস্ক্রিপশনটি নিষ্ক্রিয়।</string>
 	<string name="error_reason_max_devices_reached">ডিভাইসের সর্বোচ্চ সংখ্যায় পৌঁছে গেছে।</string>
-	<string name="error_reason_device_time_out_of_sync">ডিভাইসের সময় অসঙ্গত।</string>
 	<string name="error_reason_device_logged_out">ডিভাইস থেকে লগ আউট করা হয়েছে।</string>
+	<string name="error_reason_needs_device_location">সবচেয়ে নিরাপদ রুটিং উপলব্ধ নয়; ডিভাইসের অবস্থান নির্ধারণ করা যায়নি।</string>
+	<string name="error_reason_connection_attempts_exceeded">কয়েকবার চেষ্টা করার পরও সংযোগ করা যায়নি।</string>
 	<string name="error_reason_internal">অভ্যন্তরীণ ত্রুটি: %1$s</string>
 </resources>
