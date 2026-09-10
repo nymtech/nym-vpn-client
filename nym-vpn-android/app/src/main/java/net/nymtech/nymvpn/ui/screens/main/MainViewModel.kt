@@ -240,7 +240,7 @@ constructor(
 				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
 		}
 
-		return when (val event = managerState.backendUiEvent) {
+		val resolved = when (val event = managerState.backendUiEvent) {
 			is BackendUiEvent.BandwidthAlert, null -> baseState
 			is BackendUiEvent.Failure -> {
 				if (event.reason is ErrorStateReason.NeedsRelaxedIndependenceCriteria) {
@@ -256,6 +256,15 @@ constructor(
 			}
 			is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 		}
+
+		Timber.tag(TAG).d(
+			"resolveConnectionState tunnelState=%s backendUiEvent=%s -> %s",
+			managerState.tunnelState,
+			managerState.backendUiEvent,
+			resolved,
+		)
+
+		return resolved
 	}
 
 	private fun handleTunnelStateChange(tunnelState: Tunnel.State, connectedAt: Long?) {

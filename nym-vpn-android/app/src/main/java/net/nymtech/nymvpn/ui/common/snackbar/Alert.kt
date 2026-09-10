@@ -123,7 +123,7 @@ private fun Alert(message: AlertMessage, onDismiss: () -> Unit, modifier: Modifi
 						)
 					}
 				}
-				if (!isError) {
+				if (message.dismissable) {
 					IconButton(
 						onClick = onDismiss,
 						modifier = Modifier.size(24.dp),
