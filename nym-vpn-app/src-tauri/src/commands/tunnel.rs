@@ -186,6 +186,16 @@ pub async fn set_ad_block(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<
 
 #[instrument(skip(vpnd))]
 #[tauri::command]
+pub async fn set_conflict_detection(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.set_conflict_detection(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
 pub async fn get_default_dns(vpnd: State<'_, VpndClient>) -> Result<Vec<IpAddr>, BackendError> {
     let dns = vpnd.get_default_dns().await?;
     Ok(dns)
