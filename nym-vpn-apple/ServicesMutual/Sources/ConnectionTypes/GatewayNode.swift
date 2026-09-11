@@ -19,6 +19,8 @@ public struct GatewayNode: Codable, Hashable {
                 true
             case .tlsPlain:
                 false
+            case .sshPlain(_):
+                false
             }
         }
     }
