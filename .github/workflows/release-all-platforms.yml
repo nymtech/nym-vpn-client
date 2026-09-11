@@ -613,3 +613,30 @@ jobs:
       android_apk_url: ${{ needs.release.outputs.android_apk_url }}
       ios_build: ${{ needs.build-outputs.outputs.ios_build }}
     secrets: inherit
+
+  # Post-publish fan-out: changelog/installer PR, tauri + Sparkle updater feeds, AUR
+  # packages, F-Droid dispatch, nym.com cache bust. Normally on-release-publish.yml
+  # drives itself off `release: [released]` when a human clicks Publish on a draft.
+  #
+  # That webhook NEVER fires on the gh_release=auto + ship path: create-release
+  # publishes the release itself with GITHUB_TOKEN, and GitHub deliberately emits no
+  # events for actions taken with GITHUB_TOKEN. So call it directly instead of
+  # relying on a webhook that cannot arrive.
+  #
+  # Scoped to gh_release_type == 'release' on purpose:
+  #   draft      -> stays on the human-publish route, where the webhook does fire
+  #   prerelease -> beta/nightly must not reach AUR or the stable updater feeds
+  # so this can never double-run against the webhook path.
+  post-release-fanout:
+    needs: [resolve, release]
+    if: |
+      !cancelled() && needs.release.result == 'success' &&
+      needs.resolve.outputs.publish_github == 'true' &&
+      needs.resolve.outputs.gh_release_type == 'release'
+    uses: ./.github/workflows/on-release-publish.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      tag_name: ${{ needs.resolve.outputs.tag }}
+    secrets: inherit
