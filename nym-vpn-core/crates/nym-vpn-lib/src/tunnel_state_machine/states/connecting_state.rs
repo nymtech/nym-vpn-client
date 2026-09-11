@@ -807,15 +807,9 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelMonitorEvent::MetadataFailed { gateway_id } => {
-                        // The entry WireGuard handshake never completed: the entry hop is dead
-                        // from this network, so blame it alone and pick another entry. The exit
-                        // was never reached and stays eligible.
-                        tracing::warn!(
-                            "Blacklisted entry gateway {gateway_id}: WireGuard handshake never completed"
-                        );
                         shared_state.gateway_provider.add_blacklisted_gateway(
                             gateway_id,
-                            BlacklistReason::EntryHandshakeFailed,
+                            BlacklistReason::EntryMetadataEndpointUnreachable,
                         ).await;
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
