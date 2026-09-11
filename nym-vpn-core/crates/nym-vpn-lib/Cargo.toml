@@ -146,6 +146,7 @@ nix = { workspace = true, features = [
     "signal",
     "ioctl",
 ] }
+nym-ifconfig.workspace = true
 
 # Linux-specific dependencies
 [target.'cfg(target_os = "linux")'.dependencies]
