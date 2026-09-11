@@ -62,6 +62,8 @@ import PathManager
     @Published public var didReceiveSubscriptionPayment = false
     /// True when the last `fetchAccountSummary` attempt failed (use for UI signal).
     @Published public private(set) var accountSummaryLastFetchFailed = false
+    /// Controller reported a terminal inactive error (`unregistered` / inactive subscription).
+    @Published public private(set) var isAccountKnownInactive = false
 
 #if SANTA
     /// QA only: when true, `accountSummary` holds a Santa's-menu fake and real
@@ -85,6 +87,10 @@ import PathManager
 
     func setAccountSummaryLastFetchFailed(_ failed: Bool) {
         accountSummaryLastFetchFailed = failed
+    }
+
+    func setAccountKnownInactive(_ value: Bool) {
+        isAccountKnownInactive = value
     }
 
     public func setup() {
@@ -442,7 +448,7 @@ import PathManager
 #if os(macOS)
         try await grpcManager.handleSubscriptionPayment()
         try? await Task.sleep(for: .seconds(2))
-        await updateAccountSummary(force: true)
+        await updateAccountSummary(force: true, untilActive: true)
 #elseif os(iOS)
         try await refreshAccountSummaryOnIOS(
             untilActive: true,
@@ -482,7 +488,9 @@ import PathManager
     /// Uses `isActive` from AccountSummary (backend source of truth),
     /// falling back to local date check if accountSummary is nil.
     public func isAccountValid() async -> Bool {
-        if isMockMode { return true }
+        if isMockMode {
+            return true
+        }
         if isAccountActive() {
             return true
         } else {
@@ -494,9 +502,16 @@ import PathManager
     /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
         // Mock has no account summary — treat the seeded session as active (else the home shows the paywall).
-        if isMockMode { return true }
+        if isMockMode {
+            return true
+        }
+        if isAccountKnownInactive {
+            return false
+        }
         if let accountSummary {
-            if accountSummary.isActive { return true }
+            if accountSummary.isActive {
+                return true
+            }
             if let validUntilDate = accountSummary.validUntilDate,
                validUntilDate > Date() {
                 return true
@@ -600,22 +615,39 @@ extension CredentialsManager {
 #if os(iOS)
         await refreshAccountSummaryOnIOS(untilActive: untilActive)
 #else
-        let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
-
-        for delay in delays {
+        var knownInactive = false
+        if !untilActive {
+            knownInactive = await grpcManager.isAccountKnownInactiveForLogin()
+        }
+        let pollDelays = AccountSummaryRefreshPolicy.pollDelays(untilActive: untilActive)
+        for (attemptIndex, delay) in pollDelays.enumerated() {
             if delay != .zero {
                 try? await Task.sleep(for: delay)
             }
             await fetchAccountSummary()
+            if AccountSummaryRefreshPolicy.shouldRecheckLoginInactiveState(
+                untilActive: untilActive,
+                hasAccountSummary: accountSummary != nil,
+                attemptIndex: attemptIndex,
+                alreadyKnownInactive: knownInactive
+            ) {
+                knownInactive = await grpcManager.isAccountKnownInactiveForLogin()
+            }
             if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
                 untilActive: untilActive,
                 isSubscriptionActive: accountSummary?.isActive == true,
                 hasAccountSummary: accountSummary != nil,
-                lastFetchFailed: accountSummaryLastFetchFailed
+                lastFetchFailed: accountSummaryLastFetchFailed,
+                attemptIndex: attemptIndex,
+                isAccountKnownInactive: knownInactive
             ) {
                 break
             }
         }
+        if !knownInactive {
+            knownInactive = await grpcManager.isAccountKnownInactiveForLogin()
+        }
+        isAccountKnownInactive = knownInactive
 #endif
         resetExpiryDismissalsIfNeeded()
     }
@@ -626,8 +658,11 @@ extension CredentialsManager {
         guard isValidCredentialImported else { return }
 #if os(macOS)
         // On gRPC failure keep the last good summary; only flag the failure.
+        // Empty success is UnregisteredAccount (no stored summary) - keep cache.
         do {
-            accountSummary = try await grpcManager.accountSummary()
+            if let summary = try await grpcManager.accountSummary() {
+                accountSummary = summary
+            }
             accountSummaryLastFetchFailed = false
         } catch {
             accountSummaryLastFetchFailed = true
@@ -654,7 +689,9 @@ extension CredentialsManager {
         }
 #elseif os(macOS)
         do {
-            accountSummary = try await grpcManager.accountSummary()
+            if let summary = try await grpcManager.accountSummary() {
+                accountSummary = summary
+            }
             accountSummaryLastFetchFailed = false
         } catch {
             accountSummaryLastFetchFailed = true
@@ -737,6 +774,9 @@ private extension CredentialsManager {
     }
 
     func setCredentialImportedFlag(_ value: Bool) {
+        if !value {
+            isAccountKnownInactive = false
+        }
         guard appSettings.isCredentialImported != value else { return }
         appSettings.isCredentialImported = value
     }

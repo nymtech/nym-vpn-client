@@ -22,7 +22,8 @@ public enum ConnectButtonState: Equatable {
         isCredentialImported: Bool,
         accountSummaryLastFetchFailed: Bool = false,
         isAccountActive: Bool = true,
-        hasAccountSummary: Bool = false
+        hasAccountSummary: Bool = false,
+        isAccountKnownInactive: Bool = false
     ) {
         if isCredentialImported == false {
             self = .noAccount
@@ -38,7 +39,8 @@ public enum ConnectButtonState: Equatable {
                 isCredentialImported: isCredentialImported,
                 accountSummaryLastFetchFailed: accountSummaryLastFetchFailed,
                 isAccountActive: isAccountActive,
-                hasAccountSummary: hasAccountSummary
+                hasAccountSummary: hasAccountSummary,
+                isAccountKnownInactive: isAccountKnownInactive
             ) {
             case .getStarted:
                 self = .noAccount

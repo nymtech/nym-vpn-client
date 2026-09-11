@@ -48,16 +48,8 @@ public final class PassphraseSignInViewModel {
                 sessionCoordinator?.handle(
                     .session(.authWillBegin(flow: .login, completesOnCredentialImport: false))
                 )
-                try await credentialStore.storeLoginCredential(credential)
-                let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
-                    isAccountActive: { self.credentialStore.isAccountActive() },
-                    updateAccountSummary: {
-                        await self.credentialStore.updateAccountSummary(force: true, untilActive: false)
-                    }
-                )
-                sessionCoordinator?.handle(
-                    .session(.authCompleted(outcome: outcome, flow: .login))
-                )
+                try await storeCredentialTreatingExistingAccountAsSuccess(credential)
+                await completeLoginAfterStore()
             } catch is CancellationError {
                 sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 submissionState = .idle
@@ -73,6 +65,28 @@ public final class PassphraseSignInViewModel {
                 )
             }
         }
+    }
+
+    private func storeCredentialTreatingExistingAccountAsSuccess(_ credential: String) async throws {
+        do {
+            try await credentialStore.storeLoginCredential(credential)
+        } catch {
+            guard OnboardingSessionPolicy.isExistingAccountStoreError(error) else { throw error }
+            await credentialStore.ensureCredentialImportResolved()
+        }
+    }
+
+    private func completeLoginAfterStore() async {
+        let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
+            isAccountActive: { self.credentialStore.isAccountActive() },
+            updateAccountSummary: {
+                await self.credentialStore.updateAccountSummary(force: true, untilActive: false)
+            }
+        )
+        sessionCoordinator?.handle(
+            .session(.authCompleted(outcome: outcome, flow: .login))
+        )
+        submissionState = .idle
     }
 
     func waitForLoginTask() async {
