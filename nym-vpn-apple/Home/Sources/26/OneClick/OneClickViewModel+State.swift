@@ -163,7 +163,7 @@ extension OneClickViewModel {
         isConnectDisconnectInFlight = true
         defer { isConnectDisconnectInFlight = false }
 
-        if isConnectingTap {
+        if isConnectingTap, connectionManager.currentTunnelStatus == .disconnected {
             let canProceed = await passesConnectPreflight()
             guard canProceed else { return }
         }
@@ -224,7 +224,7 @@ extension OneClickViewModel {
             let nsError = error as NSError
             reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
         }
-        guard reason == .inactiveSubscription else { return }
+        guard reason == .inactiveSubscription || reason == .inactiveAccount else { return }
         sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
     }
 

@@ -9,7 +9,7 @@ public enum AuthCompletionRoute: Equatable, Sendable {
 public enum AuthCompletionRouter: Equatable, Sendable {
     public static func route(outcome: AuthCompletionOutcome, flow: AuthFlowKind) -> AuthCompletionRoute {
         if flow == .login, outcome == .registeredNeedsPurchase {
-            // Defer purchase until login processing finishes a untilActive summary sync.
+            // Defer purchase until login processing syncs the account summary.
             return .startProcessing(.login)
         }
         if DrawerSessionPolicy.shouldRouteToPurchase(outcome: outcome) {

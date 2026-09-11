@@ -18,11 +18,17 @@ struct AccountButtonsTests {
         let buttons = accountButtons(for: s, platform: .macOS, isTestFlight: false)
         #expect(buttons.map(\.kind) == [.renewPlan, .manageSubscriptionExternal, .logout])
         #expect(buttons.map(\.titleKey) == [
-            "settings.account.renewNow",
+            "purchasePlan.chooseMyPlan",
             "settings.account.manageSubscription",
             "settings.logout"
         ])
         #expect(buttons.last?.isDestructive == true)
+    }
+
+    @Test func activeExpiringWithoutAutoRenewUsesRenewNowTitle() {
+        let s = AccountSummary.makeFake(daysRemaining: 3, kind: .oneMonth, isAutoRenew: false, baseAddress: "a")
+        let buttons = accountButtons(for: s, platform: .macOS, isTestFlight: false)
+        #expect(buttons.contains(where: { $0.kind == .renewPlan && $0.titleKey == "settings.account.renewNow" }))
     }
 
     @Test func iOSAddsInAppManageWhenNotTestFlight() {
