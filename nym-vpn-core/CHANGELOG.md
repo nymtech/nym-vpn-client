@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
-- Verify the entry handshake and blacklist entry early if needed (https://github.com/nymtech/nym-vpn-client/pull/6308)
 
 ### Fixed
 
@@ -25,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid blocking daemon command loop when handling recents which may perform network calls (https://github.com/nymtech/nym-vpn-client/pull/6294)
 - [Android] Don't use `reqwest` HTTP client to avoid `rustls-platform-verifier` panic (https://github.com/nymtech/nym-vpn-client/pull/6316)
 - [Android] Keep a blocking VPN interface up on connect, reconnect, error, offline, and unexpected tunnel down so other apps cannot leak to the ISP. The VPN app is excluded so gateway registration still works. (https://github.com/nymtech/nym-vpn-client/pull/6213) 
+
+### Removed
+
+- Removed the wireguard tunnel handshake checks (https://github.com/nymtech/nym-vpn-client/pull/6342)
 
 
 ## [2026.12.3] - 2026-08-27

@@ -29,12 +29,7 @@ impl<T: PartialEq> EntryBlameTracker<T> {
     /// `exit_handshake_completed` tells whether the exit WireGuard handshake completed
     /// at least once during the failed attempt. Returns `true` when the entry gateway
     /// has accumulated enough pre-handshake failures to be blacklisted.
-    pub fn record_failure(&mut self, entry_id: T, exit_handshake_completed: bool) -> bool {
-        if exit_handshake_completed {
-            self.strikes = None;
-            return false;
-        }
-
+    pub fn record_failure(&mut self, entry_id: T) -> bool {
         let strikes = match self.strikes.take() {
             Some((id, strikes)) if id == entry_id => strikes.saturating_add(1),
             _ => 1,
@@ -63,16 +58,16 @@ mod tests {
     fn does_not_blame_entry_on_first_prehandshake_failure() {
         let mut tracker = EntryBlameTracker::default();
 
-        assert!(!tracker.record_failure("entry-a", false));
+        assert!(!tracker.record_failure("entry-a"));
     }
 
     #[test]
     fn blames_entry_after_consecutive_prehandshake_failures_with_same_entry() {
         let mut tracker = EntryBlameTracker::default();
 
-        assert!(!tracker.record_failure("entry-a", false));
+        assert!(!tracker.record_failure("entry-a"));
         assert!(
-            tracker.record_failure("entry-a", false),
+            tracker.record_failure("entry-a"),
             "second consecutive pre-handshake failure through the same entry must blame the entry"
         );
     }
@@ -81,28 +76,18 @@ mod tests {
     fn does_not_blame_entry_when_entry_changes_between_failures() {
         let mut tracker = EntryBlameTracker::default();
 
-        assert!(!tracker.record_failure("entry-a", false));
-        assert!(!tracker.record_failure("entry-b", false));
-    }
-
-    #[test]
-    fn completed_exit_handshake_clears_strikes() {
-        let mut tracker = EntryBlameTracker::default();
-
-        assert!(!tracker.record_failure("entry-a", false));
-        // The tunnel worked end-to-end, so the entry is not the failing link.
-        assert!(!tracker.record_failure("entry-a", true));
-        assert!(!tracker.record_failure("entry-a", false));
+        assert!(!tracker.record_failure("entry-a"));
+        assert!(!tracker.record_failure("entry-b"));
     }
 
     #[test]
     fn strikes_reset_after_entry_is_blamed() {
         let mut tracker = EntryBlameTracker::default();
 
-        assert!(!tracker.record_failure("entry-a", false));
-        assert!(tracker.record_failure("entry-a", false));
+        assert!(!tracker.record_failure("entry-a"));
+        assert!(tracker.record_failure("entry-a"));
         assert!(
-            !tracker.record_failure("entry-a", false),
+            !tracker.record_failure("entry-a"),
             "blame must be reported once per strike streak"
         );
     }
@@ -111,8 +96,8 @@ mod tests {
     fn clear_resets_strikes() {
         let mut tracker = EntryBlameTracker::default();
 
-        assert!(!tracker.record_failure("entry-a", false));
+        assert!(!tracker.record_failure("entry-a"));
         tracker.clear();
-        assert!(!tracker.record_failure("entry-a", false));
+        assert!(!tracker.record_failure("entry-a"));
     }
 }
