@@ -590,30 +590,16 @@ jobs:
             )
           fi
 
-          HAS_FILES=$([ ${#FILES[@]} -gt 0 ] && echo "true" || echo "false")
-          echo "has_files=${HAS_FILES}" >> $GITHUB_OUTPUT
-
           if [ ${#FILES[@]} -gt 0 ]; then
             FILES+=("$CHECKSUM_FILE")
             printf "%s\n" "${FILES[@]}" > "${{ env.RELEASE_ASSETS }}"
           else
-            echo "::notice::No artifacts for upload."
+            echo "::warning::No files for upload. Github release may be created without any files attached!"
             echo -n "" > "${{ env.RELEASE_ASSETS }}"
-          fi
-
-      - name: Check assets
-        if: ${{ steps.assets.outputs.has_files != 'true' }}
-        env:
-          HAS_FILES: ${{ steps.assets.outputs.has_files }}
-          PUBLISH_GITHUB: ${{ inputs.publish_github == true }}
-        run: |
-          if [[ "$PUBLISH_GITHUB" = true ]]; then
-            echo "::warn::Github release will be skipped due to absence of files to attach to release."
           fi
 
       - name: Upload release assets list
         uses: actions/upload-artifact@v7.0.1
-        if: ${{ steps.assets.outputs.has_files == 'true' }}
         with:
           name: ${{ env.RELEASE_ASSETS_ARTIFACT }}
           path: ${{ env.RELEASE_ASSETS }}
@@ -621,7 +607,7 @@ jobs:
       - name: Publish GitHub Release
         working-directory: ${{ env.OUTPUT_DIR }}
         id: gh-release
-        if: ${{ inputs.publish_github == true && steps.assets.outputs.has_files == 'true' }}
+        if: ${{ inputs.publish_github == true }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TYPE: ${{ needs.resolve.outputs.github_release_type }}
@@ -667,7 +653,7 @@ jobs:
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: List asset URLs
-        if: ${{ inputs.publish_github == true && steps.assets.outputs.has_files == 'true' }}
+        if: ${{ inputs.publish_github == true }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.gh-release.outputs.release_tag }}
@@ -676,14 +662,14 @@ jobs:
 
       - name: Upload release payload
         uses: actions/upload-artifact@v7.0.1
-        if: ${{ inputs.publish_github == true && steps.assets.outputs.has_files == 'true' }}
+        if: ${{ inputs.publish_github == true }}
         with:
           name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
           path: ${{ env.RELEASE_PAYLOAD }}
 
       - name: Extract asset URLs
         id: extract_urls
-        if: ${{ inputs.publish_github == true && steps.assets.outputs.has_files == 'true' }}
+        if: ${{ inputs.publish_github == true }}
         env:
           GITHUB_RELEASE_URL: ${{ steps.gh-release.outputs.release_url }}
           LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
