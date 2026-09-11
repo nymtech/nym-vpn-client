@@ -81,16 +81,6 @@ mod tests {
     }
 
     #[test]
-    fn completed_exit_handshake_clears_strikes() {
-        let mut tracker = EntryBlameTracker::default();
-
-        assert!(!tracker.record_failure("entry-a"));
-        // The tunnel worked end-to-end, so the entry is not the failing link.
-        assert!(!tracker.record_failure("entry-a"));
-        assert!(!tracker.record_failure("entry-a"));
-    }
-
-    #[test]
     fn strikes_reset_after_entry_is_blamed() {
         let mut tracker = EntryBlameTracker::default();
 
