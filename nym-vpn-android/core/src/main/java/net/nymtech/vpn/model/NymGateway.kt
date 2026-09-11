@@ -76,6 +76,7 @@ data class NymGateway(
 		private fun SdkBridgeParameter.toBridgeParameter() = when (this) {
 			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
 			is SdkBridgeParameter.TlsPlain -> BridgeParameter.TlsPlain()
+			is SdkBridgeParameter.SshPlain -> BridgeParameter.SshPlain()
 		}
 	}
 
@@ -92,4 +93,7 @@ sealed class BridgeParameter {
 
 	@Serializable
 	class TlsPlain : BridgeParameter()
+
+	@Serializable
+	class SshPlain : BridgeParameter()
 }
