@@ -855,10 +855,16 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // The firewall now allows traffic through the tunnel. First make sure the entry hop
-        // answers at all: an entry whose handshake never completes is dead from this network
-        // regardless of the exit, so it is failed fast and blamed alone instead of waiting out
-        // the exit handshake and metadata windows and blacklisting the exit first.
+        // Start the monitor before the gate so its probes drive the handshake, else the gate
+        // times out on a healthy entry (seen on cellular).
+        let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
+            mpsc::unbounded_channel();
+        let tunnel_connection_monitor_handle = self.create_tunnel_connection_monitor(
+            tunnel_interface.exit_tunnel_metadata(),
+            tunnel_connection_monitor_tx,
+        )?;
+
+        // An entry that never handshakes even while probed is dead; blame it alone.
         let exit_handshake_completed = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
             tracing::debug!("Waiting for entry WireGuard handshake to complete");
             let entry_outcome =
@@ -875,7 +881,7 @@ impl TunnelMonitor {
                     });
                     return Ok(Self::await_shutdown(
                         wg_tunnel_runtime,
-                        None,
+                        Some(tunnel_connection_monitor_handle),
                         tunnel_handle,
                         shutdown_guard,
                     )
@@ -884,7 +890,7 @@ impl TunnelMonitor {
                 HandshakeWaitOutcome::Cancelled => {
                     return Ok(Self::await_shutdown(
                         wg_tunnel_runtime,
-                        None,
+                        Some(tunnel_connection_monitor_handle),
                         tunnel_handle,
                         shutdown_guard,
                     )
@@ -962,13 +968,6 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
         let mut mixnet_monitoring_token = pin!(mixnet_monitoring_token);
 
-        let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
-            mpsc::unbounded_channel();
-        let tunnel_connection_monitor_handle = self.create_tunnel_connection_monitor(
-            tunnel_interface.exit_tunnel_metadata(),
-            tunnel_connection_monitor_tx,
-        )?;
-
         let mut last_connection_status = None;
         let mut has_sent_up_event = false;
         let mut ping_viable = false;
@@ -984,6 +983,9 @@ impl TunnelMonitor {
             tunnel: tunnel_conn_data,
         });
 
+        // Ignore non-viable probe verdicts produced during the pre-gate warm-up above.
+        let monitoring_started_at = tokio::time::Instant::now();
+
         loop {
             tokio::select! {
                 event = tunnel_connection_monitor_rx.recv() => {
@@ -991,6 +993,11 @@ impl TunnelMonitor {
                         tracing::info!("Event channel with connection monitor is closed");
                         break;
                     };
+                    if event.status != ConnectionStatusEvent::Viable
+                        && event.end_timestamp < monitoring_started_at
+                    {
+                        continue;
+                    }
                     // Prevent repeated messages
                     if last_connection_status != Some(event.status) {
                         last_connection_status = Some(event.status);
