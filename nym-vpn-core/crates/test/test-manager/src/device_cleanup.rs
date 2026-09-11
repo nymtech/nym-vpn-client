@@ -15,7 +15,7 @@ use nym_vpn_api_client::{
 };
 
 pub async fn delete_all_devices(mnemonic: &str) -> Result<()> {
-    let network = nym_network_defaults::NymNetworkDetails::new_mainnet();
+    let network = nym_network_defaults::v2::NymNetworkDetails::new_mainnet();
     let client = VpnApiClient::from_network(&network, None)
         .await
         .context("Failed to create VPN API client")?;
