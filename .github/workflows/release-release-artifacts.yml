@@ -598,6 +598,7 @@ jobs:
             printf "%s\n" "${FILES[@]}" > "${{ env.RELEASE_ASSETS }}"
           else
             echo "::notice::No artifacts for upload."
+            echo -n "" > "${{ env.RELEASE_ASSETS }}"
           fi
 
       - name: Check assets
@@ -605,15 +606,10 @@ jobs:
         env:
           HAS_FILES: ${{ steps.assets.outputs.has_files }}
           PUBLISH_GITHUB: ${{ inputs.publish_github == true }}
-          PUBLISH_S3: ${{ inputs.publish_s3 == true }}
         run: |
-            if [[ "$PUBLISH_GITHUB" = true ]]; then
-              echo "::warn::Github release will be skipped due to absence of artifacts suitable for directly downloadable release."
-            fi
-
-            if [[ "$PUBLISH_S3" = true ]]; then
-              echo "::warn::Garage/S3 upload will be skipped due to absence of artifacts suitable for directly downloadable release."
-            fi
+          if [[ "$PUBLISH_GITHUB" = true ]]; then
+            echo "::warn::Github release will be skipped due to absence of files to attach to release."
+          fi
 
       - name: Upload release assets list
         uses: actions/upload-artifact@v7.0.1
@@ -801,7 +797,7 @@ jobs:
           fi
 
       - name: Prepare S3 manifest
-        if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' && steps.assets.outputs.has_files == 'true' }}
+        if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' }}
         env:
           BUILD_TIMESTAMP: ${{ inputs.build_timestamp }}
           GITHUB_BRANCH: ${{ inputs.github_branch }}
@@ -821,7 +817,7 @@ jobs:
           cp "$LATEST_MANIFEST_PATH" "$BRANCH_MANIFEST"
 
       - name: Publish release to S3
-        if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' && steps.assets.outputs.has_files == 'true' }}
+        if: ${{ inputs.publish_s3 == true && inputs.github_branch != '' && inputs.build_timestamp != '' }}
         uses: ./.github/actions/push-to-s3
         with:
           source_path: ci-builds/
