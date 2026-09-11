@@ -23,12 +23,9 @@ build-ios: build-ios-package
 	rm -rf "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
 	mv $(NYM_VPN_LIB_IOS_DEST) $(NYM_VPN_LIB_UNIVERSAL_DEST)
 
-build-mac: build-mac-package
-	rm -rf "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
-	mv $(NYM_VPN_LIB_MACOS_DEST) $(NYM_VPN_LIB_UNIVERSAL_DEST)
-
 # Build NymVPNLib for macOS only
 build-mac: build-mac-package
+	rm -rf "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
 	mv $(NYM_VPN_LIB_MACOS_DEST) $(NYM_VPN_LIB_UNIVERSAL_DEST)
 
 # Build universal NymVPNLib for iOS and macOS
