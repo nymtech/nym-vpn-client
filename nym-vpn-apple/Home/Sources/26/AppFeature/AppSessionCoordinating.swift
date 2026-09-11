@@ -5,6 +5,7 @@ import AccountPrefetchGates
 /// imperative UI requests with side effects (sheets, task cancellation).
 public enum CoordinatorAction: Equatable, Sendable {
     case session(SessionEvent)
+    case requestWelcome
     case requestInactiveSubscriptionPurchase
     case dismissPostPurchaseProcessing
 }

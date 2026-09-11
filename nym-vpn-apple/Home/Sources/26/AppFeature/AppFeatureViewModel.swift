@@ -140,6 +140,8 @@ import GRPCManager
         switch action {
         case .session(let event):
             handleSessionEvent(event)
+        case .requestWelcome:
+            requestWelcome()
         case .requestInactiveSubscriptionPurchase:
             requestInactiveSubscriptionPurchase()
         case .dismissPostPurchaseProcessing:
@@ -370,6 +372,11 @@ import GRPCManager
 
     func requestPlanPurchaseTransition() {
         handleSessionEvent(.requestPlanPurchase)
+    }
+
+    public func requestWelcome() {
+        path = NavigationPath()
+        stagePreauthDrawer(.welcome)
     }
 
     public func requestInactiveSubscriptionPurchase() {

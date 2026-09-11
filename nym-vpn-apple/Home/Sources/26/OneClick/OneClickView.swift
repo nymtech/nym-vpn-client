@@ -313,30 +313,42 @@ private extension OneClickView {
             "disconnecting".localizedString
         case .noInternet:
             "offline".localizedString
-        case .noSubscription:
+        case .noAccount:
             "home.getStarted".localizedString
+        case .noSubscription:
+            "purchasePlan.chooseMyPlan".localizedString
+        case .accountUnreachable:
+            "home.accountUnreachable".localizedString
+        case .checkingAccount:
+            "requestingZkNyms".localizedString
         }
     }
 
     var connectButtonStyle: NymButton.Style {
+        if viewModel.isRefreshingAccountSummary {
+            return .connecting
+        }
         switch viewModel.connectState {
-        case .disconnected, .noSubscription:
-            .primary
-        case .connecting, .disconnecting, .noInternet:
-            .connecting
+        case .disconnected, .noAccount, .noSubscription, .accountUnreachable:
+            return .primary
+        case .connecting, .disconnecting, .noInternet, .checkingAccount:
+            return .connecting
         case .stop:
-            .destructive
+            return .destructive
         case .connected:
-            .connected
+            return .connected
         }
     }
 
     var connectButtonDisabled: Bool {
+        if viewModel.isRefreshingAccountSummary {
+            return true
+        }
         switch viewModel.connectState {
-        case .connecting, .disconnecting, .noInternet:
-            true
-        case .disconnected, .stop, .connected, .noSubscription:
-            false
+        case .connecting, .disconnecting, .noInternet, .checkingAccount:
+            return true
+        case .disconnected, .stop, .connected, .noAccount, .noSubscription, .accountUnreachable:
+            return false
         }
     }
 

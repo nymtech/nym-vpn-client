@@ -220,13 +220,29 @@ private extension NymVPNDaemonApp {
             Image(nsImage: menuBarNSImage)
         }
         .menuBarExtraStyle(.menu)
-        .onChange(of: connectionManager.currentTunnelStatus) { _, status in
+        .onChange(of: connectionManager.currentTunnelStatus, initial: true) { _, status in
             updateImageName(with: status)
-            menuBarConnectButtonState = ConnectButtonState(
-                tunnelStatus: status,
-                isCredentialImported: credentialsManager.isValidCredentialImported
-            )
+            refreshMenuBarConnectButtonState()
         }
+        .onChange(of: appSettings.isCredentialImportedPublisher) { _, _ in
+            refreshMenuBarConnectButtonState()
+        }
+        .onChange(of: credentialsManager.accountSummaryLastFetchFailed) { _, _ in
+            refreshMenuBarConnectButtonState()
+        }
+        .onChange(of: credentialsManager.accountSummary?.isActive) { _, _ in
+            refreshMenuBarConnectButtonState()
+        }
+    }
+
+    func refreshMenuBarConnectButtonState() {
+        menuBarConnectButtonState = ConnectButtonState(
+            tunnelStatus: connectionManager.currentTunnelStatus,
+            isCredentialImported: credentialsManager.isValidCredentialImported,
+            accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+            isAccountActive: credentialsManager.isAccountActive(),
+            hasAccountSummary: credentialsManager.accountSummary != nil
+        )
     }
 
     func closeWindow() {

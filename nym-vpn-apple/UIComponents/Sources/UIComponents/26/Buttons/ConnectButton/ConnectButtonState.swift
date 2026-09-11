@@ -1,8 +1,9 @@
 import SwiftUI
+import AccountPrefetchGates
 import Theme
 import TunnelStatus
 
-public enum ConnectButtonState {
+public enum ConnectButtonState: Equatable {
     case connect
     case disconnect
     case disconnecting
@@ -12,8 +13,16 @@ public enum ConnectButtonState {
     case noInternetReconnect
     case noAccount
     case noSubscription
+    case accountUnreachable
+    case checkingAccount
 
-    public init(tunnelStatus: TunnelStatus, isCredentialImported: Bool) {
+    public init(
+        tunnelStatus: TunnelStatus,
+        isCredentialImported: Bool,
+        accountSummaryLastFetchFailed: Bool = false,
+        isAccountActive: Bool = true,
+        hasAccountSummary: Bool = false
+    ) {
         if isCredentialImported == false {
             self = .noAccount
             return
@@ -24,7 +33,23 @@ public enum ConnectButtonState {
         case .connecting, .reasserting, .restarting:
             self = .stop
         case .disconnected:
-            self = .connect
+            switch DisconnectedHomeCTA.resolve(
+                isCredentialImported: isCredentialImported,
+                accountSummaryLastFetchFailed: accountSummaryLastFetchFailed,
+                isAccountActive: isAccountActive,
+                hasAccountSummary: hasAccountSummary
+            ) {
+            case .getStarted:
+                self = .noAccount
+            case .choosePlan:
+                self = .noSubscription
+            case .accountUnreachable:
+                self = .accountUnreachable
+            case .checking:
+                self = .checkingAccount
+            case .connect:
+                self = .connect
+            }
         case .disconnecting:
             self = .disconnecting
         case .offline, .unknown:
@@ -48,16 +73,22 @@ public enum ConnectButtonState {
             "stop".localizedString
         case .installingDaemon:
             "home.installDaemonButton".localizedString
-        case .noAccount, .noSubscription:
+        case .noAccount:
             "home.getStarted".localizedString
+        case .noSubscription:
+            "purchasePlan.chooseMyPlan".localizedString
+        case .accountUnreachable:
+            "home.accountUnreachable".localizedString
+        case .checkingAccount:
+            "requestingZkNyms".localizedString
         }
     }
 
     var backgroundColor: Color {
         switch self {
-        case .connect, .noInternet, .noAccount, .noSubscription:
+        case .connect, .noInternet, .noAccount, .noSubscription, .accountUnreachable:
             NymColor.accent
-        case .installingDaemon, .noInternetReconnect:
+        case .installingDaemon, .noInternetReconnect, .checkingAccount:
             NymColor.gray1
         case .stop, .disconnecting, .disconnect:
             NymColor.error
@@ -69,9 +100,9 @@ public enum ConnectButtonState {
 extension ConnectButtonState {
     public var menuBarItemIsAction: Bool {
         switch self {
-        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet, .noAccount, .noSubscription:
+        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet:
             true
-        case .disconnecting, .installingDaemon:
+        case .disconnecting, .installingDaemon, .noAccount, .noSubscription, .accountUnreachable, .checkingAccount:
             false
         }
     }
