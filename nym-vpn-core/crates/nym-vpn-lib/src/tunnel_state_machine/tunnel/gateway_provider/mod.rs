@@ -252,6 +252,22 @@ impl<C: GatewayCache> GatewayProvider<C> {
         }
     }
 
+    /// Discard gateway selections pre-computed with state that has since gone
+    /// stale (e.g. while offline) and start computing fresh ones with the
+    /// latest tunnel settings.
+    pub async fn reset_selection_stream(&self) -> Result<(), crate::tunnel_state_machine::Error> {
+        let (latest_tunnel_settings, mut selected_gateways_stream) = (
+            self.latest_tunnel_settings.lock().await,
+            self.selected_gateways_stream.lock().await,
+        );
+        *selected_gateways_stream = Self::inner_set_tunnel_settings(
+            &self.tunnel_settings_tx,
+            latest_tunnel_settings.clone(),
+        )
+        .await?;
+        Ok(())
+    }
+
     pub async fn set_tunnel_settings(
         &self,
         tunnel_settings: TunnelSettings,

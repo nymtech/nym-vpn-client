@@ -359,6 +359,58 @@ async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
     handle.await.unwrap();
 }
 
+/// Regression test for the offline auto-reconnect retry loop.
+///
+/// The selection stream buffers up to 10 pre-computed results. Selections
+/// computed while offline are all errors, and each connect retry consumes
+/// exactly one buffered result — so after connectivity returns, retries keep
+/// failing on stale errors for ~10 attempts. `reset_selection_stream` must
+/// discard the stale buffer so the next pulled selection reflects current
+/// state.
+#[tokio::test]
+async fn reset_selection_stream_discards_stale_selections() {
+    let shutdown_token = CancellationToken::new();
+    let possible_gateways = [
+        "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz",
+        "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj",
+    ]
+    .map(gateway_id_to_gateway);
+    // Start with an empty pool so every pre-computed selection is an error,
+    // mimicking selections computed while offline.
+    let gateways = Arc::new(RwLock::new(Some(vec![])));
+    let (mut gw_provider, handle) = GatewayProvider::new(
+        MockGatewayCache::new(gateways.clone()),
+        MockGeoIpClient::new(),
+        default_tunnel_settings(),
+        WireguardKeysDb::Ephemeral(Default::default()),
+        shutdown_token.child_token(),
+    );
+
+    // Wait until the stream holds at least one stale error selection.
+    let first = tokio::time::timeout(Duration::from_secs(1), gw_provider.next())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(first.is_err(), "empty pool must yield error selections");
+
+    // "Connectivity" returns: gateways become available again.
+    *gateways.write().await = Some(possible_gateways.to_vec());
+
+    gw_provider.reset_selection_stream().await.unwrap();
+
+    let fresh = tokio::time::timeout(Duration::from_secs(1), gw_provider.next())
+        .await
+        .expect("stream must produce a selection after reset")
+        .unwrap();
+    assert!(
+        fresh.is_ok(),
+        "after reset the first selection must be computed from current state; got {fresh:?}"
+    );
+
+    shutdown_token.cancel();
+    handle.await.unwrap();
+}
+
 #[tokio::test]
 async fn mainnet_syntethic_node_families() {
     fn lcp_len(a: &str, b: &str) -> usize {
