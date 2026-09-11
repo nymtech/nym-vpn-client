@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix iOS 2-hop connect failures on cellular: start the connection monitor before the entry-handshake gate so its probes drive the WireGuard handshake, and ignore probe verdicts produced during that warm-up so a slow-but-healthy path is not torn down. A genuinely dead entry still fails fast (https://github.com/nymtech/nym-vpn-client/pull/6308)
 - Bump nym `vpn/release/2026.14-amsterdam` to include LP registration clock-skew stamps (https://github.com/nymtech/nym/pull/7150)
 - [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected. (https://github.com/nymtech/nym-vpn-client/pull/6261)
 - Apply the kill-switch when Connect is pressed while still offline. (https://github.com/nymtech/nym-vpn-client/pull/6265)
