@@ -10,7 +10,7 @@ La mayoría de las VPN dicen "sin registros" como política — pueden registrar
 
 ⚡ DOS MODOS VPN, UNA APLICACIÓN
 
-• Modo Rápido: dVPN de 2 saltos basado en AmneziaWG (WireGuard). Streaming y navegación rápidos en una red descentralizada.
+• Modo dVPN: dVPN de 2 saltos basado en AmneziaWG (WireGuard). Streaming y navegación rápidos en una red descentralizada.
 
 • Modo Anónimo: Noise Generating Mixnet de 5 saltos, un sucesor más privado de Tor. Mezcla tu tráfico con el de otros, añade ruido y tráfico de cobertura. La VPN de consumo más anónima. Ideal para criptomonedas, correo electrónico y mensajería privada como Signal.
 

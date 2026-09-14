@@ -10,7 +10,7 @@ A maioria das VPNs depende de servidores centralizados e pede que você confie e
 
 ⚡ DOIS MODOS DE VPN, UM APP
 
-- Modo rápido: 2-hop dVPN baseado em AmneziaWG (WireGuard). Streaming rápido e navegação em uma rede descentralizada.
+- Modo dVPN: 2-hop dVPN baseado em AmneziaWG (WireGuard). Streaming rápido e navegação em uma rede descentralizada.
 - Modo anônimo: uma Noise Generating Mixnet de 5 saltos, um sucessor mais privado do Tor. Mistura e mascara o seu tráfego, adicionando ruído. A VPN de consumidor mais anônima. Perfeito para cripto, e-mail e comunicações privadas como o Signal.
 
 💰 PAGUE ANONIMAMENTE COM CRIPTO OU DINHEIRO
