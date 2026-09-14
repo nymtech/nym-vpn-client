@@ -49,7 +49,7 @@ Most VPNs rely on centralized servers and ask you to trust their "no-logs" promi
 
 - Metadata protection: NymVPN protects traffic patterns, timing, and routing information. حتی داده‌های رمزگذاری‌شده هم می‌توانند متادیتا را افشا کنند. Nym prevents that.
 
-- Two privacy modes, one app: The FAST  mode uses a high-performance 2-hop decentralized VPN. The ANONYMOUS  mode uses a 5-hop mixnet for maximum anonymity.
+- Two privacy modes, one app: The dVPN mode uses a high-performance 2-hop decentralized VPN. The ANONYMOUS  mode uses a 5-hop mixnet for maximum anonymity.
 
 - Noise Generating Mixnet technology: Your traffic is mixed with cover traffic, making correlation and AI-driven traffic analysis extremely difficult.
 
