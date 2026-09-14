@@ -10,7 +10,7 @@ Most VPNs say 'no logs' as policy — they can log, they promise not to. Free VP
 
 ⚡ TWO VPN MODES, ONE APP
 
-• Fast mode: AmneziaWG (WireGuard)-based 2-hop dVPN. Fast streaming and browsing on a decentralized network so no single operator can log you.
+• dVPN mode: AmneziaWG (WireGuard)-based 2-hop dVPN. Fast streaming and browsing on a decentralized network so no single operator can log you.
 
 • Mixnet mode: 5-hop Noise Generating Mixnet, a more private successor to Tor. Routes your traffic through independently operated servers, mixes your packets with others, and adds noise and cover traffic to defeat traffic analysis. The most anonymous consumer VPN available today. Perfect for crypto, email, and private messaging like Signal.
 

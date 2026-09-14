@@ -1,0 +1,13 @@
+Conexões móveis aprimoradas com mudanças no tempo do handshake do WireGuard.
+
+Bypass de LAN aprimorado: o tráfego essencial de metadados do túnel agora continua roteado pela VPN.
+
+Melhor tratamento da hora do dispositivo/desvio do relógio.
+
+Tratamento de DNS aprimorado com IPv6.
+
+Rotulagem mais clara do status off-line.
+
+Corrigido um bug de inicialização em versões mais antigas do Android.
+
+Novos idiomas: chinês tradicional (Taiwan e Hong Kong).

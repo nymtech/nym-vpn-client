@@ -10,7 +10,7 @@ Hầu hết các VPN tuyên bố "không lưu nhật ký" như một chính sác
 
 ⚡ HAI CHẾ ĐỘ VPN, MỘT ỨNG DỤNG
 
-- Chế độ Nhanh: dVPN 2 bước nhảy dựa trên AmneziaWG (WireGuard). Phát trực tuyến và duyệt web tốc độ cao.
+- Chế độ dVPN: dVPN 2 bước nhảy dựa trên AmneziaWG (WireGuard). Phát trực tuyến và duyệt web tốc độ cao.
 - Chế độ Ẩn danh: Noise Generating Mixnet 5 bước nhảy, một phiên bản kế nhiệm riêng tư hơn của Tor. VPN ẩn danh nhất dành cho người tiêu dùng. Hoàn hảo cho tiền điện tử, email và nhắn tin riêng tư như Signal.
 
 💰 THANH TOÁN ẨN DANH BẰNG TIỀN ĐIỆN TỬ HOẶC TIỀN MẶT
