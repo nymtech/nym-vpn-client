@@ -757,6 +757,7 @@
 				ar,
 				"zh-Hans",
 				"zh-Hant",
+				"zh-Hant-HK",
 				de,
 				hi,
 				id,
