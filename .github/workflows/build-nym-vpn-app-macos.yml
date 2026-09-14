@@ -175,13 +175,27 @@ jobs:
           gem --version
 
       - name: Install system dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+          HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
-          brew install xcbeautify
-          brew install crowdin
-          brew install xmlstarlet
-          brew install jq
-          brew install brotli
-          brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
+          set -euo pipefail
+          lock="$(brew --prefix)/var/homebrew/locks/ci-jobs"
+          mkdir -p "$(dirname "$lock")"
+          n=0
+          while ! mkdir "$lock" 2>/dev/null; do
+            n=$((n + 1))
+            if [ "$n" -gt 60 ]; then
+              echo "timed out waiting for brew lock" >&2
+              exit 1
+            fi
+            echo "waiting for brew lock ($n)..."
+            sleep 5
+          done
+          trap 'rmdir "$lock"' EXIT
+          brew install xcbeautify crowdin xmlstarlet jq brotli
+          brew uninstall homebrew/core/sentry-cli || true
           brew install getsentry/tools/sentry-cli
 
       - name: Set locale (for Fastlane)
