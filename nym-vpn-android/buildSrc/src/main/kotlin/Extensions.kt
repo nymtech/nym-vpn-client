@@ -55,6 +55,7 @@ fun Project.languageList(): List<String> {
 		"uk",      // Ukrainian
 		"vi-rVN",  // Vietnamese
 		"zh-rCN",  // Chinese (Simplified)
-		"zh-rTW"   // Chinese (Traditional)
+		"zh-rTW",  // Chinese (Traditional)
+		"zh-rHK"   // Chinese (Traditional, Hong Kong)
 	).sorted()
 }

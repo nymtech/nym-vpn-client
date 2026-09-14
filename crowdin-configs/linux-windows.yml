@@ -13,3 +13,4 @@ files:
     languages_mapping:
       two_letters_code:
         zh-TW: zh-TW
+        zh-HK: zh-HK
