@@ -50,6 +50,10 @@ extension GRPCManager {
         try await rpcClient?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
     }
 
+    public func setProfile(_ profile: ConnectionProfile) async throws {
+        try await rpcClient?.setProfile(profile: profile.toCoreProfile())
+    }
+
     public func setDisableIpv6(_ disabled: Bool) async throws {
         try await rpcClient?.setDisableIpv6(disableIpv6: disabled)
     }

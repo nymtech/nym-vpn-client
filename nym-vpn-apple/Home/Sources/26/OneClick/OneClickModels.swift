@@ -67,6 +67,8 @@ public struct OneClickServerInfo: Equatable {
     public var showsInfoButton: Bool
     public var isRandomSelection: Bool
     public var isSafestSelection: Bool
+    /// Set when a built-in profile is active for this hop; takes priority over the flags above.
+    public var profileImageName: String?
 
     public init(
         countryCode: String,
@@ -77,7 +79,8 @@ public struct OneClickServerInfo: Equatable {
         hopType: HopType? = nil,
         showsInfoButton: Bool = false,
         isRandomSelection: Bool = false,
-        isSafestSelection: Bool = false
+        isSafestSelection: Bool = false,
+        profileImageName: String? = nil
     ) {
         self.countryCode = countryCode
         self.title = title
@@ -88,6 +91,7 @@ public struct OneClickServerInfo: Equatable {
         self.showsInfoButton = showsInfoButton
         self.isRandomSelection = isRandomSelection
         self.isSafestSelection = isSafestSelection
+        self.profileImageName = profileImageName
     }
 }
 

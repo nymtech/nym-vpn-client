@@ -20,7 +20,7 @@ struct SantaEnvSwitchPolicyTests {
         Case(label: "santaTestFlight", isSantaBuild: true, isTestFlight: true, isMacOS: false, isRunningOnCI: false, isDebugBuild: false, expected: true),
         Case(label: "santaMacOS", isSantaBuild: true, isTestFlight: false, isMacOS: true, isRunningOnCI: false, isDebugBuild: false, expected: true),
         Case(label: "santaCI", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: true, isDebugBuild: false, expected: true),
-        Case(label: "santaIOSRelease", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: false, isDebugBuild: false, expected: false),
+        Case(label: "santaIOSRelease", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: false, isDebugBuild: false, expected: false)
     ]
 
     @Test(arguments: Self.cases)

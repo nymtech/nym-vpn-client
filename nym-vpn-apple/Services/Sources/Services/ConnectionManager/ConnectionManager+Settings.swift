@@ -105,6 +105,25 @@ extension ConnectionManager {
         setExitGateway(exit)
     }
 
+    public func setProfile(_ profile: ConnectionProfile) {
+        entryGateway = profile.entry
+        exitRouter = profile.exit
+        connectionConfig.entry = profile.entry
+        connectionConfig.exit = profile.exit
+        connectionConfig.enableTwoHop = profile.enableTwoHop
+        connectionConfig.stealthMode = profile.stealthMode
+        connectionType = profile.enableTwoHop ? .wireguard : .mixnet5hop
+        appSettings.isStealthApiEnabled = profile.stealthMode
+        Task {
+#if os(iOS)
+            try? await sendAfterPersistingConfig(.setProfile(profile))
+#elseif os(macOS)
+            try? await grpcManager.setProfile(profile)
+            await fetchDaemonConfig()
+#endif
+        }
+    }
+
     public func setStealthApiEnabled(_ enabled: Bool) {
         appSettings.isStealthApiEnabled = enabled
         Task {

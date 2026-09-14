@@ -192,6 +192,11 @@ private extension SettingsViewModel {
         path.append(SettingLink.mixnetTuning)
     }
 
+    func navigateToProfiles() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.profiles)
+    }
+
 #if os(macOS)
     func navigateToGeoExclusion() {
         impactGenerator.softImpact()
@@ -529,6 +534,17 @@ private extension SettingsViewModel {
                     Task { @MainActor in
                         self?.navigateToDns()
                     }
+                }
+            )
+        )
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.profiles.title".localizedString,
+                subtitle: "settings.profiles.subtitle".localizedString,
+                imageName: "profiles",
+                action: { [weak self] in
+                    self?.navigateToProfiles()
                 }
             )
         )

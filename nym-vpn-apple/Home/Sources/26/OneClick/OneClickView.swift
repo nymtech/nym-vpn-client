@@ -136,7 +136,8 @@ private extension OneClickView {
             flagImage(
                 countryCode: info.countryCode,
                 isRandomSelection: info.isRandomSelection,
-                isSafestSelection: info.isSafestSelection
+                isSafestSelection: info.isSafestSelection,
+                profileImageName: info.profileImageName
             )
             ZStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -188,8 +189,18 @@ private extension OneClickView {
     }
 
     @ViewBuilder
-    func flagImage(countryCode: String, isRandomSelection: Bool = false, isSafestSelection: Bool = false) -> some View {
-        if countryCode.isEmpty {
+    func flagImage(
+        countryCode: String,
+        isRandomSelection: Bool = false,
+        isSafestSelection: Bool = false,
+        profileImageName: String? = nil
+    ) -> some View {
+        if let profileImageName {
+            GenericImage(imageName: profileImageName)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                .accessibilityHidden(true)
+        } else if countryCode.isEmpty {
             if isSafestSelection {
                 GenericImage(imageName: "safest")
                     .foregroundStyle(Color.Nym.textSecondary)

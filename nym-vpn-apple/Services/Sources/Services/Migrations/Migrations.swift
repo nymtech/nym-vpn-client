@@ -5,7 +5,6 @@ import ServiceManagement
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import ConnectionTypes
 #if os(iOS)
 import TunnelMixnet
 #endif

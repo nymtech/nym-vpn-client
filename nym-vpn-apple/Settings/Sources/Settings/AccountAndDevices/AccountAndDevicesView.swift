@@ -30,7 +30,7 @@ import Theme
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
     @State var isLogoutLoading = false
-    @State var logoutProgressText: String? = nil
+    @State var logoutProgressText: String?
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
 

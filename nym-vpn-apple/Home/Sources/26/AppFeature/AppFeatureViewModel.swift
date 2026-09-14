@@ -204,10 +204,6 @@ import GRPCManager
         return content.isOneClick
     }
 
-    func leadingButtonTapped() {
-        appSettings.currentAppearance = appSettings.currentAppearance == .dark ? .light : .dark
-    }
-
     func technicalOptInsContinueTapped() {
         appSettings.welcomeScreenDidDisplay = true
         handleSessionEvent(.technicalOptInsContinued)
