@@ -1,0 +1,13 @@
+Koneksi seluler ditingkatkan melalui perubahan pengaturan waktu handshake WireGuard.
+
+Bypass LAN ditingkatkan: lalu lintas metadata terowongan yang penting kini tetap dirutekan melalui VPN.
+
+Penanganan waktu perangkat/selisih jam yang lebih baik.
+
+Penanganan DNS dengan IPv6 ditingkatkan.
+
+Pelabelan status offline yang lebih jelas.
+
+Perbaikan bug saat memulai di versi Android lama.
+
+Bahasa baru: Tionghoa Tradisional (Taiwan dan Hong Kong).

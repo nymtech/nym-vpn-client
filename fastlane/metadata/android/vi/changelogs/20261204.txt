@@ -1,0 +1,13 @@
+Cải thiện kết nối di động nhờ thay đổi thời gian bắt tay WireGuard.
+
+Cải thiện bỏ qua LAN: lưu lượng siêu dữ liệu thiết yếu của đường hầm nay vẫn được định tuyến qua VPN.
+
+Xử lý tốt hơn thời gian thiết bị/lệch đồng hồ.
+
+Cải thiện xử lý DNS với IPv6.
+
+Nhãn trạng thái ngoại tuyến rõ ràng hơn.
+
+Sửa lỗi khởi động trên các phiên bản Android cũ.
+
+Ngôn ngữ mới: tiếng Trung phồn thể (Đài Loan và Hồng Kông).

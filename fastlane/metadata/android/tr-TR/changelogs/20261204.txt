@@ -1,0 +1,13 @@
+WireGuard el sıkışma zamanlamasındaki değişikliklerle hücresel bağlantılar iyileştirildi.
+
+LAN atlama iyileştirildi: temel tünel meta veri trafiği artık VPN üzerinden yönlendirilmeye devam ediyor.
+
+Cihaz saati/saat sapması artık daha iyi yönetiliyor.
+
+IPv6 ile DNS işleme iyileştirildi.
+
+Çevrimdışı durumu için daha net etiketleme.
+
+Eski Android sürümlerindeki bir başlatma hatası düzeltildi.
+
+Yeni diller: Geleneksel Çince (Tayvan ve Hong Kong).
