@@ -51,7 +51,7 @@ public struct ProfileRow: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityValue(isSelected ? "selected".localizedString : "")
-        .accessibilityAction(perform: onTap)
+        .accessibilityAction { onTap() }
     }
 
     private var rowBackground: Color {
