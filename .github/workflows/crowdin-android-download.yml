@@ -3,6 +3,10 @@ name: crowdin-android-download
 on:
   workflow_dispatch:
 
+concurrency:
+  group: crowdin-global-sync
+  cancel-in-progress: false
+
 jobs:
   crowdin-download:
     runs-on: arc-linux-latest-dind

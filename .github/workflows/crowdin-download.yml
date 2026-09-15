@@ -50,7 +50,6 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
           CONFIG_PATH: ${{ inputs.config_path }}
-          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           crowdin download translations \
             --config "$CONFIG_PATH" \
