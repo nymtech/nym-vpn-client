@@ -68,12 +68,20 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 	private val queryProductDetailsParams =
 		QueryProductDetailsParams.newBuilder()
 			.setProductList(
-				ProductId.entries.map { productId ->
+				listOf(
 					QueryProductDetailsParams.Product.newBuilder()
-						.setProductId(productId.value)
+						.setProductId(ProductId.Monthly.value)
 						.setProductType(BillingClient.ProductType.SUBS)
-						.build()
-				},
+						.build(),
+					QueryProductDetailsParams.Product.newBuilder()
+						.setProductId(ProductId.SixMonths.value)
+						.setProductType(BillingClient.ProductType.SUBS)
+						.build(),
+					QueryProductDetailsParams.Product.newBuilder()
+						.setProductId(ProductId.Yearly.value)
+						.setProductType(BillingClient.ProductType.SUBS)
+						.build(),
+				),
 			)
 			.build()
 
