@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [iOS] Do not bind LAN custom DNS upstreams to the tunnel interface
 - Bump nym `vpn/release/2026.14-amsterdam` to include LP registration clock-skew stamps (https://github.com/nymtech/nym/pull/7150)
 - [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected. (https://github.com/nymtech/nym-vpn-client/pull/6261)
 - Apply the kill-switch when Connect is pressed while still offline. (https://github.com/nymtech/nym-vpn-client/pull/6265)

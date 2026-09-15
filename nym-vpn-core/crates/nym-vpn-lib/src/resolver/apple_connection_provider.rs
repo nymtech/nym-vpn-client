@@ -114,6 +114,11 @@ impl RuntimeProvider for AppleConnectionProvider {
 }
 
 fn bind_to_iface(socket: &Socket, server_addr: SocketAddr, ifname: &str) -> io::Result<()> {
+    // Packet-tunnel sockets already egress on Wi-Fi unless bound to utun; LAN DNS must not be.
+    if nym_firewall_config::is_local_address(&server_addr.ip()) {
+        return Ok(());
+    }
+
     let ifname = CString::new(ifname).map_err(|_| io::Error::other("invalid interface name"))?;
     let if_index = unsafe { libc::if_nametoindex(ifname.as_ptr()) };
 
