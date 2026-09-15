@@ -204,7 +204,7 @@ impl GatewayClient {
     // except it uses the network_details.nym_vpn_api_urls to create the vpn_api_client.
     pub async fn from_network(
         config: Config,
-        network_details: &nym_network_defaults::NymNetworkDetails,
+        network_details: &nym_network_defaults::v2::NymNetworkDetails,
         user_agent: UserAgent,
     ) -> Result<Self> {
         let nym_urls = api_urls_to_urls(&config.nym_api_urls)?;

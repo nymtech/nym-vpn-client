@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use nym_common::trace_err_chain;
-use nym_sdk::NymNetworkDetails;
+use nym_network_defaults::v2::NymNetworkDetails;
 
 use crate::{Error, PersistentRecord, Result};
 
@@ -219,6 +219,46 @@ mod tests {
             PersistentNetworkDetails::new_from_cache(cache_dir.path().to_path_buf(), "sandbox")
                 .await
                 .is_err_and(|err| err.is_inconsistent_network())
+        );
+    }
+
+    /// A cache file that doesn't parse as the current on-disk shape (e.g. one written by an
+    /// older client in a since-removed format) is treated the same as any other corrupt or
+    /// missing cache: for mainnet, fall back to the bundled default; for other networks, there's
+    /// nothing to fall back to on disk, so the caller must fetch from the network instead.
+    #[tokio::test]
+    async fn test_unparsable_cache_falls_back_to_default_for_mainnet() {
+        let cache_dir = tempdir().unwrap();
+        let path = PersistentNetworkDetails::path(cache_dir.path(), "mainnet");
+        tokio::fs::create_dir_all(path.parent().unwrap())
+            .await
+            .unwrap();
+        tokio::fs::write(&path, b"not a valid cache record")
+            .await
+            .unwrap();
+
+        let persistent_network_details =
+            PersistentNetworkDetails::new_from_cache(cache_dir.path().to_path_buf(), "mainnet")
+                .await
+                .unwrap();
+        assert_eq!(persistent_network_details.value().network_name, "mainnet");
+    }
+
+    #[tokio::test]
+    async fn test_unparsable_cache_errors_for_non_mainnet() {
+        let cache_dir = tempdir().unwrap();
+        let path = PersistentNetworkDetails::path(cache_dir.path(), "sandbox");
+        tokio::fs::create_dir_all(path.parent().unwrap())
+            .await
+            .unwrap();
+        tokio::fs::write(&path, b"not a valid cache record")
+            .await
+            .unwrap();
+
+        assert!(
+            PersistentNetworkDetails::new_from_cache(cache_dir.path().to_path_buf(), "sandbox")
+                .await
+                .is_err_and(|err| err.is_no_default_network_details())
         );
     }
 
