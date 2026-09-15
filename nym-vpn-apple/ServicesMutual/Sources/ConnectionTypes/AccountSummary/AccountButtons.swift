@@ -50,7 +50,10 @@ public func accountButtons(
     var buttons: [AccountButton] = []
 
     if summary.shouldShowRenewRow {
-        buttons.append(AccountButton(titleKey: "settings.account.renewNow", kind: .renewPlan, isDestructive: false))
+        let titleKey = summary.isActive
+            ? "settings.account.renewNow"
+            : "purchasePlan.chooseMyPlan"
+        buttons.append(AccountButton(titleKey: titleKey, kind: .renewPlan, isDestructive: false))
     }
     buttons.append(AccountButton(titleKey: "settings.account.manageSubscription", kind: .manageSubscriptionExternal, isDestructive: false))
     if platform == .iOS && !isTestFlight {

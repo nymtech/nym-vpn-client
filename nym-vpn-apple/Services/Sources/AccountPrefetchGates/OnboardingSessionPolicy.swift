@@ -86,9 +86,6 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         hasAccountSummary: Bool = false
     ) -> Bool {
         if processingKind == .login {
-            if authOutcome == .loginReady {
-                return false
-            }
             if accountSummaryLastFetchFailed {
                 return false
             }

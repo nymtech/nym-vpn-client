@@ -12,6 +12,7 @@ public enum ConnectButtonState: Equatable {
     case noInternet
     case noInternetReconnect
     case noAccount
+    /// Menu bar / connect-button encoding of `DisconnectedHomeCTA.choosePlan`.
     case noSubscription
     case accountUnreachable
     case checkingAccount
