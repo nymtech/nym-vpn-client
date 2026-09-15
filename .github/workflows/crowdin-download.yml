@@ -29,6 +29,9 @@ on:
       CROWDIN_PERSONAL_TOKEN:
         required: true
 
+permissions:
+  contents: read
+
 concurrency:
   group: crowdin-global-sync
   cancel-in-progress: false
