@@ -1,4 +1,4 @@
-name: Download crowdin translations
+name: crowdin-download
 
 on:
   workflow_dispatch:
@@ -46,8 +46,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+
       - name: Install crowdin cli
-        run: yay -S --needed --noconfirm --answerclean None --answerdiff None --answeredit None crowdin-cli-bin
+        run: npm install -g @crowdin/cli
 
       - name: Download translations from Crowdin
         env:
