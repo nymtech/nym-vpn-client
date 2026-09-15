@@ -138,6 +138,13 @@ fn get_default_route_interfaces_blocking(
             continue;
         }
 
+        // NymVPN's own tunnel adapter would otherwise be indistinguishable
+        // from a genuinely competing VPN, since both are matched by the same
+        // tunnel-interface-description heuristic below.
+        if is_own_interface(row).unwrap_or(false) {
+            continue;
+        }
+
         if is_route_on_physical_interface(row).unwrap_or(false) {
             result.physical.insert(row.InterfaceIndex);
         } else {
@@ -146,6 +153,24 @@ fn get_default_route_interfaces_blocking(
     }
 
     Ok(result)
+}
+
+fn is_own_interface(route: &MIB_IPFORWARD_ROW2) -> Result<bool> {
+    // SAFETY: We are allowed to initialize MIB_IF_ROW2 with zeroed because it is made up entirely
+    // of types for which the zero pattern (all zeros) is valid.
+    let mut row: MIB_IF_ROW2 = unsafe { std::mem::zeroed() };
+    row.InterfaceLuid = route.InterfaceLuid;
+    row.InterfaceIndex = route.InterfaceIndex;
+
+    // SAFETY: see the identical call in `is_route_on_physical_interface`.
+    unsafe { GetIfEntry2(&mut row) }
+        .ok()
+        .map_err(Error::GetIfEntryFailed)?;
+
+    let alias = WideCStr::from_slice_truncate(&row.Alias)
+        .expect("Windows provided incorrectly formatted utf16 string");
+
+    Ok(crate::own_interfaces::contains(&alias.to_string_lossy()))
 }
 
 /// Whether `row` is a default route, or one of the two `/1` halves some VPN

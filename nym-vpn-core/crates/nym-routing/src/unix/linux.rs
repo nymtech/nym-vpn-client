@@ -966,12 +966,16 @@ pub async fn get_default_route_interfaces(
                     continue;
                 };
 
-                let is_virtual = iface_map
-                    .get(&oif)
-                    .map(NetworkInterface::is_tunnel_like)
-                    .unwrap_or(false);
+                let Some(iface) = iface_map.get(&oif) else {
+                    continue;
+                };
+                // NymVPN's own tunnel interface would otherwise be
+                // indistinguishable from a genuinely competing VPN.
+                if crate::own_interfaces::contains(&iface.name) {
+                    continue;
+                }
 
-                if is_virtual {
+                if iface.is_tunnel_like() {
                     result.virtual_.insert(oif);
                 } else {
                     result.physical.insert(oif);
