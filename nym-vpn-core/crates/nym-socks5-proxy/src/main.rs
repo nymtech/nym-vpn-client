@@ -62,15 +62,7 @@ async fn main() -> Result<()> {
 
     tracing::info!("nym-socks5-proxy starting. config={config:#?}");
 
-    let (file_updater, file_updater_handle) = match FileUpdater::new() {
-        Ok(pair) => pair,
-        Err(err) => {
-            let msg = format!("Failed to create file updater: {err:#}");
-            tracing::error!("{msg}");
-            send_error_message(&msg);
-            return Err(err.into());
-        }
-    };
+    let (file_updater, file_updater_handle) = FileUpdater::new();
     tokio::spawn(file_updater.run(shutdown_token.child_token()));
 
     // Start the SOCKS5 proxy listener.

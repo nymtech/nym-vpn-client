@@ -718,8 +718,7 @@ impl NymVpnService {
         )
         .await;
 
-        let (file_updater, file_updater_handle) =
-            nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
+        let (file_updater, file_updater_handle) = nym_file_updater::FileUpdater::new();
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
         let state_machine_handle = TunnelStateMachine::spawn(
