@@ -29,7 +29,9 @@ pub(crate) use windows::flush_system_cache;
 mod tests;
 
 mod tcp;
+mod upstream_health;
 use tcp::new_tcp_listener;
+use upstream_health::{LogThrottle, UpstreamHealth};
 
 mod udp;
 use udp::new_random_socket;
@@ -144,6 +146,8 @@ pub struct LocalResolver {
     inner_resolver: Resolver,
     dns_filter: DnsFilter,
     shutdown_token: CancellationToken,
+    /// Config used to build the active forwarding resolver, kept for rebuilds.
+    active_forward_config: Option<Config>,
 }
 
 /// A message to [LocalResolver]
@@ -200,6 +204,9 @@ enum Resolver {
     Forwarding {
         resolver: Box<TokioResolver>,
         dns_filter: DnsFilter,
+        /// Health of this resolver generation only. Each rebuild gets a fresh tracker so
+        /// lookups still in flight on a retired generation cannot count against the new one.
+        upstream_health: Arc<UpstreamHealth>,
     },
 }
 
@@ -211,10 +218,12 @@ impl Resolver {
             Resolver::Forwarding {
                 resolver,
                 dns_filter,
+                upstream_health,
             } => Either::Right(Self::resolve_forward(
                 resolver.as_ref().clone(),
                 query,
                 dns_filter.clone(),
+                upstream_health.clone(),
             )),
         };
 
@@ -259,6 +268,7 @@ impl Resolver {
         resolver: TokioResolver,
         query: LowerQuery,
         dns_filter: DnsFilter,
+        upstream_health: Arc<UpstreamHealth>,
     ) -> Result<AuthLookup, NetError> {
         let return_query = query.original().clone();
         let qname = return_query.name().to_ascii();
@@ -269,11 +279,19 @@ impl Resolver {
 
         let result: AuthLookup = match decision {
             DnsFilterDecision::Pass => {
-                let lookup = resolver
+                let lookup_result = resolver
                     .lookup(return_query.name().clone(), return_query.query_type())
-                    .await?;
+                    .await;
 
-                AuthLookup::from(lookup)
+                match &lookup_result {
+                    // A negative answer (e.g. NXDOMAIN) is still a healthy upstream interaction.
+                    Ok(_) | Err(NetError::Dns(DnsError::NoRecordsFound(_))) => {
+                        upstream_health.record_success()
+                    }
+                    Err(_) => upstream_health.record_failure(),
+                }
+
+                AuthLookup::from(lookup_result?)
             }
             DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => AuthLookup::Empty,
             DnsFilterDecision::Block(DnsFilterStrategy::Localhost) => {
@@ -475,6 +493,7 @@ impl LocalResolver {
             inner_resolver: Resolver::Blocking,
             dns_filter,
             shutdown_token,
+            active_forward_config: None,
         };
 
         // Spawn onto the multi-thread runtime (requires LocalResolver: Send)
@@ -488,7 +507,10 @@ impl LocalResolver {
         tcp_listener: Option<TcpListener>,
         tx: mpsc::UnboundedSender<ResolverMessage>,
     ) -> Result<Server<ResolverImpl>, Error> {
-        let mut server = Server::new(ResolverImpl { tx });
+        let mut server = Server::new(ResolverImpl {
+            tx,
+            error_log_throttle: LogThrottle::new(RESOLVE_ERROR_LOG_WINDOW),
+        });
         server.register_socket(server_socket);
         if let Some(tcp_listener) = tcp_listener {
             server.register_listener(tcp_listener, TCP_CLIENT_TIMEOUT, TCP_RESPONSE_BUFFER_SIZE);
@@ -521,6 +543,7 @@ impl LocalResolver {
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::Query { dns_query, response_tx }) => {
+                            self.maybe_rebuild_forwarding_resolver();
                             self.inner_resolver.resolve(dns_query, response_tx);
                         }
                         None => {
@@ -547,6 +570,7 @@ impl LocalResolver {
 
         match config {
             Config::Blocking => {
+                self.active_forward_config = None;
                 self.blocking();
                 Ok(())
             }
@@ -557,12 +581,49 @@ impl LocalResolver {
             } => {
                 // make sure not to accidentally forward queries to ourselves
                 dns_servers.retain(|addr| addr.ip != self.bound_to.ip());
+                self.active_forward_config = Some(Config::Forwarding {
+                    dns_servers: dns_servers.clone(),
+                    #[cfg(target_os = "ios")]
+                    bind_interface: bind_interface.clone(),
+                });
                 self.forwarding(
                     dns_servers,
                     #[cfg(target_os = "ios")]
                     bind_interface,
                 )
             }
+        }
+    }
+
+    /// Rebuilds the forwarding resolver when upstream health requested it, replacing
+    /// potentially stale pooled connections (e.g. after system sleep or a network change).
+    fn maybe_rebuild_forwarding_resolver(&mut self) {
+        let Resolver::Forwarding {
+            upstream_health, ..
+        } = &self.inner_resolver
+        else {
+            return;
+        };
+        if !upstream_health.take_rebuild_request() {
+            return;
+        }
+
+        let Some(Config::Forwarding {
+            dns_servers,
+            #[cfg(target_os = "ios")]
+            bind_interface,
+        }) = self.active_forward_config.clone()
+        else {
+            return;
+        };
+
+        tracing::warn!("Rebuilding forwarding DNS resolver after repeated upstream failures");
+        if let Err(err) = self.forwarding(
+            dns_servers,
+            #[cfg(target_os = "ios")]
+            bind_interface,
+        ) {
+            trace_err_chain!(err, "failed to rebuild forwarding DNS resolver");
         }
     }
 
@@ -593,18 +654,27 @@ impl LocalResolver {
             .build()
             .map_err(Error::CreateResolver)?;
 
+        // A fresh tracker per generation: lookups spawned against the previous resolver
+        // still hold the old `Arc` and their late results are ignored by construction.
         self.inner_resolver = Resolver::Forwarding {
             resolver: Box::new(resolver),
             dns_filter: self.dns_filter.clone(),
+            upstream_health: Arc::new(UpstreamHealth::new()),
         };
 
         Ok(())
     }
 }
 
+/// How often at most a resolution failure is logged at error level; failures in
+/// between are counted and logged at debug level. Dead upstream connections (e.g.
+/// after system sleep) produce bursts of hundreds of identical failures.
+const RESOLVE_ERROR_LOG_WINDOW: Duration = Duration::from_secs(5);
+
 /// An implementation of [RequestHandler] that forwards queries.
 struct ResolverImpl {
     tx: mpsc::UnboundedSender<ResolverMessage>,
+    error_log_throttle: LogThrottle,
 }
 
 impl ResolverImpl {
@@ -701,7 +771,14 @@ impl ResolverImpl {
                             trace_err_chain!(err, "failed to send response");
                         })
                 } else {
-                    trace_err_chain!(resolve_err, "failed to resolve hostname");
+                    match self.error_log_throttle.try_log(Instant::now()) {
+                        Some(0) => trace_err_chain!(resolve_err, "failed to resolve hostname"),
+                        Some(suppressed) => trace_err_chain!(
+                            resolve_err,
+                            "failed to resolve hostname ({suppressed} similar errors suppressed)"
+                        ),
+                        None => tracing::debug!("failed to resolve hostname: {resolve_err}"),
+                    }
                     send_error_response(message, response_handler, ResponseCode::ServFail).await
                 }
             }
