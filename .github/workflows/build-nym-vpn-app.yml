@@ -89,6 +89,7 @@ permissions:
 jobs:
   download-translations:
     uses: ./.github/workflows/crowdin-download.yml
+    secrets: inherit
     if: ${{ inputs.linux == true || inputs.windows == true }}
     with:
       config_path: crowdin-configs/linux-windows.yml
