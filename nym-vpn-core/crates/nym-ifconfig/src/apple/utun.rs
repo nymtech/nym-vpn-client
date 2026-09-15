@@ -51,11 +51,11 @@ impl Utun<'_, OwnedFd> {
 
 impl<'a> Utun<'a, BorrowedFd<'a>> {
     /// Initialize `Utun` using borrowed tunnel file descriptor.
-    pub fn new_from_borrowed_fd(tun_fd: BorrowedFd<'a>) -> Result<Utun<'a, BorrowedFd<'a>>> {
-        Ok(Self {
+    pub fn new_from_borrowed_fd(tun_fd: BorrowedFd<'a>) -> Utun<'a, BorrowedFd<'a>> {
+        Self {
             tun_fd,
             _phantom: std::marker::PhantomData,
-        })
+        }
     }
 }
 
