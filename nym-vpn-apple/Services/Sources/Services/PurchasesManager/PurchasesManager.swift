@@ -15,10 +15,11 @@ public enum PurchaseOutcome: Equatable, Sendable {
 @MainActor public final class PurchasesManager: ObservableObject {
     private enum ProductId {
         static let monthly = "1_month_may_2025"
+        static let sixMonths = "6_months_2026"
         static let yearly = "1_year_may_2025"
     }
 
-    private let productIds = [ProductId.monthly, ProductId.yearly]
+    private let productIds = [ProductId.monthly, ProductId.sixMonths, ProductId.yearly]
     private var productsLoaded = false
     private var updates: Task<Void, Never>?
 
