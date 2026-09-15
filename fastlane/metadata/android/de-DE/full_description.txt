@@ -10,7 +10,7 @@ Die meisten VPNs geben "keine Logs" als Richtlinie an - sie können loggen, vers
 
 ⚡ ZWEI VPN-MODI, EINE APP
 
-- Schneller Modus: AmneziaWG (WireGuard)-basiertes 2-Hop dVPN. Schnelles Streaming und Surfen.
+- dVPN-Modus: AmneziaWG (WireGuard)-basiertes 2-Hop dVPN. Schnelles Streaming und Surfen.
 - Anonymer Modus: 5-hop Noise-Generating-Mixnet, ein privaterer Nachfolger von Tor. Das anonymste VPN für Endverbraucher. Perfekt für Krypto, E-Mail und private Messenger wie Signal.
 
 💰 ANONYM MIT KRYPTO ODER BARGELD BEZAHLEN
