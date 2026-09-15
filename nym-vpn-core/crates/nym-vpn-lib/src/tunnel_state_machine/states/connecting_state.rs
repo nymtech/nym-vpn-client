@@ -671,6 +671,10 @@ impl TunnelStateHandler for ConnectingState {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::SelectingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
+                    TunnelMonitorEvent::RandomFallback => {
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RandomFallback);
+                        NextTunnelState::NewState((self, new_state))
+                    }
                     TunnelMonitorEvent::SelectedGateways {
                         gateways, reply_tx
                     } => {

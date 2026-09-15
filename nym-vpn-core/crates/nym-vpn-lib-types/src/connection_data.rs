@@ -123,6 +123,9 @@ pub enum EstablishConnectionState {
     /// Selecting gateways
     SelectingGateways,
 
+    /// Falling back to random for automatic selections because of lack of location
+    RandomFallback,
+
     /// Registering with gateways
     RegisteringWithGateways,
 
@@ -140,6 +143,9 @@ impl fmt::Display for EstablishConnectionState {
             }
             EstablishConnectionState::RefreshingGateways => "refreshing gateways",
             EstablishConnectionState::SelectingGateways => "selecting gateways",
+            EstablishConnectionState::RandomFallback => {
+                "falling back to random for automatic selections"
+            }
             EstablishConnectionState::RegisteringWithGateways => "registering with gateways",
             EstablishConnectionState::ConnectingTunnel => "connecting tunnel",
         })
