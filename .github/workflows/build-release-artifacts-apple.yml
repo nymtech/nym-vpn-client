@@ -87,6 +87,7 @@ env:
 jobs:
   download-translations:
     uses: ./.github/workflows/crowdin-download.yml
+    secrets: inherit
     if: ${{ inputs.build_ios == true || inputs.build_macos == true }}
     with:
       config_path: crowdin-configs/macos-ios.yml
