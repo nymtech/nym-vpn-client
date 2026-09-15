@@ -4,7 +4,7 @@
 use crate::{
     AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
 };
-pub use nym_network_defaults::v2::{DnsFallback, NetworkingSpecifics};
+pub use nym_network_defaults::v2::NetworkingSpecifics;
 use nym_vpn_api_client::response::{ApiUrl as LegacyApiUrl, NymWellknownDiscoveryItemResponse};
 
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
@@ -17,7 +17,7 @@ pub struct Discovery {
     // Base network setup
     pub network_name: String,
 
-    // Use the getters!
+    // bootstrap api networking information
     pub networking: NetworkingSpecifics,
 
     // Additional context
@@ -204,10 +204,6 @@ impl From<NymWellknownDiscoveryItemResponse> for Discovery {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-
     use super::*;
     use crate::{
         SystemMessage,
@@ -218,6 +214,11 @@ mod tests {
         fetcher::Fetcher,
         system_messages::Properties,
     };
+
+    use std::collections::HashMap;
+
+    use nym_network_defaults::v2::DnsFallback;
+    use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
     #[tokio::test]
     async fn test_mainnet_discovery_same_as_fetched() {

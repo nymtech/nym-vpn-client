@@ -550,9 +550,10 @@ impl<T> PersistentRecord<T> {
 
 #[cfg(test)]
 mod tests {
-    use tempfile::tempdir;
-
     use super::*;
+
+    use nym_network_defaults::v2::DnsFallback;
+    use tempfile::tempdir;
 
     #[tokio::test]
     async fn test_network_cache_handles_cleanup_pr4226() {
@@ -607,11 +608,11 @@ mod tests {
     #[test]
     fn test_dns_fallback_addr_map_skips_invalid_addresses() {
         let addrs = dns_fallback_addr_map(&[
-            discovery::DnsFallback {
+            DnsFallback {
                 url: "good.example.com".to_owned(),
                 addresses: vec!["1.2.3.4".to_owned(), "not-an-ip".to_owned()],
             },
-            discovery::DnsFallback {
+            DnsFallback {
                 url: "all-bad.example.com".to_owned(),
                 addresses: vec!["not-an-ip".to_owned()],
             },
