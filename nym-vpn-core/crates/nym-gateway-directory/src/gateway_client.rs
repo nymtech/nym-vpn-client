@@ -306,7 +306,7 @@ impl GatewayClient {
         if ips.is_empty() {
             // nym-api should forbid this from ever happening, but we don't want to accidentally panic
             // if this assumption fails
-            // gateway_identity truncated: full identity + ip lookups reach sentry as a breadcrumb/event
+            // prefix only; the full identity is not needed here
             warn!(
                 "somehow {}... hasn't provided any ip addresses!",
                 &gateway_identity[..gateway_identity.len().min(8)]
@@ -316,8 +316,7 @@ impl GatewayClient {
             ));
         }
 
-        // trace, not debug: sentry_tracing forwards debug+ here, and this is the gateway identity
-        // plus its raw ip addresses
+        // keep resolved gateway addresses off debug
         trace!("found the following ips for {gateway_identity}: {ips:?}");
         if ips.len() == 1 {
             // SAFETY: the vector is not empty, so unwrap is fine

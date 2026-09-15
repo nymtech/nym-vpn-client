@@ -187,8 +187,7 @@ where
             .map(|d| d.identity_key().to_base58_string())
             .unwrap_or_else(|| "(unset)".to_string());
 
-        // trace, not info: the sentry_tracing layer forwards info+ as a breadcrumb/event, and
-        // these are the user's real account address and device identity key.
+        // keep account and device identifiers off info
         tracing::trace!("Account id: {account_id}");
         tracing::trace!("Device id: {device_id}");
     }
