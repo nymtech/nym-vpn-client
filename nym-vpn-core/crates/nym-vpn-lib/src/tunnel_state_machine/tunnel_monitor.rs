@@ -183,6 +183,9 @@ pub enum TunnelMonitorEvent {
     /// Selecting gateways
     SelectingGateways,
 
+    /// Falling back to random for automatic selections because of lack of location
+    RandomFallback,
+
     /// Selected gateways
     SelectedGateways {
         gateways: Box<SelectedGateways>,

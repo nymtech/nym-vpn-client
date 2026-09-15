@@ -281,6 +281,7 @@ impl From<proto::EstablishConnectionState> for EstablishConnectionState {
             proto::EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             proto::EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             proto::EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
+            proto::EstablishConnectionState::RandomFallback => Self::RandomFallback,
             proto::EstablishConnectionState::RegisteringWithGateways => {
                 Self::RegisteringWithGateways
             }
@@ -299,6 +300,7 @@ impl From<EstablishConnectionState> for proto::EstablishConnectionState {
             EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
+            EstablishConnectionState::RandomFallback => Self::RandomFallback,
             EstablishConnectionState::RegisteringWithGateways => Self::RegisteringWithGateways,
             EstablishConnectionState::ConnectingTunnel => Self::ConnectingTunnel,
         }
