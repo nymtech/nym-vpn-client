@@ -19,6 +19,7 @@ languages_mapping:
     vi: vi-rVN
     zh-CN: zh-rCN
     zh-TW: zh-rTW
+    zh-HK: zh-rHK
 files:
   - source: "nym-vpn-android/app/src/main/res/values/strings.xml"
     translation: "nym-vpn-android/app/src/main/res/values-%android_code%/strings.xml"
