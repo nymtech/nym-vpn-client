@@ -8,7 +8,7 @@ use super::{
 };
 use std::{ffi::c_int, io, mem, ptr};
 
-type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Errors that can occur for a PF_ROUTE socket
 #[derive(Debug, thiserror::Error)]

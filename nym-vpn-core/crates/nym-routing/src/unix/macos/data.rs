@@ -584,7 +584,7 @@ pub enum Error {
     NoInterfaceAddress,
 }
 
-type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 impl RouteSocketMessage {
     pub fn parse_message(buffer: &[u8]) -> Result<Self> {
@@ -1170,7 +1170,7 @@ pub struct RouteDestination {
 impl TryFrom<&RouteMessage> for RouteDestination {
     type Error = Error;
 
-    fn try_from(msg: &RouteMessage) -> std::result::Result<Self, Self::Error> {
+    fn try_from(msg: &RouteMessage) -> Result<Self> {
         let network = msg.destination_ip()?;
         let interface = msg.ifscope();
         let gateway = msg.gateway_ip();
