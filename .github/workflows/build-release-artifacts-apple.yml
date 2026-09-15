@@ -92,7 +92,7 @@ jobs:
     with:
       config_path: crowdin-configs/macos-ios.yml
       artifact_name: translations-apple
-      artifact_path: nym-vpn-apple/NymVPN/Resources
+      artifact_path: nym-vpn-apple/NymVPN/Resources/*.xcstrings
 
   build-ios-app:
     needs: download-translations
