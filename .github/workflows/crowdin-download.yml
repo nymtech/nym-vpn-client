@@ -1,0 +1,64 @@
+name: Download crowdin translations
+
+on:
+  workflow_dispatch:
+    inputs:
+      config_path:
+        required: true
+        type: string
+      artifact_name:
+        required: true
+        type: string
+      artifact_path:
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      config_path:
+        required: true
+        type: string
+      artifact_name:
+        required: true
+        type: string
+      artifact_path:
+        required: true
+        type: string
+    secrets:
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+
+concurrency:
+  group: crowdin-global-sync
+  cancel-in-progress: false
+
+jobs:
+  crowdin-download:
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Install crowdin cli
+        run: yay -S crowdin-cli-bin
+
+      - name: Download translations from Crowdin
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          CONFIG_PATH: ${{ inputs.config_path }}
+        run: |
+          crowdin download translations \
+            --config "$CONFIG_PATH" \
+            --no-progress
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ inputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 1

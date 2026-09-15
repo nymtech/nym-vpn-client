@@ -7,6 +7,10 @@ on:
     paths: "nym-vpn-apple/NymVPN/Resources/Localizable.xcstrings"
   workflow_dispatch:
 
+concurrency:
+  group: crowdin-global-sync
+  cancel-in-progress: false
+
 jobs:
   crowdin-upload:
     runs-on: arc-linux-latest-dind
@@ -14,9 +18,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
-
         with:
           fetch-depth: 1
+
       - name: crowdin action
         uses: crowdin/github-action@v3
         with:

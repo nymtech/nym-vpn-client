@@ -9,6 +9,10 @@ on:
       - "nym-vpn-android/core/src/main/res/values/strings.xml"
   workflow_dispatch:
 
+concurrency:
+  group: crowdin-global-sync
+  cancel-in-progress: false
+
 jobs:
   crowdin-upload:
     runs-on: arc-linux-latest-dind
