@@ -12,6 +12,7 @@ use std::{
     ffi::{c_int, c_uchar, c_ushort},
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
+    ptr,
 };
 
 /// Message that describes a route - either an added, removed, changed or plainly retrieved route.
@@ -112,13 +113,26 @@ impl RouteMessage {
     }
 
     pub fn is_default_v6(&self) -> Result<bool> {
-        Ok(self
+        let destination_is_default = self
             .destination_v6()?
             .map(|addr| addr == Ipv6Addr::UNSPECIFIED)
-            .unwrap_or(false))
+            .unwrap_or(false);
+
+        // Every point-to-point (e.g. utun) interface gets an automatic
+        // `default` route via its own link-local address as soon as it
+        // comes up - a macOS network-stack artifact present on every such
+        // interface regardless of whether it's actually being used to
+        // carry default (internet-bound) traffic. Routing through it is
+        // not evidence of a competing VPN.
+        let gateway_is_link_local = self
+            .gateway_v6()
+            .map(|addr| addr.is_unicast_link_local())
+            .unwrap_or(false);
+
+        Ok(destination_is_default && !gateway_is_link_local)
     }
 
-    fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
+    pub(crate) fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
         let header: rt_msghdr = rt_msghdr::from_bytes(buffer)?;
 
         let msg_len = usize::from(header.rtm_msglen);
@@ -583,7 +597,7 @@ pub enum Error {
     NoInterfaceAddress,
 }
 
-type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 impl RouteSocketMessage {
     pub fn parse_message(buffer: &[u8]) -> Result<Self> {
@@ -1000,7 +1014,7 @@ pub struct RouteSockAddrIterator<'a> {
 }
 
 impl<'a> RouteSockAddrIterator<'a> {
-    fn new(buffer: &'a [u8], flags: AddressFlag) -> Self {
+    pub(crate) fn new(buffer: &'a [u8], flags: AddressFlag) -> Self {
         Self {
             buffer,
             flags_iter: flags.iter(),
@@ -1106,8 +1120,10 @@ impl rt_msghdr {
         if buf.len() >= ROUTE_MESSAGE_HEADER_SIZE {
             let ptr = buf.as_ptr();
             // SAFETY: `ptr` is backed by enough valid bytes to contain a rt_msghdr value and it's
-            // readable. rt_msghdr doesn't contain any pointers so any values are valid.
-            Ok(unsafe { std::ptr::read(ptr as *const _) })
+            // readable. rt_msghdr doesn't contain any pointers so any values are valid. `ptr` is
+            // not guaranteed to be aligned, since it comes from an offset into a larger buffer
+            // that accumulates variable-length messages, so `read_unaligned` is required here.
+            Ok(unsafe { ptr::read_unaligned(ptr as *const _) })
         } else {
             Err(Error::BufferTooSmall {
                 message_type: "rt_msghdr",
@@ -1148,7 +1164,9 @@ impl rt_msghdr_short {
             let ptr = buf.as_ptr();
             // SAFETY: `ptr` is backed by enough valid bytes to contain a rt_msghdr_short value and
             // is readable. `rt_msghdr_short` doesn't contain any pointers so any values are valid.
-            Some(unsafe { std::ptr::read(ptr as *const rt_msghdr_short) })
+            // `ptr` is not guaranteed to be aligned, since it comes from an offset into a larger
+            // buffer that accumulates variable-length messages, so `read_unaligned` is required.
+            Some(unsafe { ptr::read_unaligned(ptr as *const rt_msghdr_short) })
         } else {
             None
         }
@@ -1165,7 +1183,7 @@ pub struct RouteDestination {
 impl TryFrom<&RouteMessage> for RouteDestination {
     type Error = Error;
 
-    fn try_from(msg: &RouteMessage) -> std::result::Result<Self, Self::Error> {
+    fn try_from(msg: &RouteMessage) -> Result<Self> {
         let network = msg.destination_ip()?;
         let interface = msg.ifscope();
         let gateway = msg.gateway_ip();
@@ -1219,6 +1237,29 @@ fn test_failing_rtmsg() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 255, 255, 255, 255, 255, 255,
     ];
     let _ = RouteSocketMessage::parse_message(&bytes).unwrap();
+}
+
+#[test]
+fn ipv6_default_route_via_link_local_gateway_is_not_default() {
+    // Every point-to-point (utun) interface gets one of these automatically
+    // as soon as it comes up, regardless of whether it's actually being
+    // used for default (internet-bound) traffic.
+    let link_local_gateway: Ipv6Addr = "fe80::1".parse().unwrap();
+    let route = RouteMessage::new_route(Destination::default_v6())
+        .set_gateway_addr(SocketAddr::from((link_local_gateway, 0)));
+
+    assert!(!route.is_default_v6().unwrap());
+    assert!(!route.is_default().unwrap());
+}
+
+#[test]
+fn ipv6_default_route_via_global_gateway_is_default() {
+    let global_gateway: Ipv6Addr = "2001:db8::1".parse().unwrap();
+    let route = RouteMessage::new_route(Destination::default_v6())
+        .set_gateway_addr(SocketAddr::from((global_gateway, 0)));
+
+    assert!(route.is_default_v6().unwrap());
+    assert!(route.is_default().unwrap());
 }
 
 // Set MTU flag. See route.h

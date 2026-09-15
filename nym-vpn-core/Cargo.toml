@@ -6,6 +6,7 @@ members = [
     "crates/nym-connection-monitor",
     "crates/nym-cgroup",
     "crates/nym-dbus",
+    "crates/nym-conflict",
     "crates/nym-diagnostic",
     "crates/nym-dns",
     "crates/nym-exclude",
@@ -174,6 +175,8 @@ regex = "1"
 resolv-conf = "0.7"
 rs-release = "0.1.11"
 rtnetlink = "0.21"
+netlink-packet-core = "0.9.0"
+netlink-packet-netfilter = "0.4.0"
 netlink-sys = "0.8.8"
 rustls = { version = "0.23.40", default-features = false }
 rustls-pemfile = "2.2.0"
@@ -250,6 +253,7 @@ nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }
 nym-dbus = { path = "crates/nym-dbus" }
+nym-conflict = { path = "crates/nym-conflict" }
 nym-dns = { path = "crates/nym-dns" }
 nym-favorites = { path = "crates/nym-favorites" }
 nym-firewall = { path = "crates/nym-firewall" }

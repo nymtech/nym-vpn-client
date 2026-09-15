@@ -6,9 +6,6 @@
 #![allow(rustdoc::private_intra_doc_links)]
 #![deny(missing_docs)]
 
-use ipnetwork::IpNetwork;
-use std::{fmt, net::IpAddr};
-
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 /// Burst guard
 pub mod debounce;
@@ -24,13 +21,135 @@ pub use imp::{Callback, CallbackHandle, EventType, InterfaceAndGateway, get_best
 #[path = "unix/mod.rs"]
 mod imp;
 
-#[cfg(target_os = "linux")]
-use rtnetlink::packet_route::route::RouteHeader;
+/// Get every interface currently holding a default-route-shaped entry, for
+/// the given address family. See [`DefaultRouteInterfaces`]. Implemented for
+/// Windows, Linux, and macOS - not available on mobile platforms, where the
+/// OS itself only allows one active VPN configuration at a time.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub use imp::get_default_route_interfaces;
 
 #[cfg(target_os = "macos")]
 pub use imp::{DefaultRouteEvent, InterfaceEvent, PlatformError, imp::RouteError};
 
 pub use imp::{Error, RouteManagerHandle};
+
+use std::{fmt, net::IpAddr};
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use std::collections::HashSet;
+
+#[cfg(target_os = "linux")]
+use rtnetlink::packet_route::route::RouteHeader;
+
+use ipnetwork::IpNetwork;
+
+/// Tracks the OS interface names NymVPN itself currently owns, so
+/// [`get_default_route_interfaces`] never reports NymVPN's own tunnel as a
+/// competing VPN. Populated by whoever brings the interface up (e.g.
+/// `nym-vpn-lib`'s tunnel monitor), consulted by each platform's
+/// implementation of `get_default_route_interfaces` before classifying an
+/// interface as "virtual".
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod own_interfaces {
+    use std::{
+        collections::HashSet,
+        sync::{Mutex, OnceLock},
+    };
+
+    fn registry() -> &'static Mutex<HashSet<String>> {
+        static REGISTRY: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+        REGISTRY.get_or_init(|| Mutex::new(HashSet::new()))
+    }
+
+    /// Record that `name` is one of NymVPN's own tunnel interfaces.
+    pub fn mark(name: impl Into<String>) {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .insert(name.into());
+    }
+
+    /// Reverse of [`mark`], to be called once the interface is torn down.
+    pub fn unmark(name: &str) {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .remove(name);
+    }
+
+    /// Whether `name` is currently one of NymVPN's own tunnel interfaces.
+    pub fn contains(name: &str) -> bool {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .contains(name)
+    }
+
+    /// Forget every interface recorded via [`mark`]. Called once NymVPN has
+    /// torn down its own routes, since at most one set of own interfaces is
+    /// ever active at a time.
+    pub fn clear() {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clear();
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        // Single test function: the registry is a process-wide global, so
+        // separate #[test] fns here would race against each other under the
+        // default parallel test runner.
+        #[test]
+        fn mark_contains_unmark_and_clear() {
+            assert!(!contains("utun-test-a"));
+
+            mark("utun-test-a");
+            mark("utun-test-b");
+            assert!(contains("utun-test-a"));
+            assert!(contains("utun-test-b"));
+
+            unmark("utun-test-a");
+            assert!(!contains("utun-test-a"));
+            assert!(contains("utun-test-b"));
+
+            clear();
+            assert!(!contains("utun-test-b"));
+        }
+    }
+}
+
+/// Address family for [`get_default_route_interfaces`].
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AddressFamily {
+    /// IPv4 address family.
+    Ipv4,
+    /// IPv6 address family.
+    Ipv6,
+}
+
+/// The set of distinct interfaces (identified by OS interface index) that
+/// currently hold a default-route-shaped entry - either a literal default
+/// route, or the `0.0.0.0/1` + `128.0.0.0/1` split some VPN clients install
+/// instead of replacing the default route directly - split into physical
+/// and virtual/tunnel interfaces.
+///
+/// Unlike [`get_best_default_route`] (Windows-only), this doesn't pick a
+/// single "best" route or filter out virtual interfaces - it's meant for
+/// callers that need to know about *every* interface competing for
+/// default-route ownership, e.g. to detect whether more than one VPN tunnel
+/// is active at once.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Debug, Default, Clone)]
+pub struct DefaultRouteInterfaces {
+    /// Physical (non-tunnel) interfaces holding a default-route-shaped entry.
+    pub physical: HashSet<u32>,
+    /// Virtual/tunnel interfaces holding a default-route-shaped entry.
+    pub virtual_: HashSet<u32>,
+}
 
 /// Link-layer/MAC adress
 #[cfg(target_os = "macos")]
