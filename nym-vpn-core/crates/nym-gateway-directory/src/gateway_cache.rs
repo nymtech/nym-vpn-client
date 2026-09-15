@@ -535,7 +535,11 @@ impl GatewayCache {
                 }
             }
         } else {
-            tracing::warn!("Failed to parse gateway identity: {gateway_identity}");
+            // truncated: full value reaches sentry as a breadcrumb/event
+            tracing::warn!(
+                "Failed to parse gateway identity: {}...",
+                &gateway_identity[..gateway_identity.len().min(8)]
+            );
         }
 
         // Fallback

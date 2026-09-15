@@ -187,8 +187,10 @@ where
             .map(|d| d.identity_key().to_base58_string())
             .unwrap_or_else(|| "(unset)".to_string());
 
-        tracing::info!("Account id: {account_id}");
-        tracing::info!("Device id: {device_id}");
+        // trace, not info: the sentry_tracing layer forwards info+ as a breadcrumb/event, and
+        // these are the user's real account address and device identity key.
+        tracing::trace!("Account id: {account_id}");
+        tracing::trace!("Device id: {device_id}");
     }
 
     pub async fn run(mut self) {
