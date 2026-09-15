@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install crowdin cli
-        run: yay -S --needed --noconfirm crowdin-cli-bin
+        run: yay -S --needed --noconfirm --answerclean None --answerdiff None --answeredit None crowdin-cli-bin
 
       - name: Download translations from Crowdin
         env:
