@@ -97,4 +97,44 @@ mod synthesize_competing_vpn {
              default route, got: {result:?}"
         );
     }
+
+    #[tokio::test]
+    #[ignore = "mutates the system routing table; run manually with --ignored"]
+    async fn scan_excludes_interface_marked_as_our_own() {
+        #[cfg(target_os = "linux")]
+        let route_manager = RouteManagerHandle::spawn(0xf000, 200)
+            .await
+            .expect("failed to start route manager");
+        #[cfg(not(target_os = "linux"))]
+        let route_manager = RouteManagerHandle::spawn()
+            .await
+            .expect("failed to start route manager");
+
+        let prefix: IpNetwork = "0.0.0.0/0".parse().unwrap();
+        let node = Node::new(
+            SYNTHETIC_GATEWAY,
+            SYNTHETIC_TUNNEL_INTERFACE_ALIAS.to_string(),
+        );
+        let routes = HashSet::from([RequiredRoute::new(prefix, node)]);
+
+        route_manager
+            .add_routes(routes)
+            .await
+            .expect("failed to add synthetic competing-VPN route");
+
+        // As if `RouteHandler::add_routes` had installed this interface as
+        // NymVPN's own, per crates/nym-vpn-lib/src/tunnel_state_machine/route_handler.rs.
+        nym_routing::own_interfaces::mark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
+
+        let result = super::detect().await;
+
+        nym_routing::own_interfaces::unmark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
+        route_manager.clear_routes().ok();
+
+        assert!(
+            !result.contains(&crate::Conflict::CompetingVpn),
+            "expected our own marked interface to never be reported as a \
+             competing VPN, got: {result:?}"
+        );
+    }
 }

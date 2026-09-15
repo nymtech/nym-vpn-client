@@ -43,6 +43,84 @@ use rtnetlink::packet_route::route::RouteHeader;
 
 use ipnetwork::IpNetwork;
 
+/// Tracks the OS interface names NymVPN itself currently owns, so
+/// [`get_default_route_interfaces`] never reports NymVPN's own tunnel as a
+/// competing VPN. Populated by whoever brings the interface up (e.g.
+/// `nym-vpn-lib`'s tunnel monitor), consulted by each platform's
+/// implementation of `get_default_route_interfaces` before classifying an
+/// interface as "virtual".
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod own_interfaces {
+    use std::{
+        collections::HashSet,
+        sync::{Mutex, OnceLock},
+    };
+
+    fn registry() -> &'static Mutex<HashSet<String>> {
+        static REGISTRY: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+        REGISTRY.get_or_init(|| Mutex::new(HashSet::new()))
+    }
+
+    /// Record that `name` is one of NymVPN's own tunnel interfaces.
+    pub fn mark(name: impl Into<String>) {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .insert(name.into());
+    }
+
+    /// Reverse of [`mark`], to be called once the interface is torn down.
+    pub fn unmark(name: &str) {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .remove(name);
+    }
+
+    /// Whether `name` is currently one of NymVPN's own tunnel interfaces.
+    pub fn contains(name: &str) -> bool {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .contains(name)
+    }
+
+    /// Forget every interface recorded via [`mark`]. Called once NymVPN has
+    /// torn down its own routes, since at most one set of own interfaces is
+    /// ever active at a time.
+    pub fn clear() {
+        registry()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clear();
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        // Single test function: the registry is a process-wide global, so
+        // separate #[test] fns here would race against each other under the
+        // default parallel test runner.
+        #[test]
+        fn mark_contains_unmark_and_clear() {
+            assert!(!contains("utun-test-a"));
+
+            mark("utun-test-a");
+            mark("utun-test-b");
+            assert!(contains("utun-test-a"));
+            assert!(contains("utun-test-b"));
+
+            unmark("utun-test-a");
+            assert!(!contains("utun-test-a"));
+            assert!(contains("utun-test-b"));
+
+            clear();
+            assert!(!contains("utun-test-b"));
+        }
+    }
+}
+
 /// Address family for [`get_default_route_interfaces`].
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

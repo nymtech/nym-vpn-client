@@ -89,7 +89,15 @@ pub async fn get_default_route_interfaces(
     for route in routes {
         if route.is_default().unwrap_or(false) {
             let interface_index = u32::from(route.interface_index());
-            if is_tunnel_like_interface(route.interface_index()) {
+            let Some(name) = interface_name(route.interface_index()) else {
+                continue;
+            };
+            // NymVPN's own tunnel interface is also `utun*`-prefixed and would
+            // otherwise be indistinguishable from a genuinely competing VPN.
+            if crate::own_interfaces::contains(&name) {
+                continue;
+            }
+            if is_tunnel_like_interface(&name) {
                 result.virtual_.insert(interface_index);
             } else {
                 result.physical.insert(interface_index);
@@ -100,15 +108,15 @@ pub async fn get_default_route_interfaces(
     Ok(result)
 }
 
-fn is_tunnel_like_interface(interface_index: u16) -> bool {
-    const TUNNEL_PREFIXES: [&str; 4] = ["utun", "tun", "tap", "ppp"];
+fn interface_name(interface_index: u16) -> Option<String> {
+    nix::net::if_::if_indextoname(u32::from(interface_index))
+        .ok()?
+        .into_string()
+        .ok()
+}
 
-    let Ok(name) = nix::net::if_::if_indextoname(u32::from(interface_index)) else {
-        return false;
-    };
-    let Ok(name) = name.into_string() else {
-        return false;
-    };
+fn is_tunnel_like_interface(name: &str) -> bool {
+    const TUNNEL_PREFIXES: [&str; 4] = ["utun", "tun", "tap", "ppp"];
 
     TUNNEL_PREFIXES
         .iter()
