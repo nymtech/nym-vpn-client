@@ -19,7 +19,7 @@ use nym_vpn_api_client::{
     url_to_socket_addr,
 };
 use rand::{prelude::SliceRandom, thread_rng};
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 use url::Url;
 
 use crate::{
@@ -304,13 +304,19 @@ impl GatewayClient {
         if ips.is_empty() {
             // nym-api should forbid this from ever happening, but we don't want to accidentally panic
             // if this assumption fails
-            warn!("somehow {gateway_identity} hasn't provided any ip addresses!");
+            // gateway_identity truncated: full identity + ip lookups reach sentry as a breadcrumb/event
+            warn!(
+                "somehow {}... hasn't provided any ip addresses!",
+                &gateway_identity[..gateway_identity.len().min(8)]
+            );
             return Err(Error::RequestedGatewayIdNotFound(
                 gateway_identity.to_string(),
             ));
         }
 
-        debug!("found the following ips for {gateway_identity}: {ips:?}");
+        // trace, not debug: sentry_tracing forwards debug+ here, and this is the gateway identity
+        // plus its raw ip addresses
+        trace!("found the following ips for {gateway_identity}: {ips:?}");
         if ips.len() == 1 {
             // SAFETY: the vector is not empty, so unwrap is fine
             Ok(ips.pop().unwrap())
@@ -569,6 +575,14 @@ mod test {
     use nym_sdk::UserAgent;
 
     use super::*;
+
+    #[test]
+    fn gateway_identity_truncation_for_logging_handles_short_and_long_ids() {
+        let short = "abc";
+        let long = "abcdefghijklmnop";
+        assert_eq!(&short[..short.len().min(8)], "abc");
+        assert_eq!(&long[..long.len().min(8)], "abcdefgh");
+    }
 
     fn user_agent() -> UserAgent {
         UserAgent {
