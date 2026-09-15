@@ -85,7 +85,7 @@ extension ConnectionManager {
             .store(in: &cancellables)
     }
 
-    @MainActor private func fetchDaemonConfig() async {
+    @MainActor func fetchDaemonConfig() async {
         guard let daemonConfig = await grpcManager.config() else { return }
 
         let preservedCustomAppPaths = connectionConfig.splitTunnelConfig.customAppPaths
@@ -99,6 +99,7 @@ extension ConnectionManager {
         appSettings.isIPv6TrafficEnabled = !daemonConfig.disableIpv6
         appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
         appSettings.isQuicEnabled = daemonConfig.enableBridges
+        appSettings.isStealthApiEnabled = daemonConfig.stealthMode
         appSettings.customDns = daemonConfig.dns ?? []
         appSettings.isCustomDnsEnabled = !(daemonConfig.dns?.isEmpty ?? true)
     }

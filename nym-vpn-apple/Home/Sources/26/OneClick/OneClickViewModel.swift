@@ -36,6 +36,8 @@ public final class OneClickViewModel {
     var entrySelectionPhase: OneClickSelectionPhase = .selecting
     var selectionPhase: OneClickSelectionPhase = .selecting
     var isLiveConnection: Bool = false
+    var currentProfile: ConnectionProfile?
+    let profiles = ConnectionProfile.allCases
 
     var displayMode: OneClickDisplayMode
 
@@ -209,6 +211,11 @@ public final class OneClickViewModel {
         }
     }
 
+    func selectProfile(_ profile: ConnectionProfile) {
+        guard profile != currentProfile else { return }
+        impactGenerator.softImpact()
+        connectionManager.setProfile(profile)
+    }
 }
 
 extension OneClickSpeedMode {

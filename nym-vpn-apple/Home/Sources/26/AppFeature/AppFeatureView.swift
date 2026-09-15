@@ -6,6 +6,7 @@ import KeyboardManager
 #endif
 import ConfigurationManager
 import ConnectionManager
+import ConnectionTypes
 import CredentialsManager
 import ExternalLinkManager
 import FeatureFlagsManager
@@ -42,6 +43,7 @@ public struct AppFeatureView: View {
     @State private var welcomeHeight: CGFloat = 0
     @State private var bottomSafeAreaInset: CGFloat = 0
     @State private var drawerOffsetY: CGFloat = 0
+    @State private var isProfilesPanelExpanded = false
 #if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
@@ -221,6 +223,36 @@ private extension AppFeatureView {
             .easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds),
             value: viewModel.purchaseTransitionOverlayVisible
         )
+        .overlay {
+            profilesPanelOverlay(viewModel: viewModel)
+        }
+    }
+
+    @ViewBuilder
+    func profilesPanelOverlay(viewModel: AppFeatureViewModel) -> some View {
+        if isProfilesPanelExpanded {
+            ZStack(alignment: .topLeading) {
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture { dismissProfilesPanel() }
+                ProfilesPanel(
+                    profiles: viewModel.oneClick.profiles,
+                    selection: viewModel.oneClick.currentProfile
+                ) { profile in
+                    viewModel.oneClick.selectProfile(profile)
+                    dismissProfilesPanel()
+                }
+                .padding(.top, Constants.NavigationBar.height)
+                .padding(.leading, NymSpacing.component)
+            }
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+
+    func dismissProfilesPanel() {
+        withAnimation(Constants.ProfilesPanel.animation) {
+            isProfilesPanelExpanded = false
+        }
     }
 
     @ViewBuilder
@@ -408,13 +440,17 @@ private extension AppFeatureView {
     var navigationBar: some View {
         HStack(alignment: .center) {
             ImageButton(
-                systemImageName: colorScheme == .light ? "sun.max" : "moon.circle",
+                imageName: "profiles",
                 imageSize: Constants.NavigationBar.LeadingIcon.size,
-                accessibilityLabel: "home.navigationBar.theme.accessibilityLabel".localizedString
+                accessibilityLabel: "profiles.title".localizedString
             ) {
+                guard viewModel.drawerContent?.isProcessing != true else { return }
                 impactGenerator.softImpact()
-                viewModel.leadingButtonTapped()
+                withAnimation(Constants.ProfilesPanel.animation) {
+                    isProfilesPanelExpanded.toggle()
+                }
             }
+            .allowsHitTesting(viewModel.drawerContent?.isProcessing != true)
             .padding(.leading, NymSpacing.small)
             Spacer()
             ImageButton(
@@ -552,5 +588,8 @@ private extension AppFeatureView {
             }
         }
 
+        enum ProfilesPanel {
+            static let animation = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.8)
+        }
     }
 }

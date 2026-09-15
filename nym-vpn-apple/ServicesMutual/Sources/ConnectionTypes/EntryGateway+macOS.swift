@@ -10,8 +10,8 @@ extension EntryGateway {
             EntryPoint.gateway(identity: node)
         case .random:
             EntryPoint.random
-        case .auto:
-            EntryPoint.auto(excludeUserCountry: true)
+        case let .auto(excludeUserCountry):
+            EntryPoint.auto(excludeUserCountry: excludeUserCountry)
         case let .region(countryCode: _, region: region):
             EntryPoint.region(region: region)
         }
