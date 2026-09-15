@@ -12,6 +12,7 @@ on:
 concurrency:
   group: crowdin-global-sync
   cancel-in-progress: false
+  queue: max
 
 jobs:
   crowdin-upload:
