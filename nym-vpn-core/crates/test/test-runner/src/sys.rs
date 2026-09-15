@@ -4,12 +4,33 @@
 
 #[cfg(target_os = "linux")]
 use std::collections::HashMap;
-#[cfg(target_os = "linux")]
 use test_rpc::nym_daemon::Verbosity;
 
-#[cfg(target_os = "linux")]
+/// Drop-in path must match the unit name (`nymvpnd.service`), not a Mullvad leftover.
 pub(crate) const NYM_VPN_SYSTEMD_OVERRIDE_FILE: &str =
-    "/etc/systemd/system/nymvpn.service.d/override.conf";
+    "/etc/systemd/system/nymvpnd.service.d/override.conf";
+
+/// Systemd override body for guest `nym-vpnd` log verbosity (`-v` / `-vv`).
+///
+/// Matches `ssh-setup.sh` ExecStart shape: `run-as-service --disable-client-verification`.
+pub(crate) fn daemon_log_level_override_content(
+    daemon_bin: &str,
+    verbosity_level: Verbosity,
+) -> String {
+    let verbosity = match verbosity_level {
+        Verbosity::Info => "",
+        Verbosity::Debug => "-v",
+        Verbosity::Trace => "-vv",
+    };
+    let verbosity_arg = if verbosity.is_empty() {
+        String::new()
+    } else {
+        format!(" {verbosity}")
+    };
+    format!(
+        "[Service]\nExecStart=\nExecStart={daemon_bin} run-as-service --disable-client-verification{verbosity_arg}\n"
+    )
+}
 
 #[cfg(unix)]
 pub fn reboot() -> Result<(), test_rpc::Error> {
@@ -42,16 +63,8 @@ pub async fn set_daemon_log_level(
     use tokio::io::AsyncWriteExt;
     log::debug!("Setting log level");
 
-    let verbosity = match verbosity_level {
-        Verbosity::Info => "",
-        Verbosity::Debug => "-v",
-        Verbosity::Trace => "-vv",
-    };
-    let systemd_service_file_content = format!(
-        r#"[Service]
-ExecStart=
-ExecStart=/usr/bin/{service_name} --disable-stdout-timestamps {verbosity}"#
-    );
+    let systemd_service_file_content =
+        daemon_log_level_override_content(crate::app_nymvpn::NYMVPND_CLI_BIN, verbosity_level);
 
     let override_path = std::path::Path::new(systemd_override_file);
     if let Some(parent) = override_path.parent() {
@@ -373,6 +386,8 @@ pub fn get_os_version() -> Result<test_rpc::meta::OsVersion, test_rpc::Error> {
 
 #[cfg(test)]
 mod test {
+    use super::{NYM_VPN_SYSTEMD_OVERRIDE_FILE, daemon_log_level_override_content};
+    use test_rpc::nym_daemon::Verbosity;
 
     #[cfg(target_os = "linux")]
     #[test]
@@ -396,5 +411,39 @@ mod test {
         let second = env_vars.get(1).unwrap();
         assert_eq!(second.var, "var2");
         assert_eq!(second.value, "value2");
+    }
+
+    #[test]
+    fn systemd_override_path_matches_nymvpnd_unit() {
+        assert!(
+            NYM_VPN_SYSTEMD_OVERRIDE_FILE.contains("nymvpnd.service.d"),
+            "drop-in dir must match unit nymvpnd.service, got {NYM_VPN_SYSTEMD_OVERRIDE_FILE}"
+        );
+        assert!(
+            !NYM_VPN_SYSTEMD_OVERRIDE_FILE.contains("nymvpn.service.d"),
+            "Mullvad leftover nymvpn.service.d would never apply"
+        );
+    }
+
+    #[test]
+    fn daemon_log_level_override_is_nym_shaped() {
+        let bin = "/opt/testing/nym-vpnd";
+        let trace = daemon_log_level_override_content(bin, Verbosity::Trace);
+        assert!(trace.contains(
+            "ExecStart=/opt/testing/nym-vpnd run-as-service --disable-client-verification -vv"
+        ));
+        assert!(!trace.contains("disable-stdout-timestamps"));
+        assert!(!trace.contains("/usr/bin/nymvpnd.service"));
+
+        let info = daemon_log_level_override_content(bin, Verbosity::Info);
+        assert!(info.contains(
+            "ExecStart=/opt/testing/nym-vpnd run-as-service --disable-client-verification\n"
+        ));
+        assert!(!info.contains(" -v"));
+
+        let debug = daemon_log_level_override_content(bin, Verbosity::Debug);
+        assert!(debug.contains(
+            "ExecStart=/opt/testing/nym-vpnd run-as-service --disable-client-verification -v\n"
+        ));
     }
 }
