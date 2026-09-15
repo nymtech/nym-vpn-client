@@ -196,6 +196,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore] // Canary well-known discovery is too flaky for CI (fetch timeouts).
     async fn test_canary_discovery_same_as_fetched() {
         test_discovery_equality(Discovery::default_canary()).await;
     }
