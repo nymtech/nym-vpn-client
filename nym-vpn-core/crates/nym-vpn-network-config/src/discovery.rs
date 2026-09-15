@@ -68,9 +68,6 @@ impl Discovery {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum DiscoveryFromNymWellknownDiscoveryError {}
-
 impl From<NymWellknownDiscoveryItemResponse> for Discovery {
     fn from(discovery: NymWellknownDiscoveryItemResponse) -> Self {
         let account_management = discovery.account_management.and_then(|am| {

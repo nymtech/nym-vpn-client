@@ -142,6 +142,7 @@ pub struct ApiUrl {
     pub url: String,
     pub front_hosts: Option<Vec<String>>,
 }
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(

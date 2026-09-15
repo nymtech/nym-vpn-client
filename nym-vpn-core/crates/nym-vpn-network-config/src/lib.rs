@@ -46,7 +46,6 @@ use nym_sdk::{UserAgent, mixnet::Recipient};
 use nym_vpn_api_client::str_to_socket_addr;
 
 use crate::{
-    discovery::DiscoveryFromNymWellknownDiscoveryError,
     nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
     persistent_discovery::PersistentDiscovery,
     persistent_envs::PersistentEnvs,
@@ -461,9 +460,6 @@ pub enum Error {
 
     #[error("failed to obtain account links")]
     GetAccountLinks(#[from] NymVpnNetworkAccountLinksConversionError),
-
-    #[error("failed to convert well known discovery response into discovery")]
-    ConvertWellKnownDiscovery(#[from] DiscoveryFromNymWellknownDiscoveryError),
 
     #[error("failed to convert nym network details to nym vpn network")]
     ConvertNetworkDetailsToNetwork(#[source] NymVpnNetworkFromDetailsError),
