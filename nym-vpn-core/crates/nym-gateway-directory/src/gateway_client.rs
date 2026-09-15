@@ -19,7 +19,7 @@ use nym_vpn_api_client::{
     url_to_socket_addr,
 };
 use rand::{prelude::SliceRandom, thread_rng};
-use tracing::{debug, error, warn};
+use tracing::{debug, error, trace, warn};
 use url::Url;
 
 use crate::{
@@ -306,13 +306,18 @@ impl GatewayClient {
         if ips.is_empty() {
             // nym-api should forbid this from ever happening, but we don't want to accidentally panic
             // if this assumption fails
-            warn!("somehow {gateway_identity} hasn't provided any ip addresses!");
+            // prefix only; the full identity is not needed here
+            warn!(
+                "somehow {}... hasn't provided any ip addresses!",
+                &gateway_identity[..gateway_identity.len().min(8)]
+            );
             return Err(Error::RequestedGatewayIdNotFound(
                 gateway_identity.to_string(),
             ));
         }
 
-        debug!("found the following ips for {gateway_identity}: {ips:?}");
+        // keep resolved gateway addresses off debug
+        trace!("found the following ips for {gateway_identity}: {ips:?}");
         if ips.len() == 1 {
             // SAFETY: the vector is not empty, so unwrap is fine
             Ok(ips.pop().unwrap())
