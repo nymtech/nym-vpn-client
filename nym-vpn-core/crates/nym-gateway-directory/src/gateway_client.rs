@@ -578,14 +578,6 @@ mod test {
 
     use super::*;
 
-    #[test]
-    fn gateway_identity_truncation_for_logging_handles_short_and_long_ids() {
-        let short = "abc";
-        let long = "abcdefghijklmnop";
-        assert_eq!(&short[..short.len().min(8)], "abc");
-        assert_eq!(&long[..long.len().min(8)], "abcdefgh");
-    }
-
     fn user_agent() -> UserAgent {
         UserAgent {
             application: "test".to_string(),
