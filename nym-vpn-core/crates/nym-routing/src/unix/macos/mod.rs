@@ -38,7 +38,7 @@ mod watch;
 
 pub use watch::Error as RouteError;
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 const BURST_BUFFER_PERIOD: Duration = Duration::from_millis(200);
 const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
@@ -448,10 +448,7 @@ impl RouteManagerImpl {
         Ok(())
     }
 
-    fn handle_route_message(
-        &mut self,
-        message: std::result::Result<RouteSocketMessage, watch::Error>,
-    ) {
+    fn handle_route_message(&mut self, message: Result<RouteSocketMessage, watch::Error>) {
         nym_common::detect_flood!();
 
         tracing::trace!("got RouteSocketMessage::{:?}", message.as_ref().unwrap());
