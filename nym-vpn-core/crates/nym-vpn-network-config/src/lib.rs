@@ -39,7 +39,6 @@ pub use nym_vpn_network::NymVpnNetwork;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
-use nym_common::trace_err_chain;
 use nym_http_api_client::HttpClientError;
 use nym_network_defaults::v2::DnsFallback;
 use nym_sdk::{UserAgent, mixnet::Recipient};
@@ -314,10 +313,8 @@ impl NetworkCache {
             let new_discovery = self.fetcher.fetch_discovery(network_name).await?;
 
             // Update fetcher discovery so that it could pick up new API endpoints if they changed.
-            if new_discovery != *self.persistent_discovery.value()
-                && let Err(err) = self.fetcher.set_discovery(new_discovery.clone())
-            {
-                trace_err_chain!(err, "failed to update fetcher discovery");
+            if new_discovery != *self.persistent_discovery.value() {
+                self.fetcher.set_discovery(new_discovery.clone())?;
             }
 
             self.persistent_discovery.update(new_discovery).await?;
@@ -412,6 +409,9 @@ impl NetworkCache {
 pub enum Error {
     #[error("no endpoints found in nym network")]
     NoEndpointsFound,
+
+    #[error("discovery response is missing required networking information")]
+    InvalidDiscoveryNetworking,
 
     #[error("no default network details available for {0}")]
     NoDefaultNetworkDetails(String),

@@ -63,7 +63,7 @@ impl Fetcher {
             .get_wellknown_discovery(network_name)
             .await
             .map_err(Error::GetWellKnownDiscovery)
-            .map(From::from)
+            .and_then(Discovery::try_from)
     }
 
     /// Fetch network details from the API.

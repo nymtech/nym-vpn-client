@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
+    AccountManagement, Error, FeatureFlags, Result, SystemMessages,
+    system_configuration::SystemConfiguration,
 };
 pub use nym_network_defaults::v2::NetworkingSpecifics;
 use nym_vpn_api_client::response::NymWellknownDiscoveryItemResponse;
@@ -68,8 +69,10 @@ impl Discovery {
     }
 }
 
-impl From<NymWellknownDiscoveryItemResponse> for Discovery {
-    fn from(discovery: NymWellknownDiscoveryItemResponse) -> Self {
+impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
+    type Error = Error;
+
+    fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> Result<Self> {
         let account_management = discovery.account_management.and_then(|am| {
             AccountManagement::try_from(am)
                 .inspect_err(|err| tracing::warn!("Failed to parse account management: {err}"))
@@ -91,23 +94,24 @@ impl From<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
-        let networking = discovery.networking.unwrap_or_else(|| {
+        let networking = discovery.networking.ok_or_else(|| {
             tracing::warn!("Discovery response is missing the networking section");
-            NetworkingSpecifics {
-                nym_api_urls: Vec::new(),
-                nym_vpn_api_urls: Vec::new(),
-                dns_fallbacks: Vec::new(),
-            }
-        });
+            Error::InvalidDiscoveryNetworking
+        })?;
 
-        Self {
+        if networking.nym_api_urls.is_empty() || networking.nym_vpn_api_urls.is_empty() {
+            tracing::warn!("Discovery response has empty nym_api_urls or nym_vpn_api_urls");
+            return Err(Error::InvalidDiscoveryNetworking);
+        }
+
+        Ok(Self {
             network_name: discovery.network_name,
             networking,
             account_management,
             feature_flags,
             system_configuration,
             system_messages,
-        }
+        })
     }
 }
 
@@ -258,7 +262,7 @@ mod tests {
             ]
         }"#;
         let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
-        let network: Discovery = discovery.into();
+        let network = Discovery::try_from(discovery).unwrap();
 
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
