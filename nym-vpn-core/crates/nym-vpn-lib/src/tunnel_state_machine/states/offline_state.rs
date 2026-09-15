@@ -232,6 +232,11 @@ impl TunnelStateHandler for OfflineState {
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {
+                        nym_http_api_client::network_reconfigured();
+                        shared_state.gateway_provider.set_active_geo_location(true).await;
+                        if let Err(e) = shared_state.gateway_provider.reset_selection_stream().await {
+                            tracing::warn!("Failed to reset gateway selections after regaining connectivity: {e:?}");
+                        }
                         NextTunnelState::NewState(ConnectingState::enter(0, self.selected_gateways, shared_state).await)
                     } else {
                         NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
