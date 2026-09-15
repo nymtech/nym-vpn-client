@@ -251,10 +251,11 @@ private extension SettingsViewModel {
             }
             .store(in: &cancellables)
 
-        Publishers.Merge3(
+        Publishers.Merge4(
             credentialsManager.$accountSummary.map { _ in () },
             credentialsManager.$accountSummaryLastFetchFailed.map { _ in () },
-            credentialsManager.$isAccountRegistrationInFlight.map { _ in () }
+            credentialsManager.$isAccountRegistrationInFlight.map { _ in () },
+            credentialsManager.$isAccountKnownInactive.map { _ in () }
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] _ in
@@ -314,12 +315,15 @@ extension SettingsViewModel {
         case requestingZkNyms
         case unreachable
         case checking
+        case choosePlan
     }
 
     static func nilSummaryAccountCopy(
         lastFetchFailed: Bool,
-        isRegistrationInFlight: Bool
+        isRegistrationInFlight: Bool,
+        isAccountKnownInactive: Bool = false
     ) -> NilSummaryAccountCopy {
+        if isAccountKnownInactive { return .choosePlan }
         if isRegistrationInFlight { return .requestingZkNyms }
         if lastFetchFailed { return .unreachable }
         return .checking
@@ -352,12 +356,15 @@ private extension SettingsViewModel {
         } else {
             switch Self.nilSummaryAccountCopy(
                 lastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
-                isRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight
+                isRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight,
+                isAccountKnownInactive: credentialsManager.isAccountKnownInactive
             ) {
             case .requestingZkNyms, .checking:
                 subtitle = AttributedString("requestingZkNyms".localizedString)
             case .unreachable:
                 subtitle = AttributedString("home.accountUnreachable".localizedString)
+            case .choosePlan:
+                subtitle = Self.noActivePlanChoosePlanSubtitle()
             }
         }
 

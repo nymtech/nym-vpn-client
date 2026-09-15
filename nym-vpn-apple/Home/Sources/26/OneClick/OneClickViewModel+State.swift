@@ -94,6 +94,13 @@ extension OneClickViewModel {
             }
             .store(in: &cancellables)
 
+        credentialsManager.$isAccountKnownInactive
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+
         appSettings.$isCredentialImportedPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -153,7 +160,8 @@ extension OneClickViewModel {
                     isCredentialImported: credentialsManager.isValidCredentialImported,
                     accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
                     isAccountActive: credentialsManager.isAccountActive(),
-                    hasAccountSummary: credentialsManager.accountSummary != nil
+                    hasAccountSummary: credentialsManager.accountSummary != nil,
+                    isAccountKnownInactive: credentialsManager.isAccountKnownInactive
                 )
             )
         }
@@ -205,7 +213,8 @@ extension OneClickViewModel {
             validUntilIsFuture: LoginSessionPolicy.validUntilIsFuture(
                 validUntil: summary?.validUntilDate
             ),
-            hasAccountSummary: summary != nil
+            hasAccountSummary: summary != nil,
+            isAccountKnownInactive: credentialsManager.isAccountKnownInactive
         )
         if shouldOfferPurchase {
             sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)

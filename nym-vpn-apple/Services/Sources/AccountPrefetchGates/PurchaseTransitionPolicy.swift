@@ -32,4 +32,17 @@ public enum PurchaseTransitionPolicy {
     ) -> Bool {
         isPurchaseFlowActive && isDrawerHidden
     }
+
+    /// Plan purchase push waits until the drawer hide animation has finished
+    /// (`checkoutNavigationPending`) so processing UI does not overlap the page.
+    public static func shouldPushPlanPurchaseAfterDrawerHidden(
+        drawerHidden: Bool,
+        checkoutNavigationPending: Bool
+    ) -> Bool {
+        drawerHidden && checkoutNavigationPending
+    }
+
+    public static func usesTimedDrawerHide(isPlanPurchasePending: Bool) -> Bool {
+        isPlanPurchasePending
+    }
 }

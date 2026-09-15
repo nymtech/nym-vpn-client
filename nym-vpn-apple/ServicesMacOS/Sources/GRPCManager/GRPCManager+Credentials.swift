@@ -2,12 +2,32 @@ import NymVPNLib
 import Constants
 import ConnectionTypes
 import ErrorReason
+import TunnelStatus
 
 extension GRPCManager {
+    public nonisolated static func errorReason(
+        forAccountCommand error: AccountCommandError?
+    ) -> ErrorReason? {
+        if case .ExistingAccount? = error {
+            return .existingAccount
+        }
+        return nil
+    }
+
     public func storeAccount(with request: StoreAccountRequest) async throws {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.storeAccount(request: request)
-        }.value
+        guard let rpcClient else {
+            throw ErrorReason.internalError("rpc client unavailable")
+        }
+        do {
+            try await Task.detached {
+                try await rpcClient.storeAccount(request: request)
+            }.value
+        } catch let error as RpcError {
+            if let reason = Self.errorReason(forAccountCommand: error.accountError()) {
+                throw reason
+            }
+            throw error
+        }
     }
 
     public func forgetAccount() async throws {
@@ -20,6 +40,29 @@ extension GRPCManager {
         try await Task.detached { [weak self] in
             try await self?.rpcClient?.isAccountStored() ?? false
         }.value
+    }
+
+    public func isAccountKnownInactiveForLogin() async -> Bool {
+        await accountControllerLoginState().isTerminalInactiveForLogin
+    }
+
+    public func accountControllerLoginState() async -> AccountControllerLoginState {
+        do {
+            let state = try await Task.detached { [weak self] in
+                try await self?.rpcClient?.getAccountState()
+            }.value
+            guard let state else { return .other }
+            switch state {
+            case .error(.inactiveSubscription):
+                return .inactiveSubscription
+            case .error(.accountStatusNotActive):
+                return .accountStatusNotActive
+            default:
+                return .other
+            }
+        } catch {
+            return .other
+        }
     }
 
     public func accountSummary() async throws -> AccountSummary? {

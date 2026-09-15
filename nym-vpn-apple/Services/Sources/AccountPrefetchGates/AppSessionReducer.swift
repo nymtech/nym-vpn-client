@@ -66,6 +66,7 @@ public struct AppSessionEnvironment: Equatable, Sendable {
     public var accountSummaryLastFetchFailed: Bool
     public var validUntilIsFuture: Bool
     public var hasAccountSummary: Bool
+    public var isAccountKnownInactive: Bool
 
     public init(
         isCredentialImported: Bool,
@@ -74,7 +75,8 @@ public struct AppSessionEnvironment: Equatable, Sendable {
         processingKind: ProcessingFlowKind? = nil,
         accountSummaryLastFetchFailed: Bool = false,
         validUntilIsFuture: Bool = false,
-        hasAccountSummary: Bool = false
+        hasAccountSummary: Bool = false,
+        isAccountKnownInactive: Bool = false
     ) {
         self.isCredentialImported = isCredentialImported
         self.welcomeScreenDidDisplay = welcomeScreenDidDisplay
@@ -83,6 +85,7 @@ public struct AppSessionEnvironment: Equatable, Sendable {
         self.accountSummaryLastFetchFailed = accountSummaryLastFetchFailed
         self.validUntilIsFuture = validUntilIsFuture
         self.hasAccountSummary = hasAccountSummary
+        self.isAccountKnownInactive = isAccountKnownInactive
     }
 }
 
@@ -290,7 +293,8 @@ public enum AppSessionReducer: Equatable, Sendable {
             isAccountActive: environment.isAccountActive,
             accountSummaryLastFetchFailed: environment.accountSummaryLastFetchFailed,
             validUntilIsFuture: environment.validUntilIsFuture,
-            hasAccountSummary: environment.hasAccountSummary
+            hasAccountSummary: environment.hasAccountSummary,
+            isAccountKnownInactive: environment.isAccountKnownInactive
         )
 
         var updated = context

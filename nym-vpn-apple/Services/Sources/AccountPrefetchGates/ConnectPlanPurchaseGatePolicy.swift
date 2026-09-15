@@ -6,7 +6,8 @@ public enum ConnectPlanPurchaseGatePolicy: Equatable, Sendable {
         accountSummaryLastFetchFailed: Bool,
         isAccountActive: Bool,
         validUntilIsFuture: Bool,
-        hasAccountSummary: Bool
+        hasAccountSummary: Bool,
+        isAccountKnownInactive: Bool = false
     ) -> Bool {
         if isAccountRegistrationInFlight { return false }
         if accountSummaryLastFetchFailed { return false }
@@ -17,6 +18,6 @@ public enum ConnectPlanPurchaseGatePolicy: Equatable, Sendable {
         ) {
             return false
         }
-        return hasAccountSummary && !isAccountActive
+        return (hasAccountSummary || isAccountKnownInactive) && !isAccountActive
     }
 }
