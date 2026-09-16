@@ -890,6 +890,7 @@ mod observed_state_tests {
             observed_tunnel_state(TunnelState::Connecting {
                 retry_attempt: 0,
                 state: EstablishConnectionState::ResolvingApiAddresses,
+                selector_fallback_state: Default::default(),
                 tunnel_type: TunnelType::Mixnet,
                 connection_data: None,
             }),

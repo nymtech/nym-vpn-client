@@ -9,10 +9,9 @@ use tokio_util::sync::CancellationToken;
 use crate::tunnel_state_machine::{
     TunnelSettings,
     tunnel::gateway_provider::{
-        SelectionResultSender, gateway_cache::GatewayCache, geo_ip::GeoIpProvider,
-        selector::select_gateways,
+        GatewayProviderEventSender, SelectionResultSender, gateway_cache::GatewayCache,
+        geo_ip::GeoIpProvider, selector::select_gateways,
     },
-    tunnel_monitor::TunnelMonitorEventSender,
 };
 
 #[derive(Clone)]
@@ -23,7 +22,7 @@ pub struct SelectAndSend {
 
 async fn continuous_select<C: GatewayCache>(
     select_and_send: SelectAndSend,
-    tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+    gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     gateway_cache: C,
     blacklisted_gateways: &BlacklistedGateways,
     device_location: Option<Location>,
@@ -39,7 +38,7 @@ async fn continuous_select<C: GatewayCache>(
             gateway_cache.clone(),
             blacklisted_gateways,
             &select_and_send.tunnel_settings,
-            tunnel_monitor_event_sender.clone(),
+            gateway_provider_event_sender.clone(),
             device_location.clone(),
             wg_keys_db,
         )
@@ -50,7 +49,7 @@ async fn continuous_select<C: GatewayCache>(
 
 pub struct SelectionAlgorithm<C: GatewayCache> {
     tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
-    tunnel_monitor_event_sender_rx: mpsc::Receiver<TunnelMonitorEventSender>,
+    gateway_provider_event_sender_rx: mpsc::Receiver<GatewayProviderEventSender>,
     gateway_cache: C,
     geo_ip_provider: GeoIpProvider,
     blacklisted_gateways: BlacklistedGateways,
@@ -61,7 +60,7 @@ pub struct SelectionAlgorithm<C: GatewayCache> {
 impl<C: GatewayCache> SelectionAlgorithm<C> {
     pub fn new(
         tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
-        tunnel_monitor_event_sender_rx: mpsc::Receiver<TunnelMonitorEventSender>,
+        gateway_provider_event_sender_rx: mpsc::Receiver<GatewayProviderEventSender>,
         gateway_cache: C,
         geo_ip_provider: GeoIpProvider,
         blacklisted_gateways: BlacklistedGateways,
@@ -70,7 +69,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
     ) -> Self {
         Self {
             tunnel_settings_rx,
-            tunnel_monitor_event_sender_rx,
+            gateway_provider_event_sender_rx,
             gateway_cache,
             geo_ip_provider,
             blacklisted_gateways,
@@ -84,7 +83,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
         mut latest_tunnel_settings: SelectAndSend,
         mut latest_location: Option<Location>,
     ) {
-        let mut tunnel_monitor_event_sender = None;
+        let mut gateway_provider_event_sender = None;
         loop {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
@@ -94,15 +93,15 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
                 Some(new_settings) = self.tunnel_settings_rx.recv() => {
                     latest_tunnel_settings = new_settings;
                 }
-                Some(sender) = self.tunnel_monitor_event_sender_rx.recv() => {
-                    tunnel_monitor_event_sender = Some(sender);
+                Some(sender) = self.gateway_provider_event_sender_rx.recv() => {
+                    gateway_provider_event_sender = Some(sender);
                 }
                 new_location = self.geo_ip_provider.new_location() => {
                     latest_location = new_location;
                 }
                 _ = continuous_select(
                         latest_tunnel_settings.clone(),
-                        tunnel_monitor_event_sender.clone(),
+                        gateway_provider_event_sender.clone(),
                         self.gateway_cache.clone(),
                         &self.blacklisted_gateways,
                         latest_location.clone(),

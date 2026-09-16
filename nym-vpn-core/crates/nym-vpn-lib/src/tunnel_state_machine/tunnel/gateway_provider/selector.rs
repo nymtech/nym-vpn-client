@@ -17,13 +17,13 @@ use crate::tunnel_state_machine::{
     tunnel::{
         self,
         gateway_provider::{
+            GatewayProviderEvent, GatewayProviderEventSender,
             error::GatewayProviderError,
             gateway_cache::GatewayCache,
             geo_ip::{closest_gateway, same_jurisdiction},
             independence::gateways_are_independent,
         },
     },
-    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventSender},
 };
 
 #[derive(Clone)]
@@ -137,7 +137,7 @@ impl OrderingCriteria<EntryPoint> {
     pub fn new_entry(
         entry_gateways: &mut GatewayList,
         entry_point: nym_vpn_lib_types::EntryPoint,
-        tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+        gateway_provider_event_sender: Option<GatewayProviderEventSender>,
         device_location: Option<&Location>,
     ) -> Self {
         match entry_point {
@@ -172,9 +172,9 @@ impl OrderingCriteria<EntryPoint> {
                     }
                     OrderingCriteria::ClosestTo(device_location.clone())
                 } else {
-                    if let Some(tunnel_monitor_event_sender) = tunnel_monitor_event_sender {
-                        tunnel_monitor_event_sender
-                            .send(TunnelMonitorEvent::RandomFallback)
+                    if let Some(gateway_provider_event_sender) = gateway_provider_event_sender {
+                        gateway_provider_event_sender
+                            .send(GatewayProviderEvent::FallbackToRandomEntry)
                             .ok();
                     }
                     OrderingCriteria::Random(EntryPoint::Random)
@@ -189,7 +189,7 @@ impl OrderingCriteria<ExitPoint> {
         entry_gateway_location: Option<Location>,
         exit_gateways: &mut GatewayList,
         exit_point: nym_vpn_lib_types::ExitPoint,
-        tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+        gateway_provider_event_sender: Option<GatewayProviderEventSender>,
         device_location: Option<&Location>,
     ) -> Self {
         match exit_point {
@@ -252,9 +252,9 @@ impl OrderingCriteria<ExitPoint> {
                 } else if let Some(criteria) = fallback_criteria {
                     criteria
                 } else {
-                    if let Some(tunnel_monitor_event_sender) = tunnel_monitor_event_sender {
-                        tunnel_monitor_event_sender
-                            .send(TunnelMonitorEvent::RandomFallback)
+                    if let Some(gateway_provider_event_sender) = gateway_provider_event_sender {
+                        gateway_provider_event_sender
+                            .send(GatewayProviderEvent::FallbackToRandomExit)
                             .ok();
                     }
                     OrderingCriteria::Random(ExitPoint::Random)
@@ -302,7 +302,7 @@ fn select_entry(
     mut entry_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
-    tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+    gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
     let entry_filters = if blacklisted_gateways.is_empty().unwrap_or(true) {
@@ -314,7 +314,7 @@ fn select_entry(
     let entry_ordering_criteria = OrderingCriteria::new_entry(
         &mut entry_gateways,
         tunnel_settings.entry_point.as_ref().clone(),
-        tunnel_monitor_event_sender,
+        gateway_provider_event_sender,
         device_location,
     );
 
@@ -327,7 +327,7 @@ fn select_exit(
     mut exit_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
-    tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+    gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
@@ -343,7 +343,7 @@ fn select_exit(
         entry_gateway.location.clone(),
         &mut exit_gateways,
         tunnel_settings.exit_point.as_ref().clone(),
-        tunnel_monitor_event_sender,
+        gateway_provider_event_sender,
         device_location,
     );
 
@@ -366,7 +366,7 @@ fn loop_select(
     exit_gateways: GatewayList,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
-    tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+    gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<(Gateway, Gateway), GatewayProviderError> {
     let mut exit_error = None;
@@ -375,7 +375,7 @@ fn loop_select(
             entry_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
-            tunnel_monitor_event_sender.clone(),
+            gateway_provider_event_sender.clone(),
             device_location,
         )
         // if we failed previously on exit selection, we return that error
@@ -386,7 +386,7 @@ fn loop_select(
             exit_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
-            tunnel_monitor_event_sender.clone(),
+            gateway_provider_event_sender.clone(),
             device_location,
         ) {
             Ok(exit_gateway) => return Ok((entry_gateway, exit_gateway)),
@@ -403,7 +403,7 @@ pub async fn select_gateways(
     gateway_cache: impl GatewayCache,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
-    tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+    gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<Location>,
     wg_keys_db: &WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayProviderError> {
@@ -471,7 +471,7 @@ pub async fn select_gateways(
             exit_gateways.clone(),
             blacklisted_gateways,
             tunnel_settings,
-            tunnel_monitor_event_sender.clone(),
+            gateway_provider_event_sender.clone(),
             device_location.as_ref(),
         ) {
             pair
@@ -488,7 +488,7 @@ pub async fn select_gateways(
                 exit_gateways,
                 blacklisted_gateways,
                 &no_gateway_independence_settings,
-                tunnel_monitor_event_sender,
+                gateway_provider_event_sender,
                 device_location.as_ref(),
             )?;
             // otherwise we return an error that prompts the user to explicitly agree to possible non-independent gateways
@@ -499,7 +499,7 @@ pub async fn select_gateways(
             entry_gateways,
             blacklisted_gateways,
             tunnel_settings,
-            tunnel_monitor_event_sender.clone(),
+            gateway_provider_event_sender.clone(),
             device_location.as_ref(),
         )?;
         let exit_gateway = select_exit(
@@ -507,7 +507,7 @@ pub async fn select_gateways(
             exit_gateways,
             blacklisted_gateways,
             tunnel_settings,
-            tunnel_monitor_event_sender,
+            gateway_provider_event_sender,
             device_location.as_ref(),
         )?;
         (entry_gateway, exit_gateway)

@@ -86,7 +86,8 @@ use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData,
     DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GeoExclusionSettings, SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState,
+    TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -610,11 +611,13 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Connecting {
                 retry_attempt,
                 state,
+                selector_fallback_state,
                 tunnel_type,
                 connection_data,
             } => Self::Connecting {
                 retry_attempt,
                 state,
+                selector_fallback_state,
                 tunnel_type,
                 connection_data,
             },
@@ -635,6 +638,7 @@ enum PrivateTunnelState {
         /// Connection attempt.
         retry_attempt: u32,
         state: EstablishConnectionState,
+        selector_fallback_state: SelectorFallbackState,
         tunnel_type: TunnelType,
         connection_data: Option<EstablishConnectionData>,
     },

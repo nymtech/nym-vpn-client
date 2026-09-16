@@ -30,23 +30,34 @@ use crate::tunnel_state_machine::{
         gateway_cache::GatewayCache,
         geo_ip::{FetcherCommand, GeoIpClient, GeoIpFetcher, GeoIpProvider, QueryControl},
     },
-    tunnel_monitor::TunnelMonitorEventSender,
 };
 
 pub use error::GatewayProviderError;
 pub use selector::SelectedGateways;
+
+pub type GatewayProviderEventSender = mpsc::UnboundedSender<GatewayProviderEvent>;
+pub type GatewayProviderEventReceiver = mpsc::UnboundedReceiver<GatewayProviderEvent>;
 
 type SelectionResult = Result<SelectedGateways, GatewayProviderError>;
 type SelectionResultSender = mpsc::Sender<SelectionResult>;
 type SelectedGatewaysStream =
     Arc<Mutex<Peekable<ReceiverStream<Result<SelectedGateways, GatewayProviderError>>>>>;
 
+#[derive(Debug)]
+pub enum GatewayProviderEvent {
+    /// Falling back to random for automatic selections on entry because of lack of user location
+    FallbackToRandomEntry,
+
+    /// Falling back to random for automatic selections on exit because of lack of user and gateway location
+    FallbackToRandomExit,
+}
+
 #[derive(Clone)]
 pub struct GatewayProvider<C: GatewayCache> {
     gateway_cache: C,
     latest_tunnel_settings: Arc<Mutex<TunnelSettings>>,
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
-    tunnel_monitor_event_sender_tx: mpsc::Sender<TunnelMonitorEventSender>,
+    tunnel_monitor_event_sender_tx: mpsc::Sender<GatewayProviderEventSender>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_gateways: BlacklistedGateways,
     query_control: Arc<RwLock<QueryControl>>,
@@ -321,7 +332,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         }
     }
 
-    pub async fn set_tunnel_monitor_event_sender(&self, sender: TunnelMonitorEventSender) {
+    pub async fn set_tunnel_monitor_event_sender(&self, sender: GatewayProviderEventSender) {
         self.tunnel_monitor_event_sender_tx.send(sender).await.ok();
     }
 }
