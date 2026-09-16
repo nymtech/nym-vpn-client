@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.12.4] - 2026-09-16
+
 ### Added
 
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
