@@ -50,7 +50,7 @@ private extension GatewaySafestCell {
         } else {
             switch hopType {
             case .entry:
-                entryGateway = .auto
+                entryGateway = .auto(excludeUserCountry: true)
             case .exit:
                 exitRouter = .auto
             }

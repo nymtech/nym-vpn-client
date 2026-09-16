@@ -11,8 +11,8 @@ extension EntryGateway {
             .gateway(identity: gateway)
         case .random:
             .random
-        case .auto:
-            .auto(excludeUserCountry: true)
+        case let .auto(excludeUserCountry):
+            .auto(excludeUserCountry: excludeUserCountry)
         case let .region(countryCode: _, region: region):
             .region(region: region)
         }

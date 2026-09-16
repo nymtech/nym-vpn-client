@@ -1,7 +1,5 @@
 import Foundation
-#if os(macOS)
 import NymVPNLib
-#endif
 
 public struct ConnectionConfig: Codable {
     public var entry: EntryGateway
@@ -12,6 +10,7 @@ public struct ConnectionConfig: Codable {
     public var enableTwoHop: Bool
     public var enableBridges: Bool
     public var enableAdBlocking: Bool
+    public var stealthMode: Bool
     public var netstack: Bool
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
@@ -19,9 +18,6 @@ public struct ConnectionConfig: Codable {
     public var geoExclusionConfig: GeoExclusionConfig
     public var gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig
 
-#if os(iOS)
-
-#elseif os(macOS)
     public var entryPoint: EntryPoint {
         entryPoint(from: entry)
     }
@@ -29,7 +25,6 @@ public struct ConnectionConfig: Codable {
     public var exitPoint: ExitPoint {
         exitPoint(from: exit)
     }
-#endif
 
     public init(
         entry: EntryGateway,
@@ -45,7 +40,8 @@ public struct ConnectionConfig: Codable {
         mixnetTuningConfig: MixnetTuningConfig,
         splitTunnelConfig: SplitTunnelConfig,
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
-        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true)
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true),
+        stealthMode: Bool = false
     ) {
         self.entry = entry
         self.exit = exit
@@ -55,6 +51,7 @@ public struct ConnectionConfig: Codable {
         self.enableTwoHop = enableTwoHop
         self.enableBridges = enableBridges
         self.enableAdBlocking = enableAdBlocking
+        self.stealthMode = stealthMode
         self.netstack = netstack
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
@@ -63,9 +60,6 @@ public struct ConnectionConfig: Codable {
         self.gatewaySelectionAlgorithmConfig = gatewaySelectionAlgorithmConfig
     }
 
-#if os(iOS)
-
-#elseif os(macOS)
     public init(from config: VpnServiceConfig) {
         self.entry = ConnectionConfig.entryGateway(from: config.entryPoint)
         self.exit = ConnectionConfig.exitRouter(from: config.exitPoint)
@@ -74,20 +68,24 @@ public struct ConnectionConfig: Codable {
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
         self.enableBridges = config.enableBridges
+        self.stealthMode = config.frontingMode == .always
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
         self.enableAdBlocking = config.enableAdBlocking
+#if os(macOS)
         self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
         self.geoExclusionConfig = GeoExclusionConfig(from: config.geoExclusion)
+#else
+        self.splitTunnelConfig = SplitTunnelConfig()
+        self.geoExclusionConfig = GeoExclusionConfig()
+#endif
         self.gatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
             enableGeoLocation: true
         )
     }
-#endif
 }
 
-#if os(macOS)
 private extension ConnectionConfig {
     static func entryGateway(from entryPoint: EntryPoint) -> EntryGateway {
         switch entryPoint {
@@ -99,8 +97,8 @@ private extension ConnectionConfig {
             return .region(countryCode: "", region: region)
         case .random:
             return .random
-        case .auto:
-            return .auto
+        case let .auto(excludeUserCountry):
+            return .auto(excludeUserCountry: excludeUserCountry)
         }
     }
 
@@ -130,8 +128,8 @@ private extension ConnectionConfig {
             EntryPoint.gateway(identity: node)
         case .random:
             EntryPoint.random
-        case .auto:
-            EntryPoint.auto(excludeUserCountry: true)
+        case let .auto(excludeUserCountry):
+            EntryPoint.auto(excludeUserCountry: excludeUserCountry)
         case let .region(countryCode: _, region: region):
             EntryPoint.region(region: region)
         }
@@ -152,7 +150,6 @@ private extension ConnectionConfig {
         }
     }
 }
-#endif
 
 extension ConnectionConfig: Equatable {
     public static func == (lhs: ConnectionConfig, rhs: ConnectionConfig) -> Bool {
@@ -163,6 +160,7 @@ extension ConnectionConfig: Equatable {
         lhs.disableIpv6 == rhs.disableIpv6 &&
         lhs.enableTwoHop == rhs.enableTwoHop &&
         lhs.enableBridges == rhs.enableBridges &&
+        lhs.stealthMode == rhs.stealthMode &&
         lhs.netstack == rhs.netstack &&
         lhs.residentialExit == rhs.residentialExit &&
         lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
@@ -175,7 +173,7 @@ extension ConnectionConfig: Equatable {
 extension ConnectionConfig {
     private enum CodingKeys: String, CodingKey {
         case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
-        case enableBridges, enableAdBlocking, netstack
+        case enableBridges, enableAdBlocking, stealthMode, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
         case geoExclusionConfig
         case gatewaySelectionAlgorithmConfig
@@ -191,6 +189,7 @@ extension ConnectionConfig {
         self.enableTwoHop = try container.decode(Bool.self, forKey: .enableTwoHop)
         self.enableBridges = try container.decode(Bool.self, forKey: .enableBridges)
         self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
+        self.stealthMode = try container.decodeIfPresent(Bool.self, forKey: .stealthMode) ?? false
         self.netstack = try container.decode(Bool.self, forKey: .netstack)
         self.residentialExit = try container.decode(Bool.self, forKey: .residentialExit)
         self.mixnetTuningConfig = try container.decode(MixnetTuningConfig.self, forKey: .mixnetTuningConfig)

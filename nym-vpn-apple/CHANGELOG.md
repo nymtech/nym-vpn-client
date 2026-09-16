@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Six-month subscription kind (https://github.com/nymtech/nym-vpn-client/pull/6320)
+- Add Profiles: UI & logic (https://github.com/nymtech/nym-vpn-client/pull/6364)
 
 ### Removed
 

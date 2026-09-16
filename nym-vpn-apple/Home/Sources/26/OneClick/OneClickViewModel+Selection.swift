@@ -19,6 +19,7 @@ import GRPCManager
 
 extension OneClickViewModel {
     func refreshSelection() {
+        currentProfile = connectionManager.currentProfile
         let cfg = connectionManager.connectionConfig
         let twoHop = cfg.enableTwoHop
         let exitType: NodeType = twoHop ? .vpn : .exit
@@ -92,6 +93,25 @@ extension OneClickViewModel {
                 gatewayType: exitType
             )
         }
+        // Safest/Most Private/Fastest all map to `.auto`, so a matched profile's own label/icon
+        // takes over instead of the generic "Safest" fallback used for a bare `.auto`.
+        if let currentProfile {
+            selectionPhase = applyProfileOverride(to: selectionPhase, profile: currentProfile)
+            if displayMode == .nerd {
+                entrySelectionPhase = applyProfileOverride(to: entrySelectionPhase, profile: currentProfile)
+            }
+        }
+    }
+
+    func applyProfileOverride(to phase: OneClickSelectionPhase, profile: ConnectionProfile) -> OneClickSelectionPhase {
+        guard case var .selected(info) = phase else { return phase }
+        info.title = profile.titleKey.localizedString
+        info.subtitle = nil
+        info.countryCode = ""
+        info.profileImageName = profile.imageName
+        info.isRandomSelection = false
+        info.isSafestSelection = false
+        return .selected(info)
     }
 
     func isLiveStatus(_ status: TunnelStatus) -> Bool {

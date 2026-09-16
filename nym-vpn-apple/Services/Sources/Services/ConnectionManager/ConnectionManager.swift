@@ -4,7 +4,6 @@ import NetworkExtension
 import os
 import AppSettings
 import ConnectionTypes
-import ConnectionTypes
 import CredentialsManager
 import TunnelMixnet
 import Tunnels
@@ -67,6 +66,21 @@ import GRPCManager
     @Published public var connectionType: ConnectionType
     public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
     public var exitGatewayType: NodeType { connectionType == .wireguard ? .vpn : .exit }
+
+    /// Derived from the live entry/exit/hop-count combination; `nil` once the user picks a custom gateway.
+    public var currentProfile: ConnectionProfile? {
+        switch (entryGateway, exitRouter) {
+        case (.random, .random):
+            return .random
+        case (.auto(true), .auto):
+            return connectionConfig.enableTwoHop ? .safest : .mostPrivate
+        case (.auto(false), .auto):
+            return connectionConfig.enableTwoHop ? .fastest : nil
+        default:
+            return nil
+        }
+    }
+
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
 #if os(iOS)
     @Published public var activeTunnel: Tunnel? {
@@ -139,7 +153,7 @@ import GRPCManager
             )
         }
 #endif
-        setEntryGateway(.auto)
+        setEntryGateway(.auto(excludeUserCountry: true))
         setExitGateway(.auto)
     }
 
@@ -307,4 +321,3 @@ private extension ConnectionManager {
         exitRouter = connectionStorage.exitRouter
     }
 }
-

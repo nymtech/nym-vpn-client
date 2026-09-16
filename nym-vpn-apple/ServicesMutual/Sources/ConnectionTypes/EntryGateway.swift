@@ -6,7 +6,8 @@ public enum EntryGateway: Codable, Equatable {
     case region(countryCode: String, region: String)
     case gateway(String)
     case random
-    case auto
+    /// Mirrors the core's `EntryPoint.Auto(excludeUserCountry:)` — needed to tell Safest/Most Private apart from Fastest.
+    case auto(excludeUserCountry: Bool)
 
     public var isCountry: Bool {
         switch self {

@@ -56,7 +56,7 @@ extension ConnectionStorage {
 
 #if SANTA
     func resetGatewaySelectionsForEnvironmentChange() {
-        connectionConfig.entry = .auto
+        connectionConfig.entry = .auto(excludeUserCountry: true)
         connectionConfig.exit = .auto
     }
 
@@ -78,7 +78,7 @@ extension ConnectionStorage {
 
     static func generateInitialConfig() -> ConnectionConfig {
         ConnectionConfig(
-            entry: .auto,
+            entry: .auto(excludeUserCountry: true),
             exit: .auto,
             dns: nil,
             allowLan: false,
