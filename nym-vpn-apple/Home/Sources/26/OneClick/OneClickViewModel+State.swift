@@ -87,6 +87,20 @@ extension OneClickViewModel {
             }
             .store(in: &cancellables)
 
+        credentialsManager.$accountSummaryLastFetchFailed
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+
+        appSettings.$isCredentialImportedPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+
         networkMonitor.$isAvailable
             .removeDuplicates()
             .dropFirst()
@@ -134,10 +148,14 @@ extension OneClickViewModel {
             if !networkMonitor.isAvailable {
                 return .noInternet
             }
-            if credentialsManager.isValidCredentialImported, !credentialsManager.isAccountActive() {
-                return .noSubscription
-            }
-            return .disconnected
+            return .disconnected(
+                DisconnectedHomeCTA.resolve(
+                    isCredentialImported: credentialsManager.isValidCredentialImported,
+                    accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+                    isAccountActive: credentialsManager.isAccountActive(),
+                    hasAccountSummary: credentialsManager.accountSummary != nil
+                )
+            )
         }
     }
 
