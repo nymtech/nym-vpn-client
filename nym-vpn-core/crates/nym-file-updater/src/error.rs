@@ -9,13 +9,13 @@ use thiserror::Error;
 pub enum FileUpdaterError {
     #[error("Failed to build HTTP client: {error}")]
     BuildHttpClient {
-        error: nym_http_api_client::HttpClientError,
+        error: Box<nym_http_api_client::HttpClientError>,
     },
 
     #[error("HTTP request failed for {url}: {error}")]
     Request {
         url: String,
-        error: nym_http_api_client::HttpClientError,
+        error: Box<nym_http_api_client::HttpClientError>,
     },
 
     #[error("Failed to download chunk from {url}: {error}")]
