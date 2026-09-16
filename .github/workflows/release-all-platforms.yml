@@ -639,4 +639,5 @@ jobs:
       pull-requests: write
     with:
       tag_name: ${{ needs.resolve.outputs.tag }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit

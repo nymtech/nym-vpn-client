@@ -31,11 +31,20 @@ on:
         type: string
         description: Release tag
         required: true
+      macos:
+        type: boolean
+        description: Whether this release built macOS (gates the Sparkle appcast)
+        required: false
+        default: true
   workflow_dispatch:
     inputs:
       tag_name:
         type: string
         description: Release tag
+      macos:
+        type: boolean
+        description: Whether this release built macOS (gates the Sparkle appcast)
+        default: true
 
 permissions:
   contents: read
@@ -201,36 +210,11 @@ jobs:
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
   # Sparkle appcast feed. macos-updater.yml downloads NymVPN-*.pkg off the release, so a
-  # ship that did not build macOS has nothing for it to do -- probe first rather than
-  # letting `gh release download` fail the job with "no assets match the file pattern".
-  # Same shape as win-sigs above.
-  mac-pkg:
-    needs: setup
-    runs-on: arc-linux-latest
-    outputs:
-      enabled: ${{ steps.pkg.outputs.enabled }}
-    steps:
-      - name: Check for a macOS pkg on the release
-        id: pkg
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.setup.outputs.tag }}
-        run: |
-          set -euo pipefail
-          pkg=$(gh release view "$TAG" --json assets \
-            -q '.assets[].name | select(startswith("NymVPN-") and endswith(".pkg"))' | head -n1)
-          if [ -z "$pkg" ]; then
-            echo "::notice:: no macOS pkg on ${TAG} — skipping Sparkle appcast"
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice:: found ${pkg} — will update Sparkle appcast"
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          fi
-
+  # ship that did not build macOS has nothing for it to do -- the caller already resolved
+  # its platform set, so it tells us rather than us re-deriving it from release assets.
   macos-updater:
-    needs: [setup, mac-pkg]
-    if: ${{ needs.mac-pkg.outputs.enabled == 'true' }}
+    needs: [setup]
+    if: ${{ inputs.macos }}
     uses: ./.github/workflows/macos-updater.yml
     secrets: inherit
     permissions:
