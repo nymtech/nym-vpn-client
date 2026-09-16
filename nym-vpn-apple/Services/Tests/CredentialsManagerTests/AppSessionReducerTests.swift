@@ -602,6 +602,25 @@ struct AppSessionReducerUnregisteredHonestyTests {
         #expect(result.drawerCommand == .setOneClick)
     }
 
+    @Test func processingFinishedLoginKnownInactiveWithoutSummaryRoutesToPurchase() {
+        var context = AppSessionContext.initial
+        context.lastAuthCompletionOutcome = .loginReady
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false,
+                processingKind: .login,
+                hasAccountSummary: false,
+                isAccountKnownInactive: true
+            ),
+            event: .processingFinished
+        )
+        #expect(result.navigationIntent == .pushPlanPurchase)
+        #expect(result.drawerCommand == .stageOneClickForCheckout)
+    }
+
     @Test func processingFinishedLoginInactiveWithSummaryRoutesToPurchase() {
         var context = AppSessionContext.initial
         context.lastAuthCompletionOutcome = .loginReady

@@ -5,6 +5,7 @@ protocol PassphraseSignInCredentialStore: AnyObject {
     func storeLoginCredential(_ credential: String) async throws
     func isAccountActive() -> Bool
     func updateAccountSummary(force: Bool, untilActive: Bool) async
+    func ensureCredentialImportResolved() async
 }
 
 extension CredentialsManager: PassphraseSignInCredentialStore {

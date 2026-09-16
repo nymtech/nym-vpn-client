@@ -68,4 +68,28 @@ struct DisconnectedHomeCTATests {
             ) == .checking
         )
     }
+
+    @Test func knownInactiveWithoutSummaryIsChoosePlanNotChecking() {
+        #expect(
+            DisconnectedHomeCTA.resolve(
+                isCredentialImported: true,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                hasAccountSummary: false,
+                isAccountKnownInactive: true
+            ) == .choosePlan
+        )
+    }
+
+    @Test func fetchFailedStillWinsOverKnownInactive() {
+        #expect(
+            DisconnectedHomeCTA.resolve(
+                isCredentialImported: true,
+                accountSummaryLastFetchFailed: true,
+                isAccountActive: false,
+                hasAccountSummary: false,
+                isAccountKnownInactive: true
+            ) == .accountUnreachable
+        )
+    }
 }

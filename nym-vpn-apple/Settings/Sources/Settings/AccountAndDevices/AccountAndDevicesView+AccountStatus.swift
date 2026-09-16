@@ -14,7 +14,8 @@ extension AccountAndDevicesView {
                 accountStatusBandwidth(accountSummary: accountSummary)
                 sectionDivider()
                 accountStatusResetDate(accountSummary: accountSummary)
-            } else if credentialsManager.accountSummary != nil {
+            } else if credentialsManager.accountSummary != nil
+                || credentialsManager.isAccountKnownInactive {
                 accountStatusInactive()
                 sectionDivider()
                 renewNowRow(color: Color.Nym.error, isVisible: true)
