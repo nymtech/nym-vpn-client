@@ -123,9 +123,6 @@ pub enum EstablishConnectionState {
     /// Selecting gateways
     SelectingGateways,
 
-    /// Falling back to random for automatic selections because of lack of location
-    RandomFallback,
-
     /// Registering with gateways
     RegisteringWithGateways,
 
@@ -143,13 +140,27 @@ impl fmt::Display for EstablishConnectionState {
             }
             EstablishConnectionState::RefreshingGateways => "refreshing gateways",
             EstablishConnectionState::SelectingGateways => "selecting gateways",
-            EstablishConnectionState::RandomFallback => {
-                "falling back to random for automatic selections"
-            }
             EstablishConnectionState::RegisteringWithGateways => "registering with gateways",
             EstablishConnectionState::ConnectingTunnel => "connecting tunnel",
         })
     }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct SelectorFallbackState {
+    /// Using a fallback for entry selector
+    pub entry_fallback: bool,
+    /// Using a fallback for exit selector
+    pub exit_fallback: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
