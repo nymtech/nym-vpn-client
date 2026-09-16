@@ -251,14 +251,18 @@ private extension SettingsViewModel {
             }
             .store(in: &cancellables)
 
-        credentialsManager.$accountSummary
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.updateAccountSectionOnly()
-                }
+        Publishers.Merge3(
+            credentialsManager.$accountSummary.map { _ in () },
+            credentialsManager.$accountSummaryLastFetchFailed.map { _ in () },
+            credentialsManager.$isAccountRegistrationInFlight.map { _ in () }
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.updateAccountSectionOnly()
             }
-            .store(in: &cancellables)
+        }
+        .store(in: &cancellables)
     }
 
     /// Configures sections, to reload all the content - use reloadSections
@@ -295,6 +299,31 @@ private extension SettingsViewModel {
         accountSummary.isAutoRenewEnabled
 #endif
     }
+
+    static func noActivePlanChoosePlanSubtitle() -> AttributedString {
+        var first = AttributedString("noActivePlan".localizedString)
+        first.foregroundColor = Color.Nym.error
+        var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
+        second.foregroundColor = Color.Nym.primary
+        return first + second
+    }
+}
+
+extension SettingsViewModel {
+    enum NilSummaryAccountCopy: Equatable {
+        case requestingZkNyms
+        case unreachable
+        case checking
+    }
+
+    static func nilSummaryAccountCopy(
+        lastFetchFailed: Bool,
+        isRegistrationInFlight: Bool
+    ) -> NilSummaryAccountCopy {
+        if isRegistrationInFlight { return .requestingZkNyms }
+        if lastFetchFailed { return .unreachable }
+        return .checking
+    }
 }
 
 // MARK: - Sections -
@@ -318,14 +347,18 @@ private extension SettingsViewModel {
                 confirmingPayment.foregroundColor = Color.Nym.error
                 subtitle = confirmingPayment
             } else {
-                var first = AttributedString("noActivePlan".localizedString)
-                first.foregroundColor = Color.Nym.error
-                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
-                second.foregroundColor = Color.Nym.primary
-                subtitle = first + second
+                subtitle = Self.noActivePlanChoosePlanSubtitle()
             }
         } else {
-            subtitle = AttributedString("requestingZkNyms".localizedString)
+            switch Self.nilSummaryAccountCopy(
+                lastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+                isRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight
+            ) {
+            case .requestingZkNyms, .checking:
+                subtitle = AttributedString("requestingZkNyms".localizedString)
+            case .unreachable:
+                subtitle = AttributedString("home.accountUnreachable".localizedString)
+            }
         }
 
         var viewModels = [

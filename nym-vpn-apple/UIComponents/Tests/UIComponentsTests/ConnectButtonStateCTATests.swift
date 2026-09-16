@@ -59,4 +59,13 @@ struct ConnectButtonStateCTATests {
             ) == .connect
         )
     }
+
+#if os(macOS)
+    @Test func choosePlanMenuBarItemIsLabelOnly() {
+        #expect(!ConnectButtonState.noSubscription.menuBarItemIsAction)
+        #expect(!ConnectButtonState.accountUnreachable.menuBarItemIsAction)
+        #expect(!ConnectButtonState.checkingAccount.menuBarItemIsAction)
+        #expect(ConnectButtonState.connect.menuBarItemIsAction)
+    }
+#endif
 }

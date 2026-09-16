@@ -44,7 +44,7 @@ import PathManager
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
     /// iOS toggles this during `performAccountRegistration`; macOS leaves it false.
-    private(set) public var isAccountRegistrationInFlight = false
+    @Published public private(set) var isAccountRegistrationInFlight = false
 #if os(iOS)
     var registrationCapturedEnvironment: NymEnvironment?
     var registrationCapturedEnvString: String?
@@ -607,10 +607,13 @@ extension CredentialsManager {
                 try? await Task.sleep(for: delay)
             }
             await fetchAccountSummary()
-            if untilActive {
-                if accountSummary?.isActive == true { break }
-            } else {
-                if accountSummary != nil { break }
+            if AccountSummaryRefreshPolicy.shouldFinishSummaryPoll(
+                untilActive: untilActive,
+                isSubscriptionActive: accountSummary?.isActive == true,
+                hasAccountSummary: accountSummary != nil,
+                lastFetchFailed: accountSummaryLastFetchFailed
+            ) {
+                break
             }
         }
 #endif

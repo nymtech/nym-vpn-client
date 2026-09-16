@@ -69,7 +69,11 @@ let package = Package(
         ),
         .testTarget(
             name: "SettingsTests",
-            dependencies: ["Settings"]
+            dependencies: [
+                "Settings",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "Theme", package: "Theme")
+            ]
         )
     ]
 )
