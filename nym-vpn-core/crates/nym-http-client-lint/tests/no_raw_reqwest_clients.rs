@@ -34,7 +34,14 @@ fn production_code_never_bypasses_the_http_client_registry() {
         r"|ReqwestClientBuilder\s*::\s*new\s*\(",
     ))
     .unwrap();
-    let cfg_test_mod = Regex::new(r"(?m)^\s*#\[cfg\(test\)\]").unwrap();
+    // Only treat `#[cfg(test)]` as the test-module boundary when it's actually attached to a
+    // `mod` item (allowing other attributes, e.g. `#[cfg(feature = "serde")]`, in between) —
+    // not when it's attached to an individual test-only fn/struct/enum, which can appear
+    // earlier in a file and would otherwise wrongly exempt the production code that follows it.
+    let cfg_test_mod = Regex::new(
+        r"(?m)^[ \t]*#\[cfg\(test\)\]\s*\n(?:[ \t]*#!?\[[^\]]*\]\s*\n)*[ \t]*(?:pub(?:\([^)]*\))?\s+)?mod\b",
+    )
+    .unwrap();
 
     let mut violations = Vec::new();
     visit_rust_files(&crates_dir, &mut |path, contents| {
