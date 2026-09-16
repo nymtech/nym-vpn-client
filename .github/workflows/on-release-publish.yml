@@ -10,26 +10,20 @@ name: on-release-publish
 # (macOS Sparkle appcast PR is opened during the build/draft phase by
 #  build-nym-vpn-apple.yml as a DRAFT PR — not deferred here.)
 #
-# Why 'released' (not 'published'):
-#   - 'released'  matches NON-prerelease publishes only  -> ship  (nym-vpn-v*)
-#   - nightlies are created with --prerelease            -> never match here
-# Why this is safe vs. nightlies (belt + braces):
-#   1. nightly drafts are --prerelease, so 'released' never fires for them;
-#   2. nightly drafts are auto-published by finalize-nightly via GITHUB_TOKEN,
-#      and releases published by GITHUB_TOKEN do NOT emit a release event at all.
-#   Nightlies therefore never reach AUR -- which is intended (canonical
-#   nym-vpnd / nym-vpn-app AUR packages stay stable-only).
+# There is deliberately NO `release: [released]` trigger: this workflow never fires on
+# its own. A manual release -- a human clicking Publish on a draft -- must not drag the
+# whole fan-out along behind it; AUR pushes, beta deletion and the stable updater feeds
+# are only ever driven on purpose. Two ways in, both explicit:
+#   workflow_call     -- release-all-platforms calls us when it publishes the release
+#                        itself (the gh_release=auto + ship path), gated there on
+#                        gh_release_type == 'release' so beta/nightly never reach us.
+#   workflow_dispatch -- manual recovery for a release that missed the call above.
+#
+# Nightlies and betas therefore never reach AUR -- which is intended (canonical
+# nym-vpnd / nym-vpn-app AUR packages stay stable-only).
 #
 # Assumes this workflow + its callees exist on the release commit / default
 # branch (reusable callees resolve at the caller's ref).
-#
-# Three ways in:
-#   release: [released] -- a human clicks Publish on a draft (the gh_release=draft path)
-#   workflow_call       -- release-all-platforms calls us directly when it publishes the
-#                          release itself (the gh_release=auto + ship path). That path gets
-#                          NO webhook: create-release publishes with GITHUB_TOKEN, and
-#                          GitHub deliberately emits no events for GITHUB_TOKEN actions.
-#   workflow_dispatch   -- manual recovery for a release that missed both of the above
 on:
   workflow_call:
     inputs:
@@ -42,16 +36,12 @@ on:
       tag_name:
         type: string
         description: Release tag
-  release:
-    types: [released]
 
 permissions:
   contents: read
 
-# github.event.release is empty on the workflow_call/dispatch paths, so fall back to the
-# input -- otherwise every non-webhook run shares one constant group.
 concurrency:
-  group: on-release-publish-${{ github.event.release.tag_name || inputs.tag_name }}
+  group: on-release-publish-${{ inputs.tag_name }}
   cancel-in-progress: false
 
 jobs:
@@ -59,7 +49,7 @@ jobs:
     # Guard: only act on the unified ship tag (nym-vpn-v*). Ignores legacy
     # (nym-vpn-core-v*, nym-vpn-app-v*) and nightly (nym-vpn-nightly-*) tags --
     # none of those share the 'nym-vpn-v' prefix.
-    if: ${{ startsWith(github.event.release.tag_name || inputs.tag_name, 'nym-vpn-v') }}
+    if: ${{ startsWith(inputs.tag_name, 'nym-vpn-v') }}
     runs-on: arc-linux-latest
     outputs:
       tag: ${{ steps.v.outputs.tag }}
@@ -68,7 +58,7 @@ jobs:
       - name: Resolve tag + version
         id: v
         env:
-          TAG: ${{ github.event.release.tag_name || inputs.tag_name }}
+          TAG: ${{ inputs.tag_name }}
         run: |
           set -euo pipefail
           version="${TAG#nym-vpn-v}"
@@ -82,8 +72,8 @@ jobs:
   # the Releases page shows only shipped versions. Scoped to the shipped base line
   # (a ship of 2026.11.0 only clears 2026.11.0-beta.*). Tags are KEPT (no
   # --cleanup-tag) — they stay the immutable ledger that resolve-version reads to
-  # never recompute onto a used beta number. Only fires on ship: beta releases are
-  # --prerelease, and 'released' never fires for prereleases.
+  # never recompute onto a used beta number. Only fires on ship: the caller gates the
+  # fan-out on gh_release_type == 'release', so beta and nightly runs never reach here.
   delete-betas:
     needs: setup
     runs-on: arc-linux-latest
