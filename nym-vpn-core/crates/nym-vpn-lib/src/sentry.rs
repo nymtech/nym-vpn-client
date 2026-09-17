@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use sentry::{ClientInitGuard, Level};
-use std::{borrow::Cow, sync::Arc, time::Duration};
+use std::time::Duration;
 
 static EXCLUDED_ERRORS: [&str; 6] = [
     "offline",
@@ -21,31 +21,27 @@ pub fn init_sentry() -> Option<ClientInitGuard> {
 
     let os_info = nym_platform_metadata::SysInfo::new();
 
+    let opts = sentry::ClientOptions::new()
+        .dsn(&dsn)
+        .send_default_pii(false)
+        .sample_rate(1.0)
+        .traces_sample_rate(1.0)
+        .shutdown_timeout(Duration::from_secs(2))
+        .server_name("nym")
+        .before_send(|mut event| {
+            if matches!(event.level, Level::Error | Level::Warning)
+                && let Some(message) = &event.message
+                && EXCLUDED_ERRORS
+                    .iter()
+                    .any(|err| message.to_lowercase().contains(err))
+            {
+                event.level = Level::Debug; // Change level to Debug
+            }
+            Some(event)
+        });
+
     println!("Sentry monitoring enabled");
-    let guard = sentry::init((
-        dsn,
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            send_default_pii: false,
-            sample_rate: 1.0,
-            traces_sample_rate: 1.0,
-            enable_logs: true,
-            shutdown_timeout: Duration::from_secs(2),
-            server_name: Some(Cow::Borrowed("nym")),
-            before_send: Some(Arc::new(|mut event| {
-                if matches!(event.level, Level::Error | Level::Warning)
-                    && let Some(message) = &event.message
-                    && EXCLUDED_ERRORS
-                        .iter()
-                        .any(|err| message.to_lowercase().contains(err))
-                {
-                    event.level = Level::Debug; // Change level to Debug
-                }
-                Some(event)
-            })),
-            ..Default::default()
-        },
-    ));
+    let guard = sentry::init(opts);
     sentry::configure_scope(|scope| {
         scope.set_tag("os_version", &os_info.os_version);
         if !os_info.extra.is_empty() {
