@@ -1,3 +1,6 @@
+// Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use aes_gcm::{
     Aes256Gcm, Nonce,
     aead::{Aead, KeyInit},
@@ -7,7 +10,6 @@ use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
 use rand::{RngCore, rngs::OsRng};
-use sha2::{Sha256, Sha512};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
 use url::Url;
@@ -245,7 +247,7 @@ impl CipherPacket {
         shared_secret_32: &[u8; 32],
         info: &[u8],
     ) -> Result<[u8; 32], DeeplinkError> {
-        let hk = Hkdf::<Sha256>::new(Some(&self.salt), shared_secret_32);
+        let hk = Hkdf::<sha2::Sha256>::new(Some(&self.salt), shared_secret_32);
         let mut okm = [0u8; 32];
         hk.expand(info, &mut okm)
             .map_err(|_| DeeplinkError::InvalidPayload("failed to expand hkdf data".to_string()))?;
@@ -316,7 +318,12 @@ impl PinCode {
 
     fn get_key(&self, password: &str, salt: &[u8]) -> [u8; Self::KEY_LEN] {
         let mut key = [0u8; Self::KEY_LEN];
-        pbkdf2_hmac::<Sha512>(password.as_bytes(), salt, Self::PBKDF2_ITERATIONS, &mut key);
+        pbkdf2_hmac::<pbkdf2::sha2::Sha512>(
+            password.as_bytes(),
+            salt,
+            Self::PBKDF2_ITERATIONS,
+            &mut key,
+        );
         key
     }
 }

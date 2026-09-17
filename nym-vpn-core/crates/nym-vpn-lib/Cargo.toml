@@ -107,7 +107,6 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
-sha2.workspace = true
 strum.workspace = true
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
 sysinfo = { workspace = true, features = ["network"] }

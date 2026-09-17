@@ -3,8 +3,7 @@
 
 use std::{fmt, sync::Arc};
 
-use nym_crypto::asymmetric::ed25519;
-use sha2::Digest as _;
+use nym_crypto::{asymmetric::ed25519, sha2::Digest};
 
 use crate::{jwt::Jwt, request::UpdateDeviceRequestStatus};
 
@@ -29,7 +28,7 @@ impl Device {
 
     pub fn sign<M: AsRef<[u8]>>(&self, message: M) -> DeviceSignature {
         let digest = {
-            let mut hasher = sha2::Sha256::new();
+            let mut hasher = nym_crypto::sha2::Sha256::new();
             hasher.update(message);
             hasher.finalize()
         };
