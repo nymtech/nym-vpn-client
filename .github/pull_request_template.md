@@ -1,7 +1,7 @@
 ## Ticket
 
 JIRA-NYM-XXXX
-Replace `XXXX` with a real JIRA key (`NYM-1234`) or paste a nymtech GitHub issue URL. The placeholder fails CI. Do not use this PR's own number as the ticket.
+Replace `XXXX` with a real JIRA key (`NYM-1234`) or paste a nymtech GitHub issue URL. The placeholder fails CI. Linking this PR does not count.
 
 ## Description
 
