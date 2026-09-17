@@ -42,8 +42,6 @@ use nym_firewall::{
 };
 use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_http_api_client::HickoryDnsResolver;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
     EstablishConnectionData, EstablishConnectionState, GatewayLightInfo, SelectorFallbackState,
@@ -382,7 +380,12 @@ impl ConnectingState {
         // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
         // client based on `nym-http-api-client::Client` that not modified to be independent will
         // use these overrides automatically.
-        HickoryDnsResolver::shared().set_static_preresolve(resolved_gateway_config.addr_map());
+        {
+            let r: nym_http_api_client::HickoryDnsResolver =
+                nym_http_api_client::HickoryDnsResolver::shared();
+            r
+        }
+        .set_static_preresolve(resolved_gateway_config.addr_map());
 
         self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
 

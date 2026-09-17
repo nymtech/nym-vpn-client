@@ -33,7 +33,6 @@ use tokio_util::sync::CancellationToken;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
-use nym_http_api_client::HickoryDnsResolver;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -455,7 +454,12 @@ impl NymVpnService {
             .network()
             .map_err(|_| Error::NetworkEnvNotInitialized)?;
 
-        HickoryDnsResolver::shared().set_fallback_addrs(
+        {
+            let r: nym_http_api_client::HickoryDnsResolver =
+                nym_http_api_client::HickoryDnsResolver::shared();
+            r
+        }
+        .set_fallback_addrs(
             network_env
                 .dns_fallback_addr_map()
                 .into_iter()
@@ -2519,7 +2523,12 @@ fn update_active_network(network_tx: &watch::Sender<Box<Network>>, new_network: 
         .map(|(host, addrs)| (host, addrs.into_iter().collect()))
         .collect();
 
-    HickoryDnsResolver::shared().set_fallback_addrs(addrs);
+    {
+        let r: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        r
+    }
+    .set_fallback_addrs(addrs);
 
     let _ = network_tx.send_replace(Box::new(new_network.clone()));
     true
@@ -2528,8 +2537,10 @@ fn update_active_network(network_tx: &watch::Sender<Box<Network>>, new_network: 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
 
     fn distinct_networks() -> (Network, Network) {
         let a = Network::mainnet_default().expect("bundled mainnet network");
