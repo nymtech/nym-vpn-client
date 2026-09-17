@@ -7676,7 +7676,7 @@ dependencies = [
 name = "nym-vpn-account-controller"
 version = "2026.13.0-beta.1"
 dependencies = [
- "aes-gcm 0.10.3",
+ "aes-gcm 0.11.1",
  "anyhow",
  "async-trait",
  "bip39",
