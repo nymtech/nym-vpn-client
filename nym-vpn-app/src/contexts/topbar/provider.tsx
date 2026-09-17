@@ -6,13 +6,13 @@ export type TopBarProviderProps = {
 };
 
 function TopBarProvider({ children }: TopBarProviderProps) {
-  const [customLeftNavHandler, setCustomLeftNavHandlerState] = useState<
+  const [customLeftNavHandler, setCustomLeftNavHandler] = useState<
     (() => void) | null
   >(null);
 
-  const setCustomLeftNavHandler = useCallback(
+  const updateCustomLeftNavHandler = useCallback(
     (handler: (() => void) | null) => {
-      setCustomLeftNavHandlerState(() => handler);
+      setCustomLeftNavHandler(() => handler);
     },
     [],
   );
@@ -20,14 +20,12 @@ function TopBarProvider({ children }: TopBarProviderProps) {
   const ctx = useMemo(
     () => ({
       customLeftNavHandler,
-      setCustomLeftNavHandler,
+      setCustomLeftNavHandler: updateCustomLeftNavHandler,
     }),
-    [customLeftNavHandler, setCustomLeftNavHandler],
+    [customLeftNavHandler, updateCustomLeftNavHandler],
   );
 
-  return (
-    <TopBarContext.Provider value={ctx}>{children}</TopBarContext.Provider>
-  );
+  return <TopBarContext value={ctx}>{children}</TopBarContext>;
 }
 
 export default TopBarProvider;

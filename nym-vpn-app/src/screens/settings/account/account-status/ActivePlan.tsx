@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Separator } from '@base-ui-components/react/separator';
-import { Progress } from '@base-ui-components/react/progress';
+import { Separator } from '@base-ui/react/separator';
+import { Progress } from '@base-ui/react/progress';
 import dayjs from 'dayjs';
 import { TAccountSummary } from '../../../../types';
 import { formatGb } from '../../../../util';

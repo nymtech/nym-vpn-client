@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Progress as BuiProgress } from '@base-ui-components/react/progress';
+import { Progress as BuiProgress } from '@base-ui/react/progress';
 
 export type ProgressProps = {
   value?: number | null;

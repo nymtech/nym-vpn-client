@@ -2,7 +2,7 @@ import globals from 'globals';
 import { globalIgnores } from 'eslint/config';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import reactPlugin from 'eslint-plugin-react';
+import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
@@ -30,7 +30,22 @@ export default [
     files: ['**/*.js'],
     ...tseslint.configs.disableTypeChecked,
   },
-  reactPlugin.configs.flat.recommended,
+  eslintReact.configs['recommended-typescript'],
+  {
+    // `eslint-plugin-react-hooks` stays the source of truth for hooks rules,
+    // so turn off the overlapping `@eslint-react` ones to avoid duplicate reports
+    rules: {
+      '@eslint-react/error-boundaries': 0,
+      '@eslint-react/exhaustive-deps': 0,
+      '@eslint-react/purity': 0,
+      '@eslint-react/rules-of-hooks': 0,
+      '@eslint-react/set-state-in-effect': 0,
+      '@eslint-react/set-state-in-render': 0,
+      '@eslint-react/static-components': 0,
+      '@eslint-react/unsupported-syntax': 0,
+      '@eslint-react/use-memo': 0,
+    },
+  },
   reactHooks.configs.flat.recommended,
   {
     languageOptions: {
@@ -38,11 +53,6 @@ export default [
         ecmaFeatures: { jsx: true },
       },
       globals: globals.browser,
-    },
-    settings: {
-      react: {
-        version: 'detect',
-      },
     },
   },
   {
@@ -63,7 +73,9 @@ export default [
       ],
       'no-empty': 0,
       'import/no-unresolved': 0,
-      'react/react-in-jsx-scope': 0,
+      '@eslint-react/no-nested-component-definitions': 0,
+      '@eslint-react/no-array-index-key': 0,
+      '@eslint-react/web-api-no-leaked-timeout': 0,
       'import/no-named-as-default': 0,
       '@typescript-eslint/no-floating-promises': 0,
       '@typescript-eslint/prefer-nullish-coalescing': 0,
@@ -91,7 +103,6 @@ export default [
         { json: 'always', svg: 'always' },
       ],
       'import/no-named-as-default-member': 0,
-      'react/prop-types': 0,
     },
   },
   prettierConfig,

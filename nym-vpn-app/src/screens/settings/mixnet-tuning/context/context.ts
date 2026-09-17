@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 import { MixnetTrafficConfig } from '../../../../types';
 import { MixnetConfigState } from './reducer';
 
@@ -20,7 +20,7 @@ export const MixnetTrafficConfigContext =
   createContext<MixnetTrafficConfigContextType | null>(null);
 
 export function useMixnetTrafficConfig() {
-  const context = useContext(MixnetTrafficConfigContext);
+  const context = use(MixnetTrafficConfigContext);
   if (!context) {
     throw new Error(
       'useMixnetTrafficConfig must be used within MixnetTrafficConfigProvider',

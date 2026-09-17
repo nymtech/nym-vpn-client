@@ -51,9 +51,9 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <AutologinContext.Provider value={ctx}>
+    <AutologinContext value={ctx}>
       {children}
       <PincodeDialog code={pinCode} url={url} open={open} setOpen={setOpen} />
-    </AutologinContext.Provider>
+    </AutologinContext>
   );
 }

@@ -172,5 +172,5 @@ export function TrayProvider({ children }: TrayProviderProps) {
     });
   }, [t]);
 
-  return <TrayContext.Provider value={null}>{children}</TrayContext.Provider>;
+  return <TrayContext value={null}>{children}</TrayContext>;
 }
