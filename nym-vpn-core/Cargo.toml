@@ -78,7 +78,7 @@ large_futures = "warn"
 
 [workspace.dependencies]
 adblock = { version = "0.13.3", default-features = false }
-aes-gcm = "0.10"
+aes-gcm = "0.11.1"
 anyhow = "1.0.104"
 async-compression = "0.4.48"
 async-stream = "0.3.6"
