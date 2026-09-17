@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use nym_crypto::asymmetric::x25519;
-use rand::{CryptoRng, RngCore};
+use rand08::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use time::OffsetDateTime;

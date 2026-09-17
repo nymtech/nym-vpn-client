@@ -14,7 +14,7 @@ use nym_sdk::mixnet::{ed25519, x25519};
 use nym_validator_client::client::NymApiClientExt;
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
-use rand10::{
+use rand::{
     SeedableRng,
     rngs::{StdRng, SysRng},
 };
@@ -125,7 +125,7 @@ async fn setup_registration(
         .ok_or(anyhow::anyhow!("Gateway requested not found"))?
         .clone();
 
-    let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rngs::OsRng));
+    let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rand08::rngs::OsRng));
     let local_dh_keypair = Arc::new(x25519::DHKeyPair::new(
         &mut StdRng::try_from_rng(&mut SysRng).context("Failed to seed RNG from OS")?,
     ));

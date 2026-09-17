@@ -6,7 +6,7 @@ use crate::storage::{
     models::{SessionReport, SessionReportWithId},
     sqlite::SqliteStatsStorageManager,
 };
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
 use sqlx::ConnectOptions;
 use std::path::Path;
 use tracing::log::LevelFilter;
@@ -78,7 +78,7 @@ impl StatsStorage {
                 let seed = if let Some(seed) = custom_seed {
                     seed
                 } else {
-                    Alphanumeric.sample_string(&mut rand::thread_rng(), 20)
+                    Alphanumeric.sample_string(&mut rand::rng(), 20)
                 };
                 self.storage_manager.set_seed(seed.clone()).await?;
                 Ok(seed)

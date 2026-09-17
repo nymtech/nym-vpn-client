@@ -18,6 +18,7 @@ nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
 nym-pemstore.workspace = true
 nym-sqlx-pool-guard.workspace = true
 rand.workspace = true
+rand08.workspace = true
 rand_chacha.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

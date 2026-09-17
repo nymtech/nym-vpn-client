@@ -5289,9 +5289,9 @@ dependencies = [
 
 [[package]]
 name = "ml-dsa"
-version = "0.1.1"
+version = "0.1.0-rc.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "add6b9d92e496f16f4526d68ff29da1483aba4b119baeab8bed3b9e3544a6f3d"
+checksum = "163f15320f3fba11760c373af52d7f69d638482c2c350d877fb06513b1c3137c"
 dependencies = [
  "const-oid 0.10.2",
  "crypto-common 0.2.2",
@@ -5299,7 +5299,7 @@ dependencies = [
  "hybrid-array",
  "module-lattice",
  "pkcs8 0.11.0",
- "shake",
+ "sha3 0.11.0",
  "signature 3.0.0",
 ]
 
@@ -6498,7 +6498,7 @@ dependencies = [
  "nym-topology",
  "nym-validator-client",
  "nym-vpn-api-client",
- "rand 0.8.8",
+ "rand 0.10.2",
  "serde",
  "serde_json",
  "strum",
@@ -6646,7 +6646,7 @@ dependencies = [
  "futures",
  "ipnetwork",
  "nix 0.31.3",
- "rand 0.8.8",
+ "rand 0.10.2",
  "rtnetlink",
  "serial_test",
  "tokio",
@@ -7562,7 +7562,7 @@ dependencies = [
  "nym-statistics-api-client",
  "nym-statistics-common",
  "nym-vpn-lib-types",
- "rand 0.8.8",
+ "rand 0.10.2",
  "sqlx 0.9.0",
  "strum",
  "sysinfo 0.39.6",
@@ -7778,6 +7778,7 @@ dependencies = [
  "nym-vpn-network-config",
  "nym-vpn-store",
  "pbkdf2",
+ "rand 0.10.2",
  "rand 0.8.8",
  "serde",
  "serde_json",
@@ -7947,7 +7948,7 @@ dependencies = [
  "pretty_assertions",
  "quinn",
  "quinn-proto",
- "rand 0.8.8",
+ "rand 0.10.2",
  "reqwest 0.13.5",
  "rustls 0.23.45",
  "semver",
@@ -8046,7 +8047,7 @@ dependencies = [
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpn-store",
- "rand 0.8.8",
+ "rand 0.10.2",
  "rustls 0.23.45",
  "sentry",
  "serde_json",
@@ -8115,6 +8116,7 @@ dependencies = [
  "nym-pemstore",
  "nym-sqlx-pool-guard",
  "nym-vpn-lib-types",
+ "rand 0.10.2",
  "rand 0.8.8",
  "rand_chacha 0.3.1",
  "serde",
@@ -8199,7 +8201,7 @@ dependencies = [
  "nym-crypto",
  "nym-windows",
  "nym-wireguard-types",
- "rand 0.8.8",
+ "rand 0.10.2",
  "thiserror 2.0.20",
  "tracing",
  "typed-builder",
@@ -11037,17 +11039,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shake"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09057cb2149ad4cbd2da1e26b351f9a4c354219421229c69c3063e6f61947c4a"
-dependencies = [
- "digest 0.11.3",
- "keccak 0.2.2",
- "sponge-cursor",
-]
-
-[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11825,14 +11816,13 @@ checksum = "734676eb262c623cec13c3155096e08d1f8f29adce39ba17948b18dad1e54142"
 
 [[package]]
 name = "superboring"
-version = "0.1.14"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c378b1a556adcd6eeb6b56f0ee377763a088843581265f6ec821b232a571b2be"
+checksum = "32799c1e73c2c5467e43bfaab8a9e28c5feed8b5ea59beb53376977f39971ead"
 dependencies = [
- "aes-gcm 0.11.1",
+ "aes-gcm 0.10.3",
  "aes-keywrap",
  "getrandom 0.2.17",
- "getrandom 0.4.3",
  "hmac-sha256",
  "hmac-sha512",
  "ml-dsa",
@@ -12282,7 +12272,7 @@ dependencies = [
  "nym-ipc",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "rand 0.8.8",
+ "rand 0.10.2",
  "rs-release",
  "serde",
  "serde_json",
