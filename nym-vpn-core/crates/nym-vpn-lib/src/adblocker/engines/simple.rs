@@ -288,8 +288,10 @@ async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
     }
 }
 
-/// Populate the database from compressed blocklists on disk.
-/// It does nothing if the database is already populated.
+/// Updates the database from compressed blocklists in `cache_dir`.
+///
+/// Sources whose file timestamp is already recorded are skipped. Updating a source also removes
+/// domains that are no longer present in its blocklist.
 async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Result<()> {
     for source in SOURCES.iter() {
         let data_path = cache_dir.join(source.file_name);

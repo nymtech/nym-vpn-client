@@ -27,6 +27,9 @@ pub struct BraveAdblockEngine {
 
 #[async_trait::async_trait]
 impl AdBlockEngine for BraveAdblockEngine {
+    /// Replaces the active engine with the configured filter lists loaded from `dir`.
+    ///
+    /// If a list cannot be loaded, the existing engine remains active.
     async fn load_filters(&self, dir: &Path) -> Result<()> {
         let filter_set = load_filter_set(dir).await?;
         tracing::info!("AdBlocker using new filter-set");
@@ -42,6 +45,10 @@ impl AdBlockEngine for BraveAdblockEngine {
 }
 
 impl BraveAdblockEngine {
+    /// Checks whether the loaded filters block `url` as an `other` GET request without a source.
+    ///
+    /// Returns `false` when no filters are loaded and an error if the ad-block request cannot be
+    /// created.
     async fn should_block_url(&self, url: url::Url) -> Result<bool> {
         let engine = self.engine.read().await;
 
