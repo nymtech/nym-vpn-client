@@ -8,7 +8,7 @@ use std::{
 
 use adblock::{
     filters::network::NetworkFilterMaskHelper,
-    lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter},
+    lists::{ParseOptions, ParsedLine, RuleTypes, parse_filter},
 };
 use futures::{StreamExt, TryFutureExt, TryStreamExt, pin_mut};
 use itertools::Itertools;
@@ -329,7 +329,7 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
         let chunk_stream = line_stream
             .try_filter_map(|line| async move {
                 // Ignore errors since they aren't that useful
-                let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts) else {
+                let Ok(ParsedLine::Network(filter)) = parse_filter(&line, false, opts) else {
                     return Ok(None);
                 };
 

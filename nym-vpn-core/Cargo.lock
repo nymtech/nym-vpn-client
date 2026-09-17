@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "adblock"
-version = "0.12.6"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4844c456026028b3a22f3bc0b0e0b2485809591673e2d70930a4ada7c4d3a90d"
+checksum = "f44b96a666a23c12acad7c688bfe8638a7094e7eabe765b09a6864ab991c676d"
 dependencies = [
  "addr",
  "arrayvec",
@@ -19,7 +19,7 @@ dependencies = [
  "percent-encoding",
  "precomputed-hash",
  "regex",
- "rustc-hash 1.1.0",
+ "rustc-hash",
  "seahash",
  "serde",
  "serde_json",
@@ -449,7 +449,7 @@ dependencies = [
  "memchr",
  "proc-macro2",
  "quote",
- "rustc-hash 2.1.3",
+ "rustc-hash",
  "serde",
  "serde_derive",
  "syn 2.0.119",
@@ -927,7 +927,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "rustc-hash 2.1.3",
+ "rustc-hash",
  "shlex 1.3.0",
  "syn 2.0.119",
 ]
@@ -5751,7 +5751,7 @@ dependencies = [
  "rcgen",
  "ring",
  "russh",
- "rustc-hash 2.1.3",
+ "rustc-hash",
  "rustls 0.23.45",
  "rustls-pki-types",
  "serde",
@@ -9496,7 +9496,7 @@ dependencies = [
  "pin-project-lite",
  "quinn-proto",
  "quinn-udp",
- "rustc-hash 2.1.3",
+ "rustc-hash",
  "rustls 0.23.45",
  "socket2 0.6.5",
  "thiserror 2.0.20",
@@ -9518,7 +9518,7 @@ dependencies = [
  "rand 0.10.2",
  "rand_pcg",
  "ring",
- "rustc-hash 2.1.3",
+ "rustc-hash",
  "rustls 0.23.45",
  "rustls-pki-types",
  "slab",
@@ -10112,12 +10112,6 @@ name = "rustc-demangle"
 version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b74b56ffa8bb2830709a538c2cbcae9aa062db0d2a42563bfb09bdaae44020eb"
-
-[[package]]
-name = "rustc-hash"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustc-hash"
