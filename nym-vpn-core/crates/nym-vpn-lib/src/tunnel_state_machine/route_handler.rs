@@ -99,7 +99,7 @@ impl RouteHandler {
         // another task - never observes our own interface holding the
         // default route without already knowing it's ours.
         for name in Self::interface_names(&routing_config) {
-            nym_routing::own_interfaces::mark(name);
+            nym_conflict::own_interfaces::mark(name);
         }
 
         let routes = Self::get_routes(routing_config, enable_ipv6);
@@ -116,7 +116,7 @@ impl RouteHandler {
         if let Err(e) = self.route_manager.clear_routes() {
             trace_err_chain!(e, "Failed to remove routes");
         }
-        nym_routing::own_interfaces::clear();
+        nym_conflict::own_interfaces::clear();
 
         #[cfg(target_os = "linux")]
         if let Err(e) = self.route_manager.clear_routing_rules().await {

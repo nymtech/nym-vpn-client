@@ -113,23 +113,10 @@ impl RouteMessage {
     }
 
     pub fn is_default_v6(&self) -> Result<bool> {
-        let destination_is_default = self
+        Ok(self
             .destination_v6()?
             .map(|addr| addr == Ipv6Addr::UNSPECIFIED)
-            .unwrap_or(false);
-
-        // Every point-to-point (e.g. utun) interface gets an automatic
-        // `default` route via its own link-local address as soon as it
-        // comes up - a macOS network-stack artifact present on every such
-        // interface regardless of whether it's actually being used to
-        // carry default (internet-bound) traffic. Routing through it is
-        // not evidence of a competing VPN.
-        let gateway_is_link_local = self
-            .gateway_v6()
-            .map(|addr| addr.is_unicast_link_local())
-            .unwrap_or(false);
-
-        Ok(destination_is_default && !gateway_is_link_local)
+            .unwrap_or(false))
     }
 
     pub(crate) fn from_byte_buffer(buffer: &[u8]) -> Result<Self> {
@@ -1237,29 +1224,6 @@ fn test_failing_rtmsg() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 255, 255, 255, 255, 255, 255,
     ];
     let _ = RouteSocketMessage::parse_message(&bytes).unwrap();
-}
-
-#[test]
-fn ipv6_default_route_via_link_local_gateway_is_not_default() {
-    // Every point-to-point (utun) interface gets one of these automatically
-    // as soon as it comes up, regardless of whether it's actually being
-    // used for default (internet-bound) traffic.
-    let link_local_gateway: Ipv6Addr = "fe80::1".parse().unwrap();
-    let route = RouteMessage::new_route(Destination::default_v6())
-        .set_gateway_addr(SocketAddr::from((link_local_gateway, 0)));
-
-    assert!(!route.is_default_v6().unwrap());
-    assert!(!route.is_default().unwrap());
-}
-
-#[test]
-fn ipv6_default_route_via_global_gateway_is_default() {
-    let global_gateway: Ipv6Addr = "2001:db8::1".parse().unwrap();
-    let route = RouteMessage::new_route(Destination::default_v6())
-        .set_gateway_addr(SocketAddr::from((global_gateway, 0)));
-
-    assert!(route.is_default_v6().unwrap());
-    assert!(route.is_default().unwrap());
 }
 
 // Set MTU flag. See route.h

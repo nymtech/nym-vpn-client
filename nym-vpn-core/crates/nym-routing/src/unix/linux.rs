@@ -969,16 +969,11 @@ pub async fn get_default_route_interfaces(
                 let Some(iface) = iface_map.get(&oif) else {
                     continue;
                 };
-                // NymVPN's own tunnel interface would otherwise be
-                // indistinguishable from a genuinely competing VPN.
-                if crate::own_interfaces::contains(&iface.name) {
-                    continue;
-                }
 
                 if iface.is_tunnel_like() {
-                    result.virtual_.insert(oif);
+                    result.virtual_.insert(iface.name.clone());
                 } else {
-                    result.physical.insert(oif);
+                    result.physical.insert(iface.name.clone());
                 }
             }
             NetlinkPayload::Error(error) => {

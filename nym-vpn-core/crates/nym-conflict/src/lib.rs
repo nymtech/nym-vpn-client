@@ -7,6 +7,8 @@
 
 mod dns;
 mod firewall;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod own_interfaces;
 mod vpn;
 
 pub use dns::{PROBE_ADDR, PROBE_DOMAIN};
