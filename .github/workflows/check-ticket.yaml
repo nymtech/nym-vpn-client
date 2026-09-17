@@ -1,0 +1,44 @@
+name: check-ticket
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - "release/**"
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+      - labeled
+      - unlabeled
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  check-ticket:
+    name: Check ticket in PR description
+    runs-on: arc-linux-latest
+    if: >
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]' &&
+      contains(github.event.pull_request.labels.*.name, 'no-ticket') == false
+    env:
+      PR_BODY: ${{ toJSON(github.event.pull_request.body) }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Require JIRA ticket or nymtech GitHub issue
+        run: |
+          python3 - <<'PY'
+          import json, os, re, sys
+          body = json.loads(os.environ["PR_BODY"] or "null") or ""
+          n = int(os.environ["PR_NUMBER"])
+          nums = [int(x) for x in re.findall(r"(?i)(?:JIRA-)?(?:NYM|VPN)-(\d+)", body)]
+          nums += [int(x) for x in re.findall(r"(?i)github\.com/nymtech/[\w.-]+/issues/(\d+)", body)]
+          if any(x != n for x in nums):
+              sys.exit(0)
+          print("::error::Need a real JIRA ticket (NYM-1234) or nymtech GitHub issue URL, not this PR's own number. Use label no-ticket to skip.")
+          sys.exit(1)
+          PY
