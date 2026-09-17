@@ -140,6 +140,10 @@ dayjs.extend(localizedFormat);
       config?.allowLan !== undefined ? config.allowLan : defaultAllowLan,
     enableAdBlocking:
       config?.enableAdBlocking !== undefined ? config.enableAdBlocking : false,
+    enableConflictDetection:
+      config?.enableConflictDetection !== undefined
+        ? config.enableConflictDetection
+        : true,
     customDnsEnabled:
       config?.enableCustomDns !== undefined ? config.enableCustomDns : false,
     customDns: !config?.customDns ? [] : config.customDns,

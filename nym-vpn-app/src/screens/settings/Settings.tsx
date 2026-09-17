@@ -11,7 +11,8 @@ import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
-  const { ipv6Support, allowLan, enableAdBlocking } = useMainState();
+  const { ipv6Support, allowLan, enableAdBlocking, enableConflictDetection } =
+    useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
@@ -64,6 +65,20 @@ function Settings() {
       });
     }
   };
+
+  const handleConflictDetection = async () => {
+    const switched = !enableConflictDetection;
+    try {
+      await invoke('set_conflict_detection', { enabled: switched });
+      dispatch({ type: 'set-enable-conflict-detection', enabled: switched });
+    } catch (error) {
+      console.error('[settings] conflict detection error', error);
+      add({
+        title: t('conflict-detection.errors.failed'),
+        type: 'error',
+      });
+    }
+  };
   return (
     <PageAnim className="flex h-full flex-col gap-4">
       <AccountSettingRow />
@@ -93,6 +108,18 @@ function Settings() {
             onClick: handleAdBlock,
             trailing: (
               <Switch checked={enableAdBlocking} onChange={handleAdBlock} />
+            ),
+          },
+          {
+            title: t('conflict-detection.title'),
+            desc: t('conflict-detection.desc'),
+            leadingIcon: 'troubleshoot',
+            onClick: handleConflictDetection,
+            trailing: (
+              <Switch
+                checked={enableConflictDetection}
+                onChange={handleConflictDetection}
+              />
             ),
           },
           {

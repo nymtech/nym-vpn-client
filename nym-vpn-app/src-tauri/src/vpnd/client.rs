@@ -11,7 +11,7 @@ pub use super::{
 };
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
-    events::{DiagnosticsSuggestedReason, MixnetEvent},
+    events::{ConflictDetected, DiagnosticsSuggestedReason, MixnetEvent},
     gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
     tunnel::{FrontingMode, SplitApp, TunnelState},
@@ -307,6 +307,10 @@ impl VpndClient {
                 debug!("diagnostics suggested: {reason}");
                 app.emit_diagnostics_suggested(DiagnosticsSuggestedReason::from_lib(reason));
             }
+            lib::TunnelEvent::ConflictDetected(conflict) => {
+                debug!("conflict detected: {conflict}");
+                app.emit_conflict_detected(ConflictDetected::from_lib(conflict));
+            }
         }
         Ok(())
     }
@@ -441,6 +445,19 @@ impl VpndClient {
 
         vpnd.set_enable_ad_blocking(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_ad_blocking", e).await)
+            .await
+    }
+
+    /// Enable or disable detection of conflicting software (e.g. AdGuard's DNS protection)
+    #[instrument(skip_all)]
+    pub async fn set_conflict_detection(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_conflict_detection(enabled)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_enable_conflict_detection", e)
+                    .await
+            })
             .await
     }
 
