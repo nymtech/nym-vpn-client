@@ -35,8 +35,8 @@ jobs:
           import json, os, re, sys
           body = json.loads(os.environ["PR_BODY"] or "null") or ""
           n = int(os.environ["PR_NUMBER"])
-          nums = [int(x) for x in re.findall(r"(?i)(?:JIRA-)?(?:NYM|VPN)-(\d+)", body)]
-          nums += [int(x) for x in re.findall(r"(?i)github\.com/nymtech/[\w.-]+/issues/(\d+)", body)]
+          nums = [int(x) for x in re.findall(r"(?i)(?<![\w-])(?:JIRA-)?(?:NYM|VPN)-(\d+)(?![\w-])", body)]
+          nums += [int(x) for x in re.findall(r"(?i)https?://(?:www\.)?github\.com/nymtech/[\w.-]+/issues/(\d+)", body)]
           if any(x != n for x in nums):
               sys.exit(0)
           print("::error::Need a real JIRA ticket (NYM-1234) or nymtech GitHub issue URL, not this PR's own number. Use label no-ticket to skip.")
