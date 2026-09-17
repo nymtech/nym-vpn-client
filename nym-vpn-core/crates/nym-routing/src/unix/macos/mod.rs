@@ -87,25 +87,38 @@ pub async fn get_default_route_interfaces(
 
     let mut result = crate::DefaultRouteInterfaces::default();
     for route in routes {
-        if route.is_default().unwrap_or(false) {
-            let interface_index = u32::from(route.interface_index());
-            let Some(name) = interface_name(route.interface_index()) else {
-                continue;
-            };
-            // NymVPN's own tunnel interface is also `utun*`-prefixed and would
-            // otherwise be indistinguishable from a genuinely competing VPN.
-            if crate::own_interfaces::contains(&name) {
-                continue;
-            }
-            if is_tunnel_like_interface(&name) {
-                result.virtual_.insert(interface_index);
-            } else {
-                result.physical.insert(interface_index);
-            }
+        if !route.is_default().unwrap_or(false) {
+            continue;
+        }
+        // Every point-to-point (e.g. utun) interface gets an automatic
+        // IPv6 default route via its own link-local address as soon as it
+        // comes up, regardless of whether it's actually carrying default
+        // (internet-bound) traffic. Since this is indistinguishable from a
+        // real interface competing for default-route ownership by
+        // destination alone, and unlike IPv4 there's no equivalent
+        // per-interface artifact to rule out, only trust an IPv6 default
+        // route here when it points at a real (non-link-local) gateway.
+        if family == crate::AddressFamily::Ipv6 && is_link_local_gateway_v6(&route) {
+            continue;
+        }
+        let Some(name) = interface_name(route.interface_index()) else {
+            continue;
+        };
+        if is_tunnel_like_interface(&name) {
+            result.virtual_.insert(name);
+        } else {
+            result.physical.insert(name);
         }
     }
 
     Ok(result)
+}
+
+fn is_link_local_gateway_v6(route: &data::RouteMessage) -> bool {
+    route
+        .gateway_v6()
+        .map(|addr| addr.is_unicast_link_local())
+        .unwrap_or(false)
 }
 
 fn interface_name(interface_index: u16) -> Option<String> {
@@ -839,4 +852,28 @@ fn default_route_msg(family: interface::Family) -> RouteMessage {
 fn route_matches_interface(default_route: &RouteMessage, interface_route: &RouteMessage) -> bool {
     default_route.gateway_ip() == interface_route.gateway_ip()
         && default_route.interface_index() == interface_route.interface_index()
+}
+
+#[cfg(test)]
+mod default_route_interface_tests {
+    use super::*;
+    use std::net::{Ipv6Addr, SocketAddr};
+
+    #[test]
+    fn link_local_gateway_v6_default_is_excluded() {
+        let link_local: Ipv6Addr = "fe80::1".parse().unwrap();
+        let route = data::RouteMessage::new_route(data::Destination::default_v6())
+            .set_gateway_addr(SocketAddr::from((link_local, 0)));
+
+        assert!(is_link_local_gateway_v6(&route));
+    }
+
+    #[test]
+    fn global_gateway_v6_default_is_not_excluded() {
+        let global: Ipv6Addr = "2001:db8::1".parse().unwrap();
+        let route = data::RouteMessage::new_route(data::Destination::default_v6())
+            .set_gateway_addr(SocketAddr::from((global, 0)));
+
+        assert!(!is_link_local_gateway_v6(&route));
+    }
 }

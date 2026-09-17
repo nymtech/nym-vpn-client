@@ -34,6 +34,10 @@ async fn tunnel_interfaces_with_default_route() -> usize {
         }
     }
 
+    // NymVPN's own tunnel interface(s) are also tunnel-shaped and would
+    // otherwise be indistinguishable from a genuinely competing VPN.
+    tunnel_interfaces.retain(|name| !crate::own_interfaces::contains(name));
+
     tunnel_interfaces.len()
 }
 
@@ -124,11 +128,11 @@ mod synthesize_competing_vpn {
 
         // As if `RouteHandler::add_routes` had installed this interface as
         // NymVPN's own, per crates/nym-vpn-lib/src/tunnel_state_machine/route_handler.rs.
-        nym_routing::own_interfaces::mark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
+        crate::own_interfaces::mark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
 
         let result = super::detect().await;
 
-        nym_routing::own_interfaces::unmark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
+        crate::own_interfaces::unmark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
         route_manager.clear_routes().ok();
 
         assert!(
