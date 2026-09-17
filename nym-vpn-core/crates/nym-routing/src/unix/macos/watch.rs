@@ -247,8 +247,7 @@ impl RoutingTable {
             // aligned to `rt_msghdr`'s alignment, by the same kernel-side
             // convention as `rt_msghdr::from_bytes`/`rt_msghdr_short::from_bytes`
             // in `data.rs`, which read from the same kind of buffer.
-            let header: libc::rt_msghdr =
-                unsafe { ptr::read(buffer[offset..].as_ptr().cast()) };
+            let header: libc::rt_msghdr = unsafe { ptr::read(buffer[offset..].as_ptr().cast()) };
             let msg_len = usize::from(header.rtm_msglen);
             if msg_len < mem::size_of::<libc::rt_msghdr>() || offset + msg_len > buffer.len() {
                 tracing::warn!(
