@@ -243,17 +243,12 @@ impl RoutingTable {
         while offset + mem::size_of::<libc::rt_msghdr>() <= buffer.len() {
             // SAFETY: `rt_msghdr` doesn't contain any pointers so any values
             // are valid, and there are enough bytes left per the loop
-            // condition. The read address isn't guaranteed to be aligned:
-            // Rust's allocator only guarantees `Vec<u8>` is aligned to 1
-            // byte, and while `rtm_msglen`-sized strides between messages
-            // are themselves aligned by convention on the kernel side, that
-            // only holds relative to wherever the buffer's own start
-            // address happens to land - so `read_unaligned` is required
-            // here regardless (see the identical reasoning on
-            // `rt_msghdr::from_bytes`/`rt_msghdr_short::from_bytes` in
-            // `data.rs`, which read from the same kind of buffer).
+            // condition. Each `rtm_msglen`-sized stride keeps this offset
+            // aligned to `rt_msghdr`'s alignment, by the same kernel-side
+            // convention as `rt_msghdr::from_bytes`/`rt_msghdr_short::from_bytes`
+            // in `data.rs`, which read from the same kind of buffer.
             let header: libc::rt_msghdr =
-                unsafe { ptr::read_unaligned(buffer[offset..].as_ptr().cast()) };
+                unsafe { ptr::read(buffer[offset..].as_ptr().cast()) };
             let msg_len = usize::from(header.rtm_msglen);
             if msg_len < mem::size_of::<libc::rt_msghdr>() || offset + msg_len > buffer.len() {
                 tracing::warn!(
