@@ -33,6 +33,7 @@ features = [
 ]
 
 [dependencies]
+hex.workspace = true
 sha2.workspace = true
 sysinfo = { workspace = true, features = ["system"] }
 nym-bin-common = { workspace = true, optional = true }
