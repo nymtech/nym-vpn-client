@@ -124,9 +124,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Non-debug Android must match fdroiddata: no RUSTC_WRAPPER (sccache) on cargo ndk.
       - name: Setup sccache
-        if: ${{ inputs.build_type == 'debug' }}
         uses: ./.github/actions/setup-sccache
 
       - name: Apply orchestrated version
@@ -252,15 +250,10 @@ jobs:
       - name: Guard F-Droid compile env
         env:
           BUILD_FLAVOR: ${{ inputs.build_flavor }}
-          BUILD_TYPE: ${{ inputs.build_type }}
         run: |
           set -euo pipefail
           if [ "$BUILD_FLAVOR" = fdroid ] && [ -n "${VPNLIB_SENTRY_DSN+x}" ]; then
             echo "::error::VPNLIB_SENTRY_DSN must be unset for F-Droid so option_env matches fdroiddata"
-            exit 1
-          fi
-          if [ -n "$BUILD_TYPE" ] && [ "$BUILD_TYPE" != "debug" ] && [ -n "${RUSTC_WRAPPER+x}" ]; then
-            echo "::error::RUSTC_WRAPPER must be unset for non-debug Android so libnym_vpn_lib.so matches F-Droid rebuilds"
             exit 1
           fi
 
