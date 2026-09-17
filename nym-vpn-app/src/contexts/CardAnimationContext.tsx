@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef } from 'react';
+import { createContext, use, useCallback, useRef } from 'react';
 
 type ExitFn = () => Promise<void>;
 
@@ -28,12 +28,12 @@ export function CardAnimationProvider({
   }, []);
 
   return (
-    <CardAnimationContext.Provider value={{ registerExit, triggerExit }}>
+    <CardAnimationContext value={{ registerExit, triggerExit }}>
       {children}
-    </CardAnimationContext.Provider>
+    </CardAnimationContext>
   );
 }
 
 export function useCardAnimation() {
-  return useContext(CardAnimationContext);
+  return use(CardAnimationContext);
 }

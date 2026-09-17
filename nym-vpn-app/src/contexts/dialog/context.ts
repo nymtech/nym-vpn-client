@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 export type DialogKey = 'location-info' | 'split-tunneling-info'; // | 'other-dialog-key' | 'and-so-on';
 
@@ -28,5 +28,5 @@ const init: DialogContext = {
 export const DialogContext = createContext<DialogContext>(init);
 // Access the Dialog context
 export const useDialog = () => {
-  return useContext(DialogContext);
+  return use(DialogContext);
 };

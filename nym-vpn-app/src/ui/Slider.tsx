@@ -1,7 +1,4 @@
-import {
-  DirectionProvider,
-  Slider as HuSlider,
-} from '@base-ui-components/react';
+import { DirectionProvider, Slider as HuSlider } from '@base-ui/react';
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

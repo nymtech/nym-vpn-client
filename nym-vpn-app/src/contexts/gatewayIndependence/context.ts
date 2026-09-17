@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 export type GwIndependenceWarningContext = {
   readonly isOpen: boolean;
@@ -21,5 +21,4 @@ const init: GwIndependenceWarningContext = {
 export const GwIndependenceWarningContext =
   createContext<GwIndependenceWarningContext>(init);
 
-export const useGwIndependenceWarning = () =>
-  useContext(GwIndependenceWarningContext);
+export const useGwIndependenceWarning = () => use(GwIndependenceWarningContext);
