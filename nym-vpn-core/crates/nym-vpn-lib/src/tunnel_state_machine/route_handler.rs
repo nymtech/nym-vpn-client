@@ -94,6 +94,14 @@ impl RouteHandler {
         routing_config: RoutingConfig,
         enable_ipv6: bool,
     ) -> Result<()> {
+        // Recorded before the routes are actually installed below, so that
+        // the competing-VPN conflict check - which can run concurrently on
+        // another task - never observes our own interface holding the
+        // default route without already knowing it's ours.
+        for name in Self::interface_names(&routing_config) {
+            nym_conflict::own_interfaces::mark(name);
+        }
+
         let routes = Self::get_routes(routing_config, enable_ipv6);
 
         #[cfg(target_os = "linux")]
@@ -108,10 +116,25 @@ impl RouteHandler {
         if let Err(e) = self.route_manager.clear_routes() {
             trace_err_chain!(e, "Failed to remove routes");
         }
+        nym_conflict::own_interfaces::clear();
 
         #[cfg(target_os = "linux")]
         if let Err(e) = self.route_manager.clear_routing_rules().await {
             trace_err_chain!(e, "Failed to remove routing rules");
+        }
+    }
+
+    fn interface_names(routing_config: &RoutingConfig) -> Vec<String> {
+        match routing_config {
+            RoutingConfig::Mixnet { tun_name, .. } => vec![tun_name.clone()],
+            RoutingConfig::Wireguard {
+                entry_tun_name,
+                exit_tun_name,
+                ..
+            } => vec![entry_tun_name.clone(), exit_tun_name.clone()],
+            RoutingConfig::WireguardNetstack { exit_tun_name, .. } => {
+                vec![exit_tun_name.clone()]
+            }
         }
     }
 
