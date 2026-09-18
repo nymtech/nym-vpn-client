@@ -11,18 +11,6 @@ use nym_dns::DnsConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(
-    target_os = "linux",
-    target_os = "macos",
-    target_os = "windows",
-    target_os = "ios"
-))]
-use nym_common::trace_err_chain;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_http_api_client::HickoryDnsResolver;
-
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "ios")]
@@ -34,6 +22,15 @@ use crate::tunnel_state_machine::{
     TunnelStateHandler,
     states::{ConnectingState, DisconnectedState, OfflineState},
 };
+#[cfg(any(
+    target_os = "linux",
+    target_os = "macos",
+    target_os = "windows",
+    target_os = "ios"
+))]
+use nym_common::trace_err_chain;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
 
 pub struct ErrorState {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -76,7 +73,12 @@ impl ErrorState {
                     // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
                     // client based on `nym-http-api-client::Client` that not modified to be independent will
                     // use these overrides automatically.
-                    HickoryDnsResolver::shared().set_static_preresolve(resolved_config.addr_map());
+                    {
+                        let r: nym_http_api_client::HickoryDnsResolver =
+                            nym_http_api_client::HickoryDnsResolver::shared();
+                        r
+                    }
+                    .set_static_preresolve(resolved_config.addr_map());
 
                     resolved_config.all_socket_addrs()
                 } else {
