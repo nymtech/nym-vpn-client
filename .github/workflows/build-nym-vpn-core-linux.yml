@@ -29,8 +29,10 @@ jobs:
         include:
           - os: "arc-ubuntu-22.04"
             arch: "x86_64"
-          - os: "ubuntu-22.04-arm"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "arc-ubuntu-22.04"
             arch: "aarch64"
+            target: "aarch64-unknown-linux-gnu"
 
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
@@ -53,13 +55,21 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+          if [ "${{ matrix.arch }}" = "aarch64" ]; then
+            sudo add-apt-repository --remove "deb http://archive.ubuntu.com/ubuntu jammy main restricted"
+            sudo dpkg --add-architecture arm64
+            sudo apt-get update
+            sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libdbus-1-dev:arm64 libmnl-dev:arm64 libnftnl-dev:arm64 protobuf-compiler
+          else
+            sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+          fi
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
+          targets: ${{ matrix.target }}
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -107,8 +117,13 @@ jobs:
         working-directory: nym-vpn-core
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+          CXX_aarch64_unknown_linux_gnu: aarch64-linux-gnu-g++
+          PKG_CONFIG_PATH: ${{ matrix.arch == 'aarch64' && '/usr/lib/aarch64-linux-gnu/pkgconfig' || '' }}
+          PKG_CONFIG_ALLOW_CROSS: ${{ matrix.arch == 'aarch64' && '1' || '' }}
         run: |
-          cargo build --release
+          cargo build --release --target ${{ matrix.target }}
 
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.
@@ -116,9 +131,14 @@ jobs:
         working-directory: nym-vpn-core
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+          CXX_aarch64_unknown_linux_gnu: aarch64-linux-gnu-g++
+          PKG_CONFIG_PATH: ${{ matrix.arch == 'aarch64' && '/usr/lib/aarch64-linux-gnu/pkgconfig' || '' }}
+          PKG_CONFIG_ALLOW_CROSS: ${{ matrix.arch == 'aarch64' && '1' || '' }}
         run: |
-          cargo deb -p nym-vpnd --no-build
-          cargo deb -p nym-vpnc --no-build
+          cargo deb --target ${{ matrix.target }} -p nym-vpnd --no-build
+          cargo deb --target ${{ matrix.target }} -p nym-vpnc --no-build
 
       - name: Get rust version used for build
         id: rust-version
@@ -127,8 +147,8 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: nym-vpn-core/target/release
-          SRC_DEB: nym-vpn-core/target/debian
+          SRC_BINARY: nym-vpn-core/target/${{ matrix.target }}/release
+          SRC_DEB: nym-vpn-core/target/${{ matrix.target }}/debian
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
