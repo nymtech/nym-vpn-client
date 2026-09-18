@@ -69,8 +69,8 @@ pub use account::{
 };
 pub use connection_data::{
     BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
-    GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    WireguardConnectionData, WireguardNode,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, SelectorFallbackState,
+    TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use diagnostic::{

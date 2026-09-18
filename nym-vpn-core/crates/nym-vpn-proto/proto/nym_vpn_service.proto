@@ -527,6 +527,11 @@ message EstablishConnectionData {
   optional TunnelConnectionData tunnel = 3;
 }
 
+message SelectorFallbackState {
+  bool entry_fallback = 1;
+  bool exit_fallback = 2;
+}
+
 message ConnectionData {
   GatewayLightInfo entry_gateway = 1;
   GatewayLightInfo exit_gateway = 2;
@@ -618,6 +623,7 @@ message TunnelState {
   message Connecting {
     uint32 retry_attempt = 1;
     EstablishConnectionState state = 2;
+    SelectorFallbackState selector_fallback_state = 5;
     TunnelType tunnel_type = 3;
     optional EstablishConnectionData connection_data = 4;
   }
