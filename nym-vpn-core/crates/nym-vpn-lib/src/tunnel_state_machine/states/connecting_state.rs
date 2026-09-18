@@ -69,6 +69,7 @@ type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
 pub struct ConnectingState {
     retry_attempt: u32,
+    last_connection_state: Option<EstablishConnectionState>,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
     tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
@@ -202,6 +203,7 @@ impl ConnectingState {
                 });
 
         let connecting_state = Self {
+            last_connection_state: None,
             tunnel_monitor_handle: None,
             tunnel_monitor_event_sender: Some(monitor_event_sender),
             tunnel_monitor_event_receiver: monitor_event_receiver,
@@ -651,7 +653,6 @@ impl ConnectingState {
     }
 }
 
-#[allow(unused_assignments)]
 #[async_trait::async_trait]
 impl TunnelStateHandler for ConnectingState {
     async fn handle_event(
@@ -660,7 +661,6 @@ impl TunnelStateHandler for ConnectingState {
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<TunnelCommand>,
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
-        let mut last_connection_state = None;
         tokio::select! {
             _ = &mut self.reconnect_delay_fut => {
                 self.handle_reconnect_delay(shared_state).await
@@ -671,27 +671,27 @@ impl TunnelStateHandler for ConnectingState {
             Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
                 match monitor_event {
                     TunnelMonitorEvent::AwaitingAccountReadiness => {
-                        last_connection_state = Some(EstablishConnectionState::AwaitingAccountReadiness);
+                        self.last_connection_state = Some(EstablishConnectionState::AwaitingAccountReadiness);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingAccountReadiness);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::AwaitingCredentialsAvailability => {
-                        last_connection_state = Some(EstablishConnectionState::AwaitingCredentialsAvailability);
+                        self.last_connection_state = Some(EstablishConnectionState::AwaitingCredentialsAvailability);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingCredentialsAvailability);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::RefreshingGateways => {
-                        last_connection_state = Some(EstablishConnectionState::RefreshingGateways);
+                        self.last_connection_state = Some(EstablishConnectionState::RefreshingGateways);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::RegisteringWithGateways => {
-                        last_connection_state = Some(EstablishConnectionState::RegisteringWithGateways);
+                        self.last_connection_state = Some(EstablishConnectionState::RegisteringWithGateways);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RegisteringWithGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectingGateways => {
-                        last_connection_state = Some(EstablishConnectionState::SelectingGateways);
+                        self.last_connection_state = Some(EstablishConnectionState::SelectingGateways);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::SelectingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
@@ -717,7 +717,7 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::RegisteredWithGateways { connection_data, reply_tx } => {
                         let next_state = match self.handle_registered_with_gateways(connection_data, shared_state).await {
                             Ok(()) => {
-                                last_connection_state = Some(EstablishConnectionState::ConnectingTunnel);
+                                self.last_connection_state = Some(EstablishConnectionState::ConnectingTunnel);
                                 let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
                                 NextTunnelState::NewState((self, new_state))
                             }
@@ -828,7 +828,7 @@ impl TunnelStateHandler for ConnectingState {
                         self.selector_fallback_state.exit_fallback = true;
                     },
                 }
-                let last_state = last_connection_state.unwrap_or(EstablishConnectionState::SelectingGateways);
+                let last_state = self.last_connection_state.unwrap_or(EstablishConnectionState::SelectingGateways);
                 let new_state = self.make_connecting_tunnel_state(shared_state, last_state);
                 NextTunnelState::NewState((self, new_state))
 

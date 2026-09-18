@@ -97,7 +97,7 @@ pub struct EstablishConnectionData {
 }
 
 /// Describes the current state when establishing connection.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
     feature = "typescript-bindings",
