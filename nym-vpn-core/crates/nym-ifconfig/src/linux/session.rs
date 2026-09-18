@@ -379,7 +379,7 @@ mod tests {
         let interface = tun.name().expect("failed to obtain interface name");
         let mut sess = Session::new().expect("failed to create session");
 
-        let mtu = rand::thread_rng().gen_range(1280..=1480);
+        let mtu = rand::rng().random_range(1280..=1480);
         sess.set_mtu(&interface, mtu)
             .await
             .expect("failed to set mtu");
