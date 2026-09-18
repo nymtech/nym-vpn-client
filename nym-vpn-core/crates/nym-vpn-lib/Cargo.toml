@@ -108,7 +108,7 @@ sentry = { workspace = true, features = [
     "logs",
 ] }
 strum.workspace = true
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 sysinfo = { workspace = true, features = ["network"] }
 toml.workspace = true
 thiserror.workspace = true
@@ -205,7 +205,7 @@ tempfile.workspace = true
 tracing-test.workspace = true
 
 [build-dependencies]
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",
