@@ -4,7 +4,7 @@
 use std::{path::PathBuf, sync::Arc};
 
 use itertools::Itertools;
-use opentelemetry::trace::TracerProvider;
+use opentelemetry::trace::{TraceContextExt, TracerProvider};
 use sentry::integrations::tracing as sentry_tracing;
 use tokio::{
     sync::{Mutex, mpsc},
@@ -13,7 +13,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tracing::{Event, Level, Subscriber};
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
-use tracing_opentelemetry::OtelData;
+use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
     EnvFilter, Layer,
     fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
@@ -256,10 +256,17 @@ where
         write!(writer, "{{")?;
         if self.enable_opentelemetry
             && let Some((trace_id, span_id)) = ctx.event_scope().and_then(|mut scope| {
-                scope.find_map(|span_ref| {
-                    let exts = span_ref.extensions();
-                    let otel = exts.get::<OtelData>()?;
-                    Some((otel.trace_id()?.to_string(), otel.span_id()?.to_string()))
+                tracing::dispatcher::get_default(|dispatch| {
+                    scope.find_map(|span_ref| {
+                        let otel = get_otel_context(&span_ref.id(), dispatch)?;
+                        let span = otel.span();
+                        let span_ctx = span.span_context();
+
+                        let trace_id = span_ctx.trace_id();
+                        let span_id = span_ctx.span_id();
+
+                        Some((trace_id.to_string(), span_id.to_string()))
+                    })
                 })
             })
         {
