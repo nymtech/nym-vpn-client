@@ -373,7 +373,7 @@ mod tests {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_set_p2p_mtu() {
-        use rand::Rng;
+        use rand::RngExt;
 
         let tun = Tun::new().expect("failed to create tun");
         let interface = tun.name().expect("failed to obtain interface name");
