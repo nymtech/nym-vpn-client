@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use rand::SeedableRng as _;
+use rand08::SeedableRng;
 use tokio::sync::Mutex;
 
 use crate::keys::device::{DeviceKeyStore, DeviceKeys};
@@ -36,7 +36,7 @@ impl DeviceKeyStore for InMemEphemeralKeys {
             let mut rng = rand_chacha::ChaCha20Rng::from_seed(seed);
             DeviceKeys::generate_new(&mut rng)
         } else {
-            let mut rng = rand::rngs::OsRng;
+            let mut rng = rand08::rngs::OsRng;
             DeviceKeys::generate_new(&mut rng)
         };
         self.store_keys(&device_keys).await

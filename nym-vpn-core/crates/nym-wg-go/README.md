@@ -39,7 +39,7 @@ let _ = AmneziaConfig::OFF;
 let _ = AmneziaConfig::BASE;
 
 /// Creates a randomized configuration with parameters within suggested ranges.
-let _ = AmneziaConfig::rand(rand::thread_rng());
+let _ = AmneziaConfig::rand(rand::rng());
 ```
 
 If you would like full control over the configuration used by Amnezia you can construct an `AmneziaConfig` object.

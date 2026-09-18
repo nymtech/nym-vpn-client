@@ -289,7 +289,7 @@ async fn setup_wg_registration(
 ) -> anyhow::Result<WgRegistrationConfig> {
     let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
 
-    let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rngs::OsRng));
+    let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rand08::rngs::OsRng));
 
     let gateway_version = gateway.version().to_string();
     let authenticator_address = gateway

@@ -9,7 +9,7 @@ use hkdf::Hkdf;
 use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
-use rand::{RngCore, rngs::OsRng};
+use rand08::{RngCore, rngs::OsRng};
 use sha2::{Sha256, Sha512};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};

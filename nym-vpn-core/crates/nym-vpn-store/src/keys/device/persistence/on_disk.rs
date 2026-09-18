@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{KeyPairPath, traits::PemStorableKeyPair};
-use rand::SeedableRng as _;
+use rand08::SeedableRng;
 
 use crate::keys::device::{DeviceKeyStore, DeviceKeys};
 
@@ -155,7 +155,7 @@ impl OnDiskKeys {
             let mut rng = rand_chacha::ChaCha20Rng::from_seed(seed);
             DeviceKeys::generate_new(&mut rng)
         } else {
-            let mut rng = rand::rngs::OsRng;
+            let mut rng = rand08::rngs::OsRng;
             DeviceKeys::generate_new(&mut rng)
         };
         self.store_keys(&device_keys)

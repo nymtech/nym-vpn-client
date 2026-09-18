@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
 use std::{
     cmp::max,
     time::{Duration, Instant},
@@ -248,7 +248,7 @@ impl UsageHandler {
                 exit_cc,
                 follow_up_id,
             } => {
-                let session_id = Alphanumeric.sample_string(&mut rand::thread_rng(), 20);
+                let session_id = Alphanumeric.sample_string(&mut rand::rng(), 20);
                 let finished_session = FinishedSession {
                     start_day,
                     connection_duration,

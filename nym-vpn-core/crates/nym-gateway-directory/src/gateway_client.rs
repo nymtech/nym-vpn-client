@@ -18,7 +18,7 @@ use nym_vpn_api_client::{
     types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
 };
-use rand::{prelude::SliceRandom, thread_rng};
+use rand::seq::IndexedRandom;
 use tracing::{debug, error, warn};
 use url::Url;
 
@@ -319,7 +319,7 @@ impl GatewayClient {
         } else {
             // chose a random one if there's more than one
             // SAFETY: the vector is not empty, so unwrap is fine
-            let mut rng = thread_rng();
+            let mut rng = rand::rng();
             let ip = ips.choose(&mut rng).unwrap();
             Ok(*ip)
         }
