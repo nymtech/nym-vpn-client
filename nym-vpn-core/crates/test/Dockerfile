@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ideally should correspond to what's in workspace root
-ARG RUST_VERSION=1.91.0
+ARG RUST_VERSION=1.97.0
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --default-toolchain "${RUST_VERSION}" --target x86_64-unknown-linux-gnu
 ENV PATH="/root/.cargo/bin:${PATH}"

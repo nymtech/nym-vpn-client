@@ -21,12 +21,6 @@ base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
-ed25519-dalek = { workspace = true, features = [
-    "pkcs8",
-    "alloc",
-    "pem",
-    "rand_core",
-] }
 futures.workspace = true
 geo.workspace = true
 hex.workspace = true
