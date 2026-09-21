@@ -23,6 +23,9 @@ on:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
 
+permissions:
+  contents: read
+
 env:
   RELEASE_NOTES: ""
 
