@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.37.3"
-agp = "9.4.0"
+agp = "9.4.1"
 coreSplashscreen = "1.2.0"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.6.2"
@@ -32,7 +32,7 @@ windowCoreAndroid = "1.5.1"
 desugar = "2.1.5"
 zxingAndroidEmbedded = "4.3.0"
 sentry = "8.57.0"
-billing-client = "8.3.0"
+billing-client = "9.1.0"
 biometric = "1.4.0-alpha07"
 credentials = "1.7.0-alpha03"
 
