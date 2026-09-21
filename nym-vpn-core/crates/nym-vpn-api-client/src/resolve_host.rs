@@ -10,7 +10,7 @@ use crate::error::{Result, VpnApiClientError};
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
-    let resolver = HickoryDnsResolver::default();
+    let resolver: HickoryDnsResolver = HickoryDnsResolver::default();
 
     let ips = resolver
         .resolve_str(hostname)
