@@ -52,9 +52,18 @@ jobs:
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
-      publish_bundle: true
-      publish_metadata: ${{ inputs.publish_play_metadata }}
       play_artifact_name: ${{ inputs.play_artifact_name }}
+    secrets: inherit
+
+  # Runs after publish-playstore
+  publish-playstore-metadata:
+    needs: [publish-playstore]
+    if: |
+      !cancelled() && needs.publish-playstore.result == 'success' &&
+      inputs.publish_play && inputs.publish_play_metadata
+    uses: ./.github/workflows/publish-nym-vpn-android-metadata.yml
+    with:
+      track: alpha
     secrets: inherit
 
   publish-testflight:
@@ -86,3 +95,13 @@ jobs:
       - name: Print failure message
         run: |
           echo "::warning:: Failed to publish to Google Play!"
+
+  handle-playstore-metadata-failures:
+    needs: [publish-playstore-metadata]
+    runs-on: arc-linux-latest
+    if: |
+        !cancelled() && needs.publish-playstore-metadata.result == 'failure'
+    steps:
+      - name: Print failure message
+        run: |
+          echo "::warning:: Failed to publish Google Play metadata/changelog!"
