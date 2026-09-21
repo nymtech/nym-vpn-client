@@ -73,12 +73,9 @@ impl ErrorState {
                     // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
                     // client based on `nym-http-api-client::Client` that not modified to be independent will
                     // use these overrides automatically.
-                    {
-                        let r: nym_http_api_client::HickoryDnsResolver =
-                            nym_http_api_client::HickoryDnsResolver::shared();
-                        r
-                    }
-                    .set_static_preresolve(resolved_config.addr_map());
+                    let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+                        nym_http_api_client::HickoryDnsResolver::shared();
+                    dns_resolver.set_static_preresolve(resolved_config.addr_map());
 
                     resolved_config.all_socket_addrs()
                 } else {

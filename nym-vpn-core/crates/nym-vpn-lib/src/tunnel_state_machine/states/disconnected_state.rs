@@ -39,12 +39,9 @@ impl DisconnectedState {
         shared_state.clear_android_blocking_tun();
 
         // Clear addresses from the pre-resolve table in the (shared) DNS resolver.
-        {
-            let r: nym_http_api_client::HickoryDnsResolver =
-                nym_http_api_client::HickoryDnsResolver::shared();
-            r
-        }
-        .clear_preresolve();
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        dns_resolver.clear_preresolve();
 
         shared_state.allow_networking().await;
         shared_state
