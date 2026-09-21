@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
+
 ## [2026.12.4] - 2026-09-16
 
 ## [2026.12.4] - 2026-08-27
