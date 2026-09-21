@@ -24,6 +24,17 @@ class VpnTunController(private val service: VpnService) {
 		}
 
 		internal fun bindsProcessToUnderlying(excludeVpnApp: Boolean): Boolean = excludeVpnApp
+
+		private fun underlyingScore(hasInternet: Boolean, isVpn: Boolean, isWifi: Boolean, isEthernet: Boolean, isValidated: Boolean): Int {
+			if (!matchesUnderlyingInternet(hasInternet, isVpn)) return -1
+			val preferred = isWifi || isEthernet
+			return when {
+				preferred && isValidated -> 6
+				isValidated -> 3
+				preferred -> 2
+				else -> 1
+			}
+		}
 	}
 
 	@Volatile private var disallowedApps: List<String> = emptyList()
@@ -117,19 +128,30 @@ class VpnTunController(private val service: VpnService) {
 
 	private fun bindProcessToUnderlyingNetwork() {
 		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
-		val underlying = cm.allNetworks.firstOrNull { network ->
-			val caps = cm.getNetworkCapabilities(network) ?: return@firstOrNull false
-			matchesUnderlyingInternet(
+		val chosen = cm.allNetworks.mapNotNull { network ->
+			val caps = cm.getNetworkCapabilities(network) ?: return@mapNotNull null
+			val score = underlyingScore(
 				hasInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
 				isVpn = caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN),
+				isWifi = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
+				isEthernet = caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET),
+				isValidated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
 			)
-		}
-		if (underlying == null) {
+			if (score < 0) null else Triple(network, score, caps)
+		}.maxByOrNull { it.second }
+		if (chosen == null) {
 			Timber.tag(TAG).w("No underlying internet network to bind process")
 			return
 		}
+		val (underlying, _, caps) = chosen
+		val transport = when {
+			caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+			caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+			caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+			else -> "other"
+		}
 		runCatching { cm.bindProcessToNetwork(underlying) }
-			.onSuccess { Timber.tag(TAG).i("Bound process to underlying network (cover)") }
+			.onSuccess { Timber.tag(TAG).i("Bound process to underlying network (cover) transport=$transport") }
 			.onFailure { Timber.tag(TAG).w(it, "bindProcessToNetwork failed") }
 	}
 
