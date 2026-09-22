@@ -17,7 +17,7 @@
   "nym-exit-server": "Exit server",
   "connection-time": "Connection time",
   "random-server": "Random server",
-  "safest-server-selection": "Safest server selection",
+  "safest-server-selection": "Auto server selection",
   "fastest-server-selection": "Fastest server selection",
   "mode-toggle": {
     "fast": "dVPN",

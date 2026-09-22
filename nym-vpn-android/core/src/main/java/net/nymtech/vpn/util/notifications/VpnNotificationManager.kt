@@ -178,7 +178,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 
 			is EntryPoint.Country -> Triple(toDisplayCountry(entry.twoLetterIsoCountryCode), null, null)
 			is EntryPoint.Random -> Triple(GatewaySelectionMode.RANDOM.value, null, null)
-			is EntryPoint.Auto -> Triple("Safest", null, null)
+			is EntryPoint.Auto -> Triple("Auto", null, null)
 		}
 
 		return formatNodeLocation(name, city, countryIso)
@@ -199,7 +199,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			is ExitPoint.Country -> Triple(toDisplayCountry(exit.twoLetterIsoCountryCode), null, null)
 			is ExitPoint.Address -> Triple(exit.address, null, null)
 			is ExitPoint.Random -> Triple(GatewaySelectionMode.RANDOM.value.lowercase(), null, null)
-			is ExitPoint.Auto -> Triple("safest", null, null)
+			is ExitPoint.Auto -> Triple("auto", null, null)
 		}
 
 		return formatNodeLocation(name, city, countryIso)
