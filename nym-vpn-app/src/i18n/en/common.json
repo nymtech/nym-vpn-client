@@ -22,7 +22,7 @@
     "intro": "Profiles are connection templates that we baked in for you, to start experimenting with the privacy–speed balance that best suits your needs.",
     "error": "Failed to apply profile",
     "safest": {
-      "title": "Safest",
+      "title": "Auto",
       "desc": "Optimal for legal protection"
     },
     "random": {
