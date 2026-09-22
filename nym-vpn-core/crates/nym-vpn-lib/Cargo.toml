@@ -36,6 +36,7 @@ hyper = { workspace = true, features = ["server", "http1"] }
 hyper-util = { workspace = true, features = ["tokio"] }
 http-body-util = { workspace = true }
 ipnetwork.workspace = true
+json-subscriber = { workspace = true, features = ["tracing-opentelemetry-0-33"] }
 itertools.workspace = true
 log-panics.workspace = true
 lazy_static.workspace = true

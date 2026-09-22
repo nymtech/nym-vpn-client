@@ -32,6 +32,7 @@ tokio-stream.workspace = true
 tokio-util.workspace = true
 tonic.workspace = true
 tracing.workspace = true
+opentelemetry_sdk.workspace = true
 
 nym-bin-common.workspace = true
 nym-sdk.workspace = true

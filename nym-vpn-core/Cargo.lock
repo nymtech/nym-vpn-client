@@ -4722,6 +4722,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "json-subscriber"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1a3442048fd2d18bf39b182881bea8de640062f86cbacf6d949478af61651d6"
+dependencies = [
+ "opentelemetry 0.32.0",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-core",
+ "tracing-opentelemetry 0.33.0",
+ "tracing-serde",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "jwt-simple"
 version = "0.12.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7957,6 +7974,7 @@ dependencies = [
  "hyper-util",
  "ipnetwork",
  "itertools 0.15.0",
+ "json-subscriber",
  "lazy_static",
  "libc",
  "log-panics",
@@ -8232,6 +8250,7 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
+ "opentelemetry_sdk",
  "pretty_assertions",
  "time",
  "tokio",

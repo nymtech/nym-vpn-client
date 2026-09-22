@@ -1,28 +1,20 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    path::PathBuf,
-    sync::{Arc, OnceLock},
-};
+use std::{path::PathBuf, sync::Arc};
 
 use itertools::Itertools;
-use opentelemetry::trace::{TraceContextExt, TracerProvider};
+use opentelemetry::trace::TracerProvider;
 use sentry::integrations::tracing as sentry_tracing;
 use tokio::{
     sync::{Mutex, mpsc},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{Dispatch, Event, Level, Subscriber, dispatcher::WeakDispatch};
+use tracing::Level;
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
-use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
-    EnvFilter, Layer,
-    fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
-    layer::SubscriberExt,
-    registry::LookupSpan,
-    util::SubscriberInitExt,
+    EnvFilter, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
 };
 
 use nym_vpn_lib_types::LogPath;
@@ -60,12 +52,14 @@ static INFO_TARGETS: [&str; 16] = [
 
 static WARN_TARGETS: [&str; 3] = ["hickory_server", "quinn::connection", "zbus"];
 
-pub struct Options {
+#[derive(Debug)]
+pub struct Options<'a> {
     pub verbosity_level: Level,
     pub enable_stdout_log: bool,
     pub enable_json_log: bool,
     pub log_dir: Option<PathBuf>,
     pub sentry: bool,
+    pub otel_provider: Option<&'a opentelemetry_sdk::trace::SdkTracerProvider>,
 }
 
 #[derive(Clone, Debug)]
@@ -241,91 +235,11 @@ impl std::io::Write for FileManager {
     }
 }
 
-/// Layer which sole purpose is to capture `Dispatch`
-struct JsonLogLayer {
-    dispatch: Arc<OnceLock<WeakDispatch>>,
-}
-
-impl JsonLogLayer {
-    pub fn new(dispatch: Arc<OnceLock<WeakDispatch>>) -> Self {
-        Self { dispatch }
-    }
-}
-
-impl<S> Layer<S> for JsonLogLayer
-where
-    S: Subscriber + for<'a> LookupSpan<'a>,
-{
-    fn on_register_dispatch(&self, dispatch: &Dispatch) {
-        self.dispatch.set(dispatch.downgrade()).ok();
-    }
-}
-
-struct JsonLogFormatter {
-    enable_opentelemetry: bool,
-    dispatch: Arc<OnceLock<WeakDispatch>>,
-}
-
-impl JsonLogFormatter {
-    pub fn new(enable_opentelemetry: bool, dispatch: Arc<OnceLock<WeakDispatch>>) -> Self {
-        Self {
-            enable_opentelemetry,
-            dispatch,
-        }
-    }
-}
-
-impl<S, N> FormatEvent<S, N> for JsonLogFormatter
-where
-    S: Subscriber + for<'a> LookupSpan<'a>,
-    N: for<'a> FormatFields<'a> + 'static,
-{
-    fn format_event(
-        &self,
-        ctx: &FmtContext<'_, S, N>,
-        mut writer: tracing_subscriber::fmt::format::Writer<'_>,
-        event: &Event<'_>,
-    ) -> std::fmt::Result {
-        write!(writer, "{{")?;
-        if self.enable_opentelemetry
-            && let Some(dispatch) = self.dispatch.get().and_then(|d| d.upgrade())
-            && let Some((trace_id, span_id)) = ctx.event_scope().and_then(|mut scope| {
-                scope.find_map(|span_ref| {
-                    let otel = get_otel_context(&span_ref.id(), &dispatch)?;
-                    let span = otel.span();
-                    let span_ctx = span.span_context();
-
-                    let trace_id = span_ctx.trace_id();
-                    let span_id = span_ctx.span_id();
-
-                    Some((trace_id.to_string(), span_id.to_string()))
-                })
-            })
-        {
-            write!(writer, r#""trace_id":"{trace_id}","span_id":"{span_id}","#)?;
-        }
-        write!(
-            writer,
-            r#""timestamp":"{}","level":"{}","target":"{}","#,
-            time::OffsetDateTime::now_utc()
-                .format(&time::format_description::well_known::Rfc3339)
-                .unwrap_or_else(|_| "-".into()),
-            event.metadata().level(),
-            event.metadata().target(),
-        )?;
-        write!(writer, r#""fields":"#)?;
-        ctx.field_format().format_fields(writer.by_ref(), event)?;
-        write!(writer, "}}")?;
-
-        writeln!(writer)
-    }
-}
-
 pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     // Right now we only use opentelemetry for generating trace ID and span ID in JSON logs,
     // which are harder to read but better for automated tools.
     // ! This does not configure any additional telemetry, it's just additional data added locally !
-    let enable_opentelemetry = options.enable_json_log;
+    let enable_opentelemetry = options.enable_json_log && options.otel_provider.is_some();
 
     // Setup from RUST_LOG if set and not empty. Otherwise use production configuration
     let env_filter = if std::env::var(EnvFilter::DEFAULT_ENV).is_ok_and(|s| !s.trim().is_empty()) {
@@ -355,12 +269,8 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     #[cfg(not(any(target_os = "macos", target_os = "ios")))]
     let os_logger: Option<tracing_subscriber::fmt::Layer<_>> = None;
 
-    // Dispatch proxy layer
-    let dispatch = Arc::new(OnceLock::new());
-    let json_layer = JsonLogLayer::new(dispatch.clone());
-
     // File log setup
-    let (mut file_writer, worker_guard) = if let Some(log_dir) = options.log_dir {
+    let (mut file_writer, worker_guard) = if let Some(log_dir) = options.log_dir.clone() {
         let file_appender = FileAppender::new(log_dir, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE);
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
@@ -377,15 +287,11 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         && let Some(file_writer) = file_writer.take()
     {
         Some(
-            tracing_subscriber::fmt::layer()
-                .with_span_events(FmtSpan::CLOSE)
-                .with_writer(file_writer)
-                .with_ansi(false)
-                .json()
-                .event_format(JsonLogFormatter::new(
-                    enable_opentelemetry,
-                    dispatch.clone(),
-                )),
+            json_subscriber::layer()
+                .flatten_event(true)
+                .with_current_span(true)
+                .with_opentelemetry_ids(enable_opentelemetry)
+                .with_writer(file_writer),
         )
     } else {
         None
@@ -412,12 +318,12 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     };
 
     let console_layer_json = if options.enable_stdout_log && options.enable_json_log {
-        let console_layer = tracing_subscriber::fmt::layer().with_span_events(FmtSpan::CLOSE);
-        let formatted_console = console_layer.json().event_format(JsonLogFormatter::new(
-            enable_opentelemetry,
-            dispatch.clone(),
-        ));
-        Some(formatted_console)
+        Some(
+            json_subscriber::layer()
+                .flatten_event(true)
+                .with_current_span(true)
+                .with_opentelemetry_ids(enable_opentelemetry),
+        )
     } else {
         None
     };
@@ -434,10 +340,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     };
 
     // OpenTelemetry Layer
-    let telemetry_layer = if enable_opentelemetry {
-        let tracer = opentelemetry_sdk::trace::SdkTracerProvider::builder()
-            .build()
-            .tracer("nym-vpnd");
+    let telemetry_layer = if enable_opentelemetry && let Some(otel_provider) = options.otel_provider
+    {
+        let tracer = otel_provider.tracer("nym-vpnd");
+
         Some(tracing_opentelemetry::layer().with_tracer(tracer))
     } else {
         None
@@ -447,7 +353,6 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .with(env_filter)
         .with(android_layer)
         .with(os_logger)
-        .with(json_layer)
         .with(file_layer_json)
         .with(file_layer_plain)
         .with(console_layer_json)
@@ -457,6 +362,12 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .init();
 
     log_panics::init();
+
+    let span = tracing::info_span!("logging_init");
+    let enter = span.enter();
+    tracing::info!("Logging initialized");
+    drop(enter);
+
     worker_guard
 }
 

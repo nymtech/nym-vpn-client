@@ -84,6 +84,7 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
 
     let shutdown_token = CancellationToken::new();
     let run_as_service = cli_args.is_run_as_service();
+    let otel_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder().build();
     let options = nym_vpn_lib::logging::Options {
         verbosity_level: cli_args.verbosity_level(),
         enable_stdout_log: !run_as_service,
@@ -94,6 +95,7 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
             None
         },
         sentry: sentry_enabled,
+        otel_provider: Some(&otel_provider),
     };
     let logging_setup = nym_vpn_lib::logging::setup_logging_with_file_remover(
         options,
@@ -151,6 +153,9 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
     } else {
         None
     };
+
+    let _ = otel_provider.shutdown();
+    println!("Otel is shutdown");
 
     Ok(())
 }
