@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
+- Fail cover TUN setup if bindProcessToNetwork returns false instead of logging success
 - Proper status handling for Notification Manager (https://github.com/nymtech/nym-vpn-client/pull/6268)
 - Fix Quick Tile crash after service destroy (https://github.com/nymtech/nym-vpn-client/pull/6232)
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)

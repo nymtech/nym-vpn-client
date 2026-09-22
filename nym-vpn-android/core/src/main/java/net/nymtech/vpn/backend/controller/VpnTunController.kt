@@ -103,14 +103,18 @@ class VpnTunController(private val service: VpnService) {
 				throw VpnException.InternalException("Failed to establish VPN tunnel")
 			}
 
-			val fd = pfd.detachFd()
-
-			if (bindsProcessToUnderlying(config.excludeVpnApp)) {
-				bindProcessToUnderlyingNetwork()
-			} else {
-				unbindProcessFromUnderlyingNetwork()
+			try {
+				if (bindsProcessToUnderlying(config.excludeVpnApp)) {
+					bindProcessToUnderlyingNetwork()
+				} else {
+					unbindProcessFromUnderlyingNetwork()
+				}
+			} catch (t: Throwable) {
+				runCatching { pfd.close() }
+				throw t
 			}
 
+			val fd = pfd.detachFd()
 			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
 
 			fd
@@ -128,7 +132,7 @@ class VpnTunController(private val service: VpnService) {
 
 	private fun bindProcessToUnderlyingNetwork() {
 		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
-		val chosen = cm.allNetworks.mapNotNull { network ->
+		val candidates = cm.allNetworks.mapNotNull { network ->
 			val caps = cm.getNetworkCapabilities(network) ?: return@mapNotNull null
 			val score = underlyingScore(
 				hasInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
@@ -138,27 +142,39 @@ class VpnTunController(private val service: VpnService) {
 				isValidated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
 			)
 			if (score < 0) null else Triple(network, score, caps)
-		}.maxByOrNull { it.second }
-		if (chosen == null) {
+		}.sortedByDescending { it.second }
+		if (candidates.isEmpty()) {
 			Timber.tag(TAG).w("No underlying internet network to bind process")
 			return
 		}
-		val (underlying, _, caps) = chosen
-		val transport = when {
-			caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
-			caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
-			caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
-			else -> "other"
+		for ((network, _, caps) in candidates) {
+			val transport = when {
+				caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+				caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+				caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+				else -> "other"
+			}
+			val bound = runCatching { cm.bindProcessToNetwork(network) }
+				.onFailure { Timber.tag(TAG).w(it, "bindProcessToNetwork failed transport=$transport") }
+				.getOrDefault(false)
+			if (bound) {
+				Timber.tag(TAG).i("Bound process to underlying network (cover) transport=$transport")
+				return
+			}
+			Timber.tag(TAG).w("bindProcessToNetwork returned false transport=$transport")
 		}
-		runCatching { cm.bindProcessToNetwork(underlying) }
-			.onSuccess { Timber.tag(TAG).i("Bound process to underlying network (cover) transport=$transport") }
-			.onFailure { Timber.tag(TAG).w(it, "bindProcessToNetwork failed") }
+		throw VpnException.InternalException("Failed to bind process to an underlying network")
 	}
 
 	private fun unbindProcessFromUnderlyingNetwork() {
 		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return
-		runCatching { cm.bindProcessToNetwork(null) }
-			.onSuccess { Timber.tag(TAG).i("Unbound process from underlying network (data tun)") }
+		val unbound = runCatching { cm.bindProcessToNetwork(null) }
 			.onFailure { Timber.tag(TAG).w(it, "unbindProcessFromNetwork failed") }
+			.getOrDefault(false)
+		if (unbound) {
+			Timber.tag(TAG).i("Unbound process from underlying network (data tun)")
+			return
+		}
+		Timber.tag(TAG).w("unbindProcessFromNetwork returned false")
 	}
 }
