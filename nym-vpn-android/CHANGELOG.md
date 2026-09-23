@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Profiles screen to Settings (https://github.com/nymtech/nym-vpn-client/pull/6319)
 - Six-month subscription kind with long-plan expiry warnings (https://github.com/nymtech/nym-vpn-client/pull/6320)
 - Add error handling for Connect button (http://github.com/nymtech/nym-vpn-client/pull/6329)
+- Enable ARM Memory Tagging Extension (MTE) in async mode (https://github.com/nymtech/nym-vpn-client/pull/6436)
 
 ### Changed
 - Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
