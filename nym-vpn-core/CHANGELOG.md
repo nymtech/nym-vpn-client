@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merge rpc-uniffi crate into lib-uniffi (https://github.com/nymtech/nym-vpn-client/pull/6010)
 - Remove "trace only logging" mode and honor `RUST_LOG` when set (https://github.com/nymtech/nym-vpn-client/pull/6131)
 - Fallback to random when no location data available (https://github.com/nymtech/nym-vpn-client/pull/6382)
+- Re-order authentication flow and do checks as soon as possible (https://github.com/nymtech/nym-vpn-client/pull/6406)
 
 ### Fixed
 
