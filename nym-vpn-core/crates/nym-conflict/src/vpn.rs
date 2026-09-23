@@ -5,14 +5,14 @@
 //! route before NymVPN starts a connection attempt.
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::Conflict;
+use crate::{Conflict, OwnInterfaces};
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::collections::HashSet;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub(crate) async fn detect() -> Vec<Conflict> {
-    if tunnel_interfaces_with_default_route().await >= 1 {
+pub(crate) async fn detect(own_interfaces: &OwnInterfaces) -> Vec<Conflict> {
+    if tunnel_interfaces_with_default_route(own_interfaces).await >= 1 {
         vec![Conflict::CompetingVpn]
     } else {
         Vec::new()
@@ -20,7 +20,7 @@ pub(crate) async fn detect() -> Vec<Conflict> {
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-async fn tunnel_interfaces_with_default_route() -> usize {
+async fn tunnel_interfaces_with_default_route(own_interfaces: &OwnInterfaces) -> usize {
     use nym_routing::AddressFamily;
 
     let mut tunnel_interfaces = HashSet::new();
@@ -36,7 +36,7 @@ async fn tunnel_interfaces_with_default_route() -> usize {
 
     // NymVPN's own tunnel interface(s) are also tunnel-shaped and would
     // otherwise be indistinguishable from a genuinely competing VPN.
-    tunnel_interfaces.retain(|name| !crate::own_interfaces::contains(name));
+    tunnel_interfaces.retain(|name| !own_interfaces.contains(name));
 
     tunnel_interfaces.len()
 }
@@ -46,7 +46,8 @@ mod manual_smoke_test {
     #[tokio::test]
     #[ignore = "manual smoke test; run with --ignored --nocapture"]
     async fn print_scan_result() {
-        println!("scan(): {:?}", super::detect().await);
+        let own_interfaces = crate::OwnInterfaces::new();
+        println!("scan(): {:?}", super::detect(&own_interfaces).await);
     }
 }
 
@@ -91,7 +92,7 @@ mod synthesize_competing_vpn {
             .await
             .expect("failed to add synthetic competing-VPN route");
 
-        let result = super::detect().await;
+        let result = super::detect(&crate::OwnInterfaces::new()).await;
 
         route_manager.clear_routes().ok();
 
@@ -128,11 +129,11 @@ mod synthesize_competing_vpn {
 
         // As if `RouteHandler::add_routes` had installed this interface as
         // NymVPN's own, per crates/nym-vpn-lib/src/tunnel_state_machine/route_handler.rs.
-        crate::own_interfaces::mark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
+        let own_interfaces = crate::OwnInterfaces::new();
+        own_interfaces.mark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
 
-        let result = super::detect().await;
+        let result = super::detect(&own_interfaces).await;
 
-        crate::own_interfaces::unmark(SYNTHETIC_TUNNEL_INTERFACE_ALIAS);
         route_manager.clear_routes().ok();
 
         assert!(

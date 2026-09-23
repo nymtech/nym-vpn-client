@@ -1311,6 +1311,7 @@ pub struct TunnelStateMachine {
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
     diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker,
     conflict_tracker: ConflictTracker,
+    own_interfaces: nym_conflict::OwnInterfaces,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(target_os = "android"))]
@@ -1457,6 +1458,11 @@ impl TunnelStateMachine {
             DisconnectedState::enter(None, &mut shared_state).await
         };
 
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let own_interfaces = shared_state.route_handler.own_interfaces();
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        let own_interfaces = nym_conflict::OwnInterfaces::new();
+
         let tunnel_state_machine = Self {
             current_state_handler,
             current_state: TunnelState::from(initial_tunnel_state),
@@ -1465,6 +1471,7 @@ impl TunnelStateMachine {
             event_sender,
             diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker::default(),
             conflict_tracker: ConflictTracker::default(),
+            own_interfaces,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(target_os = "android"))]
@@ -1526,9 +1533,10 @@ impl TunnelStateMachine {
                     let event_sender = self.event_sender.clone();
                     let shutdown_token = self.shutdown_token.clone();
                     let scan_cancellation = scan_cancellation.clone();
+                    let own_interfaces = self.own_interfaces.clone();
                     tokio::spawn(async move {
                         let conflicts = tokio::select! {
-                            conflicts = nym_conflict::detect(check) => conflicts,
+                            conflicts = nym_conflict::detect(check, own_interfaces) => conflicts,
                             _ = shutdown_token.cancelled() => return,
                             _ = scan_cancellation.cancelled() => return,
                         };

@@ -7,11 +7,11 @@
 
 mod dns;
 mod firewall;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub mod own_interfaces;
+mod own_interfaces;
 mod vpn;
 
 pub use dns::{PROBE_ADDR, PROBE_DOMAIN};
+pub use own_interfaces::OwnInterfaces;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Conflict {
@@ -27,16 +27,16 @@ pub enum ConflictCheck {
     CompetingFirewall,
 }
 
-pub async fn detect(check: ConflictCheck) -> Vec<Conflict> {
+pub async fn detect(check: ConflictCheck, own_interfaces: OwnInterfaces) -> Vec<Conflict> {
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
-        let _ = check;
+        let _ = (check, own_interfaces);
         Vec::new()
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     match check {
         ConflictCheck::InterceptedDns => dns::detect().await,
-        ConflictCheck::CompetingVpn => vpn::detect().await,
+        ConflictCheck::CompetingVpn => vpn::detect(&own_interfaces).await,
         ConflictCheck::CompetingFirewall => firewall::detect().await,
     }
 }
