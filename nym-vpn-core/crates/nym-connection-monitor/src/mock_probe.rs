@@ -92,6 +92,10 @@ impl ProbeError for MockProbeError {
     fn is_timeout(&self) -> bool {
         matches!(self, Self::Timeout)
     }
+
+    fn probe_identifier(&self) -> Option<String> {
+        None
+    }
 }
 
 impl From<MockProbeError> for BoxedProbeError {

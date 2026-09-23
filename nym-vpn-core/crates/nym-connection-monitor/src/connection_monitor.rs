@@ -263,7 +263,11 @@ where
                         }
                         Err(err) => {
                             if err.is_timeout() {
-                                tracing::warn!("{}", err.source().unwrap_or(err.as_ref()));
+                                if let Some(ident) = err.probe_identifier() {
+                                    tracing::warn!("Probe timed out: {ident}");
+                                } else {
+                                    tracing::warn!("Probe timed out");
+                                }
                             } else {
                                 trace_err_chain!(err);
                             }

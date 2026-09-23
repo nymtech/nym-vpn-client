@@ -16,6 +16,11 @@ pub trait ConnectionProbe {
 pub trait ProbeError: std::error::Error + Send + 'static {
     /// Returns true if the error is a timeout error.
     fn is_timeout(&self) -> bool;
+
+    /// Returns the probe identifier associated with the error if available.
+    ///
+    /// For example: for ICMP probe it would return the sequence as a string.
+    fn probe_identifier(&self) -> Option<String>;
 }
 
 /// Type alias for boxed probe error.
