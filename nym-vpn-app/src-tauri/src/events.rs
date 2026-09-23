@@ -9,7 +9,7 @@ use crate::vpnd::config::VpndConfig;
 use crate::vpnd::tunnel::ConnectingState;
 use crate::vpnd::{
     client::VpndStatus,
-    events::{DiagnosticsSuggestedReason, MixnetEvent},
+    events::{ConflictDetected, DiagnosticsSuggestedReason, MixnetEvent},
     tunnel::TunnelState,
 };
 
@@ -19,6 +19,7 @@ pub const EVENT_ACCOUNT_STATE: &str = "account-state";
 pub const EVENT_VPN_CONFIG: &str = "vpn-config";
 pub const EVENT_MIXNET: &str = "mixnet-event";
 pub const EVENT_DIAGNOSTICS_SUGGESTED: &str = "diagnostics-suggested";
+pub const EVENT_CONFLICT_DETECTED: &str = "conflict-detected";
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub const EVENT_UPDATE_PENDING: &str = "update-pending";
 
@@ -73,6 +74,7 @@ pub trait AppHandleEventEmitter {
     fn emit_mixnet_event(&self, event: MixnetEvent);
     fn emit_account_state_update(&self, state: &AccountState);
     fn emit_diagnostics_suggested(&self, reason: DiagnosticsSuggestedReason);
+    fn emit_conflict_detected(&self, conflict: ConflictDetected);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
@@ -136,5 +138,13 @@ impl AppHandleEventEmitter for tauri::AppHandle {
             EVENT_DIAGNOSTICS_SUGGESTED, reason
         );
         self.emit(EVENT_DIAGNOSTICS_SUGGESTED, reason).ok();
+    }
+
+    fn emit_conflict_detected(&self, conflict: ConflictDetected) {
+        debug!(
+            "sending event [{}]: {:?}",
+            EVENT_CONFLICT_DETECTED, conflict
+        );
+        self.emit(EVENT_CONFLICT_DETECTED, conflict).ok();
     }
 }
