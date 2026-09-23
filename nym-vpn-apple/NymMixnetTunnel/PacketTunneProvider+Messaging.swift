@@ -119,6 +119,7 @@ private extension PacketTunnelProvider {
             case let .connecting(
                 retryAttempt: attempt,
                 state: establishConnectionState,
+                selectorFallbackState: _, // todo: must be used
                 tunnelType: tunnelType,
                 connectionData: connectionData
             ):
