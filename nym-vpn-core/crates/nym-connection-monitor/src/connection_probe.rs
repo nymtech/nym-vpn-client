@@ -3,7 +3,7 @@
 
 //! Module formalizing abstract connection probe interface and errors.
 
-use std::{ops::Deref, time::Duration};
+use std::time::Duration;
 
 /// Describes interface for implementing a probe sender.
 #[async_trait::async_trait]
@@ -18,26 +18,12 @@ pub trait ProbeError: std::error::Error + Send + 'static {
     fn is_timeout(&self) -> bool;
 }
 
-/// Convenience wrapper around a boxed probe error.
-#[derive(Debug)]
-pub struct BoxedProbeError(pub Box<dyn ProbeError>);
+/// Type alias for boxed probe error.
+pub type BoxedProbeError = Box<dyn ProbeError + Send + 'static>;
 
-impl std::fmt::Display for BoxedProbeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
+// Ensures that passing `&Box<dyn ProbeError>` does not deref into `dyn ProbeError` which does not work with `trace_err_chain!`.
 impl std::error::Error for BoxedProbeError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.0.source()
-    }
-}
-
-impl Deref for BoxedProbeError {
-    type Target = dyn ProbeError;
-
-    fn deref(&self) -> &Self::Target {
-        &*self.0
+        self.as_ref().source()
     }
 }

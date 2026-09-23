@@ -169,7 +169,7 @@ impl ProbeError for IcmpProbeError {
 
 impl From<IcmpProbeError> for BoxedProbeError {
     fn from(value: IcmpProbeError) -> Self {
-        BoxedProbeError(Box::new(value))
+        Box::new(value)
     }
 }
 

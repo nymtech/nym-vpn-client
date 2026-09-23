@@ -234,7 +234,7 @@ impl ProbeError for TcpProbeError {
 
 impl From<TcpProbeError> for BoxedProbeError {
     fn from(value: TcpProbeError) -> Self {
-        BoxedProbeError(Box::new(value))
+        Box::new(value)
     }
 }
 

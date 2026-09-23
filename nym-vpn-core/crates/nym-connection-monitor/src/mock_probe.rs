@@ -96,6 +96,6 @@ impl ProbeError for MockProbeError {
 
 impl From<MockProbeError> for BoxedProbeError {
     fn from(error: MockProbeError) -> Self {
-        BoxedProbeError(Box::new(error))
+        Box::new(error)
     }
 }
