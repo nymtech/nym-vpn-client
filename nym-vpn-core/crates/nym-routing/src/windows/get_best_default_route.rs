@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{Error, Result};
-use nym_windows::net::{AddressFamily, get_ip_interface_entry, try_socketaddr_from_inet_sockaddr};
+use nym_windows::net::{
+    AddressFamily, alias_from_luid, get_ip_interface_entry, try_socketaddr_from_inet_sockaddr,
+};
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     slice,
@@ -138,9 +140,10 @@ fn get_default_route_interfaces_blocking(
             continue;
         }
 
-        let Ok(name) = interface_alias(row) else {
+        let Ok(alias) = alias_from_luid(&row.InterfaceLuid) else {
             continue;
         };
+        let name = alias.to_string_lossy().into_owned();
 
         if is_route_on_physical_interface(row).unwrap_or(false) {
             result.physical.insert(name);
@@ -150,24 +153,6 @@ fn get_default_route_interfaces_blocking(
     }
 
     Ok(result)
-}
-
-fn interface_alias(route: &MIB_IPFORWARD_ROW2) -> Result<String> {
-    // SAFETY: We are allowed to initialize MIB_IF_ROW2 with zeroed because it is made up entirely
-    // of types for which the zero pattern (all zeros) is valid.
-    let mut row: MIB_IF_ROW2 = unsafe { std::mem::zeroed() };
-    row.InterfaceLuid = route.InterfaceLuid;
-    row.InterfaceIndex = route.InterfaceIndex;
-
-    // SAFETY: see the identical call in `is_route_on_physical_interface`.
-    unsafe { GetIfEntry2(&mut row) }
-        .ok()
-        .map_err(Error::GetIfEntryFailed)?;
-
-    let alias = WideCStr::from_slice_truncate(&row.Alias)
-        .expect("Windows provided incorrectly formatted utf16 string");
-
-    Ok(alias.to_string_lossy())
 }
 
 /// Whether `row` is a default route, or one of the two `/1` halves some VPN
