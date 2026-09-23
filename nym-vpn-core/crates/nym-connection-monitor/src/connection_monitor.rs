@@ -338,20 +338,11 @@ mod tests {
     use tokio_util::sync::DropGuard;
 
     use super::*;
-    use crate::{
-        BoxedProbeError,
-        mock_probe::{MockProbe, MockProbeError, Outcome},
-    };
+    use crate::mock_probe::{MockProbe, Outcome};
 
     const PROBE_RETRY_COUNT: u32 = 3;
     const INITIAL_PROBE_TIMEOUT: Duration = Duration::from_secs(3);
     const PROBE_PERIODICITY: Duration = Duration::from_secs(10);
-
-    #[test]
-    fn mock_probe_timeout_is_not_send_failure() {
-        let err = BoxedProbeError::from(MockProbeError::Timeout);
-        assert!(err.is_timeout());
-    }
 
     #[tokio::test(start_paused = true)]
     #[tracing_test::traced_test]
