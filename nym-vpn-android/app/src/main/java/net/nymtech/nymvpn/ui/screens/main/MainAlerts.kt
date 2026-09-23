@@ -116,6 +116,7 @@ fun MainAlerts(
 					action = AlertAction(retryLabel) { onRetryConnect() },
 					duration = Long.MAX_VALUE,
 					id = AlertId.ConnectionError,
+					dismissable = true,
 				),
 			)
 			is ConnectionState.StartFailure -> AlertController.show(
@@ -125,6 +126,7 @@ fun MainAlerts(
 					action = AlertAction(retryLabel) { onRetryConnect() },
 					duration = Long.MAX_VALUE,
 					id = AlertId.ConnectionError,
+					dismissable = true,
 				),
 			)
 			else -> AlertController.dismiss(id = AlertId.ConnectionError)

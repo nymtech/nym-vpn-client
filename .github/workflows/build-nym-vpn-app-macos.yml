@@ -175,13 +175,27 @@ jobs:
           gem --version
 
       - name: Install system dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+          HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
-          brew install xcbeautify
-          brew install crowdin
-          brew install xmlstarlet
-          brew install jq
-          brew install brotli
-          brew uninstall homebrew/core/sentry-cli || true # Tim apple had a different tap with the same name
+          set -euo pipefail
+          lock="$(brew --prefix)/var/homebrew/locks/ci-jobs"
+          mkdir -p "$(dirname "$lock")"
+          n=0
+          while ! mkdir "$lock" 2>/dev/null; do
+            n=$((n + 1))
+            if [ "$n" -gt 60 ]; then
+              echo "timed out waiting for brew lock" >&2
+              exit 1
+            fi
+            echo "waiting for brew lock ($n)..."
+            sleep 5
+          done
+          trap 'rmdir "$lock"' EXIT
+          brew install xcbeautify xmlstarlet jq brotli
+          brew uninstall homebrew/core/sentry-cli || true
           brew install getsentry/tools/sentry-cli
 
       - name: Set locale (for Fastlane)
@@ -331,25 +345,15 @@ jobs:
           echo "✅ Signing files successfully fetched and imported."
 
       - name: Install Apple WWDR Intermediates
-        uses: ./.github/workflows/apple/install-wwdr
+        uses: ./.github/actions/install-wwdr
         with:
           keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
-      - name: Update localizations Crowdin
-        if: ${{ env.RELEASE_TYPE != 'pr' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-        run: |
-          crowdin_prefix="$(brew --prefix crowdin)"
-          export PATH="$crowdin_prefix/bin:$PATH"
-
-          crowdin download translations \
-            --config crowdin-configs/macos-ios.yml \
-            --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN" \
-            --no-progress
+      - name: Download translations
+        uses: actions/download-artifact@v8
+        with:
+          name: translations-apple
+          path: nym-vpn-apple/NymVPN/Resources
 
       - name: Handle santa menu
         working-directory: nym-vpn-apple

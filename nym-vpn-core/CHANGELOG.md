@@ -16,15 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration profiles: Safest, Most Private, Fastest and Random (https://github.com/nymtech/nym-vpn-client/pull/6073)
 - Pin zk-nym credential requests to the DKG epoch (https://github.com/nymtech/nym-vpn-client/pull/6259)
 - Respect the gateway blacklist for "pinned gateways" (https://github.com/nymtech/nym-vpn-client/pull/6272)
+- Add end-to-end plumbing for dynamically applying DNS fallbacks from NetworkDetails (https://github.com/nymtech/nym-vpn-client/pull/6279)
+- Verify the entry handshake and blacklist entry early if needed (https://github.com/nymtech/nym-vpn-client/pull/6308)
+- Add `six_months` subscription kind to the vpn-api models and gRPC proto (https://github.com/nymtech/nym-vpn-client/pull/6320)
+- Add end-to-end plumbing for dynamically applying DNS fallbacks from Discovery (https://github.com/nymtech/nym-vpn-client/pull/6126)
 
 ### Changed
 
 - [macOS] Sign cli with net.nymtech.vpn.cli bundle identifier. Add it to client signing requirement. (https://github.com/nymtech/nym-vpn-client/pull/5998)
 - Merge rpc-uniffi crate into lib-uniffi (https://github.com/nymtech/nym-vpn-client/pull/6010)
 - Remove "trace only logging" mode and honor `RUST_LOG` when set (https://github.com/nymtech/nym-vpn-client/pull/6131)
+- Fallback to random when no location data available (https://github.com/nymtech/nym-vpn-client/pull/6382)
+- Re-order authentication flow and do checks as soon as possible (https://github.com/nymtech/nym-vpn-client/pull/6406)
 
 ### Fixed
 
+- [iOS] Do not bind LAN custom DNS upstreams to the tunnel interface (https://github.com/nymtech/nym-vpn-client/pull/6369)
 - [macOS] After disconnect, restore DNS and the physical default route and do not re-apply the kill-switch when already disconnected. (https://github.com/nymtech/nym-vpn-client/pull/6261)
 - Apply the kill-switch when Connect is pressed while still offline. (https://github.com/nymtech/nym-vpn-client/pull/6265)
 - Give slow exit handshakes headroom before failing the connection (https://github.com/nymtech/nym-vpn-client/pull/6237)
@@ -32,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent gateway refresh storm when the API is unreachable (https://github.com/nymtech/nym-vpn-client/pull/6087)
 - [Windows] Wait for the VPN service to be running after install (https://github.com/nymtech/nym-vpn-client/pull/6245)
 - Avoid blocking daemon command loop when handling recents which may perform network calls (https://github.com/nymtech/nym-vpn-client/pull/6294)
+- Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
+- [Android] Don't use `reqwest` HTTP client to avoid `rustls-platform-verifier` panic (https://github.com/nymtech/nym-vpn-client/pull/6316)
+- [Android] Keep a blocking VPN interface up on connect, reconnect, error, offline, and unexpected tunnel down so other apps cannot leak to the ISP. The VPN app is excluded so gateway registration still works. (https://github.com/nymtech/nym-vpn-client/pull/6213) 
+
+### Removed
+
+- Removed the wireguard tunnel handshake checks (https://github.com/nymtech/nym-vpn-client/pull/6342)
 
 
 ## [2026.12.3] - 2026-08-27

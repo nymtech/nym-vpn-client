@@ -69,8 +69,8 @@ pub use account::{
 };
 pub use connection_data::{
     BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
-    GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    WireguardConnectionData, WireguardNode,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, SelectorFallbackState,
+    TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use diagnostic::{
@@ -83,15 +83,15 @@ pub use gateway::{
     FavoriteSelector, FavoriteSelectors, Gateway, GatewayFilter, GatewayType,
     GetRecentGatewaysParams, LewesProtocolDetails, LewesProtocolDetailsData, Location,
     LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
-    QuicClientOptions, RecentGateways, Recipient, Score, Socks5, TentativeGateways,
-    TlsClientOptions,
+    QuicClientOptions, RecentGateways, Recipient, Score, Socks5, SshClientOptions,
+    TentativeGateways, TlsClientOptions,
 };
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::GatewaySelectionAlgorithmConfig;
 pub use network::{
-    ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
-    NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
-    SystemConfiguration, SystemMessage, ValidatorDetails,
+    ApiUrl, ChainDetails, DenomDetailsOwned, DnsFallback, FeatureFlags, FlagValue, Network,
+    NetworkCompatibility, NymContracts, NymNetworkDetails, NymNetworkingSpecifics, NymVpnNetwork,
+    ParsedAccountLinks, SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use paths::LogPath;

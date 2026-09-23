@@ -28,7 +28,6 @@ use nym_common::trace_err_chain;
 use nym_firewall::{
     AllowedClients, AllowedDns, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol,
 };
-use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
@@ -56,6 +55,10 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Real tunnel replaced the blocking placeholder via configure_tunnel; drop the stale FD.
+        #[cfg(target_os = "android")]
+        shared_state.clear_android_blocking_tun();
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
@@ -119,7 +122,9 @@ impl ConnectedState {
 
         // point the internal DNS resolver to the system so that it routes over the tunnel
         // using the custom / commodity DNS flow while in the connected state
-        HickoryDnsResolver::shared().use_system_resolver();
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        dns_resolver.use_system_resolver();
 
         #[cfg(not(any(target_os = "android")))]
         if let Err(e) = connected_state.set_dns(shared_state).await {
@@ -295,7 +300,9 @@ impl ConnectedState {
             .report_tunnel_interface(None);
 
         // Revert the internal resolver to use the configured nameserver group
-        HickoryDnsResolver::shared().use_configured_resolver();
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        dns_resolver.use_configured_resolver();
         nym_http_api_client::network_reconfigured();
 
         #[cfg(not(target_os = "android"))]

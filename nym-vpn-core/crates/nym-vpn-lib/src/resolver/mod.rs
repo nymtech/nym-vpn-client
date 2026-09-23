@@ -743,14 +743,14 @@ impl RequestHandler for ResolverImpl {
 
 #[cfg(not(target_os = "ios"))]
 pub fn random_loopback_ipv4() -> IpAddr {
-    use rand::Rng;
+    use rand::RngExt;
 
     IpAddr::from(Ipv4Addr::new(
         127,
-        rand::thread_rng().gen_range(1..=255),
+        rand::rng().random_range(1..=255),
         rand::random(),
         // keep last octet in the range of 1-254 to avoid special addresses
-        rand::thread_rng().gen_range(1..=254),
+        rand::rng().random_range(1..=254),
     ))
 }
 

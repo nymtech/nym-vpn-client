@@ -4,7 +4,7 @@
 use std::env;
 
 use sqlx::{Connection, SqliteConnection};
-use vergen_gitcl::{BuildBuilder, CargoBuilder, Emitter, GitclBuilder, RustcBuilder};
+use vergen_gitcl::{Build, Cargo, Emitter, Gitcl, Rustc};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,10 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rustc-env=DATABASE_URL=sqlite://{}", database_path);
 
     Emitter::default()
-        .add_instructions(&BuildBuilder::all_build()?)?
-        .add_instructions(&CargoBuilder::all_cargo()?)?
-        .add_instructions(&GitclBuilder::all_git()?)?
-        .add_instructions(&RustcBuilder::all_rustc()?)?
+        .add_instructions(&Build::all_build())?
+        .add_instructions(&Cargo::all_cargo())?
+        .add_instructions(&Gitcl::all_git())?
+        .add_instructions(&Rustc::all_rustc())?
         .emit()?;
 
     Ok(())

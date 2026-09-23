@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">حساب شما غیرفعال است.</string>
 	<string name="error_reason_inactive_subscription">اشتراک شما غیرفعال است.</string>
 	<string name="error_reason_max_devices_reached">حداکثر تعداد دستگاه‌ها استفاده شده است.</string>
-	<string name="error_reason_device_time_out_of_sync">زمان دستگاه همگام نیست.</string>
 	<string name="error_reason_device_logged_out">دستگاه از حساب کاربری خارج شده است.</string>
 	<string name="error_reason_internal">خطای داخلی: %1$s</string>
 </resources>

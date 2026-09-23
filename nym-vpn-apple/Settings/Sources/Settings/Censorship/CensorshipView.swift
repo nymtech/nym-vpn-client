@@ -142,7 +142,6 @@ private extension CensorshipView {
         }
         return text
     }
-
 }
 
 // MARK: - Actions -

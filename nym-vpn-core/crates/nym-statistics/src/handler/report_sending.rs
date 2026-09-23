@@ -4,7 +4,7 @@
 use std::{pin::pin, time::Duration};
 
 use futures::{FutureExt, future::Fuse};
-use rand::{distributions::Uniform, prelude::Distribution};
+use rand::distr::{Distribution, Uniform};
 use sysinfo::System;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio_util::sync::CancellationToken;
@@ -47,18 +47,22 @@ impl SendingConfig {
     }
 
     fn random_small_delay() -> Duration {
+        #[allow(clippy::expect_used)]
         let random_delay_secs =
             Uniform::new_inclusive(0, SendingConfig::SMALL_SENDING_DELAY_MAX_SECS)
-                .sample(&mut rand::thread_rng());
+                .expect("failed to create uniform distribution")
+                .sample(&mut rand::rng());
         Duration::from_secs(random_delay_secs)
     }
 
     fn random_big_delay() -> Duration {
+        #[allow(clippy::expect_used)]
         let random_delay_mins = Uniform::new_inclusive(
             SendingConfig::BIG_SENDING_DELAY_MIN_MINS,
             SendingConfig::BIG_SENDING_DELAY_MAX_MINS,
         )
-        .sample(&mut rand::thread_rng());
+        .expect("failed to create uniform distribution")
+        .sample(&mut rand::rng());
         Duration::from_secs(random_delay_mins * 60)
     }
 

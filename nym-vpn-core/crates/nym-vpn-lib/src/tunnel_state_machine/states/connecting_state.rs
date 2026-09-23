@@ -22,7 +22,10 @@ use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
     SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
     states::{ConnectedState, DisconnectingState, ErrorState, OfflineState},
-    tunnel::{SelectedGateways, Tombstone},
+    tunnel::{
+        SelectedGateways, Tombstone,
+        gateway_provider::{GatewayProviderEvent, GatewayProviderEventReceiver},
+    },
     tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
@@ -39,12 +42,9 @@ use nym_firewall::{
 };
 use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_http_api_client::HickoryDnsResolver;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, AccountControllerState, EstablishConnectionData,
-    EstablishConnectionState, GatewayLightInfo,
+    EstablishConnectionData, EstablishConnectionState, GatewayLightInfo, SelectorFallbackState,
 };
 
 /// Initial delay between retry attempts.
@@ -67,11 +67,14 @@ type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
 pub struct ConnectingState {
     retry_attempt: u32,
+    last_connection_state: Option<EstablishConnectionState>,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
     tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
+    gateway_provider_event_receiver: GatewayProviderEventReceiver,
     selected_gateways: Option<SelectedGateways>,
     connection_data: Option<EstablishConnectionData>,
+    selector_fallback_state: SelectorFallbackState,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     firewall_policy_params: ConnectingPolicyParameters,
     resolve_api_addrs_fut: Fuse<ResolveApiAddrsFuture>,
@@ -87,6 +90,13 @@ impl ConnectingState {
         // Disallow networking until firewall exceptions and resolver overrides are configured
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.disallow_networking().await;
+
+        // Reconnect also enters here with retry_attempt 0; skip would leak.
+        #[cfg(target_os = "android")]
+        if let Err(err) = shared_state.ensure_android_blocking_tun() {
+            trace_err_chain!(err, "failed to install Android blocking TUN");
+            return ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state).await;
+        }
 
         // Always allow networking on mobile since there is no configurable firewall
         #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -173,6 +183,13 @@ impl ConnectingState {
         };
 
         let (monitor_event_sender, monitor_event_receiver) = mpsc::unbounded_channel();
+        let (gateway_provider_event_sender, gateway_provider_event_receiver) =
+            mpsc::unbounded_channel();
+
+        shared_state
+            .gateway_provider
+            .set_tunnel_monitor_event_sender(gateway_provider_event_sender)
+            .await;
 
         let initial_connection_data =
             selected_gateways
@@ -184,10 +201,13 @@ impl ConnectingState {
                 });
 
         let connecting_state = Self {
+            last_connection_state: None,
             tunnel_monitor_handle: None,
             tunnel_monitor_event_sender: Some(monitor_event_sender),
             tunnel_monitor_event_receiver: monitor_event_receiver,
+            gateway_provider_event_receiver,
             retry_attempt,
+            selector_fallback_state: Default::default(),
             selected_gateways,
             connection_data: initial_connection_data.clone(),
             resolve_api_addrs_fut: Fuse::terminated(),
@@ -285,7 +305,10 @@ impl ConnectingState {
         )
     }
 
-    async fn handle_tunnel_close(tombstone: Tombstone, shared_state: &mut SharedState) {
+    async fn handle_tunnel_close(
+        tombstone: Tombstone,
+        shared_state: &mut SharedState,
+    ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
@@ -294,11 +317,21 @@ impl ConnectingState {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
 
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        let _ = shared_state; // Avoid unused variable warning
+        // Real TUN may have replaced the cover while still Connecting; a held stale FD would
+        // make ensure_android_blocking_tun a no-op after this drop. Same contract as
+        // DisconnectingState Reconnect: install failure must not continue uncovered.
+        #[cfg(target_os = "android")]
+        shared_state.prepare_blocking_cover_before_release(Some(tombstone))?;
 
-        // drop tombstone to close tunnel devices
-        let _ = tombstone;
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = tombstone;
+        }
+
+        #[cfg(target_os = "ios")]
+        let _ = shared_state;
+
+        Ok(())
     }
 
     async fn handle_reconnect_delay(
@@ -347,7 +380,9 @@ impl ConnectingState {
         // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
         // client based on `nym-http-api-client::Client` that not modified to be independent will
         // use these overrides automatically.
-        HickoryDnsResolver::shared().set_static_preresolve(resolved_gateway_config.addr_map());
+        let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        dns_resolver.set_static_preresolve(resolved_gateway_config.addr_map());
 
         self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
 
@@ -364,8 +399,6 @@ impl ConnectingState {
         // Allow networking now when firewall and resolver overrides are configured.
         shared_state.allow_networking().await;
 
-        Self::force_account_refresh_if_time_desynced(self.retry_attempt, shared_state).await;
-
         self.start_tunnel_monitor(shared_state).await
     }
 
@@ -375,8 +408,6 @@ impl ConnectingState {
         _resolver_result: Result<ResolvedConfig>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
-        Self::force_account_refresh_if_time_desynced(self.retry_attempt, shared_state).await;
-
         NextTunnelState::NewState(
             ErrorState::enter(
                 ErrorStateReason::Internal(
@@ -441,31 +472,6 @@ impl ConnectingState {
         self.tunnel_monitor_handle = Some(tunnel_monitor_handle);
 
         NextTunnelState::SameState(self)
-    }
-
-    /// Requests account summary refresh on the very first connection attempt if account controller is in error state due to time desync issue.
-    /// This provides an escape hatch making it possible to disconnect and reconnect the tunnel without ending up in the error state indefinitely.
-    async fn force_account_refresh_if_time_desynced(
-        retry_attempt: u32,
-        shared_state: &SharedState,
-    ) {
-        if retry_attempt == 0
-            && let AccountControllerState::Error(
-                AccountControllerErrorStateReason::DeviceTimeDesynced,
-            ) = shared_state.account_controller_state.get_state()
-        {
-            tracing::info!("Forcing account state refresh due to device time being desynced");
-            if let Err(err) = shared_state
-                .account_command_tx
-                .refresh_account_state(true)
-                .await
-            {
-                trace_err_chain!(
-                    err,
-                    "failed to request background refresh for account state"
-                );
-            }
-        }
     }
 
     async fn handle_registered_with_gateways(
@@ -640,6 +646,7 @@ impl ConnectingState {
         PrivateTunnelState::Connecting {
             retry_attempt: self.retry_attempt,
             state,
+            selector_fallback_state: self.selector_fallback_state,
             tunnel_type: shared_state.tunnel_settings.tunnel_type_used(),
             connection_data: self.connection_data.clone(),
         }
@@ -664,22 +671,27 @@ impl TunnelStateHandler for ConnectingState {
             Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
                 match monitor_event {
                     TunnelMonitorEvent::AwaitingAccountReadiness => {
+                        self.last_connection_state = Some(EstablishConnectionState::AwaitingAccountReadiness);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingAccountReadiness);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::AwaitingCredentialsAvailability => {
+                        self.last_connection_state = Some(EstablishConnectionState::AwaitingCredentialsAvailability);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingCredentialsAvailability);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::RefreshingGateways => {
+                        self.last_connection_state = Some(EstablishConnectionState::RefreshingGateways);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::RegisteringWithGateways => {
+                        self.last_connection_state = Some(EstablishConnectionState::RegisteringWithGateways);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RegisteringWithGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectingGateways => {
+                        self.last_connection_state = Some(EstablishConnectionState::SelectingGateways);
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::SelectingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
@@ -705,6 +717,7 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::RegisteredWithGateways { connection_data, reply_tx } => {
                         let next_state = match self.handle_registered_with_gateways(connection_data, shared_state).await {
                             Ok(()) => {
+                                self.last_connection_state = Some(EstablishConnectionState::ConnectingTunnel);
                                 let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
                                 NextTunnelState::NewState((self, new_state))
                             }
@@ -751,7 +764,12 @@ impl TunnelStateHandler for ConnectingState {
                         } else {
                             if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
                                 let tombstone = tunnel_monitor_handle.wait().await;
-                                Self::handle_tunnel_close(tombstone, shared_state).await;
+
+                                if Self::handle_tunnel_close(tombstone, shared_state).await.is_err() {
+                                    return NextTunnelState::NewState(
+                                        ErrorState::enter(ErrorStateReason::TunnelProvider, shared_state).await,
+                                    );
+                                }
                             }
 
                             tracing::info!("Tunnel closed");
@@ -759,7 +777,7 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id, exit_handshake_completed } => {
+                    TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id } => {
                         // WG handshake timed out or connectivity probe failed without a healthy
                         // metadata path; blacklist the exit so a different one is selected.
                         shared_state.gateway_provider.add_blacklisted_gateway(
@@ -769,7 +787,7 @@ impl TunnelStateHandler for ConnectingState {
                         // A failure before the exit handshake ever completed may equally be the
                         // entry gateway's fault. Once the same entry accumulates enough
                         // pre-handshake failures while exits rotate, blacklist it too.
-                        if shared_state.entry_blame.record_failure(entry_gateway_id, exit_handshake_completed) {
+                        if shared_state.entry_blame.record_failure(entry_gateway_id) {
                             tracing::warn!(
                                 "Blacklisted entry gateway {entry_gateway_id} after repeated connection failures without a completed exit handshake"
                             );
@@ -778,6 +796,14 @@ impl TunnelStateHandler for ConnectingState {
                                 BlacklistReason::EntryBlamedForRepeatedFailures,
                             ).await;
                         }
+                        self.selected_gateways = None;
+                        NextTunnelState::SameState(self)
+                    }
+                    TunnelMonitorEvent::MetadataFailed { gateway_id } => {
+                        shared_state.gateway_provider.add_blacklisted_gateway(
+                            gateway_id,
+                            BlacklistReason::EntryMetadataEndpointUnreachable,
+                        ).await;
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
@@ -793,6 +819,20 @@ impl TunnelStateHandler for ConnectingState {
                     }
                 }
            }
+            Some(gateway_provider_event) = self.gateway_provider_event_receiver.recv() => {
+                match gateway_provider_event {
+                    GatewayProviderEvent::FallbackToRandomEntry => {
+                        self.selector_fallback_state.entry_fallback = true;
+                    },
+                    GatewayProviderEvent::FallbackToRandomExit => {
+                        self.selector_fallback_state.exit_fallback = true;
+                    },
+                }
+                let last_state = self.last_connection_state.unwrap_or(EstablishConnectionState::SelectingGateways);
+                let new_state = self.make_connecting_tunnel_state(shared_state, last_state);
+                NextTunnelState::NewState((self, new_state))
+
+            }
             Some(command) = command_rx.recv() => {
                 tracing::debug!("ConnectingState received command: {command:?}");
                 match command {

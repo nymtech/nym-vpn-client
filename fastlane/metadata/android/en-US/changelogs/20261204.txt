@@ -1,0 +1,13 @@
+Improved cellular connections through changes to WireGuard handshake timing.
+
+Improved LAN bypass: essential tunnel metadata traffic now stays routed through the VPN.
+
+Better handling of device-time / clock-skew.
+
+Improved DNS handling with IPv6.
+
+Clearer labeling for offline status.
+
+Fixed a startup bug on older Android versions.
+
+New languages: Traditional Chinese (Taiwan and Hong Kong).

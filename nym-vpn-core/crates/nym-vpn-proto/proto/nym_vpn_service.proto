@@ -179,13 +179,23 @@ message NymContracts {
 }
 
 message NymNetworkDetails {
+  reserved 5, 6, 7; // formerly nym_vpn_api_url / nym_api_urls / nym_vpn_api_urls, now nested in `networking`
   string network_name = 1;
   ChainDetails chain_details = 2;
   repeated ValidatorDetails endpoints = 3;
   NymContracts contracts = 4;
-  optional string nym_vpn_api_url = 5;
-  repeated ApiUrl nym_api_urls = 6;
-  repeated ApiUrl nym_vpn_api_urls = 7;
+  NymNetworkingSpecifics networking = 8;
+}
+
+message NymNetworkingSpecifics {
+  repeated ApiUrl nym_api_urls = 1;
+  repeated ApiUrl nym_vpn_api_urls = 2;
+  repeated DnsFallback dns_fallbacks = 3;
+}
+
+message DnsFallback {
+  string url = 1;
+  repeated string addresses = 2;
 }
 
 message NymVpnNetworkDetails {
@@ -426,6 +436,7 @@ message BridgeParameters {
   oneof state {
     QuicClientOptions quic_plain = 1;
     TlsClientOptions tls_plain = 2;
+    SshClientOptions ssh_plain = 3;
   }
 }
 
@@ -440,6 +451,14 @@ message TlsClientOptions {
   repeated SocketAddr addresses = 1;
   optional string host = 2;
   string id_pubkey = 3;
+}
+
+message SshClientOptions {
+  repeated SocketAddr addresses = 1;
+  string id_pubkey = 2;
+  optional string username = 3;
+  string client_auth_key = 4;
+  optional string client_banner = 5;
 }
 
 message Performance {
@@ -506,6 +525,11 @@ message EstablishConnectionData {
   GatewayLightInfo entry_gateway = 1;
   GatewayLightInfo exit_gateway = 2;
   optional TunnelConnectionData tunnel = 3;
+}
+
+message SelectorFallbackState {
+  bool entry_fallback = 1;
+  bool exit_fallback = 2;
 }
 
 message ConnectionData {
@@ -577,7 +601,6 @@ message TunnelState {
     INACTIVE_SUBSCRIPTION = 12;
     INACTIVE_ACCOUNT = 13;
     MAX_DEVICES_REACHED = 14;
-    DEVICE_TIME_OUT_OF_SYNC = 15;
     DEVICE_LOGGED_OUT = 16;
     NEED_FULL_DISK_PERMISSIONS = 22;
     SPLIT_TUNNEL = 23;
@@ -600,6 +623,7 @@ message TunnelState {
   message Connecting {
     uint32 retry_attempt = 1;
     EstablishConnectionState state = 2;
+    SelectorFallbackState selector_fallback_state = 5;
     TunnelType tunnel_type = 3;
     optional EstablishConnectionData connection_data = 4;
   }
@@ -772,7 +796,6 @@ message AccountControllerState {
     ACCOUNT_STATUS_NOT_ACTIVE = 4;
     INACTIVE_SUBSCRIPTION = 5;
     MAX_DEVICE_REACHED = 6;
-    DEVICE_TIME_DESYNCED = 7;
   }
 
   message LoggedOut {}
@@ -974,7 +997,6 @@ message VpnAccountSummary {
   uint64 remaining_devices = 16;
   bool is_device_active = 17;
   optional google.protobuf.Timestamp last_synced_utc = 18;
-  bool time_synced = 19;
   bool stale = 20;
 }
 
@@ -1019,6 +1041,7 @@ message NymVpnSubscriptionKind {
   message OneYear {}
   message TwoYears {}
   message Freepass {}
+  message SixMonths {}
   message Other {
     string other = 1;
   }
@@ -1029,6 +1052,7 @@ message NymVpnSubscriptionKind {
     TwoYears two_years = 3;
     Freepass free_pass = 4;
     Other other = 5;
+    SixMonths six_months = 6;
   }
 }
 

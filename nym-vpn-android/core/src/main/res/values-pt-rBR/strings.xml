@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">Sua conta está inativa.</string>
 	<string name="error_reason_inactive_subscription">Sua assinatura está inativa.</string>
 	<string name="error_reason_max_devices_reached">Número máximo de dispositivos atingido.</string>
-	<string name="error_reason_device_time_out_of_sync">O tempo do dispositivo está fora de sincronia.</string>
 	<string name="error_reason_device_logged_out">O dispositivo foi desconectado.</string>
 	<string name="error_reason_internal">Erro interno: %1$s</string>
 </resources>

@@ -141,4 +141,3 @@ private extension OnboardingStepView {
     }()
 }
 #endif
-

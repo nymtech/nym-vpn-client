@@ -49,11 +49,15 @@ fun Project.languageList(): List<String> {
 		"fa",      // Persian
 		"fr",      // French
 		"hi",      // Hindi
+		"in",      // Indonesian (legacy Java code → values-in)
+		"it",      // Italian
 		"pt-rBR",  // Portuguese (Brazil)
 		"ru",      // Russian
 		"tr",      // Turkish
 		"uk",      // Ukrainian
 		"vi-rVN",  // Vietnamese
-		"zh-rCN"   // Chinese (Simplified)
+		"zh-rCN",  // Chinese (Simplified)
+		"zh-rTW",  // Chinese (Traditional)
+		"zh-rHK"   // Chinese (Traditional, Hong Kong)
 	).sorted()
 }

@@ -37,12 +37,12 @@ function useNotify() {
   const location = useLocation();
 
   const [lastNotification, setLastNotification] = useState<string | null>(null);
-  const id = useRef<number>(0);
+  const idRef = useRef<number>(0);
 
   useEffect(() => {
     if (lastNotification) {
-      clearTimeout(id.current);
-      id.current = setTimeout(() => {
+      clearTimeout(idRef.current);
+      idRef.current = setTimeout(() => {
         setLastNotification(null);
       }, AntiSpamTimeout);
     }

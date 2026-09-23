@@ -3,7 +3,7 @@
 
 use crate::UapiConfigBuilder;
 
-use rand::{Rng, RngCore};
+use rand::{Rng, RngExt};
 
 const OFF: AmneziaConfig = AmneziaConfig {
     junk_pkt_count: 0,
@@ -83,18 +83,18 @@ impl AmneziaConfig {
     /// Attempts to retry if there is a collision in [H1, H2, H3, H4]. This should
     /// almost never happen given the range available (5 to i32::MAX) unless the provided
     /// rng is bad. If the rng is bad, then amneziawg will break anyways so we panic.
-    pub fn rand(rng: &mut impl RngCore) -> Self {
+    pub fn rand(rng: &mut impl Rng) -> Self {
         for _ in 0..16 {
             let c = Self {
-                junk_pkt_count: rng.gen_range(3..10),
-                junk_pkt_min_size: rng.gen_range(0..900),
+                junk_pkt_count: rng.random_range(3..10),
+                junk_pkt_min_size: rng.random_range(0..900),
                 junk_pkt_max_size: 1000,
-                init_pkt_junk_size: rng.gen_range(15..150),
-                response_pkt_junk_size: rng.gen_range(15..150),
-                init_pkt_magic_header: rng.gen_range(5..i32::MAX),
-                response_pkt_magic_header: rng.gen_range(5..i32::MAX),
-                under_load_pkt_magic_header: rng.gen_range(5..i32::MAX),
-                transport_pkt_magic_header: rng.gen_range(5..i32::MAX),
+                init_pkt_junk_size: rng.random_range(15..150),
+                response_pkt_junk_size: rng.random_range(15..150),
+                init_pkt_magic_header: rng.random_range(5..i32::MAX),
+                response_pkt_magic_header: rng.random_range(5..i32::MAX),
+                under_load_pkt_magic_header: rng.random_range(5..i32::MAX),
+                transport_pkt_magic_header: rng.random_range(5..i32::MAX),
             };
             if c.validate() {
                 return c;

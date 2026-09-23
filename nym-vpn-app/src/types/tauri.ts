@@ -130,7 +130,6 @@ export type ErrorKey =
   | 'account-status-not-active'
   | 'no-subscription'
   | 'max-device-reached'
-  | 'device-time-desync'
   | 'split-tunnel-app-invalid'
   | 'split-tunnel-app-duplicate'
   | 'insufficient-funds'
@@ -506,7 +505,12 @@ export type TTunnelState =
 export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
 
 export type TVpnSubscriptionKind =
-  'one-month' | 'one-year' | 'two-years' | 'freepass' | { other: string };
+  | 'one-month'
+  | 'one-year'
+  | 'two-years'
+  | 'freepass'
+  | 'six-months'
+  | { other: string };
 
 /**
  * Only the discriminant is needed by the UI to decide the connect flow, so the
@@ -543,7 +547,6 @@ export type TunnelError =
   | 'max-devices-reached'
   | 'bandwidth-exceeded'
   | 'inactive-subscription'
-  | 'device-time-out-of-sync'
   | 'device-logged-out'
   | 'ipv6-unavailable'
   | 'tun-device'

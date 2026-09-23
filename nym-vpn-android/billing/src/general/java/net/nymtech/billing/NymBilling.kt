@@ -74,6 +74,10 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 						.setProductType(BillingClient.ProductType.SUBS)
 						.build(),
 					QueryProductDetailsParams.Product.newBuilder()
+						.setProductId(ProductId.SixMonths.value)
+						.setProductType(BillingClient.ProductType.SUBS)
+						.build(),
+					QueryProductDetailsParams.Product.newBuilder()
 						.setProductId(ProductId.Yearly.value)
 						.setProductType(BillingClient.ProductType.SUBS)
 						.build(),

@@ -14,3 +14,4 @@ export { default as SmileyLightIcon } from './smiley-light.svg?react';
 
 export * from './node-score';
 export * from './gateway-mode';
+export * from './profiles';

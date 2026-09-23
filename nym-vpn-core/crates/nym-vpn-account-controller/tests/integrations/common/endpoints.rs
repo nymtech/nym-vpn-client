@@ -36,18 +36,6 @@ pub fn synced_health() -> Mock {
         )
 }
 
-/// Mock the health endpoint, with an out of sync timestamp
-pub fn desynced_health() -> Mock {
-    Mock::given(method("GET"))
-        .and(path("/public/v1/health"))
-        .respond_with(
-            ResponseTemplate::new(200).set_body_json(NymVpnHealthResponse {
-                status: "ok".to_string(),
-                timestamp_utc: OffsetDateTime::from_unix_timestamp(42).unwrap(),
-            }),
-        )
-}
-
 // Account summary endpoint. Give it the response you want
 pub fn account_summary_with_device_200(response: NymVpnAccountSummaryWithDeviceResponse) -> Mock {
     Mock::given(method("GET"))

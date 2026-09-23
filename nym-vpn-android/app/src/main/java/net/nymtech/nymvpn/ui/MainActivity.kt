@@ -78,6 +78,7 @@ import net.nymtech.nymvpn.ui.screens.settings.geoexclusion.GeoExclusionScreen
 import net.nymtech.nymvpn.ui.screens.settings.geoexclusion.setup.SetupScreen
 import net.nymtech.nymvpn.ui.screens.settings.notifications.NotificationsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
+import net.nymtech.nymvpn.ui.screens.settings.profiles.ProfilesScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.settings.tuning.MixnetTuningScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
@@ -370,6 +371,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Notifications> { NotificationsScreen(appState) }
 								composable<Route.GeoExclusion> { GeoExclusionScreen(appState) }
 								composable<Route.Setup> { SetupScreen(appState) }
+								composable<Route.Profiles> { ProfilesScreen(appState, appViewModel) }
 							}
 						}
 					}

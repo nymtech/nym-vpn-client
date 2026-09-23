@@ -57,8 +57,6 @@ function useI18nError() {
           return t('account.no-subscription');
         case 'max-device-reached':
           return t('account.max-devices-reached');
-        case 'device-time-desync':
-          return t('account.device-time-out-of-sync');
         case 'bandwidth-exceeded':
           return t('account.bandwidth-exceeded');
         // split tunnel custom app errors

@@ -42,9 +42,6 @@ pub enum AccountControllerErrorStateReason {
 
     /// Max device numbers reached
     MaxDeviceReached,
-
-    /// Device time is off by too much, Zk-nyms use will fail
-    DeviceTimeDesynced,
 }
 
 impl AccountControllerErrorStateReason {
@@ -93,9 +90,6 @@ impl std::fmt::Display for AccountControllerErrorStateReason {
             }
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 write!(f, "Max device numbers reached")
-            }
-            AccountControllerErrorStateReason::DeviceTimeDesynced => {
-                write!(f, "Device time is off by too much")
             }
         }
     }

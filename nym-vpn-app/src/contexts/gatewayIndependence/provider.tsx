@@ -38,9 +38,9 @@ function GwIndependenceWarningProvider({
   );
 
   return (
-    <GwIndependenceWarningContext.Provider value={ctx}>
+    <GwIndependenceWarningContext value={ctx}>
       {children}
-    </GwIndependenceWarningContext.Provider>
+    </GwIndependenceWarningContext>
   );
 }
 

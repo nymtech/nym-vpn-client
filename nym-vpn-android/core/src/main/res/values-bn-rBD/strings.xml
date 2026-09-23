@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">আপনার অ্যাকাউন্ট নিষ্ক্রিয়।</string>
 	<string name="error_reason_inactive_subscription">আপনার সাবস্ক্রিপশন নিষ্ক্রিয়।</string>
 	<string name="error_reason_max_devices_reached">সর্বাধিক ডিভাইস সীমা পৌঁছে গেছে।</string>
-	<string name="error_reason_device_time_out_of_sync">ডিভাইসের সময় সিঙ্কের বাইরে।</string>
 	<string name="error_reason_device_logged_out">ডিভাইস থেকে লগ আউট করা হয়েছে।</string>
 	<string name="error_reason_internal">আন্তরিণ ত্রুটি: %1$s</string>
 </resources>

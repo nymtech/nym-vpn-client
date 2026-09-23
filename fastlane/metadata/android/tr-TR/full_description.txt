@@ -10,7 +10,7 @@ NymVPN ile tamamen gizli kalın. Kayıt tutmayan, güvenli, merkeziyetsiz ve ano
 
 ⚡ iki VPN MODU, BiR UYGULAMA
 
-• Hızlı Mod: AmneziaWG (WireGuard) tabanlı 2 atlamalı (2-hop) dVPN. Merkeziyetsiz bir ağda hızlı yayın ve gezinme.
+• dVPN Modu: AmneziaWG (WireGuard) tabanlı 2 atlamalı (2-hop) dVPN. Merkeziyetsiz bir ağda hızlı yayın ve gezinme.
 
 • Anonim Mod: 5 atlamalı (5-hop), Noise Üreten Mixnet, Tor’un daha gelişmiş bir versiyonu. Trafiği başkalarınınkiyle karıştırır, gürültü ve sahte trafik ekler. En anonim tüketici VPN’i. Kripto işlemleri, e-posta ve Signal gibi gizli mesajlaşma uygulamaları için idealdir.
 

@@ -129,7 +129,7 @@ pub struct FileUpdater {
 impl FileUpdater {
     /// Create a new `FileUpdater` with a default HTTP client, returning the updater and a handle.
     pub fn new() -> Result<(Self, FileUpdaterHandle), FileUpdaterError> {
-        let http_client = reqwest::Client::builder()
+        let http_client = nym_http_api_client::registry::default_builder()
             .connect_timeout(Duration::from_secs(10))
             .build()
             .map_err(|error| FileUpdaterError::BuildHttpClient { error })?;

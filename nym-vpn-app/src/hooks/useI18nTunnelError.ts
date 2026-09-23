@@ -47,8 +47,6 @@ function useI18nTunnelError() {
           return t('tunnel.bandwidth-exceeded');
         case 'inactive-subscription':
           return t('tunnel.subscription-expired');
-        case 'device-time-out-of-sync':
-          return t('tunnel.device-time-out-of-sync');
         case 'ipv6-unavailable':
           return t('tunnel.ipv6-unavailable');
         case 'credential-wasted-on-entry-gateway':

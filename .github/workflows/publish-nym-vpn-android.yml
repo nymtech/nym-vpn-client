@@ -1,19 +1,12 @@
 name: publish-nym-vpn-android
 
+# Bundle-only: uploads the .aab
 on:
   workflow_call:
     inputs:
       track:
         type: string
         default: "none"
-      publish_bundle:
-        type: boolean
-        default: false
-        description: "Publish the app bundle"
-      publish_metadata:
-        description: "Publish app metadata"
-        type: boolean
-        default: true
       play_artifact_name:
         description: "The name of the Play Store artifact (aab)"
         type: string
@@ -22,6 +15,9 @@ on:
     secrets:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
+
+permissions:
+  contents: read
 
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_play
@@ -70,17 +66,18 @@ jobs:
           FASTLANE_OPT_OUT_USAGE: "YES"
           ARTIFACT_FILE: ${{ inputs.play_artifact_name }}
           TRACK: ${{ inputs.track }}
-          SKIP_UPLOAD_BUNDLE: ${{ !inputs.publish_bundle }}
-          SKIP_UPLOAD_METADATA: ${{ !inputs.publish_metadata }}
         run: |
           if [ -z "$ARTIFACT_FILE" ]; then
             echo "::error:: No artifact file specified!"
             exit 1
           fi
 
-          echo "🚀 Uploading to Google Play Store... (track=$TRACK, skip_bundle=$SKIP_UPLOAD_BUNDLE, skip_metadata=$SKIP_UPLOAD_METADATA)"
+          echo "🚀 Uploading app bundle to Google Play Store... (track=$TRACK)"
 
           bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
             --track "$TRACK" \
-            --skip_upload_aab $SKIP_UPLOAD_BUNDLE \
-            --skip_upload_metadata $SKIP_UPLOAD_METADATA
+            --skip_upload_aab false \
+            --skip_upload_metadata true \
+            --skip_upload_images true \
+            --skip_upload_screenshots true \
+            --skip_upload_changelogs true

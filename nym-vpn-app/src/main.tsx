@@ -27,12 +27,16 @@ import 'dayjs/locale/en';
 import 'dayjs/locale/es';
 import 'dayjs/locale/fr';
 import 'dayjs/locale/hi';
+import 'dayjs/locale/id';
+import 'dayjs/locale/it';
 import 'dayjs/locale/pt';
 import 'dayjs/locale/ru';
 import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/vi';
 import 'dayjs/locale/zh';
+import 'dayjs/locale/zh-tw';
+import 'dayjs/locale/zh-hk';
 
 console.log('env', window._APP);
 

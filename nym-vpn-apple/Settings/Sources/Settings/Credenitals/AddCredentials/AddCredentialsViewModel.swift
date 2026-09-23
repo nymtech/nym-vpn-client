@@ -21,7 +21,6 @@ import Theme
     private let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
     private let createAccountTitle = "createAccount".localizedString
 
-
     @Binding private var path: NavigationPath
 
     let appSettings: AppSettings

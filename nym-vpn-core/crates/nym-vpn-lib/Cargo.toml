@@ -21,12 +21,6 @@ base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
-ed25519-dalek = { workspace = true, features = [
-    "pkcs8",
-    "alloc",
-    "pem",
-    "rand_core",
-] }
 futures.workspace = true
 geo.workspace = true
 hex.workspace = true
@@ -65,6 +59,7 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
+nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
@@ -106,9 +101,8 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
-sha2.workspace = true
 strum.workspace = true
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 sysinfo = { workspace = true, features = ["network"] }
 toml.workspace = true
 thiserror.workspace = true
@@ -205,7 +199,7 @@ tempfile.workspace = true
 tracing-test.workspace = true
 
 [build-dependencies]
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",

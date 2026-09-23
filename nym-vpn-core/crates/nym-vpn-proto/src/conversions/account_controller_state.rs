@@ -42,9 +42,6 @@ impl From<proto::account_controller_state::Error> for AccountControllerErrorStat
             proto::account_controller_state::ErrorStateReason::MaxDeviceReached => {
                 AccountControllerErrorStateReason::MaxDeviceReached
             }
-            proto::account_controller_state::ErrorStateReason::DeviceTimeDesynced => {
-                AccountControllerErrorStateReason::DeviceTimeDesynced
-            }
         }
     }
 }
@@ -101,14 +98,6 @@ impl From<AccountControllerErrorStateReason> for proto::account_controller_state
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 proto::account_controller_state::Error {
                     reason: proto::account_controller_state::ErrorStateReason::MaxDeviceReached
-                        .into(),
-                    context: None,
-                    details: None,
-                }
-            }
-            AccountControllerErrorStateReason::DeviceTimeDesynced => {
-                proto::account_controller_state::Error {
-                    reason: proto::account_controller_state::ErrorStateReason::DeviceTimeDesynced
                         .into(),
                     context: None,
                     details: None,

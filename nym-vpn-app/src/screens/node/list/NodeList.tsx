@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { dequal } from 'dequal';
-import { Collapsible } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui/react';
 import { Trans, useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NodeHop, VpnMode } from '../../../types';

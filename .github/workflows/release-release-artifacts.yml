@@ -594,8 +594,8 @@ jobs:
             FILES+=("$CHECKSUM_FILE")
             printf "%s\n" "${FILES[@]}" > "${{ env.RELEASE_ASSETS }}"
           else
-            echo "::error::No files to upload"
-            exit 1
+            echo "::warning::No files for upload. Github release may be created without any files attached!"
+            echo -n "" > "${{ env.RELEASE_ASSETS }}"
           fi
 
       - name: Upload release assets list
@@ -662,6 +662,7 @@ jobs:
 
       - name: Upload release payload
         uses: actions/upload-artifact@v7.0.1
+        if: ${{ inputs.publish_github == true }}
         with:
           name: ${{ env.RELEASE_PAYLOAD_ARTIFACT }}
           path: ${{ env.RELEASE_PAYLOAD }}

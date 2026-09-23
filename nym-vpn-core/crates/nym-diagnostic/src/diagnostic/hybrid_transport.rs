@@ -21,7 +21,7 @@ use std::{
 };
 
 use nym_vpn_lib_types::HybridTransportReport;
-use rand::RngCore;
+use rand::Rng;
 use rustls::{ClientConfig, RootCertStore, pki_types::ServerName};
 use tokio::net::TcpStream;
 use tokio_rustls::TlsConnector;
@@ -117,6 +117,6 @@ async fn probe(tls_config: Arc<ClientConfig>) -> Result<HybridTransportReport, S
 
 fn random_tunnel_id() -> String {
     let mut bytes = [0u8; 16];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    rand::rng().fill_bytes(&mut bytes);
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }

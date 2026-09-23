@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { Separator } from '@base-ui-components/react';
+import { Separator } from '@base-ui/react';
 import { Button, ButtonIconNew, PageAnim } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 

@@ -6,8 +6,7 @@ use crate::storage::{
     models::{SessionReport, SessionReportWithId},
     sqlite::SqliteStatsStorageManager,
 };
-use nym_sqlx_pool_guard::SqlitePoolGuard;
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
 use sqlx::ConnectOptions;
 use std::path::Path;
 use tracing::log::LevelFilter;
@@ -39,13 +38,11 @@ impl StatsStorage {
             .log_statements(LevelFilter::Trace);
 
         tracing::debug!("Connecting to the database");
-        let connection_pool = SqlitePoolGuard::new(
-            sqlx::sqlite::SqlitePoolOptions::new()
-                .connect_with(opts)
-                .await?,
-        );
+        let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
+            .connect_with(opts)
+            .await?;
 
-        if let Err(e) = sqlx::migrate!("./migrations").run(&*connection_pool).await {
+        if let Err(e) = sqlx::migrate!("./migrations").run(&connection_pool).await {
             connection_pool.close().await;
             return Err(e.into());
         }
@@ -81,7 +78,7 @@ impl StatsStorage {
                 let seed = if let Some(seed) = custom_seed {
                     seed
                 } else {
-                    Alphanumeric.sample_string(&mut rand::thread_rng(), 20)
+                    Alphanumeric.sample_string(&mut rand::rng(), 20)
                 };
                 self.storage_manager.set_seed(seed.clone()).await?;
                 Ok(seed)

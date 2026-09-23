@@ -415,16 +415,6 @@ impl NymVpnAccountStorage {
 
         let vpn_api_client = self.create_vpn_api_client().await?;
 
-        // Each call uses the VPN API client HTTP timeout (`NYM_VPN_API_TIMEOUT`, 30s in
-        // `nym-vpn-api-client/src/client.rs`).
-        let remote_time =
-            vpn_api_client
-                .get_remote_time()
-                .await
-                .map_err(|err| VpnError::InternalError {
-                    details: format!("Failed to get remote time: {err}"),
-                })?;
-
         let api_summary = vpn_api_client
             .get_account_summary_with_device(account, device)
             .await
@@ -432,9 +422,11 @@ impl NymVpnAccountStorage {
                 details: format!("Failed to get account summary: {err}"),
             })?;
 
-        let summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)
-            .map_err(|err| VpnError::InternalError {
-                details: format!("Failed to parse account summary: {err}"),
+        let summary =
+            VpnAccountSummary::from_parts(&api_summary, account.mode()).map_err(|err| {
+                VpnError::InternalError {
+                    details: format!("Failed to parse account summary: {err}"),
+                }
             })?;
 
         Ok(summary)

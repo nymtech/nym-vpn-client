@@ -80,6 +80,7 @@ pub enum CreateSubscriptionKind {
     OneMonth,
     OneYear,
     TwoYears,
+    SixMonths,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

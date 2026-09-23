@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">حسابك غير نشط.</string>
 	<string name="error_reason_inactive_subscription">اشتراكك غير نشط.</string>
 	<string name="error_reason_max_devices_reached">تم الوصول إلى الحد الأقصى لعدد الأجهزة.</string>
-	<string name="error_reason_device_time_out_of_sync">وقت الجهاز غير متزامن.</string>
 	<string name="error_reason_device_logged_out">تم تسجيل خروج الجهاز.</string>
 	<string name="error_reason_internal">خطأ داخلي: %1$s</string>
 </resources>

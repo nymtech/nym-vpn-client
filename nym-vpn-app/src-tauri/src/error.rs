@@ -3,8 +3,10 @@ use std::{
     fmt::{self, Display},
 };
 
-use crate::db::DbError;
-use crate::vpnd::{client::VpndError, gateway::GatewayType};
+use crate::{
+    db::DbError,
+    vpnd::{client::VpndError, gateway::GatewayType},
+};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
@@ -142,7 +144,6 @@ pub enum ErrorKey {
     AccountStatusNotActive,
     NoSubscription,
     MaxDeviceReached,
-    DeviceTimeDesync,
     SplitTunnelAppInvalid,
     SplitTunnelAppDuplicate,
     InsufficientFunds,

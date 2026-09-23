@@ -234,6 +234,10 @@ pub struct TunnelNetworkSettings {
 
     /// Tunnel device MTU.
     pub mtu: u16,
+
+    /// Android-only; iOS PacketTunnel conversion ignores this (NE has no equivalent).
+    #[uniffi(default = false)]
+    pub exclude_vpn_app: bool,
 }
 
 #[cfg(target_os = "android")]
@@ -354,6 +358,7 @@ impl From<nym_vpn_lib::tunnel_provider::TunnelSettings> for TunnelNetworkSetting
                 match_domains: Some(vec!["".to_owned()]),
             }),
             mtu: settings.mtu,
+            exclude_vpn_app: settings.exclude_vpn_app,
         }
     }
 }

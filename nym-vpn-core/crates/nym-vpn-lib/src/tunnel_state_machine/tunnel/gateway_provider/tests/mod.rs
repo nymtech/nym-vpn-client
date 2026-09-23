@@ -573,6 +573,7 @@ async fn mainnet_syntethic_node_families() {
                 &BlacklistedGateways::new(),
                 &settings,
                 None,
+                None,
                 &WireguardKeysDb::Ephemeral(Default::default()),
             )
             .await
@@ -856,6 +857,7 @@ async fn all_gateways_same_family_blocks_selection() {
         &BlacklistedGateways::new(),
         &settings,
         None,
+        None,
         &WireguardKeysDb::Ephemeral(Default::default()),
     )
     .await;
@@ -905,6 +907,7 @@ async fn single_valid_pair_is_always_chosen() {
         &BlacklistedGateways::new(),
         &settings,
         None,
+        None,
         &WireguardKeysDb::Ephemeral(Default::default()),
     )
     .await
@@ -930,6 +933,7 @@ async fn empty_gateway_pool_returns_error() {
         cache,
         &BlacklistedGateways::new(),
         &default_tunnel_settings(),
+        None,
         None,
         &WireguardKeysDb::Ephemeral(Default::default()),
     )

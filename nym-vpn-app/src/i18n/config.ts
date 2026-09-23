@@ -35,17 +35,20 @@ export const languages = [
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
   { code: 'hi', name: 'हिन्दी' },
+  { code: 'id', name: 'Bahasa Indonesia' },
+  { code: 'it', name: 'Italiano' },
   { code: 'pt', name: 'Português Brasileiro' },
   { code: 'ru', name: 'Русский язык' },
   { code: 'tr', name: 'Türkçe' },
   { code: 'uk', name: 'Українська' },
   { code: 'vi', name: 'Tiếng Việt' },
-  { code: 'zh', name: '中文' },
+  { code: 'zh', name: '简体中文' },
+  { code: 'zh-TW', name: '繁體中文' },
+  { code: 'zh-HK', name: '繁體中文（香港）' },
 
   // { code: 'cs', name: 'Čeština (Czech)' },
   // { code: 'hu', name: 'Magyar (Hungarian)' },
   // { code: 'el', name: 'ελληνικά' },
-  // { code: 'it', name: 'Italiano' },
   // { code: 'ja', name: '日本語' },
 ] as const;
 

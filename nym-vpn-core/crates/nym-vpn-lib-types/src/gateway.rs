@@ -614,7 +614,8 @@ pub struct RecentGateways {
 
 pub use nym_bridges_types::{
     ClientConfig as BridgeParameters, PersistedClientConfig as BridgeInformation,
-    quic::ClientOptions as QuicClientOptions, tls::ClientOptions as TlsClientOptions,
+    quic::ClientOptions as QuicClientOptions, ssh::ClientOptions as SshClientOptions,
+    tls::ClientOptions as TlsClientOptions,
 };
 
 #[derive(Debug, Clone)]
@@ -1180,6 +1181,7 @@ mod bridges_test {
         let params = match &parsed.transports[0] {
             BridgeParameters::QuicPlain(p) => p,
             BridgeParameters::TlsPlain(_) => return Err("expected quic transport args".into()),
+            BridgeParameters::SshPlain(_) => return Err("expected quic transport args".into()),
         };
 
         // Verify addresses contain our test IPs

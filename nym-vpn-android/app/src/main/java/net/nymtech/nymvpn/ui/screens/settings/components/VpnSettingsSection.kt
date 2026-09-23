@@ -144,7 +144,7 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					},
 					description = {
 						Text(
-							stringResource(R.string.settings_geo_exclusion_desciption),
+							stringResource(R.string.settings_geo_exclusion_description),
 							style = MaterialTheme.typography.bodySmall,
 							color = MaterialTheme.colorScheme.onBackground,
 						)
@@ -210,6 +210,30 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 						SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
 					},
 					onClick = actions.onMixnetTuningClick,
+				),
+			)
+			add(
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							ImageVector.vectorResource(R.drawable.ic_profiles),
+							stringResource(R.string.settings_profiles_title),
+						)
+					},
+					trailing = {
+						SettingsArrowIcon()
+					},
+					description = {
+						Text(
+							stringResource(R.string.settings_profiles_description),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_profiles_title))
+					},
+					onClick = actions.onProfilesClick,
 				),
 			)
 			add(

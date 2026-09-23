@@ -131,8 +131,11 @@ internal fun ActionButton(
 					shape = buttonShape,
 				)
 				else -> MainStyledButton(
-					onClick = { onAction(if (isMnemonicStored) ConnectAction.CONNECT else ConnectAction.GET_STARTED) },
-					content = { Text(stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started), style = CustomTypography.buttonMain) },
+					onClick = { onAction(ConnectAction.DISCONNECT) },
+					textColor = MaterialTheme.colorScheme.error,
+					content = { Text(stringResource(R.string.disconnect), style = CustomTypography.buttonMain) },
+					color = Color.Transparent,
+					borderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
 					modifier = buttonModifier,
 					shape = buttonShape,
 				)
@@ -140,8 +143,11 @@ internal fun ActionButton(
 		}
 
 		is ConnectionState.StartFailure -> MainStyledButton(
-			onClick = { onAction(ConnectAction.CONNECT) },
-			content = { Text(stringResource(R.string.connect), style = CustomTypography.buttonMain) },
+			onClick = { onAction(ConnectAction.DISCONNECT) },
+			textColor = MaterialTheme.colorScheme.error,
+			content = { Text(stringResource(R.string.disconnect), style = CustomTypography.buttonMain) },
+			color = Color.Transparent,
+			borderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
 			modifier = buttonModifier,
 			shape = buttonShape,
 		)

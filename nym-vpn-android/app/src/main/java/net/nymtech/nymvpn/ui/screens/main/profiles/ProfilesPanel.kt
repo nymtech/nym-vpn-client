@@ -93,7 +93,7 @@ private fun ProfilesPanelContent(selected: Profile?, onSelect: (Profile) -> Unit
 }
 
 @Composable
-private fun ProfileRow(profile: Profile, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ProfileRow(profile: Profile, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
 	val interactionSource = remember { MutableInteractionSource() }
 	Row(
 		modifier = modifier

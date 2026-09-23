@@ -29,7 +29,6 @@
 	<string name="error_reason_inactive_account">Ваш аккаунт неактивен.</string>
 	<string name="error_reason_inactive_subscription">Ваша подписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Достигнуто максимальное количество устройств.</string>
-	<string name="error_reason_device_time_out_of_sync">Время на устройстве не синхронизировано.</string>
 	<string name="error_reason_device_logged_out">Устройство вышло из системы.</string>
 	<string name="error_reason_internal">Внутренняя ошибка: %1$s</string>
 </resources>

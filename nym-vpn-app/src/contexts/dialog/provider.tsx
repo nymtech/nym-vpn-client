@@ -46,9 +46,7 @@ function DialogProvider({ children }: DialogProviderProps) {
     [close, dialogs, isOpen, show],
   );
 
-  return (
-    <DialogContext.Provider value={ctx}>{children}</DialogContext.Provider>
-  );
+  return <DialogContext value={ctx}>{children}</DialogContext>;
 }
 
 export default DialogProvider;

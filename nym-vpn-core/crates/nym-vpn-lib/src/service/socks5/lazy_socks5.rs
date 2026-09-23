@@ -3,12 +3,10 @@
 use super::util::ConnectionGuard;
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::{GatewayCacheHandle, ScoreValue};
-use nym_sdk::{
-    NymNetworkDetails,
-    mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths},
-};
+use nym_network_defaults::v2::NymNetworkDetails;
+use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
@@ -540,7 +538,7 @@ impl LazySocks5 {
 
         // Configure network environment if provided
         if let Some(ref network_details) = self.config.network_details {
-            builder = builder.network_details(network_details.clone());
+            builder = builder.network_details(network_details.clone().into());
             debug!(
                 "Using network environment: {}",
                 network_details.network_name
@@ -1261,7 +1259,7 @@ impl LazySocks5 {
         let nr_count = nodes_with_nr.len();
 
         // Select a random one
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let (selected_node, nr_address) = nodes_with_nr.choose(&mut rng).ok_or_else(|| {
             error!(
                 "Random selection failed despite having {} candidates",

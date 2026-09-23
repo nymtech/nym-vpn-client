@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
+use crate::SelectorFallbackState;
+
 use super::connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, TunnelConnectionData,
 };
@@ -53,6 +55,7 @@ pub enum TunnelState {
     Connecting {
         retry_attempt: u32,
         state: EstablishConnectionState,
+        selector_fallback_state: SelectorFallbackState,
         tunnel_type: TunnelType,
         connection_data: Option<EstablishConnectionData>,
     },
@@ -88,6 +91,7 @@ impl std::fmt::Display for TunnelState {
             Self::Connecting {
                 retry_attempt,
                 state,
+                selector_fallback_state,
                 tunnel_type,
                 connection_data,
             } => match connection_data {
@@ -136,9 +140,11 @@ impl std::fmt::Display for TunnelState {
                 },
                 None => write!(
                     f,
-                    "Connecting {}, {}, try #{}",
+                    "Connecting {}, {}, fallback entry: {}, fallback exit: {}, try #{}",
                     tunnel_type.short_name(),
                     state,
+                    selector_fallback_state.entry_fallback,
+                    selector_fallback_state.exit_fallback,
                     retry_attempt
                 ),
             },
@@ -295,9 +301,6 @@ pub enum ErrorStateReason {
     /// Max device numbers reached
     MaxDevicesReached,
 
-    /// Device time is off by too much, Zk-nyms use will fail
-    DeviceTimeOutOfSync,
-
     /// Device is logged out
     DeviceLoggedOut,
 
@@ -348,7 +351,6 @@ impl std::fmt::Display for ErrorStateReason {
             Self::InactiveAccount => f.write_str("InactiveAccount"),
             Self::InactiveSubscription => f.write_str("InactiveSubscription"),
             Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
-            Self::DeviceTimeOutOfSync => f.write_str("DeviceTimeOutOfSync"),
             Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),
             Self::NeedFullDiskPermissions => f.write_str("NeedFullDiskPermissions"),
             Self::SplitTunnel => f.write_str("SplitTunnel"),

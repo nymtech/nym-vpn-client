@@ -181,7 +181,7 @@ function SplitTunneling() {
     setPendingRemoveApp(null);
   }, []);
 
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const sectionsRef = useRef<Record<string, HTMLDivElement | null>>({});
 
   const groupedApps = useMemo(() => {
     const groups: Record<string, AppEntry[]> = {};
@@ -207,7 +207,7 @@ function SplitTunneling() {
   };
 
   const scrollToSection = (letter: string) => {
-    sectionRefs.current[letter]?.scrollIntoView({ behavior: 'smooth' });
+    sectionsRef.current[letter]?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleEnableChange = async () => {
@@ -303,7 +303,7 @@ function SplitTunneling() {
                   <div
                     key={letter}
                     ref={(el) => {
-                      sectionRefs.current[letter] = el;
+                      sectionsRef.current[letter] = el;
                     }}
                   >
                     {/* Section divider */}

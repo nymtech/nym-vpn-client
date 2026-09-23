@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { PROFILES } from '../../../constants';
 import { useSetProfile } from '../../../hooks';
-import { MsIcon, PageAnim } from '../../../ui';
+import { MsIcon, PageAnim, ProfileIcon } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 
 function Profiles() {
@@ -12,30 +12,31 @@ function Profiles() {
   const setProfile = useSetProfile();
   // guards against a second click firing another `set_profile` + `navigate(-1)`
   // while the first selection is still in flight
-  const isSelecting = useRef(false);
+  const isSelectingRef = useRef(false);
 
   return (
     <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
       <p className="text-text-secondary">{t('profiles.intro')}</p>
       <SettingsGroup
-        settings={PROFILES.map(({ id, icon }) => ({
+        settings={PROFILES.map((id) => ({
           title: t(`profiles.${id}.title`),
           desc: t(`profiles.${id}.desc`),
           leadingComponent: (
-            <span className="font-icon text-text-secondary group-hover:animate-nod text-2xl select-none">
-              {icon}
-            </span>
+            <ProfileIcon
+              profile={id}
+              className="text-text-tertiary group-hover:animate-nod group-hover:text-text-primary group-active:animate-nod-deep group-active:text-brand-primary transition-colors"
+            />
           ),
           onClick: async () => {
-            if (isSelecting.current) {
+            if (isSelectingRef.current) {
               return;
             }
-            isSelecting.current = true;
+            isSelectingRef.current = true;
             const success = await setProfile(id);
             if (success) {
               navigate(-1);
             } else {
-              isSelecting.current = false;
+              isSelectingRef.current = false;
             }
           },
           trailing: (

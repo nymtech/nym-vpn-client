@@ -15,7 +15,13 @@ extension GRPCManager {
                 exitGatewayId: details.exitGateway.id,
                 tunnelType: ConnectionTunnelType(details.tunnel)
             )
-        case let .connecting(retryAttempt: retryAttempt, state: state, tunnelType: tunnelType, connectionData: connectionData):
+        case let .connecting(
+            retryAttempt: retryAttempt,
+            state: state,
+            selectorFallbackState: _, // todo: must use this field
+            tunnelType: tunnelType,
+            connectionData: connectionData
+        ):
             connectionRetryAttempt = Int(retryAttempt)
             tunnelStatus = .connecting
             tunnelConnectingState = TunnelConnectingState(with: state)
@@ -71,8 +77,6 @@ extension GRPCManager {
             ErrorReason.setDns
         case let .internal(code):
             ErrorReason.internalError(code)
-        case .deviceTimeOutOfSync:
-            ErrorReason.deviceTimeOutOfSync
         case .ipv6Unavailable:
             ErrorReason.ipv6Unavailable
         case .inactiveSubscription:
@@ -149,8 +153,6 @@ extension ErrorReason {
             self = .inactiveAccount
         case .maxDevicesReached:
             self = .maxDevicesReached
-        case .deviceTimeOutOfSync:
-            self = .deviceTimeOutOfSync
         case .deviceLoggedOut:
             self = .deviceLoggedOut
         case .internal:

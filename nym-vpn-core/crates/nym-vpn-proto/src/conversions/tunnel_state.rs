@@ -9,8 +9,8 @@ use std::{
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, BridgeAddress, ConnectionData, ErrorStateReason,
     EstablishConnectionData, EstablishConnectionState, GatewayId, GatewayLightInfo,
-    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelState, TunnelType,
-    WireguardConnectionData, WireguardNode,
+    MixnetConnectionData, NymAddress, SelectorFallbackState, TunnelConnectionData, TunnelState,
+    TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -56,7 +56,6 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::InactiveAccount => Self::InactiveAccount,
             Reason::InactiveSubscription => Self::InactiveSubscription,
             Reason::MaxDevicesReached => Self::MaxDevicesReached,
-            Reason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             Reason::DeviceLoggedOut => Self::DeviceLoggedOut,
             Reason::NeedFullDiskPermissions => Self::NeedFullDiskPermissions,
             Reason::SplitTunnel => Self::SplitTunnel,
@@ -157,10 +156,6 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
                 reason: Reason::MaxDevicesReached.into(),
                 message: None,
             },
-            ErrorStateReason::DeviceTimeOutOfSync => Self {
-                reason: Reason::DeviceTimeOutOfSync.into(),
-                message: None,
-            },
             ErrorStateReason::DeviceLoggedOut => Self {
                 reason: Reason::DeviceLoggedOut.into(),
                 message: None,
@@ -219,6 +214,7 @@ impl TryFrom<proto::TunnelState> for TunnelState {
             proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
                 state,
+                selector_fallback_state,
                 tunnel_type,
                 connection_data,
             }) => {
@@ -228,6 +224,11 @@ impl TryFrom<proto::TunnelState> for TunnelState {
                 let state = proto::EstablishConnectionState::try_from(state)
                     .map_err(|e| ConversionError::Decode("EstablishConnectionState", e))
                     .map(EstablishConnectionState::from)?;
+                let selector_fallback_state = selector_fallback_state
+                    .map(SelectorFallbackState::from)
+                    .ok_or(ConversionError::NoValueSet(
+                        "TunnelState.state.selector_fallback_state",
+                    ))?;
                 let tunnel_type = proto::TunnelType::try_from(tunnel_type)
                     .map_err(|e| ConversionError::Decode("TunnelType", e))
                     .map(TunnelType::from)?;
@@ -235,6 +236,7 @@ impl TryFrom<proto::TunnelState> for TunnelState {
                 Self::Connecting {
                     retry_attempt,
                     state,
+                    selector_fallback_state,
                     tunnel_type,
                     connection_data,
                 }
@@ -340,6 +342,24 @@ impl TryFrom<proto::EstablishConnectionData> for EstablishConnectionData {
             exit_gateway,
             tunnel,
         })
+    }
+}
+
+impl From<proto::SelectorFallbackState> for SelectorFallbackState {
+    fn from(value: proto::SelectorFallbackState) -> Self {
+        Self {
+            entry_fallback: value.entry_fallback,
+            exit_fallback: value.exit_fallback,
+        }
+    }
+}
+
+impl From<SelectorFallbackState> for proto::SelectorFallbackState {
+    fn from(value: SelectorFallbackState) -> Self {
+        Self {
+            entry_fallback: value.entry_fallback,
+            exit_fallback: value.exit_fallback,
+        }
     }
 }
 
@@ -632,11 +652,15 @@ impl From<TunnelState> for proto::TunnelState {
             TunnelState::Connecting {
                 retry_attempt,
                 state,
+                selector_fallback_state,
                 tunnel_type,
                 connection_data,
             } => proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
                 state: proto::EstablishConnectionState::from(state) as i32,
+                selector_fallback_state: Some(proto::SelectorFallbackState::from(
+                    selector_fallback_state,
+                )),
                 tunnel_type: proto::TunnelType::from(tunnel_type) as i32,
                 connection_data: connection_data.map(proto::EstablishConnectionData::from),
             }),

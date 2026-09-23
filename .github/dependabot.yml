@@ -6,12 +6,14 @@ updates:
       interval: daily
     assignees:
       - "Bykow"
+    milestone: 6
   - package-ecosystem: gradle
     directory: /nym-vpn-android
     assignees:
       - "mrkiwi"
     schedule:
       interval: weekly
+    milestone: 6
     groups:
       patch-updates:
         patterns:
@@ -22,18 +24,19 @@ updates:
     directory: /nym-vpn-apple
     schedule:
       interval: weekly
+    milestone: 6
     assignees:
       - "rokas-ambrazevicius"
   - package-ecosystem: cargo
     directory: /nym-vpn-core
     assignees:
       - "pronebird"
+      - "neacsu"
     schedule:
       interval: weekly
+    milestone: 6
     ignore:
       - dependency-name: "nym-*"
-    assignees:
-      - "neacsu"
     groups:
       patch-updates:
         patterns:
@@ -44,6 +47,7 @@ updates:
   #   directory: /nym-vpn-app/src-tauri
   #   schedule:
   #     interval: weekly
+  #   milestone: 6
   #   groups:
   #     patch-updates:
   #       patterns:
@@ -54,6 +58,7 @@ updates:
     directory: /nym-vpn-app
     schedule:
       interval: weekly
+    milestone: 6
     groups:
       patch-updates:
         patterns:

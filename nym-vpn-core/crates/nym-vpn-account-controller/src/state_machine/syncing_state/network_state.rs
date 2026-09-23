@@ -158,20 +158,17 @@ impl SyncingNetworkState {
         vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<VpnAccountSummary, SyncError> {
-        // Fetch the remote time so the summary can record whether our clock is acceptably synced
-        // (a desync would make zk-nyms fail to verify on gateways). The desync itself is surfaced
-        // later, during the local checks, via `VpnAccountSummary::time_synced`.
-        let remote_time = vpn_api_client.get_remote_time().await?;
-
         let summary = vpn_api_client
             .get_account_summary_with_device(vpn_api_account, device)
             .await?;
 
         tracing::debug!("{summary:#?}");
 
-        let summary = VpnAccountSummary::from_parts(&summary, vpn_api_account.mode(), remote_time)
-            .map_err(|err| SyncError::ApiResponseError {
-                details: format!("Failed to create account summary from API response: {err}"),
+        let summary =
+            VpnAccountSummary::from_parts(&summary, vpn_api_account.mode()).map_err(|err| {
+                SyncError::ApiResponseError {
+                    details: format!("Failed to create account summary from API response: {err}"),
+                }
             })?;
 
         Ok(summary)

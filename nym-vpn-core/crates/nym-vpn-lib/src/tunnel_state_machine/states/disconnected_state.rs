@@ -11,7 +11,6 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
-use nym_http_api_client::HickoryDnsResolver;
 
 pub struct DisconnectedState;
 
@@ -34,8 +33,15 @@ impl DisconnectedState {
         // Drop tombstone to close tunnel devices.
         drop(tombstone);
 
+        // Intentional disconnect: release Android blocking / held TUN so ISP path is available again
+        // (OS Always-On / block-without-VPN remain a user choice).
+        #[cfg(target_os = "android")]
+        shared_state.clear_android_blocking_tun();
+
         // Clear addresses from the pre-resolve table in the (shared) DNS resolver.
-        HickoryDnsResolver::shared().clear_preresolve();
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
+            nym_http_api_client::HickoryDnsResolver::shared();
+        dns_resolver.clear_preresolve();
 
         shared_state.allow_networking().await;
         shared_state

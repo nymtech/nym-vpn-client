@@ -33,7 +33,7 @@ runs:
             local download_url="$2"
             local save_path="$3"
 
-            if security find-certificate -a -c "$cert_name" -p 2>/dev/null | openssl x509 -noout -checkend 0 > /dev/null 2>&1; then
+            if security find-certificate -a -c "$cert_name" -p "$KEYCHAIN" 2>/dev/null | openssl x509 -noout -checkend 0 > /dev/null 2>&1; then
                 echo "✅ '$cert_name' is already valid in keychain."
             else
                 echo "❌ '$cert_name' is missing or expired. Fetching renewal..."

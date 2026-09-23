@@ -20,6 +20,9 @@ pub enum BlacklistReason {
     EntryBlamedForRepeatedFailures,
     /// Registration with this gateway failed.
     RegistrationFailed,
+    /// The WG handshake with this entry gateway never completed: the entry hop is dead from
+    /// the current network (e.g. its WG port is blackholed), regardless of the exit gateway.
+    EntryMetadataEndpointUnreachable,
 }
 
 impl fmt::Display for BlacklistReason {
@@ -30,6 +33,9 @@ impl fmt::Display for BlacklistReason {
                 write!(f, "blamed for repeated pre-handshake failures")
             }
             Self::RegistrationFailed => write!(f, "registration failed"),
+            Self::EntryMetadataEndpointUnreachable => {
+                write!(f, "entry metadata endpoint unreachable")
+            }
         }
     }
 }

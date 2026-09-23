@@ -1,6 +1,8 @@
 fn main() {
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+
     // XPC protocol definition
-    if cfg!(target_os = "macos") {
+    if target_os == "macos" {
         // Rebuild if the ObjC file changes
         println!("cargo:rerun-if-changed=src/xpc/protocols.m");
 

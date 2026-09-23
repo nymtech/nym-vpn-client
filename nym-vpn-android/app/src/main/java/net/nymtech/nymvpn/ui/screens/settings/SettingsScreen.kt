@@ -218,6 +218,9 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			onGeoExclusionClick = {
 				navController.navigate(Route.GeoExclusion)
 			},
+			onProfilesClick = {
+				navController.navigate(Route.Profiles)
+			},
 		),
 	)
 }

@@ -29,4 +29,5 @@ data class SettingsActions(
 	val onSystemTrayEnable: (enabled: Boolean) -> Unit = {},
 	val onMixnetTuningClick: () -> Unit = {},
 	val onGeoExclusionClick: () -> Unit = {},
+	val onProfilesClick: () -> Unit = {},
 )

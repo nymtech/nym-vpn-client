@@ -1,19 +1,22 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{Arc, OnceLock},
+};
 
 use itertools::Itertools;
-use opentelemetry::trace::TracerProvider;
+use opentelemetry::trace::{TraceContextExt, TracerProvider};
 use sentry::integrations::tracing as sentry_tracing;
 use tokio::{
     sync::{Mutex, mpsc},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{Event, Level, Subscriber};
+use tracing::{Dispatch, Event, Level, Subscriber, dispatcher::WeakDispatch};
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
-use tracing_opentelemetry::OtelData;
+use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
     EnvFilter, Layer,
     fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
@@ -238,8 +241,38 @@ impl std::io::Write for FileManager {
     }
 }
 
+/// Layer which sole purpose is to capture `Dispatch`
+struct JsonLogLayer {
+    dispatch: Arc<OnceLock<WeakDispatch>>,
+}
+
+impl JsonLogLayer {
+    pub fn new(dispatch: Arc<OnceLock<WeakDispatch>>) -> Self {
+        Self { dispatch }
+    }
+}
+
+impl<S> Layer<S> for JsonLogLayer
+where
+    S: Subscriber + for<'a> LookupSpan<'a>,
+{
+    fn on_register_dispatch(&self, dispatch: &Dispatch) {
+        self.dispatch.set(dispatch.downgrade()).ok();
+    }
+}
+
 struct JsonLogFormatter {
     enable_opentelemetry: bool,
+    dispatch: Arc<OnceLock<WeakDispatch>>,
+}
+
+impl JsonLogFormatter {
+    pub fn new(enable_opentelemetry: bool, dispatch: Arc<OnceLock<WeakDispatch>>) -> Self {
+        Self {
+            enable_opentelemetry,
+            dispatch,
+        }
+    }
 }
 
 impl<S, N> FormatEvent<S, N> for JsonLogFormatter
@@ -255,11 +288,17 @@ where
     ) -> std::fmt::Result {
         write!(writer, "{{")?;
         if self.enable_opentelemetry
+            && let Some(dispatch) = self.dispatch.get().and_then(|d| d.upgrade())
             && let Some((trace_id, span_id)) = ctx.event_scope().and_then(|mut scope| {
                 scope.find_map(|span_ref| {
-                    let exts = span_ref.extensions();
-                    let otel = exts.get::<OtelData>()?;
-                    Some((otel.trace_id()?.to_string(), otel.span_id()?.to_string()))
+                    let otel = get_otel_context(&span_ref.id(), &dispatch)?;
+                    let span = otel.span();
+                    let span_ctx = span.span_context();
+
+                    let trace_id = span_ctx.trace_id();
+                    let span_id = span_ctx.span_id();
+
+                    Some((trace_id.to_string(), span_id.to_string()))
                 })
             })
         {
@@ -295,89 +334,127 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
             .from_env_lossy()
     } else {
         let default_directives = std::iter::once(options.verbosity_level.to_string())
-            .chain(
-                INFO_TARGETS
-                    .iter()
-                    .map(|crate_name| format!("{crate_name}=info"))
-                    .chain(
-                        WARN_TARGETS
-                            .iter()
-                            .map(|crate_name| format!("{crate_name}=warn")),
-                    ),
-            )
+            .chain(INFO_TARGETS.iter().map(|c| format!("{c}=info")))
+            .chain(WARN_TARGETS.iter().map(|c| format!("{c}=warn")))
             .join(",");
-
         EnvFilter::new(default_directives)
     };
 
-    let mut layers = Vec::new();
-
-    // Create oslog output on macOS and iOS for debugging purposes
+    // Platform log layers
     #[cfg(target_os = "android")]
-    layers.push(
-        tracing_android::layer("libnymvpn")
-            .expect("tag contains nul terminator")
-            .boxed(),
-    );
+    let android_layer =
+        Some(tracing_android::layer("libnymvpn").expect("tag contains nul terminator"));
+    #[cfg(not(target_os = "android"))]
+    let android_layer: Option<tracing_subscriber::fmt::Layer<_>> = None;
 
-    // Create oslog output on macOS and iOS for debugging purposes
     #[cfg(any(target_os = "macos", target_os = "ios"))]
-    layers.push(tracing_oslog::OsLogger::new("net.nymtech.vpn.agent", "default").boxed());
+    let os_logger = Some(tracing_oslog::OsLogger::new(
+        "net.nymtech.vpn.agent",
+        "default",
+    ));
+    #[cfg(not(any(target_os = "macos", target_os = "ios")))]
+    let os_logger: Option<tracing_subscriber::fmt::Layer<_>> = None;
 
-    // Create file logger but only when running as a service on windows or macos
-    let worker_guard = if let Some(log_dir) = options.log_dir {
+    // Dispatch proxy layer
+    let dispatch = Arc::new(OnceLock::new());
+    let json_layer = JsonLogLayer::new(dispatch.clone());
+
+    // File log setup
+    let (mut file_writer, worker_guard) = if let Some(log_dir) = options.log_dir {
         let file_appender = FileAppender::new(log_dir, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE);
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
-        let file_layer = tracing_subscriber::fmt::layer()
-            .with_span_events(FmtSpan::CLOSE)
-            .with_writer(file_writer)
-            .with_ansi(false);
-        if options.enable_json_log {
-            let file_layer = file_layer.json().event_format(JsonLogFormatter {
-                enable_opentelemetry,
-            });
-            layers.push(file_layer.boxed());
-        } else {
-            layers.push(file_layer.boxed());
-        }
-        Some(LoggingSetup::new(worker_guard, file_appender))
+
+        (
+            Some(file_writer),
+            Some(LoggingSetup::new(worker_guard, file_appender)),
+        )
+    } else {
+        (None, None)
+    };
+
+    let file_layer_json = if options.enable_json_log
+        && let Some(file_writer) = file_writer.take()
+    {
+        Some(
+            tracing_subscriber::fmt::layer()
+                .with_span_events(FmtSpan::CLOSE)
+                .with_writer(file_writer)
+                .with_ansi(false)
+                .json()
+                .event_format(JsonLogFormatter::new(
+                    enable_opentelemetry,
+                    dispatch.clone(),
+                )),
+        )
     } else {
         None
     };
 
-    if options.enable_stdout_log {
-        let console_layer = tracing_subscriber::fmt::layer().with_span_events(FmtSpan::CLOSE);
-        if options.enable_json_log {
-            let console_layer = console_layer.json().event_format(JsonLogFormatter {
-                enable_opentelemetry,
-            });
-            layers.push(console_layer.boxed());
-        } else {
-            layers.push(console_layer.boxed());
-        }
-    }
+    let file_layer_plain = if !options.enable_json_log
+        && let Some(file_writer) = file_writer.take()
+    {
+        Some(
+            tracing_subscriber::fmt::layer()
+                .with_span_events(FmtSpan::CLOSE)
+                .with_writer(file_writer)
+                .with_ansi(false),
+        )
+    } else {
+        None
+    };
 
-    if options.sentry {
-        let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
+    // Console log setup
+    let console_layer_plain = if options.enable_stdout_log && !options.enable_json_log {
+        Some(tracing_subscriber::fmt::layer().with_span_events(FmtSpan::CLOSE))
+    } else {
+        None
+    };
+
+    let console_layer_json = if options.enable_stdout_log && options.enable_json_log {
+        let console_layer = tracing_subscriber::fmt::layer().with_span_events(FmtSpan::CLOSE);
+        let formatted_console = console_layer.json().event_format(JsonLogFormatter::new(
+            enable_opentelemetry,
+            dispatch.clone(),
+        ));
+        Some(formatted_console)
+    } else {
+        None
+    };
+
+    // Sentry
+    let sentry_layer = if options.sentry {
+        Some(sentry_tracing::layer().event_filter(|md| match md.level() {
             &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
             &Level::TRACE => sentry_tracing::EventFilter::Ignore,
             _ => sentry_tracing::EventFilter::Breadcrumb,
-        });
-        layers.push(layer.boxed());
-    }
+        }))
+    } else {
+        None
+    };
 
-    let reg = tracing_subscriber::registry().with(layers).with(env_filter);
-
-    if enable_opentelemetry {
+    // OpenTelemetry Layer
+    let telemetry_layer = if enable_opentelemetry {
         let tracer = opentelemetry_sdk::trace::SdkTracerProvider::builder()
             .build()
             .tracer("nym-vpnd");
-        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-        reg.with(telemetry).init();
+        Some(tracing_opentelemetry::layer().with_tracer(tracer))
     } else {
-        reg.init();
-    }
+        None
+    };
+
+    tracing_subscriber::registry()
+        .with(env_filter)
+        .with(android_layer)
+        .with(os_logger)
+        .with(json_layer)
+        .with(file_layer_json)
+        .with(file_layer_plain)
+        .with(console_layer_json)
+        .with(console_layer_plain)
+        .with(sentry_layer)
+        .with(telemetry_layer)
+        .init();
 
     log_panics::init();
     worker_guard

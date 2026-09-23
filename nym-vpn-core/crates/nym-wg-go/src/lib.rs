@@ -4,6 +4,7 @@
 #[cfg(feature = "amnezia")]
 pub mod amnezia;
 pub mod netstack;
+pub mod stats;
 pub mod uapi;
 pub mod wireguard_go;
 

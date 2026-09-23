@@ -119,7 +119,7 @@ function MixnetTrafficConfigProvider({
   );
 
   return (
-    <MixnetTrafficConfigContext.Provider
+    <MixnetTrafficConfigContext
       value={{
         state,
         hasUnsavedSettings,
@@ -132,7 +132,7 @@ function MixnetTrafficConfigProvider({
       }}
     >
       {children}
-    </MixnetTrafficConfigContext.Provider>
+    </MixnetTrafficConfigContext>
   );
 }
 

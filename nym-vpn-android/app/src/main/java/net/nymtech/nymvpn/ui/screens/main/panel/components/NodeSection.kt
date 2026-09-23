@@ -95,9 +95,10 @@ internal fun NodeSection(
 @Composable
 private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
 	val indication = if (isClickable) ripple() else null
-	val showDetails = node.location != null
+	val showDetails = node.id.isNotEmpty()
+	val showLocation = node.location != null
 	val locationAlpha by animateFloatAsState(
-		targetValue = if (showDetails) 1f else 0f,
+		targetValue = if (showLocation) 1f else 0f,
 		animationSpec = tween(350),
 		label = "locationAlpha",
 	)
@@ -105,7 +106,7 @@ private fun ServerRow(node: ServerNode, isClickable: Boolean, onServerClick: () 
 		MaterialTheme.typography.bodySmall.lineHeight.toDp()
 	}
 	val nameOffset by animateDpAsState(
-		targetValue = if (showDetails) 0.dp else (locationLineHeight + 2.dp) / 2,
+		targetValue = if (showLocation) 0.dp else (locationLineHeight + 2.dp) / 2,
 		animationSpec = tween(350),
 		label = "nameOffset",
 	)

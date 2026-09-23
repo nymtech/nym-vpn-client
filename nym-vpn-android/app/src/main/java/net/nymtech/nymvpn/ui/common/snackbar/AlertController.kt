@@ -23,6 +23,7 @@ data class AlertMessage(
 	val duration: Long = 4_000L,
 	val onDismiss: (() -> Unit)? = null,
 	val id: AlertId? = null,
+	val dismissable: Boolean = type != AlertType.Error,
 )
 
 data class AlertAction(val label: String, val onClick: () -> Unit)
