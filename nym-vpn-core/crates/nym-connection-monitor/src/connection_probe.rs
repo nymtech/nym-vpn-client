@@ -3,7 +3,7 @@
 
 //! Module formalizing abstract connection probe interface and errors.
 
-use std::time::Duration;
+use std::{ops::Deref, time::Duration};
 
 /// Describes interface for implementing a probe sender.
 #[async_trait::async_trait]
@@ -16,11 +16,6 @@ pub trait ConnectionProbe {
 pub trait ProbeError: std::error::Error + Send + 'static {
     /// Returns true if the error is a timeout error.
     fn is_timeout(&self) -> bool;
-
-    /// Returns true when the probe could not be sent (e.g. raw socket bind on utun).
-    fn is_send_failure(&self) -> bool {
-        false
-    }
 }
 
 /// Convenience wrapper around a boxed probe error.
@@ -36,5 +31,13 @@ impl std::fmt::Display for BoxedProbeError {
 impl std::error::Error for BoxedProbeError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         self.0.source()
+    }
+}
+
+impl Deref for BoxedProbeError {
+    type Target = dyn ProbeError;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.0
     }
 }

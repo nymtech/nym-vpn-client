@@ -262,7 +262,11 @@ where
                                 .ok_or(Error::ComputeNextProbeTime(current_timestamp, delay))?
                         }
                         Err(err) => {
-                            trace_err_chain!(err);
+                            if err.is_timeout() {
+                                tracing::warn!("{}", err.source().unwrap_or(err.as_ref()));
+                            } else {
+                                trace_err_chain!(err);
+                            }
 
                             self.state.increment_retry();
 
@@ -344,17 +348,9 @@ mod tests {
     const PROBE_PERIODICITY: Duration = Duration::from_secs(10);
 
     #[test]
-    fn mock_probe_send_failure_is_not_timeout() {
-        let err = BoxedProbeError::from(MockProbeError::SendFailure);
-        assert!(err.0.is_send_failure());
-        assert!(!err.0.is_timeout());
-    }
-
-    #[test]
     fn mock_probe_timeout_is_not_send_failure() {
         let err = BoxedProbeError::from(MockProbeError::Timeout);
-        assert!(!err.0.is_send_failure());
-        assert!(err.0.is_timeout());
+        assert!(err.is_timeout());
     }
 
     #[tokio::test(start_paused = true)]
