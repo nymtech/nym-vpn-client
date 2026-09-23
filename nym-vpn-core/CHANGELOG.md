@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
 
 
-## [2026.12.6] - 2026-09-17
+## [2026.12.6] - 2026-09-21
 
 This release has no core changes.
 
