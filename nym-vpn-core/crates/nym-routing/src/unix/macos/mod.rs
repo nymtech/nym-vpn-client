@@ -15,6 +15,7 @@ use std::{
     collections::{BTreeMap, HashSet},
     net::{IpAddr, SocketAddr},
     pin::Pin,
+    result,
     sync::Weak,
     time::Duration,
 };
@@ -37,7 +38,7 @@ mod watch;
 
 pub use watch::Error as RouteError;
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 const BURST_BUFFER_PERIOD: Duration = Duration::from_millis(200);
 const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
@@ -70,6 +71,69 @@ pub enum Error {
     /// Failed to create SCDynamicStore
     #[error("failed to create SCDynamicStore")]
     CreateDynamicStore,
+}
+
+/// Get every interface currently holding a default-route-shaped entry, for
+/// the given address family. See [`crate::DefaultRouteInterfaces`].
+pub async fn get_default_route_interfaces(
+    family: crate::AddressFamily,
+) -> result::Result<crate::DefaultRouteInterfaces, super::Error> {
+    let address_family = match family {
+        crate::AddressFamily::Ipv4 => libc::AF_INET,
+        crate::AddressFamily::Ipv6 => libc::AF_INET6,
+    };
+
+    let routes = watch::RoutingTable::dump_routes(address_family).map_err(Error::RoutingTable)?;
+
+    let mut result = crate::DefaultRouteInterfaces::default();
+    for route in routes {
+        if !route.is_default().unwrap_or(false) {
+            continue;
+        }
+        // Every point-to-point (e.g. utun) interface gets an automatic
+        // IPv6 default route via its own link-local address as soon as it
+        // comes up, regardless of whether it's actually carrying default
+        // (internet-bound) traffic. Since this is indistinguishable from a
+        // real interface competing for default-route ownership by
+        // destination alone, and unlike IPv4 there's no equivalent
+        // per-interface artifact to rule out, only trust an IPv6 default
+        // route here when it points at a real (non-link-local) gateway.
+        if family == crate::AddressFamily::Ipv6 && is_link_local_gateway_v6(&route) {
+            continue;
+        }
+        let Some(name) = interface_name(route.interface_index()) else {
+            continue;
+        };
+        if is_tunnel_like_interface(&name) {
+            result.virtual_.insert(name);
+        } else {
+            result.physical.insert(name);
+        }
+    }
+
+    Ok(result)
+}
+
+fn is_link_local_gateway_v6(route: &data::RouteMessage) -> bool {
+    route
+        .gateway_v6()
+        .map(|addr| addr.is_unicast_link_local())
+        .unwrap_or(false)
+}
+
+fn interface_name(interface_index: u16) -> Option<String> {
+    nix::net::if_::if_indextoname(u32::from(interface_index))
+        .ok()?
+        .into_string()
+        .ok()
+}
+
+fn is_tunnel_like_interface(name: &str) -> bool {
+    const TUNNEL_PREFIXES: [&str; 4] = ["utun", "tun", "tap", "ppp"];
+
+    TUNNEL_PREFIXES
+        .iter()
+        .any(|prefix| name.starts_with(prefix))
 }
 
 /// Route manager can be in 1 of 4 states -
@@ -405,10 +469,7 @@ impl RouteManagerImpl {
         Ok(())
     }
 
-    fn handle_route_message(
-        &mut self,
-        message: std::result::Result<RouteSocketMessage, watch::Error>,
-    ) {
+    fn handle_route_message(&mut self, message: Result<RouteSocketMessage, watch::Error>) {
         nym_common::detect_flood!();
 
         tracing::trace!("got RouteSocketMessage::{:?}", message.as_ref().unwrap());
@@ -839,5 +900,29 @@ mod tests {
                 .map(|r| r.interface.as_str()),
             Some("en1")
         );
+    }
+}
+
+#[cfg(test)]
+mod default_route_interface_tests {
+    use super::*;
+    use std::net::{Ipv6Addr, SocketAddr};
+
+    #[test]
+    fn link_local_gateway_v6_default_is_excluded() {
+        let link_local: Ipv6Addr = "fe80::1".parse().unwrap();
+        let route = data::RouteMessage::new_route(data::Destination::default_v6())
+            .set_gateway_addr(SocketAddr::from((link_local, 0)));
+
+        assert!(is_link_local_gateway_v6(&route));
+    }
+
+    #[test]
+    fn global_gateway_v6_default_is_not_excluded() {
+        let global: Ipv6Addr = "2001:db8::1".parse().unwrap();
+        let route = data::RouteMessage::new_route(data::Destination::default_v6())
+            .set_gateway_addr(SocketAddr::from((global, 0)));
+
+        assert!(!is_link_local_gateway_v6(&route));
     }
 }

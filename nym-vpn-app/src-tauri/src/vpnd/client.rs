@@ -307,6 +307,11 @@ impl VpndClient {
                 debug!("diagnostics suggested: {reason}");
                 app.emit_diagnostics_suggested(DiagnosticsSuggestedReason::from_lib(reason));
             }
+            // No UI surface yet; log so the app compiles against the
+            // updated TunnelEvent variant.
+            lib::TunnelEvent::ConflictDetected(conflict) => {
+                debug!("conflict detected: {conflict}");
+            }
         }
         Ok(())
     }
