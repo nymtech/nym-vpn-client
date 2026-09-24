@@ -5,7 +5,11 @@ use crate::service::{
     ConfigSetupError,
     config::{
         VpnServiceConfigExt,
-        entry_exit::v2::{EntryPoint, ExitPoint},
+        circumvention::v9::FrontingMode,
+        entry_exit::v3::{EntryPoint, ExitPoint},
+        gateway_independence::v11::GatewayIndependence,
+        gateway_selection_algorithm::v12::GatewaySelectionAlgorithmConfig,
+        geo_exclusion_settings::v9::GeoExclusionSettings,
         mixnet_traffic::v5::MixnetTrafficConfig,
         network_stats::v1::NetworkStatisticsConfig,
         split_tunnel_settings::v8::SplitTunnelSettings,
@@ -22,8 +26,9 @@ pub struct VpnServiceConfig {
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
-    pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub enable_conflict_detection: bool,
+    pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -32,11 +37,14 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub geo_exclusion: GeoExclusionSettings,
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub gateway_independence: GatewayIndependence,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v8: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V8(v8)
+    fn from(v13: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V13(v13)
     }
 }
 
@@ -58,11 +66,24 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .collect::<Result<_, _>>()?;
 
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig::from(value.mixnet_traffic);
-
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
+        let geo_exclusion = nym_vpn_lib_types::GeoExclusionSettings::try_from(value.geo_exclusion)
+            .unwrap_or_else(|error| {
+                tracing::warn!(
+                    "Invalid persisted geo-exclusion settings, resetting to default: {error}"
+                );
+                nym_vpn_lib_types::GeoExclusionSettings::default()
+            });
+        let gateway_selection_algorithm_config =
+            nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
+                value.gateway_selection_algorithm_config,
+            );
+        let fronting_mode = nym_vpn_lib_types::FrontingMode::from(value.fronting_mode);
+        let gateway_independence =
+            nym_vpn_lib_types::GatewayIndependence::from(value.gateway_independence);
 
-        let config = nym_vpn_lib_types::VpnServiceConfig {
+        Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -70,6 +91,8 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
             enable_ad_blocking: value.enable_ad_blocking,
+            enable_conflict_detection: value.enable_conflict_detection,
+            fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -78,9 +101,10 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            ..Default::default()
-        };
-
-        Ok(config)
+            geo_exclusion,
+            gateway_selection_algorithm_config,
+            gateway_independence,
+            // When v14 becomes a thing, add ..Default::default() here.
+        })
     }
 }

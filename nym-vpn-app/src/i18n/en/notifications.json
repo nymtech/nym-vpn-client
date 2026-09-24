@@ -18,5 +18,10 @@
   "diagnostics-suggested": {
     "success": "Diagnostics report saved",
     "error": "Failed to run diagnostics"
+  },
+  "conflict-detected": {
+    "intercepted-dns": "Something on this system appears to be intercepting DNS queries, which may interfere with connectivity.",
+    "competing-vpn": "Another VPN client's tunnel appears to be active alongside NymVPN's, which may interfere with connectivity.",
+    "competing-firewall": "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity."
   }
 }

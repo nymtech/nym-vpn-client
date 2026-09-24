@@ -191,6 +191,7 @@ pub fn default_tunnel_settings() -> TunnelSettings {
         tunnel_type: TunnelType::Wireguard,
         allow_lan: false,
         enable_ad_blocking: false,
+        enable_conflict_detection: false,
         residential_exit: false,
         mixnet_tunnel_options: Default::default(),
         wireguard_tunnel_options: Default::default(),
