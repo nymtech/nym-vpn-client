@@ -241,13 +241,13 @@ impl RoutingTable {
         let mut routes = Vec::new();
         let mut offset = 0;
         while offset + mem::size_of::<libc::rt_msghdr>() <= buffer.len() {
-            // SAFETY: `rt_msghdr` doesn't contain any pointers so any values
-            // are valid, and there are enough bytes left per the loop
-            // condition. Each `rtm_msglen`-sized stride keeps this offset
-            // aligned to `rt_msghdr`'s alignment, by the same kernel-side
-            // convention as `rt_msghdr::from_bytes`/`rt_msghdr_short::from_bytes`
-            // in `data.rs`, which read from the same kind of buffer.
-            let header: libc::rt_msghdr = unsafe { ptr::read(buffer[offset..].as_ptr().cast()) };
+            // SAFETY: `rt_msghdr` doesn't contain any pointers so any bit pattern is valid, and
+            // there are enough bytes left per the loop condition. The buffer offset isn't
+            // guaranteed to be aligned to `rt_msghdr`'s alignment, so this must be an unaligned
+            // read, same as `rt_msghdr::from_bytes`/`rt_msghdr_short::from_bytes` in `data.rs`,
+            // which read from the same kind of buffer.
+            let header: libc::rt_msghdr =
+                unsafe { ptr::read_unaligned(buffer[offset..].as_ptr().cast()) };
             let msg_len = usize::from(header.rtm_msglen);
             if msg_len < mem::size_of::<libc::rt_msghdr>() || offset + msg_len > buffer.len() {
                 tracing::warn!(

@@ -871,9 +871,12 @@ impl RouteSocketAddress {
         }
 
         let addr_header_ptr = buf.as_ptr() as *const sockaddr_hdr;
-        // SAFETY: Since `buf` is at least as long as a `sockaddr_hdr`, it's perfectly valid to
-        // read from.
-        let addr_header = unsafe { std::ptr::read(addr_header_ptr) };
+        // SAFETY: `buf` is at least as long as a `sockaddr_hdr`, so it's valid to read from.
+        // `sockaddr_hdr` doesn't contain any pointers so any bit pattern is valid, but
+        // `addr_header_ptr` isn't guaranteed to be aligned to `sockaddr_hdr`'s alignment (the
+        // padded sockaddr chain is walked relative to a variable-length `rt_msghdr`, so a 4-byte
+        // stride doesn't guarantee absolute alignment), so this must be an unaligned read.
+        let addr_header = unsafe { std::ptr::read_unaligned(addr_header_ptr) };
         let saddr_len = addr_header.sa_len;
         if saddr_len == 0 {
             return Ok((Self::with_sockaddr(flag, None)?, 4));
@@ -1107,11 +1110,11 @@ impl rt_msghdr {
         if buf.len() >= ROUTE_MESSAGE_HEADER_SIZE {
             let ptr = buf.as_ptr();
             // SAFETY: `ptr` is backed by enough valid bytes to contain a rt_msghdr value and it's
-            // readable. rt_msghdr doesn't contain any pointers so any values are valid. `ptr`
-            // comes from an offset into a larger buffer that accumulates variable-length
-            // messages, but each offset is `rtm_msglen`-aligned to `rt_msghdr`'s alignment by
-            // kernel-side convention.
-            Ok(unsafe { ptr::read(ptr as *const _) })
+            // readable. rt_msghdr doesn't contain any pointers so any bit pattern is valid. `ptr`
+            // comes from an offset into a larger buffer that accumulates variable-length messages,
+            // and that offset isn't guaranteed to be aligned to rt_msghdr's alignment, so this
+            // must be an unaligned read.
+            Ok(unsafe { ptr::read_unaligned(ptr as *const _) })
         } else {
             Err(Error::BufferTooSmall {
                 message_type: "rt_msghdr",
@@ -1151,11 +1154,11 @@ impl rt_msghdr_short {
         if buf.len() >= ROUTE_MESSAGE_HEADER_SHORT_SIZE {
             let ptr = buf.as_ptr();
             // SAFETY: `ptr` is backed by enough valid bytes to contain a rt_msghdr_short value and
-            // is readable. `rt_msghdr_short` doesn't contain any pointers so any values are valid.
-            // `ptr` comes from an offset into a larger buffer that accumulates variable-length
-            // messages, but each offset is `rtm_msglen`-aligned to `rt_msghdr_short`'s alignment
-            // by kernel-side convention.
-            Some(unsafe { ptr::read(ptr as *const rt_msghdr_short) })
+            // is readable. `rt_msghdr_short` doesn't contain any pointers so any bit pattern is
+            // valid. `ptr` comes from an offset into a larger buffer that accumulates
+            // variable-length messages, and that offset isn't guaranteed to be aligned to
+            // rt_msghdr_short's alignment, so this must be an unaligned read.
+            Some(unsafe { ptr::read_unaligned(ptr as *const rt_msghdr_short) })
         } else {
             None
         }
