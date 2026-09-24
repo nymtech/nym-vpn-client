@@ -59,9 +59,8 @@ jobs:
           crate: cargo-swift
           version: ${{ env.CARGO_SWIFT_VERSION }}
 
-      - name: Install xcbeautify
-        run: |
-          brew install xcbeautify
+      - name: Install system software
+        run:  brew install xcbeautify swiftlint
 
       - name: Enable QA mode
         working-directory: nym-vpn-apple
