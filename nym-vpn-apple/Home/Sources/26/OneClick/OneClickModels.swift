@@ -100,7 +100,9 @@ public enum OneClickSelectionPhase: Equatable {
     case selected(OneClickServerInfo)
 
     var selectedInfo: OneClickServerInfo? {
-        if case let .selected(info) = self { return info }
+        if case let .selected(info) = self {
+            return info
+        }
         return nil
     }
 }

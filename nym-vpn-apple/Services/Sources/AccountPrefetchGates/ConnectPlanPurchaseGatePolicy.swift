@@ -8,8 +8,12 @@ public enum ConnectPlanPurchaseGatePolicy: Equatable, Sendable {
         validUntilIsFuture: Bool,
         hasAccountSummary: Bool
     ) -> Bool {
-        if isAccountRegistrationInFlight { return false }
-        if accountSummaryLastFetchFailed { return false }
+        if isAccountRegistrationInFlight {
+            return false
+        }
+        if accountSummaryLastFetchFailed {
+            return false
+        }
         if LoginSessionPolicy.isEffectivelyActive(
             isAccountActive: isAccountActive,
             validUntilIsFuture: validUntilIsFuture,

@@ -241,13 +241,17 @@ public extension ConnectionManager {
 extension ConnectionManager {
     @discardableResult
     func waitForTunnelStatus(with targetStatus: TunnelStatus, timeout: TimeInterval? = nil) async -> Bool {
-        if currentTunnelStatus == targetStatus { return true }
+        if currentTunnelStatus == targetStatus {
+            return true
+        }
 
         if let timeout {
             let pollInterval: Duration = .milliseconds(250)
             let deadline = ContinuousClock.now + .seconds(timeout)
             while ContinuousClock.now < deadline {
-                if currentTunnelStatus == targetStatus { return true }
+                if currentTunnelStatus == targetStatus {
+                    return true
+                }
                 try? await Task.sleep(for: pollInterval)
             }
             return currentTunnelStatus == targetStatus
@@ -258,7 +262,9 @@ extension ConnectionManager {
     }
 
     private func waitForTunnelStatusChange(to targetStatus: TunnelStatus) async {
-        if currentTunnelStatus == targetStatus { return }
+        if currentTunnelStatus == targetStatus {
+            return
+        }
 
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
