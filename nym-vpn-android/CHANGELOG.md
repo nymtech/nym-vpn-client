@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump toolchain version to 25 (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Separate workflow for Play Store metadata (https://github.com/nymtech/nym-vpn-client/pull/6411)
+- Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
