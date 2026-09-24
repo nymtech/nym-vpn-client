@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Separate workflow for Play Store metadata (https://github.com/nymtech/nym-vpn-client/pull/6411)
 - Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
+- Remove unused libs (https://github.com/nymtech/nym-vpn-client/pull/6442)
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Quick Tile crash after service destroy (https://github.com/nymtech/nym-vpn-client/pull/6232)
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
 - Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
+- Fix NavComponent crash after libs version update (https://github.com/nymtech/nym-vpn-client/pull/6442)
 
 ## [2026.12.3] - 2026-08-27
 
