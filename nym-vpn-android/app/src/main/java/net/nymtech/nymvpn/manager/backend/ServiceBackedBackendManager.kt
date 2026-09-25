@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import net.nymtech.vpn.model.VpnServiceEvent
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -43,6 +44,7 @@ import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
+import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -101,16 +103,26 @@ class ServiceBackedBackendManager @Inject constructor(
 			refreshIdentityState()
 			refreshAccountSummary()
 
+			val versions = runCatching { api.getNetworkVersions() }.getOrNull()
+			val decision = appUpdateDecision(
+				local = BuildConfig.VERSION_NAME,
+				floor = versions?.android,
+				policy = versions?.appUpdatePolicy,
+			)
 			_state.update {
 				it.copy(
 					isInitialized = true,
-					isNetworkCompatible = true,
+					isNetworkCompatible = !decision.showDialog,
+					appUpdateRequired = decision.blockConnect,
 				)
 			}
 		}
 	}
 
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {
+		val current = _state.value
+		if (!current.isNetworkCompatible && current.appUpdateRequired) return
+
 		val restrictedApps = getRestrictedAppsPackages()
 		val initReq = buildInitRequest()
 
@@ -348,4 +360,22 @@ class ServiceBackedBackendManager @Inject constructor(
 			)
 		}
 	}
+}
+
+internal data class AppUpdateDecision(
+	val showDialog: Boolean,
+	val blockConnect: Boolean,
+)
+
+internal fun appUpdateDecision(local: String?, floor: String?, policy: String?): AppUpdateDecision {
+	val localVersion = local?.let { Semver.coerce(it) }
+	val floorVersion = floor?.let { Semver.coerce(it) }
+	if (localVersion == null || floorVersion == null) {
+		return AppUpdateDecision(showDialog = false, blockConnect = false)
+	}
+	if (!localVersion.isLowerThan(floorVersion)) {
+		return AppUpdateDecision(showDialog = false, blockConnect = false)
+	}
+	val required = policy == "required"
+	return AppUpdateDecision(showDialog = true, blockConnect = required)
 }

@@ -19,10 +19,15 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit) {
+fun CompatibilityModal(
+	showCompatibilityDialog: Boolean,
+	onDismiss: () -> Unit,
+	onConfirmClick: () -> Unit,
+	allowDismiss: Boolean = true,
+) {
 	Modal(
 		show = showCompatibilityDialog,
-		onDismiss = onDismiss,
+		onDismiss = { if (allowDismiss) onDismiss() },
 		title = {
 			Text(
 				text = stringResource(R.string.update_required),
