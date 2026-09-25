@@ -100,9 +100,10 @@ internal class VpnNotificationManager private constructor(private val context: C
 		)
 
 		// Lock screen shows only state; gateway names/locations/exit IP stay hidden until unlock.
+		val publicStateText = if (state is Tunnel.State.Error) context.getString(R.string.state_error) else stateText
 		val publicNotification = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
 			.setContentTitle(title)
-			.setContentText(stateText)
+			.setContentText(publicStateText)
 			.setSmallIcon(R.drawable.ic_stat_name)
 			.setCategory(Notification.CATEGORY_SERVICE)
 			.build()
