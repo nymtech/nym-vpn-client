@@ -14,6 +14,7 @@ public struct OneClickView: View {
     private var voiceOverEnabled
     @State private var animatedDisplayMode: OneClickDisplayMode = .powerUser
     @State private var dismissedAppUpdate = false
+    @State private var appUpdateGeneration = 0
     @ObservedObject private var configuration = ConfigurationManager.shared
 
     public init(
@@ -355,11 +356,15 @@ private extension OneClickView {
     var appUpdatePresented: Binding<Bool> {
         Binding(
             get: {
-                configuration.showsAppUpdatePrompt &&
+                _ = appUpdateGeneration
+                return configuration.showsAppUpdatePrompt &&
                     (configuration.blocksConnectForAppUpdate || !dismissedAppUpdate)
             },
             set: { presented in
-                if !presented && !configuration.blocksConnectForAppUpdate {
+                guard !presented else { return }
+                if configuration.blocksConnectForAppUpdate {
+                    appUpdateGeneration += 1
+                } else {
                     dismissedAppUpdate = true
                 }
             }

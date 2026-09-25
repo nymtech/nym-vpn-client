@@ -12,6 +12,15 @@ public enum TunnelStatus: Int, Equatable, Codable {
     case offlineReconnect
     case unknown
 
+    public var startsNewTunnel: Bool {
+        switch self {
+        case .disconnected, .disconnecting, .reasserting, .restarting, .offline, .unknown:
+            true
+        case .connected, .connecting, .error, .offlineReconnect:
+            false
+        }
+    }
+
     public init(from systemStatus: NEVPNStatus) {
         switch systemStatus {
         case .connected:

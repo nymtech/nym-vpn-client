@@ -259,6 +259,10 @@ private extension NymVPNDaemonApp {
         if menuBarConnectButtonState.menuBarItemIsAction {
             Button(menuBarConnectButtonState.localizedTitle) {
                 Task { @MainActor in
+                    if connectionManager.currentTunnelStatus.startsNewTunnel &&
+                        ConfigurationManager.shared.blocksConnectForAppUpdate {
+                        return
+                    }
                     try? await connectionManager.connectDisconnect()
                 }
             }

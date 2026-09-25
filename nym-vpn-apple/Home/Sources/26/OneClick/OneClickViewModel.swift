@@ -117,7 +117,8 @@ public final class OneClickViewModel {
         guard !isConnectDisconnectInFlight else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
         let isConnectingTap = connectionManager.currentTunnelStatus != .connected
-        if isConnectingTap && ConfigurationManager.shared.blocksConnectForAppUpdate {
+        if connectionManager.currentTunnelStatus.startsNewTunnel &&
+            ConfigurationManager.shared.blocksConnectForAppUpdate {
             return
         }
 
