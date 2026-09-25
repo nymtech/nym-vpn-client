@@ -246,6 +246,7 @@ dependencies {
 	implementation(libs.accompanist.permissions)
 	implementation(libs.lifecycle.runtime.compose)
 	implementation(libs.kotlinx.serialization)
+	implementation(libs.semver4j)
 	implementation(libs.androidx.window)
 	implementation(libs.androidx.lifecycle.service)
 
