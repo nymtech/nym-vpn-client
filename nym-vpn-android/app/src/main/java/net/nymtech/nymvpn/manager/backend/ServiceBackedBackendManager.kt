@@ -128,7 +128,10 @@ class ServiceBackedBackendManager @Inject constructor(
 			val ready = _state.first { it.isInitialized }
 			UpdateGate(ready.isInitialized, ready.appUpdateRequired)
 		}
-		if (gate.blockConnect) return
+		if (gate.blockConnect) {
+			notifyAppUpdateRequired()
+			return
+		}
 
 		val restrictedApps = getRestrictedAppsPackages()
 		val initReq = buildInitRequest()
@@ -323,6 +326,14 @@ class ServiceBackedBackendManager @Inject constructor(
 		runCatching {
 			serviceConnectionManager.withApi { it.setGatewayIndependenceEnabled(enabled) }
 		}.onFailure { Timber.tag(TAG).w(it, "setGatewayIndependenceEnabled failed") }
+	}
+
+	private fun notifyAppUpdateRequired() {
+		if (NymVpn.AppLifecycleObserver.isInForeground.value) return
+		notificationService.showNotification(
+			title = context.getString(R.string.update_required),
+			description = context.getString(R.string.app_update_required),
+		)
 	}
 
 	private fun notifyVpnPermissionRequired() {

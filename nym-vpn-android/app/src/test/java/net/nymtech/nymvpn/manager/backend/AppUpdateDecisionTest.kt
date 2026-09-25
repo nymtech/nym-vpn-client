@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.manager.backend
 
 import kotlinx.coroutines.runBlocking
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.service.tile.quickTileExplainsUpdate
 import net.nymtech.nymvpn.ui.screens.main.modal.compatibilityCopy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -80,5 +81,11 @@ class AppUpdateDecisionTest {
 		assertEquals(R.string.app_update_available_body, dismissible.second)
 		assertEquals(R.string.update_required, required.first)
 		assertEquals(R.string.app_update_required, required.second)
+	}
+
+	@Test
+	fun quickTileExplainsARequiredUpdate() {
+		assertTrue(quickTileExplainsUpdate(appUpdateRequired = true))
+		assertEquals(false, quickTileExplainsUpdate(appUpdateRequired = false))
 	}
 }
