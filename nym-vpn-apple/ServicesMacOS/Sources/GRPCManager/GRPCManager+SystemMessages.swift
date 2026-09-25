@@ -1,10 +1,12 @@
 import NymVPNLib
 
 extension GRPCManager {
-    public func fetchCompatibleVersions() async throws -> (macOS: String?, core: String?) {
+    public func fetchCompatibleVersions() async throws -> (macOS: String?, core: String?, policy: String) {
         try await Task.detached { [weak self] in
-            guard let result = try await self?.rpcClient?.getNetworkCompatibility() else { return (nil, nil)}
-            return (macOS: result.macos, core: result.core)
+            guard let result = try await self?.rpcClient?.getNetworkCompatibility() else {
+                return (nil, nil, "dismissible")
+            }
+            return (macOS: result.macos, core: result.core, policy: result.appUpdatePolicy)
         }.value
     }
 
