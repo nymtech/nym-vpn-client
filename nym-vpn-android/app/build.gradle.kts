@@ -54,7 +54,6 @@ kotlin {
 licensee {
 	Constants.allowedLicenses.forEach { allow(it) }
 	allowUrl(Constants.ANDROID_TERMS_URL)
-	allowUrl(Constants.XZING_LICENSE_URL)
 }
 
 gross {
@@ -265,9 +264,6 @@ dependencies {
 	implementation(libs.androidx.security.crypto)
 
 	detektPlugins(libs.detekt.rules.compose)
-
-	// barcode scanning
-	implementation(libs.zxing.android.embedded)
 
 	// animations/splash
 	implementation(libs.lottie.compose)
