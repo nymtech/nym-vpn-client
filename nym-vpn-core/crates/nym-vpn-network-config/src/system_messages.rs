@@ -243,7 +243,10 @@ mod tests {
             min_supported_app_versions: None,
             app_update_policy: Some("required".to_owned()),
         };
-        assert_eq!(SystemConfiguration::from(parsed).app_update_policy, "required");
+        assert_eq!(
+            SystemConfiguration::from(parsed).app_update_policy,
+            "required"
+        );
     }
 
     #[test]
