@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -120,8 +121,12 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {
-		val current = _state.value
-		if (!current.isNetworkCompatible && current.appUpdateRequired) return
+		val current = if (_state.value.isInitialized) {
+			_state.value
+		} else {
+			_state.first { it.isInitialized }
+		}
+		if (current.appUpdateRequired) return
 
 		val restrictedApps = getRestrictedAppsPackages()
 		val initReq = buildInitRequest()
