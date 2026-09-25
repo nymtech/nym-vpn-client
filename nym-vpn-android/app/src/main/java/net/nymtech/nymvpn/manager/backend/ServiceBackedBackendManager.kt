@@ -121,12 +121,14 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {
-		val current = if (_state.value.isInitialized) {
-			_state.value
-		} else {
-			_state.first { it.isInitialized }
+		val snapshot = _state.value
+		val gate = resolvedUpdateGate(
+			UpdateGate(snapshot.isInitialized, snapshot.appUpdateRequired),
+		) {
+			val ready = _state.first { it.isInitialized }
+			UpdateGate(ready.isInitialized, ready.appUpdateRequired)
 		}
-		if (current.appUpdateRequired) return
+		if (gate.blockConnect) return
 
 		val restrictedApps = getRestrictedAppsPackages()
 		val initReq = buildInitRequest()
@@ -380,4 +382,11 @@ internal fun appUpdateDecision(local: String?, floor: String?, policy: String?):
 	}
 	val required = policy == "required"
 	return AppUpdateDecision(showDialog = true, blockConnect = required)
+}
+
+internal data class UpdateGate(val initialized: Boolean, val blockConnect: Boolean)
+
+internal suspend fun resolvedUpdateGate(snapshot: UpdateGate, awaitInitialized: suspend () -> UpdateGate): UpdateGate {
+	if (snapshot.initialized) return snapshot
+	return awaitInitialized()
 }

@@ -20,12 +20,13 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit, allowDismiss: Boolean = true) {
+	val copy = compatibilityCopy(allowDismiss)
 	Modal(
 		show = showCompatibilityDialog,
 		onDismiss = { if (allowDismiss) onDismiss() },
 		title = {
 			Text(
-				text = stringResource(R.string.update_required),
+				text = stringResource(copy.first),
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				style = CustomTypography.labelHuge,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -33,7 +34,7 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 		},
 		text = {
 			Text(
-				stringResource(R.string.app_update_required),
+				stringResource(copy.second),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -51,4 +52,11 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 			)
 		},
 	)
+}
+
+internal fun compatibilityCopy(allowDismiss: Boolean): Pair<Int, Int> {
+	if (allowDismiss) {
+		return R.string.app_update_available_title to R.string.app_update_available_body
+	}
+	return R.string.update_required to R.string.app_update_required
 }
