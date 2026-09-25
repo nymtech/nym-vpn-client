@@ -99,12 +99,24 @@ internal class VpnNotificationManager private constructor(private val context: C
 			PendingIntent.FLAG_IMMUTABLE,
 		)
 
+		// Lock screen shows only state; gateway names/locations/exit IP stay hidden until unlock.
+		val publicStateText = if (state is Tunnel.State.Error) context.getString(R.string.state_error) else stateText
+		val publicNotification = NotificationCompat.Builder(context, VPN_CHANNEL_ID)
+			.setContentTitle(title)
+			.setContentText(publicStateText)
+			.setSmallIcon(R.drawable.ic_stat_name)
+			.setCategory(Notification.CATEGORY_SERVICE)
+			.build()
+
 		return NotificationCompat.Builder(context, VPN_CHANNEL_ID)
 			.setOngoing(true)
 			.setContentTitle(title)
 			.setContentText(stateText)
 			.setStyle(NotificationCompat.BigTextStyle().bigText(fullText))
 			.setSmallIcon(R.drawable.ic_stat_name)
+			// Set per notification: channel lockscreenVisibility alone isn't reliably honored.
+			.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+			.setPublicVersion(publicNotification)
 			.setContentIntent(contentIntent())
 			.addAction(R.drawable.ic_stop, context.getString(R.string.disconnect), stopPendingIntent)
 			.setCategory(Notification.CATEGORY_SERVICE)
@@ -121,6 +133,8 @@ internal class VpnNotificationManager private constructor(private val context: C
 			.setOngoing(true)
 			.setContentTitle(title)
 			.setSmallIcon(R.drawable.ic_stat_name)
+			// Consistent with the full VPN notification's lock screen policy.
+			.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
 			.setCategory(Notification.CATEGORY_SERVICE)
 			.build()
 	}
@@ -150,19 +164,10 @@ internal class VpnNotificationManager private constructor(private val context: C
 		return PendingIntent.getActivity(context, 0, intent, pendingIntentFlags)
 	}
 
-	private val pendingIntentFlags: Int by lazy {
-		when {
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ->
-				PendingIntent.FLAG_UPDATE_CURRENT or
-					PendingIntent.FLAG_MUTABLE or
-					PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
-
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-				PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-
-			else -> PendingIntent.FLAG_UPDATE_CURRENT
-		}
-	}
+	// Immutable: apps with notification access can read contentIntent; if mutable they could
+	// fill in data/extras (e.g. a nymvpn:// auth deep link) and send it as our app.
+	private val pendingIntentFlags =
+		PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
 	private fun formatEntry(entry: EntryPoint, gateways: List<NymGateway>?): String {
 		val (name, city, countryIso) = when (entry) {

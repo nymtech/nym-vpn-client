@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -21,7 +22,7 @@ class VpnAlertNotifications @Inject constructor(@ApplicationContext private val 
 	override val channelName: String = context.getString(R.string.vpn_alerts_channel_id)
 	override val channelDescription: String = context.getString(R.string.vpn_alerts_channel_description)
 	override val builder: NotificationCompat.Builder
-		get() = NotificationCompat.Builder(context, channelName)
+		get() = NotificationCompat.Builder(context, ALERTS_CHANNEL_ID)
 
 	override fun showNotification(
 		title: String,
@@ -38,16 +39,28 @@ class VpnAlertNotifications @Inject constructor(@ApplicationContext private val 
 		val notificationManager = NotificationManagerCompat.from(context)
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			val legacyChannel = if (notificationManager.getNotificationChannel(ALERTS_CHANNEL_ID) == null) {
+				legacyChannels(notificationManager).let { legacy -> legacy.firstOrNull { it.id == channelName } ?: legacy.firstOrNull() }
+			} else {
+				null
+			}
+			deleteLegacyChannels(notificationManager)
+			// Stable id; the localized string is only the display name (was used as id per locale).
 			val channel = NotificationChannel(
+				ALERTS_CHANNEL_ID,
 				channelName,
-				channelName,
-				importance,
+				legacyChannel?.importance ?: importance,
 			).apply {
 				this.description = channelDescription
-				enableLights(lights)
+				enableLights(legacyChannel?.shouldShowLights() ?: lights)
 				lightColor = Color.RED
-				enableVibration(vibration)
+				enableVibration(legacyChannel?.shouldVibrate() ?: vibration)
 				vibrationPattern = longArrayOf(100, 200, 300)
+				legacyChannel?.let {
+					setSound(it.sound, it.audioAttributes)
+					lockscreenVisibility = it.lockscreenVisibility
+					setShowBadge(it.canShowBadge())
+				}
 			}
 			notificationManager.createNotificationChannel(channel)
 		}
@@ -97,7 +110,19 @@ class VpnAlertNotifications @Inject constructor(@ApplicationContext private val 
 		}
 	}
 
+	// Legacy alert channels used the localized name as id (id == name); remove those orphans.
+	@RequiresApi(Build.VERSION_CODES.O)
+	private fun legacyChannels(notificationManager: NotificationManagerCompat): List<NotificationChannel> = notificationManager.notificationChannels
+		.filter { it.id != ALERTS_CHANNEL_ID && it.id == it.name?.toString() }
+
+	@RequiresApi(Build.VERSION_CODES.O)
+	private fun deleteLegacyChannels(notificationManager: NotificationManagerCompat) {
+		legacyChannels(notificationManager)
+			.forEach { runCatching { notificationManager.deleteNotificationChannel(it.id) } }
+	}
+
 	companion object {
 		private const val NOTIFICATION_ID = 42
+		private const val ALERTS_CHANNEL_ID = "vpn_alerts"
 	}
 }

@@ -10,6 +10,10 @@ interface NotificationService {
 	val channelDescription: String
 	val builder: NotificationCompat.Builder
 
+	/**
+	 * @param action must use FLAG_IMMUTABLE and an explicit component; notification listeners
+	 * can read and send it, so a mutable/implicit intent could be hijacked.
+	 */
 	fun showNotification(
 		title: String,
 		action: PendingIntent? = null,
