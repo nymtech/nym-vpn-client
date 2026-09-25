@@ -12,6 +12,7 @@ pub struct SystemConfiguration {
     pub wg_thresholds: ScoreThresholds,
     pub statistics_api: Option<Url>,
     pub min_supported_app_versions: Option<nym_vpn_api_client::NetworkCompatibility>,
+    pub app_update_policy: String,
 }
 
 impl fmt::Display for SystemConfiguration {

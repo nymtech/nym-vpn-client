@@ -286,6 +286,7 @@ pub struct SystemConfiguration {
     pub wg_thresholds: ScoreThresholds,
     pub statistics_api: Option<String>,
     pub min_supported_app_versions: Option<NetworkCompatibility>,
+    pub app_update_policy: String,
 }
 
 #[derive(Clone, Debug)]
@@ -326,6 +327,7 @@ pub struct NetworkCompatibility {
     pub macos: String,
     pub tauri: String,
     pub android: String,
+    pub app_update_policy: String,
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -338,6 +340,11 @@ impl From<nym_vpn_api_client::response::SystemConfigurationResponse> for SystemC
             min_supported_app_versions: value
                 .min_supported_app_versions
                 .map(NetworkCompatibility::from),
+            app_update_policy: if value.app_update_policy.as_deref() == Some("required") {
+                "required".to_owned()
+            } else {
+                "dismissible".to_owned()
+            },
         }
     }
 }
@@ -352,6 +359,7 @@ impl From<nym_vpn_network_config::SystemConfiguration> for SystemConfiguration {
             min_supported_app_versions: value
                 .min_supported_app_versions
                 .map(NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy,
         }
     }
 }
@@ -400,6 +408,8 @@ impl From<nym_vpn_api_client::NetworkCompatibility> for NetworkCompatibility {
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
+            // Version payload has no policy. Callers copy it from system configuration.
+            app_update_policy: "dismissible".to_owned(),
         }
     }
 }

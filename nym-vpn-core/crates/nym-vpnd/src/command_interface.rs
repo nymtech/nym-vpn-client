@@ -486,11 +486,9 @@ impl NymVpnService for CommandInterface {
             .await?
             .map(proto::NetworkCompatibility::from);
 
-        let response = proto::GetNetworkCompatibilityResponse {
+        Ok(tonic::Response::new(proto::GetNetworkCompatibilityResponse {
             network_compatibility,
-        };
-
-        Ok(tonic::Response::new(response))
+        }))
     }
 
     async fn get_feature_flags(
