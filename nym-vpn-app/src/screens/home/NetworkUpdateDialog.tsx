@@ -4,10 +4,16 @@ import { type } from '@tauri-apps/plugin-os';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Button, Dialog, MsIcon } from '../../ui';
 import { DownloadAppUrl } from '../../constants';
+import {
+  networkUpdateBodyKey,
+  networkUpdateDownloadUrl,
+  networkUpdateTitleKey,
+} from './networkUpdate';
 
 export type Props = {
   isOpen: boolean;
   onClose: () => void;
+  required?: boolean;
   // either app update is required
   appUpdate: boolean;
   // either daemon update is required
@@ -17,6 +23,7 @@ export type Props = {
 function NetworkUpdateDialog({
   isOpen,
   onClose,
+  required = false,
   appUpdate,
   daemonUpdate,
 }: Props) {
@@ -24,17 +31,17 @@ function NetworkUpdateDialog({
   const os = type();
 
   const handleClose = () => {
-    if (os === 'linux') {
-      openUrl(`${DownloadAppUrl}/linux`);
+    const downloadUrl = networkUpdateDownloadUrl(os, DownloadAppUrl);
+    if (downloadUrl) {
+      openUrl(downloadUrl);
     }
-    if (os === 'windows') {
-      openUrl(`${DownloadAppUrl}/windows`);
+    if (!required) {
+      onClose();
     }
-    onClose();
   };
 
   const description = () => {
-    if (os === 'linux') {
+    if (os === 'linux' || os === 'macos' || os === 'windows') {
       if (appUpdate && daemonUpdate) {
         return t('update-dialog.description-1-other');
       }
@@ -45,16 +52,12 @@ function NetworkUpdateDialog({
         return t('update-dialog.description-1-daemon');
       }
     }
-
-    if (os === 'windows') {
-      return t('update-dialog.description-1-app');
-    }
   };
 
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={required ? () => undefined : onClose}
       className="flex flex-col items-center gap-6"
       data-testid="update-dialog"
     >
@@ -69,14 +72,16 @@ function NetworkUpdateDialog({
           className="text-text-primary text-xl"
           data-testid="update-dialog-title"
         >
-          {t('update-dialog.title')}
+          {t(networkUpdateTitleKey(required))}
         </DialogTitle>
       </div>
       <p
         className="text-text-secondary"
         data-testid="update-dialog-description"
       >
-        {description()} {t('update-dialog.description-2')}
+        {required
+          ? `${description() ?? ''} ${t(networkUpdateBodyKey(true))}`.trim()
+          : t(networkUpdateBodyKey(false))}
       </p>
       <Button
         variant="primary"
