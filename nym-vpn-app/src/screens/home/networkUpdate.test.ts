@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   blocksNewConnect,
   networkUpdateBodyKey,
+  networkUpdateDownloadUrl,
   networkUpdateTitleKey,
   showsNetworkUpdateDialog,
 } from './networkUpdate.ts';
@@ -64,4 +65,20 @@ test('dismissible copy does not say the app is unsupported', () => {
   const body = home['update-dialog']['description-available'];
   assert.equal(body.includes('no longer supported'), false);
   assert.match(body, /keep using this version/);
+});
+
+test('macos update opens the download page', () => {
+  assert.equal(
+    networkUpdateDownloadUrl('macos', 'https://nym.com/download'),
+    'https://nym.com/download/macos',
+  );
+  assert.equal(
+    networkUpdateDownloadUrl('linux', 'https://nym.com/download'),
+    'https://nym.com/download/linux',
+  );
+  assert.equal(
+    networkUpdateDownloadUrl('windows', 'https://nym.com/download'),
+    'https://nym.com/download/windows',
+  );
+  assert.equal(networkUpdateDownloadUrl('android', 'https://nym.com/download'), null);
 });

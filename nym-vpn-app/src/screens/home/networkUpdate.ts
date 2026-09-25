@@ -29,3 +29,10 @@ export function networkUpdateBodyKey(required: boolean): string {
     ? 'update-dialog.description-2'
     : 'update-dialog.description-available';
 }
+
+export function networkUpdateDownloadUrl(os: string, base: string): string | null {
+  if (os === 'linux' || os === 'windows' || os === 'macos') {
+    return `${base}/${os}`;
+  }
+  return null;
+}

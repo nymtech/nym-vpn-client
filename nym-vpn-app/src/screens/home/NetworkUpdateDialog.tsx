@@ -6,6 +6,7 @@ import { Button, Dialog, MsIcon } from '../../ui';
 import { DownloadAppUrl } from '../../constants';
 import {
   networkUpdateBodyKey,
+  networkUpdateDownloadUrl,
   networkUpdateTitleKey,
 } from './networkUpdate';
 
@@ -30,11 +31,9 @@ function NetworkUpdateDialog({
   const os = type();
 
   const handleClose = () => {
-    if (os === 'linux') {
-      openUrl(`${DownloadAppUrl}/linux`);
-    }
-    if (os === 'windows') {
-      openUrl(`${DownloadAppUrl}/windows`);
+    const downloadUrl = networkUpdateDownloadUrl(os, DownloadAppUrl);
+    if (downloadUrl) {
+      openUrl(downloadUrl);
     }
     if (!required) {
       onClose();
