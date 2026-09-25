@@ -1,3 +1,5 @@
+import Foundation
+
 public struct AppUpdatePrompt: Equatable {
     public var show: Bool
     public var blockConnect: Bool

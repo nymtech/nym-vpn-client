@@ -38,11 +38,15 @@ public struct OneClickView: View {
                     animatedDisplayMode = newMode
                 }
             }
-            .alert("Update required", isPresented: appUpdatePresented) {
+            .alert(appUpdateAlertTitle, isPresented: appUpdatePresented) {
                 Button("OK") {
                     if !configuration.blocksConnectForAppUpdate {
                         dismissedAppUpdate = true
                     }
+                }
+            } message: {
+                if let message = appUpdateAlertMessage {
+                    Text(message)
                 }
             }
 #if os(iOS)

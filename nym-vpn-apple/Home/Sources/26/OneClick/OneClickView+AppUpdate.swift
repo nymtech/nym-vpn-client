@@ -33,4 +33,18 @@ extension OneClickView {
             false
         }
     }
+
+    var appUpdateAlertTitle: String {
+        if configuration.blocksConnectForAppUpdate {
+            return "Update required"
+        }
+        return "Update available"
+    }
+
+    var appUpdateAlertMessage: String? {
+        if configuration.blocksConnectForAppUpdate {
+            return nil
+        }
+        return "A newer version of NymVPN is available. You can keep using this version, or update now."
+    }
 }
