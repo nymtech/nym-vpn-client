@@ -44,3 +44,9 @@ test('missing policy is dismissible', () => {
   const value = compat({ core: false, appUpdatePolicy: '' });
   assert.equal(blocksNewConnect(value, false), false);
 });
+
+test('unknown policy is dismissible', () => {
+  const value = compat({ tauri: false, appUpdatePolicy: 'nope' });
+  assert.equal(showsNetworkUpdateDialog(value, false), true);
+  assert.equal(blocksNewConnect(value, false), false);
+});

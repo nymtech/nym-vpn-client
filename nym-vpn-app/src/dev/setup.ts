@@ -56,6 +56,7 @@ let autostart = true;
 const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
+  appUpdatePolicy: 'dismissible',
 };
 const featureFlags: FeatureFlags = {
   quic: true,

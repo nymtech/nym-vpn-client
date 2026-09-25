@@ -38,7 +38,7 @@ function NetworkUpdateDialog({
   };
 
   const description = () => {
-    if (os === 'linux' || os === 'macos') {
+    if (os === 'linux' || os === 'macos' || os === 'windows') {
       if (appUpdate && daemonUpdate) {
         return t('update-dialog.description-1-other');
       }
@@ -48,10 +48,6 @@ function NetworkUpdateDialog({
       if (daemonUpdate) {
         return t('update-dialog.description-1-daemon');
       }
-    }
-
-    if (os === 'windows') {
-      return t('update-dialog.description-1-app');
     }
   };
 
