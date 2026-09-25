@@ -13,9 +13,9 @@ public struct OneClickView: View {
     @Environment(\.accessibilityVoiceOverEnabled)
     private var voiceOverEnabled
     @State private var animatedDisplayMode: OneClickDisplayMode = .powerUser
-    @State private var dismissedAppUpdate = false
-    @State private var appUpdateGeneration = 0
-    @ObservedObject private var configuration = ConfigurationManager.shared
+    @State var dismissedAppUpdate = false
+    @State var appUpdateGeneration = 0
+    @ObservedObject var configuration = ConfigurationManager.shared
 
     public init(
         viewModel: OneClickViewModel,
@@ -150,34 +150,38 @@ private extension OneClickView {
                 isSafestSelection: info.isSafestSelection,
                 profileImageName: info.profileImageName
             )
-            ZStack(alignment: .leading) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("X")
-                    Text("X")
-                }
-                .nymTextStyle(.bodySmall)
-                .hidden()
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(primaryText)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.textPrimary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    if let secondaryText {
-                        Text(secondaryText)
-                            .nymTextStyle(.bodySmall)
-                            .foregroundStyle(Color.Nym.textSecondary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                    }
-                }
-            }
+            serverTitles(primaryText: primaryText, secondaryText: secondaryText)
             Spacer()
             if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
                 gatewayDetailsButton(gateway: gateway, hopType: hopType)
             }
             if showCarets {
                 caretColumn
+            }
+        }
+    }
+
+    func serverTitles(primaryText: String, secondaryText: String?) -> some View {
+        ZStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("X")
+                Text("X")
+            }
+            .nymTextStyle(.bodySmall)
+            .hidden()
+            VStack(alignment: .leading, spacing: 0) {
+                Text(primaryText)
+                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                if let secondaryText {
+                    Text(secondaryText)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
             }
         }
     }
@@ -350,38 +354,6 @@ private extension OneClickView {
             .destructive
         case .connected:
             .connected
-        }
-    }
-
-    var appUpdatePresented: Binding<Bool> {
-        Binding(
-            get: {
-                _ = appUpdateGeneration
-                return configuration.showsAppUpdatePrompt &&
-                    (configuration.blocksConnectForAppUpdate || !dismissedAppUpdate)
-            },
-            set: { presented in
-                guard !presented else { return }
-                if configuration.blocksConnectForAppUpdate {
-                    appUpdateGeneration += 1
-                } else {
-                    dismissedAppUpdate = true
-                }
-            }
-        )
-    }
-
-    var connectButtonDisabled: Bool {
-        if configuration.blocksConnectForAppUpdate &&
-            viewModel.connectState != .connected &&
-            viewModel.connectState != .stop {
-            return true
-        }
-        switch viewModel.connectState {
-        case .connecting, .disconnecting, .noInternet:
-            true
-        case .disconnected, .stop, .connected, .noSubscription:
-            false
         }
     }
 
