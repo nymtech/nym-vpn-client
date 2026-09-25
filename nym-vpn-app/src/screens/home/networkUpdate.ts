@@ -19,3 +19,13 @@ export function blocksNewConnect(
     compat?.appUpdatePolicy === 'required'
   );
 }
+
+export function networkUpdateTitleKey(required: boolean): string {
+  return required ? 'update-dialog.title' : 'update-dialog.title-available';
+}
+
+export function networkUpdateBodyKey(required: boolean): string {
+  return required
+    ? 'update-dialog.description-2'
+    : 'update-dialog.description-available';
+}

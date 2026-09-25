@@ -4,6 +4,10 @@ import { type } from '@tauri-apps/plugin-os';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Button, Dialog, MsIcon } from '../../ui';
 import { DownloadAppUrl } from '../../constants';
+import {
+  networkUpdateBodyKey,
+  networkUpdateTitleKey,
+} from './networkUpdate';
 
 export type Props = {
   isOpen: boolean;
@@ -69,14 +73,16 @@ function NetworkUpdateDialog({
           className="text-text-primary text-xl"
           data-testid="update-dialog-title"
         >
-          {t('update-dialog.title')}
+          {t(networkUpdateTitleKey(required))}
         </DialogTitle>
       </div>
       <p
         className="text-text-secondary"
         data-testid="update-dialog-description"
       >
-        {description()} {t('update-dialog.description-2')}
+        {required
+          ? `${description() ?? ''} ${t(networkUpdateBodyKey(true))}`.trim()
+          : t(networkUpdateBodyKey(false))}
       </p>
       <Button
         variant="primary"

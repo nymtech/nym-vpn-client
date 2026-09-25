@@ -223,6 +223,21 @@ fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &s
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::NetworkCompat;
+
+    #[test]
+    fn network_compat_ipc_payload_is_camel_case() {
+        let value = NetworkCompat::new(Some(false), Some(true), "required".to_owned());
+        let json = serde_json::to_value(&value).expect("network compat serializes");
+        assert_eq!(json["core"], false);
+        assert_eq!(json["tauri"], true);
+        assert_eq!(json["appUpdatePolicy"], "required");
+        assert!(json.get("app_update_policy").is_none());
+    }
+}
+
 impl std::fmt::Debug for SentryClient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.0.is_some() {
