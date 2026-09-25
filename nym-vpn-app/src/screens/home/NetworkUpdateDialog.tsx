@@ -8,6 +8,7 @@ import { DownloadAppUrl } from '../../constants';
 export type Props = {
   isOpen: boolean;
   onClose: () => void;
+  required?: boolean;
   // either app update is required
   appUpdate: boolean;
   // either daemon update is required
@@ -17,6 +18,7 @@ export type Props = {
 function NetworkUpdateDialog({
   isOpen,
   onClose,
+  required = false,
   appUpdate,
   daemonUpdate,
 }: Props) {
@@ -30,11 +32,13 @@ function NetworkUpdateDialog({
     if (os === 'windows') {
       openUrl(`${DownloadAppUrl}/windows`);
     }
-    onClose();
+    if (!required) {
+      onClose();
+    }
   };
 
   const description = () => {
-    if (os === 'linux') {
+    if (os === 'linux' || os === 'macos') {
       if (appUpdate && daemonUpdate) {
         return t('update-dialog.description-1-other');
       }
@@ -54,7 +58,7 @@ function NetworkUpdateDialog({
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={required ? () => undefined : onClose}
       className="flex flex-col items-center gap-6"
       data-testid="update-dialog"
     >

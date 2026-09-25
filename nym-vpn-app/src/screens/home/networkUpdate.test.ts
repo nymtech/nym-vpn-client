@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  blocksNewConnect,
+  showsNetworkUpdateDialog,
+} from './networkUpdate.ts';
+import type { NetworkCompat } from '../../types/tauri.ts';
+
+function compat(
+  partial: Partial<NetworkCompat> & Pick<NetworkCompat, 'appUpdatePolicy'>,
+): NetworkCompat {
+  return {
+    core: true,
+    tauri: true,
+    ...partial,
+  };
+}
+
+test('windows outdated dismissible can close and connect', () => {
+  const value = compat({ tauri: false, appUpdatePolicy: 'dismissible' });
+  assert.equal(showsNetworkUpdateDialog(value, false), true);
+  assert.equal(blocksNewConnect(value, false), false);
+});
+
+test('outdated required stays and blocks connect', () => {
+  const value = compat({ tauri: false, appUpdatePolicy: 'required' });
+  assert.equal(showsNetworkUpdateDialog(value, false), true);
+  assert.equal(blocksNewConnect(value, false), true);
+});
+
+test('current version with required does not prompt or block', () => {
+  const value = compat({ appUpdatePolicy: 'required' });
+  assert.equal(showsNetworkUpdateDialog(value, false), false);
+  assert.equal(blocksNewConnect(value, false), false);
+});
+
+test('dev mode skips an outdated required client', () => {
+  const value = compat({ tauri: false, appUpdatePolicy: 'required' });
+  assert.equal(showsNetworkUpdateDialog(value, true), false);
+  assert.equal(blocksNewConnect(value, true), false);
+});
+
+test('missing policy is dismissible', () => {
+  const value = compat({ core: false, appUpdatePolicy: '' });
+  assert.equal(blocksNewConnect(value, false), false);
+});
