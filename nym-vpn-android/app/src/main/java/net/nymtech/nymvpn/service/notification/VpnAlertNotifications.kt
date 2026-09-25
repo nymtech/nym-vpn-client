@@ -112,9 +112,8 @@ class VpnAlertNotifications @Inject constructor(@ApplicationContext private val 
 
 	// Legacy alert channels used the localized name as id (id == name); remove those orphans.
 	@RequiresApi(Build.VERSION_CODES.O)
-	private fun legacyChannels(notificationManager: NotificationManagerCompat): List<NotificationChannel> =
-		notificationManager.notificationChannels
-			.filter { it.id != ALERTS_CHANNEL_ID && it.id == it.name?.toString() }
+	private fun legacyChannels(notificationManager: NotificationManagerCompat): List<NotificationChannel> = notificationManager.notificationChannels
+		.filter { it.id != ALERTS_CHANNEL_ID && it.id == it.name?.toString() }
 
 	@RequiresApi(Build.VERSION_CODES.O)
 	private fun deleteLegacyChannels(notificationManager: NotificationManagerCompat) {
