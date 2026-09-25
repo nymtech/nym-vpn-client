@@ -367,10 +367,7 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 }
 
-internal data class AppUpdateDecision(
-	val showDialog: Boolean,
-	val blockConnect: Boolean,
-)
+internal data class AppUpdateDecision(val showDialog: Boolean, val blockConnect: Boolean)
 
 internal fun appUpdateDecision(local: String?, floor: String?, policy: String?): AppUpdateDecision {
 	val localVersion = local?.let { Semver.coerce(it) }

@@ -19,12 +19,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun CompatibilityModal(
-	showCompatibilityDialog: Boolean,
-	onDismiss: () -> Unit,
-	onConfirmClick: () -> Unit,
-	allowDismiss: Boolean = true,
-) {
+fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit, allowDismiss: Boolean = true) {
 	Modal(
 		show = showCompatibilityDialog,
 		onDismiss = { if (allowDismiss) onDismiss() },
