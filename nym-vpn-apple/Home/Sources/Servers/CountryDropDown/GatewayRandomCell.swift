@@ -12,9 +12,13 @@ public struct GatewayRandomCell: View {
     private var isSelected: Bool {
         switch hopType {
         case .entry:
-            if case .random = entryGateway { return true }
+            if case .random = entryGateway {
+                return true
+            }
         case .exit:
-            if case .random = exitRouter { return true }
+            if case .random = exitRouter {
+                return true
+            }
         }
         return false
     }

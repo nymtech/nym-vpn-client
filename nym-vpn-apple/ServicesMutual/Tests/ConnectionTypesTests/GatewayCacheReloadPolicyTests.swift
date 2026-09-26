@@ -114,7 +114,7 @@ import Testing
     }
 
     @Test func fetchedForEnvSurvivesJSONRoundTrip() throws {
-        var store = GatewayNodeStore(
+        let store = GatewayNodeStore(
             lastFetchDate: freshDate,
             fetchedForEnv: "sandbox"
         )
