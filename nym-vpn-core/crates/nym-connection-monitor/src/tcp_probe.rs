@@ -230,11 +230,15 @@ impl ProbeError for TcpProbeError {
     fn is_timeout(&self) -> bool {
         matches!(self.inner, TcpProbeInnerError::Timeout)
     }
+
+    fn probe_identifier(&self) -> Option<String> {
+        None
+    }
 }
 
 impl From<TcpProbeError> for BoxedProbeError {
     fn from(value: TcpProbeError) -> Self {
-        BoxedProbeError(Box::new(value))
+        Box::new(value)
     }
 }
 

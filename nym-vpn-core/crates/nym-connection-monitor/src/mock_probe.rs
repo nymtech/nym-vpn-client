@@ -93,13 +93,13 @@ impl ProbeError for MockProbeError {
         matches!(self, Self::Timeout)
     }
 
-    fn is_send_failure(&self) -> bool {
-        matches!(self, Self::SendFailure)
+    fn probe_identifier(&self) -> Option<String> {
+        None
     }
 }
 
 impl From<MockProbeError> for BoxedProbeError {
     fn from(error: MockProbeError) -> Self {
-        BoxedProbeError(Box::new(error))
+        Box::new(error)
     }
 }

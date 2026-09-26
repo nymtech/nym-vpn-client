@@ -166,14 +166,20 @@ impl ProbeError for IcmpProbeError {
         )
     }
 
-    fn is_send_failure(&self) -> bool {
-        matches!(self.inner, IcmpProbeInnerError::Send(_)) && !self.is_timeout()
+    fn probe_identifier(&self) -> Option<String> {
+        match self.inner {
+            IcmpProbeInnerError::Send(SurgeError::Timeout { seq })
+            | IcmpProbeInnerError::Send(SurgeError::IdenticalRequests { seq, .. }) => {
+                Some(seq.to_string())
+            }
+            _ => None,
+        }
     }
 }
 
 impl From<IcmpProbeError> for BoxedProbeError {
     fn from(value: IcmpProbeError) -> Self {
-        BoxedProbeError(Box::new(value))
+        Box::new(value)
     }
 }
 
