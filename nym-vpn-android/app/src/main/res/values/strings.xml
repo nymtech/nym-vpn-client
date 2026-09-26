@@ -268,7 +268,7 @@
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
 	<string name="settings_ad_blocking_title">Ad blocking</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
-	<string name="settings_kill_switch_description">Disconnect if the internet drops</string>
+	<string name="settings_kill_switch_description">Uses Android\'s **Always-on VPN** to prevent data leaks</string>
 	<string name="settings_bypass_lan_title">LAN bypass</string>
 	<string name="settings_bypass_lan_description">Allow direct local network access</string>
 	<string name="settings_split_tunneling_title">Split tunneling</string>
