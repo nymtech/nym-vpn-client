@@ -356,10 +356,13 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
         // sphinx packets that carry the actual data, since we try to keep the payload for IP
         // traffic contained within a single sphinx packet.
         let surbs = 0;
-        Ok(
-            InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type)
-                .with_max_retransmissions(0),
-        )
+        Ok(InputMessage::new_anonymous(
+            self.recipient,
+            packet,
+            surbs,
+            lane,
+            packet_type,
+        ))
     }
 }
 
@@ -378,4 +381,45 @@ pub async fn start_processor(
         cancel_token,
         event_rx,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEST_IPR_ADDRESS: &str = "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e";
+
+    #[test]
+    fn data_request_keeps_public_ipr_wire_format_with_normal_retransmissions() {
+        let ipr_address = IpPacketRouterAddress::try_from_base58_string(TEST_IPR_ADDRESS).unwrap();
+        let message_creator = ToIprDataRequest::new(ipr_address);
+        let bundled_ip_packets = [0x45, 0, 0, 20, 0, 0, 0, 0];
+
+        let expected_data = IpPacketRequest::new_data_request(
+            BytesMut::from(bundled_ip_packets.as_slice()).freeze(),
+        )
+        .to_bytes()
+        .unwrap();
+
+        let message = message_creator
+            .to_input_message(&bundled_ip_packets)
+            .unwrap();
+
+        let InputMessage::Anonymous {
+            recipient,
+            data,
+            reply_surbs,
+            lane,
+            max_retransmissions,
+        } = message
+        else {
+            panic!("IPR data requests must remain anonymous Mixnet messages");
+        };
+
+        assert_eq!(recipient, Recipient::from(ipr_address));
+        assert_eq!(data, expected_data);
+        assert_eq!(reply_surbs, 0);
+        assert_eq!(lane, TransmissionLane::General);
+        assert_eq!(max_retransmissions, None);
+    }
 }
