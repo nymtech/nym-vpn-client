@@ -37,5 +37,4 @@ object Constants {
 	//licensee
 	val allowedLicenses = listOf("MIT", "Apache-2.0", "BSD-3-Clause")
 	const val ANDROID_TERMS_URL = "https://developer.android.com/studio/terms.html"
-	const val XZING_LICENSE_URL: String = "https://github.com/journeyapps/zxing-android-embedded/blob/master/COPYING"
 }

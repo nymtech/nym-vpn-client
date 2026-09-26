@@ -31,7 +31,6 @@ uiautomator = "2.4.0"
 window = "1.5.1"
 windowCoreAndroid = "1.5.1"
 desugar = "2.1.5"
-zxingAndroidEmbedded = "4.3.0"
 sentry = "8.58.0"
 billing-client = "9.1.0"
 biometric = "1.4.0-alpha07"
@@ -76,9 +75,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
 
-#barcode
 semver4j = { module = "org.semver4j:semver4j", version.ref = "semver4j" }
-zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 #util
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
