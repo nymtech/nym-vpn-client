@@ -212,6 +212,11 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
             },
             statistics_api,
             min_supported_app_versions,
+            app_update_policy: if value.app_update_policy.as_deref() == Some("required") {
+                "required".to_owned()
+            } else {
+                "dismissible".to_owned()
+            },
         }
     }
 }
@@ -219,6 +224,58 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nym_vpn_api_client::response::ScoreThresholdsResponse;
+
+    fn thresholds() -> ScoreThresholdsResponse {
+        ScoreThresholdsResponse {
+            high: 75,
+            medium: 50,
+            low: 25,
+        }
+    }
+
+    #[test]
+    fn app_update_policy_required() {
+        let parsed = SystemConfigurationResponse {
+            mix_thresholds: thresholds(),
+            wg_thresholds: thresholds(),
+            statistics_api: None,
+            min_supported_app_versions: None,
+            app_update_policy: Some("required".to_owned()),
+        };
+        assert_eq!(
+            SystemConfiguration::from(parsed).app_update_policy,
+            "required"
+        );
+    }
+
+    #[test]
+    fn app_update_policy_missing_is_dismissible() {
+        let json = r#"{
+            "mix_thresholds": {"high": 75, "medium": 50, "low": 25},
+            "wg_thresholds": {"high": 75, "medium": 50, "low": 25}
+        }"#;
+        let parsed: SystemConfigurationResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            SystemConfiguration::from(parsed).app_update_policy,
+            "dismissible"
+        );
+    }
+
+    #[test]
+    fn app_update_policy_unknown_is_dismissible() {
+        let parsed = SystemConfigurationResponse {
+            mix_thresholds: thresholds(),
+            wg_thresholds: thresholds(),
+            statistics_api: None,
+            min_supported_app_versions: None,
+            app_update_policy: Some("nope".to_owned()),
+        };
+        assert_eq!(
+            SystemConfiguration::from(parsed).app_update_policy,
+            "dismissible"
+        );
+    }
 
     #[test]
     fn parse_system_message() {

@@ -58,7 +58,8 @@
       "ios": "2.15.1",
       "macos": "2.15.1",
       "tauri": "1.21.0"
-    }
+    },
+    "app_update_policy": "dismissible"
   },
   "feature_flags": {
     "domain_fronting": {

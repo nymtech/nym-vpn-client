@@ -72,6 +72,7 @@
       "macos": "2.4.0",
       "tauri": "1.9.0"
     },
+    "app_update_policy": "dismissible",
     "statistics_api": "https://nym-statistics-api-staging.nymte.ch"
   },
   "feature_flags": {
