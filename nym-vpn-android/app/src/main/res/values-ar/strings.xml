@@ -377,7 +377,6 @@
 	<string name="passphrase_show">إظهار كلمة المرور الخاصة بي</string>
 	<string name="passphrase_copy">نسخ عبارة المرور</string>
 	<string name="passphrase_save">حفظ إلى مدير كلمة المرور</string>
-	<string name="passphrase_download">تنزيل</string>
 	<string name="passphrase_lose">⚠️ خسر هذه الكلمات = خسر حسابك للأبد.</string>
 	<string name="passphrase_never">لا تشاركهم أبدا مع أي شخص، بما في ذلك دعم نيم.</string>
 	<string name="passphrase_saved">لقد حفظت هذه الكلمات الـ 24 بشكل آمن ولن أشاركها أبدا</string>

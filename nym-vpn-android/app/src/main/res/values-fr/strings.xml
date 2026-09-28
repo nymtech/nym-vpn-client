@@ -375,7 +375,6 @@
 	<string name="passphrase_show">Afficher ma phrase de passe</string>
 	<string name="passphrase_copy">Copier la phrase de passe</string>
 	<string name="passphrase_save">Enregistrer dans le gestionnaire de mots de passe</string>
-	<string name="passphrase_download">Télécharger</string>
 	<string name="passphrase_lose">⚠️ Si vous perdez ces mots, vous perdrez l\'accès à votre compte pour toujours.</string>
 	<string name="passphrase_never">Ne les partagez jamais avec qui que ce soit, pas même avec le service d\'assistance Nym.</string>
 	<string name="passphrase_saved">J\'ai sauvegardé ces 24 mots en toute sécurité et je ne les partagerai jamais</string>

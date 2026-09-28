@@ -378,7 +378,6 @@
 	<string name="passphrase_show">نمایش عبارت عبور من</string>
 	<string name="passphrase_copy">کپی کردن عبارت عبور</string>
 	<string name="passphrase_save">ذخیره در مدیریت رمز عبور</string>
-	<string name="passphrase_download">دانلود</string>
 	<string name="passphrase_lose">⚠️ از دست دادن این کلمات = از دست دادن حساب کاربری برای همیشه.</string>
 	<string name="passphrase_never">هرگز آنها را با کسی، از جمله پشتیبانی Nym، به اشتراک نگذارید.</string>
 	<string name="passphrase_saved">من این ۲۴ کلمه را به طور امن ذخیره کرده‌ام و هرگز آنها را به اشتراک نمی‌گذارم</string>

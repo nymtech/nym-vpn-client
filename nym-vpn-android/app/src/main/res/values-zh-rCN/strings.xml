@@ -377,7 +377,6 @@
 	<string name="passphrase_show">显示我的助记词</string>
 	<string name="passphrase_copy">复制短语</string>
 	<string name="passphrase_save">保存到密码管理器</string>
-	<string name="passphrase_download">下载</string>
 	<string name="passphrase_lose">⚠️丢失这些单词 = 永远失去您的帐户。</string>
 	<string name="passphrase_never">永远不要与包括 Nym 工作人员在内的任何人分享您的助记词。</string>
 	<string name="passphrase_saved">我已经安全地保存了这 24 个单词，并保证永远不会分享它</string>

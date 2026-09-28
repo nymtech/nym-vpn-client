@@ -382,7 +382,6 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="passphrase_show">Exibir a minha senha</string>
 	<string name="passphrase_copy">Copiar senha</string>
 	<string name="passphrase_save">Salvar no gerenciador de senhas</string>
-	<string name="passphrase_download">Baixar</string>
 	<string name="passphrase_lose">⚠️ Perda essas palavras = perder a sua conta para sempre.</string>
 	<string name="passphrase_never">Nunca as compartilhe com ninguém, incluindo o suporte da Nym.</string>
 	<string name="passphrase_saved">Salvei essas 24 palavras em segurança e nunca irei compartilhar</string>
