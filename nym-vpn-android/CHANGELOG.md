@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
 - Remove unused libs (https://github.com/nymtech/nym-vpn-client/pull/6442)
 - Remove camera usage (https://github.com/nymtech/nym-vpn-client/pull/6449)
+- Download function removed from Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/6460)
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
