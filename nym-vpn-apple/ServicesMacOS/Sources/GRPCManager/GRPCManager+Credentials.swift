@@ -3,6 +3,11 @@ import Constants
 import ConnectionTypes
 import ErrorReason
 
+public enum AccountDaemonRefreshError: Error {
+    case clientUnavailable
+    case timedOut
+}
+
 extension GRPCManager {
     public func storeAccount(with request: StoreAccountRequest) async throws {
         try await Task.detached { [weak self] in
@@ -40,6 +45,25 @@ extension GRPCManager {
                 subscription: summary.subscription.map { Subscription(from: $0) },
                 dataUnavailable: summary.fairUsageDataUnavailable
             )
+        }.value
+    }
+
+    public func refreshAccountState() async throws {
+        try await Task.detached { [weak self] in
+            guard let rpcClient = self?.rpcClient else {
+                throw AccountDaemonRefreshError.clientUnavailable
+            }
+            try await rpcClient.refreshAccountState(force: true)
+        }.value
+    }
+
+    public func accountSummarySyncMark() async throws -> (stale: Bool, lastSyncedUnixSeconds: Int64)? {
+        try await Task.detached { [weak self] in
+            guard let rpcClient = self?.rpcClient else {
+                throw AccountDaemonRefreshError.clientUnavailable
+            }
+            guard let raw = try await rpcClient.getAccountSummary() else { return nil }
+            return (raw.stale, raw.lastSyncedUtc)
         }.value
     }
 

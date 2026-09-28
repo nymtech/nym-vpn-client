@@ -211,6 +211,25 @@ extension CredentialsManager {
         case subscriptionPayment
     }
 
+    private enum AccountBarRefreshError: Error {
+        case summaryNotUpdated
+    }
+
+    func refreshAccountSummaryFromVpnApi() async throws {
+        let environment = try resolvedRegistrationEnvironment()
+        let summary = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            return try await NymVpnAccountStorage(dataDir: dataDir, environment: environment).getAccountSummary()
+        }.value
+        guard let summary else { throw VPNErrorReason.noAccountStored }
+        let now = Int64(Date().timeIntervalSince1970)
+        guard AccountSummaryRefreshPolicy.isFreshVpnApiSummary(
+            lastSyncedUnixSeconds: summary.lastSyncedUtc,
+            nowUnixSeconds: now
+        ) else { throw AccountBarRefreshError.summaryNotUpdated }
+        applyVpnAccountSummary(summary)
+    }
+
     func refreshAccountSummaryOnIOS(
         untilActive: Bool,
         trigger: AccountSummaryRefreshTrigger = .general

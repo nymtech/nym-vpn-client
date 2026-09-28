@@ -82,6 +82,8 @@ extension AccountAndDevicesView {
             }
         }
         .buttonStyle(.plain)
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
         .disabled(isRefreshingAccount)
         .accessibilityLabel("settings.account.refresh".localizedString)
     }
