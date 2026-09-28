@@ -376,7 +376,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="passphrase_show">Kurtarma ifademi göster</string>
 	<string name="passphrase_copy">Kurtarma ifadesini kopyala</string>
 	<string name="passphrase_save">Parola yöneticisine kaydet</string>
-	<string name="passphrase_download">İndir</string>
 	<string name="passphrase_lose">⚠️ Bu kelimeleri kaybederseniz = hesabınızı sonsuza kadar kaybedersiniz.</string>
 	<string name="passphrase_never">Bunları, Nym Destek ekibi de dahil olmak üzere, hiç kimseyle paylaşmayın.</string>
 	<string name="passphrase_saved">Bu 24 kelimeyi güvenli bir şekilde kaydettim ve asla kimseyle paylaşmayacağım.</string>

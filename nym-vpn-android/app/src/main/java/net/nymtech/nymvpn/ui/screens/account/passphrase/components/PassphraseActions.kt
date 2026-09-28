@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +32,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit) {
+fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onSaveClick: () -> Unit) {
 	if (show) {
 		Column(
 			modifier = Modifier
@@ -56,28 +55,6 @@ fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: (
 						Spacer(modifier = Modifier.width(4.dp))
 						Text(
 							stringResource(R.string.passphrase_save),
-							style = MaterialTheme.typography.titleMedium,
-							color = MaterialTheme.colorScheme.onPrimaryContainer,
-						)
-					}
-				},
-			)
-			Spacer(modifier = Modifier.height(14.dp))
-			OutlineStyledButton(
-				modifier = Modifier.fillMaxWidth(0.8f).height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
-				onClick = onDownloadClick,
-				content = {
-					Row(verticalAlignment = Alignment.CenterVertically) {
-						Icon(
-							imageVector = Icons.Filled.Download,
-							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onPrimaryContainer,
-							modifier = Modifier.size(16.dp),
-						)
-						Spacer(modifier = Modifier.width(4.dp))
-						Text(
-							stringResource(R.string.passphrase_download),
 							style = MaterialTheme.typography.titleMedium,
 							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
@@ -135,7 +112,7 @@ fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: (
 internal fun PreviewPassphraseActions() {
 	NymVPNTheme(Theme.default()) {
 		Surface {
-			PassphraseActions(true, {}, {}, {})
+			PassphraseActions(true, {}, {})
 		}
 	}
 }
