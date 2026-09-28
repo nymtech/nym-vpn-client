@@ -224,6 +224,7 @@ private extension Tunnel {
     func pollTunnelStatus() async {
         do {
             let decoded: TunnelStatusResponse = try await sendWithResponse(message: .status)
+            guard self.isPolling, !Task.isCancelled else { return }
 
             self.retryAttempt = decoded.retryAttempt
             self.afterDisconnectAction = decoded.afterDisconnectAction
@@ -233,7 +234,6 @@ private extension Tunnel {
             let stampChanged = self.connectedAtUnixSeconds != nextStamp
             self.connectedAtUnixSeconds = nextStamp
 
-            guard self.isPolling else { return }
             if let newError = decoded.lastError, self.status != .error {
                 self.connectedAtUnixSeconds = nil
                 self.status = .error
