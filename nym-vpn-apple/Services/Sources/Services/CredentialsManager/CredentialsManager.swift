@@ -662,11 +662,17 @@ extension CredentialsManager {
                 switch AccountSummaryRefreshPolicy.manualRefreshPoll(
                     hasSummary: mark != nil, stale: mark?.stale == true, sawStale: sawStale,
                     lastSyncedUnixSeconds: mark?.lastSyncedUnixSeconds,
-                    syncedBeforeRefresh: before?.lastSyncedUnixSeconds, elapsedSeconds: elapsedSinceRefresh
+                    syncedBeforeRefresh: before?.lastSyncedUnixSeconds, elapsedSeconds: elapsedSinceRefresh,
+                    followUpMissing: false
                 ) {
                 case .keepWaiting: try await Task.sleep(for: .milliseconds(400))
                 case .apply:
-                    accountSummary = try await grpcManager.accountSummary()
+                    let summary = try await grpcManager.accountSummary()
+                    guard AccountSummaryRefreshPolicy.manualRefreshPoll(
+                        hasSummary: summary != nil, stale: false, sawStale: summary != nil,
+                        lastSyncedUnixSeconds: nil, syncedBeforeRefresh: nil, elapsedSeconds: 0, followUpMissing: summary == nil
+                    ) == .apply, let summary else { throw AccountDaemonRefreshError.summaryUnavailable }
+                    accountSummary = summary
                     accountSummaryLastFetchFailed = false
                     return
                 case .giveUp: throw AccountDaemonRefreshError.timedOut

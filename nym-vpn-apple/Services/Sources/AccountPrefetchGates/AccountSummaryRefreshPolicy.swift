@@ -4,11 +4,7 @@ public enum AccountSummaryRefreshPolicy {
     public static let manualRefreshTimeoutSeconds: TimeInterval = 15
     public static let manualRefreshMaxSyncAgeSeconds: Int64 = 120
 
-    public enum ManualRefreshPoll: Equatable, Sendable {
-        case keepWaiting
-        case apply
-        case giveUp
-    }
+    public enum ManualRefreshPoll: Equatable, Sendable { case keepWaiting, apply, giveUp }
 
     public static func shouldForceNetworkRefresh(force: Bool, isAccountActive: Bool) -> Bool {
         force || !isAccountActive
@@ -17,8 +13,9 @@ public enum AccountSummaryRefreshPolicy {
     public static func manualRefreshPoll(
         hasSummary: Bool, stale: Bool, sawStale: Bool,
         lastSyncedUnixSeconds: Int64?, syncedBeforeRefresh: Int64?,
-        elapsedSeconds: TimeInterval
+        elapsedSeconds: TimeInterval, followUpMissing: Bool
     ) -> ManualRefreshPoll {
+        if followUpMissing { return .giveUp }
         let syncAdvanced = if let lastSyncedUnixSeconds, let syncedBeforeRefresh {
             lastSyncedUnixSeconds > syncedBeforeRefresh
         } else { false }
@@ -28,8 +25,7 @@ public enum AccountSummaryRefreshPolicy {
     }
 
     public static func isFreshVpnApiSummary(lastSyncedUnixSeconds: Int64, nowUnixSeconds: Int64) -> Bool {
-        let age = nowUnixSeconds - lastSyncedUnixSeconds
-        return age >= -manualRefreshMaxSyncAgeSeconds && age <= manualRefreshMaxSyncAgeSeconds
+        abs(nowUnixSeconds - lastSyncedUnixSeconds) <= manualRefreshMaxSyncAgeSeconds
     }
 
     public static func pollDelays(untilActive: Bool) -> [Duration] {

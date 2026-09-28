@@ -211,9 +211,7 @@ extension CredentialsManager {
         case subscriptionPayment
     }
 
-    private enum AccountBarRefreshError: Error {
-        case summaryNotUpdated
-    }
+    private enum AccountBarRefreshError: Error { case summaryNotUpdated }
 
     func refreshAccountSummaryFromVpnApi() async throws {
         let environment = try resolvedRegistrationEnvironment()

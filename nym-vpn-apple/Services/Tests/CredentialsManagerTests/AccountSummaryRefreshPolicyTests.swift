@@ -21,6 +21,9 @@ struct AccountSummaryRefreshPolicyTests {
         #expect(decision(hasSummary: true, stale: true, sawStale: true, last: 10, before: 10, elapsed: 2) == .keepWaiting)
         #expect(decision(hasSummary: true, stale: false, sawStale: false, last: 10, before: 10, elapsed: 2) == .keepWaiting)
         #expect(decision(hasSummary: true, stale: false, sawStale: true, last: 10, before: 10, elapsed: 0.4) == .apply)
+        #expect(decision(
+            hasSummary: true, stale: false, sawStale: true, last: 20, before: 10, elapsed: 0.4, followUpMissing: true
+        ) == .giveUp)
         #expect(decision(hasSummary: true, stale: false, sawStale: false, last: 20, before: 10, elapsed: 0.4) == .apply)
         #expect(decision(hasSummary: true, stale: false, sawStale: false, last: 20, before: nil, elapsed: 0.4) == .apply)
         #expect(decision(hasSummary: false, stale: false, sawStale: false, last: nil, before: 10, elapsed: timeout) == .giveUp)
@@ -54,7 +57,8 @@ struct AccountSummaryRefreshPolicyTests {
         sawStale: Bool,
         last: Int64?,
         before: Int64?,
-        elapsed: TimeInterval
+        elapsed: TimeInterval,
+        followUpMissing: Bool = false
     ) -> AccountSummaryRefreshPolicy.ManualRefreshPoll {
         AccountSummaryRefreshPolicy.manualRefreshPoll(
             hasSummary: hasSummary,
@@ -62,7 +66,8 @@ struct AccountSummaryRefreshPolicyTests {
             sawStale: sawStale,
             lastSyncedUnixSeconds: last,
             syncedBeforeRefresh: before,
-            elapsedSeconds: elapsed
+            elapsedSeconds: elapsed,
+            followUpMissing: followUpMissing
         )
     }
 }

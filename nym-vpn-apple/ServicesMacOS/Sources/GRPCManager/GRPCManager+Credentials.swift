@@ -4,8 +4,7 @@ import ConnectionTypes
 import ErrorReason
 
 public enum AccountDaemonRefreshError: Error {
-    case clientUnavailable
-    case timedOut
+    case clientUnavailable, timedOut, summaryUnavailable
 }
 
 extension GRPCManager {
