@@ -49,20 +49,16 @@ extension GRPCManager {
     }
 
     public func refreshAccountState() async throws {
+        guard rpcClient != nil else { throw AccountDaemonRefreshError.clientUnavailable }
         try await Task.detached { [weak self] in
-            guard let rpcClient = self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            try await rpcClient.refreshAccountState(force: true)
+            try await self?.rpcClient?.refreshAccountState(force: true)
         }.value
     }
 
     public func accountSummarySyncMark() async throws -> (stale: Bool, lastSyncedUnixSeconds: Int64)? {
-        try await Task.detached { [weak self] in
-            guard let rpcClient = self?.rpcClient else {
-                throw AccountDaemonRefreshError.clientUnavailable
-            }
-            guard let raw = try await rpcClient.getAccountSummary() else { return nil }
+        guard rpcClient != nil else { throw AccountDaemonRefreshError.clientUnavailable }
+        return try await Task.detached { [weak self] in
+            guard let raw = try await self?.rpcClient?.getAccountSummary() else { return nil }
             return (raw.stale, raw.lastSyncedUtc)
         }.value
     }
