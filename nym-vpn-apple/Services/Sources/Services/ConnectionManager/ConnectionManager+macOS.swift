@@ -3,6 +3,7 @@ import Foundation
 import ConnectionTypes
 import NotificationMessages
 import TunnelMixnet
+import TunnelStatus
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
