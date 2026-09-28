@@ -207,14 +207,13 @@ extension ConnectionManager {
 // MARK: - Connection Time -
 extension ConnectionManager {
     func updateTimeConnected() {
-        guard let activeTunnel = self.activeTunnel,
-              activeTunnel.status == .connected,
-              let newConnectedDate = activeTunnel.tunnel.connection.connectedDate
-        else {
-            connectedDate = nil
-            return
+        let stamp = activeTunnel?.connectedAtUnixSeconds.map {
+            Date(timeIntervalSince1970: TimeInterval($0))
         }
-        connectedDate = newConnectedDate
+        connectedDate = connectionTimerAnchor(
+            isConnected: activeTunnel?.status == .connected,
+            tunnelConnectedAt: stamp
+        )
     }
 }
 #endif

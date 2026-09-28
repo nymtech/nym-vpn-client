@@ -114,6 +114,7 @@ private extension PacketTunnelProvider {
             var afterDisconnectAction: AfterDisconnectAction?
             var tunnelConnectingState: TunnelConnectingState?
             var connectionInfoData: ConnectionInfoData?
+            var connectedAtUnixSeconds: Int64?
 
             switch tunnelState {
             case let .connecting(
@@ -136,6 +137,7 @@ private extension PacketTunnelProvider {
                     exitGatewayId: connectionData.exitGateway.id,
                     tunnelType: ConnectionTunnelType(connectionData.tunnel)
                 )
+                connectedAtUnixSeconds = connectionData.connectedAt
             case let .disconnecting(afterDisconnect: action):
                 afterDisconnectAction = AfterDisconnectAction.convert(from: action)
                 connectionInfoData = nil
@@ -152,7 +154,8 @@ private extension PacketTunnelProvider {
                 afterDisconnectAction: afterDisconnectAction,
                 lastError: tunnelActor.lastError,
                 tunnelConnectingState: tunnelConnectingState,
-                connectionInfoData: connectionInfoData
+                connectionInfoData: connectionInfoData,
+                connectedAtUnixSeconds: connectedAtUnixSeconds
             )
 
             return try JSONEncoder().encode(statusResponse)

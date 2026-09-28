@@ -13,6 +13,7 @@ import TunnelStatus
     @Published public var lastError: Error?
     @Published public var tunnelConnectingState: TunnelConnectingState?
     @Published public var connectionInfoData: ConnectionInfoData?
+    @Published public var connectedAtUnixSeconds: Int64?
 
     private var logger: Logger
     private var isPolling = false
@@ -228,12 +229,16 @@ private extension Tunnel {
             self.afterDisconnectAction = decoded.afterDisconnectAction
             self.tunnelConnectingState = decoded.tunnelConnectingState
             self.connectionInfoData = decoded.connectionInfoData
+            let nextStamp = decoded.status == .connected ? decoded.connectedAtUnixSeconds : nil
+            let stampChanged = self.connectedAtUnixSeconds != nextStamp
+            self.connectedAtUnixSeconds = nextStamp
 
             guard self.isPolling else { return }
             if let newError = decoded.lastError, self.status != .error {
+                self.connectedAtUnixSeconds = nil
                 self.status = .error
                 self.lastError = newError
-            } else if self.status != decoded.status {
+            } else if self.status != decoded.status || stampChanged {
                 self.status = decoded.status
             }
         } catch {

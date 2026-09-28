@@ -7,6 +7,7 @@ public struct TunnelStatusResponse: Codable {
     public let lastError: ErrorReason?
     public let tunnelConnectingState: TunnelConnectingState?
     public let connectionInfoData: ConnectionInfoData?
+    public let connectedAtUnixSeconds: Int64?
 
     public init(
         status: TunnelStatus,
@@ -14,7 +15,8 @@ public struct TunnelStatusResponse: Codable {
         afterDisconnectAction: AfterDisconnectAction?,
         lastError: ErrorReason?,
         tunnelConnectingState: TunnelConnectingState?,
-        connectionInfoData: ConnectionInfoData?
+        connectionInfoData: ConnectionInfoData?,
+        connectedAtUnixSeconds: Int64? = nil
     ) {
         self.status = status
         self.retryAttempt = retryAttempt
@@ -22,5 +24,6 @@ public struct TunnelStatusResponse: Codable {
         self.lastError = lastError
         self.tunnelConnectingState = tunnelConnectingState
         self.connectionInfoData = connectionInfoData
+        self.connectedAtUnixSeconds = connectedAtUnixSeconds
     }
 }

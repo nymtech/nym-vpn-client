@@ -60,6 +60,13 @@ extension ConnectionManager {
         }
         .store(in: &cancellables)
 
+        grpcManager.$connectedDate.sink { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.updateTimeConnected()
+            }
+        }
+        .store(in: &cancellables)
+
         grpcManager.$connectionRetryAttempt
             .receive(on: DispatchQueue.main)
             .sink { [weak self] attempt in
@@ -108,13 +115,10 @@ extension ConnectionManager {
 // MARK: - Time connected -
 extension ConnectionManager {
     func updateTimeConnected() {
-        guard grpcManager.tunnelStatus == .connected,
-              let newConnectedDate = grpcManager.connectedDate
-        else {
-            connectedDate = nil
-            return
-        }
-        self.connectedDate = newConnectedDate
+        connectedDate = connectionTimerAnchor(
+            isConnected: grpcManager.tunnelStatus == .connected,
+            tunnelConnectedAt: grpcManager.connectedDate
+        )
     }
 }
 
