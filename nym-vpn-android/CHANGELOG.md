@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separate workflow for Play Store metadata (https://github.com/nymtech/nym-vpn-client/pull/6411)
 - Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
 - Remove unused libs (https://github.com/nymtech/nym-vpn-client/pull/6442)
+- Update notifications security (https://github.com/nymtech/nym-vpn-client/pull/6444)
 - Remove camera usage (https://github.com/nymtech/nym-vpn-client/pull/6449)
 - Download function removed from Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/6460)
 
