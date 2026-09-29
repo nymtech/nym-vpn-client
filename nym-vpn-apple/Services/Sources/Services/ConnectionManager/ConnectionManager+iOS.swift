@@ -1,4 +1,5 @@
 #if os(iOS)
+import Combine
 import NetworkExtension
 import AppSettings
 import ConfigurationManager
