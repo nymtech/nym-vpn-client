@@ -159,7 +159,7 @@ jobs:
       - name: Codesign binary
         env:
           APP_SIGNING_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
-          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
+          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/${{ env.BINARY_NAME }}
         run: |
           set -euo pipefail
 
@@ -200,7 +200,8 @@ jobs:
           mkdir -p "$STAGING_BIN_DIR"
 
           # Copy binary into payload
-          cp "$BINARY" "$STAGING_BIN_DIR/nym-vpnc"
+          cp "$BINARY" "$STAGING_BIN_DIR/$BINARY_NAME"
+          chmod +x "$STAGING_BIN_DIR/$BINARY_NAME"
 
           # Build the component package
           pkgbuild \
