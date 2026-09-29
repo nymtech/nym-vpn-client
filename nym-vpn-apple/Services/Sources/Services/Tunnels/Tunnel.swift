@@ -13,7 +13,7 @@ import TunnelStatus
     @Published public var lastError: Error?
     @Published public var tunnelConnectingState: TunnelConnectingState?
     @Published public var connectionInfoData: ConnectionInfoData?
-    @Published public var connectedAtUnixSeconds: Int64?
+    @Published public var connectedAt: Date?
 
     private var logger: Logger
     private var isPolling = false
@@ -132,7 +132,9 @@ import TunnelStatus
             try assertCanSendMessage()
 
             if let res = try await sendProviderMessage(with: message.encode()) {
-                return try JSONDecoder().decode(T.self, from: res)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                return try decoder.decode(T.self, from: res)
             } else {
                 throw SendTunnelProviderMessageError.noData
             }
@@ -230,15 +232,15 @@ private extension Tunnel {
             self.afterDisconnectAction = decoded.afterDisconnectAction
             self.tunnelConnectingState = decoded.tunnelConnectingState
             self.connectionInfoData = decoded.connectionInfoData
-            let nextStamp = decoded.status == .connected ? decoded.connectedAtUnixSeconds : nil
-            let stampChanged = self.connectedAtUnixSeconds != nextStamp
-            self.connectedAtUnixSeconds = nextStamp
+            if self.connectedAt != decoded.connectedAt {
+                self.connectedAt = decoded.connectedAt
+            }
 
             if let newError = decoded.lastError, self.status != .error {
-                self.connectedAtUnixSeconds = nil
+                self.connectedAt = nil
                 self.status = .error
                 self.lastError = newError
-            } else if self.status != decoded.status || stampChanged {
+            } else if self.status != decoded.status {
                 self.status = decoded.status
             }
         } catch {

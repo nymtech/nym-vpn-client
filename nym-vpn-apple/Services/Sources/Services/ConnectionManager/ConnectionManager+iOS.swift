@@ -86,6 +86,16 @@ extension ConnectionManager {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .assign(to: \.connectionInfoData, on: self)
+
+        tunnelConnectedAtCancellable = connectedAtCancellable(for: tunnel)
+    }
+
+    private func connectedAtCancellable(for tunnel: Tunnel) -> AnyCancellable {
+        tunnel.$connectedAt
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateTimeConnected() }
+            }
     }
 }
 
@@ -207,12 +217,9 @@ extension ConnectionManager {
 // MARK: - Connection Time -
 extension ConnectionManager {
     func updateTimeConnected() {
-        let stamp = activeTunnel?.connectedAtUnixSeconds.map {
-            Date(timeIntervalSince1970: TimeInterval($0))
-        }
         connectedDate = connectionTimerAnchor(
             isConnected: activeTunnel?.status == .connected,
-            tunnelConnectedAt: stamp
+            tunnelConnectedAt: activeTunnel?.connectedAt
         )
     }
 }

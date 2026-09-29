@@ -114,7 +114,7 @@ private extension PacketTunnelProvider {
             var afterDisconnectAction: AfterDisconnectAction?
             var tunnelConnectingState: TunnelConnectingState?
             var connectionInfoData: ConnectionInfoData?
-            var connectedAtUnixSeconds: Int64?
+            var connectedAt: Date?
 
             switch tunnelState {
             case let .connecting(
@@ -137,7 +137,7 @@ private extension PacketTunnelProvider {
                     exitGatewayId: connectionData.exitGateway.id,
                     tunnelType: ConnectionTunnelType(connectionData.tunnel)
                 )
-                connectedAtUnixSeconds = connectionData.connectedAt
+                connectedAt = Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
             case let .disconnecting(afterDisconnect: action):
                 afterDisconnectAction = AfterDisconnectAction.convert(from: action)
                 connectionInfoData = nil
@@ -155,10 +155,12 @@ private extension PacketTunnelProvider {
                 lastError: tunnelActor.lastError,
                 tunnelConnectingState: tunnelConnectingState,
                 connectionInfoData: connectionInfoData,
-                connectedAtUnixSeconds: connectedAtUnixSeconds
+                connectedAt: connectedAt
             )
 
-            return try JSONEncoder().encode(statusResponse)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            return try encoder.encode(statusResponse)
         } catch {
             logger.error("AppMessage: \(error.localizedDescription)")
             return nil

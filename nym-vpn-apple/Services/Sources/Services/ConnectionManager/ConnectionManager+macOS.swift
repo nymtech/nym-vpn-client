@@ -56,14 +56,14 @@ extension ConnectionManager {
                 guard self?.currentTunnelStatus != status else { return }
                 self?.currentTunnelStatus = status
                 self?.scheduleNotificationIfNeeded()
-                self?.updateTimeConnected()
+                self?.updateTimeConnected(connectedAt: self?.grpcManager.connectedDate)
             }
         }
         .store(in: &cancellables)
 
-        grpcManager.$connectedDate.sink { [weak self] _ in
+        grpcManager.$connectedDate.sink { [weak self] connectedAt in
             Task { @MainActor [weak self] in
-                self?.updateTimeConnected()
+                self?.updateTimeConnected(connectedAt: connectedAt)
             }
         }
         .store(in: &cancellables)
@@ -115,10 +115,10 @@ extension ConnectionManager {
 
 // MARK: - Time connected -
 extension ConnectionManager {
-    func updateTimeConnected() {
+    func updateTimeConnected(connectedAt: Date?) {
         connectedDate = connectionTimerAnchor(
             isConnected: grpcManager.tunnelStatus == .connected,
-            tunnelConnectedAt: grpcManager.connectedDate
+            tunnelConnectedAt: connectedAt
         )
     }
 }
