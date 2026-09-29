@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
-- [macOS] Set correct file permissions for `nym-vpnc` in PKG installer (https://github.com/nymtech/nym-vpn-client/pull/6456)
+- [macOS] Fix file permissions for `nym-vpnc` in the macOS installer package, helping ensure the installed application can run correctly (https://github.com/nymtech/nym-vpn-client/pull/6456)
 
 
 ## [2026.12.6] - 2026-09-21
