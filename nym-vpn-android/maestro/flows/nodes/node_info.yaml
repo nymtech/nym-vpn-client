@@ -59,9 +59,6 @@ tags:
 - assertVisible: "Server load"
 - assertVisible: "Medium"
 - assertVisible: "Uptime"
-# 95%, not 9570%: wgUptime is a 0-1 fraction (uptime_percentage_last_24_hours)
-# that DetailsUiState multiplies by 100. The mock used to supply 95.7f as though
-# it were already a percentage, and this flow asserted the resulting 9570%.
 - assertVisible: "95%"
 
 - scrollUntilVisible:

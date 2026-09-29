@@ -1,11 +1,10 @@
+# Searching the server list by name filters it.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-# The home screen renders two identical "Safest" nodes (entry and exit rows).
-# A bare index: 0 binds to whichever comes first in the hierarchy; say which one.
 - tapOn:
     text: "Safest"
     below: "Exit server"

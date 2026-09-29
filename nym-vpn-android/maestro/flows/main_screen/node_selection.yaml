@@ -5,8 +5,6 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-# Pin the mode rather than inheriting the default, so the banner assertion below
-# names one specific expected state instead of matching any mode.
 - tapOn: "dVPN"
 
 - assertVisible: "Entry server"

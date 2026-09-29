@@ -19,7 +19,6 @@ tags:
 - assertVisible: "Mixnet tuning"
 - assertVisible: "Split tunneling"
 - assertVisible: "Geo Exclusion"
-# Added by #6319. Its absence here is why that PR reached the nightly undetected.
 - assertVisible: "Connection profiles"
 
 - scrollUntilVisible:

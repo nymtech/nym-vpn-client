@@ -1,7 +1,4 @@
 # Full connect and disconnect round trip in dVPN mode.
-# The mode tab reads "dVPN" (#6214) while the connected banner still reads
-# "Fast mode protection" - that copy mismatch is the app's, and is pinned here
-# deliberately so the suite reflects shipped behaviour.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation

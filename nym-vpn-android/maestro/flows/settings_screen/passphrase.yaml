@@ -25,7 +25,6 @@ tags:
           text: "Copy passphrase"
       timeout: 15000
 
-# The two actions that remain after "Download" was removed in #6460.
 - assertVisible: "Copy passphrase"
 - assertVisible: "Save to password manager"
 - tapOn: "Save to password manager"

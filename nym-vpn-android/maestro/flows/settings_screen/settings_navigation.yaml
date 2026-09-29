@@ -1,10 +1,4 @@
 # Navigating into Settings and back out to the home screen.
-#
-# "Settings" is a poor witness for either screen: on the home screen it is the
-# gear icon's accessibilityText ([978,184]) and on the settings screen it is the
-# nav-bar title ([453,184]), so asserting it passes in both places and proves
-# nothing about navigation. Each direction is asserted with something that exists
-# on exactly one of the two screens.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
@@ -15,7 +9,6 @@ tags:
 
 - tapOn: "Settings"
 
-# Settings-only content: absent from the home screen.
 - extendedWaitUntil:
     visible:
       text: "Account"
@@ -25,7 +18,6 @@ tags:
 
 - back
 
-# Home-only content: absent from the settings screen.
 - extendedWaitUntil:
     visible:
       text: "NOT PROTECTED"
