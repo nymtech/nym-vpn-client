@@ -377,7 +377,6 @@
 	<string name="passphrase_show">Показать мою кодовую фразу</string>
 	<string name="passphrase_copy">Копировать кодовую фразу</string>
 	<string name="passphrase_save">Сохранить в менеджер паролей</string>
-	<string name="passphrase_download">Скачать</string>
 	<string name="passphrase_lose">⚠️ Потеряете эти слова = потеряете свой аккаунт навсегда.</string>
 	<string name="passphrase_never">Никогда не передавайте их никому, включая поддержку Nym.</string>
 	<string name="passphrase_saved">Я сохранил эти 24 слова в надёжном месте и никогда не буду их раскрывать</string>

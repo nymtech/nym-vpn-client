@@ -375,7 +375,6 @@
 	<string name="passphrase_show">Hiển thị cụm từ mật khẩu của tôi</string>
 	<string name="passphrase_copy">Sao chép cụm từ mật khẩu</string>
 	<string name="passphrase_save">Lưu vào trình quản lý mật khẩu</string>
-	<string name="passphrase_download">Tải xuống</string>
 	<string name="passphrase_lose">⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi.</string>
 	<string name="passphrase_never">Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym.</string>
 	<string name="passphrase_saved">Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng</string>

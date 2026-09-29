@@ -44,6 +44,7 @@ pub struct VpnServiceConfig {
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
     pub enable_ad_blocking: bool,
+    pub enable_conflict_detection: bool,
     pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
@@ -72,8 +73,8 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "enable_ad_blocking: {}, netstack: {}",
-            self.enable_ad_blocking, self.netstack
+            "enable_ad_blocking: {}, enable_conflict_detection: {}, netstack: {}",
+            self.enable_ad_blocking, self.enable_conflict_detection, self.netstack
         )?;
 
         writeln!(
@@ -122,6 +123,7 @@ impl Default for VpnServiceConfig {
             enable_two_hop: true,
             enable_bridges: false,
             enable_ad_blocking: false,
+            enable_conflict_detection: true,
             fronting_mode: FrontingMode::default(),
             netstack: false,
             min_gateway_vpn_performance: None,

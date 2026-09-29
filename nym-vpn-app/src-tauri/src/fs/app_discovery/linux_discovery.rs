@@ -57,6 +57,24 @@ fn resolve_icon(icon_name: &str) -> Option<String> {
         .map(|p| p.to_string_lossy().into_owned())
 }
 
+/// Cleanup the executable path for Linux
+/// Remove desktop entry placeholder like %U, %u, ...
+/// Remove flatpak unique placeholders
+fn cleanup_entry(entry: &DesktopEntry) -> Option<String> {
+    let exec = entry.exec()?.to_string();
+    info!("exec: {}", exec);
+
+    let exec_cleaned = if entry.flatpak().is_some() {
+        let re = Regex::new(r"@@.*?@@").unwrap();
+        re.replace_all(&exec, "")
+    } else {
+        let re = Regex::new(r"%[cdDfFikmnNuUv]").unwrap();
+        re.replace_all(&exec, "")
+    };
+
+    Some(exec_cleaned.trim().to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -95,22 +113,4 @@ mod tests {
         // A bare name (no leading '/') that is absent from every installed icon theme.
         assert!(resolve_icon("nymvpn-definitely-nonexistent-icon-xyzzy").is_none());
     }
-}
-
-/// Cleanup the executable path for Linux
-/// Remove desktop entry placeholder like %U, %u, ...
-/// Remove flatpak unique placeholders
-fn cleanup_entry(entry: &DesktopEntry) -> Option<String> {
-    let exec = entry.exec()?.to_string();
-    info!("exec: {}", exec);
-
-    let exec_cleaned = if entry.flatpak().is_some() {
-        let re = Regex::new(r"@@.*?@@").unwrap();
-        re.replace_all(&exec, "")
-    } else {
-        let re = Regex::new(r"%[cdDfFikmnNuUv]").unwrap();
-        re.replace_all(&exec, "")
-    };
-
-    Some(exec_cleaned.trim().to_string())
 }
