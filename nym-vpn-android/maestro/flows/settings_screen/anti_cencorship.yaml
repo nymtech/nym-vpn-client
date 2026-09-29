@@ -1,4 +1,15 @@
 # Anti-censorship settings screen shows all three options and their copy.
+#
+# centerElement is required, not cosmetic: the row sits at the very bottom of the
+# settings list, and scrollUntilVisible's visibility check uses the full display
+# rect (1080x2400) rather than the app area (1080x2146). Without centering it
+# stops with the row inside the navigation bar inset ([0,2274][1080,2400]), so the
+# tap is consumed by the system nav bar and never reaches the app.
+#
+# The assertion that the screen opened must NOT be "Anti-censorship": the settings
+# row and this screen's nav-bar title are the same literal string, so that
+# assertion passes even when the tap does nothing. That is exactly how this flow's
+# real failure stayed hidden. Assert the screen's own description instead.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
@@ -11,9 +22,13 @@ tags:
     element:
       text: "Anti-censorship"
     direction: DOWN
+    centerElement: true
 - tapOn: "Anti-censorship"
 
-- assertVisible: "Anti-censorship"
+- extendedWaitUntil:
+    visible:
+      text: "Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking."
+    timeout: 10000
 
 - assertVisible: "Enhanced connection (QUIC)"
 - assertVisible:
@@ -27,6 +42,7 @@ tags:
     element:
       text: "Stealth API connect"
     direction: DOWN
+    centerElement: true
 - assertVisible: "Stealth API connect"
 - assertVisible:
     text: "Protects against VPN blocking by using cover domains.*"

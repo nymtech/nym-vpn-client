@@ -1,0 +1,53 @@
+# The Display theme screen lists every theme option with its description.
+#
+# This flow deliberately does NOT claim to verify that switching the theme works.
+# IconSurfaceButton renders the selected option as a BorderStroke only - there is
+# no Modifier.selectable and no semantics { selected = ... } - so which option is
+# selected never reaches the accessibility tree and Maestro cannot observe it.
+# Nothing else on screen differs between light and dark either. Verifying a real
+# theme change needs a testTag on the app side; that is tracked as follow-up work.
+# Naming this flow "theme_switch" while it could not detect a broken theme switch
+# is what this rename fixes.
+appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+
+- scrollUntilVisible:
+    element:
+      text: "Appearance"
+      index: 1
+    direction: DOWN
+    centerElement: true
+
+- tapOn:
+    text: "Appearance"
+    index: 1
+
+- tapOn:
+    text: "Display theme"
+    index: 1
+
+- assertVisible: "Display theme"
+
+- assertVisible: "Automatic"
+- assertVisible: "Use device theme"
+- assertVisible: "Dark theme"
+- assertVisible: "Light theme"
+# Dynamic colour is gated on API 31+; CI and the ci_match AVD both run API 34,
+# so its absence here would be a real regression rather than a device difference.
+- assertVisible: "Dynamic"
+- assertVisible: "System wallpaper theme"
+
+# Selecting an option must keep the user on the screen and must not crash. The
+# selection itself is not assertable - see the header.
+- tapOn: "Light theme"
+- assertVisible: "Display theme"
+- tapOn: "Dark theme"
+- assertVisible: "Display theme"
+
+- back
+- assertVisible: "Appearance"

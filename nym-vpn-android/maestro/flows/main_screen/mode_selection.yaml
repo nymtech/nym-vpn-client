@@ -1,25 +1,64 @@
-# Switching between Fast and Mixnet modes, and that the choice persists.
+# Switching between dVPN and Mixnet modes.
+#
+# The mode tabs expose no selection state to the accessibility tree (ModeTabs.kt
+# renders the choice as colour, font weight and an animated indicator only), so
+# asserting the tab is still visible after tapping it would prove nothing. The
+# connected banner is the one observable that differs per mode, so each switch is
+# confirmed by connecting and reading it.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-- assertVisible: "Fast"
+- assertVisible: "dVPN"
 - assertVisible: "Mixnet"
 - assertVisible: "NOT PROTECTED"
 
-- tapOn: "Mixnet"
-- assertVisible: "Mixnet"
-- assertVisible: "NOT PROTECTED"
-
-- tapOn: "Fast"
-- assertVisible: "Fast"
-- assertVisible: "NOT PROTECTED"
-
+# The chosen mode survives a round trip through Settings.
 - tapOn: "Mixnet"
 - tapOn: "Settings"
 - assertVisible: "Settings"
 - back
-- assertVisible: "Mixnet"
+- assertVisible: "Connect"
+
+# Mixnet is genuinely selected only if the banner says so.
+- runFlow: ../../subflows/connect.yaml
+
+- extendedWaitUntil:
+    visible:
+      text: "MIXNET PROTECTION"
+    timeout: 30000
+- assertVisible: "Disconnect"
+
+- tapOn: "Disconnect"
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 30000
+
+# Switching back changes the banner, proving the switch took effect both ways.
+- tapOn: "dVPN"
+- runFlow: ../../subflows/connect.yaml
+
+- extendedWaitUntil:
+    visible:
+      text: "FAST MODE PROTECTION"
+    timeout: 30000
+
+- tapOn: "Disconnect"
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 30000
 - assertVisible: "Connect"

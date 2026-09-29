@@ -6,6 +6,16 @@ appId: net.nymtech.nymvpn.mock.debug
       permissions:
           all: allow
 
+# clearState revokes runtime permissions, and re-granting them races the app's
+# own POST_NOTIFICATIONS prompt. When the system dialog wins that race it covers
+# the onboarding screen and every flow fails on an unrelated assertion, so clear
+# it here rather than letting it surface as a mystery red in the nightly.
+- runFlow:
+      when:
+          visible: "Allow"
+      commands:
+          - tapOn: "Allow"
+
 - runFlow:
       when:
           visible: "Connection request"

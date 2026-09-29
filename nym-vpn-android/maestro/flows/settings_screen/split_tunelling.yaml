@@ -1,4 +1,17 @@
+# Split tunnelling: the screen renders its real state, and search filters the app list.
+#
+# What this flow deliberately does NOT cover: moving an app between Direct and
+# Via NymVPN. AppInfoRow's toggle is a Row of two Boxes whose icons both set
+# contentDescription = null, so the control carries no accessibility label and is
+# unreachable by any text selector - tapping it would mean hard-coding screen
+# coordinates. Giving that toggle a contentDescription would make the routing
+# change testable (and fix a real TalkBack gap); tracked as follow-up work.
+#
+# The old version of this flow asserted four static labels and nothing else. The
+# counts and the search filter below are behaviour that can actually fail.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
@@ -8,9 +21,42 @@ appId: net.nymtech.nymvpn.mock.debug
     text: "Split tunneling"
     index: 1
 
-- assertVisible: "Set each app to use NymVPN or connect directly."
+- extendedWaitUntil:
+    visible:
+      text: "Set each app to use NymVPN or connect directly."
+    timeout: 10000
+
+- assertVisible: "Apps"
 - assertVisible: "Direct"
+- assertVisible: "Bypass NymVPN"
 - assertVisible: "Via NymVPN"
+- assertVisible: "Protected when connected"
 - assertVisible: "Save changes"
 
+# A clean install routes every app through the VPN, so nothing bypasses it. The
+# counter beside "Direct" is the screen's own report of that state.
+- assertVisible:
+    text: "\\(0\\)"
+    rightOf: "Direct"
 
+# The installed-app list is real, and search filters it.
+- assertVisible: "System applications"
+- assertVisible: "Calendar"
+- assertVisible: "Messaging"
+
+- tapOn: "Search apps"
+- inputText: "Calendar"
+
+- extendedWaitUntil:
+    visible:
+      text: "Calendar"
+    timeout: 10000
+- assertNotVisible: "Messaging"
+- assertNotVisible: "WebView Shell"
+
+- eraseText
+- extendedWaitUntil:
+    visible:
+      text: "Messaging"
+    timeout: 10000
+- assertVisible: "Calendar"

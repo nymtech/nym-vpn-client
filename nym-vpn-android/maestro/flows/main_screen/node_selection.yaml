@@ -5,6 +5,10 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
+# Pin the mode rather than inheriting the default, so the banner assertion below
+# names one specific expected state instead of matching any mode.
+- tapOn: "dVPN"
+
 - assertVisible: "Entry server"
 - assertVisible: "Exit server"
 
@@ -47,7 +51,7 @@ tags:
 
 - extendedWaitUntil:
     visible:
-      text: ".* MODE PROTECTION"
+      text: "FAST MODE PROTECTION"
     timeout: 30000
 - assertVisible: "Disconnect"
 
