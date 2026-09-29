@@ -48,8 +48,10 @@ public enum ArcProgressMode: Equatable, Sendable {
     /// Per-step sweep duration used to pace queued ring sweeps.
     public var sweepDuration: Duration {
         switch self {
-        case .fast: .milliseconds(800)
-        case .anonymous: .milliseconds(1200)
+        case .fast:
+            return .milliseconds(800)
+        case .anonymous:
+            return .milliseconds(1200)
         }
     }
 }

@@ -99,7 +99,7 @@ private extension GeoExclusionView {
 
     var socks5PortCard: some View {
         VStack(spacing: 0) {
-            Button(action: { viewModel.copyServer() }) {
+            Button(action: { viewModel.copyServer() }, label: {
                 HStack(spacing: 0) {
                     Text("geoExclusion.server".localizedString)
                         .foregroundStyle(Color.Nym.textSecondary)
@@ -115,14 +115,14 @@ private extension GeoExclusionView {
                 }
                 .padding(16)
                 .contentShape(Rectangle())
-            }
+            })
             .buttonStyle(.plain)
 
             Divider()
                 .frame(height: 1)
                 .overlay(Color.Nym.divider)
 
-            Button(action: { viewModel.copyPort() }) {
+            Button(action: { viewModel.copyPort() }, label: {
                 HStack(spacing: 0) {
                     Text("geoExclusion.socks5Port".localizedString)
                         .foregroundStyle(Color.Nym.textSecondary)
@@ -138,7 +138,7 @@ private extension GeoExclusionView {
                 }
                 .padding(16)
                 .contentShape(Rectangle())
-            }
+            })
             .buttonStyle(.plain)
 
             Divider()

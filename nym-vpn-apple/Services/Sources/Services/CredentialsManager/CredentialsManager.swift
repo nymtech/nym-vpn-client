@@ -482,7 +482,9 @@ import PathManager
     /// Uses `isActive` from AccountSummary (backend source of truth),
     /// falling back to local date check if accountSummary is nil.
     public func isAccountValid() async -> Bool {
-        if isMockMode { return true }
+        if isMockMode {
+            return true
+        }
         if isAccountActive() {
             return true
         } else {
@@ -494,9 +496,13 @@ import PathManager
     /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
         // Mock has no account summary — treat the seeded session as active (else the home shows the paywall).
-        if isMockMode { return true }
+        if isMockMode {
+            return true
+        }
         if let accountSummary {
-            if accountSummary.isActive { return true }
+            if accountSummary.isActive {
+                return true
+            }
             if let validUntilDate = accountSummary.validUntilDate,
                validUntilDate > Date() {
                 return true

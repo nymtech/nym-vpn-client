@@ -16,7 +16,9 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
     ) async throws {
         let deadline = ContinuousClock.now + .milliseconds(timeoutMs)
         while ContinuousClock.now < deadline {
-            if viewModel.isCheckoutNavigationPending { return }
+            if viewModel.isCheckoutNavigationPending {
+                return
+            }
             try await Task.sleep(for: .milliseconds(20))
         }
         XCTFail("Timed out waiting for checkout navigation pending")
