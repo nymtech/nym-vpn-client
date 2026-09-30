@@ -106,6 +106,7 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
 #else
+    @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = false
 #endif
 
