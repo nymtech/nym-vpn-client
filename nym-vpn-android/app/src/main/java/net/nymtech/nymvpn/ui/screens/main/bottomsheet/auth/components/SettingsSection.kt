@@ -43,8 +43,8 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 				},
 				trailing = {
 					ScaledSwitch(
-						checked = statsEnabled,
-						onClick = { onNetworkStatsEnable(it) },
+						checked = techOptChecked(TechOptToggle.ErrorReports, statsEnabled, sentryEnabled),
+						onClick = { dispatchTechOptToggle(TechOptToggle.ErrorReports, it, onNetworkStatsEnable, onMonitoringEnable) },
 					)
 				},
 				title = {
@@ -88,8 +88,8 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 				},
 				trailing = {
 					ScaledSwitch(
-						checked = sentryEnabled,
-						onClick = { onMonitoringEnable(it) },
+						checked = techOptChecked(TechOptToggle.UsageAnalytics, statsEnabled, sentryEnabled),
+						onClick = { dispatchTechOptToggle(TechOptToggle.UsageAnalytics, it, onNetworkStatsEnable, onMonitoringEnable) },
 					)
 				},
 				title = {
@@ -111,6 +111,39 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 			),
 		),
 	)
+}
+
+internal enum class TechOptToggle {
+	ErrorReports,
+	UsageAnalytics,
+}
+
+internal enum class TechOptPreference {
+	Statistics,
+	Sentry,
+}
+
+internal fun techOptPreference(toggle: TechOptToggle): TechOptPreference = when (toggle) {
+	TechOptToggle.ErrorReports -> TechOptPreference.Sentry
+	TechOptToggle.UsageAnalytics -> TechOptPreference.Statistics
+}
+
+internal fun techOptChecked(toggle: TechOptToggle, statsEnabled: Boolean, sentryEnabled: Boolean): Boolean =
+	when (techOptPreference(toggle)) {
+		TechOptPreference.Statistics -> statsEnabled
+		TechOptPreference.Sentry -> sentryEnabled
+	}
+
+internal fun dispatchTechOptToggle(
+	toggle: TechOptToggle,
+	enabled: Boolean,
+	onStatistics: (Boolean) -> Unit,
+	onSentry: (Boolean) -> Unit,
+) {
+	when (techOptPreference(toggle)) {
+		TechOptPreference.Statistics -> onStatistics(enabled)
+		TechOptPreference.Sentry -> onSentry(enabled)
+	}
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
