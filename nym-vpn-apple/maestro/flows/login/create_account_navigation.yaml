@@ -8,6 +8,8 @@ tags:
 - assertVisible: "Sign up"
 - tapOn: "Sign up"
 - extendedWaitUntil:
-    notVisible:
-      text: "Login to my account"
+    visible:
+      text: "Anonymous account"
     timeout: 10000
+- assertVisible: "Sign up with socials.*"
+- assertNotVisible: "Login to my account"

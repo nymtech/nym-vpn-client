@@ -6,3 +6,6 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 - assertVisible: "Connect"
+- assertVisible: "Not protected"
+- assertVisible: "dVPN"
+- assertVisible: "Mixnet"

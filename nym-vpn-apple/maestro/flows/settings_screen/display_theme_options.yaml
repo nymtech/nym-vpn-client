@@ -1,0 +1,30 @@
+# Display theme screen, reached via Appearance, lists all three theme options.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: "Appearance"
+    direction: DOWN
+- tapOn: "Appearance"
+- extendedWaitUntil:
+    visible:
+      text: "Display theme"
+    timeout: 10000
+
+- tapOn: "Display theme"
+- extendedWaitUntil:
+    visible:
+      text: "Automatic"
+    timeout: 10000
+- assertVisible: "Light theme"
+- assertVisible: "Dark theme"
