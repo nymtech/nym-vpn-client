@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Six-month subscription kind with long-plan expiry warnings (https://github.com/nymtech/nym-vpn-client/pull/6320)
 - Add error handling for Connect button (http://github.com/nymtech/nym-vpn-client/pull/6329)
 - Enable ARM Memory Tagging Extension (MTE) in async mode (https://github.com/nymtech/nym-vpn-client/pull/6436)
+- Log out asks every time whether the passphrase is saved (https://github.com/nymtech/nym-vpn-client/pull/6480)
 
 ### Changed
 - Maestro UI suite: repair the five flows broken by the dVPN rename, the Connection profiles settings row and the Passphrase download removal; replace assertions that could not fail; correct mock gateway uptime to a 0-1 fraction
