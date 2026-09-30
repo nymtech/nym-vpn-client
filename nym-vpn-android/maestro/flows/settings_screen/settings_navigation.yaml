@@ -1,14 +1,26 @@
+# Navigating into Settings and back out to the home screen.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-- tapOn:
-    text: "Settings"
+- assertVisible: "NOT PROTECTED"
 
-- assertVisible:
-    text: "Settings"
+- tapOn: "Settings"
+
+- extendedWaitUntil:
+    visible:
+      text: "Account"
+    timeout: 10000
+- assertVisible: "Connection profiles"
+- assertNotVisible: "NOT PROTECTED"
 
 - back
 
-- assertVisible:
-    text: "Connect"
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 10000
+- assertVisible: "Connect"
+- assertNotVisible: "Account"

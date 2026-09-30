@@ -59,7 +59,7 @@ tags:
 - assertVisible: "Server load"
 - assertVisible: "Medium"
 - assertVisible: "Uptime"
-- assertVisible: "9570%"
+- assertVisible: "95%"
 
 - scrollUntilVisible:
     element:

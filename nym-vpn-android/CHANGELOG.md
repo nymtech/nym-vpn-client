@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable ARM Memory Tagging Extension (MTE) in async mode (https://github.com/nymtech/nym-vpn-client/pull/6436)
 
 ### Changed
+- Maestro UI suite: repair the five flows broken by the dVPN rename, the Connection profiles settings row and the Passphrase download removal; replace assertions that could not fail; correct mock gateway uptime to a 0-1 fraction
 - Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
 - Bump toolchain version to 25 (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
