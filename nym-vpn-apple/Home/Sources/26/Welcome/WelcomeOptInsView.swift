@@ -59,7 +59,7 @@ private extension WelcomeOptInsView {
                 title: "welcomeOptIns.stats.title".localizedString,
                 linkTitle: "welcomeOptIns.stats.link".localizedString,
                 linkURL: URL(string: Constants.anonymousStatsURL.rawValue),
-                isOn: statisticsBinding
+                isOn: $appSettings.isStatisticsEnabled
             )
             optInCard(
                 title: "welcomeOptIns.error.title".localizedString,
@@ -109,39 +109,12 @@ private extension WelcomeOptInsView {
         )
     }
 
-    var statisticsBinding: Binding<Bool> {
-        Binding(
-            get: {
-                if welcomeStatisticsNeedsSeed(for: appSettings) {
-                    return true
-                }
-                return appSettings.isStatisticsEnabled
-            },
-            set: { appSettings.isStatisticsEnabled = $0 }
-        )
-    }
-
     var continueButton: some View {
         NymButton("welcome.continue".localizedString, style: .primary) {
-            if welcomeStatisticsNeedsSeed(for: appSettings) {
-                appSettings.isStatisticsEnabled = true
-            }
             ImpactGenerator.shared.softImpact()
             onContinue()
         }
     }
-}
-
-func welcomeStatisticsNeedsSeed(welcomeScreenDidDisplay: Bool, statisticsStored: Bool) -> Bool {
-    !welcomeScreenDidDisplay && !statisticsStored
-}
-
-@MainActor
-func welcomeStatisticsNeedsSeed(for appSettings: AppSettings) -> Bool {
-    welcomeStatisticsNeedsSeed(
-        welcomeScreenDidDisplay: appSettings.welcomeScreenDidDisplay,
-        statisticsStored: UserDefaults.standard.object(forKey: AppSettingKey.statistics.rawValue) != nil
-    )
 }
 
 #if DEBUG
