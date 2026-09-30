@@ -17,24 +17,18 @@ pub trait ProbeError: std::error::Error + Send + 'static {
     /// Returns true if the error is a timeout error.
     fn is_timeout(&self) -> bool;
 
-    /// Returns true when the probe could not be sent (e.g. raw socket bind on utun).
-    fn is_send_failure(&self) -> bool {
-        false
-    }
+    /// Returns the probe identifier associated with the error if available.
+    ///
+    /// For example: for ICMP probe it would return the sequence as a string.
+    fn probe_identifier(&self) -> Option<String>;
 }
 
-/// Convenience wrapper around a boxed probe error.
-#[derive(Debug)]
-pub struct BoxedProbeError(pub Box<dyn ProbeError>);
+/// Type alias for boxed probe error.
+pub type BoxedProbeError = Box<dyn ProbeError + Send + 'static>;
 
-impl std::fmt::Display for BoxedProbeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
+// Ensures that passing `&Box<dyn ProbeError>` does not deref into `dyn ProbeError` which does not work with `trace_err_chain!`.
 impl std::error::Error for BoxedProbeError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.0.source()
+        self.as_ref().source()
     }
 }
