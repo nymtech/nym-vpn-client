@@ -237,7 +237,6 @@ private extension Tunnel {
             }
 
             if let newError = decoded.lastError, self.status != .error {
-                self.connectedAt = nil
                 self.status = .error
                 self.lastError = newError
             } else if self.status != decoded.status {

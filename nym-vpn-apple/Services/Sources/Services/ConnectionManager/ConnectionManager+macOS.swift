@@ -61,12 +61,14 @@ extension ConnectionManager {
         }
         .store(in: &cancellables)
 
-        grpcManager.$connectedDate.sink { [weak self] connectedAt in
-            Task { @MainActor [weak self] in
-                self?.updateTimeConnected(connectedAt: connectedAt)
+        grpcManager.$connectedDate
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connectedAt in
+                MainActor.assumeIsolated {
+                    self?.updateTimeConnected(connectedAt: connectedAt)
+                }
             }
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 
         grpcManager.$connectionRetryAttempt
             .receive(on: DispatchQueue.main)
