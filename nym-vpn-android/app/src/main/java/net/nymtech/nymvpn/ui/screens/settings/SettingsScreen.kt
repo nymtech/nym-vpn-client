@@ -91,6 +91,10 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 		show = showLogoutDialog,
 		isLoggingOut = loggingOut,
 		onDismiss = { showLogoutDialog = false },
+		onShowPassphrase = {
+			showLogoutDialog = false
+			navController.navigate(Route.Passphrase)
+		},
 		onConfirm = {
 			loggingOut = true
 			AlertController.dismiss()

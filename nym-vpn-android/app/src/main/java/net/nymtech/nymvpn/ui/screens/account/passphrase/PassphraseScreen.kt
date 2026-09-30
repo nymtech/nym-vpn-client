@@ -180,26 +180,11 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 					.fillMaxWidth()
 					.padding(top = 24.dp),
 			) {
-				Row(
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(16.dp),
-					modifier = Modifier
-						.fillMaxWidth()
-						.clickable { confirmed = !confirmed },
-				) {
-					Checkbox(
-						checked = confirmed,
-						onCheckedChange = { confirmed = it },
-						modifier = Modifier.size(20.dp),
-					)
-					Text(
-						text = stringResource(R.string.passphrase_saved),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
-						textAlign = TextAlign.Start,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
+				PassphraseSavedConfirmation(
+					checked = confirmed,
+					onCheckedChange = { confirmed = it },
+					text = stringResource(R.string.passphrase_saved),
+				)
 				MainStyledButton(
 					onClick = { if (confirmed) onContinueClick() },
 					content = {
@@ -217,6 +202,30 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 				)
 			}
 		}
+	}
+}
+
+@Composable
+fun PassphraseSavedConfirmation(checked: Boolean, onCheckedChange: (Boolean) -> Unit, text: String, modifier: Modifier = Modifier) {
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.spacedBy(16.dp),
+		modifier = modifier
+			.fillMaxWidth()
+			.clickable { onCheckedChange(!checked) },
+	) {
+		Checkbox(
+			checked = checked,
+			onCheckedChange = onCheckedChange,
+			modifier = Modifier.size(20.dp),
+		)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onSurface,
+			textAlign = TextAlign.Start,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
 	}
 }
 

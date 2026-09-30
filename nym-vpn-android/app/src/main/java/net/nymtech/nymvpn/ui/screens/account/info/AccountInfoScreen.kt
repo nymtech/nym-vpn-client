@@ -98,6 +98,10 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		show = showLogoutDialog,
 		isLoggingOut = loggingOut,
 		onDismiss = { showLogoutDialog = false },
+		onShowPassphrase = {
+			showLogoutDialog = false
+			navController.navigate(Route.Passphrase)
+		},
 		onConfirm = {
 			loggingOut = true
 			appViewModel.logout {

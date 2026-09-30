@@ -25,6 +25,7 @@ appId: net.nymtech.nymvpn.mock.debug
     visible:
       text: "Log out of this device?"
     timeout: 10000
+- tapOn: "I saved my passphrase"
 - tapOn: "Log out"
 
 - runFlow:
