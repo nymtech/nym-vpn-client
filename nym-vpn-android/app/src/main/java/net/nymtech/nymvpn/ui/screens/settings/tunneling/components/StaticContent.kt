@@ -25,6 +25,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppFilter
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingUiState
@@ -33,7 +34,13 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Unit, onSelectAllDirectAppsClick: () -> Unit, onSelectAllVpnPassThroughClick: () -> Unit) {
+fun StaticContent(
+	uiState: SplitTunnelingUiState,
+	onQueryChange: (String) -> Unit,
+	onSelectAllDirectAppsClick: () -> Unit,
+	onSelectAllVpnPassThroughClick: () -> Unit,
+	onToggleAllApps: (Boolean) -> Unit,
+) {
 	Text(
 		text = stringResource(R.string.split_tunneling_info_msg),
 		style = MaterialTheme.typography.bodyMedium,
@@ -99,5 +106,25 @@ fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Uni
 	}
 
 	Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
+	HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(vertical = 12.dp.scaledHeight()),
+		horizontalArrangement = Arrangement.SpaceBetween,
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		Text(
+			text = stringResource(R.string.split_tunneling_all_apps),
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
+			fontWeight = FontWeight(500),
+		)
+		ScaledSwitch(
+			checked = uiState.allAppsViaVpn,
+			onClick = onToggleAllApps,
+		)
+	}
 	HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
 }

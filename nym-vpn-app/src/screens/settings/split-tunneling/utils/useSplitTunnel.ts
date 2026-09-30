@@ -1,8 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dispatch, useAppStore } from '../../../../store';
-import { App } from '../../../../types/tauri';
+import { App, SplitApp } from '../../../../types/tauri';
 import { BackendError } from '../../../../types/util';
 import { AppEntry } from '../AppItem';
 import { useI18nError, useToast } from '../../../../hooks/index';
@@ -17,6 +17,7 @@ export const useSplitTunnel = () => {
   const [installedApps, setInstalledApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const allAppsBusyRef = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -133,6 +134,52 @@ export const useSplitTunnel = () => {
     }
   };
 
+  // `true` when every listed app goes through the tunnel, i.e. none is in
+  // the daemon exclusion list
+  const allViaVpn =
+    appList.length > 0 && appList.every((app) => app.state === 'excluded');
+
+  // Route every listed app via the VPN (clears the daemon exclusion list) or
+  // exclude every listed app from it. There is no bulk-add RPC, so excluding
+  // is one call per app; the store is updated with whatever succeeded
+  const setAllViaVpn = async (viaVpn: boolean) => {
+    if (allAppsBusyRef.current) return;
+    allAppsBusyRef.current = true;
+    try {
+      if (viaVpn) {
+        await invoke('clear_split_tunnel_apps');
+        dispatch({ type: 'set-split-tunnel-apps', apps: [] });
+        return;
+      }
+
+      const added: SplitApp[] = [];
+      try {
+        for (const app of appList) {
+          if (app.state === 'included') continue;
+          await invoke('add_app_to_split_tunnel', {
+            app: { path: app.executable_path },
+          });
+          added.push({ path: app.executable_path });
+        }
+      } finally {
+        if (added.length > 0) {
+          dispatch({
+            type: 'set-split-tunnel-apps',
+            apps: [...splitTunnelApps, ...added],
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update split tunneling for all apps', error);
+      addToast({
+        title: t('split-tunneling.error.failed-to-update-all-apps'),
+        type: 'error',
+      });
+    } finally {
+      allAppsBusyRef.current = false;
+    }
+  };
+
   const remove = async (app: AppEntry) => {
     if (app.state === 'excluded') return;
     try {
@@ -164,6 +211,8 @@ export const useSplitTunnel = () => {
     addCustomApp,
     remove,
     removeCustomApp,
+    allViaVpn,
+    setAllViaVpn,
     loading,
     isSupported,
   };
