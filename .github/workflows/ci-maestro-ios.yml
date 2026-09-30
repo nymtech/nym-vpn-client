@@ -49,8 +49,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          # ios-sim is the simulator slice Maestro drives.
-          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-darwin
+          # Simulator slices Maestro drives: aarch64-apple-ios-sim on Apple Silicon, x86_64-apple-ios on Intel hosts.
+          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios x86_64-apple-darwin
 
       - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
@@ -83,9 +83,18 @@ jobs:
           cache: false
 
       # RUST_TRIPLET builds the simulator slice Maestro needs (RELEASE=false, no signing).
+      # The custom-macos-15 pool includes Intel hosts, so match the host arch (as ci-nym-vpn-app-ios.yml does).
       - name: Build NymVPNLib (iOS core)
         working-directory: nym-vpn-core
-        run: make -f iOS.mk RELEASE=false RUST_TRIPLET=aarch64-apple-ios-sim
+        run: |
+          set -euo pipefail
+          case "$(uname -m)" in
+            arm64) RUST_TRIPLET="aarch64-apple-ios-sim" ;;
+            x86_64) RUST_TRIPLET="x86_64-apple-ios" ;;
+            *) echo "::error::Unsupported architecture: $(uname -m)"; exit 1 ;;
+          esac
+          echo "Building core for $RUST_TRIPLET"
+          make -f iOS.mk RELEASE=false RUST_TRIPLET="$RUST_TRIPLET"
 
       - name: Stage NymVPNLib into the apple project
         run: |
@@ -166,6 +175,7 @@ jobs:
               -scheme NymVPN-Mock \
               -destination "id=$DEVICE_ID" \
               -derivedDataPath build \
+              ONLY_ACTIVE_ARCH=YES \
               CODE_SIGNING_ALLOWED=NO \
               SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) DEBUG MOCK_MODE'
           }
