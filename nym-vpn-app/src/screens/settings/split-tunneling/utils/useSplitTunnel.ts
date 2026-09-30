@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dispatch, useAppStore } from '../../../../store';
 import { App } from '../../../../types/tauri';
@@ -17,6 +17,7 @@ export const useSplitTunnel = () => {
   const [installedApps, setInstalledApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const allAppsBusyRef = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -76,10 +77,15 @@ export const useSplitTunnel = () => {
       await invoke('add_app_to_split_tunnel', {
         app: { path: app.executable_path },
       });
-      dispatch({
-        type: 'set-split-tunnel-apps',
-        apps: [...splitTunnelApps, { path: app.executable_path }],
-      });
+      // Merge into the latest store list, not the render-captured one, so a
+      // concurrent bulk update is not overwritten
+      const current = useAppStore.getState().splitTunnel.apps;
+      if (!current.some((existing) => existing.path === app.executable_path)) {
+        dispatch({
+          type: 'set-split-tunnel-apps',
+          apps: [...current, { path: app.executable_path }],
+        });
+      }
     } catch (error) {
       console.error('Failed to add app to split tunneling', error);
       addToast({
@@ -133,6 +139,50 @@ export const useSplitTunnel = () => {
     }
   };
 
+  // `true` when the daemon exclusion list is empty, i.e. every app goes
+  // through the tunnel. Derived from the full list rather than the discovered
+  // apps so stale entries still read as "something is excluded"
+  const allViaVpn = splitTunnelApps.length === 0;
+
+  // Route every listed app via the VPN (clears the daemon exclusion list) or
+  // exclude every listed app from it. There is no bulk-add RPC, so excluding
+  // is one call per app. Each success is merged into the *latest* store list
+  // (not the value captured at render) so an individual add/removal made
+  // while the loop runs is not overwritten
+  const setAllViaVpn = async (viaVpn: boolean) => {
+    if (allAppsBusyRef.current) return;
+    allAppsBusyRef.current = true;
+    try {
+      if (viaVpn) {
+        await invoke('clear_split_tunnel_apps');
+        dispatch({ type: 'set-split-tunnel-apps', apps: [] });
+        return;
+      }
+
+      for (const app of appList) {
+        if (app.state === 'included') continue;
+        const path = app.executable_path;
+        await invoke('add_app_to_split_tunnel', { app: { path } });
+
+        const current = useAppStore.getState().splitTunnel.apps;
+        if (!current.some((existing) => existing.path === path)) {
+          dispatch({
+            type: 'set-split-tunnel-apps',
+            apps: [...current, { path }],
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update split tunneling for all apps', error);
+      addToast({
+        title: t('split-tunneling.error.failed-to-update-all-apps'),
+        type: 'error',
+      });
+    } finally {
+      allAppsBusyRef.current = false;
+    }
+  };
+
   const remove = async (app: AppEntry) => {
     if (app.state === 'excluded') return;
     try {
@@ -141,9 +191,11 @@ export const useSplitTunnel = () => {
       });
       dispatch({
         type: 'set-split-tunnel-apps',
-        apps: splitTunnelApps.filter(
-          (existing) => existing.path !== app.executable_path,
-        ),
+        apps: useAppStore
+          .getState()
+          .splitTunnel.apps.filter(
+            (existing) => existing.path !== app.executable_path,
+          ),
       });
     } catch (error) {
       console.error('Failed to remove app from split tunneling', error);
@@ -164,6 +216,8 @@ export const useSplitTunnel = () => {
     addCustomApp,
     remove,
     removeCustomApp,
+    allViaVpn,
+    setAllViaVpn,
     loading,
     isSupported,
   };
