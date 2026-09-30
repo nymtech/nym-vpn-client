@@ -136,6 +136,7 @@ func welcomeStatisticsNeedsSeed(welcomeScreenDidDisplay: Bool, statisticsStored:
     !welcomeScreenDidDisplay && !statisticsStored
 }
 
+@MainActor
 func welcomeStatisticsNeedsSeed(for appSettings: AppSettings) -> Bool {
     welcomeStatisticsNeedsSeed(
         welcomeScreenDidDisplay: appSettings.welcomeScreenDidDisplay,
