@@ -125,6 +125,25 @@ public struct GeneratePassphraseView: View {
             guard !didLeaveForSuccessfulPurchase else { return }
             onPurchaseFlowDismissed?()
         }
+#if os(iOS)
+        .overlay {
+            if isPlanAlertDisplayed {
+                ModalOverlayView(isDisplayed: $isPlanAlertDisplayed) {
+                    SelectPlanSheet(
+                        title: "createAccount.success.choosePlan".localizedString,
+                        options: planOptions,
+                        cancelTitle: "cancel".localizedString,
+                        onSelect: { planId in
+                            isPlanAlertDisplayed = false
+                            guard let plan = product(for: planId) else { return }
+                            purchasePlan(with: plan)
+                        },
+                        onCancel: { isPlanAlertDisplayed = false }
+                    )
+                }
+            }
+        }
+#endif
     }
 
     public init(
@@ -278,20 +297,6 @@ private extension GeneratePassphraseView {
             .accessibilityAction {
                 selectPlanAction()
             }
-#if os(iOS)
-            .confirmationDialog(
-                "createAccount.success.choosePlan".localizedString,
-                isPresented: $isPlanAlertDisplayed,
-                titleVisibility: .visible
-            ) {
-                ForEach(purchasesManager.products, id: \.id) { plan in
-                    Button(subscriptionTitle(for: plan)) {
-                        purchasePlan(with: plan)
-                    }
-                }
-                Button("cancel".localizedString, role: .cancel) {}
-            }
-#endif
     }
 
 #if os(iOS)

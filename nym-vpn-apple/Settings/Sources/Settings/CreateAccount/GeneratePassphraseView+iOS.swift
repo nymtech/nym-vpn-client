@@ -8,22 +8,38 @@ import PurchasesManager
 
 // MARK: - Views -
 extension GeneratePassphraseView {
-    func subscriptionTitle(for plan: Product) -> String {
-        if purchasesManager.isEligibleForIntroOffer.contains(plan.id),
-           let subscription = plan.subscription,
-           let offer = subscription.introductoryOffer {
-            let periodDescription = offer.period.localizedDescription
-            let offerText: String
-
-            if offer.price == 0 {
-                offerText = "\("incl".localizedString) \(periodDescription) \("freeTrial".localizedString)"
-            } else {
-                offerText = "\(offer.displayPrice) for \(periodDescription)"
-            }
-            return "\(plan.displayName) (\(plan.displayPrice)) \(offerText)"
-        } else {
-            return "\(plan.displayName) (\(plan.displayPrice))"
+    var planOptions: [PlanOption] {
+        purchasesManager.products.map { plan in
+            PlanOption(
+                id: plan.id,
+                title: planTitle(for: plan),
+                subtitle: planOfferSubtitle(for: plan)
+            )
         }
+    }
+
+    func planTitle(for plan: Product) -> String {
+        "\(plan.displayName) (\(plan.displayPrice))"
+    }
+
+    func planOfferSubtitle(for plan: Product) -> String? {
+        guard purchasesManager.isEligibleForIntroOffer.contains(plan.id),
+              let subscription = plan.subscription,
+              let offer = subscription.introductoryOffer
+        else {
+            return nil
+        }
+
+        let periodDescription = offer.period.localizedDescription
+        if offer.price == 0 {
+            return "\("incl".localizedString) \(periodDescription) \("freeTrial".localizedString)"
+        } else {
+            return "\(offer.displayPrice) for \(periodDescription)"
+        }
+    }
+
+    func product(for id: String) -> Product? {
+        purchasesManager.products.first { $0.id == id }
     }
 }
 
