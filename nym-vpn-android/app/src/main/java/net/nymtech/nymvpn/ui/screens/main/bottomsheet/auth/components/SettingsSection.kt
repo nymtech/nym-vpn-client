@@ -118,20 +118,10 @@ internal enum class TechOptToggle {
 	UsageAnalytics,
 }
 
-internal enum class TechOptPreference {
-	Statistics,
-	Sentry,
-}
-
-internal fun techOptPreference(toggle: TechOptToggle): TechOptPreference = when (toggle) {
-	TechOptToggle.ErrorReports -> TechOptPreference.Sentry
-	TechOptToggle.UsageAnalytics -> TechOptPreference.Statistics
-}
-
 internal fun techOptChecked(toggle: TechOptToggle, statsEnabled: Boolean, sentryEnabled: Boolean): Boolean =
-	when (techOptPreference(toggle)) {
-		TechOptPreference.Statistics -> statsEnabled
-		TechOptPreference.Sentry -> sentryEnabled
+	when (toggle) {
+		TechOptToggle.ErrorReports -> sentryEnabled
+		TechOptToggle.UsageAnalytics -> statsEnabled
 	}
 
 internal fun dispatchTechOptToggle(
@@ -140,9 +130,9 @@ internal fun dispatchTechOptToggle(
 	onStatistics: (Boolean) -> Unit,
 	onSentry: (Boolean) -> Unit,
 ) {
-	when (techOptPreference(toggle)) {
-		TechOptPreference.Statistics -> onStatistics(enabled)
-		TechOptPreference.Sentry -> onSentry(enabled)
+	when (toggle) {
+		TechOptToggle.ErrorReports -> onSentry(enabled)
+		TechOptToggle.UsageAnalytics -> onStatistics(enabled)
 	}
 }
 

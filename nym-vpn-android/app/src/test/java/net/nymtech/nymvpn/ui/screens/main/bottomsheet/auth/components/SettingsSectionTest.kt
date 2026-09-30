@@ -9,7 +9,6 @@ class SettingsSectionTest {
 
 	@Test
 	fun errorReportsRowReadsAndWritesSentry() {
-		assertEquals(TechOptPreference.Sentry, techOptPreference(TechOptToggle.ErrorReports))
 		assertTrue(techOptChecked(TechOptToggle.ErrorReports, statsEnabled = false, sentryEnabled = true))
 		assertFalse(techOptChecked(TechOptToggle.ErrorReports, statsEnabled = true, sentryEnabled = false))
 
@@ -22,7 +21,6 @@ class SettingsSectionTest {
 
 	@Test
 	fun usageAnalyticsRowReadsAndWritesStatistics() {
-		assertEquals(TechOptPreference.Statistics, techOptPreference(TechOptToggle.UsageAnalytics))
 		assertTrue(techOptChecked(TechOptToggle.UsageAnalytics, statsEnabled = true, sentryEnabled = false))
 		assertFalse(techOptChecked(TechOptToggle.UsageAnalytics, statsEnabled = false, sentryEnabled = true))
 
