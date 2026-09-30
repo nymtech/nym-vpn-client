@@ -303,6 +303,7 @@
     "description-linux": "⚡ Launch any app from here to be excluded from the NymVPN funnel and connect directly to the internet!",
     "exclude-warning": "⚠️  Excluding an app will leave it unprotected.",
     "apps": "Apps",
+    "all-apps": "All apps via NymVPN",
     "add-custom-app": "Exclude custom app",
     "custom-app-added": "Added {{name}}",
     "problematic-app": "App isn't available for split tunneling",
@@ -339,6 +340,7 @@
       "failed-to-enable-split-tunneling": "Failed to enable split tunneling",
       "failed-to-add-app-to-split-tunneling": "Failed to add app to split tunneling",
       "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling",
+      "failed-to-update-all-apps": "Failed to update split tunneling for all apps",
       "failed-to-add-custom-app": "Failed to add custom app",
       "failed-to-remove-custom-app": "Failed to remove custom app"
     }

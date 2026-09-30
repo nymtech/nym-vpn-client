@@ -380,6 +380,14 @@ pub async fn remove_app_from_split_tunnel(
 
 #[instrument(skip_all)]
 #[tauri::command]
+pub async fn clear_split_tunnel_apps(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    info!("[command] clear_split_tunnel_apps");
+    vpnd.clear_split_tunnel_apps().await?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
 pub async fn is_split_tunnel_supported(vpnd: State<'_, VpndClient>) -> Result<bool, BackendError> {
     let is_supported = vpnd.is_split_tunnel_supported().await?;
     Ok(is_supported)

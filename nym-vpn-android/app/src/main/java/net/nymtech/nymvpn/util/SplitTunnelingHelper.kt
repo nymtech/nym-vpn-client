@@ -133,3 +133,10 @@ fun List<AppInfo>.updatePassThroughValue(packageName: String) = map { appInfo ->
 fun List<AppInfo>.filterAllPassThroughValue(passThroughVpn: Boolean) = filter { appInfo -> appInfo.passThroughVpn == passThroughVpn }
 
 fun List<AppInfo>.totalAppCounts(passThroughVpn: Boolean) = filter { app -> app.passThroughVpn == passThroughVpn }.size
+
+fun List<AppInfo>.setAllPassThroughValue(passThroughVpn: Boolean) = map { appInfo ->
+	if (appInfo.passThroughVpn == passThroughVpn) appInfo else appInfo.copy(passThroughVpn = passThroughVpn)
+}
+
+/** True only when the list is non-empty and every app is routed via the VPN. */
+fun List<AppInfo>.allPassThroughVpn() = isNotEmpty() && all { appInfo -> appInfo.passThroughVpn }
