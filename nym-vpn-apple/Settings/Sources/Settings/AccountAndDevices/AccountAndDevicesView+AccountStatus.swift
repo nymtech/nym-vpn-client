@@ -70,16 +70,19 @@ extension AccountAndDevicesView {
         Button {
             refreshAccount()
         } label: {
-            if isRefreshingAccount {
-                ProgressView()
-                    .controlSize(.small)
-                    .tint(Color.Nym.textSecondary)
-                    .frame(width: 20, height: 20)
-            } else {
-                GenericImage(systemImageName: "arrow.clockwise")
-                    .frame(width: 20, height: 20)
-                    .foregroundStyle(Color.Nym.textSecondary)
+            Group {
+                if isRefreshingAccount {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(Color.Nym.textSecondary)
+                } else {
+                    GenericImage(systemImageName: "arrow.clockwise")
+                        .foregroundStyle(Color.Nym.textSecondary)
+                }
             }
+            .frame(width: 20, height: 20)
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(isRefreshingAccount)

@@ -650,15 +650,40 @@ extension CredentialsManager {
         guard isValidCredentialImported else { return }
 #if os(iOS)
         do {
-            try await refreshAccountSummaryOnIOS(untilActive: false, trigger: .general)
+            try await refreshAccountSummaryFromVpnApi()
         } catch {
             accountSummaryLastFetchFailed = true
             throw error
         }
 #elseif os(macOS)
         do {
-            accountSummary = try await grpcManager.accountSummary()
-            accountSummaryLastFetchFailed = false
+            let before = try await grpcManager.accountSummarySyncMark()
+            try await grpcManager.refreshAccountState()
+            let started = ContinuousClock.now
+            var sawStale = false
+            while true {
+                let mark = try await grpcManager.accountSummarySyncMark()
+                sawStale = sawStale || mark?.stale == true
+                let elapsedSinceRefresh = TimeInterval(started.duration(to: .now).components.seconds)
+                switch AccountSummaryRefreshPolicy.manualRefreshPoll(
+                    hasSummary: mark != nil, stale: mark?.stale == true, sawStale: sawStale,
+                    lastSyncedUnixSeconds: mark?.lastSyncedUnixSeconds,
+                    syncedBeforeRefresh: before?.lastSyncedUnixSeconds, elapsedSeconds: elapsedSinceRefresh,
+                    followUpMissing: false
+                ) {
+                case .keepWaiting: try await Task.sleep(for: .milliseconds(400))
+                case .apply:
+                    let summary = try await grpcManager.accountSummary()
+                    guard AccountSummaryRefreshPolicy.manualRefreshPoll(
+                        hasSummary: summary != nil, stale: false, sawStale: summary != nil,
+                        lastSyncedUnixSeconds: nil, syncedBeforeRefresh: nil, elapsedSeconds: 0, followUpMissing: summary == nil
+                    ) == .apply, let summary else { throw AccountDaemonRefreshError.summaryUnavailable }
+                    accountSummary = summary
+                    accountSummaryLastFetchFailed = false
+                    return
+                case .giveUp: throw AccountDaemonRefreshError.timedOut
+                }
+            }
         } catch {
             accountSummaryLastFetchFailed = true
             throw error
