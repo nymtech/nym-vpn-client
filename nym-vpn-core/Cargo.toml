@@ -45,6 +45,7 @@ members = [
     "crates/test/test-manager",
     "crates/test/test-rpc",
     "crates/test/test-runner",
+    "crates/nym-secure-enclave",
 ]
 
 default-members = [
@@ -169,6 +170,7 @@ rand08 = { package = "rand", version = "=0.8.8" }
 rand_chacha = "=0.3.1"
 regex = "1"
 resolv-conf = "0.7"
+robusta_jni = "0.2"
 rs-release = "0.1.11"
 rtnetlink = "0.23"
 netlink-packet-core = "0.9.0"
