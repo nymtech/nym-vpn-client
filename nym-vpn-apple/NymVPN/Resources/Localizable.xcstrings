@@ -6941,7 +6941,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safest"
+            "value" : "Auto"
           }
         }
       }
@@ -9361,7 +9361,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Safest routing isn't available right now. Try again later or choose your own servers."
+            "value" : "Automatic routing isn't available right now. Try again later or choose your own servers."
           }
         }
       }
@@ -13663,7 +13663,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Safest"
+            "value" : "Auto"
           }
         }
       }
