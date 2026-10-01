@@ -185,6 +185,7 @@ function Settings() {
           },
           {
             title: t('app-proxy.title'),
+            titleTrailing: <BetaPill />,
             desc: t('app-proxy.menu-desc'),
             leadingIcon: 'lan',
             onClick: () => navigate(routes.socks5),
