@@ -1,0 +1,23 @@
+[package]
+name = "nym-secure-enclave"
+description = "A secure key storage crate for managing encryption keys"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[target.'cfg(target_os = "android")'.dependencies]
+uniffi.workspace = true
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+secure-enclave-rs = "1"
+
+[lints]
+workspace = true
