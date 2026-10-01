@@ -28,6 +28,7 @@ runs:
           # ConnectionTypes also writes account-report.md (ACCOUNT_REPORT_PATH).
           SUITES=(
             "ServicesMutual|ServicesMutual-Package|ConnectionTypesTests|ServicesMutual/TestResults.xcresult|ConnectionTypes"
+            "ServicesMutual|ServicesMutual-Package|TunnelStatusTests|ServicesMutual/TestResults-TunnelStatusTests.xcresult|TunnelStatus"
             "Services|Services-Package|ConfigurationManagerTests|Services/TestResults-ConfigurationManagerTests.xcresult|ConfigurationManager"
             "Settings|Settings|SettingsTests|Settings/TestResults-SettingsTests.xcresult|Settings"
             "ServicesMacOS|ServicesMacOS-Package|AppDiscoveryServiceTests|ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult|AppDiscovery"
@@ -116,6 +117,7 @@ runs:
         name: apple-unit-tests
         path: |
           nym-vpn-apple/ServicesMutual/TestResults.xcresult
+          nym-vpn-apple/ServicesMutual/TestResults-TunnelStatusTests.xcresult
           nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult
           nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult
           nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult
@@ -137,6 +139,7 @@ runs:
       shell: bash
       run: |
         rm -rf nym-vpn-apple/ServicesMutual/TestResults.xcresult \
+               nym-vpn-apple/ServicesMutual/TestResults-TunnelStatusTests.xcresult \
                nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult \
                nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult \
                nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult \

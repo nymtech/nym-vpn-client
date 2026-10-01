@@ -3,6 +3,7 @@ import Foundation
 import ConnectionTypes
 import NotificationMessages
 import TunnelMixnet
+import TunnelStatus
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
@@ -55,10 +56,19 @@ extension ConnectionManager {
                 guard self?.currentTunnelStatus != status else { return }
                 self?.currentTunnelStatus = status
                 self?.scheduleNotificationIfNeeded()
-                self?.updateTimeConnected()
+                self?.updateTimeConnected(connectedAt: self?.grpcManager.connectedDate)
             }
         }
         .store(in: &cancellables)
+
+        grpcManager.$connectedDate
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] connectedAt in
+                MainActor.assumeIsolated {
+                    self?.updateTimeConnected(connectedAt: connectedAt)
+                }
+            }
+            .store(in: &cancellables)
 
         grpcManager.$connectionRetryAttempt
             .receive(on: DispatchQueue.main)
@@ -107,14 +117,11 @@ extension ConnectionManager {
 
 // MARK: - Time connected -
 extension ConnectionManager {
-    func updateTimeConnected() {
-        guard grpcManager.tunnelStatus == .connected,
-              let newConnectedDate = grpcManager.connectedDate
-        else {
-            connectedDate = nil
-            return
-        }
-        self.connectedDate = newConnectedDate
+    func updateTimeConnected(connectedAt: Date?) {
+        connectedDate = connectionTimerAnchor(
+            isConnected: grpcManager.tunnelStatus == .connected,
+            tunnelConnectedAt: connectedAt
+        )
     }
 }
 

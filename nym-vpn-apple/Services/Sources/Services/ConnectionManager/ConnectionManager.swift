@@ -35,6 +35,7 @@ import GRPCManager
     var tunnelLastErrorCancelable: AnyCancellable?
     var tunnelConnectingStateCancellable: AnyCancellable?
     var tunnelConnectionInfoDataCancellable: AnyCancellable?
+    var tunnelConnectedAtCancellable: AnyCancellable?
 
     public var isDisconnecting = false
 

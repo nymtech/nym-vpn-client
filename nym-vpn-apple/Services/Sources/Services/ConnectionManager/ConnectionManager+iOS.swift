@@ -1,4 +1,5 @@
 #if os(iOS)
+import Combine
 import NetworkExtension
 import AppSettings
 import ConfigurationManager
@@ -86,6 +87,16 @@ extension ConnectionManager {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .assign(to: \.connectionInfoData, on: self)
+
+        tunnelConnectedAtCancellable = connectedAtCancellable(for: tunnel)
+    }
+
+    private func connectedAtCancellable(for tunnel: Tunnel) -> AnyCancellable {
+        tunnel.$connectedAt
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateTimeConnected() }
+            }
     }
 }
 
@@ -207,14 +218,10 @@ extension ConnectionManager {
 // MARK: - Connection Time -
 extension ConnectionManager {
     func updateTimeConnected() {
-        guard let activeTunnel = self.activeTunnel,
-              activeTunnel.status == .connected,
-              let newConnectedDate = activeTunnel.tunnel.connection.connectedDate
-        else {
-            connectedDate = nil
-            return
-        }
-        connectedDate = newConnectedDate
+        connectedDate = connectionTimerAnchor(
+            isConnected: activeTunnel?.status == .connected,
+            tunnelConnectedAt: activeTunnel?.connectedAt
+        )
     }
 }
 #endif

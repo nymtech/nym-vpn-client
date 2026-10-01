@@ -13,6 +13,7 @@ import TunnelStatus
     @Published public var lastError: Error?
     @Published public var tunnelConnectingState: TunnelConnectingState?
     @Published public var connectionInfoData: ConnectionInfoData?
+    @Published public var connectedAt: Date?
 
     private var logger: Logger
     private var isPolling = false
@@ -131,7 +132,9 @@ import TunnelStatus
             try assertCanSendMessage()
 
             if let res = try await sendProviderMessage(with: message.encode()) {
-                return try JSONDecoder().decode(T.self, from: res)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                return try decoder.decode(T.self, from: res)
             } else {
                 throw SendTunnelProviderMessageError.noData
             }
@@ -223,13 +226,16 @@ private extension Tunnel {
     func pollTunnelStatus() async {
         do {
             let decoded: TunnelStatusResponse = try await sendWithResponse(message: .status)
+            guard self.isPolling, !Task.isCancelled else { return }
 
             self.retryAttempt = decoded.retryAttempt
             self.afterDisconnectAction = decoded.afterDisconnectAction
             self.tunnelConnectingState = decoded.tunnelConnectingState
             self.connectionInfoData = decoded.connectionInfoData
+            if self.connectedAt != decoded.connectedAt {
+                self.connectedAt = decoded.connectedAt
+            }
 
-            guard self.isPolling else { return }
             if let newError = decoded.lastError, self.status != .error {
                 self.status = .error
                 self.lastError = newError
