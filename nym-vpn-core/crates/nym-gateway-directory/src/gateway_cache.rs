@@ -535,7 +535,11 @@ impl GatewayCache {
                 }
             }
         } else {
-            tracing::warn!("Failed to parse gateway identity: {gateway_identity}");
+            // prefix only; the full identity is not needed here
+            tracing::warn!(
+                "Failed to parse gateway identity: {}...",
+                &gateway_identity[..gateway_identity.len().min(8)]
+            );
         }
 
         // Fallback
