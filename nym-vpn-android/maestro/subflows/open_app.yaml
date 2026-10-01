@@ -8,6 +8,12 @@ appId: net.nymtech.nymvpn.mock.debug
 
 - runFlow:
       when:
+          visible: "Allow"
+      commands:
+          - tapOn: "Allow"
+
+- runFlow:
+      when:
           visible: "Connection request"
       commands:
           - tapOn: "OK"

@@ -2,7 +2,7 @@ import NymVPNLib
 import Combine
 
 final class RPCTunnelObserver: ObservableObject, TunnelEventObserver, @unchecked Sendable {
-    public let stream: AsyncStream<TunnelEvent>
+    let stream: AsyncStream<TunnelEvent>
     let cont: AsyncStream<TunnelEvent>.Continuation
 
     init() {

@@ -9,9 +9,9 @@ enum AppIcon: CaseIterable, Equatable, Hashable {
         switch self {
         case .primary:
             return nil
-        case .calculator: 
+        case .calculator:
             return "AppIcon-Calculator"
-        case .notes: 
+        case .notes:
             return "AppIcon-Notes"
         }
     }
@@ -21,9 +21,9 @@ enum AppIcon: CaseIterable, Equatable, Hashable {
         switch self {
         case .primary:
             return "iconPreviewDefault"
-        case .calculator: 
+        case .calculator:
             return "iconPreviewCalculator"
-        case .notes: 
+        case .notes:
             return "iconPreviewNotes"
         }
     }

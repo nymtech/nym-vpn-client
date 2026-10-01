@@ -4,7 +4,6 @@ import NetworkExtension
 import os
 import AppSettings
 import ConnectionTypes
-import ConnectionTypes
 import CredentialsManager
 import TunnelMixnet
 import Tunnels
@@ -67,6 +66,21 @@ import GRPCManager
     @Published public var connectionType: ConnectionType
     public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
     public var exitGatewayType: NodeType { connectionType == .wireguard ? .vpn : .exit }
+
+    /// Derived from the live entry/exit/hop-count combination; `nil` once the user picks a custom gateway.
+    public var currentProfile: ConnectionProfile? {
+        switch (entryGateway, exitRouter) {
+        case (.random, .random):
+            return .random
+        case (.auto(true), .auto):
+            return connectionConfig.enableTwoHop ? .safest : .mostPrivate
+        case (.auto(false), .auto):
+            return connectionConfig.enableTwoHop ? .fastest : nil
+        default:
+            return nil
+        }
+    }
+
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
 #if os(iOS)
     @Published public var activeTunnel: Tunnel? {
@@ -139,7 +153,7 @@ import GRPCManager
             )
         }
 #endif
-        setEntryGateway(.auto)
+        setEntryGateway(.auto(excludeUserCountry: true))
         setExitGateway(.auto)
     }
 
@@ -227,13 +241,17 @@ public extension ConnectionManager {
 extension ConnectionManager {
     @discardableResult
     func waitForTunnelStatus(with targetStatus: TunnelStatus, timeout: TimeInterval? = nil) async -> Bool {
-        if currentTunnelStatus == targetStatus { return true }
+        if currentTunnelStatus == targetStatus {
+            return true
+        }
 
         if let timeout {
             let pollInterval: Duration = .milliseconds(250)
             let deadline = ContinuousClock.now + .seconds(timeout)
             while ContinuousClock.now < deadline {
-                if currentTunnelStatus == targetStatus { return true }
+                if currentTunnelStatus == targetStatus {
+                    return true
+                }
                 try? await Task.sleep(for: pollInterval)
             }
             return currentTunnelStatus == targetStatus
@@ -244,7 +262,9 @@ extension ConnectionManager {
     }
 
     private func waitForTunnelStatusChange(to targetStatus: TunnelStatus) async {
-        if currentTunnelStatus == targetStatus { return }
+        if currentTunnelStatus == targetStatus {
+            return
+        }
 
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
@@ -307,4 +327,3 @@ private extension ConnectionManager {
         exitRouter = connectionStorage.exitRouter
     }
 }
-

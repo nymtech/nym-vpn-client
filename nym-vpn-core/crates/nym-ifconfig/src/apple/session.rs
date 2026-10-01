@@ -677,13 +677,13 @@ mod tests {
     #[test]
     #[serial_test::serial]
     fn test_set_mtu() {
-        use rand::Rng;
+        use rand::RngExt;
 
         let tun = Utun::new().unwrap();
         let interface = tun.name().unwrap();
         let mut sess = Session::default();
 
-        let mtu = rand::thread_rng().gen_range(1280..=1480);
+        let mtu = rand::rng().random_range(1280..=1480);
         sess.set_mtu(&interface, mtu).unwrap();
 
         let current_mtu = sess.mtu(&interface).unwrap();

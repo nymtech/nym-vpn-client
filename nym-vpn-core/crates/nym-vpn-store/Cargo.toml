@@ -18,11 +18,12 @@ nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
 nym-pemstore.workspace = true
 nym-sqlx-pool-guard.workspace = true
 rand.workspace = true
+rand08.workspace = true
 rand_chacha.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 sqlx = { workspace = true, features = [
-    "runtime-tokio-rustls",
+    "runtime-tokio",
     "sqlite",
     "macros",
     "migrate",
@@ -39,7 +40,7 @@ nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 [build-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 sqlx = { workspace = true, features = [
-    "runtime-tokio-rustls",
+    "runtime-tokio",
     "sqlite",
     "macros",
     "migrate",

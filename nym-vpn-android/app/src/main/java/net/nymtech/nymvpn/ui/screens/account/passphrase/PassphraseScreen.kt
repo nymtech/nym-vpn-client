@@ -1,10 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
-import android.app.Activity
 import android.content.ClipData
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -63,7 +59,6 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
 fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
@@ -89,22 +84,6 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 	val activity = context as? FragmentActivity
-
-	val fileSaverLauncher = rememberLauncherForActivityResult(
-		contract = ActivityResultContracts.StartActivityForResult(),
-	) { result ->
-		if (result.resultCode == Activity.RESULT_OK) {
-			result.data?.data?.also { uri ->
-				try {
-					context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-						outputStream.write(passphrase.joinToString().toByteArray())
-					}
-				} catch (e: Exception) {
-					Timber.e(e, "Failed to write passphrase to file.")
-				}
-			}
-		}
-	}
 
 	val title = stringResource(R.string.passphrase_title)
 	val subtitle = stringResource(R.string.passphrase_description)
@@ -144,14 +123,6 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 				clipboardManager.setClipEntry(clipData.toClipEntry())
 			}
 		},
-		onDownloadClick = {
-			val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-				addCategory(Intent.CATEGORY_OPENABLE)
-				type = "text/plain"
-				putExtra(Intent.EXTRA_TITLE, "nym-passphrase.txt")
-			}
-			fileSaverLauncher.launch(intent)
-		},
 		onSaveClick = {
 			scope.launch {
 				savePasswordToManager(context = context, password = passphrase.joinToString(" "))
@@ -162,7 +133,7 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 }
 
 @Composable
-fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit, onContinueClick: () -> Unit) {
+fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onSaveClick: () -> Unit, onContinueClick: () -> Unit) {
 	var confirmed by remember { mutableStateOf(false) }
 	Column(
 		modifier = Modifier
@@ -200,7 +171,7 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 		)
 
 		PassphraseCard(passphrase = passphrase, show = show, onShowClick = onShowClick)
-		PassphraseActions(show = show, onCopyClick = onCopyClick, onDownloadClick = onDownloadClick, onSaveClick = onSaveClick)
+		PassphraseActions(show = show, onCopyClick = onCopyClick, onSaveClick = onSaveClick)
 
 		if (show) {
 			Spacer(modifier = Modifier.weight(1f))
@@ -209,26 +180,11 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 					.fillMaxWidth()
 					.padding(top = 24.dp),
 			) {
-				Row(
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(16.dp),
-					modifier = Modifier
-						.fillMaxWidth()
-						.clickable { confirmed = !confirmed },
-				) {
-					Checkbox(
-						checked = confirmed,
-						onCheckedChange = { confirmed = it },
-						modifier = Modifier.size(20.dp),
-					)
-					Text(
-						text = stringResource(R.string.passphrase_saved),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
-						textAlign = TextAlign.Start,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
+				PassphraseSavedConfirmation(
+					checked = confirmed,
+					onCheckedChange = { confirmed = it },
+					text = stringResource(R.string.passphrase_saved),
+				)
 				MainStyledButton(
 					onClick = { if (confirmed) onContinueClick() },
 					content = {
@@ -250,6 +206,30 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 }
 
 @Composable
+fun PassphraseSavedConfirmation(checked: Boolean, onCheckedChange: (Boolean) -> Unit, text: String, modifier: Modifier = Modifier) {
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.spacedBy(16.dp),
+		modifier = modifier
+			.fillMaxWidth()
+			.clickable { onCheckedChange(!checked) },
+	) {
+		Checkbox(
+			checked = checked,
+			onCheckedChange = onCheckedChange,
+			modifier = Modifier.size(20.dp),
+		)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onSurface,
+			textAlign = TextAlign.Start,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+	}
+}
+
+@Composable
 @PreviewLightDark
 internal fun PreviewPassphraseScreen() {
 	NymVPNTheme(Theme.default()) {
@@ -262,7 +242,6 @@ internal fun PreviewPassphraseScreen() {
 			show = true,
 			onShowClick = {},
 			onCopyClick = {},
-			onDownloadClick = {},
 			onSaveClick = {},
 			onContinueClick = {},
 		)

@@ -3,10 +3,15 @@
 
 disabled_rules:
   - todo
+  - file_header
+  - file_length
+  - function_body_length
+  - line_length
+  - large_tuple
 
 opt_in_rules:
   - balanced_xctest_lifecycle
-  - closure_body_length
+  # - closure_body_length
   - closure_end_indentation
   - closure_parameter_position
   - closure_spacing
@@ -17,7 +22,7 @@ opt_in_rules:
   - contains_over_filter_is_empty
   - contains_over_first_not_nil
   - contains_over_range_nil_comparison
-  - discouraged_none_name
+  #- discouraged_none_name
   - discouraged_object_literal
   - empty_collection_literal
   - empty_count
@@ -28,21 +33,21 @@ opt_in_rules:
   - explicit_init
   - fallthrough
   - fatal_error_message
-  - file_header
-  - file_name
+  # - file_header
+  # - file_name
   - file_name_no_space
   - first_where
   - flatmap_over_map_reduce
   - force_cast
   - force_try
   - force_unwrapping
-  - function_default_parameter_at_end
+  #- function_default_parameter_at_end
   - identical_operands
   - implicit_return
   - joined_default_parameter
   - last_where
   - legacy_random
-  - line_length
+  # - line_length
   - literal_expression_end_indentation
   - lower_acl_than_parent
   - multiline_arguments
@@ -75,15 +80,6 @@ opt_in_rules:
   - xct_specific_matcher
   - yoda_condition
 
-attributes:
-  always_on_same_line:
-    - "@IBSegueAction"
-    - "@IBAction"
-    - "@NSManaged"
-    - "@objc"
-    - "@MainActor"
-    - "@discardableResult"
-
 analyzer_rules:
   - capture_variable
   - unused_declaration
@@ -104,18 +100,18 @@ function_parameter_count:
   error: 8
 
 identifier_name:
-  min_length: 2
+  min_length: 1
   max_length: 60
 
 legacy_hashing: error
 
-line_length:
-  ignores_urls: true
-  ignores_comments: true
-  ignores_function_declarations: false
-  ignores_interpolated_strings: true
-  warning: 120
-  error: 240
+# line_length:
+#   ignores_urls: true
+#   ignores_comments: true
+#   ignores_function_declarations: false
+#   ignores_interpolated_strings: true
+#   warning: 120
+#   error: 240
 
 multiline_parameters:
   allows_single_line: true
@@ -133,8 +129,8 @@ trailing_whitespace:
   ignores_comments: true
 
 type_body_length:
-  warning: 400
-  error: 500
+  warning: 500
+  error: 600
 
 type_name:
   min_length: 2

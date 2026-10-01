@@ -126,7 +126,10 @@
 	<string name="update_required">Update required!</string>
 	<string name="update">Update</string>
 	<string name="log_out_title">Log out of this device?</string>
-	<string name="log_out_body">You\'ll need your 24-word passphrase to sign in again.</string>
+	<string name="log_out_body">This disconnects the VPN and removes your account from this device. Without your passphrase, you can\'t log back in.</string>
+	<string name="log_out_passphrase_confirm">I saved my passphrase</string>
+	<string name="log_out_show_passphrase">Show passphrase</string>
+	<string name="log_out_show_passphrase_description">Show passphrase, asks to confirm it\'s you</string>
 	<string name="cancel">Cancel</string>
 	<string name="info">Info</string>
 	<string name="collapse">Collapse</string>
@@ -457,7 +460,6 @@
 	<string name="passphrase_show">Show my passphrase</string>
 	<string name="passphrase_copy">Copy passphrase</string>
 	<string name="passphrase_save">Save to password manager</string>
-	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">⚠️ Lose these words = lose your account forever.</string>
 	<string name="passphrase_never">Never share them with anyone, including Nym Support.</string>
 	<string name="passphrase_saved">I have saved these 24 words securely and will never share them</string>

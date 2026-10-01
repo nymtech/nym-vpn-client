@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
-import { Collapsible } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui/react';
 import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
 import { nodeToFavorite } from '../../../types/favorites';
 import { useNodeListState } from '../../../store/nodeListState';

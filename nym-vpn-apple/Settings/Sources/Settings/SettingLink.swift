@@ -23,6 +23,7 @@ public enum SettingLink: Hashable, Identifiable {
 #endif
     case privacyAndData
     case dns
+    case profiles
     case mixnetTuning
     case censorship
     case notifications

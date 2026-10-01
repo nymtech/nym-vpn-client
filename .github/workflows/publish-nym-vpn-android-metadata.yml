@@ -1,0 +1,85 @@
+name: publish-nym-vpn-android-metadata
+
+# Metadata-only: listing text, images, screenshots, changelogs. Runs after a release, or manually.
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: "Play Store track whose release notes/changelog to target"
+        type: choice
+        default: "alpha"
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+  workflow_call:
+    inputs:
+      track:
+        description: "Play Store track whose release notes/changelog to target"
+        type: string
+        default: "alpha"
+    secrets:
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_NOTES: ""
+
+jobs:
+  publish-metadata:
+    runs-on: arc-linux-latest
+    timeout-minutes: 15
+    env:
+      RUBYOPT: "-rresolv-replace"
+      BUNDLE_TIMEOUT: "120"
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Setup ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Create service_account.json
+        id: createServiceAccount
+        working-directory: nym-vpn-android
+        env:
+          ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf '%s' "$ANDROID_SERVICE_ACCOUNT_JSON" > service_account.json
+
+      - name: Install fastlane
+        working-directory: nym-vpn-android
+        run: bundle install
+
+      - name: Set locale (for Fastlane)
+        run: |
+          echo "LC_ALL=C.utf8" >> $GITHUB_ENV
+          echo "LANG=C.utf8" >> $GITHUB_ENV
+
+      - name: Get Android version code
+        id: version_code
+        uses: ./.github/workflows/android/get-version-code
+
+      - name: Update Google Play metadata (track=${{ inputs.track }}) 🚀
+        env:
+          FASTLANE_OPT_OUT_USAGE: "YES"
+          TRACK: ${{ inputs.track }}
+          VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+        run: |
+          echo "🚀 Updating Google Play Store metadata... (track=$TRACK, version_code=$VERSION_CODE)"
+
+          bundle exec fastlane supply \
+            --track "$TRACK" \
+            --version_code "$VERSION_CODE" \
+            --skip_upload_aab true \
+            --skip_upload_apk true \
+            --skip_upload_metadata false \
+            --skip_upload_images false \
+            --skip_upload_screenshots false \
+            --skip_upload_changelogs false

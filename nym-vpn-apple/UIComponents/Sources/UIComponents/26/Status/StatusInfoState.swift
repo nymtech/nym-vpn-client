@@ -4,7 +4,6 @@ import SwiftUI
 import Theme
 import TunnelStatus
 
-
 public enum StatusInfoState: Equatable {
     case initialising
     case connecting(retryAttempt: Int?, tunnelConnectingState: TunnelConnectingState?)

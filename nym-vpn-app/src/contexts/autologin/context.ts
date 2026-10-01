@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 import { DeeplinkKind } from '../../types/tauri';
 
 export type AutologinKind = Extract<
@@ -22,5 +22,5 @@ export const AutologinContext =
   createContext<AutologinContextType>(initialState);
 
 export function useAutologin() {
-  return useContext(AutologinContext);
+  return use(AutologinContext);
 }

@@ -33,7 +33,7 @@ use nym_vpn_api_client::{
     request::RequestZkNymRequestBody,
     response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
 };
-use rand::distributions::{Alphanumeric, DistString};
+use rand::distr::{Alphanumeric, SampleString};
 use time::{Date, OffsetDateTime, macros::format_description};
 
 use wiremock::{Request, Respond, ResponseTemplate};
@@ -202,7 +202,7 @@ impl MockCredentialProxy {
         move |req: &Request| {
             let request: RequestZkNymRequestBody = req.body_json().unwrap();
             let t_type = request.ticketbook_type.clone();
-            let id = Alphanumeric.sample_string(&mut rand::thread_rng(), 15);
+            let id = Alphanumeric.sample_string(&mut rand::rng(), 15);
 
             // Prepare the actual response
             let wallet = TicketbookWalletSharesResponse {

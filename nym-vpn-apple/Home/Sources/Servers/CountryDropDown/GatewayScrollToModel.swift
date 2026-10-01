@@ -1,6 +1,4 @@
 import ConnectionTypes
-import ConnectionTypes
-
 public enum GatewayScrollToModel: Equatable {
     case country(code: String)
     case region(countryCode: String, region: String)

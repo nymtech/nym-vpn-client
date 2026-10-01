@@ -14,7 +14,7 @@ function useDebounce<T extends unknown[]>(
   callback: (...args: T) => void,
   delay = 250,
 ): DebouncedFn<T> {
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callbackRef = useRef(callback);
 
   useEffect(() => {
@@ -22,9 +22,9 @@ function useDebounce<T extends unknown[]>(
   }, [callback]);
 
   const cancel = useCallback(() => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
   }, []);
 
@@ -33,7 +33,7 @@ function useDebounce<T extends unknown[]>(
   const debounced = useCallback(
     (...args: T) => {
       cancel();
-      timer.current = setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         callbackRef.current(...args);
       }, delay);
     },

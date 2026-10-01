@@ -32,13 +32,13 @@ const backActions: Partial<Record<View, { target: View; label: string }>> = {
 function WelcomeScreenContainer() {
   const [view, setView] = useState<View>('welcome');
   const [dir, setDir] = useState(1);
-  const hasNavigated = useRef(false);
+  const hasNavigatedRef = useRef(false);
   const uiTheme = useAppStore((s) => s.uiTheme);
 
   const globalNavigate = useNavigate();
 
   const navigate = (to: View, direction: 1 | -1 = 1) => {
-    hasNavigated.current = true;
+    hasNavigatedRef.current = true;
     setDir(direction);
     setView(to);
   };
@@ -80,7 +80,7 @@ function WelcomeScreenContainer() {
             custom={dir}
             variants={slideVariants}
             // Skip enter animation on first load — the card slide-up carries the content in
-            initial={hasNavigated.current ? 'enter' : false}
+            initial={hasNavigatedRef.current ? 'enter' : false}
             animate="visible"
             exit="exit"
             transition={{ duration: 0.15, ease: 'easeInOut' }}

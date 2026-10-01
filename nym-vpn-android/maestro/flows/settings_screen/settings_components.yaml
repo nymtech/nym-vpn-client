@@ -19,6 +19,7 @@ tags:
 - assertVisible: "Mixnet tuning"
 - assertVisible: "Split tunneling"
 - assertVisible: "Geo Exclusion"
+- assertVisible: "Connection profiles"
 
 - scrollUntilVisible:
     element:

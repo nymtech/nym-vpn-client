@@ -1,3 +1,6 @@
+// Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use aes_gcm::{
     Aes256Gcm, Nonce,
     aead::{Aead, KeyInit},
@@ -6,7 +9,7 @@ use hkdf::Hkdf;
 use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
-use rand::{RngCore, rngs::OsRng};
+use rand08::{RngCore, rngs::OsRng};
 use sha2::{Sha256, Sha512};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
@@ -225,16 +228,13 @@ impl CipherPacket {
         let info = b"nym-deeplink-v1";
 
         let shared_bytes = recipient_sk.private_key().diffie_hellman(sender_pk);
-
         let key_bytes = self.derive_aes256gcm_key(&shared_bytes, info)?;
-
         let cipher = Aes256Gcm::new_from_slice(&key_bytes)
             .map_err(|_| DeeplinkError::InvalidPayload("invalid AES256GCM key".to_string()))?;
 
-        let nonce = Nonce::from_slice(&self.iv);
-
+        let nonce = Nonce::from(self.iv);
         let plaintext = cipher
-            .decrypt(nonce, self.ciphertext.as_ref())
+            .decrypt(&nonce, self.ciphertext.as_ref())
             .map_err(|_| DeeplinkError::InvalidPayload("decryption failed".to_string()))?;
 
         Ok(plaintext)
@@ -294,10 +294,10 @@ impl PinCode {
         let key = self.get_key(&self.code, &salt);
         let cipher = Aes256Gcm::new_from_slice(&key)
             .map_err(|e| DeeplinkError::InvalidPayload(e.to_string()))?;
-        let nonce = Nonce::from_slice(&iv);
+        let nonce = Nonce::from(iv);
 
         let encrypted = cipher
-            .encrypt(nonce, message.as_bytes())
+            .encrypt(&nonce, message.as_bytes())
             .map_err(|e| DeeplinkError::InvalidPayload(e.to_string()))?;
 
         let split_at = encrypted.len() - Self::TAG_LEN;

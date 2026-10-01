@@ -137,7 +137,7 @@ location = "BE"
 "#;
 
     let json_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "country": {
       "two_letter_iso_country_code": "FR"
@@ -153,6 +153,7 @@ location = "BE"
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -216,7 +217,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
     let json_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -232,6 +233,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -381,7 +383,7 @@ exit_point = "Random"
 "#;
 
     let json_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": "random",
   "exit_point": "random",
   "allow_lan": false,
@@ -389,6 +391,7 @@ exit_point = "Random"
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -453,7 +456,7 @@ async fn test_service_config_migrate_from_v1() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -469,6 +472,7 @@ async fn test_service_config_migrate_from_v1() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -542,7 +546,7 @@ async fn test_service_config_migrate_from_v2() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -558,6 +562,7 @@ async fn test_service_config_migrate_from_v2() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -634,7 +639,7 @@ async fn test_service_config_migrate_from_v3() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -650,6 +655,7 @@ async fn test_service_config_migrate_from_v3() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -745,7 +751,7 @@ async fn test_service_config_migrate_from_v4() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -761,6 +767,7 @@ async fn test_service_config_migrate_from_v4() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": 23,
@@ -861,7 +868,7 @@ async fn test_service_config_migrate_from_v5() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -877,6 +884,7 @@ async fn test_service_config_migrate_from_v5() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": 23,
@@ -967,7 +975,7 @@ async fn test_service_config_migrate_from_v6() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -983,6 +991,7 @@ async fn test_service_config_migrate_from_v6() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": 23,
@@ -1193,6 +1202,7 @@ async fn test_service_config_serialize_full() {
         enable_two_hop: true,
         enable_bridges: false,
         enable_ad_blocking: true,
+        enable_conflict_detection: true,
         netstack: true,
         min_gateway_vpn_performance: Some(1u8),
         residential_exit: true,
@@ -1279,7 +1289,7 @@ async fn test_service_config_migrate_from_v7() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1295,6 +1305,7 @@ async fn test_service_config_migrate_from_v7() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -1384,7 +1395,7 @@ async fn test_service_config_migrate_from_v8() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1400,6 +1411,7 @@ async fn test_service_config_migrate_from_v8() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
@@ -1501,7 +1513,7 @@ async fn test_service_config_migrate_from_v9() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v12",
+  "version": "v13",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1517,6 +1529,7 @@ async fn test_service_config_migrate_from_v9() {
   "enable_two_hop": true,
   "enable_bridges": false,
   "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,

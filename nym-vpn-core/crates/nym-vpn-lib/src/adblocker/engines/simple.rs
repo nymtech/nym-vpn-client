@@ -8,14 +8,13 @@ use std::{
 
 use adblock::{
     filters::network::NetworkFilterMaskHelper,
-    lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter},
+    lists::{ParseOptions, ParsedLine, RuleTypes, parse_filter},
 };
 use futures::{StreamExt, TryFutureExt, TryStreamExt, pin_mut};
 use itertools::Itertools;
 use nym_common::trace_err_chain;
-use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlx::{
-    ConnectOptions, Connection, QueryBuilder, Sqlite, SqliteConnection,
+    AssertSqlSafe, ConnectOptions, Connection, QueryBuilder, Sqlite, SqliteConnection, SqlitePool,
     pool::PoolConnection,
     sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
 };
@@ -46,7 +45,7 @@ const DOMAIN_BATCH_SIZE: usize = 999;
 #[derive(Clone)]
 pub struct SimpleAdBlockEngine {
     db_path: PathBuf,
-    db: Arc<RwLock<Option<SqlitePoolGuard>>>,
+    db: Arc<RwLock<Option<SqlitePool>>>,
 }
 
 impl SimpleAdBlockEngine {
@@ -87,7 +86,7 @@ impl AdBlockEngine for SimpleAdBlockEngine {
             }
         };
 
-        let conn = (*db)
+        let conn = db
             .acquire()
             .await
             .map_err(AdBlockerError::AcquireDbConnection)?;
@@ -240,12 +239,12 @@ where
         }
 
         let placeholders = vec!["?"; domains.len()].join(", ");
-        let sql = format!(
+        let sql = AssertSqlSafe(format!(
             "SELECT EXISTS(SELECT 1 FROM blocked_domains WHERE domain_name IN ({}) LIMIT 1)",
             placeholders
-        );
+        ));
 
-        let mut query = sqlx::query_scalar(&sql);
+        let mut query = sqlx::query_scalar(sql);
         for d in domains {
             query = query.bind(d);
         }
@@ -258,7 +257,7 @@ where
 }
 
 /// Open the SQLite database at the given path and perform migrations.
-async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
+async fn open_db(db_path: &Path) -> Result<SqlitePool> {
     let opts = SqliteConnectOptions::new()
         .filename(db_path)
         .create_if_missing(true)
@@ -273,10 +272,8 @@ async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
         .connect_with(opts)
         .await
         .map_err(AdBlockerError::OpenDb)?;
-    let pool = SqlitePoolGuard::new(pool);
-
     match sqlx::migrate!("src/adblocker/db/migrations")
-        .run(&*pool)
+        .run(&pool)
         .await
         .map_err(AdBlockerError::MigrateDb)
     {
@@ -329,7 +326,7 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
         let chunk_stream = line_stream
             .try_filter_map(|line| async move {
                 // Ignore errors since they aren't that useful
-                let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts) else {
+                let Ok(ParsedLine::Network(filter)) = parse_filter(&line, false, opts) else {
                     return Ok(None);
                 };
 

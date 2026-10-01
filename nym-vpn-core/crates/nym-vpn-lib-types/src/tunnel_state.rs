@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
+use crate::SelectorFallbackState;
+
 use super::connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, TunnelConnectionData,
 };
@@ -53,6 +55,7 @@ pub enum TunnelState {
     Connecting {
         retry_attempt: u32,
         state: EstablishConnectionState,
+        selector_fallback_state: SelectorFallbackState,
         tunnel_type: TunnelType,
         connection_data: Option<EstablishConnectionData>,
     },
@@ -88,6 +91,7 @@ impl std::fmt::Display for TunnelState {
             Self::Connecting {
                 retry_attempt,
                 state,
+                selector_fallback_state,
                 tunnel_type,
                 connection_data,
             } => match connection_data {
@@ -136,9 +140,11 @@ impl std::fmt::Display for TunnelState {
                 },
                 None => write!(
                     f,
-                    "Connecting {}, {}, try #{}",
+                    "Connecting {}, {}, fallback entry: {}, fallback exit: {}, try #{}",
                     tunnel_type.short_name(),
                     state,
+                    selector_fallback_state.entry_fallback,
+                    selector_fallback_state.exit_fallback,
                     retry_attempt
                 ),
             },

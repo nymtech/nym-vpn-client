@@ -192,6 +192,29 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_falls_back_to_default_when_cache_fails_to_parse() {
+        let cache_dir = tempdir().unwrap();
+        let mainnet_store = PersistentDiscovery::path(cache_dir.path(), "mainnet");
+        tokio::fs::create_dir_all(mainnet_store.parent().unwrap())
+            .await
+            .unwrap();
+        tokio::fs::write(&mainnet_store, "not valid json")
+            .await
+            .unwrap();
+
+        let persistent_discovery =
+            PersistentDiscovery::new_from_cache(cache_dir.path().to_path_buf(), "mainnet")
+                .await
+                .unwrap();
+
+        assert_eq!(persistent_discovery.value(), &Discovery::default_mainnet());
+
+        // The unparseable cache is overwritten with the default so subsequent loads succeed too.
+        let contents = tokio::fs::read_to_string(&mainnet_store).await.unwrap();
+        assert!(serde_json::from_str::<CachedDiscovery>(&contents).is_ok());
+    }
+
+    #[tokio::test]
     async fn test_should_prohibit_inconsistent_update() {
         let cache_dir = tempdir().unwrap();
         let mut persistent_discovery =

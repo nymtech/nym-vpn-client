@@ -114,29 +114,31 @@ async fn authorized_stream(
     stream: &mut Transport,
     auth_material: Option<AuthenticationMaterial>,
 ) -> bool {
+    // do the authentication checks as soon as possible, before we start reading/writing to the stream
+    let authorized = if let Some(auth_material) = auth_material {
+        match is_authenticated(stream, auth_material).await {
+            Ok(()) => {
+                tracing::debug!("Client connection got authorized");
+                true
+            }
+            Err(err) => {
+                // Surface auth failures at warn so they appear in the default
+                // log level. Without this the actual reason for a stuck
+                // "Authentication required" modal is hidden behind RUST_LOG=debug.
+                tracing::warn!("Connection did not get authenticated: {err:?}");
+                false
+            }
+        }
+    } else {
+        tracing::debug!("Skipping authentication checks");
+        true
+    };
+
     if !AuthenticaticationQuery::recv(&mut *stream).await.status() {
         tracing::warn!("Query not recognized");
     }
-    let Some(auth_material) = auth_material else {
-        tracing::debug!("Skipping authentication checks");
-        authorize(stream).await;
-        return true;
-    };
-    match is_authenticated(stream, auth_material).await {
-        Ok(()) => {
-            authorize(stream).await;
-            tracing::debug!("Client connection got authorized");
-            true
-        }
-        Err(err) => {
-            deny(stream).await;
-            // Surface auth failures at warn so they appear in the default
-            // log level. Without this the actual reason for a stuck
-            // "Authentication required" modal is hidden behind RUST_LOG=debug.
-            tracing::warn!("Connection did not get authenticated: {err:?}");
-            false
-        }
-    }
+
+    authorized
 }
 
 impl<T: Unpin + Stream<Item = Result<Transport>>> AuthenticationLayer<T> {
@@ -161,7 +163,10 @@ impl<T: Unpin + Stream<Item = Result<Transport>>> AuthenticationLayer<T> {
                 };
                 let mut stream = stream?;
                 if authorized_stream(&mut stream, self.auth_material.clone()).await {
+                    authorize(&mut stream).await;
                     yield stream;
+                } else {
+                    deny(stream).await;
                 }
 
             }

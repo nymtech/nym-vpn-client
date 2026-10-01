@@ -6,6 +6,7 @@ import Tunnels
 import TunnelStatus
 
 extension PacketTunnelProvider {
+    // swiftlint:disable:next function_body_length
     override func handleAppMessage(_ messageData: Data) async -> Data? {
         guard let message = try? TunnelProviderMessage(messageData: messageData)
         else {
@@ -14,6 +15,10 @@ extension PacketTunnelProvider {
         switch message {
         case .status:
             return await handleStatusMessage()
+
+        case let .setProfile(profile):
+            await runCommand { try await self.commandSender?.setProfile(profile: profile.toCoreProfile()) }
+            return nil
 
         case let .setCustomDns(addrs):
             await runCommand { try await self.commandSender?.setCustomDns(addrs: addrs) }
@@ -114,6 +119,7 @@ private extension PacketTunnelProvider {
             case let .connecting(
                 retryAttempt: attempt,
                 state: establishConnectionState,
+                selectorFallbackState: _, // todo: must be used
                 tunnelType: tunnelType,
                 connectionData: connectionData
             ):

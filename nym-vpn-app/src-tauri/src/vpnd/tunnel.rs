@@ -128,6 +128,7 @@ impl TunnelState {
                 connection_data,
                 retry_attempt,
                 state,
+                selector_fallback_state: _,
                 tunnel_type,
             } => {
                 let entry_gw_id = connection_data.as_ref().map(|d| d.entry_gateway.id.clone());

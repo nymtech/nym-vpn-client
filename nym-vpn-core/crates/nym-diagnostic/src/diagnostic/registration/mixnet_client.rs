@@ -50,7 +50,7 @@ impl MixnetClientRegistration {
         tracing::info!("Starting mixnet client");
 
         let disconnected_mixnet_client = match Self::build_mixnet_client(
-            network.nym_network_details().clone(),
+            network.nym_network_details().clone().into(),
             &parameters.gateway,
             Box::new(topology_provider),
         ) {
@@ -289,7 +289,7 @@ async fn setup_wg_registration(
 ) -> anyhow::Result<WgRegistrationConfig> {
     let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
 
-    let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rngs::OsRng));
+    let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rand08::rngs::OsRng));
 
     let gateway_version = gateway.version().to_string();
     let authenticator_address = gateway

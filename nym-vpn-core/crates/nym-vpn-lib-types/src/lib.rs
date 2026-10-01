@@ -69,8 +69,8 @@ pub use account::{
 };
 pub use connection_data::{
     BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
-    GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    WireguardConnectionData, WireguardNode,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, SelectorFallbackState,
+    TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use diagnostic::{
@@ -89,9 +89,9 @@ pub use gateway::{
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::GatewaySelectionAlgorithmConfig;
 pub use network::{
-    ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
-    NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
-    SystemConfiguration, SystemMessage, ValidatorDetails,
+    ApiUrl, ChainDetails, DenomDetailsOwned, DnsFallback, FeatureFlags, FlagValue, Network,
+    NetworkCompatibility, NymContracts, NymNetworkDetails, NymNetworkingSpecifics, NymVpnNetwork,
+    ParsedAccountLinks, SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use paths::LogPath;
@@ -110,8 +110,8 @@ pub use service::{
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 pub use tunnel_event::{
-    BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, DiagnosticsSuggestionReason,
-    MixnetEvent, SphinxPacketRates, TunnelEvent,
+    BandwidthEvent, ConflictDetected, ConnectionEvent, ConnectionStatisticsEvent,
+    DiagnosticsSuggestionReason, MixnetEvent, SphinxPacketRates, TunnelEvent,
 };
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
 pub use user_agent::UserAgent;

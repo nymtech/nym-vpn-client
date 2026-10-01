@@ -117,7 +117,7 @@ struct WorkflowReportTests {
         (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingFlowTests"),
         (scheme: "Services-Package", target: "CredentialsManagerTests/AccountTokenByEnvStorageTests"),
         (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerSessionPolicyTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerCredentialImportPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerCredentialImportPolicyTests")
     ])
     func testStepRunsAdditionalSuite(scheme: String, target: String) throws {
         let action = try loadYAML(Self.actionRelativePath)

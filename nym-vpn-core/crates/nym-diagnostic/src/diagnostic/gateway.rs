@@ -8,7 +8,7 @@ use nym_gateway_directory::{Gateway, GatewayClient};
 use nym_lp::{Ciphersuite, peer::LpRemotePeer};
 use nym_lp_data::packet::version;
 use nym_platform_metadata::new_user_agent;
-use nym_registration_client::LpRegistrationClient;
+use nym_registration_client::LpGatewayClient;
 use nym_vpn_lib_types::{DiagnosticResult, GatewayReport};
 use nym_vpn_network_config::Network;
 
@@ -225,8 +225,8 @@ impl GatewayDiagnostic {
                 .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
         );
 
-        let dh_keypair = x25519::DHKeyPair::new(&mut rand10::rng());
-        let mut lp_client = LpRegistrationClient::<TcpStream>::new_with_default_config(
+        let dh_keypair = x25519::DHKeyPair::new(&mut rand::rng());
+        let mut lp_client = LpGatewayClient::<TcpStream>::new_with_default_config(
             Arc::new(dh_keypair),
             gateway_lp_peer.clone(),
             gateway_lp_address,

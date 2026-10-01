@@ -7,26 +7,35 @@ on:
     - cron: "0 23 * * *"
   workflow_dispatch:
 
-# The AppleSilicon runner is shared with the Apple build workflows and has a
-# persistent $HOME. Two concurrent runs would collide over simulators and the
-# staged NymVPNLib; queue instead, and never discard a nightly run in progress.
+# Self-hosted macOS runners are reused between jobs. Two concurrent runs (nightly
+# plus a manual dispatch) would compete for simulators on the same host; queue
+# instead, and never discard a nightly run in progress.
 concurrency:
   group: ci-maestro-ios
   cancel-in-progress: false
 
 env:
   UI_SCRIPTS_DIR: .github/scripts/ui
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
   maestro-ui-tests:
-    # Self-hosted Apple Silicon: builds the Rust core (sim slice) the mock app links.
-    runs-on: AppleSilicon
+    # Same self-hosted pool as the other iOS workflows: builds the Rust core (sim slice) the mock app links.
+    runs-on: custom-macos-15
     timeout-minutes: 90
     outputs:
       report_url: ${{ steps.upload-report.outputs.artifact-url }}
       debug_url: ${{ steps.upload-debug.outputs.artifact-url }}
 
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -37,8 +46,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          # ios-sim is the simulator slice Maestro drives.
-          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-darwin
+          # Simulator slices Maestro drives: aarch64-apple-ios-sim on Apple Silicon, x86_64-apple-ios on Intel hosts.
+          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios x86_64-apple-darwin
 
       - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
@@ -46,22 +55,43 @@ jobs:
           crate: cargo-swift
           version: ${{ env.CARGO_SWIFT_VERSION }}
 
+      # Same protoc as ci-nym-vpn-core-ios.yml. The action queries the GitHub
+      # releases API, which occasionally times out; retry once before failing.
       - name: Install Protoc
+        id: protoc
+        continue-on-error: true
         uses: arduino/setup-protoc@v3
         with:
+          version: "21.12"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Protoc (retry)
+        if: steps.protoc.outcome == 'failure'
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Go
         uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ env.GOLANG_VERSION }}
-          # No caching: $HOME persists on this runner, so the cache restores files that were never lost (and clobbers read-only Go objects).
+          # No caching: self-hosted runners keep $HOME between jobs, so the cache restores files that were never lost (and clobbers read-only Go objects).
           cache: false
 
       # RUST_TRIPLET builds the simulator slice Maestro needs (RELEASE=false, no signing).
+      # The custom-macos-15 pool includes Intel hosts, so match the host arch (as ci-nym-vpn-app-ios.yml does).
       - name: Build NymVPNLib (iOS core)
         working-directory: nym-vpn-core
-        run: make -f iOS.mk RELEASE=false RUST_TRIPLET=aarch64-apple-ios-sim
+        run: |
+          set -euo pipefail
+          case "$(uname -m)" in
+            arm64) RUST_TRIPLET="aarch64-apple-ios-sim" ;;
+            x86_64) RUST_TRIPLET="x86_64-apple-ios" ;;
+            *) echo "::error::Unsupported architecture: $(uname -m)"; exit 1 ;;
+          esac
+          echo "Building core for $RUST_TRIPLET"
+          make -f iOS.mk RELEASE=false RUST_TRIPLET="$RUST_TRIPLET"
 
       - name: Stage NymVPNLib into the apple project
         run: |
@@ -142,6 +172,7 @@ jobs:
               -scheme NymVPN-Mock \
               -destination "id=$DEVICE_ID" \
               -derivedDataPath build \
+              ONLY_ACTIVE_ARCH=YES \
               CODE_SIGNING_ALLOWED=NO \
               SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) DEBUG MOCK_MODE'
           }
@@ -151,6 +182,13 @@ jobs:
           else
             build_mock_app
           fi
+
+      # setup-java verifies the Temurin download signature with gpg; the runner may not ship it.
+      - name: Ensure gpg
+        run: |
+          set -euo pipefail
+          command -v gpg >/dev/null || brew install gnupg
+          gpg --version
 
       # Maestro runs on the JVM; the runner has no system Java. Same JDK as ci-maestro-android.yml.
       - name: Set up JDK 21
@@ -275,7 +313,12 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  # Runs on ubuntu-latest, not AppleSilicon: the notification must never queue
+      # Shut down only our simulator: the pool is shared, so booted sims would pile up across runs.
+      - name: Shut down simulator
+        if: always() && env.DEVICE_ID != ''
+        run: xcrun simctl shutdown "$DEVICE_ID" || true
+
+  # Runs on ubuntu-latest, not the self-hosted macOS pool: the notification must never queue
   # behind the self-hosted runner it is reporting on.
   notify-zulip:
     name: Zulip UI status
@@ -303,10 +346,28 @@ jobs:
           name: maestro-ios-report
           path: downloaded-report
 
+      # A job cancelled while still queued (no runner for 24h) has no steps.
+      # Report it as not-started so it doesn't read like a mid-run cancel.
+      # Any API error falls back to the plain "cancelled" status.
+      - name: Detect never-started job
+        id: started
+        if: needs.maestro-ui-tests.result == 'cancelled'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          STEPS=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+            --jq '[.jobs[] | select(.name == "maestro-ui-tests") | .steps | length] | first // empty') || STEPS=""
+          echo "maestro-ui-tests steps executed: ${STEPS:-unknown}"
+          if [ "$STEPS" = "0" ]; then
+            echo "status=not-started" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Compose message
         id: msg
         env:
           NEEDS_RESULT: ${{ needs.maestro-ui-tests.result }}
+          STATUS_OVERRIDE: ${{ steps.started.outputs.status }}
           UI_BRANCH: ${{ github.ref_name }}
           UI_SHA: ${{ github.sha }}
           UI_EVENT_NAME: ${{ github.event_name }}
@@ -322,6 +383,9 @@ jobs:
             skipped) UI_STATUS="skipped" ;;
             *) UI_STATUS="$NEEDS_RESULT" ;;
           esac
+          if [ -n "$STATUS_OVERRIDE" ]; then
+            UI_STATUS="$STATUS_OVERRIDE"
+          fi
           export UI_STATUS UI_PLATFORM="ios"
 
           REPORT_ARGS=()

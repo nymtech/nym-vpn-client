@@ -798,9 +798,7 @@ impl GatewayList {
     }
 
     pub fn choose_random(&self, filters: &GatewayFilters) -> Option<Gateway> {
-        self.filter(filters)
-            .into_iter()
-            .choose(&mut rand::thread_rng())
+        self.filter(filters).into_iter().choose(&mut rand::rng())
     }
 
     pub fn filtered_min_by<F>(&self, filters: &GatewayFilters, cmp: F) -> Option<Gateway>
@@ -825,7 +823,7 @@ impl GatewayList {
         filtered
             .into_iter()
             .take(candidates)
-            .choose(&mut rand::thread_rng())
+            .choose(&mut rand::rng())
     }
 
     pub fn retain_gateways_by<F>(&mut self, pred: F)

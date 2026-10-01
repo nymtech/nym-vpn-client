@@ -1,4 +1,4 @@
-import { Separator } from '@base-ui-components/react';
+import { Separator } from '@base-ui/react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';

@@ -85,7 +85,17 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  download-translations:
+    uses: ./.github/workflows/crowdin-download.yml
+    secrets: inherit
+    if: ${{ inputs.build_ios == true || inputs.build_macos == true }}
+    with:
+      config_path: crowdin-configs/macos-ios.yml
+      artifact_name: translations-apple
+      artifact_path: nym-vpn-apple/NymVPN/Resources/*.xcstrings
+
   build-ios-app:
+    needs: download-translations
     uses: ./.github/workflows/build-nym-vpn-app-ios.yml
     if: ${{ inputs.build_ios == true }}
     with:
@@ -94,6 +104,7 @@ jobs:
     secrets: inherit
 
   build-macos-app:
+    needs: download-translations
     uses: ./.github/workflows/build-nym-vpn-app-macos.yml
     if: ${{ inputs.build_macos == true }}
     with:

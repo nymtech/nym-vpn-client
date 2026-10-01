@@ -1,4 +1,7 @@
+# Revealing the account passphrase and confirming it has been saved.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
@@ -22,7 +25,8 @@ appId: net.nymtech.nymvpn.mock.debug
           text: "Copy passphrase"
       timeout: 15000
 
-- assertVisible: "Download"
+- assertVisible: "Copy passphrase"
+- assertVisible: "Save to password manager"
 - tapOn: "Save to password manager"
 
 - scrollUntilVisible:

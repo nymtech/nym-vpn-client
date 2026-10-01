@@ -28,9 +28,10 @@ impl NyxdClient {
         if self.client.is_some() {
             return Ok(());
         }
-        let network_details = self.network.nym_network_details();
+        let network_details: nym_sdk::NymNetworkDetails =
+            self.network.nym_network_details().clone().into();
         let client_config =
-            Config::try_from_nym_network_details(network_details).map_err(|err| {
+            Config::try_from_nym_network_details(&network_details).map_err(|err| {
                 AccountCommandError::NyxdConnectionFailure(format!(
                     "invalid network information: {err}"
                 ))

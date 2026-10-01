@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Collapsible } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui/react';
 import {
   SelectedKind,
   SelectedUiNode,

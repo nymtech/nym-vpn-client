@@ -12,16 +12,16 @@ import { useCallback, useRef, useState } from 'react';
 export default function useRefreshAccountSummary() {
   const [refreshing, setRefreshing] = useState(false);
   // Guard against overlapping invocations (e.g. mount-refresh + fast button clicks).
-  const inFlight = useRef(false);
+  const inFlightRef = useRef(false);
 
   const refresh = useCallback(async (force = true) => {
-    if (inFlight.current) return;
-    inFlight.current = true;
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setRefreshing(true);
     try {
       await invoke<void>('refresh_account_state', { force });
     } finally {
-      inFlight.current = false;
+      inFlightRef.current = false;
       setRefreshing(false);
     }
   }, []);

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Collapsible } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui/react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { MsIcon } from '../../../ui';

@@ -1,7 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use rand::Rng;
 use time::{Duration, OffsetDateTime};
 
 use crate::keys::wireguard::WireguardKeys;
@@ -13,12 +12,13 @@ const MIN_TTL: Duration = Duration::weeks(1);
 const MAX_TTL: Duration = Duration::weeks(2);
 
 fn random_keys() -> WireguardKeys {
-    let mut rng = rand::rngs::OsRng;
+    let mut rng = rand08::rngs::OsRng;
     WireguardKeys::generate_new(&mut rng)
 }
 
 fn random_timestamp_from(start: OffsetDateTime) -> OffsetDateTime {
-    let mut rng = rand::rngs::OsRng;
+    use rand08::Rng;
+    let mut rng = rand08::rngs::OsRng;
     let random_seconds = rng.gen_range(MIN_TTL.whole_seconds()..MAX_TTL.whole_seconds());
     start.saturating_add(Duration::seconds(random_seconds))
 }

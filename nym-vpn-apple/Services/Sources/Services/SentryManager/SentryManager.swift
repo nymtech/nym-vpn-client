@@ -10,7 +10,6 @@ import AppSettings
 
     public init(appSettings: AppSettings) {
         self.appSettings = appSettings
-        SentrySDK.start { _ in }
     }
 
     public func setup() {
@@ -33,10 +32,7 @@ extension SentryManager {
                 options.dsn = "https://f860c307259ffe7827fa4ecdfaa8834f@o967446.ingest.us.sentry.io/4507135758237696"
                 options.debug = false
                 options.tracesSampleRate = 1.0
-
-                // Uncomment the following lines to add more data to your events
-                // options.attachScreenshot = true // This adds a screenshot to the error events
-                // options.attachViewHierarchy = true // This adds the view hierarchy to the error events
+                options.sendDefaultPii = false
             }
         } else {
             SentrySDK.close()

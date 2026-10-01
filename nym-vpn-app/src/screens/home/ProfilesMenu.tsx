@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { Menu } from '@base-ui-components/react';
+import { Menu } from '@base-ui/react';
 import { PROFILES } from '../../constants';
 import { Profile } from '../../types';
 import { MsIcon, ProfileIcon } from '../../ui';

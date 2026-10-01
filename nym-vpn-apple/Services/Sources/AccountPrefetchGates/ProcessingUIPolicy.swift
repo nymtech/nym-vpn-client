@@ -34,7 +34,7 @@ public enum LoginProcessingUI: Sendable {
             settingUpTitleKey,
             settingUpStep2SubtitleKey,
             settingUpStep3SubtitleKey,
-            settingUpStep4SubtitleKey,
+            settingUpStep4SubtitleKey
         ]
     }
 
@@ -43,7 +43,7 @@ public enum LoginProcessingUI: Sendable {
         return [
             (settingUpStep2SubtitleKey.localizedString, context),
             (settingUpStep3SubtitleKey.localizedString, context),
-            (settingUpStep4SubtitleKey.localizedString, context),
+            (settingUpStep4SubtitleKey.localizedString, context)
         ]
     }
 
@@ -52,14 +52,14 @@ public enum LoginProcessingUI: Sendable {
             loadingCredentialsTitleKey,
             loadingCredentialsSubtitleKey,
             almostReadyTitleKey,
-            almostReadySubtitleKey,
+            almostReadySubtitleKey
         ]
     }
 
     public static func credentialsCarouselPairs() -> [(String, String)] {
         [
             (loadingCredentialsTitleKey.localizedString, loadingCredentialsSubtitleKey.localizedString),
-            (almostReadyTitleKey.localizedString, almostReadySubtitleKey.localizedString),
+            (almostReadyTitleKey.localizedString, almostReadySubtitleKey.localizedString)
         ]
     }
 }

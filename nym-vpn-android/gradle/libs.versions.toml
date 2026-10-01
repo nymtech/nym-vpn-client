@@ -1,23 +1,24 @@
 [versions]
 accompanist = "0.37.3"
-agp = "9.4.0"
+agp = "9.4.1"
 coreSplashscreen = "1.2.0"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.6.2"
-jna = "5.18.1"
-kotlin = "2.4.10"
-ksp = "2.3.11"
-coreKtx = "1.18.0"
+jna = "5.19.1"
+kotlin = "2.4.20"
+ksp = "2.3.12"
+coreKtx = "1.19.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lottieCompose = "6.7.1"
 materialIconsExtended = "1.7.8"
-navigationCompose = "2.9.8"
+navigationCompose = "2.10.1"
 hiltNavigationCompose = "1.4.0"
 lifecycle-compose = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.03.00"
+appcompat = "1.7.1"
+composeBom = "2026.09.00"
 datastorePreferences = "1.2.1"
 relinker = "1.4.5"
 securityCrypto = "1.1.0"
@@ -30,18 +31,16 @@ uiautomator = "2.4.0"
 window = "1.5.1"
 windowCoreAndroid = "1.5.1"
 desugar = "2.1.5"
-zxingAndroidEmbedded = "4.3.0"
-sentry = "8.55.0"
-billing-client = "8.3.0"
+sentry = "8.58.0"
+billing-client = "9.1.0"
 biometric = "1.4.0-alpha07"
-credentials = "1.7.0-alpha02"
+credentials = "1.7.0-alpha03"
 
 gradlePlugins-licensee = "1.14.1"
 gradlePlugins-detekt = "2.0.0-alpha.6"
 gradlePlugins-gross = "0.4.6"
 material = "1.14.0"
 gradlePlugins-ktlint = "14.2.0"
-gradlePlugins-grgit = "5.3.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,6 +61,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-compose" }
 androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle-compose" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
@@ -75,9 +75,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
 
-#barcode
 semver4j = { module = "org.semver4j:semver4j", version.ref = "semver4j" }
-zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 #util
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
@@ -120,7 +118,6 @@ credentials = { module = "androidx.credentials:credentials", version.ref = "cred
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 licensee = { id = "app.cash.licensee", version.ref = "gradlePlugins-licensee" }
@@ -128,4 +125,3 @@ gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "dev.detekt", version.ref = "gradlePlugins-detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
-grgit = { id = "org.ajoberstar.grgit.service", version.ref = "gradlePlugins-grgit" }

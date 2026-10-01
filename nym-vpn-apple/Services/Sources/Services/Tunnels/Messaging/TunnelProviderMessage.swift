@@ -3,6 +3,7 @@ import ConnectionTypes
 
 public enum TunnelProviderMessage: Codable {
     case status
+    case setProfile(ConnectionProfile)
     case setCustomDns([String])
     case setEnableCustomDns(Bool)
     case setEnableTwoHop(Bool)

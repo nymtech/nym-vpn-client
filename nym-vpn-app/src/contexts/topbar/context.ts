@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 export type TopBarContextType = {
   // Custom handler that overrides the default left nav behavior
@@ -19,5 +19,5 @@ export const TopBarContext = createContext<TopBarContextType>(init);
 
 // Access the TopBar context
 export const useTopBar = () => {
-  return useContext(TopBarContext);
+  return use(TopBarContext);
 };

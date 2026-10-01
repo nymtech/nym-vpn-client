@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { motion, useInView } from 'framer-motion';
-import { FC, useRef } from 'react';
+import { type FC, useRef } from 'react';
 
 type TextStaggeredFadeProps = {
   text: string;

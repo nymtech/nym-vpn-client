@@ -191,6 +191,7 @@ pub fn default_tunnel_settings() -> TunnelSettings {
         tunnel_type: TunnelType::Wireguard,
         allow_lan: false,
         enable_ad_blocking: false,
+        enable_conflict_detection: false,
         residential_exit: false,
         mixnet_tunnel_options: Default::default(),
         wireguard_tunnel_options: Default::default(),
@@ -573,6 +574,7 @@ async fn mainnet_syntethic_node_families() {
                 &BlacklistedGateways::new(),
                 &settings,
                 None,
+                None,
                 &WireguardKeysDb::Ephemeral(Default::default()),
             )
             .await
@@ -856,6 +858,7 @@ async fn all_gateways_same_family_blocks_selection() {
         &BlacklistedGateways::new(),
         &settings,
         None,
+        None,
         &WireguardKeysDb::Ephemeral(Default::default()),
     )
     .await;
@@ -905,6 +908,7 @@ async fn single_valid_pair_is_always_chosen() {
         &BlacklistedGateways::new(),
         &settings,
         None,
+        None,
         &WireguardKeysDb::Ephemeral(Default::default()),
     )
     .await
@@ -930,6 +934,7 @@ async fn empty_gateway_pool_returns_error() {
         cache,
         &BlacklistedGateways::new(),
         &default_tunnel_settings(),
+        None,
         None,
         &WireguardKeysDb::Ephemeral(Default::default()),
     )

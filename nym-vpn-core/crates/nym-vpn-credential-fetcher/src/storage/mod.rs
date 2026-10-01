@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_sqlx_pool_guard::SqlitePoolGuard;
-
 use crate::storage::{
     error::PendingCredentialRequestsStorageError,
     models::{PendingCredentialRequest, PendingCredentialRequestStored},
@@ -48,11 +46,9 @@ impl PendingCredentialRequestsStorage {
             .log_statements(LevelFilter::Trace);
 
         tracing::debug!("Connecting to the database");
-        let connection_pool = SqlitePoolGuard::new(
-            sqlx::sqlite::SqlitePoolOptions::new()
-                .connect_with(opts)
-                .await?,
-        );
+        let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
+            .connect_with(opts)
+            .await?;
 
         set_file_permission_owner_rw(&database_path)
             .map_err(
@@ -67,7 +63,7 @@ impl PendingCredentialRequestsStorage {
             .ok();
 
         tracing::debug!("Running migrations");
-        if let Err(e) = sqlx::migrate!("./migrations").run(&*connection_pool).await {
+        if let Err(e) = sqlx::migrate!("./migrations").run(&connection_pool).await {
             connection_pool.close().await;
             return Err(e.into());
         }

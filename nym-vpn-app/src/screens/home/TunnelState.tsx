@@ -158,14 +158,14 @@ export function TunnelState() {
   // ─── Freeze offsets when entering canceling ──────────────────────────────
   // Updated whenever we're NOT in canceling, so when that phase begins
   // the ref already holds the last "live" position.
-  const frozenOffsets = useRef<number[]>([...CIRCS]);
+  const frozenOffsetsRef = useRef<number[]>([...CIRCS]);
   useEffect(() => {
     if (!isCanceling) {
-      frozenOffsets.current = ringTargets;
+      frozenOffsetsRef.current = ringTargets;
     }
   }, [isCanceling, ringTargets]);
 
-  const effectiveOffsets = isCanceling ? frozenOffsets.current : ringTargets;
+  const effectiveOffsets = isCanceling ? frozenOffsetsRef.current : ringTargets;
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
   const strokeColor = phase === 'error' ? ERROR_CLR : FILL;

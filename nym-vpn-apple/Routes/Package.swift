@@ -24,7 +24,7 @@ let package = Package(
             name: "Routes",
             dependencies: [
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                .product(name: "UIComponents", package: "UIComponents"),
+                .product(name: "UIComponents", package: "UIComponents")
             ],
             path: "Sources"
         )

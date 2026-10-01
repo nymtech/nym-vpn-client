@@ -179,13 +179,23 @@ message NymContracts {
 }
 
 message NymNetworkDetails {
+  reserved 5, 6, 7; // formerly nym_vpn_api_url / nym_api_urls / nym_vpn_api_urls, now nested in `networking`
   string network_name = 1;
   ChainDetails chain_details = 2;
   repeated ValidatorDetails endpoints = 3;
   NymContracts contracts = 4;
-  optional string nym_vpn_api_url = 5;
-  repeated ApiUrl nym_api_urls = 6;
-  repeated ApiUrl nym_vpn_api_urls = 7;
+  NymNetworkingSpecifics networking = 8;
+}
+
+message NymNetworkingSpecifics {
+  repeated ApiUrl nym_api_urls = 1;
+  repeated ApiUrl nym_vpn_api_urls = 2;
+  repeated DnsFallback dns_fallbacks = 3;
+}
+
+message DnsFallback {
+  string url = 1;
+  repeated string addresses = 2;
 }
 
 message NymVpnNetworkDetails {
@@ -310,6 +320,7 @@ message VpnServiceConfig {
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
   bool enable_ad_blocking = 27;
+  bool enable_conflict_detection = 33;
   bool residential_exit = 15;
   bool netstack = 13;
   bool enable_custom_dns = 17;
@@ -517,6 +528,11 @@ message EstablishConnectionData {
   optional TunnelConnectionData tunnel = 3;
 }
 
+message SelectorFallbackState {
+  bool entry_fallback = 1;
+  bool exit_fallback = 2;
+}
+
 message ConnectionData {
   GatewayLightInfo entry_gateway = 1;
   GatewayLightInfo exit_gateway = 2;
@@ -608,6 +624,7 @@ message TunnelState {
   message Connecting {
     uint32 retry_attempt = 1;
     EstablishConnectionState state = 2;
+    SelectorFallbackState selector_fallback_state = 5;
     TunnelType tunnel_type = 3;
     optional EstablishConnectionData connection_data = 4;
   }
@@ -642,6 +659,7 @@ message TunnelEvent {
     ConfigChangedEvent config_changed_event = 3;
     AccountControllerState account_state = 4;
     DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
+    ConflictDetectedEvent conflict_detected_event = 6;
   }
 }
 
@@ -654,6 +672,17 @@ message DiagnosticsSuggestedEvent {
     RepeatedConnectionRetries repeated_connection_retries = 1;
     TunnelState.Error ambiguous_error = 2;
   }
+}
+
+// A conflicting application was found on the system that may interfere with
+// NymVPN's own network filtering. Does not change TunnelState.
+message ConflictDetectedEvent {
+  enum Conflict {
+    INTERCEPTED_DNS = 0;
+    COMPETING_VPN = 1;
+    COMPETING_FIREWALL = 2;
+  }
+  Conflict conflict = 1;
 }
 
 message MixnetEvent {
@@ -1195,6 +1224,7 @@ service NymVpnService {
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableAdBlocking(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableConflictDetection(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

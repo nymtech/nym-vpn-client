@@ -11,6 +11,7 @@
 	<string name="state_disconnecting">Disconnecting…</string>
 	<string name="state_reconnecting">Reconnecting…</string>
 	<string name="state_offline">Waiting for network…</string>
+	<string name="state_error">Connection error</string>
 	<string name="notification_entry">Entry: %1$s</string>
 	<string name="notification_exit">Exit: %1$s</string>
 

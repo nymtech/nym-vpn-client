@@ -61,6 +61,12 @@ case "$UI_STATUS" in
   *) STATUS_MARK="$FAIL_MARK" ;;
 esac
 
+# Job cancelled before any step ran: distinct from a mid-run cancel or a test failure.
+case "$UI_STATUS" in
+  not-started) STATUS_LABEL="not started (no runner picked up the job)" ;;
+  *) STATUS_LABEL="$UI_STATUS" ;;
+esac
+
 passed=0
 failed=0
 skipped=0
@@ -169,7 +175,7 @@ emit_body() {
   local truncated_fails=false
   local name shown=0 omitted=0
 
-  echo "**UI ${PLATFORM_LABEL}** ${STATUS_MARK} ${UI_STATUS}"
+  echo "**UI ${PLATFORM_LABEL}** ${STATUS_MARK} ${STATUS_LABEL}"
   echo ""
   echo "- Branch: \`${UI_BRANCH}\` @ \`${UI_SHA}\`"
   echo "- Event: \`${UI_EVENT_NAME}\`"
@@ -249,7 +255,7 @@ fi
 if [[ "$byte_len" -gt "$MAX_BYTES" ]]; then
   # Last resort: minimal header + URLs (always under cap for normal inputs).
   {
-    echo "**UI ${PLATFORM_LABEL}** ${STATUS_MARK} ${UI_STATUS}"
+    echo "**UI ${PLATFORM_LABEL}** ${STATUS_MARK} ${STATUS_LABEL}"
     echo ""
     echo "- Branch: \`${UI_BRANCH}\` @ \`${UI_SHA}\`"
     echo "- Event: \`${UI_EVENT_NAME}\`"

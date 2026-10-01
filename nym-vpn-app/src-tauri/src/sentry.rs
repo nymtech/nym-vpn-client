@@ -1,5 +1,5 @@
 use sentry::{ClientInitGuard, Level, User};
-use std::{borrow::Cow, sync::Arc, time::Duration};
+use std::time::Duration;
 use tracing::{info, warn};
 
 use crate::env::APP_SENTRY_DSN;
@@ -29,15 +29,14 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
 
     let guard = sentry::init((
         dsn.to_owned(),
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            send_default_pii: false,
-            sample_rate: 1.0,
-            traces_sample_rate: 1.0,
-            enable_logs: true,
-            shutdown_timeout: Duration::from_secs(1),
-            server_name: Some(Cow::Borrowed("nym")),
-            before_send: Some(Arc::new(|mut event| {
+        sentry::ClientOptions::default()
+            .maybe_release(sentry::release_name!())
+            .send_default_pii(false)
+            .sample_rate(1.0)
+            .traces_sample_rate(1.0)
+            .shutdown_timeout(Duration::from_secs(1))
+            .server_name("nym")
+            .before_send(|mut event| {
                 if matches!(event.level, Level::Error | Level::Warning)
                     && let Some(message) = &event.message
                     && EXCLUDED_ERRORS
@@ -47,9 +46,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
                     event.level = Level::Info;
                 }
                 Some(event)
-            })),
-            ..Default::default()
-        },
+            }),
     ));
     sentry::configure_scope(|scope| {
         scope.set_tag("os_version", &os.version);

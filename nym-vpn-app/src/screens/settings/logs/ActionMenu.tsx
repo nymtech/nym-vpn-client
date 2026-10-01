@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { Menu } from '@base-ui-components/react';
+import { Menu } from '@base-ui/react';
 import { invoke } from '@tauri-apps/api/core';
 import {
   ConfirmationDialog,

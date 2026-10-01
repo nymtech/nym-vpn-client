@@ -21,7 +21,7 @@ futures.workspace = true
 rand.workspace = true
 strum = { workspace = true, features = ["derive"] }
 sqlx = { workspace = true, features = [
-    "runtime-tokio-rustls",
+    "runtime-tokio",
     "sqlite",
     "time",
 ] }
@@ -34,5 +34,5 @@ time.workspace = true
 tracing.workspace = true
 
 [build-dependencies]
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

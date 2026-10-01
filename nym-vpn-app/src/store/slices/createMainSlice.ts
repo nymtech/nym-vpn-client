@@ -81,6 +81,7 @@ export type StateAction =
   | { type: 'set-ipv6-support'; enabled: boolean }
   | { type: 'set-allow-lan'; enabled: boolean }
   | { type: 'set-enable-ad-blocking'; enabled: boolean }
+  | { type: 'set-enable-conflict-detection'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-mode'; mode: TAccountMode }
@@ -138,6 +139,7 @@ export const initialState: AppState = {
   allowLan: false,
   frontingMode: 'onRetry',
   enableAdBlocking: false,
+  enableConflictDetection: true,
   backendFlags: {
     quic: false,
     domainFronting: false,
@@ -238,6 +240,7 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           gatewayIndependenceNotifications:
             action.config.gatewayIndependenceNotifications,
           enableAdBlocking: action.config.enableAdBlocking,
+          enableConflictDetection: action.config.enableConflictDetection,
           splitTunnel: action.config.splitTunnel,
           geoExclusion: action.config.geoExclusion,
           gatewaySelectionAlgorithmConfig:
@@ -286,6 +289,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-enable-ad-blocking':
         set({ enableAdBlocking: action.enabled });
+        break;
+
+      case 'set-enable-conflict-detection':
+        set({ enableConflictDetection: action.enabled });
         break;
 
       case 'set-desktop-notifications':

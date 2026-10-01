@@ -15,7 +15,13 @@ extension GRPCManager {
                 exitGatewayId: details.exitGateway.id,
                 tunnelType: ConnectionTunnelType(details.tunnel)
             )
-        case let .connecting(retryAttempt: retryAttempt, state: state, tunnelType: tunnelType, connectionData: connectionData):
+        case let .connecting(
+            retryAttempt: retryAttempt,
+            state: state,
+            selectorFallbackState: _, // todo: must use this field
+            tunnelType: tunnelType,
+            connectionData: connectionData
+        ):
             connectionRetryAttempt = Int(retryAttempt)
             tunnelStatus = .connecting
             tunnelConnectingState = TunnelConnectingState(with: state)

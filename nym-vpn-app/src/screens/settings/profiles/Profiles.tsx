@@ -12,7 +12,7 @@ function Profiles() {
   const setProfile = useSetProfile();
   // guards against a second click firing another `set_profile` + `navigate(-1)`
   // while the first selection is still in flight
-  const isSelecting = useRef(false);
+  const isSelectingRef = useRef(false);
 
   return (
     <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
@@ -28,15 +28,15 @@ function Profiles() {
             />
           ),
           onClick: async () => {
-            if (isSelecting.current) {
+            if (isSelectingRef.current) {
               return;
             }
-            isSelecting.current = true;
+            isSelectingRef.current = true;
             const success = await setProfile(id);
             if (success) {
               navigate(-1);
             } else {
-              isSelecting.current = false;
+              isSelectingRef.current = false;
             }
           },
           trailing: (

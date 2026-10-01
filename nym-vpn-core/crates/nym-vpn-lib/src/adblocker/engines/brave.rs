@@ -30,7 +30,7 @@ impl AdBlockEngine for BraveAdblockEngine {
     async fn load_filters(&self, dir: &Path) -> Result<()> {
         let filter_set = load_filter_set(dir).await?;
         tracing::info!("AdBlocker using new filter-set");
-        let new_engine = Engine::from_filter_set(filter_set, true);
+        let new_engine = Engine::new_with_filter_set(filter_set);
         self.engine.write().await.replace(new_engine);
         Ok(())
     }
@@ -50,20 +50,20 @@ impl BraveAdblockEngine {
             return Ok(false);
         };
 
-        // Use empty string for source URL since it is unavailable.
+        // Use default values for data that is not available in DNS-based blocking
         let source_url = "";
-
-        // Use `other` as request type since it is unavailable.
         let request_type = "other";
+        let method = "";
 
-        let request = Request::new(url.as_str(), source_url, request_type).map_err(|error| {
-            AdBlockerError::CreateRequest {
-                url: url.to_string(),
-                error,
-            }
-        })?;
+        let request =
+            Request::new(url.as_str(), source_url, request_type, method).map_err(|error| {
+                AdBlockerError::CreateRequest {
+                    url: url.to_string(),
+                    error,
+                }
+            })?;
 
-        let matched = engine.check_network_request(&request).matched;
+        let matched = engine.check_network_request(&request).should_block();
 
         Ok(matched)
     }
@@ -113,7 +113,7 @@ async fn load_filter_set(cache_dir: &Path) -> Result<FilterSet> {
         let data_path = cache_dir.join(source.file_name);
         let domain_list = Source::load_data_file(&data_path).await?;
         filter_set.add_filter_list(
-            &domain_list,
+            domain_list,
             ParseOptions {
                 format: source.filterset_format,
                 rule_types: RuleTypes::NetworkOnly,

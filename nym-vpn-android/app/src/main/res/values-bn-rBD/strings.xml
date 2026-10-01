@@ -375,7 +375,6 @@
 	<string name="passphrase_show">আমার পাসফ্রেজ দেখান</string>
 	<string name="passphrase_copy">পাসফ্রেজ কপি করুন</string>
 	<string name="passphrase_save">পাসওয়ার্ড ম্যানেজারে সংরক্ষণ করুন</string>
-	<string name="passphrase_download">ডাউনলোড</string>
 	<string name="passphrase_lose">এই শব্দগুলো হারালে আপনার অ্যাকাউন্ট স্থায়ীভাবে হারিয়ে যেতে পারে।</string>
 	<string name="passphrase_never">কাউকে কখনও এগুলো শেয়ার করবেন না ,এমনকি Nym সাপোর্টের সঙ্গেও নয়।</string>
 	<string name="passphrase_saved">আমি এই ২৪টি শব্দ নিরাপদভাবে সংরক্ষণ করেছি এবং কখনও শেয়ার করব না।</string>

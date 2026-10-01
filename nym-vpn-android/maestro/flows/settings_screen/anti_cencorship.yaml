@@ -11,9 +11,13 @@ tags:
     element:
       text: "Anti-censorship"
     direction: DOWN
+    centerElement: true
 - tapOn: "Anti-censorship"
 
-- assertVisible: "Anti-censorship"
+- extendedWaitUntil:
+    visible:
+      text: "Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking."
+    timeout: 10000
 
 - assertVisible: "Enhanced connection (QUIC)"
 - assertVisible:
@@ -27,6 +31,7 @@ tags:
     element:
       text: "Stealth API connect"
     direction: DOWN
+    centerElement: true
 - assertVisible: "Stealth API connect"
 - assertVisible:
     text: "Protects against VPN blocking by using cover domains.*"

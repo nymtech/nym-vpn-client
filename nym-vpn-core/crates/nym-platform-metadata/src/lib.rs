@@ -65,7 +65,7 @@ impl SysInfo {
 
         let os_name = parts.join(" ");
         let hash = Sha256::digest(os_name.as_bytes());
-        format!("{hash:x}")
+        hex::encode(hash)
     }
 
     fn extra_metadata() -> HashMap<String, String> {

@@ -10,7 +10,7 @@ extension GRPCManager {
 
     public func fetchFeatureFlags() async throws -> FeatureFlags? {
         try await Task.detached { [weak self] in
-            return try await self?.rpcClient?.getFeatureFlags()
+            try await self?.rpcClient?.getFeatureFlags()
         }.value
     }
 }

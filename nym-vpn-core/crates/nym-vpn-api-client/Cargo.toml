@@ -26,14 +26,12 @@ nym-config.workspace = true
 nym-contracts-common.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credentials.workspace = true
-nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
+nym-crypto = { workspace = true, features = ["asymmetric", "hashing", "stream_cipher"] }
 nym-http-api-client.workspace = true
 nym-network-defaults = { workspace = true, optional = true }
 nym-validator-client.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
-sha2.workspace = true
-sha256.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
@@ -49,7 +47,7 @@ zeroize.workspace = true
 
 [dev-dependencies]
 bip39 = { workspace = true, features = ["zeroize"] }
-nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
+nym-crypto = { workspace = true, features = ["asymmetric", "hashing", "stream_cipher"] }
 nym-http-api-client.workspace = true
 serde_json.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }
