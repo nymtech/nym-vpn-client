@@ -48,7 +48,7 @@ jobs:
       - name: Install python3
         run: |
           set -euo pipefail
-          if ! command -v python3 >/dev/null 2>&1; then
+          if ! python3 -c 'import venv' >/dev/null 2>&1; then
             brew install python
           fi
           python3 --version
