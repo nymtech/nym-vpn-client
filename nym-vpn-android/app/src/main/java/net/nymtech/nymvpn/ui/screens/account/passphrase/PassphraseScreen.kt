@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
 import android.content.ClipData
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,7 +46,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.deviceauth.model.DeviceAuthResult
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.modal.ScreenLockSetupDialog
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
@@ -54,7 +58,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.DeviceAuthHelper
+import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -88,9 +92,7 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 	val title = stringResource(R.string.passphrase_title)
 	val subtitle = stringResource(R.string.passphrase_description)
 
-	val promptInfo = remember(context) {
-		DeviceAuthHelper.buildPromptInfo(context, title = title, subtitle = subtitle)
-	}
+	var showScreenLockSetupDialog by remember { mutableStateOf(false) }
 
 	LaunchedEffect(showSheet) {
 		onBackButtonVisibilityChange(showSheet)
@@ -101,16 +103,33 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 			showSheet = true
 			return
 		}
+		if (!viewModel.isAuthSetUp()) {
+			showScreenLockSetupDialog = true
+			return
+		}
 
-		DeviceAuthHelper.authenticate(
-			activity = activity,
-			promptInfo = promptInfo,
-			onAuthenticated = { showSheet = true },
-			onUnavailable = { showSheet = true },
-			onError = { _, _ ->
-			},
-		)
+		scope.launch {
+			when (viewModel.authenticate(activity, title, subtitle)) {
+				DeviceAuthResult.Success -> showSheet = true
+				DeviceAuthResult.NotSetUp -> showScreenLockSetupDialog = true
+				DeviceAuthResult.Cancelled, is DeviceAuthResult.Error -> Unit
+			}
+		}
 	}
+
+	val screenLockSetupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+		if (viewModel.isAuthSetUp()) requestAuthOrReveal()
+	}
+
+	ScreenLockSetupDialog(
+		show = showScreenLockSetupDialog,
+		body = stringResource(R.string.screen_lock_setup_passphrase_body),
+		onSetUpClick = {
+			showScreenLockSetupDialog = false
+			screenLockSetupLauncher.launchScreenLockSetup(viewModel.createAuthSetupIntent())
+		},
+		onDismiss = { showScreenLockSetupDialog = false },
+	)
 
 	PassphraseScreen(
 		passphrase = passphrase,

@@ -3,6 +3,8 @@ package net.nymtech.nymvpn.ui.screens.settings
 import android.app.Activity
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +36,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.nymvpn.ui.common.modal.ScreenLockSetupDialog
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
@@ -52,11 +55,11 @@ import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.screens.settings.modal.PrivateDnsDialog
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isPrivateDnsEnabled
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchPrivateDnsSettings
+import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import androidx.compose.foundation.layout.navigationBarsPadding
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -70,8 +73,8 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
 	var showPrivateDnsDialog by remember { mutableStateOf(false) }
+	var showScreenLockSetupDialog by remember { mutableStateOf(false) }
 
-	val shortcutsInfoText = stringResource(R.string.shortcuts_info_message)
 	val lanReconnectingText = stringResource(R.string.settings_event_lan_reconnecting)
 	LaunchedEffect(viewModel) {
 		viewModel.events.collectLatest { event ->
@@ -114,6 +117,20 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			showPrivateDnsDialog = false
 			context.launchPrivateDnsSettings()
 		},
+	)
+
+	val screenLockSetupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+		if (viewModel.isAuthSetUp()) viewModel.onAppShortcutsSelected(true)
+	}
+
+	ScreenLockSetupDialog(
+		show = showScreenLockSetupDialog,
+		body = stringResource(R.string.screen_lock_setup_shortcuts_body),
+		onSetUpClick = {
+			showScreenLockSetupDialog = false
+			screenLockSetupLauncher.launchScreenLockSetup(viewModel.createAuthSetupIntent())
+		},
+		onDismiss = { showScreenLockSetupDialog = false },
 	)
 
 	if (showVpnSettings) {
@@ -182,14 +199,11 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			onAutoselectServerEnable = {
 			},
 			onShortcutsEnable = { enable ->
-				if (enable && !DeviceAuthHelper.isDeviceSecure(context)) {
-					Toast.makeText(
-						context,
-						shortcutsInfoText,
-						Toast.LENGTH_LONG,
-					).show()
+				if (enable && !viewModel.isAuthSetUp()) {
+					showScreenLockSetupDialog = true
+				} else {
+					viewModel.onAppShortcutsSelected(enable)
 				}
-				viewModel.onAppShortcutsSelected(enable)
 			},
 			onDeviceStartupEnable = {
 			},

@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="settings">সেটিংস</string>
-	<string name="connected">সংযুক্ত।</string>
-	<string name="disconnected">সংযোগ বিচ্ছিন্ন করা হচ্ছে</string>
 	<string name="disconnecting">সংযোগ বিচ্ছিন্ন করা হচ্ছে</string>
 	<string name="connecting">সংযোগ স্থাপন করা হচ্ছে</string>
 	<string name="five_hop_mixnet">সম্পূর্ণ গোপন (মিক্সনেট)</string>
-	<string name="five_hop_description">সংবেদনশীল কাজের জন্য সর্বোচ্চ গোপনীয়তা</string>
-	<string name="two_hop_description">ব্রাউজিং, স্ট্রিমিং, ডাউনলোডস </string>
 	<string name="connect">সংযোগ</string>
 	<string name="disconnect">সংযোগ ছিন্ন</string>
 	<string name="init_client">ক্লায়েন্ট ইনিশিয়ালাইজ করা হচ্ছে.</string>
 	<string name="establishing_connection">সংযোগ স্থাপন করা হচ্ছে</string>
-	<string name="select_mode">মোড নির্বাচন করুন</string>
 	<string name="display_theme">প্রদর্শন থিম</string>
 	<string name="light_theme">হালকা থিম</string>
 	<string name="dark_theme">অন্ধকার থিম</string>
 	<string name="automatic">স্বয়ংক্রিয়</string>
 	<string name="device_theme">ডিভাইস থিম ব্যবহার করুন</string>
 	<string name="search">খুঁজুন.</string>
-	<string name="search_country">দেশের সন্ধান করুন</string>
 	<string name="is_selected">নির্বাচিত </string>
 	<string name="fastest">দ্ৰুততম</string>
 	<string name="logs">লগস </string>
@@ -72,10 +66,7 @@
 	<string name="action_requires_tunnel_down">এই কাজের জন্য টানেল বন্ধ থাকতে হবে</string>
 	<string name="device_added_success">ডিভাইসটি আপনার অ্যাকাউন্টে সফলভাবে যোগ করা হয়েছে</string>
 	<string name="invalid_recovery_phrase">অবৈধ রিকভারি ফ্রেজ</string>
-	<string name="recovery_phrase">রিকভারি ফ্রেজ</string>
-	<string name="log_in">লগইন</string>
 	<string name="log_out">লগ আউট</string>
-	<string name="new_to_nym">NymVPN-এ নতুন ব্যবহারকারী?</string>
 	<string name="account">অ্যাকাউন্ট</string>
 	<string name="mnemonic_example">উদাহরণ: ধোঁয়া প্রত্নবস্তু মখমল খুলি পপ প্রাসাদ কচ্ছপ ক্ষতি রুক্ষ…</string>
 	<string name="dynamic">গতিশীল</string>
@@ -84,10 +75,7 @@
 	<string name="stop">বন্ধ</string>
 	<string name="app_restart_required">অ্যাপ রিস্টার্ট প্রয়োজন</string>
 	<string name="max_devices_reached_title">আপনার অ্যাকাউন্টের জন্য ডিভাইসের সর্বোচ্চ সংখ্যায় পৌঁছে গেছেন।</string>
-	<string name="credential_modal_description">এই ডিভাইস যোগ করতে, আপনার অ্যাকাউন্টের \'ডিভাইস\' পেজে যান, একটি বিদ্যমান ডিভাইস সরান এবং এরপর এই ডিভাইসে আপনার রিকভারি ফ্রেজ দিয়ে লগইন করুন.</string>
-	<string name="manage_devices">আপনার ডিভাইস পরিচালনা করুন</string>
 	<string name="close">বন্ধ</string>
-	<string name="enter_access_code">আপনার অ্যানোনিমাস অ্যাক্সেস কোড লিখুন.</string>
 	<string name="get_in_touch">সহায়তার জন্য যোগাযোগ করুন</string>
 	<string name="loading">লোড হচ্ছে</string>
 	<string name="offline">ইন্টারনেট নেই</string>
@@ -203,17 +191,12 @@
 	<string name="settings_censorship_title">সেনসরশিপ-বিরোধী</string>
 	<string name="settings_passphrase_title">পাসফ্রেজ</string>
 	<string name="settings_dns_title">DNS কাস্টমাইজ করুন</string>
-	<string name="settings_ipv6_title">IPv6 সমর্থন</string>
-	<string name="settings_ipv6_description">IPv6 সংযোগ অনুমতি দিন</string>
-	<string name="settings_system_tray_title">সিস্টেম ট্রেতে চালান</string>
-	<string name="settings_system_tray_description">বন্ধ করলেও অ্যাপ চালু রাখুন</string>
 	<string name="settings_reset_app_title">অ্যাপ ডেটা রিসেট করুন</string>
 	<string name="settings_system_status_title">সিস্টেম অবস্থা</string>
 	<string name="settings_mixnet_tuning_title">Mixnet টিউনিং</string>
 	<string name="settings_mixnet_tuning_description">বেনামি মোডের ট্রাফিক প্যাটার্ন কাস্টমাইজ করুনআপনার <strong>mixnet</strong> ট্রাফিক প্যাটার্ন কাস্টমাইজ করুন।</string>
 	<string name="settings_quit_title">NymVPN থেকে বের হন</string>
 	<string name="settings_app_version_line">অ্যাপ সংস্করণ:</string>
-	<string name="settings_daemon_version_line">ডেমন সংস্করণ </string>
 	<string name="settings_language_help_title">অনুবাদে সহায়তা করুন</string>
 	<string name="settings_language_help_description">আপনার ভাষায় অ্যাপটি আরও উন্নত করতে সাহায্য করুন.</string>
 	<string name="settings_event_lan_reconnecting">LAN সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
@@ -232,7 +215,6 @@
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
 
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">শর্টকাট ব্যবহার করার জন্য স্ক্রিন লক করা আবশ্যক।</string>
 	<string name="shortcut_title">নিশ্চিত করুন</string>
 	<string name="shortcut_subtitle_stop">VPN সংযোগ বিচ্ছিন্ন করতে আনলক করুন</string>
 	<string name="shortcut_subtitle_start_mixnet">মিক্সনেট চালু করতে আনলক করুন</string>
@@ -240,7 +222,6 @@
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">সেরা সংযোগের জন্য</string>
 	<string name="battery_opt_descr">আরও স্থিতিশীল VPN সংযোগের জন্য NymVPN-এর ব্যাটারি অপটিমাইজেশন বন্ধ করুন</string>
-	<string name="battery_opt">ব্যাটারি অপ্টিমাইজেশান</string>
 	<string name="battery_opt_settings_text">ব্যাটারি অপটিমাইজেশন সেটিং অ্যাপের সেটিংসে যে কোনো সময় পরিবর্তন করা যাবে।</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">ডেটা, গোপনীয়তা এবং লগ</string>
@@ -272,7 +253,6 @@
 	<string name="welcome_usage_title">ব্যবহার বিশ্লেষণ শেয়ার করুন</string>
 	<string name="welcome_usage_description">এটি আমাদের Nym নেটওয়ার্ক উন্নত করতে সাহায্য করে। কোনো লগিং বা কার্যকলাপ ট্র্যাক করা হয় না।</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">আপনার সুরক্ষা স্তর নির্বাচন করুন</string>
 	<string name="select_plan_line_0">৭ দিনের ফ্রি ট্রায়াল</string>
@@ -320,19 +300,11 @@
 	<string name="censorship_stealth_title">স্টেলথ API সংযোগ</string>
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">শুধু ফাস্ট মোডের লোকেশন ও QUIC-সমর্থিত সার্ভার দেখানো হচ্ছে। সব সার্ভার দেখতে QUIC বন্ধ করুন</string>
 	<string name="censorship_amnezia_title">ন্যূনতম ওবফাসকেশন (Amnezia WG)</string>
 	<string name="censorship_amnezia_description">ভিপিএন ব্লকিং প্রতিরোধ করার জন্য ডিকয় প্যাকেট ব্যবহার করে WireGuard ট্র্যাফিককে ছদ্মবেশে রাখে। \n\nদ্রষ্টব্য: শুধুমাত্র ক্লায়েন্ট-সাইডে প্রয়োগ করা হয়েছে।</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Maximum privacy</string>
-	<string name="account_welcome_create_description">Create an anonymous Nym account, no personal info required</string>
-	<string name="account_welcome_create_button">Anonymous অ্যাকাউন্ট তৈরি করুন</string>
-	<string name="account_welcome_social_title">⚡️ Quick setup</string>
-	<string name="account_welcome_social_description">Use existing account like Google or crypto wallet through our login partner Privy</string>
-	<string name="account_welcome_social_button">সোশ্যাল অ্যাকাউন্ট দিয়ে চালিয়ে যান</string>
-	<string name="account_welcome_login_title">ইতিমধ্যে একটি অ্যাকাউন্ট আছে?</string>
 	<string name="account_welcome_privacy_start">চালিয়ে যাওয়ার মাধ্যমে, আপনি NymVPN-এর শর্তাবলীতে সম্মত হচ্ছেন  </string>
 	<string name="account_welcome_privacy_middle">এবং</string>
 	<!-- Existing subscription -->
@@ -362,8 +334,6 @@
 	<string name="account_payment_verifying">আমরা আপনার সাবস্ক্রিপশন যাচাই করছি — কোনো ব্যক্তিগত তথ্য কখনোই আপনার পরিচয়ের সঙ্গে যুক্ত করা হয় না</string>
 	<string name="account_payment_retrieving">আপনার গোপনীয় অ্যাকাউন্ট ক্রেডেনশিয়াল (zk-nyms) উদ্ধারের চেষ্টা চলছে</string>
 	<string name="account_payment_credentials">এই জিরো-নলেজ ক্রেডেনশিয়ালগুলো প্রমাণ করে আপনি অ্যাক্সেসের অধিকারী, কিন্তু আপনার পরিচয় ফাঁস করে না</string>
-	<string name="account_payment_saving">আপনার zk-nyms ডিভাইসে সংরক্ষণ করা হচ্ছে</string>
-	<string name="account_payment_anonymous">আপনার গোপনীয় অ্যাক্সেস ক্রেডেনশিয়ালগুলো এখন নিরাপদে সংরক্ষিত , ব্যক্তিগত, এনক্রিপ্টেড এবং আপনার নিয়ন্ত্রণে রয়েছে</string>
 	<string name="account_payment_welcome">সত্যিকারের গোপনীয়তায় স্বাগতম</string>
 	<string name="account_payment_protected">আপনি এখন সম্পূর্ণরূপে সুরক্ষিত</string>
 	<string name="account_payment_error">সাবস্ক্রিপশন ক্রয় ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন</string>
@@ -479,7 +449,6 @@
 	<string name="dns_event_saved">কাস্টম DNS সংরক্ষিত&#13;</string>
 	<string name="dns_event_reconnecting">কাস্টম DNS সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে…</string>
 	<!-- Mixnet tuning screen -->
-	<string name="mixnet_tuning_description">আপনার মিক্সনেট ট্র্যাফিক ধরণ কাস্টমাইজ করুন</string>
 	<string name="mixnet_tuning_current_title">বর্তমান সেটিংসের প্রত্যাশিত কার্যকারিতা:</string>
 	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">ল্যাটেন্সি</string>
@@ -551,9 +520,6 @@
 	<string name="geo_exclusion_ports_text">1024–65535</string>
 	<string name="geo_exclusion_ranges_count">%1$s ranges</string>
 	<string name="geo_exclusion_last_updated">List updated %1$s</string>
-	<string name="geo_exclusion_error_sock55_title">SOCKS5 not detected</string>
-	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy not detected. Check your port settings.</string>
-	<string name="geo_exclusion_error_failed_start_title">Feature failed to start</string>
 	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Port must be between 1024 and 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
@@ -564,17 +530,4 @@
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Setup instructions</string>
 	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
-	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
-	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
-	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>
-	<string name="setup_instructions_browser_title">Browser setup</string>
-	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
-	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
-	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
-	<string name="setup_instructions_browser_step_3">, Port</string>
-	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
-	<string name="setup_instructions_wallet_title">Web3 wallet</string>
-	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
-	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
-	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
 </resources>

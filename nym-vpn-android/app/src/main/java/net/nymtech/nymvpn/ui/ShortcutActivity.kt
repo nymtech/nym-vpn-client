@@ -1,8 +1,8 @@
 package net.nymtech.nymvpn.ui
 
 import android.os.Bundle
-import android.widget.Toast
-import androidx.biometric.BiometricPrompt
+import androidx.activity.compose.setContent
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,8 +15,12 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.deviceauth.DeviceAuthManager
+import net.nymtech.nymvpn.manager.deviceauth.model.DeviceAuthResult
 import net.nymtech.nymvpn.manager.shortcut.ShortcutAction
-import net.nymtech.nymvpn.util.DeviceAuthHelper
+import net.nymtech.nymvpn.ui.common.modal.ScreenLockSetupDialog
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
@@ -34,6 +38,8 @@ class ShortcutActivity : FragmentActivity() {
 	lateinit var applicationScope: CoroutineScope
 
 	@Inject lateinit var backendManager: BackendManager
+
+	@Inject lateinit var deviceAuthManager: DeviceAuthManager
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -59,39 +65,46 @@ class ShortcutActivity : FragmentActivity() {
 				return@launch
 			}
 
-			if (!DeviceAuthHelper.isDeviceSecure(this@ShortcutActivity)) {
-				Toast.makeText(
-					this@ShortcutActivity,
-					getString(R.string.shortcuts_info_message),
-					Toast.LENGTH_SHORT,
-				).show()
-				finish()
+			if (!deviceAuthManager.isAuthSetUp()) {
+				showScreenLockSetupDialog()
 				return@launch
 			}
 
-			val promptInfo = buildShortcutPromptInfo(action)
-
-			DeviceAuthHelper.authenticate(
+			val result = deviceAuthManager.authenticate(
 				activity = this@ShortcutActivity,
-				promptInfo = promptInfo,
-				onAuthenticated = {
+				title = getString(R.string.shortcut_title),
+				subtitle = shortcutSubtitle(action),
+			)
+			when (result) {
+				DeviceAuthResult.Success -> {
 					applicationScope.launch {
 						performAction(action)
 					}
 					finish()
-				},
-				onUnavailable = {
-					Toast.makeText(
-						this@ShortcutActivity,
-						getString(R.string.shortcuts_info_message),
-						Toast.LENGTH_SHORT,
-					).show()
-					finish()
-				},
-				onError = { _, _ ->
-					finish()
-				},
-			)
+				}
+
+				DeviceAuthResult.NotSetUp -> showScreenLockSetupDialog()
+
+				DeviceAuthResult.Cancelled, is DeviceAuthResult.Error -> finish()
+			}
+		}
+	}
+
+	// The activity has noHistory, so it can't wait for a result from settings: open them and finish.
+	private suspend fun showScreenLockSetupDialog() {
+		val theme = withContext(Dispatchers.IO) { settingsRepository.getTheme() }
+		setContent {
+			NymVPNTheme(theme = theme) {
+				ScreenLockSetupDialog(
+					show = true,
+					body = stringResource(R.string.screen_lock_setup_shortcuts_body),
+					onSetUpClick = {
+						launchScreenLockSetup(deviceAuthManager.createSetupIntent())
+						finish()
+					},
+					onDismiss = { finish() },
+				)
+			}
 		}
 	}
 
@@ -111,19 +124,9 @@ class ShortcutActivity : FragmentActivity() {
 		}
 	}
 
-	@Suppress("DEPRECATION")
-	private fun buildShortcutPromptInfo(action: ShortcutAction): BiometricPrompt.PromptInfo {
-		val title = getString(R.string.shortcut_title)
-		val subtitle = when (action) {
-			ShortcutAction.STOP -> getString(R.string.shortcut_subtitle_stop)
-			ShortcutAction.START_MIXNET -> getString(R.string.shortcut_subtitle_start_mixnet)
-			ShortcutAction.START_WG -> getString(R.string.shortcut_subtitle_start_wg)
-		}
-
-		return DeviceAuthHelper.buildPromptInfo(
-			context = this,
-			title = title,
-			subtitle = subtitle,
-		)
+	private fun shortcutSubtitle(action: ShortcutAction): String = when (action) {
+		ShortcutAction.STOP -> getString(R.string.shortcut_subtitle_stop)
+		ShortcutAction.START_MIXNET -> getString(R.string.shortcut_subtitle_start_mixnet)
+		ShortcutAction.START_WG -> getString(R.string.shortcut_subtitle_start_wg)
 	}
 }

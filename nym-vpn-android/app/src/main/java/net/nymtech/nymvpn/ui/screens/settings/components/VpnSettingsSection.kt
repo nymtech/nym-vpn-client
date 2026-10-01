@@ -50,36 +50,6 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					},
 				),
 			)
-// 			add(
-// 				SelectionItem(
-// 					leading = {
-// 						Icon(
-// 							Icons.Outlined.Loca,
-// 							stringResource(R.string.settings_ipv6_title),
-// 							modifier = Modifier.size(iconSize.scaledWidth()),
-// 							tint = MaterialTheme.colorScheme.outline,
-// 						)
-// 					},
-// 					trailing = {
-// 						ScaledSwitch(
-// 							checked = values.supportIPv6Enabled,
-// 							onClick = actions.onSupportIPv6Enable,
-// 						)
-// 					},
-// 					title = {
-// 						Text(
-// 							stringResource(R.string.settings_ipv6_title),
-// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-// 						)
-// 					},
-// 					description = {
-// 						Text(
-// 							stringResource(R.string.settings_ipv6_description),
-// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-// 						)
-// 					},
-// 				),
-// 			)
 
 			add(
 				SelectionItem(
