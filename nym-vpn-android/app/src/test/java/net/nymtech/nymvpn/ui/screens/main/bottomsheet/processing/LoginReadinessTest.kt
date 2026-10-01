@@ -77,7 +77,7 @@ class LoginReadinessTest {
 		assertTrue(
 			LoginReadiness.shouldShowCredentialsCopy(
 				setupCarouselFinished = true,
-				accountState = AccountControllerState.RequestingZkNyms,
+				accountState = AccountControllerState.Syncing,
 			),
 		)
 	}
