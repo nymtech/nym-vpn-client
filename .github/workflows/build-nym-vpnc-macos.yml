@@ -79,7 +79,10 @@ jobs:
 
       - name: Install python3
         run: |
-          brew install python
+          set -euo pipefail
+          if ! command -v python3 >/dev/null 2>&1; then
+            brew install python
+          fi
           python3 --version
 
       - name: Cache virtual env

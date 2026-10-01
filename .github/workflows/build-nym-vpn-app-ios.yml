@@ -218,12 +218,21 @@ jobs:
       - name: Install fastlane
         working-directory: nym-vpn-apple
         run: |
+          set -euo pipefail
+          export GEM_HOME="${RUNNER_TEMP}/gem"
+          export PATH="${GEM_HOME}/bin:${PATH}"
+          mkdir -p "${GEM_HOME}"
+          echo "GEM_HOME=${GEM_HOME}" >> "${GITHUB_ENV}"
           bundle install
           fastlane --version
+          echo "${GEM_HOME}/bin" >> "${GITHUB_PATH}"
 
       - name: Install python3
         run: |
-          brew install python
+          set -euo pipefail
+          if ! command -v python3 >/dev/null 2>&1; then
+            brew install python
+          fi
           python3 --version
 
       - name: Cache virtual env
