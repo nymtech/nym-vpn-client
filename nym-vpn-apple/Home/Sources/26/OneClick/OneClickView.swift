@@ -59,9 +59,7 @@ private extension OneClickView {
                 }
                 compactServerInfo
                 if animatedDisplayMode.caretSlot == .betweenHops {
-                    caretColumn
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, NymSpacing.medium)
+                    stackedCaret
                 }
                 if animatedDisplayMode == .nerd {
                     nerdEntrySection
@@ -90,6 +88,13 @@ private extension OneClickView {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, NymSpacing.small)
             .accessibilityHidden(viewModel.displayMode != .nerd)
+    }
+
+    var stackedCaret: some View {
+        caretColumn
+            .frame(width: Constants.InfoIcon.size, alignment: .center)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.top, NymSpacing.medium)
     }
 
     @ViewBuilder var compactServerInfo: some View {
