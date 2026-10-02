@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
 
       - name: Setup ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8  # v1.327.0
         with:
           ruby-version: "3.3"
           bundler-cache: true
@@ -46,10 +46,6 @@ jobs:
           ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
         run: |
           printf '%s' "$ANDROID_SERVICE_ACCOUNT_JSON" > service_account.json
-
-      - name: Install fastlane
-        working-directory: nym-vpn-android
-        run: bundle install
 
       - name: Set locale (for Fastlane)
         run: |
