@@ -8,6 +8,7 @@ struct ExpiryReminderTests {
     private func tier(
         inDays days: Double? = nil,
         inHours hours: Double? = nil,
+        hasSubscription: Bool = true,
         isActive: Bool = true,
         isAutoRenewEnabled: Bool = false,
         isPending: Bool = false
@@ -20,6 +21,7 @@ struct ExpiryReminderTests {
         }
         return ExpiryReminder.tier(
             validUntil: validUntil,
+            hasSubscription: hasSubscription,
             isActive: isActive,
             isAutoRenewEnabled: isAutoRenewEnabled,
             isPending: isPending,
@@ -61,9 +63,25 @@ struct ExpiryReminderTests {
         #expect(tier(inHours: 1, isAutoRenewEnabled: true) == .none)
     }
 
-    @Test func inactiveReadsAsExpiredEvenWithAutoRenew() {
-        #expect(tier(inDays: 2, isActive: false) == .expired)
-        #expect(tier(inDays: 2, isActive: false, isAutoRenewEnabled: true) == .expired)
+    @Test func inactiveFlagButFutureDateUsesLadderNotExpired() {
+        // Aligns with CredentialsManager.isAccountActive(): a future paid-until date
+        // means still-active, so show the ladder (or nothing), never "expired".
+        #expect(tier(inDays: 2, isActive: false) == .day3)
+        #expect(tier(inDays: 10, isActive: false) == .none)
+        // Future date + auto-renew is still treated as active → no reminder.
+        #expect(tier(inDays: 2, isActive: false, isAutoRenewEnabled: true) == .none)
+    }
+
+    @Test func inactivePastDateIsExpired() {
+        #expect(tier(inHours: -1, isActive: false) == .expired)
+        #expect(tier(inDays: -5, isActive: false) == .expired)
+    }
+
+    @Test func neverSubscribedNeverReminds() {
+        // No plan ever existed → nothing to renew; never "expired".
+        #expect(tier(inDays: 2, hasSubscription: false, isActive: false) == .none)
+        #expect(tier(inHours: -1, hasSubscription: false, isActive: false) == .none)
+        #expect(tier(hasSubscription: false, isActive: false) == .none)
     }
 
     @Test func pendingNeverReminds() {
@@ -87,8 +105,8 @@ struct ExpiryReminderTests {
 
     @Test func summaryConvenienceMatchesPureTier() {
         let summary = AccountSummary.makeFake(daysRemaining: 3, kind: .oneMonth, isAutoRenew: false, baseAddress: "a")
-        // makeFake with 3 days remaining should land in the 7-day window at the latest.
-        let result = summary.expiryReminderTier()
-        #expect(result == .day7 || result == .day3)
+        // 3 days remaining lands squarely in the 3-day tier (just under 3×24h once
+        // the microseconds between the two Date() calls are accounted for).
+        #expect(summary.expiryReminderTier() == .day3)
     }
 }

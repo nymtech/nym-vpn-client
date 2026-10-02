@@ -6,7 +6,7 @@ import Foundation
 /// 2-year, free pass): only the message set — driven separately by
 /// ``AccountSummary/isFreepassPlan`` — differs between subscription and free
 /// pass, not these thresholds.
-public enum ExpiryReminderTier: String, Equatable, Sendable {
+public enum ExpiryReminderTier: String, Sendable {
     case none
     case day7
     case day3
@@ -23,6 +23,7 @@ public enum ExpiryReminder {
 
     public static func tier(
         validUntil: Date?,
+        hasSubscription: Bool,
         isActive: Bool,
         isAutoRenewEnabled: Bool,
         isPending: Bool,
@@ -30,9 +31,17 @@ public enum ExpiryReminder {
     ) -> ExpiryReminderTier {
         // A pending purchase is surfaced elsewhere — never a renewal reminder.
         if isPending { return .none }
-        // An inactive account (including a failed auto-renewal) reads as expired.
-        // Mirrors Android's precedence: inactive => expired before the recurring gate.
-        if !isActive { return .expired }
+        // No plan has ever existed → nothing to renew; never "expired".
+        guard hasSubscription else { return .none }
+
+        // Treat as active when the flag says so OR the paid-until date is still in
+        // the future — mirrors `CredentialsManager.isAccountActive()`, whose
+        // fallback exists precisely because the flag and the date can disagree.
+        // Without this the home (gated by isAccountActive) reads active while the
+        // reminder says "expired".
+        let effectivelyActive = isActive || (validUntil.map { $0 > now } ?? false)
+        if !effectivelyActive { return .expired }
+
         // Active auto-renewing plans renew themselves — no reminder needed.
         if isAutoRenewEnabled { return .none }
         guard let validUntil else { return .none }
@@ -57,6 +66,7 @@ extension AccountSummary {
     public func expiryReminderTier(now: Date = Date()) -> ExpiryReminderTier {
         ExpiryReminder.tier(
             validUntil: validUntilDate,
+            hasSubscription: subscription != nil,
             isActive: isActive,
             isAutoRenewEnabled: isAutoRenewEnabled,
             isPending: subscription?.status == .pending,
