@@ -175,6 +175,11 @@ jobs:
           RUBY_PREFIX="$(brew --prefix ruby)"
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
+          GEM_HOME="${RUNNER_TEMP}/gem"
+          mkdir -p "${GEM_HOME}"
+          echo "GEM_HOME=${GEM_HOME}" >> "$GITHUB_ENV"
+          echo "${GEM_HOME}/bin" >> "$GITHUB_PATH"
+          export PATH="${GEM_HOME}/bin:${PATH}"
 
           # Show versions for debugging
           brew --version
@@ -218,21 +223,16 @@ jobs:
       - name: Install fastlane
         working-directory: nym-vpn-apple
         run: |
-          set -euo pipefail
-          export GEM_HOME="${RUNNER_TEMP}/gem"
-          export PATH="${GEM_HOME}/bin:${PATH}"
-          mkdir -p "${GEM_HOME}"
-          echo "GEM_HOME=${GEM_HOME}" >> "${GITHUB_ENV}"
           bundle install
           fastlane --version
-          echo "${GEM_HOME}/bin" >> "${GITHUB_PATH}"
 
       - name: Install python3
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+          HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
-          set -euo pipefail
-          if ! python3 -c 'import venv' >/dev/null 2>&1; then
-            brew install python
-          fi
+          brew install python
           python3 --version
 
       - name: Cache virtual env
