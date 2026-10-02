@@ -62,6 +62,7 @@ import GRPCManager
     }
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var shownExpiryReminderKey: String?
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
     @ObservationIgnored private var pendingPostDisconnectAccountRefresh: Task<Void, Never>?
     @ObservationIgnored private var credentialImportCompletionTask: Task<Void, Never>?
@@ -466,6 +467,7 @@ private extension AppFeatureViewModel {
                 guard let self else { return }
                 self.accountSummary = self.credentialsManager.accountSummary
                 self.reconcilePurchaseFlowAfterAccountRefresh()
+                self.updateExpiryReminder()
             }
             .store(in: &cancellables)
 
@@ -483,6 +485,69 @@ private extension AppFeatureViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.accountSummaryFetchFailed = $0 }
             .store(in: &cancellables)
+    }
+
+    /// Surfaces the upcoming-expiry renewal reminder as a sticky snackbar, escalating
+    /// by tier. Subscriptions get "Renew now"; free passes get "Get a plan" — both
+    /// route to the same purchase/renew entry. Suppressed once the user dismisses a
+    /// given tier for a given expiry window (re-armed by a new tier or a renewal).
+    func updateExpiryReminder() {
+        guard let summary = credentialsManager.accountSummary else {
+            shownExpiryReminderKey = nil
+            return
+        }
+        let tier = summary.expiryReminderTier()
+        guard tier != .none else {
+            shownExpiryReminderKey = nil
+            return
+        }
+
+        let validUntil = summary.validUntilDate?.timeIntervalSince1970 ?? 0
+        let key = "\(tier.rawValue)|\(validUntil)"
+
+        // Explicitly dismissed by the user for this exact tier + expiry window.
+        if appSettings.expiryReminderDismissedTier == tier.rawValue,
+           appSettings.expiryReminderDismissedValidUntil == validUntil {
+            return
+        }
+        // Already surfaced this session for this tier + window — don't re-enqueue
+        // on every account-summary refresh.
+        guard shownExpiryReminderKey != key else { return }
+        shownExpiryReminderKey = key
+
+        let isFreepass = summary.isFreepassPlan
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: expiryReminderStyle(for: tier),
+                title: expiryReminderTitle(tier: tier, isFreepass: isFreepass),
+                actionTitle: isFreepass
+                    ? "renewalReminder.action.getPlan".localizedString
+                    : "renewalReminder.action.renew".localizedString,
+                onAction: { [weak self] in
+                    self?.requestInactiveSubscriptionPurchase()
+                },
+                onDismiss: { [weak self] in
+                    guard let self else { return }
+                    self.appSettings.expiryReminderDismissedTier = tier.rawValue
+                    self.appSettings.expiryReminderDismissedValidUntil = validUntil
+                },
+                duration: nil
+            )
+        )
+    }
+
+    private func expiryReminderStyle(for tier: ExpiryReminderTier) -> SnackbarItem.Style {
+        switch tier {
+        case .hour24, .expired:
+            return .critical
+        default:
+            return .warning
+        }
+    }
+
+    private func expiryReminderTitle(tier: ExpiryReminderTier, isFreepass: Bool) -> String {
+        let planSuffix = isFreepass ? "freepass" : "subscription"
+        return "renewalReminder.\(tier.rawValue).\(planSuffix).title".localizedString
     }
 
     func applyAuthRoute(_ route: AuthCompletionRoute) {

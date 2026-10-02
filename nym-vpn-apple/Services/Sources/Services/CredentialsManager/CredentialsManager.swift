@@ -699,8 +699,8 @@ extension CredentialsManager {
         else {
             return
         }
-        appSettings.expiryWarningDismissedAt = 0
-        appSettings.expirySoonDismissedAt = 0
+        appSettings.expiryReminderDismissedTier = ""
+        appSettings.expiryReminderDismissedValidUntil = 0
     }
 }
 
