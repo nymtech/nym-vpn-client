@@ -1224,16 +1224,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3b5ca7a04898ad4bcd41c90c5285445ff5b791899bb1b0abdd2a2aa791211d7"
 
 [[package]]
-name = "bytecodec"
-version = "0.4.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adf4c9d0bbf32eea58d7c0f812058138ee8edaf0f2802b6d03561b504729a325"
-dependencies = [
- "byteorder",
- "trackable 0.2.24",
-]
-
-[[package]]
 name = "bytecount"
 version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4066,16 +4056,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87"
 
 [[package]]
-name = "httpcodec"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f49d64351430cabd543943b79d48aaf0bc95a41d9ccf5b8774c2cfd23422775"
-dependencies = [
- "bytecodec",
- "trackable 0.2.24",
-]
-
-[[package]]
 name = "httpdate"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5704,8 +5684,8 @@ dependencies = [
 
 [[package]]
 name = "nym-api-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "celes 2.8.2",
@@ -5759,8 +5739,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "futures",
@@ -5783,8 +5763,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -5807,8 +5787,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-controller"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "log",
@@ -5829,8 +5809,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-fetcher"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5851,8 +5831,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bin-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "const-str",
  "log",
@@ -5947,9 +5927,10 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
+ "arc-swap",
  "async-trait",
  "base64 0.22.1",
  "bs58",
@@ -6008,8 +5989,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-config-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -6024,8 +6005,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-gateways-storage"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6044,8 +6025,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-surb-storage"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6063,8 +6044,8 @@ dependencies = [
 
 [[package]]
 name = "nym-coconut-dkg-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6077,8 +6058,8 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -6094,8 +6075,8 @@ dependencies = [
 
 [[package]]
 name = "nym-compact-ecash"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bs58",
@@ -6117,8 +6098,8 @@ dependencies = [
 
 [[package]]
 name = "nym-config"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dirs 6.0.0",
  "handlebars",
@@ -6163,8 +6144,8 @@ dependencies = [
 
 [[package]]
 name = "nym-contracts-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6178,8 +6159,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-proxy-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -6199,8 +6180,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-storage"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6220,8 +6201,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "cosmrs",
@@ -6246,8 +6227,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials-interface"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-bls12_381-fork",
  "nym-compact-ecash",
@@ -6265,8 +6246,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "aead 0.5.2",
  "aes 0.8.4",
@@ -6361,8 +6342,8 @@ dependencies = [
 
 [[package]]
 name = "nym-directory-attestation"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "blake3",
@@ -6379,8 +6360,8 @@ dependencies = [
 
 [[package]]
 name = "nym-directory-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6418,8 +6399,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6432,8 +6413,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-signer-check-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -6448,8 +6429,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-time"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -6466,8 +6447,8 @@ dependencies = [
 
 [[package]]
 name = "nym-exit-policy"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "serde",
  "serde_json",
@@ -6539,8 +6520,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -6607,8 +6588,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "futures",
@@ -6637,8 +6618,8 @@ dependencies = [
 
 [[package]]
 name = "nym-geolocation-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6651,8 +6632,8 @@ dependencies = [
 
 [[package]]
 name = "nym-group-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -6663,8 +6644,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -6699,8 +6680,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client-macro"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -6711,8 +6692,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "serde",
@@ -6722,8 +6703,8 @@ dependencies = [
 
 [[package]]
 name = "nym-id"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -6750,8 +6731,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6767,8 +6748,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6815,8 +6796,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "libcrux-chacha20poly1305",
  "libcrux-ecdh",
@@ -6836,8 +6817,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-ciphersuite"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "blake3",
  "libcrux-sha3",
@@ -6850,8 +6831,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-context"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "num_enum",
  "nym-kkt-ciphersuite",
@@ -6860,14 +6841,14 @@ dependencies = [
 
 [[package]]
 name = "nym-lp"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "bytes",
  "getrandom 0.4.3",
  "libcrux-psq",
- "nym-common 1.22.0",
+ "nym-common 1.22.1",
  "nym-crypto",
  "nym-kkt",
  "nym-kkt-ciphersuite",
@@ -6882,12 +6863,12 @@ dependencies = [
 
 [[package]]
 name = "nym-lp-data"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bytes",
  "num_enum",
- "nym-common 1.22.0",
+ "nym-common 1.22.1",
  "semver",
  "thiserror 2.0.20",
  "tracing",
@@ -6895,8 +6876,8 @@ dependencies = [
 
 [[package]]
 name = "nym-lp-gateway-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6910,8 +6891,8 @@ dependencies = [
 
 [[package]]
 name = "nym-lthash"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "blake3",
  "digest 0.10.7",
@@ -6930,8 +6911,8 @@ dependencies = [
 
 [[package]]
 name = "nym-metrics"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -6941,8 +6922,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dashmap",
  "futures",
@@ -6959,8 +6940,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6980,8 +6961,8 @@ dependencies = [
 
 [[package]]
 name = "nym-multisig-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6996,8 +6977,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-defaults"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -7012,8 +6993,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-monitors-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7025,8 +7006,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-families-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7041,8 +7022,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "celes 2.8.2",
  "humantime-serde",
@@ -7066,8 +7047,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -7087,8 +7068,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise-keys"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -7098,8 +7079,8 @@ dependencies = [
 
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -7128,8 +7109,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ordered-buffer"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "log",
  "thiserror 2.0.20",
@@ -7137,8 +7118,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "pem 0.8.3",
  "tracing",
@@ -7147,8 +7128,8 @@ dependencies = [
 
 [[package]]
 name = "nym-performance-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7176,8 +7157,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bytes",
@@ -7207,8 +7188,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "nym-authenticator-requests",
@@ -7219,6 +7200,7 @@ dependencies = [
  "nym-sphinx",
  "nym-wireguard-types",
  "serde",
+ "time",
  "tracing",
 ]
 
@@ -7244,22 +7226,19 @@ dependencies = [
 
 [[package]]
 name = "nym-sdk"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
  "bincode",
  "bip39",
- "bytecodec",
  "bytes",
  "celes 2.8.2",
  "clap",
  "dashmap",
  "dirs 6.0.0",
  "futures",
- "http 1.5.0",
- "httpcodec",
  "log",
  "nym-bandwidth-controller",
  "nym-bandwidth-fetcher",
@@ -7274,8 +7253,6 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-lp-data",
  "nym-network-defaults",
- "nym-ordered-buffer",
- "nym-service-providers-common",
  "nym-socks5-client-core",
  "nym-socks5-requests",
  "nym-sphinx",
@@ -7287,7 +7264,6 @@ dependencies = [
  "rand 0.8.8",
  "semver",
  "serde",
- "tap",
  "tempfile",
  "thiserror 2.0.20",
  "tokio",
@@ -7295,7 +7271,6 @@ dependencies = [
  "tokio-util",
  "toml 0.8.23",
  "tracing",
- "tracing-subscriber",
  "url",
  "uuid",
  "zeroize",
@@ -7303,8 +7278,8 @@ dependencies = [
 
 [[package]]
 name = "nym-serde-helpers"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "serde",
  "serde_with",
@@ -7313,8 +7288,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-provider-requests-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "serde",
  "thiserror 2.0.20",
@@ -7322,8 +7297,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-providers-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "log",
@@ -7348,8 +7323,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-client-core"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "dirs 6.0.0",
@@ -7408,8 +7383,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-helpers"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bytes",
  "futures",
@@ -7431,8 +7406,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "log",
@@ -7447,8 +7422,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -7473,8 +7448,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-acknowledgements"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -7491,8 +7466,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-addressing"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -7502,8 +7477,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-anonymous-replies"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -7520,8 +7495,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-chunking"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dashmap",
  "log",
@@ -7539,8 +7514,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-cover"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -7557,8 +7532,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-forwarding"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -7569,8 +7544,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-framing"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -7586,8 +7561,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-params"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -7597,8 +7572,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-routing"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -7607,8 +7582,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "sphinx-packet",
  "thiserror 2.0.20",
@@ -7655,8 +7630,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sqlx-pool-guard"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "proc_pidinfo",
  "sqlx 0.8.6",
@@ -7699,8 +7674,8 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "futures",
  "log",
@@ -7724,8 +7699,8 @@ dependencies = [
 
 [[package]]
 name = "nym-task"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cfg-if",
  "futures",
@@ -7741,8 +7716,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ticketbooks-merkle"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -7756,8 +7731,8 @@ dependencies = [
 
 [[package]]
 name = "nym-topology"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -7776,8 +7751,8 @@ dependencies = [
 
 [[package]]
 name = "nym-upgrade-mode-check"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -7793,8 +7768,8 @@ dependencies = [
 
 [[package]]
 name = "nym-validator-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -7848,8 +7823,8 @@ dependencies = [
 
 [[package]]
 name = "nym-vesting-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -8292,8 +8267,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wasm-utils"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -8356,8 +8331,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "nym-http-api-client",
@@ -8367,8 +8342,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-shared"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "axum",
  "bincode",
@@ -8381,8 +8356,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -13164,35 +13139,6 @@ checksum = "ad06847b7afb65c7866a36664b75c40b895e318cea4f71299f013fb22965329d"
 dependencies = [
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "trackable"
-version = "0.2.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b98abb9e7300b9ac902cc04920945a874c1973e08c310627cc4458c04b70dd32"
-dependencies = [
- "trackable 1.3.0",
- "trackable_derive",
-]
-
-[[package]]
-name = "trackable"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b15bd114abb99ef8cee977e517c8f37aee63f184f2d08e3e6ceca092373369ae"
-dependencies = [
- "trackable_derive",
-]
-
-[[package]]
-name = "trackable_derive"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebeb235c5847e2f82cfe0f07eb971d1e5f6804b18dac2ae16349cc604380f82f"
-dependencies = [
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
