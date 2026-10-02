@@ -168,6 +168,11 @@ jobs:
           RUBY_PREFIX="$(brew --prefix ruby)"
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
+          GEM_HOME="${RUNNER_TEMP}/gem"
+          mkdir -p "${GEM_HOME}"
+          echo "GEM_HOME=${GEM_HOME}" >> "$GITHUB_ENV"
+          echo "${GEM_HOME}/bin" >> "$GITHUB_PATH"
+          export PATH="${GEM_HOME}/bin:${PATH}"
 
           # Show versions for debugging
           brew --version
@@ -215,6 +220,10 @@ jobs:
           fastlane --version
 
       - name: Install python3
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+          HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
           brew install python
           python3 --version
