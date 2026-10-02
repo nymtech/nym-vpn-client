@@ -46,8 +46,11 @@ public enum ExpiryReminder {
         if isAutoRenewEnabled { return .none }
         guard let validUntil else { return .none }
 
+        // The account is active by definition here — the `!effectivelyActive` branch
+        // above owns "expired" — so the ladder never returns "expired": an active
+        // account whose date just passed (grace / backend lag) gets the most urgent
+        // tier, not a false "expired" that contradicts the gate above.
         let remaining = validUntil.timeIntervalSince(now)
-        if remaining <= 0 { return .expired }
         if remaining <= hour24Window { return .hour24 }
         if remaining <= day3Window { return .day3 }
         if remaining <= day7Window { return .day7 }

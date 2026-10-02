@@ -51,9 +51,12 @@ struct ExpiryReminderTests {
         #expect(tier(inHours: 1) == .hour24)
     }
 
-    @Test func expiredWhenPast() {
-        #expect(tier(inHours: -1) == .expired)
-        #expect(tier(inDays: -10) == .expired)
+    @Test func activeFlagPastDateIsGraceNotExpired() {
+        // Active flag but the date has passed (grace / backend lag): the account is
+        // still effectively active, so the ladder shows the most urgent tier, never
+        // "expired". Only `!effectivelyActive` (see inactivePastDateIsExpired) is expired.
+        #expect(tier(inHours: -1) == .hour24)
+        #expect(tier(inDays: -10) == .hour24)
     }
 
     // MARK: - Gates
