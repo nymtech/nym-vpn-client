@@ -40,7 +40,7 @@ function markShown(key: string) {
  */
 function useExpiryReminderToast() {
   const accountSummary = useAppStore((s) => s.accountSummary);
-  const { add } = useToast();
+  const { add, close } = useToast();
   const { t } = useTranslation('notifications');
   const navigate = useNavigate();
   const shownKeyRef = useRef<string | null>(null);
@@ -71,11 +71,15 @@ function useExpiryReminderToast() {
           ? t('renewal-reminder.action.get-plan')
           : t('renewal-reminder.action.renew'),
         onClick: () => {
-          navigate(isFreepass ? routes.selectPlan : routes.account);
+          // Both plan kinds renew/subscribe at the plan picker. `/account` itself
+          // has no index screen (only `/account/select-a-plan`), so routing there
+          // would land on a blank outlet.
+          close(REMINDER_TOAST_ID);
+          navigate(routes.selectPlan);
         },
       },
     });
-  }, [accountSummary, add, t, navigate]);
+  }, [accountSummary, add, close, t, navigate]);
 }
 
 export default useExpiryReminderToast;

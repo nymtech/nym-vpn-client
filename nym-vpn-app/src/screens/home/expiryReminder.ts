@@ -8,7 +8,8 @@ import { TAccountSummary } from '../../types';
  * by `isFreepass` — differs between subscription and free pass, not these
  * thresholds. Mirrors the Apple `ExpiryReminderTier` for cross-platform parity.
  */
-export type ExpiryReminderTier = 'none' | 'day7' | 'day3' | 'hour24' | 'expired';
+export type ExpiryReminderTier =
+  'none' | 'day7' | 'day3' | 'hour24' | 'expired';
 
 export type ExpiryReminder = {
   tier: ExpiryReminderTier;
@@ -60,15 +61,18 @@ export function getExpiryReminder(
     return none;
   }
 
-  const hoursRemaining = validUntilDay.diff(now, 'hour');
-  if (hoursRemaining <= 0) return { tier: 'expired', isFreepass, validUntil };
-  if (hoursRemaining <= HOURS_IN_24H) {
+  // The account is active by definition here — the `!effectivelyActive` branch above
+  // owns "expired" — so the ladder never returns "expired": a grace-period account
+  // (active flag, date just past) gets the most urgent tier, not a false "expired".
+  // Minutes avoid dayjs hour-truncation showing "expired" up to 59 min before expiry.
+  const minutesRemaining = validUntilDay.diff(now, 'minute');
+  if (minutesRemaining <= HOURS_IN_24H * 60) {
     return { tier: 'hour24', isFreepass, validUntil };
   }
-  if (hoursRemaining <= HOURS_IN_3_DAYS) {
+  if (minutesRemaining <= HOURS_IN_3_DAYS * 60) {
     return { tier: 'day3', isFreepass, validUntil };
   }
-  if (hoursRemaining <= HOURS_IN_7_DAYS) {
+  if (minutesRemaining <= HOURS_IN_7_DAYS * 60) {
     return { tier: 'day7', isFreepass, validUntil };
   }
   return none;
