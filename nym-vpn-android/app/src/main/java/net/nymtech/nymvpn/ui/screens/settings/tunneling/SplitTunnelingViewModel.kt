@@ -20,6 +20,7 @@ import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.events.UiEvent as CommonUiEvent
 import net.nymtech.nymvpn.util.SplitTunnelingHelper
 import net.nymtech.nymvpn.util.filterAllPassThroughValue
+import net.nymtech.nymvpn.util.setAllPassThroughValue
 import net.nymtech.nymvpn.util.totalAppCounts
 import net.nymtech.nymvpn.util.updatePassThroughValue
 import net.nymtech.vpn.backend.Tunnel
@@ -85,6 +86,10 @@ class SplitTunnelingViewModel @Inject constructor(
 
 	fun onChangeSelection(packageName: String) {
 		changeChoiceSelection(packageName)
+	}
+
+	fun onToggleAllApps(viaVpn: Boolean) {
+		setAllAppsPassThrough(viaVpn)
 	}
 
 	fun clearSaveDialog() {
@@ -265,6 +270,26 @@ class SplitTunnelingViewModel @Inject constructor(
 				)
 			}
 			if (uiState.value.query.isNotEmpty()) filterApps(uiState.value.query)
+		}
+	}
+
+	/**
+	 * Routes every installed app via the VPN (or directly) in one go, ignoring the
+	 * current search query and filter, then re-applies both to the visible lists.
+	 */
+	private fun setAllAppsPassThrough(viaVpn: Boolean) {
+		viewModelScope.launch {
+			_uiState.update {
+				val updatedSystemApps = it.systemApps.setAllPassThroughValue(viaVpn)
+				val updatedNormalApps = it.normalApps.setAllPassThroughValue(viaVpn)
+
+				it.copy(
+					systemApps = updatedSystemApps,
+					normalApps = updatedNormalApps,
+					hasUnsavedChanges = (updatedSystemApps + updatedNormalApps) != initialAppInfoList,
+				)
+			}
+			filterApps(_uiState.value.query)
 		}
 	}
 
