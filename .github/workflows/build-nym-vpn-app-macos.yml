@@ -76,6 +76,10 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
+      # - name: Set tool cache path
+      #   run: |
+      #     echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> $GITHUB_ENV
+
       - name: Checkout repo
         uses: actions/checkout@v7.0.1
         with:
@@ -158,18 +162,22 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Add Homebrew, Ruby to PATH
+      - name: Install Ruby + bundler (for fastlane)
+        uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8  # v1.327.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          self-hosted: true
+          working-directory: nym-vpn-apple
+
+      - name: Add Homebrew to PATH
         run: |
           set -euxo pipefail
 
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
-          RUBY_PREFIX="$(brew --prefix ruby)"
-          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
-          export PATH="${RUBY_PREFIX}/bin:$PATH"
 
-          # Show versions for debugging
           brew --version
           ruby --version
           gem --version
@@ -192,12 +200,6 @@ jobs:
         run: |
           echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
-
-      - name: Install fastlane
-        working-directory: nym-vpn-apple
-        run: |
-          bundle install
-          fastlane --version
 
       - name: Install python3
         run: |
