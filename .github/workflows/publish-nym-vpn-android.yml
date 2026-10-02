@@ -38,6 +38,7 @@ jobs:
         with:
           ruby-version: "3.3"
           bundler-cache: true
+          working-directory: nym-vpn-android
 
       - name: Create service_account.json
         id: createServiceAccount
@@ -46,10 +47,6 @@ jobs:
           ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
         run: |
           printf '%s' "$ANDROID_SERVICE_ACCOUNT_JSON" > service_account.json
-
-      - name: Install fastlane
-        working-directory: nym-vpn-android
-        run: bundle install
 
       - name: Set locale (for Fastlane)
         run: |
