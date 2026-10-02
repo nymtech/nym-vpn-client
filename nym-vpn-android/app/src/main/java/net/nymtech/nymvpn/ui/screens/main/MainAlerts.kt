@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -143,7 +144,9 @@ fun MainAlerts(
 	val noScreenLockAction = stringResource(R.string.screen_lock_setup_button)
 	val currentIsScreenLockSet by rememberUpdatedState(isScreenLockSet)
 	val currentOnSetUpScreenLock by rememberUpdatedState(onSetUpScreenLock)
-	LifecycleResumeEffect(isLoggedIn) {
+	val activeAlert by AlertController.message.collectAsStateWithLifecycle()
+	val isAlertSlotFree = activeAlert == null
+	LifecycleResumeEffect(isLoggedIn, isAlertSlotFree) {
 		if (isLoggedIn && !currentIsScreenLockSet()) {
 			val current = AlertController.message.value
 			if (current == null || current.id == AlertId.NoScreenLock) {
