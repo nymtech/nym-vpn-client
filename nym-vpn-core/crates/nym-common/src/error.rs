@@ -38,10 +38,10 @@ impl<E: Error> ErrorExt for E {
 #[macro_export]
 macro_rules! trace_err_chain {
     ($err:expr) => {
-        tracing::error!("{}", $crate::ErrorExt::display_chain(&$err));
+        tracing::error!("{}", $crate::ErrorExt::display_chain(&$err))
     };
     ($err:expr, $($args:tt)*) => {
-        tracing::error!("{}", $crate::ErrorExt::display_chain_with_msg(&$err, ::std::format!($($args)*)));
+        tracing::error!("{}", $crate::ErrorExt::display_chain_with_msg(&$err, ::std::format!($($args)*)))
     };
 }
 
