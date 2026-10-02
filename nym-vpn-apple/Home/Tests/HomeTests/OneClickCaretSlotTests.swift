@@ -2,11 +2,11 @@ import Testing
 @testable import Home
 
 struct OneClickCaretSlotTests {
-    @Test func nerdCaretSitsBetweenHops() {
-        #expect(OneClickDisplayMode.nerd.caretSlot == .betweenHops)
+    @Test func collapsedCaretStacksOnExitChoice() {
+        #expect(OneClickDisplayMode.powerUser.caretSlot == .exitInfoStack)
     }
 
-    @Test func powerUserCaretStaysOnExitRow() {
-        #expect(OneClickDisplayMode.powerUser.caretSlot == .exitRow)
+    @Test func expandedCaretSitsOnExitLabel() {
+        #expect(OneClickDisplayMode.nerd.caretSlot == .exitLabel)
     }
 }
