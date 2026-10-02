@@ -388,6 +388,11 @@ import PathManager
 #endif
         checkCredentialImport()
         appSettings.clearAllAccountTokens()
+        // Clear any expiry-reminder dismissal so the next account doesn't inherit a
+        // suppressed reminder — the `expired|0` key (inactive, no expiry date) would
+        // otherwise collide across accounts.
+        appSettings.expiryReminderDismissedTier = ""
+        appSettings.expiryReminderDismissedValidUntil = 0
 #if SANTA
         isAccountSummaryOverridden = false
 #endif
@@ -694,8 +699,7 @@ extension CredentialsManager {
     private func resetExpiryDismissalsIfNeeded() {
         guard let accountSummary,
               accountSummary.isActive,
-              !accountSummary.isExpiringSoon,
-              !accountSummary.isExpiringWarning
+              accountSummary.expiryReminderTier() == .none
         else {
             return
         }
