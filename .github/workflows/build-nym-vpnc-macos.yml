@@ -84,6 +84,10 @@ jobs:
           brew install jq
 
       - name: Install python3
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+          HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
           brew install python
           python3 --version
