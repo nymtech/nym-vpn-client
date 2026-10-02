@@ -494,7 +494,10 @@ private extension AppFeatureViewModel {
     /// reminder once it is no longer justified (renewed elsewhere, logged out, tier
     /// changed). Reconciling — rather than firing once — is what lets it survive a
     /// `SnackbarManager.clear()` (connect/disconnect/network flaps call it): the next
-    /// refresh re-enqueues because the item is no longer `current`.
+    /// refresh re-enqueues because the item is no longer `current`. Note the re-arm
+    /// cadence is therefore the summary-refresh cadence — after a `clear()` a due
+    /// reminder stays absent until the next account-summary emission (launch, foreground,
+    /// post-disconnect refresh), which is acceptable here (no timer).
     ///
     /// Subscriptions get "Renew now"; free passes get "Get a plan" — both route to
     /// the same purchase/renew entry. Suppression is per tier + expiry window.
@@ -519,6 +522,15 @@ private extension AppFeatureViewModel {
         // no longer carries our id, so we fall through and re-enqueue.)
         if reminderKey == desired.key, let id = reminderItemID, snackbarManager.current?.id == id {
             return
+        }
+
+        // Retract the previously tracked item before enqueuing its replacement. When it
+        // is sitting in the queue (behind another snackbar) rather than being `current`,
+        // skipping this would orphan a duplicate that nothing tracks — leaving unbounded
+        // sticky copies and a stale reminder that survives a renewal. A no-op when the
+        // item was already cleared or dismissed.
+        if let previous = reminderItemID {
+            snackbarManager.dismiss(id: previous)
         }
 
         let id = UUID()
