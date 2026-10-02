@@ -43,8 +43,8 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 				},
 				trailing = {
 					ScaledSwitch(
-						checked = statsEnabled,
-						onClick = { onNetworkStatsEnable(it) },
+						checked = sentryEnabled,
+						onClick = { onMonitoringEnable(it) },
 					)
 				},
 				title = {
@@ -88,8 +88,8 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 				},
 				trailing = {
 					ScaledSwitch(
-						checked = sentryEnabled,
-						onClick = { onMonitoringEnable(it) },
+						checked = statsEnabled,
+						onClick = { onNetworkStatsEnable(it) },
 					)
 				},
 				title = {
