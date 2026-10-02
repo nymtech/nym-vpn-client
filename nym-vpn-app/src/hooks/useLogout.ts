@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { dispatch, useMainState } from '../store';
 import { BackendError } from '../types';
 import { CCache } from '../cache';
+import { kvDel } from '../kvStore';
 import useI18nError from './useI18nError';
 import { useToast } from './index';
 
@@ -24,6 +25,7 @@ function useLogout() {
       dispatch({ type: 'set-account-summary', summary: null });
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
+      await kvDel('expiry-reminder-shown');
       dispatch({ type: 'reset-error' });
 
       add({ title: t('logout.success'), type: 'success' });
