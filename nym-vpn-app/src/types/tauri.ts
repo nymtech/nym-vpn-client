@@ -89,6 +89,7 @@ export type DbKey =
   | 'last-network-env'
   | 'network-stats-enabled'
   | 'custom-split-tunnel-apps'
+  | 'expiry-reminder-shown'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
