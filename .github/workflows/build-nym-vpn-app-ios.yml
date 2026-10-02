@@ -205,10 +205,10 @@ jobs:
           bundle install
           fastlane --version
 
-      - name: Install python3
-        run: |
-          brew install python
-          python3 --version
+      - name: Install Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Cache virtual env
         id: cache-virtual-env
