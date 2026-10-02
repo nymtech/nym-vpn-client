@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.manager.deviceauth.DeviceAuthManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.MnemonicError
 import net.nymtech.nymvpn.util.Constants
@@ -33,6 +35,7 @@ data class AuthUiState(
 	val isBillingAvailable: Boolean = true,
 	val hasActiveSubscription: Boolean = false,
 	val showExistingSubscriptionModal: Boolean = false,
+	val showScreenLockSetupModal: Boolean = false,
 )
 
 sealed class AuthEvent {
@@ -46,6 +49,7 @@ class AuthViewModel @Inject constructor(
 	private val backendManager: BackendManager,
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val settingsRepository: SettingsRepository,
+	private val deviceAuthManager: DeviceAuthManager,
 ) : ViewModel() {
 
 	companion object {
@@ -109,6 +113,19 @@ class AuthViewModel @Inject constructor(
 
 	fun dismissSubscriptionModal() {
 		_uiState.update { it.copy(showExistingSubscriptionModal = false) }
+	}
+
+	fun requireAuthSetUp(): Boolean {
+		if (deviceAuthManager.isAuthSetUp()) return true
+		Timber.tag(TAG).i("SignUpBlocked reason=NO_SCREEN_LOCK")
+		_uiState.update { it.copy(showScreenLockSetupModal = true) }
+		return false
+	}
+
+	fun createAuthSetupIntent(): Intent = deviceAuthManager.createSetupIntent()
+
+	fun dismissScreenLockSetupModal() {
+		_uiState.update { it.copy(showScreenLockSetupModal = false) }
 	}
 
 	fun onSubmitMnemonic() = viewModelScope.launch {

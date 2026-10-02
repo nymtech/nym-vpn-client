@@ -424,6 +424,7 @@
 	<string name="account_payment_error">Failed to purchase a subscription. Please, try again later</string>
 	<!-- Screen lock setup dialog -->
 	<string name="screen_lock_setup_title">This device has no screen lock</string>
+	<string name="screen_lock_setup_body">NymVPN uses your screen lock to confirm it\'s you. Add a PIN, pattern or password in Android settings, then try again.</string>
 	<string name="screen_lock_setup_passphrase_body">NymVPN uses your screen lock to confirm it\'s you before it shows your passphrase. Add a PIN, pattern or password in Android settings, then come back.</string>
 	<string name="screen_lock_setup_shortcuts_body">NymVPN uses your screen lock to confirm it\'s you before it runs a shortcut. Add a PIN, pattern or password in Android settings, then come back.</string>
 	<string name="screen_lock_setup_button">Set a screen lock</string>

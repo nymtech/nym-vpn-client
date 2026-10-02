@@ -12,15 +12,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.modal.ScreenLockSetupDialog
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.LoginView
@@ -28,6 +31,7 @@ import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.Passphrase
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.SignUpView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.TechOptView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeView
+import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 
@@ -75,6 +79,16 @@ fun AuthComponent(
 		onDismiss = { viewModel.dismissSubscriptionModal() },
 	)
 
+	ScreenLockSetupDialog(
+		show = uiState.showScreenLockSetupModal,
+		body = stringResource(R.string.screen_lock_setup_body),
+		onSetUpClick = {
+			viewModel.dismissScreenLockSetupModal()
+			context.launchScreenLockSetup(viewModel.createAuthSetupIntent())
+		},
+		onDismiss = { viewModel.dismissScreenLockSetupModal() },
+	)
+
 	NavHost(
 		navController = localNavController,
 		startDestination = initialRoute,
@@ -106,8 +120,12 @@ fun AuthComponent(
 		composable<AuthRoute.SignUp> {
 			SignUpView(
 				onBackClick = { localNavController.popBackStack() },
-				onSocialClick = { uiState.socialLink?.let { context.openWebUrl(it) } },
-				onAccountClick = { viewModel.onAnonymousAccountClick() },
+				onSocialClick = {
+					if (viewModel.requireAuthSetUp()) uiState.socialLink?.let { context.openWebUrl(it) }
+				},
+				onAccountClick = {
+					if (viewModel.requireAuthSetUp()) viewModel.onAnonymousAccountClick()
+				},
 			)
 		}
 
