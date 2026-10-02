@@ -3,7 +3,6 @@
 "nym-vpn-core/**":
   - neacsu
   - pronebird
-  - trojanfoe
 # client app changes
 "nym-vpn-app/**":
   - agentpietrucha
@@ -12,5 +11,5 @@
   - agentpietrucha
   - mrkiwi
 "nym-vpn-android/**":
-  - mrkiwi
   - agentpietrucha
+  - mrkiwi
