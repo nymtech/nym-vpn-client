@@ -72,10 +72,13 @@ jobs:
           # `gh auth setup-git` configures git authentication just before the push instead.
           persist-credentials: false
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Install Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       # Builtin gateway list (NYM-1736): union of entry/exit/wg gateways from the nym-vpn-api
       # directory endpoints, deduplicated and gzip-compressed into gateways.json.gz.
