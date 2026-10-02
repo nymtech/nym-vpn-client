@@ -257,6 +257,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
                         manager.dismiss()
                     },
                     onDismiss: {
+                        item.onDismiss?()
                         manager.dismiss()
                     }
                 )
