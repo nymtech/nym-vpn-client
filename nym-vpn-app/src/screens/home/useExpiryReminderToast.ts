@@ -50,8 +50,9 @@ function useExpiryReminderToast() {
   const closeRef = useRef(close);
   closeRef.current = close;
 
-  // Removes the toast without counting it as acted on: `displayedRef` is cleared
-  // first, which `onClose` checks.
+  // Removes the toast without counting it as acted on. Base UI calls `onClose`
+  // on every close and doesn't say why, so `displayedRef` must be cleared before
+  // closing: `onClose` ignores the close when the ref is empty.
   const dismissRef = useRef(() => {
     if (displayedRef.current) {
       displayedRef.current = null;
@@ -59,9 +60,9 @@ function useExpiryReminderToast() {
     }
   });
 
-  // The toast provider sits above the router, so take the reminder down when
-  // leaving Home rather than letting it follow the user around (or outlive a
-  // logout).
+  // The toast provider sits above the router, so a toast outlives the screen
+  // that added it. Taking the reminder down when Home unmounts keeps it off
+  // other screens, including the login screen after a logout.
   useEffect(() => {
     const dismiss = dismissRef.current;
     return () => dismiss();
