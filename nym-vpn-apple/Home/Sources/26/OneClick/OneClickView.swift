@@ -58,6 +58,11 @@ private extension OneClickView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 compactServerInfo
+                if animatedDisplayMode.caretSlot == .betweenHops {
+                    caretColumn
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.top, NymSpacing.medium)
+                }
                 if animatedDisplayMode == .nerd {
                     nerdEntrySection
                         .accessibilityHidden(viewModel.displayMode != .nerd)
@@ -91,9 +96,15 @@ private extension OneClickView {
         Group {
             switch viewModel.selectionPhase {
             case .selecting:
-                selectingRowCompact(score: .offline)
+                selectingRowCompact(
+                    score: .offline,
+                    showCarets: animatedDisplayMode.caretSlot == .exitRow
+                )
             case let .selected(info):
-                selectedRowCompact(info: info, showCarets: true)
+                selectedRowCompact(
+                    info: info,
+                    showCarets: animatedDisplayMode.caretSlot == .exitRow
+                )
             }
         }
         .contentShape(Rectangle())
@@ -101,7 +112,7 @@ private extension OneClickView {
         .accessibilityAddTraits(.isButton)
     }
 
-    func selectingRowCompact(score: OneClickServerScore) -> some View {
+    func selectingRowCompact(score: OneClickServerScore, showCarets: Bool) -> some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
             scoreBars(score: score)
             randomGlyph
@@ -109,7 +120,9 @@ private extension OneClickView {
                 .nymTextStyle(.bodySmall)
                 .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
-            caretColumn
+            if showCarets {
+                caretColumn
+            }
         }
     }
 

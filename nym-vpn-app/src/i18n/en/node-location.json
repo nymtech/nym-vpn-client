@@ -3,7 +3,7 @@
   "tab-exit": "Exit",
   "loading": "Loading…",
   "quick-pick": {
-    "safest": "Safest",
+    "safest": "Auto",
     "random": "Random",
     "select-error": "Failed to update server selection"
   },
