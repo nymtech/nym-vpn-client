@@ -7,11 +7,7 @@ import UIComponents
 
 public struct WelcomeOptInsView: View {
 
-    @AppStorage(AppSettingKey.statistics.rawValue)
-    private var isStatisticsEnabled: Bool = true
-
-    @AppStorage(AppSettingKey.errorReporting.rawValue)
-    private var isErrorReportingOn: Bool = false
+    @EnvironmentObject private var appSettings: AppSettings
 
     private let onContinue: () -> Void
 
@@ -63,13 +59,13 @@ private extension WelcomeOptInsView {
                 title: "welcomeOptIns.stats.title".localizedString,
                 linkTitle: "welcomeOptIns.stats.link".localizedString,
                 linkURL: URL(string: Constants.anonymousStatsURL.rawValue),
-                isOn: $isStatisticsEnabled
+                isOn: $appSettings.isStatisticsEnabled
             )
             optInCard(
                 title: "welcomeOptIns.error.title".localizedString,
                 linkTitle: "welcomeOptIns.error.link".localizedString,
                 linkURL: URL(string: Constants.sentryURL.rawValue),
-                isOn: $isErrorReportingOn
+                isOn: $appSettings.isErrorReportingOn
             )
         }
     }
@@ -124,6 +120,7 @@ private extension WelcomeOptInsView {
 #if DEBUG
 #Preview {
     WelcomeOptInsView(onContinue: {})
+        .environmentObject(AppSettings.shared)
         .background(Color.Nym.surface)
 }
 #endif
