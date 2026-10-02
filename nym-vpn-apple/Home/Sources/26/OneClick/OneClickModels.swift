@@ -21,16 +21,16 @@ public enum OneClickDisplayMode: String, Codable, Equatable, Sendable, CaseItera
     var caretSlot: OneClickCaretSlot {
         switch self {
         case .powerUser:
-            .exitRow
+            .exitInfoStack
         case .nerd:
-            .betweenHops
+            .exitLabel
         }
     }
 }
 
 enum OneClickCaretSlot: Equatable {
-    case exitRow
-    case betweenHops
+    case exitInfoStack
+    case exitLabel
 }
 
 public enum OneClickSpeedMode: String, Codable, Equatable, Sendable, CaseIterable {
