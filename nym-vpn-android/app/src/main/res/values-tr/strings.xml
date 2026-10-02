@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="settings">Ayarlar</string>
-	<string name="connected">Bağlandı</string>
-	<string name="disconnected">Bağlantı kesildi</string>
 	<string name="disconnecting">Bağlantı kesiliyor</string>
 	<string name="connecting">Bağlanıyor</string>
 	<string name="five_hop_mixnet">Anonim (mixnet)</string>
-	<string name="five_hop_description">Hassas işlemler için maksimum gizlilik</string>
-	<string name="two_hop_description">İnternette gezinme, yayın izleme, indirmeler</string>
 	<string name="connect">Bağlan</string>
 	<string name="disconnect">Bağlantıyı kes</string>
 	<string name="init_client">İstemci başlatılıyor…</string>
 	<string name="establishing_connection">Bağlantı kuruluyor</string>
-	<string name="select_mode">Mod seçin</string>
 	<string name="display_theme">Panel teması</string>
 	<string name="light_theme">Açık tema</string>
 	<string name="dark_theme">Koyu tema</string>
 	<string name="automatic">Otomatik</string>
 	<string name="device_theme">Cihaz temasını kullan</string>
 	<string name="search">Ara</string>
-	<string name="search_country">Ülke ara</string>
 	<string name="is_selected">Seçildi</string>
 	<string name="fastest">En hızlı</string>
 	<string name="logs">Kayıtlar</string>
@@ -72,10 +66,7 @@
 	<string name="action_requires_tunnel_down">İşlem, tünelin kapatılmasını gerektiriyor</string>
 	<string name="device_added_success">Cihaz hesabınıza başarıyla eklendi</string>
 	<string name="invalid_recovery_phrase">Geçersiz kurtarma ifadesi</string>
-	<string name="recovery_phrase">24 kelimelik kurtarma ifadesi</string>
-	<string name="log_in">Giriş yap</string>
 	<string name="log_out">Çıkış yap</string>
-	<string name="new_to_nym">NymVPN\'de yeni misiniz?</string>
 	<string name="account">Hesap</string>
 	<string name="mnemonic_example">örneğin: smoke, artifact, velvet, skull, pop, palace, tortoise, damage, rough…</string>
 	<string name="dynamic">Dinamik</string>
@@ -84,10 +75,7 @@
 	<string name="stop">Durdur</string>
 	<string name="app_restart_required">Uygulamayı yeniden başlatmak gereklidir</string>
 	<string name="max_devices_reached_title">Hesabınız için izin verilen maksimum cihaz sayısına ulaştınız</string>
-	<string name="credential_modal_description">Bu cihazı eklemek için hesabınızdaki “Cihazlar” sayfasına gidin, mevcut cihazlardan birini kaldırın ve ardından bu cihazda kurtarma ifadenizle giriş yapın.</string>
-	<string name="manage_devices">Cihazlarınızı yönetin</string>
 	<string name="close">Kapat</string>
-	<string name="enter_access_code">Kurtarma ifadenizi girin veya yapıştırın: 24 kelimeyi aralarında boşluk bırakarak yazın.</string>
 	<string name="get_in_touch">İletişime geçin</string>
 	<string name="loading">Yükleniyor</string>
 	<string name="offline">İnternet yok</string>
@@ -203,17 +191,12 @@
 	<string name="settings_censorship_title">Sansür Karşıtı</string>
 	<string name="settings_passphrase_title">Kurtama ifadesi</string>
 	<string name="settings_dns_title">DNS’i Özelleştir</string>
-	<string name="settings_ipv6_title">IPv6 desteği</string>
-	<string name="settings_ipv6_description">IPv6 bağlantılarına izin ver</string>
-	<string name="settings_system_tray_title">Arka planda çalıştır</string>
-	<string name="settings_system_tray_description">Kapatıldığında uygulamayı çalıştırmaya devam et</string>
 	<string name="settings_reset_app_title">Uygulama verilerini sıfırla</string>
 	<string name="settings_system_status_title">Sistem durumu</string>
 	<string name="settings_mixnet_tuning_title">Mixnet ayar optimizasyonu</string>
 	<string name="settings_mixnet_tuning_description">Anonim moddaki trafik desenlerini ayarlayın</string>
 	<string name="settings_quit_title">NymVPN\'i Kapat</string>
 	<string name="settings_app_version_line">Uygulama sürümü: %1$s</string>
-	<string name="settings_daemon_version_line">Daemon sürümü: %1$s</string>
 	<string name="settings_language_help_title">Çeviriye yardım et</string>
 	<string name="settings_language_help_description">Uygulamayı kendi dilinizde daha iyi hâle getirin.</string>
 	<string name="settings_event_lan_reconnecting">Yerel Alan Ağı (LAN) ayarlarını uygulamak için yeniden bağlanılıyor…</string>
@@ -232,7 +215,6 @@
 	<string name="settings_geo_exclusion_title">Bölgesel hariç tutma</string>
 
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">Kısayolları kullanabilmek için önce cihazınızın ekran kilidini açmanız gerekiyor.</string>
 	<string name="shortcut_title">İşlemi onaylayın</string>
 	<string name="shortcut_subtitle_stop">VPN bağlantısını kesmek için kilidi açın</string>
 	<string name="shortcut_subtitle_start_mixnet">Mixnet’i başlatmak için kilidi açın</string>
@@ -240,7 +222,6 @@
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">En iyi bağlantı için</string>
 	<string name="battery_opt_descr">Daha kararlı VPN bağlantıları için NymVPN’in pil optimizasyonlarını devre dışı bırakın.</string>
-	<string name="battery_opt">Pil optimizasyonu</string>
 	<string name="battery_opt_settings_text">Pil optimizasyonu ayarı, uygulama ayarlarından istediğiniz zaman değiştirilebilir.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Veri &amp; Gizlilik</string>
@@ -272,7 +253,6 @@
 	<string name="welcome_usage_title">Kullanım analizlerini paylaşın.</string>
 	<string name="welcome_usage_description">Nym ağını geliştirmemize yardımcı olun. Hiçbir veri kaydedilmez, etkinlik takip edilmez.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">Hesap oluştur</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">\nKoruma seviyenizi seçin 🛡️</string>
 	<string name="select_plan_line_0">7 günlük ücretsiz deneme</string>
@@ -320,20 +300,12 @@
 	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
 	<string name="censorship_stealth_description">VPN engellemelerine karşı örtü alan adları kullanır. Her zaman açık bırakabilir veya normal bağlantı başarısız olduğunda devreye girmesini sağlayabilirsiniz.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Sadece Hızlı mod lokasyonları ve QUIC protokolünü destekleyen sunucular gösteriliyor. Tüm sunucuları görmek için QUIC\'i kapatın.</string>
 	<string name="censorship_amnezia_title">Minimum gizleme (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
 Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Maximum privacy</string>
-	<string name="account_welcome_create_description">Tek dokunuşla ödeme. Cihazınızda anonim bir hesap oluşturulur. Şifre yok, kişisel bilgi yok.</string>
-	<string name="account_welcome_create_button">Anonim hesap oluştur</string>
-	<string name="account_welcome_social_title">🔑️ Mevcut giriş bilgilerini kullanın</string>
-	<string name="account_welcome_social_description">Ortağımız Privy aracılığıyla e‑posta, Google veya kripto cüzdan ile gizli şekilde giriş yapın.</string>
-	<string name="account_welcome_social_button">Sosyal medya hesabı ile devam et</string>
-	<string name="account_welcome_login_title">Zaten bir hesabınız var mı?</string>
 	<string name="account_welcome_privacy_start">Devam ederek NymVPN’in şart ve koşullarını kabul etmiş sayılırsınız  </string>
 	<string name="account_welcome_privacy_middle">ve</string>
 	<!-- Existing subscription -->
@@ -363,8 +335,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_payment_verifying">Aboneliğinizi doğruluyoruz. Kişisel bilgileriniz asla kimliğinizle ilişkilendirilmez.</string>
 	<string name="account_payment_retrieving">Anonim hesap bilgileriniz (zk‑nyms) hazırlanıyor…</string>
 	<string name="account_payment_credentials">Bu sıfır bilgi giriş bilgileri, kimliğinizi açığa çıkarmadan erişim yetkiniz olduğunu kanıtlar</string>
-	<string name="account_payment_saving">zk-nyms bilgileriniz cihaza kaydediliyor…</string>
-	<string name="account_payment_anonymous">Anonim erişim bilgileriniz artık güvenli bir şekilde saklanıyor; özel, şifreli ve tamamen sizin kontrolünüzde.</string>
 	<string name="account_payment_welcome">Gerçek gizliliğe hoş geldiniz 🎉</string>
 	<string name="account_payment_protected">Artık tamamen korunuyorsunuz</string>
 	<string name="account_payment_error">Abonelik satın alma işlemi başarısız oldu. Lütfen daha sonra tekrar deneyin.</string>
@@ -481,7 +451,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="dns_event_saved">Özel DNS kaydedildi</string>
 	<string name="dns_event_reconnecting">Özel DNS ayarlarını uygulamak için yeniden bağlanılıyor...</string>
 	<!-- Mixnet tuning screen -->
-	<string name="mixnet_tuning_description">Mixnet trafik desenlerinizi özelleştirin</string>
 	<string name="mixnet_tuning_current_title">Mevcut ayarların beklenen performansı:</string>
 	<string name="mixnet_tuning_current_speed">Paket hızı</string>
 	<string name="mixnet_tuning_current_latency">Gecikme süresi</string>
@@ -543,9 +512,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="geo_exclusion_ports_text">1024–65535</string>
 	<string name="geo_exclusion_ranges_count">%1$s aralıkları</string>
 	<string name="geo_exclusion_last_updated">Liste güncellendi %1$s</string>
-	<string name="geo_exclusion_error_sock55_title">SOCKS5 algılanmadı</string>
-	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy algılanmadı. Bağlantı noktası ayarlarınızı kontrol edin.</string>
-	<string name="geo_exclusion_error_failed_start_title">Özellik başlatılamadı</string>
 	<string name="geo_exclusion_error_failed_start_text">Bölgesel hariç tutma başlatılamadı. Yeniden bağlanın ve tekrar deneyin.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Bağlantı noktası değeri 1024 ile 65535 arasında olmalıdır.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">1080 bağlantı noktasına izin verilmiyor. Başka bir bağlantı noktası seçin.</string>
@@ -556,17 +522,4 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Kurulum talimatları</string>
 	<string name="setup_instructions_description">Uygulamaları ve tarayıcıları, trafiği Nym SOCKS5 proxy üzerinden yönlendirecek şekilde yapılandırın.</string>
-	<string name="setup_instructions_per_app_title">Uygulama özelinde (SOCKS5 destekli uygulamalar)</string>
-	<string name="setup_instructions_per_app_description">Android\'de sistem genelinde bir SOCKS5 ayarı bulunmaz.</string>
-	<string name="setup_instructions_pert_app_step">SOCKS5 proxy\'yi doğrudan destekleyen bir uygulama kullanın.</string>
-	<string name="setup_instructions_browser_title">Browser kurulumu</string>
-	<string name="setup_instructions_browser_description">SOCKS5 desteği olan herhangi bir uygulama. Firefox örneği:</string>
-	<string name="setup_instructions_browser_step_1">Ayarlar → SOCKS proxy\'yi etkinleştir — Sunucu adresi</string>
-	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
-	<string name="setup_instructions_browser_step_3">, Bağlantı Noktası</string>
-	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
-	<string name="setup_instructions_wallet_title">Web3 wallet</string>
-	<string name="setup_instructions_wallet_step_1">RPC URL\'sini</string>
-	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545 olarak ayarlayın</string>
-	<string name="setup_instructions_proxy_title">PROXY ADRESİ</string>
 </resources>

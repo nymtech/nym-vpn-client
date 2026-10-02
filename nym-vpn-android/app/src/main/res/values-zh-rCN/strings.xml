@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="settings">设置</string>
-	<string name="connected">已连接</string>
-	<string name="disconnected">已断开</string>
 	<string name="disconnecting">正在断开连接</string>
 	<string name="connecting">正在连接</string>
 	<string name="five_hop_mixnet">匿名（混合网络）</string>
-	<string name="five_hop_description">为敏感活动提供最大程度的保护</string>
-	<string name="two_hop_description">适用于浏览、流媒体、下载</string>
 	<string name="connect">连接</string>
 	<string name="disconnect">断开连接</string>
 	<string name="init_client">正在初始化客户端…</string>
 	<string name="establishing_connection">正在建立连接</string>
-	<string name="select_mode">选择模式</string>
 	<string name="display_theme">主题</string>
 	<string name="light_theme">浅色模式</string>
 	<string name="dark_theme">黑夜模式</string>
 	<string name="automatic">自动</string>
 	<string name="device_theme">使用设备主题</string>
 	<string name="search">搜索</string>
-	<string name="search_country">搜索国家</string>
 	<string name="is_selected">已选择</string>
 	<string name="fastest">最快</string>
 	<string name="logs">日志</string>
@@ -72,10 +66,7 @@
 	<string name="action_requires_tunnel_down">您需要暂时断开 VPN 连接才能继续</string>
 	<string name="device_added_success">设备已成功添加到您的账号</string>
 	<string name="invalid_recovery_phrase">助记词无效</string>
-	<string name="recovery_phrase">24 个单词组成的助记词</string>
-	<string name="log_in">登录</string>
 	<string name="log_out">退出登录</string>
-	<string name="new_to_nym">第一次使用 NymVPN？</string>
 	<string name="account">账号</string>
 	<string name="mnemonic_example">例如 smoke artefact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">动态</string>
@@ -84,10 +75,7 @@
 	<string name="stop">停止</string>
 	<string name="app_restart_required">需要重新启动应用程序</string>
 	<string name="max_devices_reached_title">您的设备数量已达到上限</string>
-	<string name="credential_modal_description">要添加此设备，请进入账号的\"设备\"页面，删除其中一个现有设备，然后使用助记词重新登录此设备。</string>
-	<string name="manage_devices">管理您的设备</string>
 	<string name="close">关闭</string>
-	<string name="enter_access_code">请输入或粘贴您的助记词：请使用空格分开 24 个单词</string>
 	<string name="get_in_touch">联系支持人员</string>
 	<string name="loading">正在加载</string>
 	<string name="offline">没有互联网连接</string>
@@ -205,17 +193,12 @@
 	<string name="settings_censorship_title">抗审查</string>
 	<string name="settings_passphrase_title">助记词</string>
 	<string name="settings_dns_title">自定义 DNS</string>
-	<string name="settings_ipv6_title">支持 IPv6</string>
-	<string name="settings_ipv6_description">允许 IPv6 连接</string>
-	<string name="settings_system_tray_title">最小化到系统托盘</string>
-	<string name="settings_system_tray_description">关闭窗口后应用程序继续在后台运行</string>
 	<string name="settings_reset_app_title">重置应用数据</string>
 	<string name="settings_system_status_title">系统状态</string>
 	<string name="settings_mixnet_tuning_title">自定义混合网络参数</string>
 	<string name="settings_mixnet_tuning_description">自定义匿名模式的流量模式</string>
 	<string name="settings_quit_title">退出 NymVPN</string>
 	<string name="settings_app_version_line">应用版本: %1$s</string>
-	<string name="settings_daemon_version_line">守护进程版本: %1$s</string>
 	<string name="settings_language_help_title">帮助我们翻译 NymVPN</string>
 	<string name="settings_language_help_description">让应用程序支持您的本地语言。</string>
 	<string name="settings_event_lan_reconnecting">正在重新连接以应用局域网设置…</string>
@@ -234,7 +217,6 @@
 	<string name="settings_geo_exclusion_title">地理隧道分流</string>
 
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">需要先锁屏才能开启应用快捷方式。</string>
 	<string name="shortcut_title">确认</string>
 	<string name="shortcut_subtitle_stop">解锁以断开 VPN 连接</string>
 	<string name="shortcut_subtitle_start_mixnet">解锁以使用混合网络</string>
@@ -242,7 +224,6 @@
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">最佳连接方式</string>
 	<string name="battery_opt_descr">关闭 NymVPN 电池优化以获得更稳定的 VPN 连接。</string>
-	<string name="battery_opt">电池优化</string>
 	<string name="battery_opt_settings_text">您随时可以在系统设置中更改电池优化设置。</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">数据、隐私和日志</string>
@@ -274,7 +255,6 @@
 	<string name="welcome_usage_title">共享使用量分析数据</string>
 	<string name="welcome_usage_description">帮助我们改善 Nym 网络。请放心，我们不会收集您的个人信息。</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">创建账号</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">选择您的\n订阅方案</string>
 	<string name="select_plan_line_0">7 天免费试用</string>
@@ -322,19 +302,11 @@
 	<string name="censorship_stealth_title">Stealth API 连接</string>
 	<string name="censorship_stealth_description">通过使用混淆域名技术来绕开 VPN 封锁。打开此开关会始终使用混淆域名技术，关闭此开关则会在正常连接失败后自动使用该功能。</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">仅显示支持 QUIC 协议的服务器。要显示所有可用服务器，请关闭 QUIC</string>
 	<string name="censorship_amnezia_title">最低限度的抗审查保护（AmneziaWG）</string>
 	<string name="censorship_amnezia_description">使用诱饵数据包伪装 WireGuard 流量，防止 VPN 被屏蔽。\n\n注意：仅实现了客户端版本。</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">⚡立即创建匿名账号 </string>
-	<string name="account_welcome_create_description">一键支付。本地生成匿名账号。无需设置密码，无需个人信息。</string>
-	<string name="account_welcome_create_button">创建匿名账号</string>
-	<string name="account_welcome_social_title">🔑️ 使用现有账号登录</string>
-	<string name="account_welcome_social_description">通过我们的第三方合作伙伴 Privy 来使用电子邮件、Google 账号或数字钱包等现有第三方账号登录。</string>
-	<string name="account_welcome_social_button">使用社交媒体账号登录以继续</string>
-	<string name="account_welcome_login_title">已有账号？</string>
 	<string name="account_welcome_privacy_start">继续即代表您同意 NymVPN 的  </string>
 	<string name="account_welcome_privacy_middle">和</string>
 	<!-- Existing subscription -->
@@ -364,8 +336,6 @@
 	<string name="account_payment_verifying">我们正在验证您的订阅——我们的零知识证明技术确保您的付款信息和线上活动永远不会关联</string>
 	<string name="account_payment_retrieving">正在获取您的匿名帐户凭据（zk-nyms）…</string>
 	<string name="account_payment_credentials">这些零知识凭据可以证明您有权使用 NymVPN，但不会透露您是谁</string>
-	<string name="account_payment_saving">正在保存您设备的 zk-nyms 凭据…</string>
-	<string name="account_payment_anonymous">您的匿名访问凭据现已安全地加密存储在您的设备中并在您的控制之下</string>
 	<string name="account_payment_welcome">欢迎使用真正的隐私 🎉</string>
 	<string name="account_payment_protected">您现在已经完全受保护</string>
 	<string name="account_payment_error">购买订阅失败。请稍后再试</string>
@@ -481,7 +451,6 @@
 	<string name="dns_event_saved">自定义 DNS 已保存</string>
 	<string name="dns_event_reconnecting">正在重新连接以应用自定义 DNS 设置……</string>
 	<!-- Mixnet tuning screen -->
-	<string name="mixnet_tuning_description">自定义您的混合网络流量模式</string>
 	<string name="mixnet_tuning_current_title">当前设置的预期性能：</string>
 	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">延迟</string>
@@ -543,9 +512,6 @@
 	<string name="geo_exclusion_ports_text">1024–65535</string>
 	<string name="geo_exclusion_ranges_count">%1$s 范围</string>
 	<string name="geo_exclusion_last_updated">最近更新：%1$s</string>
-	<string name="geo_exclusion_error_sock55_title">未检测到 SOCKS5</string>
-	<string name="geo_exclusion_error_sock55_text">未检测到 SOCKS5 代理。请检查您的端口设置。</string>
-	<string name="geo_exclusion_error_failed_start_title">功能启动失败</string>
 	<string name="geo_exclusion_error_failed_start_text">地理隧道分流开启失败，请尝试稍后重新连接。</string>
 	<string name="geo_exclusion_error_invalid_port_text">端口号必须介于 1024 和 65535 之间。</string>
 	<string name="geo_exclusion_error_forbidden_port_text">端口 1080 被禁用，请选择另外一个。</string>
@@ -556,17 +522,4 @@
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">设置说明</string>
 	<string name="setup_instructions_description">配置应用和浏览器以通过 Nym 的 SOCKS5 代理来路由流量。</string>
-	<string name="setup_instructions_per_app_title">应用（仅限兼容 SOCKS5 的应用）</string>
-	<string name="setup_instructions_per_app_description">Android 没有系统级的 SOCKS5 设置。</string>
-	<string name="setup_instructions_pert_app_step">请确保应用程序支持 SOCKS5 代理。</string>
-	<string name="setup_instructions_browser_title">浏览器配置</string>
-	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
-	<string name="setup_instructions_browser_step_1">设置 → 启用 SOCKS 代理 - 主机</string>
-	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
-	<string name="setup_instructions_browser_step_3">，端口</string>
-	<string name="setup_instructions_browser_step_5">, SOCKS v5。</string>
-	<string name="setup_instructions_wallet_title">Web3 wallet</string>
-	<string name="setup_instructions_wallet_step_1">将 RPC URL 设置为</string>
-	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
-	<string name="setup_instructions_proxy_title">代理地址</string>
 </resources>

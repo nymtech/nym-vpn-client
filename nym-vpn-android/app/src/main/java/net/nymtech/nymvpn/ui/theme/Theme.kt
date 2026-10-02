@@ -1,8 +1,5 @@
 package net.nymtech.nymvpn.ui.theme
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +15,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import net.nymtech.nymvpn.util.extensions.findActivity
 
 enum class Theme {
 	AUTOMATIC,
@@ -97,12 +95,6 @@ fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 	}
 
 	val nymColors = if (isDark) DarkNymColors else LightNymColors
-
-	tailrec fun Context.findActivity(): Activity? = when (this) {
-		is Activity -> this
-		is ContextWrapper -> baseContext.findActivity()
-		else -> null
-	}
 
 	val view = LocalView.current
 	if (!view.isInEditMode) {
