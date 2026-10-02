@@ -16,6 +16,9 @@ export type ExpiryReminder = {
   isFreepass: boolean;
   // Unix-seconds expiry as a string, scoping dedupe/dismissal to one window.
   validUntil: string;
+  // Time left in the tier's unit: whole days for `day7`/`day3`, hours (rounded
+  // up, at least 1) for `hour24`, 0 otherwise.
+  count: number;
 };
 
 const HOURS_IN_24H = 24;
@@ -35,7 +38,12 @@ export function getExpiryReminder(
   const subscription = accountSummary?.subscription?.subscription;
   const isFreepass = subscription?.kind === 'freepass';
   const validUntil = subscription ? String(subscription.validUntilUtc) : '0';
-  const none: ExpiryReminder = { tier: 'none', isFreepass, validUntil };
+  const none: ExpiryReminder = {
+    tier: 'none',
+    isFreepass,
+    validUntil,
+    count: 0,
+  };
 
   // No plan has ever existed → nothing to renew; never "expired".
   if (!accountSummary || !subscription) {
@@ -53,7 +61,7 @@ export function getExpiryReminder(
   const effectivelyActive =
     accountSummary.isSubscriptionActive || validUntilDay.isAfter(now);
   if (!effectivelyActive) {
-    return { tier: 'expired', isFreepass, validUntil };
+    return { tier: 'expired', isFreepass, validUntil, count: 0 };
   }
 
   // Auto-renewing or stacked plans renew themselves — no reminder needed.
@@ -67,13 +75,18 @@ export function getExpiryReminder(
   // Minutes avoid dayjs hour-truncation showing "expired" up to 59 min before expiry.
   const minutesRemaining = validUntilDay.diff(now, 'minute');
   if (minutesRemaining <= HOURS_IN_24H * 60) {
-    return { tier: 'hour24', isFreepass, validUntil };
+    // Rounded up and floored at 1 so it never reads "0 hours", including the
+    // grace-period case where the date has just passed.
+    const hours = Math.max(1, Math.ceil(minutesRemaining / 60));
+    return { tier: 'hour24', isFreepass, validUntil, count: hours };
   }
+  // Whole days left; always >= 1 here since more than 24h remain.
+  const days = Math.floor(minutesRemaining / (24 * 60));
   if (minutesRemaining <= HOURS_IN_3_DAYS * 60) {
-    return { tier: 'day3', isFreepass, validUntil };
+    return { tier: 'day3', isFreepass, validUntil, count: days };
   }
   if (minutesRemaining <= HOURS_IN_7_DAYS * 60) {
-    return { tier: 'day7', isFreepass, validUntil };
+    return { tier: 'day7', isFreepass, validUntil, count: days };
   }
   return none;
 }

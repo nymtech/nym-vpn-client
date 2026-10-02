@@ -1,84 +1,134 @@
 import { useEffect, useRef } from 'react';
+import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAppStore } from '../../store';
 import { useToast } from '../../hooks';
+import { kvGet, kvSet } from '../../kvStore';
 import { routes } from '../../router';
-import { getExpiryReminder } from './expiryReminder';
+import { ExpiryReminder, getExpiryReminder } from './expiryReminder';
 
-const SHOWN_STORAGE_KEY = 'nym.expiryReminder.shown';
 const REMINDER_TOAST_ID = 'expiry-reminder';
-const REMINDER_TIMEOUT_MS = 10000;
 
-function alreadyShown(key: string): boolean {
-  try {
-    return localStorage.getItem(SHOWN_STORAGE_KEY) === key;
-  } catch {
-    return false;
-  }
-}
-
-function markShown(key: string) {
-  try {
-    localStorage.setItem(SHOWN_STORAGE_KEY, key);
-  } catch {
-    // localStorage unavailable (private mode / blocked): the in-memory ref still
-    // dedupes within the session; the reminder may simply re-show next launch.
+function reminderTitle(
+  t: TFunction<'notifications', undefined>,
+  { tier, isFreepass, count }: ExpiryReminder,
+): string {
+  const plan = isFreepass ? 'freepass' : 'subscription';
+  switch (tier) {
+    case 'day7':
+    case 'day3':
+      return t(`renewal-reminder.days.${plan}`, { count });
+    case 'hour24':
+      return t(`renewal-reminder.hours.${plan}`, { count });
+    default:
+      return t(`renewal-reminder.expired.${plan}`);
   }
 }
 
 /**
  * Surfaces the upcoming-expiry renewal reminder as a home-screen toast, escalating
  * by tier (7d/3d = warning, 24h/expired = error) with a message set per
- * subscription vs free pass. The action routes to the renew / choose-plan surface.
- * Mirrors the iOS/macOS reminder.
+ * subscription vs free pass, stating the actual days/hours left. The action
+ * routes to the choose-plan surface. Mirrors the iOS/macOS reminder.
  *
- * A toast is transient, so — unlike the Apple sticky snackbar — this shows once per
- * (tier, expiry window): the key is persisted so it is not re-shown on every store
- * update or on the next launch for the same tier. A deeper tier, or a renewal (new
- * validUntil), yields a new key and a fresh toast.
+ * Like the Apple sticky snackbar, the toast has no timeout: it stays on Home until
+ * the user acts on it (action button, close button or swipe). Only that marks the
+ * (tier, expiry window) as shown, persisted in the KV store; a reminder the user
+ * hasn't acted on comes back on the next Home visit or launch. A deeper tier, or a
+ * renewal (new validUntil), yields a new key and a fresh toast.
  */
 function useExpiryReminderToast() {
   const accountSummary = useAppStore((s) => s.accountSummary);
   const { add, close } = useToast();
   const { t } = useTranslation('notifications');
   const navigate = useNavigate();
-  const shownKeyRef = useRef<string | null>(null);
+  // The reminder currently on screen, and the last one the user acted on
+  // (covers the window before the KV write lands).
+  const displayedRef = useRef<{ key: string; title: string } | null>(null);
+  const actedKeyRef = useRef<string | null>(null);
+  const closeRef = useRef(close);
+  closeRef.current = close;
+
+  // Removes the toast without counting it as acted on: `displayedRef` is cleared
+  // first, which `onClose` checks.
+  const dismissRef = useRef(() => {
+    if (displayedRef.current) {
+      displayedRef.current = null;
+      closeRef.current(REMINDER_TOAST_ID);
+    }
+  });
+
+  // The toast provider sits above the router, so take the reminder down when
+  // leaving Home rather than letting it follow the user around (or outlive a
+  // logout).
+  useEffect(() => {
+    const dismiss = dismissRef.current;
+    return () => dismiss();
+  }, []);
 
   useEffect(() => {
-    const { tier, isFreepass, validUntil } = getExpiryReminder(accountSummary);
-    if (tier === 'none') {
+    const reminder = getExpiryReminder(accountSummary);
+    if (reminder.tier === 'none') {
+      // Renewed, logged out or otherwise no longer due.
+      dismissRef.current();
       return;
     }
 
-    const key = `${tier}|${validUntil}`;
-    if (shownKeyRef.current === key || alreadyShown(key)) {
+    const key = `${reminder.tier}|${reminder.validUntil}`;
+    const title = reminderTitle(t, reminder);
+    if (actedKeyRef.current === key) {
       return;
     }
-    shownKeyRef.current = key;
-    markShown(key);
+    // Same reminder already on screen; only refresh it when the text changed
+    // (e.g. a day has passed within the same tier).
+    const displayed = displayedRef.current;
+    if (displayed?.key === key && displayed.title === title) {
+      return;
+    }
 
-    const isError = tier === 'hour24' || tier === 'expired';
-    const planSuffix = isFreepass ? 'freepass' : 'subscription';
+    let cancelled = false;
+    kvGet<string>('expiry-reminder-shown').then((shownKey) => {
+      if (cancelled || shownKey === key) {
+        return;
+      }
+      displayedRef.current = { key, title };
 
-    add({
-      id: REMINDER_TOAST_ID,
-      title: t(`renewal-reminder.${tier}.${planSuffix}`),
-      type: isError ? 'error' : 'warn',
-      timeout: REMINDER_TIMEOUT_MS,
-      actionProps: {
-        children: isFreepass
-          ? t('renewal-reminder.action.get-plan')
-          : t('renewal-reminder.action.renew'),
-        onClick: () => {
-          // Both plan kinds renew/subscribe at the plan picker. `/account` itself
-          // has no index screen (only `/account/select-a-plan`), so routing there
-          // would land on a blank outlet.
-          close(REMINDER_TOAST_ID);
-          navigate(routes.selectPlan);
+      const isError = reminder.tier === 'hour24' || reminder.tier === 'expired';
+      // Re-adding under the same id updates the toast in place, onClose included.
+      add({
+        id: REMINDER_TOAST_ID,
+        title,
+        type: isError ? 'error' : 'warn',
+        timeout: 0,
+        onClose: () => {
+          // Programmatic removal clears `displayedRef` beforehand; anything
+          // else here is the user dismissing it or taking the action.
+          if (displayedRef.current?.key !== key) {
+            return;
+          }
+          displayedRef.current = null;
+          actedKeyRef.current = key;
+          kvSet('expiry-reminder-shown', key);
         },
-      },
+        actionProps: {
+          children: reminder.isFreepass
+            ? t('renewal-reminder.action.get-plan')
+            : t('renewal-reminder.action.renew'),
+          onClick: () => {
+            // Both plan kinds renew/subscribe at the plan picker. `/account` itself
+            // has no index screen (only `/account/select-a-plan`), so routing there
+            // would land on a blank outlet.
+            close(REMINDER_TOAST_ID);
+            navigate(routes.selectPlan);
+          },
+        },
+      });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [accountSummary, add, close, t, navigate]);
 }
 

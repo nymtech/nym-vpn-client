@@ -25,17 +25,17 @@
     "competing-firewall": "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity."
   },
   "renewal-reminder": {
-    "day7": {
-      "subscription": "Your plan expires in 7 days",
-      "freepass": "Your free pass expires in 7 days"
+    "days": {
+      "subscription_one": "Your plan expires in {{count}} day",
+      "subscription_other": "Your plan expires in {{count}} days",
+      "freepass_one": "Your free pass expires in {{count}} day",
+      "freepass_other": "Your free pass expires in {{count}} days"
     },
-    "day3": {
-      "subscription": "Your plan expires in 3 days",
-      "freepass": "Your free pass expires in 3 days"
-    },
-    "hour24": {
-      "subscription": "Your plan expires in 24 hours",
-      "freepass": "Your free pass expires in 24 hours"
+    "hours": {
+      "subscription_one": "Your plan expires in {{count}} hour",
+      "subscription_other": "Your plan expires in {{count}} hours",
+      "freepass_one": "Your free pass expires in {{count}} hour",
+      "freepass_other": "Your free pass expires in {{count}} hours"
     },
     "expired": {
       "subscription": "Your plan has expired",
