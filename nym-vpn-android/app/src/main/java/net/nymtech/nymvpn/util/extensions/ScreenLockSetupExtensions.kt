@@ -11,7 +11,6 @@ fun ActivityResultLauncher<Intent>.launchScreenLockSetup(setupIntent: Intent) = 
 
 fun Context.launchScreenLockSetup(setupIntent: Intent) = launchWithSecuritySettingsFallback(setupIntent) { startActivity(it) }
 
-// Some OEMs don't handle ACTION_BIOMETRIC_ENROLL, so fall back to the generic security settings.
 private inline fun launchWithSecuritySettingsFallback(setupIntent: Intent, launch: (Intent) -> Unit) {
 	try {
 		launch(setupIntent)

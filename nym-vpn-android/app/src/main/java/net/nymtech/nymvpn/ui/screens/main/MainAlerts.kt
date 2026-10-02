@@ -4,10 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -33,6 +35,9 @@ fun MainAlerts(
 	onDismissExpiryBanner: () -> Unit,
 	onRenewSubscription: () -> Unit,
 	onNavigateToSelectPlan: () -> Unit,
+	isLoggedIn: Boolean,
+	isScreenLockSet: () -> Boolean,
+	onSetUpScreenLock: () -> Unit,
 ) {
 	val context = LocalContext.current
 	var expiredAlertShown by rememberSaveable { mutableStateOf(false) }
@@ -131,5 +136,32 @@ fun MainAlerts(
 			)
 			else -> AlertController.dismiss(id = AlertId.ConnectionError)
 		}
+	}
+
+	val noScreenLockTitle = stringResource(R.string.screen_lock_card_title)
+	val noScreenLockBody = stringResource(R.string.screen_lock_card_body)
+	val noScreenLockAction = stringResource(R.string.screen_lock_setup_button)
+	val currentIsScreenLockSet by rememberUpdatedState(isScreenLockSet)
+	val currentOnSetUpScreenLock by rememberUpdatedState(onSetUpScreenLock)
+	LifecycleResumeEffect(isLoggedIn) {
+		if (isLoggedIn && !currentIsScreenLockSet()) {
+			val current = AlertController.message.value
+			if (current == null || current.id == AlertId.NoScreenLock) {
+				AlertController.show(
+					AlertMessage(
+						type = AlertType.Warning,
+						title = noScreenLockTitle,
+						body = noScreenLockBody,
+						action = AlertAction(noScreenLockAction) { currentOnSetUpScreenLock() },
+						duration = Long.MAX_VALUE,
+						id = AlertId.NoScreenLock,
+						dismissable = false,
+					),
+				)
+			}
+		} else {
+			AlertController.dismiss(id = AlertId.NoScreenLock)
+		}
+		onPauseOrDispose {}
 	}
 }

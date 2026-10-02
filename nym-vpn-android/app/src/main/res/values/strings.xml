@@ -427,8 +427,11 @@
 	<string name="screen_lock_setup_body">NymVPN uses your screen lock to confirm it\'s you. Add a PIN, pattern or password in Android settings, then try again.</string>
 	<string name="screen_lock_setup_passphrase_body">NymVPN uses your screen lock to confirm it\'s you before it shows your passphrase. Add a PIN, pattern or password in Android settings, then come back.</string>
 	<string name="screen_lock_setup_shortcuts_body">NymVPN uses your screen lock to confirm it\'s you before it runs a shortcut. Add a PIN, pattern or password in Android settings, then come back.</string>
+	<string name="screen_lock_card_title">Protect your passphrase</string>
+	<string name="screen_lock_card_body">A screen lock keeps your passphrase from anyone else who picks up your phone. This phone doesn\'t have one yet, so you can\'t see or back up your phrase.</string>
 	<string name="screen_lock_setup_button">Set a screen lock</string>
 	<string name="screen_lock_setup_not_now">Not now</string>
+	<string name="device_auth_error">Couldn\'t confirm it\'s you. Try again.</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Your account passphrase</string>
 	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>
@@ -453,6 +456,9 @@
 	<!-- Account screen -->
 	<string name="account_title">Account and devices</string>
 	<string name="account_info_manage_button">Manage your subscription</string>
+	<string name="account_info_renew_auth_title">Renew your subscription</string>
+	<string name="account_info_link_auth_subtitle">Confirm it\'s you to add a social login</string>
+	<string name="account_info_manage_auth_subtitle">Confirm it\'s you to get your access code</string>
 	<string name="account_info_id_title">Account ID</string>
 	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
 	<string name="account_info_device_title">Device ID</string>

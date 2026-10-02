@@ -44,6 +44,11 @@ class ShortcutActivity : FragmentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
+		if (savedInstanceState != null) {
+			finish()
+			return
+		}
+
 		val action = intent.action?.let { raw ->
 			runCatching { ShortcutAction.valueOf(raw) }.getOrNull()
 		}
@@ -85,12 +90,11 @@ class ShortcutActivity : FragmentActivity() {
 
 				DeviceAuthResult.NotSetUp -> showScreenLockSetupDialog()
 
-				DeviceAuthResult.Cancelled, is DeviceAuthResult.Error -> finish()
+				DeviceAuthResult.Cancelled, is DeviceAuthResult.Unavailable, is DeviceAuthResult.Error -> finish()
 			}
 		}
 	}
 
-	// The activity has noHistory, so it can't wait for a result from settings: open them and finish.
 	private suspend fun showScreenLockSetupDialog() {
 		val theme = withContext(Dispatchers.IO) { settingsRepository.getTheme() }
 		setContent {

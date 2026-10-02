@@ -1,10 +1,9 @@
 package net.nymtech.nymvpn.manager.deviceauth
 
 import android.app.KeyguardManager
+import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.provider.Settings
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -39,16 +38,12 @@ class NymDeviceAuthManager @Inject constructor(@ApplicationContext private val c
 
 			else -> {
 				Timber.tag(TAG).i("AuthUnavailable code=%d", res)
-				DeviceAuthResult.Error(res, "canAuthenticate failed")
+				DeviceAuthResult.Unavailable(res)
 			}
 		}
 	}
 
-	override fun createSetupIntent(): Intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-		Intent(Settings.ACTION_BIOMETRIC_ENROLL).putExtra(Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED, AUTHENTICATORS)
-	} else {
-		Intent(Settings.ACTION_SECURITY_SETTINGS)
-	}
+	override fun createSetupIntent(): Intent = Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD)
 
 	private suspend fun showPrompt(activity: FragmentActivity, title: String, subtitle: String): DeviceAuthResult = suspendCancellableCoroutine { cont ->
 		Timber.tag(TAG).d("AuthPromptLaunching")
@@ -80,13 +75,12 @@ class NymDeviceAuthManager @Inject constructor(@ApplicationContext private val c
 
 						else -> {
 							Timber.tag(TAG).w("AuthError code=%d", errorCode)
-							DeviceAuthResult.Error(errorCode, errString.toString())
+							DeviceAuthResult.Error(errorCode)
 						}
 					}
 					if (cont.isActive) cont.resume(result)
 				}
 
-				// Not terminal: the system prompt stays open and lets the user retry.
 				override fun onAuthenticationFailed() {
 					Timber.tag(TAG).d("AuthFailed")
 				}
@@ -105,7 +99,6 @@ class NymDeviceAuthManager @Inject constructor(@ApplicationContext private val c
 	private companion object {
 		const val TAG = "device-auth"
 
-		// BIOMETRIC_STRONG | DEVICE_CREDENTIAL is unsupported below API 30; WEAK | CREDENTIAL works on all levels.
 		const val AUTHENTICATORS = BIOMETRIC_WEAK or DEVICE_CREDENTIAL
 	}
 }

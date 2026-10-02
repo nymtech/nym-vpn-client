@@ -4,5 +4,6 @@ sealed interface DeviceAuthResult {
 	data object Success : DeviceAuthResult
 	data object Cancelled : DeviceAuthResult
 	data object NotSetUp : DeviceAuthResult
-	data class Error(val code: Int, val message: String) : DeviceAuthResult
+	data class Unavailable(val code: Int) : DeviceAuthResult
+	data class Error(val code: Int) : DeviceAuthResult
 }

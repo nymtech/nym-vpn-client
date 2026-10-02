@@ -1,8 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
-import android.content.ClipData
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,13 +39,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.manager.deviceauth.model.DeviceAuthResult
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.modal.ScreenLockSetupDialog
+import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
@@ -58,11 +54,11 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.util.extensions.sensitiveClipData
 
 @Composable
 fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
@@ -87,59 +83,21 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
-	val activity = context as? FragmentActivity
-
-	val title = stringResource(R.string.passphrase_title)
-	val subtitle = stringResource(R.string.passphrase_description)
-
-	var showScreenLockSetupDialog by remember { mutableStateOf(false) }
 
 	LaunchedEffect(showSheet) {
 		onBackButtonVisibilityChange(showSheet)
 	}
 
-	fun requestAuthOrReveal() {
-		if (activity == null) {
-			showSheet = true
-			return
-		}
-		if (!viewModel.isAuthSetUp()) {
-			showScreenLockSetupDialog = true
-			return
-		}
-
-		scope.launch {
-			when (viewModel.authenticate(activity, title, subtitle)) {
-				DeviceAuthResult.Success -> showSheet = true
-				DeviceAuthResult.NotSetUp -> showScreenLockSetupDialog = true
-				DeviceAuthResult.Cancelled, is DeviceAuthResult.Error -> Unit
-			}
-		}
-	}
-
-	val screenLockSetupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-		if (viewModel.isAuthSetUp()) requestAuthOrReveal()
-	}
-
-	ScreenLockSetupDialog(
-		show = showScreenLockSetupDialog,
-		body = stringResource(R.string.screen_lock_setup_passphrase_body),
-		onSetUpClick = {
-			showScreenLockSetupDialog = false
-			screenLockSetupLauncher.launchScreenLockSetup(viewModel.createAuthSetupIntent())
-		},
-		onDismiss = { showScreenLockSetupDialog = false },
-	)
+	val deviceAuth = rememberDeviceAuth { showSheet = true }
 
 	PassphraseScreen(
 		passphrase = passphrase,
 		show = showSheet,
-		onShowClick = { requestAuthOrReveal() },
+		onShowClick = { deviceAuth.request(DeviceAuthAction.REVEAL_PASSPHRASE) },
 		onCopyClick = {
 			scope.launch {
 				val text = passphrase.joinToString(" ")
-				val clipData = ClipData.newPlainText(text, text)
-				clipboardManager.setClipEntry(clipData.toClipEntry())
+				clipboardManager.setClipEntry(sensitiveClipData(text).toClipEntry())
 			}
 		},
 		onSaveClick = {

@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.account.info.modal
 
-import android.content.ClipData
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -52,6 +51,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.sensitiveClipData
 
 @Composable
 fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
@@ -136,7 +136,7 @@ fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 			MainStyledButton(
 				onClick = {
 					scope.launch {
-						val clip = ClipData.newPlainText("pin code", pinCode)
+						val clip = sensitiveClipData(pinCode)
 						clipboard.setClipEntry(clip.toClipEntry())
 						context.openWebUrl(url)
 						copied = true
