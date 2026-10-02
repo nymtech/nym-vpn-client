@@ -19336,6 +19336,17 @@
         }
       }
     },
+    "mixnetTuning.anonymityPlus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+ Anonymity"
+          }
+        }
+      }
+    },
     "mixnetTuning.atLeast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19353,7 +19364,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We’ll still send cover traffic independently of your real traffic.  Choose how much cover you need. "
+            "value" : "Choose how much cover you need."
           }
         }
       }
@@ -19424,6 +19435,17 @@
         }
       }
     },
+    "mixnetTuning.faster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faster"
+          }
+        }
+      }
+    },
     "mixnetTuning.fasterSpeed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19463,7 +19485,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Learn more about mixnet parameters"
+            "value" : "Learn more about mixnet tuning"
           }
         }
       }
@@ -19551,7 +19573,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Packet mixing profile"
+            "value" : "Packet mixing"
           }
         }
       }
@@ -19606,7 +19628,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns."
+            "value" : "Your packets will be sent as they become available. This could reveal traffic patterns."
           }
         }
       }
@@ -19628,7 +19650,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send traffic continuously"
+            "value" : "Send continuous traffic"
           }
         }
       }
