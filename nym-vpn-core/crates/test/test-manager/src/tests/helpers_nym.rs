@@ -920,6 +920,59 @@ async fn log_dns_failure_diagnostics(
     log::error!("{}", reachability.summary());
 }
 
+const GUEST_DAEMON_LOG_PATH: &str = "/var/log/nym-vpnd/nym-vpnd.log";
+
+const IN_TUNNEL_DNS_LOG_GREP: &str = "Running DNS resolver on|failed to resolve hostname|hickory_|timed out|ConnectError|connecting to";
+
+const IN_TUNNEL_DNS_LOG_TAIL_LINES: usize = 80;
+
+/// Best-effort scrape of guest DNS / daemon log context for CI. Never fails the test.
+pub async fn log_in_tunnel_dns_diagnostics(rpc: &NymServiceClient) {
+    match rpc.exec("resolvectl", ["dns"]).await {
+        Ok(output) => log::info!(
+            "in-tunnel DNS diag resolvectl dns: {}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ),
+        Err(error) => log::warn!("in-tunnel DNS diag: resolvectl dns failed: {error}"),
+    }
+
+    match rpc
+        .exec(
+            "sudo",
+            ["grep", "-E", IN_TUNNEL_DNS_LOG_GREP, GUEST_DAEMON_LOG_PATH],
+        )
+        .await
+    {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let lines: Vec<_> = stdout.lines().collect();
+            let tail = if lines.len() > IN_TUNNEL_DNS_LOG_TAIL_LINES {
+                &lines[lines.len() - IN_TUNNEL_DNS_LOG_TAIL_LINES..]
+            } else {
+                &lines[..]
+            };
+            if tail.is_empty() {
+                log::info!(
+                    "in-tunnel DNS diag: no matching lines in {GUEST_DAEMON_LOG_PATH} \
+                     (grep exit {:?})",
+                    output.code
+                );
+            } else {
+                log::info!(
+                    "in-tunnel DNS diag daemon log matches (last {} of {}):\n{}",
+                    tail.len(),
+                    lines.len(),
+                    tail.join("\n")
+                );
+            }
+        }
+        Err(error) => {
+            log::warn!("in-tunnel DNS diag: grep {GUEST_DAEMON_LOG_PATH} failed: {error}")
+        }
+    }
+}
+
 async fn recover_client_for_cleanup(provider: &RpcClientProvider) -> Option<NymProxyClient> {
     match provider.recover_client_nym().await {
         Ok(client) => Some(client),
@@ -1107,13 +1160,13 @@ where
 mod tests {
     use super::{
         AccountWaiter, AllowLanPrepClass, DisconnectClient, DisconnectRpcClass,
-        DnsUpstreamReachability, ExpectedTunnelState, TunnelObserver, account_target,
-        classify_allow_lan_prep, classify_disconnect_nym_error, classify_disconnect_rpc,
-        classify_upstream_probes, enforce_tunnel_wait_deadline, is_daemon_rpc_transport_error,
-        is_daemon_rpc_transport_message, is_nym_client_transport_error, merge_wait_and_client,
-        resolve_dns_cleanup_client, resolve_with_retry, run_account_wait, run_tunnel_wait,
-        settle_daemon_rpc_quiesce, summarize_upstream_probes, tunnel_target, tunnel_wait_budget,
-        tunnel_wait_params,
+        DnsUpstreamReachability, ExpectedTunnelState, IN_TUNNEL_DNS_LOG_GREP, TunnelObserver,
+        account_target, classify_allow_lan_prep, classify_disconnect_nym_error,
+        classify_disconnect_rpc, classify_upstream_probes, enforce_tunnel_wait_deadline,
+        is_daemon_rpc_transport_error, is_daemon_rpc_transport_message,
+        is_nym_client_transport_error, merge_wait_and_client, resolve_dns_cleanup_client,
+        resolve_with_retry, run_account_wait, run_tunnel_wait, settle_daemon_rpc_quiesce,
+        summarize_upstream_probes, tunnel_target, tunnel_wait_budget, tunnel_wait_params,
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
@@ -1124,6 +1177,28 @@ mod tests {
         "93.184.216.34:443"
             .parse()
             .expect("literal is a socket addr")
+    }
+
+    #[test]
+    fn in_tunnel_dns_log_grep_avoids_bare_timeout_token() {
+        assert!(
+            !IN_TUNNEL_DNS_LOG_GREP
+                .split('|')
+                .any(|part| part == "timeout"),
+            "bare 'timeout' matches too many daemon log lines; use 'timed out' instead: {IN_TUNNEL_DNS_LOG_GREP}"
+        );
+        assert!(
+            IN_TUNNEL_DNS_LOG_GREP
+                .split('|')
+                .any(|part| part == "timed out"),
+            "expected 'timed out' DNS failure token in grep: {IN_TUNNEL_DNS_LOG_GREP}"
+        );
+        assert!(
+            IN_TUNNEL_DNS_LOG_GREP
+                .split('|')
+                .any(|part| part == "hickory_"),
+            "expected hickory_ token for TRACE upstream visibility: {IN_TUNNEL_DNS_LOG_GREP}"
+        );
     }
 
     /// The tunnel reports Connected before the exit gateway resolver answers, so the first
