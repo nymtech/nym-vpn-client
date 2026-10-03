@@ -162,11 +162,7 @@ jobs:
         run: |
           set -euxo pipefail
 
-          HOMEBREW_PREFIX="/opt/homebrew"
-          export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:$PATH"
-          echo "${HOMEBREW_PREFIX}/bin" >> "$GITHUB_PATH"
-
-          RUBY_PREFIX=$("${HOMEBREW_PREFIX}/bin/brew" --prefix ruby)
+          RUBY_PREFIX=$(brew --prefix ruby)
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
 
           export GEM_HOME="$HOME/gem"
