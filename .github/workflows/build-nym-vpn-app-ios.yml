@@ -165,22 +165,10 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Add Homebrew, Ruby to PATH
+      - name: Add Homebrew to PATH
         run: |
-          set -euxo pipefail
-
-          RUBY_PREFIX=$(brew --prefix ruby)
-          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
-
-          export GEM_HOME="$HOME/gem"
-          echo "GEM_HOME=${GEM_HOME}" >> "$GITHUB_ENV"
-          echo "${GEM_HOME}/bin" >> "$GITHUB_PATH"
-
-          export PATH="$HOME/.local/bin:${RUBY_PREFIX}/bin:${GEM_HOME}/bin:$PATH"
-
-          brew --version
-          ruby --version
-          gem --version
+          BREW_PREFIX=$(brew --prefix)
+          echo "$BREW_PREFIX/bin" >> "$GITHUB_PATH"
 
       - name: Install system dependencies
         run: |
@@ -189,6 +177,7 @@ jobs:
           brew install xmlstarlet
           brew install brotli
           brew install getsentry/tools/sentry-cli
+          brew install fastlane
 
       - name: Set locale (for Fastlane)
         run: |
@@ -199,12 +188,6 @@ jobs:
         run: |
           echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
-
-      - name: Install fastlane
-        working-directory: nym-vpn-apple
-        run: |
-          bundle install
-          fastlane --version
 
       - name: Install python3
         run: |
