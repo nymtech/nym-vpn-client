@@ -169,14 +169,19 @@ jobs:
         run: |
           set -euxo pipefail
 
-          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
-          RUBY_PREFIX="$(brew --prefix ruby)"
-          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
-          export PATH="${RUBY_PREFIX}/bin:$PATH"
+          HOMEBREW_PREFIX="/opt/homebrew"
+          export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:$PATH"
+          echo "${HOMEBREW_PREFIX}/bin" >> "$GITHUB_PATH"
 
-          # Show versions for debugging
+          RUBY_PREFIX=$("${HOMEBREW_PREFIX}/bin/brew" --prefix ruby)
+          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
+
+          export GEM_HOME="$HOME/gem"
+          echo "GEM_HOME=${GEM_HOME}" >> "$GITHUB_ENV"
+          echo "${GEM_HOME}/bin" >> "$GITHUB_PATH"
+
+          export PATH="$HOME/.local/bin:${RUBY_PREFIX}/bin:${GEM_HOME}/bin:$PATH"
+
           brew --version
           ruby --version
           gem --version
