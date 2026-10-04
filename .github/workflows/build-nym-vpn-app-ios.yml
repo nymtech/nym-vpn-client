@@ -307,6 +307,10 @@ jobs:
         with:
           name: translations-apple
           path: nym-vpn-apple/NymVPN/Resources
+          # The ID of the workflow run extracted from your URL
+          run-id: 37119418903
+          # A token is mandatory when downloading from a different run
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
