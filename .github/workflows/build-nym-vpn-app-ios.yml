@@ -215,6 +215,10 @@ jobs:
           python3 -m pip install codemagic-cli-tools
           keychain --version
 
+      - name: Install gems (used by codemagic-cli-tools)
+        run: |
+          gem install xcodeproj --user-install
+
       - name: Apply orchestrated version (apple)
         uses: ./.github/actions/apply-version
         with:
