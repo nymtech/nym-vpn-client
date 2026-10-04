@@ -312,6 +312,10 @@ jobs:
         with:
           name: core_artifacts_ios
           path: core_artifacts_ios
+          # The ID of the workflow run extracted from your URL
+          run-id: 37119418903
+          # A token is mandatory when downloading from a different run
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move core artifacts
         run: |
