@@ -215,9 +215,10 @@ jobs:
           python3 -m pip install codemagic-cli-tools
           keychain --version
 
-      - name: Install gems (used by codemagic-cli-tools)
+      - name: Add Homebrew Ruby to PATH (used by codemagic-cli-tools)
         run: |
-          gem install xcodeproj --user-install
+          # Ruby is installed by fastlane
+          echo "$(brew --prefix ruby)/bin" >> $GITHUB_PATH
 
       - name: Apply orchestrated version (apple)
         uses: ./.github/actions/apply-version
