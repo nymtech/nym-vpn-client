@@ -51,10 +51,35 @@ private extension ProfilesView {
                         }
                     }
                 }
+
+                learnMoreLink()
             }
         }
         .scrollIndicators(.never)
         .frame(maxWidth: NymSpacing.contentWidth)
         .padding(.horizontal, NymSpacing.large)
+    }
+
+    @ViewBuilder
+    func learnMoreLink() -> some View {
+        HStack(spacing: 4) {
+            Text("profiles.learnMore".localizedString)
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .underline()
+
+            GenericImage(imageName: "externalLink")
+                .frame(width: 12, height: 12)
+                .padding(4)
+                .foregroundStyle(Color.Nym.textPrimary)
+
+            Spacer()
+        }
+        .onTapGesture {
+            viewModel.learnMore()
+        }
+        .accessibilityAction {
+            viewModel.learnMore()
+        }
     }
 }

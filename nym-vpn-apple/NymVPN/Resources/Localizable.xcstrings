@@ -6930,7 +6930,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profiles are connection templates, that we baked in for you to start experimenting with the privacy - speed experience that’s best suits your needs."
+            "value" : "Profiles are connection templates you can use to connect quickly with the best type of server configuration for you."
+          }
+        }
+      }
+    },
+    "profiles.learnMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn more about profiles here"
           }
         }
       }
@@ -6952,7 +6963,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Optimal for censorship circumvention"
+            "value" : "Best performing servers, never your own country"
           }
         }
       }
@@ -6963,7 +6974,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Most private"
+            "value" : "Anonymous"
           }
         }
       }
@@ -6974,7 +6985,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Metadata resistance and mixnet tuning"
+            "value" : "Mixnet mode with closest servers to you"
           }
         }
       }
@@ -6996,7 +7007,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chooses the closest, best for streaming"
+            "value" : "Closest, best performing servers"
           }
         }
       }
@@ -7018,7 +7029,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Results vary, may cause slow speed"
+            "value" : "Different servers for every connection"
           }
         }
       }
