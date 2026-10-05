@@ -35,6 +35,18 @@ public final class SnackbarManager {
         queue.removeAll()
         current = nil
     }
+
+    /// Retract a specific item whether it is showing or still queued. Used to
+    /// withdraw a sticky item (e.g. the expiry reminder) once the state that
+    /// justified it no longer holds. Does not invoke the item's `onDismiss` —
+    /// this is a programmatic retraction, not a user dismissal.
+    public func dismiss(id: UUID) {
+        if current?.id == id {
+            dismiss()
+        } else {
+            queue.removeAll { $0.id == id }
+        }
+    }
 }
 
 private extension SnackbarManager {
