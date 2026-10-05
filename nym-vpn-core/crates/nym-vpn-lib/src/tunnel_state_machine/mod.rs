@@ -1327,6 +1327,37 @@ impl ConflictTracker {
     }
 }
 
+pub struct TunnelStateMachineArguments {
+    pub command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
+    pub event_sender: mpsc::UnboundedSender<TunnelEvent>,
+    pub nym_config: NymConfig,
+    pub tunnel_settings: TunnelSettings,
+    pub tunnel_constants: TunnelConstants,
+    pub account_command_tx: AccountCommandSender,
+    pub account_state_rx: AccountStateReceiver,
+    pub bandwidth_command_tx: BandwidthControllerRequestSender,
+    pub skew_manager: SkewManager,
+    pub statistics_event_sender: StatisticsSender,
+    pub topology_service: VpnTopologyServiceHandle,
+    pub connectivity_handle: ConnectivityHandle,
+    pub discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    pub split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+    pub gateway_provider: GatewayProvider<GatewayCacheHandle>,
+    pub recents_manager: RecentsManager<GatewayCacheHandle>,
+    #[cfg(target_os = "linux")]
+    pub split_tunnel_config: LinuxSplitTunnelConfiguration,
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    pub route_handler: RouteHandler,
+    #[cfg(target_os = "ios")]
+    pub tun_provider: Arc<dyn OSTunProvider>,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
+    pub file_updater_handle: nym_file_updater::FileUpdaterHandle,
+    pub user_agent: UserAgent,
+    pub shutdown_token: CancellationToken,
+}
+
 pub struct TunnelStateMachine {
     current_state_handler: Box<dyn TunnelStateHandler>,
     /// Mirrors the tunnel state most recently reported to `event_sender`.
@@ -1350,33 +1381,7 @@ pub struct TunnelStateMachine {
 }
 
 impl TunnelStateMachine {
-    #[allow(clippy::too_many_arguments)]
-    pub async fn spawn(
-        command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
-        event_sender: mpsc::UnboundedSender<TunnelEvent>,
-        nym_config: NymConfig,
-        tunnel_settings: TunnelSettings,
-        tunnel_constants: TunnelConstants,
-        account_command_tx: AccountCommandSender,
-        account_controller_state: AccountStateReceiver,
-        bandwidth_command_tx: BandwidthControllerRequestSender,
-        skew_manager: SkewManager,
-        statistics_event_sender: StatisticsSender,
-        topology_service: VpnTopologyServiceHandle,
-        connectivity_handle: ConnectivityHandle,
-        discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        split_tunnel: nym_split_tunnel::SplitTunnelHandle,
-        gateway_provider: GatewayProvider<GatewayCacheHandle>,
-        recents_manager: RecentsManager<GatewayCacheHandle>,
-        #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
-        #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
-        #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
-        #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
-        file_updater_handle: nym_file_updater::FileUpdaterHandle,
-        user_agent: UserAgent,
-        shutdown_token: CancellationToken,
-    ) -> Result<JoinHandle<()>> {
+    pub async fn spawn(args: TunnelStateMachineArguments) -> Result<JoinHandle<()>> {
         #[cfg(not(target_os = "android"))]
         let dns_handler_shutdown_token = CancellationToken::new();
 
@@ -1386,8 +1391,8 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let adblocker = create_adblocker(&nym_config, file_updater_handle);
-        if tunnel_settings.enable_ad_blocking {
+        let adblocker = create_adblocker(&args.nym_config, args.file_updater_handle);
+        if args.tunnel_settings.enable_ad_blocking {
             adblocker.enable().await;
         }
 
@@ -1411,7 +1416,7 @@ impl TunnelStateMachine {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
-            allow_lan: tunnel_settings.allow_lan,
+            allow_lan: args.tunnel_settings.allow_lan,
             initial_state: InitialFirewallState::None,
             #[cfg(target_os = "linux")]
             fwmark: tunnel_constants.fwmark,
@@ -1426,46 +1431,46 @@ impl TunnelStateMachine {
 
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            route_handler,
+            route_handler: args.route_handler,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler,
-            connectivity_handle,
+            connectivity_handle: args.connectivity_handle,
             #[cfg(not(target_os = "android"))]
             filtering_resolver,
             adblocker,
             #[cfg(not(target_os = "ios"))]
             socks5_proxy_manager: Socks5ProxyManager::new(),
             #[cfg(any(target_os = "macos", target_os = "windows"))]
-            split_tunnel,
-            nym_config,
-            tunnel_settings,
-            tunnel_constants,
+            split_tunnel: args.split_tunnel,
+            nym_config: args.nym_config,
+            tunnel_settings: args.tunnel_settings,
+            tunnel_constants: args.tunnel_constants,
             status_listener_handle: None,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            tun_provider,
+            tun_provider: args.tun_provider,
             #[cfg(target_os = "android")]
             android_blocking_tun: None,
             #[cfg(target_os = "android")]
             android_tun_hold: None,
-            account_command_tx,
-            account_controller_state,
-            bandwidth_command_tx,
-            skew_manager,
-            statistics_event_sender,
+            account_command_tx: args.account_command_tx,
+            account_controller_state: args.account_state_rx,
+            bandwidth_command_tx: args.bandwidth_command_tx,
+            skew_manager: args.skew_manager,
+            statistics_event_sender: args.statistics_event_sender,
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,
-            gateway_provider,
+            gateway_provider: args.gateway_provider,
             entry_blame: entry_blame::EntryBlameTracker::default(),
-            topology_service,
-            recents_manager,
-            discovery_refresher_command_tx,
-            user_agent,
+            topology_service: args.topology_service,
+            recents_manager: args.recents_manager,
+            discovery_refresher_command_tx: args.discovery_refresher_command_tx,
+            user_agent: args.user_agent,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             resolved_api_endpoints: None,
             #[cfg(not(target_os = "ios"))]
-            shutdown_token: shutdown_token.clone(),
+            shutdown_token: args.shutdown_token.clone(),
         };
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -1499,8 +1504,8 @@ impl TunnelStateMachine {
             current_state_handler,
             current_state: TunnelState::from(initial_tunnel_state),
             shared_state,
-            command_receiver,
-            event_sender,
+            command_receiver: args.command_receiver,
+            event_sender: args.event_sender,
             diagnostics_suggestion_tracker: DiagnosticsSuggestionTracker::default(),
             conflict_tracker: ConflictTracker::default(),
             own_interfaces,
@@ -1510,7 +1515,7 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token,
             #[cfg(not(target_os = "android"))]
             filtering_resolver_handle,
-            shutdown_token,
+            shutdown_token: args.shutdown_token,
         };
 
         Ok(tokio::spawn(tunnel_state_machine.run()))
