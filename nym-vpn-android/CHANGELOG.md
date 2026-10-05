@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Separate workflow for Play Store metadata (https://github.com/nymtech/nym-vpn-client/pull/6411)
 - Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
-- Disable default PII and view hierarchy attachment for Sentry (https://github.com/nymtech/nym-vpn-client/pull/6533)
+- Disable view hierarchy attachment in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6533)
 - Remove unused libs (https://github.com/nymtech/nym-vpn-client/pull/6442)
 - Update notifications security (https://github.com/nymtech/nym-vpn-client/pull/6444)
 - Remove camera usage (https://github.com/nymtech/nym-vpn-client/pull/6449)
