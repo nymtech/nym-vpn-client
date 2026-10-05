@@ -85,6 +85,9 @@ jobs:
       - name: Coveralls upload
         if: hashFiles('nym-vpn-core/lcov.info') != ''
         uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
+        env:
+          # ARC runner localtime resolves to "/UTC", which the reporter rejects
+          TZ: UTC
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: nym-vpn-core/lcov.info
