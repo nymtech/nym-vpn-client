@@ -7276,7 +7276,7 @@ dependencies = [
 
 [[package]]
 name = "nym-secure-enclave"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "secure-enclave-rs",
  "thiserror 2.0.20",
