@@ -1273,12 +1273,6 @@ impl ConflictTracker {
                     nym_conflict::ConflictCheck::CompetingFirewall,
                 ]
             }
-            // A reconnect can pass through Connecting without Disconnected.
-            TunnelState::Connecting { .. } if self.checked_dns => {
-                self.checked_dns = false;
-                self.cancel_pending_scan();
-                Vec::new()
-            }
             TunnelState::Connected { .. } if enabled && !self.checked_dns => {
                 self.checked_dns = true;
                 vec![nym_conflict::ConflictCheck::InterceptedDns]
@@ -1540,14 +1534,9 @@ impl TunnelStateMachine {
                     let shutdown_token = self.shutdown_token.clone();
                     let scan_cancellation = scan_cancellation.clone();
                     let own_interfaces = self.own_interfaces.clone();
-                    #[cfg(not(target_os = "android"))]
-                    let resolver_addr = self.shared_state.filtering_resolver.listen_addr();
-                    // nym_conflict runs no checks on Android.
-                    #[cfg(target_os = "android")]
-                    let resolver_addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0));
                     tokio::spawn(async move {
                         let conflicts = tokio::select! {
-                            conflicts = nym_conflict::detect(check, own_interfaces, resolver_addr) => conflicts,
+                            conflicts = nym_conflict::detect(check, own_interfaces) => conflicts,
                             _ = shutdown_token.cancelled() => return,
                             _ = scan_cancellation.cancelled() => return,
                         };
@@ -1924,59 +1913,5 @@ impl From<tunnel::transports::TransportError> for Error {
 impl From<nym_registration_client::RegistrationClientError> for Error {
     fn from(value: nym_registration_client::RegistrationClientError) -> Self {
         Self::Tunnel(Box::new(tunnel::Error::RegistrationClient(Box::new(value))))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn connecting(state: EstablishConnectionState) -> TunnelState {
-        TunnelState::Connecting {
-            retry_attempt: 0,
-            state,
-            selector_fallback_state: SelectorFallbackState {
-                entry_fallback: false,
-                exit_fallback: false,
-            },
-            tunnel_type: TunnelType::Wireguard,
-            connection_data: None,
-        }
-    }
-
-    #[test]
-    fn conflict_tracker_keeps_connect_scan_while_connecting() {
-        let mut tracker = ConflictTracker::default();
-        let checks = tracker.poll(
-            &connecting(EstablishConnectionState::ResolvingApiAddresses),
-            true,
-        );
-        assert_eq!(checks.len(), 2);
-        let scan = CancellationToken::new();
-        tracker.set_pending_scan(scan.clone());
-
-        tracker.poll(
-            &connecting(EstablishConnectionState::AwaitingAccountReadiness),
-            true,
-        );
-        assert!(!scan.is_cancelled());
-    }
-
-    #[test]
-    fn conflict_tracker_rearms_dns_on_reconnect() {
-        let mut tracker = ConflictTracker {
-            checked_connecting: true,
-            checked_dns: true,
-            ..Default::default()
-        };
-        let scan = CancellationToken::new();
-        tracker.set_pending_scan(scan.clone());
-
-        tracker.poll(
-            &connecting(EstablishConnectionState::AwaitingAccountReadiness),
-            true,
-        );
-        assert!(!tracker.checked_dns);
-        assert!(scan.is_cancelled());
     }
 }
