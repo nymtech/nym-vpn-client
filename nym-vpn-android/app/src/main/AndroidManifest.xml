@@ -187,7 +187,7 @@
 			android:value="false" />
 		<meta-data
 			android:name="io.sentry.send-default-pii"
-			android:value="true" />
+			android:value="false" />
 		<meta-data
 			android:name="io.sentry.traces.user-interaction.enable"
 			android:value="true" />
@@ -196,7 +196,7 @@
 			android:value="false" />
 		<meta-data
 			android:name="io.sentry.attach-view-hierarchy"
-			android:value="true" />
+			android:value="false" />
 		<meta-data
 			android:name="io.sentry.traces.profiling.lifecycle"
 			android:value="trace" />
