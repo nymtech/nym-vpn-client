@@ -165,26 +165,10 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Add Homebrew, Ruby to PATH
+      - name: Add Homebrew to PATH
         run: |
-          set -euxo pipefail
-
-          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
-          RUBY_PREFIX="$(brew --prefix ruby)"
-          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
-          export PATH="${RUBY_PREFIX}/bin:$PATH"
-          GEM_HOME="${RUNNER_TEMP}/gem"
-          mkdir -p "${GEM_HOME}"
-          echo "GEM_HOME=${GEM_HOME}" >> "$GITHUB_ENV"
-          echo "${GEM_HOME}/bin" >> "$GITHUB_PATH"
-          export PATH="${GEM_HOME}/bin:${PATH}"
-
-          # Show versions for debugging
-          brew --version
-          ruby --version
-          gem --version
+          BREW_PREFIX=$(brew --prefix)
+          echo "$BREW_PREFIX/bin" >> "$GITHUB_PATH"
 
       - name: Install system dependencies
         env:
@@ -193,22 +177,10 @@ jobs:
           HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
           set -euo pipefail
-          lock="$(brew --prefix)/var/homebrew/locks/ci-jobs"
-          mkdir -p "$(dirname "$lock")"
-          n=0
-          while ! mkdir "$lock" 2>/dev/null; do
-            n=$((n + 1))
-            if [ "$n" -gt 60 ]; then
-              echo "timed out waiting for brew lock" >&2
-              exit 1
-            fi
-            echo "waiting for brew lock ($n)..."
-            sleep 5
-          done
-          trap 'rmdir "$lock"' EXIT
           brew install xcbeautify xmlstarlet brotli
           brew uninstall homebrew/core/sentry-cli || true
           brew install getsentry/tools/sentry-cli
+          brew install fastlane
 
       - name: Set locale (for Fastlane)
         run: |
@@ -219,12 +191,6 @@ jobs:
         run: |
           echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
-
-      - name: Install fastlane
-        working-directory: nym-vpn-apple
-        run: |
-          bundle install
-          fastlane --version
 
       - name: Install python3
         env:
@@ -255,6 +221,11 @@ jobs:
         run: |
           python3 -m pip install codemagic-cli-tools
           keychain --version
+
+      - name: Add Homebrew Ruby to PATH (used by codemagic-cli-tools)
+        run: |
+          # Ruby is installed by fastlane
+          echo "$(brew --prefix ruby)/bin" >> $GITHUB_PATH
 
       - name: Apply orchestrated version (apple)
         uses: ./.github/actions/apply-version
