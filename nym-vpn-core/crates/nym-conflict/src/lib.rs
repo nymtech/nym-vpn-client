@@ -27,15 +27,19 @@ pub enum ConflictCheck {
     CompetingFirewall,
 }
 
-pub async fn detect(check: ConflictCheck, own_interfaces: OwnInterfaces) -> Vec<Conflict> {
+pub async fn detect(
+    check: ConflictCheck,
+    own_interfaces: OwnInterfaces,
+    resolver: std::net::SocketAddr,
+) -> Vec<Conflict> {
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
-        let _ = (check, own_interfaces);
+        let _ = (check, own_interfaces, resolver);
         Vec::new()
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     match check {
-        ConflictCheck::InterceptedDns => dns::detect().await,
+        ConflictCheck::InterceptedDns => dns::detect(resolver).await,
         ConflictCheck::CompetingVpn => vpn::detect(&own_interfaces).await,
         ConflictCheck::CompetingFirewall => firewall::detect().await,
     }
