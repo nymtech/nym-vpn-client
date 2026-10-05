@@ -19314,17 +19314,6 @@
         }
       }
     },
-    "mixnetTuning.anonymity" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonymity"
-          }
-        }
-      }
-    },
     "mixnetTuning.anonymityPlus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19376,17 +19365,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Balanced"
-          }
-        }
-      }
-    },
-    "mixnetTuning.base" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Base"
           }
         }
       }
@@ -19574,17 +19552,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Packet rate"
-          }
-        }
-      }
-    },
-    "mixnetTuning.performance" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Performance"
           }
         }
       }
