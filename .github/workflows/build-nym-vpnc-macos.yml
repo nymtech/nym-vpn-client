@@ -259,9 +259,10 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          KEY_DIR="$HOME/private_keys"
-          mkdir -p "$KEY_DIR"
+          KEY_DIR="$GITHUB_WORKSPACE/private_keys"
           KEY_PATH="$KEY_DIR/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8"
+
+          mkdir -p "$KEY_DIR"
           echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
           echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
 
@@ -323,15 +324,20 @@ jobs:
 
       - name: Cleanup Keychain
         if: always()
+        env:
+          ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euo pipefail
 
           echo "🧹 Cleaning up Codemagic keychain..."
-          keychain delete
+          if command -v keychain &> /dev/null; then
+            keychain delete
+          fi
 
           echo "Removing ASC API key..."
-          if [ -d "$HOME/private_keys" ]; then
-            rm -rf "$HOME/private_keys"
+          if [[ -n "$ASC_KEY_PATH" && -f "$ASC_KEY_PATH" ]]; then
+            rm -f "$ASC_KEY_PATH"
+            echo "✅ Removed ASC API key"
           fi
 
           echo "🧹 Removing downloaded certificates..."
