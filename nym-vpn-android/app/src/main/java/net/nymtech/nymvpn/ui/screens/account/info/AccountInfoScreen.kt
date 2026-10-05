@@ -52,6 +52,8 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
+import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
@@ -132,6 +134,15 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 	val isAccountNotActive = accountState is AccountControllerState.Error &&
 		accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
 
+	val deviceAuth = rememberDeviceAuth { action ->
+		when (action) {
+			DeviceAuthAction.MANAGE_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW)
+			DeviceAuthAction.RENEW_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+			DeviceAuthAction.LINK_SOCIAL -> uiState.accountLinkUrl?.let { context.openWebUrl(it) }
+			DeviceAuthAction.REVEAL_PASSPHRASE -> Unit
+		}
+	}
+
 	AccountInfoScreenContent(
 		accountId = uiState.accountId,
 		deviceId = uiState.deviceId,
@@ -144,15 +155,11 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 				appViewModel.registerAccountInBackground()
 				navController.goFromRoot(Route.SelectPlan)
 			} else {
-				appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW)
+				deviceAuth.request(DeviceAuthAction.MANAGE_SUBSCRIPTION)
 			}
 		},
-		onRenewClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
-		onLinkAccountClick = {
-			uiState.accountLinkUrl?.let {
-				context.openWebUrl(it)
-			}
-		},
+		onRenewClick = { deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION) },
+		onLinkAccountClick = { deviceAuth.request(DeviceAuthAction.LINK_SOCIAL) },
 		onAccountIdClick = {
 			if (uiState.accountId.isNotEmpty()) {
 				scope.launch {

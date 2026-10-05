@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.13.0]
+
 ### Added
 - Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
 - Profiles: UI and logic (https://github.com/nymtech/nym-vpn-client/pull/6144)
@@ -17,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add error handling for Connect button (http://github.com/nymtech/nym-vpn-client/pull/6329)
 - Enable ARM Memory Tagging Extension (MTE) in async mode (https://github.com/nymtech/nym-vpn-client/pull/6436)
 - Log out asks every time whether the passphrase is saved (https://github.com/nymtech/nym-vpn-client/pull/6480)
+- Screen lock confirmation for passphrase, subscription, social login and shortcuts (https://github.com/nymtech/nym-vpn-client/pull/6504)
+- Screen lock required for account creation (https://github.com/nymtech/nym-vpn-client/pull/6504)
 
 ### Changed
 - Maestro UI suite: repair the five flows broken by the dVPN rename, the Connection profiles settings row and the Passphrase download removal; replace assertions that could not fail; correct mock gateway uptime to a 0-1 fraction
@@ -25,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Separate workflow for Play Store metadata (https://github.com/nymtech/nym-vpn-client/pull/6411)
 - Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
+- Disable view hierarchy attachment in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6533)
 - Remove unused libs (https://github.com/nymtech/nym-vpn-client/pull/6442)
 - Update notifications security (https://github.com/nymtech/nym-vpn-client/pull/6444)
 - Remove camera usage (https://github.com/nymtech/nym-vpn-client/pull/6449)
@@ -39,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
 - Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 - Fix NavComponent crash after libs version update (https://github.com/nymtech/nym-vpn-client/pull/6442)
+- Screen lock confirmation on Android 7–10 devices with only a PIN, pattern or password (https://github.com/nymtech/nym-vpn-client/pull/6504)
 
 ## [2026.12.3] - 2026-08-27
 

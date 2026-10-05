@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -174,4 +175,10 @@ suspend fun savePasswordToManager(context: Context, password: String) {
 	} catch (e: Exception) {
 		Timber.d(e)
 	}
+}
+
+tailrec fun Context.findActivity(): Activity? = when (this) {
+	is Activity -> this
+	is ContextWrapper -> baseContext.findActivity()
+	else -> null
 }

@@ -18,9 +18,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.LoginView
@@ -75,6 +77,8 @@ fun AuthComponent(
 		onDismiss = { viewModel.dismissSubscriptionModal() },
 	)
 
+	val signUpLockGate = rememberScreenLockGate(setupBody = R.string.screen_lock_setup_body)
+
 	NavHost(
 		navController = localNavController,
 		startDestination = initialRoute,
@@ -106,8 +110,12 @@ fun AuthComponent(
 		composable<AuthRoute.SignUp> {
 			SignUpView(
 				onBackClick = { localNavController.popBackStack() },
-				onSocialClick = { uiState.socialLink?.let { context.openWebUrl(it) } },
-				onAccountClick = { viewModel.onAnonymousAccountClick() },
+				onSocialClick = {
+					if (signUpLockGate.isOpen()) uiState.socialLink?.let { context.openWebUrl(it) }
+				},
+				onAccountClick = {
+					if (signUpLockGate.isOpen()) viewModel.onAnonymousAccountClick()
+				},
 			)
 		}
 

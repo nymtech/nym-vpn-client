@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="settings">إعدادات</string>
-	<string name="connected">متصل</string>
-	<string name="disconnected">غير متصل</string>
 	<string name="disconnecting">جاري فصل الاتصال</string>
 	<string name="connecting">جارٍ الاتصال</string>
 	<string name="five_hop_mixnet">مجهول (mixnet)</string>
-	<string name="five_hop_description">خصوصية قصوى للمهام الحسّاسة</string>
-	<string name="two_hop_description">الأفضل للتصفح والبث والتنزيل</string>
 	<string name="connect">اتصل</string>
 	<string name="disconnect">إلغاء الاتصال</string>
 	<string name="init_client">جارِ تهيئة العميل…</string>
 	<string name="establishing_connection">جارِ إنشاء الاتصال</string>
-	<string name="select_mode">اختيار الوضع</string>
 	<string name="display_theme">سِمة العرض</string>
 	<string name="light_theme">سِّمة فاتحة</string>
 	<string name="dark_theme">سِّمة داكنة</string>
 	<string name="automatic">وضع تلقائي</string>
 	<string name="device_theme">اتباع سمة الجهاز</string>
 	<string name="search">بحث</string>
-	<string name="search_country">البحث عن دولة</string>
 	<string name="is_selected">مختار</string>
 	<string name="fastest">الأسرع</string>
 	<string name="logs">السجلات</string>
@@ -72,10 +66,7 @@
 	<string name="action_requires_tunnel_down">الإجراء يتطلّب إيقاف النفق</string>
 	<string name="device_added_success">تمت إضافة الجهاز الى حسابك بنجاح</string>
 	<string name="invalid_recovery_phrase">عبارة الاسترداد غير صالحة</string>
-	<string name="recovery_phrase">عبارة الاسترداد</string>
-	<string name="log_in">تسجيل الدخول</string>
 	<string name="log_out">تسجيل الخروج</string>
-	<string name="new_to_nym">هل أنت جديد على NymVPN؟</string>
 	<string name="account">حساب</string>
 	<string name="mnemonic_example">مثال: دخان، قطعة أثرية، مخمل، جمجمة، بوب، قصر، سلحفاة، ضرر، خشن…</string>
 	<string name="dynamic">ديناميكية</string>
@@ -84,10 +75,7 @@
 	<string name="stop">توقف</string>
 	<string name="app_restart_required">مطلوب إعادة تشغيل التطبيق</string>
 	<string name="max_devices_reached_title">لقد وصلت إلى الحد الأقصى لعدد الأجهزة لحسابك</string>
-	<string name="credential_modal_description">لإضافة هذا الجهاز، انتقل إلى صفحة \"الأجهزة\" في حسابك، وأزِل أحد الأجهزة الحالية، ثم سجّل الدخول على هذا الجهاز باستخدام عبارة الاستعادة الخاصة بك.</string>
-	<string name="manage_devices">إدارة الأجهزة</string>
 	<string name="close">أغلق</string>
-	<string name="enter_access_code">الرجاء إدخال رمز الوصول الخاص بك مجهول.</string>
 	<string name="get_in_touch">التواصل مع فريق الدعم</string>
 	<string name="loading">جاري التحميل</string>
 	<string name="offline">لا يوجد إنترنت</string>
@@ -205,17 +193,12 @@
 	<string name="settings_censorship_title">مكافحة الرقابة</string>
 	<string name="settings_passphrase_title">كلمة المرور</string>
 	<string name="settings_dns_title">تخصيص DNS</string>
-	<string name="settings_ipv6_title">دعم IPv6</string>
-	<string name="settings_ipv6_description">السماح باتصالات IPv6</string>
-	<string name="settings_system_tray_title">تشغيل في صالة النظام</string>
-	<string name="settings_system_tray_description">إبقاء التطبيق قيد التشغيل عند إغلاقه</string>
 	<string name="settings_reset_app_title">إعادة تعيين بيانات التطبيق</string>
 	<string name="settings_system_status_title">حالة النظام</string>
 	<string name="settings_mixnet_tuning_title">ضبط Mixnet</string>
 	<string name="settings_mixnet_tuning_description">تخصيص أنماط حركة المرور في وضع مجهول</string>
 	<string name="settings_quit_title">الخروج من NymVPN</string>
 	<string name="settings_app_version_line">إصدار التطبيق: %1$s</string>
-	<string name="settings_daemon_version_line">إصدار دايمون: %1$s</string>
 	<string name="settings_language_help_title">المساعدة في الترجمة</string>
 	<string name="settings_language_help_description">جعل التطبيق أفضل بلغتك.</string>
 	<string name="settings_event_lan_reconnecting">إعادة الاتصال لتطبيق إعدادات الشبكة المحلية...</string>
@@ -234,7 +217,6 @@
 	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
 
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">قفل الشاشة مطلوب لاستخدام الاختصار.</string>
 	<string name="shortcut_title">تأكيد الإجراء</string>
 	<string name="shortcut_subtitle_stop">فتح لقطع اتصال VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">فتح لبدء تشغيل Mixnet</string>
@@ -242,7 +224,6 @@
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">للحصول على أفضل اتصال</string>
 	<string name="battery_opt_descr">تعطيل تحسينات بطارية NymVPN لاتصالات VPN أكثر استقرارا.</string>
-	<string name="battery_opt">تحسين البطارية</string>
 	<string name="battery_opt_settings_text">يمكن تغيير إعداد تحسين البطارية في أي وقت في إعدادات التطبيق.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">البيانات &amp; الخصوصية</string>
@@ -274,7 +255,6 @@
 	<string name="welcome_usage_title">مشاركة تحليلات الاستخدام</string>
 	<string name="welcome_usage_description">يساعدنا على تحسين شبكة نيم. لا تسجيل أو تتبع النشاط.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">إنشاء حساب</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">اختر مستوى الحماية \nالخاص بك 🛡️</string>
 	<string name="select_plan_line_0">تجربة مجانية 7 أيام</string>
@@ -322,19 +302,11 @@
 	<string name="censorship_stealth_title">توصيل API الثري</string>
 	<string name="censorship_stealth_description">يحمي من حظر VPN باستخدام نطاقات التغطية. تبديل للاستخدام دائما، أو إيقاف الاستخدام عند فشل الاتصالات العادية.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-Connect</string>
-	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
 	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
 	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-★ NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 أقصى قدر من الخصوصية</string>
-	<string name="account_welcome_create_description">إنشاء حساب نيم مجهول، لا توجد معلومات شخصية مطلوبة</string>
-	<string name="account_welcome_create_button">إنشاء حساب مجهول</string>
-	<string name="account_welcome_social_title">⚡ الإعداد السريع</string>
-	<string name="account_welcome_social_description">استخدم حساب موجود مثل محفظة Google أو crypto من خلال شريكنا في تسجيل الدخول الخصوصية</string>
-	<string name="account_welcome_social_button">المتابعة مع الحساب الاجتماعي</string>
-	<string name="account_welcome_login_title">لديك حساب بالفعل؟</string>
 	<string name="account_welcome_privacy_start">بالمتابعة، فإنك توافق على NymVPN  </string>
 	<string name="account_welcome_privacy_middle">و</string>
 	<!-- Existing subscription -->
@@ -364,8 +336,6 @@
 	<string name="account_payment_verifying">نحن نقوم بالتحقق من اشتراكك - لا توجد تفاصيل شخصية مرتبطة بهويتك</string>
 	<string name="account_payment_retrieving">استرداد بيانات اعتماد حسابك المجهول (zk-nyms)…</string>
 	<string name="account_payment_credentials">وثائق اعتماد المعرفة الصفرية هذه تثبت أن لديك حق الوصول دون الكشف عن من أنت</string>
-	<string name="account_payment_saving">حفظ الرمز zk-nyms على الجهاز…</string>
-	<string name="account_payment_anonymous">يتم الآن تخزين بيانات اعتماد الوصول المجهول الخاصة بك بأمان، خاصّة، مشفّرة، وفي التحكم الخاص بك</string>
 	<string name="account_payment_welcome">مرحبا بك في الخصوصية الحقيقية 🎉</string>
 	<string name="account_payment_protected">أنت الآن محمي بالكامل</string>
 	<string name="account_payment_error">فشل في شراء اشتراك. الرجاء المحاولة مرة أخرى لاحقاً</string>
@@ -481,7 +451,6 @@
 	<string name="dns_event_saved">تم حفظ DNS مخصص</string>
 	<string name="dns_event_reconnecting">إعادة الاتصال لتطبيق إعدادات DNS المخصصة...</string>
 	<!-- Mixnet tuning screen -->
-	<string name="mixnet_tuning_description">تخصيص أنماط حركة مرور المزيج</string>
 	<string name="mixnet_tuning_current_title">الأداء المتوقع للإعدادات الحالية:</string>
 	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">لاتفيا</string>
@@ -543,9 +512,6 @@
 	<string name="geo_exclusion_ports_text">1024–65535</string>
 	<string name="geo_exclusion_ranges_count">%1$s ranges</string>
 	<string name="geo_exclusion_last_updated">List updated %1$s</string>
-	<string name="geo_exclusion_error_sock55_title">SOCKS5 not detected</string>
-	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy not detected. Check your port settings.</string>
-	<string name="geo_exclusion_error_failed_start_title">Feature failed to start</string>
 	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Port must be between 1024 and 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
@@ -556,17 +522,4 @@
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Setup instructions</string>
 	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
-	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
-	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
-	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>
-	<string name="setup_instructions_browser_title">Browser setup</string>
-	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
-	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
-	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
-	<string name="setup_instructions_browser_step_3">, Port</string>
-	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
-	<string name="setup_instructions_wallet_title">Web3 wallet</string>
-	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
-	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
-	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
 </resources>

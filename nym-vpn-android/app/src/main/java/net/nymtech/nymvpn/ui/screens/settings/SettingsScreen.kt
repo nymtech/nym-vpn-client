@@ -34,6 +34,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
@@ -52,7 +53,6 @@ import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.screens.settings.modal.PrivateDnsDialog
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isPrivateDnsEnabled
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
@@ -71,7 +71,6 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 	var showLogoutDialog by remember { mutableStateOf(false) }
 	var showPrivateDnsDialog by remember { mutableStateOf(false) }
 
-	val shortcutsInfoText = stringResource(R.string.shortcuts_info_message)
 	val lanReconnectingText = stringResource(R.string.settings_event_lan_reconnecting)
 	LaunchedEffect(viewModel) {
 		viewModel.events.collectLatest { event ->
@@ -116,6 +115,11 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 		},
 	)
 
+	val shortcutsLockGate = rememberScreenLockGate(
+		setupBody = R.string.screen_lock_setup_shortcuts_body,
+		onLockSetAfterSetup = { viewModel.onAppShortcutsSelected(true) },
+	)
+
 	if (showVpnSettings) {
 		LaunchedEffect(Unit) {
 			context.launchVpnSettings()
@@ -128,11 +132,9 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			autoConnectEnabled = appUiState.settings.autoStartEnabled,
 			bypassLanEnabled = appUiState.vpnConfig.bypassLan,
 			adBlockingEnabled = appUiState.vpnConfig.adBlockingEnabled,
-			supportIPv6Enabled = false,
 			autoselectServerEnabled = false,
 			appShortcutsEnabled = appUiState.settings.isShortcutsEnabled,
 			appDeviceStartupEnabled = false,
-			appSystemTrayEnabled = false,
 			appVersion = BuildConfig.VERSION_NAME,
 			subscription = appUiState.subscription,
 		),
@@ -177,23 +179,12 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 				}
 				viewModel.onAdBlockingSelected(it)
 			},
-			onSupportIPv6Enable = {
-			},
 			onAutoselectServerEnable = {
 			},
 			onShortcutsEnable = { enable ->
-				if (enable && !DeviceAuthHelper.isDeviceSecure(context)) {
-					Toast.makeText(
-						context,
-						shortcutsInfoText,
-						Toast.LENGTH_LONG,
-					).show()
-				}
-				viewModel.onAppShortcutsSelected(enable)
+				if (!enable || shortcutsLockGate.isOpen()) viewModel.onAppShortcutsSelected(enable)
 			},
 			onDeviceStartupEnable = {
-			},
-			onSystemTrayEnable = {
 			},
 			onKillSwitchClick = {
 				context.launchVpnSettings()
