@@ -140,11 +140,14 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.isDebugLogsOn.rawValue, store: UserDefaults(suiteName: Constants.groupID.rawValue))
     public var isDebugLogsOn = false
 
-    @AppStorage(AppSettingKey.expiryWarningDismissedAt.rawValue)
-    public var expiryWarningDismissedAt: Double = 0
+    // Per-tier dismissal of the upcoming-expiry renewal reminder. The stored tier
+    // is an `ExpiryReminderTier.rawValue`; `validUntil` scopes it to one expiry
+    // window so a renewal (new validUntil) or a deeper tier re-arms the reminder.
+    @AppStorage(AppSettingKey.expiryReminderDismissedTier.rawValue)
+    public var expiryReminderDismissedTier: String = ""
 
-    @AppStorage(AppSettingKey.expiryWarningSoonDismissedAt.rawValue)
-    public var expirySoonDismissedAt: Double = 0
+    @AppStorage(AppSettingKey.expiryReminderDismissedValidUntil.rawValue)
+    public var expiryReminderDismissedValidUntil: Double = 0
 
     @AppStorage(AppSettingKey.accountSummaryCache.rawValue)
     public var accountSummaryCache: String?
@@ -275,8 +278,8 @@ public enum AppSettingKey: String {
     case isMixnetTuningEnabled
     case isAdBlockerEnabled
     case isDebugLogsOn
-    case expiryWarningDismissedAt
-    case expiryWarningSoonDismissedAt
+    case expiryReminderDismissedTier
+    case expiryReminderDismissedValidUntil
     case accountSummaryCache
     case accountSummaryLastFetchedAt
     case oneClickDisplayMode

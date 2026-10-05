@@ -1,6 +1,106 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "renewalReminder.action.getPlan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a plan"
+          }
+        }
+      }
+    },
+    "renewalReminder.action.renew" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renew now"
+          }
+        }
+      }
+    },
+    "renewalReminder.day7.subscription.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan expires in 7 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.day7.freepass.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass expires in 7 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.day3.subscription.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan expires in 3 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.day3.freepass.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass expires in 3 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.hour24.subscription.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan expires in 24 hours"
+          }
+        }
+      }
+    },
+    "renewalReminder.hour24.freepass.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass expires in 24 hours"
+          }
+        }
+      }
+    },
+    "renewalReminder.expired.subscription.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan has expired"
+          }
+        }
+      }
+    },
+    "renewalReminder.expired.freepass.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass has expired"
+          }
+        }
+      }
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
