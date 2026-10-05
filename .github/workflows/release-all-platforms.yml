@@ -66,6 +66,10 @@ on:
         description: "Github release mode (none, draft, auto)"
         type: string
         default: 'draft' # none, draft, public
+      publish_s3:
+        description: "Publish to S3 (Garage)"
+        type: boolean
+        default: true
       release_channel:
         description: "Release channel"
         type: string # nightly, beta, ship
