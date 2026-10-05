@@ -73,7 +73,7 @@
     "@eslint/js": "^9.8.0",
     "@playwright/test": "~1.63.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@tauri-apps/cli": "=2.11.5",
+    "@tauri-apps/cli": "=2.12.1",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
     "@types/node": "^26.6.3",
