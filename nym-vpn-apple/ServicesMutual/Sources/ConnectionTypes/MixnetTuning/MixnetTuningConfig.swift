@@ -55,6 +55,7 @@ public struct MixnetTuningConfig: Codable, Equatable {
         )
     }
 
+    // Synthesized encode writes only these cases. A new stored property needs a case or it will not persist.
     enum CodingKeys: String, CodingKey {
         case backgroundTraffic
         case averagePacketDelay
