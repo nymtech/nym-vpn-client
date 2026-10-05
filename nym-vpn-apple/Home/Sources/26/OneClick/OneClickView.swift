@@ -58,11 +58,6 @@ private extension OneClickView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 compactServerInfo
-                if animatedDisplayMode.caretSlot == .betweenHops {
-                    caretColumn
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, NymSpacing.medium)
-                }
                 if animatedDisplayMode == .nerd {
                     nerdEntrySection
                         .accessibilityHidden(viewModel.displayMode != .nerd)
@@ -84,12 +79,18 @@ private extension OneClickView {
     }
 
     var exitNodeLabel: some View {
-        Text("oneClick.exitNode.label".localizedString)
-            .nymTextStyle(.bodySmall)
-            .foregroundStyle(Color.Nym.textSecondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom, NymSpacing.small)
-            .accessibilityHidden(viewModel.displayMode != .nerd)
+        HStack(alignment: .center, spacing: NymSpacing.medium) {
+            Text("oneClick.exitNode.label".localizedString)
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityHidden(viewModel.displayMode != .nerd)
+            if animatedDisplayMode.caretSlot == .exitLabel {
+                caretColumn
+                    .frame(width: Constants.InfoIcon.size, alignment: .center)
+            }
+        }
+        .padding(.bottom, NymSpacing.small)
     }
 
     @ViewBuilder var compactServerInfo: some View {
@@ -98,12 +99,12 @@ private extension OneClickView {
             case .selecting:
                 selectingRowCompact(
                     score: .offline,
-                    showCarets: animatedDisplayMode.caretSlot == .exitRow
+                    showCarets: animatedDisplayMode.caretSlot == .exitInfoStack
                 )
             case let .selected(info):
                 selectedRowCompact(
                     info: info,
-                    showCarets: animatedDisplayMode.caretSlot == .exitRow
+                    showCarets: animatedDisplayMode.caretSlot == .exitInfoStack
                 )
             }
         }
@@ -121,7 +122,7 @@ private extension OneClickView {
                 .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
             if showCarets {
-                caretColumn
+                exitInfoStack { EmptyView() }
             }
         }
     }
@@ -175,13 +176,29 @@ private extension OneClickView {
                 }
             }
             Spacer()
-            if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
-                gatewayDetailsButton(gateway: gateway, hopType: hopType)
-            }
             if showCarets {
-                caretColumn
+                exitInfoStack {
+                    exitInfoButton(info)
+                }
+            } else {
+                exitInfoButton(info)
             }
         }
+    }
+
+    @ViewBuilder
+    func exitInfoButton(_ info: OneClickServerInfo) -> some View {
+        if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
+            gatewayDetailsButton(gateway: gateway, hopType: hopType)
+        }
+    }
+
+    func exitInfoStack<InfoButton: View>(@ViewBuilder infoButton: () -> InfoButton) -> some View {
+        VStack(spacing: NymSpacing.small) {
+            infoButton()
+            caretColumn
+        }
+        .frame(width: Constants.InfoIcon.size, alignment: .center)
     }
 
     func gatewayDetailsButton(gateway: GatewayNode, hopType: HopType) -> some View {
