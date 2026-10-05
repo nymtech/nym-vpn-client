@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="settings">Настройки</string>
-	<string name="connected">Подключено</string>
-	<string name="disconnected">Отключено</string>
 	<string name="disconnecting">Отключение</string>
 	<string name="connecting">Подключение</string>
 	<string name="five_hop_mixnet">Анонимный (микснет)</string>
-	<string name="five_hop_description">Максимальная приватность для важных задач</string>
-	<string name="two_hop_description">Браузинг, стриминг, загрузки</string>
 	<string name="connect">Подключиться</string>
 	<string name="disconnect">Отключиться</string>
 	<string name="init_client">Инициализация клиента…</string>
 	<string name="establishing_connection">Настройка соединения</string>
-	<string name="select_mode">Выберите режим</string>
 	<string name="display_theme">Выбор темы</string>
 	<string name="light_theme">Светлая тема</string>
 	<string name="dark_theme">Тёмная тема</string>
 	<string name="automatic">Автоматически</string>
 	<string name="device_theme">Использовать тему устройства</string>
 	<string name="search">Поиск</string>
-	<string name="search_country">Выбрать страну</string>
 	<string name="is_selected">Выбрано</string>
 	<string name="fastest">Быстрейший</string>
 	<string name="logs">Логи</string>
@@ -72,10 +66,7 @@
 	<string name="action_requires_tunnel_down">Требуется отключение туннеля</string>
 	<string name="device_added_success">Устройство успешно добавлено к вашему аккаунту</string>
 	<string name="invalid_recovery_phrase">Неверный код доступа</string>
-	<string name="recovery_phrase">Код доступа из 24 слов</string>
-	<string name="log_in">Войти</string>
 	<string name="log_out">Выйти</string>
-	<string name="new_to_nym">Еще не знакомы с NymVPN?</string>
 	<string name="account">Аккаунт</string>
 	<string name="mnemonic_example">например, smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Динамическая тема</string>
@@ -84,10 +75,7 @@
 	<string name="stop">Остановить</string>
 	<string name="app_restart_required">Необходимо перезагрузить приложение</string>
 	<string name="max_devices_reached_title">Вы добавили максимальное количество устройств для вашей учетной записи</string>
-	<string name="credential_modal_description">Перейдите на страницу \'Устройства\', удалите одно из существующих, затем войдите с нового, вписав вашу фразу восстановления.</string>
-	<string name="manage_devices">Управление устройствами</string>
 	<string name="close">Закрыть</string>
-	<string name="enter_access_code">Пожалуйста, введите свой код доступа: 24 слова, разделённых пробелами</string>
 	<string name="get_in_touch">Связаться с поддержкой</string>
 	<string name="loading">Загрузка</string>
 	<string name="offline">Нет интернета</string>
@@ -205,17 +193,12 @@
 	<string name="settings_censorship_title">Антицензура</string>
 	<string name="settings_passphrase_title">Кодовая фраза</string>
 	<string name="settings_dns_title">Настроить DNS</string>
-	<string name="settings_ipv6_title">Поддержка IPv6</string>
-	<string name="settings_ipv6_description">Разрешить IPv6 соединения</string>
-	<string name="settings_system_tray_title">Запускать в панели задач</string>
-	<string name="settings_system_tray_description">Оставлять приложение запущенным при закрытии</string>
 	<string name="settings_reset_app_title">Сбросить данные приложения</string>
 	<string name="settings_system_status_title">Статус системы</string>
 	<string name="settings_mixnet_tuning_title">Настройка микснета</string>
 	<string name="settings_mixnet_tuning_description">Настройте паттерны трафика в Анонимном режиме</string>
 	<string name="settings_quit_title">Выйти из NymVPN</string>
 	<string name="settings_app_version_line">Версия приложения: %1$s</string>
-	<string name="settings_daemon_version_line">Версия демона: %1$s</string>
 	<string name="settings_language_help_title">Помощь с переводом</string>
 	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
 	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN…</string>
@@ -234,7 +217,6 @@
 	<string name="settings_geo_exclusion_title">Исключение по геолокации</string>
 
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">Для использования горячих клавиш требуется блокировка экрана.</string>
 	<string name="shortcut_title">Подтвердите действие</string>
 	<string name="shortcut_subtitle_stop">Разблокируйте, чтобы отключить VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Разблокируйте, чтобы запустить Микснет</string>
@@ -242,7 +224,6 @@
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для лучшего соединения</string>
 	<string name="battery_opt_descr">Отключите оптимизацию энергопотребления для NymVPN, чтобы обеспечить более стабильное подключение VPN.</string>
-	<string name="battery_opt">Экономия заряда батареи</string>
 	<string name="battery_opt_settings_text">Настройки оптимизации батареи можно изменить в любое время в настройках приложения.</string>
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Данные, приватность &amp; логи</string>
@@ -274,7 +255,6 @@
 	<string name="welcome_usage_title">Поделитесь аналитикой использования</string>
 	<string name="welcome_usage_description">Помогает нам улучшать сеть Nym. Логи и активность не отслеживаются.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">Создайте аккаунт</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Выберите ваш \nтарифный план</string>
 	<string name="select_plan_line_0">7-дневная пробная версия</string>
@@ -322,19 +302,11 @@
 	<string name="censorship_stealth_title">Stealth API соединение</string>
 	<string name="censorship_stealth_description">Защищает от блокировки VPN, используя подставные домены. Включите для постоянного использования или выключите, чтобы использовать при сбое обычных подключений.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC</string>
 	<string name="censorship_amnezia_title">Минимальная обфускация (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Маскирует трафик WireGuard с помощью ложных пакетов для предотвращения блокировки VPN.\n\nПримечание: Реализовано только на стороне клиента.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">⚡ Мгновенно &amp; анонимно </string>
-	<string name="account_welcome_create_description">Одно нажатие для регистрации. Анонимный аккаунт создаётся на вашем устройстве. Без пароля, без личной информации.</string>
-	<string name="account_welcome_create_button">Создать анонимный аккаунт</string>
-	<string name="account_welcome_social_title">🔑 Войти в существующий аккаунт</string>
-	<string name="account_welcome_social_description">Приватный вход через email, Google или криптокошелёк с нашим партнёром Privy.</string>
-	<string name="account_welcome_social_button">Войти через соцсеть</string>
-	<string name="account_welcome_login_title">Уже есть аккаунт?</string>
 	<string name="account_welcome_privacy_start">Продолжая, вы соглашаетесь с тем, что NymVPN  </string>
 	<string name="account_welcome_privacy_middle">и</string>
 	<!-- Existing subscription -->
@@ -364,8 +336,6 @@
 	<string name="account_payment_verifying">Мы проверяем вашу подписку — никакие личные данные никогда не связываются с вашей личностью</string>
 	<string name="account_payment_retrieving">Извлечение ваших анонимных учётных данных аккаунта (zk-nyms)…</string>
 	<string name="account_payment_credentials">Эти учётные данные с нулевым разглашением (zero-knowledge credentials) подтверждают, что у вас есть доступ, не раскрывая, кто вы</string>
-	<string name="account_payment_saving">Сохранение zk-nyms на устройстве…</string>
-	<string name="account_payment_anonymous">Ваши анонимные учётные данные теперь надёжно сохранены, приватны, зашифрованы и находятся под вашим контролем</string>
 	<string name="account_payment_welcome">Добро пожаловать в настоящую приватность 🎉</string>
 	<string name="account_payment_protected">Теперь вы полностью защищены</string>
 	<string name="account_payment_error">Не удалось приобрести подписку. Повторите попытку позже</string>
@@ -481,7 +451,6 @@
 	<string name="dns_event_saved">Пользовательский DNS сохранен</string>
 	<string name="dns_event_reconnecting">Переподключение для применения пользовательских DNS-настроек…</string>
 	<!-- Mixnet tuning screen -->
-	<string name="mixnet_tuning_description">Настройте паттерны трафика в микснете</string>
 	<string name="mixnet_tuning_current_title">Ожидаемая производительность при текущих настройках:</string>
 	<string name="mixnet_tuning_current_speed">Скорость пакетов</string>
 	<string name="mixnet_tuning_current_latency">Задержка</string>
@@ -543,9 +512,6 @@
 	<string name="geo_exclusion_ports_text">1024–65535</string>
 	<string name="geo_exclusion_ranges_count">%1$s диапазоны</string>
 	<string name="geo_exclusion_last_updated">Список обновлён %1$s</string>
-	<string name="geo_exclusion_error_sock55_title">SOCKS5 не обнаружен</string>
-	<string name="geo_exclusion_error_sock55_text">SOCKS5 прокси не обнаружен. Проверьте настройки порта.</string>
-	<string name="geo_exclusion_error_failed_start_title">Не удалось запустить функцию</string>
 	<string name="geo_exclusion_error_failed_start_text">Не удалось запустить исключение по геолокации. Переподключитесь и попробуйте снова.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Порт должен быть в диапазоне от 1024 до 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Порт 1080 запрещён. Выберите другой.</string>
@@ -556,17 +522,4 @@
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Инструкция по установке</string>
 	<string name="setup_instructions_description">Настройте приложения и браузеры на маршрутизацию трафика через SOCKS5-прокси Nym.</string>
-	<string name="setup_instructions_per_app_title">Для каждого приложения (с поддержкой SOCKS5)</string>
-	<string name="setup_instructions_per_app_description">В Android нет системной настройки SOCKS5.</string>
-	<string name="setup_instructions_pert_app_step">Используйте приложение с прямой поддержкой SOCKS5-прокси.</string>
-	<string name="setup_instructions_browser_title">Настройка браузера</string>
-	<string name="setup_instructions_browser_description">Любое приложение с поддержкой SOCKS5. Пример для Firefox:</string>
-	<string name="setup_instructions_browser_step_1">Настройки → включить SOCKS-прокси — хост</string>
-	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
-	<string name="setup_instructions_browser_step_3">, Порт</string>
-	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
-	<string name="setup_instructions_wallet_title">Web3 кошелек</string>
-	<string name="setup_instructions_wallet_step_1">Установите RPC URL как</string>
-	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
-	<string name="setup_instructions_proxy_title">ПРОКСИ АДРЕС</string>
 </resources>
