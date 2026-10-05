@@ -27,6 +27,7 @@ public enum Constants: String {
     case explorerURL = "https://nym.com/explorer/nym-node/"
     case dnsLearnMoreURL = "https://nymtechnologiessa.zendesk.com/hc/en-us/articles/41140533515665"
     case mixnetParametersLearnMoreURL = "https://nym.com/features/mixnet-tuning"
+    case profilesLearnMoreURL = "https://nym.com/features/profiles"
 
     case telegramLink = "https://nym.com/go/telegram"
     case discordLink = "https://nym.com/go/discord"
