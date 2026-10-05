@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: daily
     assignees:
-      - "Bykow"
+      - "pronebird"
     milestone: 6
   - package-ecosystem: gradle
     directory: /nym-vpn-android
@@ -26,7 +26,7 @@ updates:
       interval: weekly
     milestone: 6
     assignees:
-      - "rokas-ambrazevicius"
+      - "pronebird"
   - package-ecosystem: cargo
     directory: /nym-vpn-core
     assignees:
@@ -45,6 +45,8 @@ updates:
           - "patch"
   # - package-ecosystem: cargo
   #   directory: /nym-vpn-app/src-tauri
+  #   assignees:
+  #     - "agentpietrucha"
   #   schedule:
   #     interval: weekly
   #   milestone: 6
@@ -56,6 +58,8 @@ updates:
   #         - "patch"
   - package-ecosystem: npm
     directory: /nym-vpn-app
+    assignees:
+      - "agentpietrucha"
     schedule:
       interval: weekly
     milestone: 6
