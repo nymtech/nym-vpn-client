@@ -19,23 +19,24 @@
   "restart": "Restart",
   "profiles": {
     "title": "Profiles",
-    "intro": "Profiles are connection templates that we baked in for you, to start experimenting with the privacy–speed balance that best suits your needs.",
+    "intro": "Profiles are connection templates you can use to connect quickly with the best type of server configuration for you.",
     "error": "Failed to apply profile",
+    "learnMore": "Learn more about profiles here",
     "safest": {
       "title": "Auto",
-      "desc": "Optimal for legal protection"
+      "desc": "Best performing servers, never your own country"
     },
     "random": {
       "title": "Random",
-      "desc": "Results vary, may cause slow speed"
+      "desc": "Different servers for every connection"
     },
     "mostPrivate": {
-      "title": "Most private",
-      "desc": "Metadata resistance and mixnet tuning"
+      "title": "Anonymous",
+      "desc": "Mixnet mode with closest servers to you"
     },
     "fastest": {
       "title": "Fastest",
-      "desc": "Closest servers, best for streaming"
+      "desc": "Closest, best performing servers"
     }
   }
 }
