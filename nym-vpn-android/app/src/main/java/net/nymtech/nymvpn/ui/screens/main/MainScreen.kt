@@ -41,6 +41,9 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
+import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthViewModel
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
@@ -65,6 +68,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
@@ -85,6 +89,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val connectionTime = remember(connectionSeconds) { connectionSeconds?.convertSecondsToTimeString() }
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
+
+	val deviceAuthViewModel: DeviceAuthViewModel = hiltViewModel()
+	val deviceAuth = rememberDeviceAuth(viewModel = deviceAuthViewModel) { action ->
+		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+	}
 
 	var bottomSheetContent by remember { mutableStateOf<MainBottomSheetContent>(MainBottomSheetContent.Hidden) }
 	var authSheetHeightPx by remember { mutableIntStateOf(0) }
@@ -252,8 +261,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
-		onRenewSubscription = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
+		onRenewSubscription = { deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION) },
 		onNavigateToSelectPlan = { navController.goFromRoot(Route.SelectPlan) },
+		isLoggedIn = appUiState.managerState.isMnemonicStored,
+		isScreenLockSet = deviceAuthViewModel::isScreenLockSet,
+		onSetUpScreenLock = { context.launchScreenLockSetup(deviceAuthViewModel.createScreenLockSetupIntent()) },
 	)
 
 	// ── Content ──────────────────────────────────────────────────────────────
