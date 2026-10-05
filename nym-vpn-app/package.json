@@ -76,7 +76,7 @@
     "@tauri-apps/cli": "=2.12.1",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.3.0",
     "@types/react-router-dom": "^5.3.3",
@@ -92,7 +92,7 @@
     "tailwindcss": "^4.2.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
-    "vite": "^8.3.1",
+    "vite": "^8.3.2",
     "vite-plugin-svgr": "^5.2.0"
   },
   "allowScripts": {
