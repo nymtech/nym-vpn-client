@@ -70,12 +70,18 @@ jobs:
 
       - name: Add Homebrew to PATH
         run: |
-          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          BREW_PREFIX=$(brew --prefix)
+          echo "$BREW_PREFIX/bin" >> "$GITHUB_PATH"
 
       - name: Set Xcode directories
         run: |
           echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
+
+      - name: Install system dependencies
+        run: |
+          brew install xmlstarlet
+          brew install jq
 
       - name: Install python3
         env:
@@ -186,7 +192,6 @@ jobs:
           BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
         run: |
           set -euo pipefail
-          which xmlstarlet || brew install xmlstarlet
 
           STAGING_DIR="$PWD/build/pkg"
           STAGING_BIN_DIR="$STAGING_DIR/payload"
@@ -273,7 +278,6 @@ jobs:
           ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euxo pipefail
-          which jq || brew install jq
 
           PKG="${{ steps.make-pkg.outputs.pkg_path }}"
           OUT_JSON="$PWD/build/pkg/notarytool-log.json"
