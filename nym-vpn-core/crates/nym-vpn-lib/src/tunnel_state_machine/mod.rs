@@ -1540,7 +1540,11 @@ impl TunnelStateMachine {
                     let shutdown_token = self.shutdown_token.clone();
                     let scan_cancellation = scan_cancellation.clone();
                     let own_interfaces = self.own_interfaces.clone();
+                    #[cfg(not(target_os = "android"))]
                     let resolver_addr = self.shared_state.filtering_resolver.listen_addr();
+                    // nym_conflict runs no checks on Android.
+                    #[cfg(target_os = "android")]
+                    let resolver_addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0));
                     tokio::spawn(async move {
                         let conflicts = tokio::select! {
                             conflicts = nym_conflict::detect(check, own_interfaces, resolver_addr) => conflicts,
