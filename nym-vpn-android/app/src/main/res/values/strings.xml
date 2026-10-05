@@ -643,14 +643,14 @@
 	<!-- Profiles -->
 	<string name="profiles_title">Profiles</string>
 	<string name="profiles_safest_title">Auto</string>
-	<string name="profiles_safest_description">Optimal for censorship circumvention</string>
+	<string name="profiles_safest_description">Best performing servers, never your own country</string>
 	<string name="profiles_random_title">Random</string>
-	<string name="profiles_random_description">Results vary, may cause slow speed</string>
-	<string name="profiles_most_private_title">Most private</string>
-	<string name="profiles_most_private_description">Metadata resistance and mixnet tuning</string>
+	<string name="profiles_random_description">Different servers for every connection</string>
+	<string name="profiles_most_private_title">Anonymous</string>
+	<string name="profiles_most_private_description">Mixnet mode with closest servers to you</string>
 	<string name="profiles_fastest_title">Fastest</string>
-	<string name="profiles_fastest_description">Chooses the closest, best for streaming</string>
-	<string name="profiles_description">Profiles are connection templates, that we baked in for you to start experimenting with the privacy - speed experience that’s best suits your needs.</string>
+	<string name="profiles_fastest_description">Closest, best performing servers</string>
+	<string name="profiles_description">Profiles are connection templates you can use to connect quickly with the best type of server configuration for you.</string>
 	<string name="profiles_learn_more_text">Learn more about profiles here</string>
-	<string name="profiles_learn_more_link"></string>
+	<string name="profiles_learn_more_link">https://nym.com/features/profiles</string>
 </resources>
