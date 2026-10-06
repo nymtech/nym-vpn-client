@@ -343,15 +343,18 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
+              {/* Quality bar only once a specific gateway is resolved (explicitly
+                  selected, or picked by the daemon on connect); a bare country
+                  selection has no gateway, so show just the flag. Mirrors Android. */}
               {placeholderProfile ? (
                 <ProfileIcon
                   profile={placeholderProfile}
                   size="sm"
                   className="text-text-secondary"
                 />
-              ) : (
+              ) : gateway ? (
                 <ScoreIndicator score={nodeDetails.score} />
-              )}
+              ) : null}
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode && (
                   <motion.div
