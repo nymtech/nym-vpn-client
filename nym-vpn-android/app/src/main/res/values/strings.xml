@@ -488,6 +488,7 @@
 	<string name="pin_code_subtitle">Enter this code on web</string>
 	<string name="pin_code_copy_and_open">Copy code and open web</string>
 	<string name="pin_code_copied">Copied!</string>
+	<string name="clipboard_sensitive_copied">Copied. Clipboard will be cleared in %1$d seconds</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Enable logging</string>
 	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>

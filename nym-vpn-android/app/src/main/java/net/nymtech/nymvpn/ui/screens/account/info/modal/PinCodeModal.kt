@@ -27,14 +27,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -43,7 +40,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.SecureScreen
@@ -52,13 +48,11 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.sensitiveClipData
+import net.nymtech.nymvpn.util.extensions.copySensitiveToClipboard
 
 @Composable
 fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 	val context = LocalContext.current
-	val clipboard = LocalClipboard.current
-	val scope = rememberCoroutineScope()
 	var copied by remember { mutableStateOf(false) }
 
 	LaunchedEffect(copied) {
@@ -137,12 +131,9 @@ fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 		confirmButton = {
 			MainStyledButton(
 				onClick = {
-					scope.launch {
-						val clip = sensitiveClipData(pinCode)
-						clipboard.setClipEntry(clip.toClipEntry())
-						context.openWebUrl(url)
-						copied = true
-					}
+					context.copySensitiveToClipboard(pinCode)
+					context.openWebUrl(url)
+					copied = true
 				},
 				content = {
 					AnimatedContent(copied, label = "copy_state") { isCopied ->
