@@ -11,7 +11,9 @@ mod secure_enclave;
 use std::sync::Arc;
 
 #[cfg(target_os = "android")]
-use android::{AndroidKeyStoreProvider, AndroidSecureEnclaveProvider};
+use android::AndroidKeyStoreProvider;
+#[cfg(target_os = "android")]
+pub use android::{AndroidSecureEnclaveKey, AndroidSecureEnclaveProvider};
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use apple::AppleSecureEnclaveProvider;
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
