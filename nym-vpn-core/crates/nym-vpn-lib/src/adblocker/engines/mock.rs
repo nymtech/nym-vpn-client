@@ -10,7 +10,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     adblocker::{AdBlockerError, Result, engines::AdBlockEngine},
-    resolver::{DnsFilterDecision, DnsFilterT},
+    dns_filter::{DnsFilterDecision, DnsFilterT},
 };
 
 enum State {
