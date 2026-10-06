@@ -86,10 +86,7 @@ pub struct MockConnectivityHandle {
 
 impl MockConnectivityHandle {
     pub fn new() -> Self {
-        let connectivity_channel = watch::channel(Connectivity::Status {
-            ipv4: true,
-            ipv6: true,
-        });
+        let connectivity_channel = watch::channel(Connectivity::online());
         let current_state = *connectivity_channel.1.borrow();
         Self {
             current_state,
@@ -338,10 +335,7 @@ impl TestBench {
         self.connectivity
             .connectivity_channel
             .0
-            .send(Connectivity::Status {
-                ipv4: false,
-                ipv6: false,
-            })?;
+            .send(Connectivity::offline())?;
         Ok(())
     }
 
@@ -350,10 +344,7 @@ impl TestBench {
         self.connectivity
             .connectivity_channel
             .0
-            .send(Connectivity::Status {
-                ipv4: true,
-                ipv6: true,
-            })?;
+            .send(Connectivity::online())?;
         Ok(())
     }
 
