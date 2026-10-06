@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Only report connected once both the in-tunnel ping and the gateway metadata check pass, and tear down the tunnel when the ping check fails (removes the metadata-based teardown deferral from #5762 and the connect-on-healthy-metadata fallback from #6091)
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
 - [macOS] Fix file permissions for `nym-vpnc` in the macOS installer package, helping ensure the installed application can run correctly (https://github.com/nymtech/nym-vpn-client/pull/6456)
 
