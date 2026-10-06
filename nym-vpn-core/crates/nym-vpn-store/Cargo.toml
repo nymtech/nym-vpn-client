@@ -14,6 +14,7 @@ workspace = true
 async-trait.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
+nym-store-cipher = { workspace = true }
 nym-pemstore.workspace = true
 rand.workspace = true
 rand08.workspace = true
@@ -34,6 +35,9 @@ tracing.workspace = true
 zeroize.workspace = true
 
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+nym-secure-enclave.workspace = true
 
 [build-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
