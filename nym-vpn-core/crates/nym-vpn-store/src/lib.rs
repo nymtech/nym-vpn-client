@@ -3,6 +3,7 @@
 
 pub mod account;
 pub mod account_summary;
+pub mod ciphers;
 pub mod keys;
 
 pub trait VpnStorage:
