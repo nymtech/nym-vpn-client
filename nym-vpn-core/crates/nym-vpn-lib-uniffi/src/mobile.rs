@@ -133,7 +133,7 @@ pub struct VPNConfig {
     #[cfg(target_os = "android")]
     pub connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
     #[cfg(target_os = "android")]
-    pub secure_enclave: Arc<dyn AndroidSecureEnclaveProvider>,
+    pub secure_enclave: Arc<dyn nym_secure_enclave::AndroidSecureEnclaveProvider>,
 }
 
 #[cfg(not(target_os = "android"))]
