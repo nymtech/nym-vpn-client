@@ -20,7 +20,6 @@ nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-ecash-time.workspace = true
 nym-offline-monitor.workspace = true
-nym-sqlx-pool-guard.workspace = true
 nym-upgrade-mode-check.workspace = true
 nym-vpn-api-client.workspace = true
 nym-validator-client.workspace = true

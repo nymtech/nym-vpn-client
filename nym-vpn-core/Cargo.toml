@@ -313,7 +313,6 @@ nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/r
 nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 
 nym-bridges = "0.2.1"
 nym-bridges-types = "0.2.1"
@@ -355,4 +354,3 @@ nym-bridges-types = "0.2.1"
 #nym-wireguard-private-metadata-client = { path = "../../nym/common/wireguard-private-metadata/client" }
 #nym-wireguard-private-metadata-shared = { path = "../../nym/common/wireguard-private-metadata/shared" }
 #nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
-#nym-sqlx-pool-guard = { path = "../../nym/nym-sqlx-pool-guard" }
