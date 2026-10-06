@@ -127,11 +127,13 @@ pub struct VPNConfig {
     pub gateway_independence: GatewayIndependence,
     pub user_agent: UserAgent,
     #[cfg(target_os = "ios")]
-    pub(crate) tun_provider: Arc<dyn OSTunProvider>,
+    pub tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
-    pub(crate) tun_provider: Arc<dyn AndroidTunProvider>,
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "android")]
-    pub(crate) connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
+    pub connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
+    #[cfg(target_os = "android")]
+    pub secure_enclave: Arc<dyn AndroidSecureEnclaveProvider>,
 }
 
 #[cfg(not(target_os = "android"))]
