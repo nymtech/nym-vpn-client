@@ -3,10 +3,10 @@
 
 use std::sync::Arc;
 
-#[cfg(target_os = "android")]
-use super::AndroidSecureEnclaveProvider;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use super::AppleSecureEnclaveProvider;
+#[cfg(target_os = "android")]
+use super::{AndroidKeyStoreProvider, AndroidSecureEnclaveProvider};
 use super::{Result, SecureEnclaveKey, SecureEnclaveProvider};
 
 pub struct SecureEnclave {

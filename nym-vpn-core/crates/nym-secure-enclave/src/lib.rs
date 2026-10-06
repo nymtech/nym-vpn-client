@@ -18,7 +18,7 @@ use apple::AppleSecureEnclaveProvider;
 pub use secure_enclave::SecureEnclave;
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(target_os = "android", uniffi::Error)]
+#[cfg_attr(target_os = "android", derive(uniffi::Error))]
 pub enum SecureEnclaveError {
     #[error("Authentication failed")]
     AuthenticationFailed,
