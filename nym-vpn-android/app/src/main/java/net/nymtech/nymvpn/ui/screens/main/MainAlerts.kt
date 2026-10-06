@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -146,8 +147,12 @@ fun MainAlerts(
 	val currentOnSetUpScreenLock by rememberUpdatedState(onSetUpScreenLock)
 	val activeAlert by AlertController.message.collectAsStateWithLifecycle()
 	val isAlertSlotFree = activeAlert == null
-	LifecycleResumeEffect(isLoggedIn, isAlertSlotFree) {
-		if (isLoggedIn && !currentIsScreenLockSet()) {
+	// session-only: the alert comes back on the next app launch
+	var noScreenLockDismissed by rememberSaveable { mutableStateOf(false) }
+	// the alert's action button also triggers onDismiss, so only the close icon counts as a dismissal
+	var noScreenLockSetupClicked by remember { mutableStateOf(false) }
+	LifecycleResumeEffect(isLoggedIn, isAlertSlotFree, noScreenLockDismissed) {
+		if (isLoggedIn && !currentIsScreenLockSet() && !noScreenLockDismissed) {
 			val current = AlertController.message.value
 			if (current == null || current.id == AlertId.NoScreenLock) {
 				AlertController.show(
@@ -155,10 +160,16 @@ fun MainAlerts(
 						type = AlertType.Warning,
 						title = noScreenLockTitle,
 						body = noScreenLockBody,
-						action = AlertAction(noScreenLockAction) { currentOnSetUpScreenLock() },
+						action = AlertAction(noScreenLockAction) {
+							noScreenLockSetupClicked = true
+							currentOnSetUpScreenLock()
+						},
 						duration = Long.MAX_VALUE,
+						onDismiss = {
+							if (noScreenLockSetupClicked) noScreenLockSetupClicked = false else noScreenLockDismissed = true
+						},
 						id = AlertId.NoScreenLock,
-						dismissable = false,
+						dismissable = true,
 					),
 				)
 			}

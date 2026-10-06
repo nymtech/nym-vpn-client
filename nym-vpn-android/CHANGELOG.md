@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.13.0]
+### Added
+- Block screenshots on passphrase/PIN screens (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Clear copied passphrase/PIN after 60s (https://github.com/nymtech/nym-vpn-client/pull/6562)
+
+### Changed
+- Dismissible screen lock alert on Main Screen (https://github.com/nymtech/nym-vpn-client/pull/6562)
+
+### Fixed
+- Fix grey nav bar on bottom sheets (https://github.com/nymtech/nym-vpn-client/pull/6562)
+
+## [2026.13.0] - TBD
 
 ### Added
 - Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
