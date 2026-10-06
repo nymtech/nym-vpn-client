@@ -28,17 +28,10 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
         Ok(())
     }
 
-    fn has_key(&self, alias: &str) -> crate::Result<bool> {
-        secure_enclave_rs::SecureEnclaveKey::get(alias.as_bytes())
-            .map(|_| true)
-            .or_else(|err| {
-                if let secure_enclave_rs::Error::NotFound = err {
-                    Ok(false)
-                } else {
-                    Err(SecureEnclaveError::Other(err.to_string()))
-                }
-            })
-            .map(|_| true)
+    fn get_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
+        let key = secure_enclave_rs::SecureEnclaveKey::get(alias.as_bytes())?;
+
+        Ok(Arc::new(OSSecureEnclaveKey::from(key)))
     }
 }
 
