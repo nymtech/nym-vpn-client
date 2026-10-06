@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Widget support for both iOS & macOS (https://github.com/nymtech/nym-vpn-client/pull/6255)
 
+### Fixed
+
+- Home: don't show the server quality bar before a server is selected (https://github.com/nymtech/nym-vpn-client/pull/6559)
+
 ## [2026.12.3] - 2026-08-27
 
 ### Added
