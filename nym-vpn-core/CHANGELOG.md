@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Keep the in-flight location lookup instead of restarting it on each connect or settings update, so automatic gateway selection is less likely to fall back to random
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
 - [macOS] Fix file permissions for `nym-vpnc` in the macOS installer package, helping ensure the installed application can run correctly (https://github.com/nymtech/nym-vpn-client/pull/6456)
 
