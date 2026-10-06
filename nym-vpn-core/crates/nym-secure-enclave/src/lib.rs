@@ -34,7 +34,7 @@ pub enum SecureEnclaveError {
 
 pub type Result<T, E = SecureEnclaveError> = std::result::Result<T, E>;
 
-pub trait SecureEnclaveKey {
+pub trait SecureEnclaveKey: Send {
     /// Encrypt data using the key stored in secure enclave
     fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>>;
 
@@ -49,8 +49,8 @@ pub trait SecureEnclaveProvider {
     /// Delete the key with the given alias from secure enclave
     fn delete_key(&self, alias: &str) -> Result<()>;
 
-    /// Check if a key with the given alias exists in secure enclave
-    fn has_key(&self, alias: &str) -> Result<bool>;
+    /// Get object standing in-place of key that can be used to perform encryption or decryption.
+    fn get_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>>;
 }
 
 pub trait AuthenticationSession {

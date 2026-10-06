@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{AccountInformationStorage, StoredAccount};
 use nym_vpn_lib_types::StorableAccount;
 #[cfg(unix)]
 use std::{fs::Permissions, os::unix::fs::PermissionsExt};
@@ -9,6 +8,8 @@ use std::{
     fs::{File, OpenOptions},
     path::{Path, PathBuf},
 };
+
+use super::{AccountInformationStorage, StoredAccount};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
@@ -85,9 +86,7 @@ impl AccountInformationStorage for OnDiskAccountStorage {
 
             #[cfg(unix)]
             {
-                // Set directory permissions to 700 (rwx------)
-                tracing::trace!("Set directory permissions to 700 (rwx------)");
-                let permissions = Permissions::from_mode(0o700);
+                let permissions = Permissions::from_mode(0o600);
                 tokio::fs::set_permissions(parent, permissions)
                     .await
                     .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
@@ -115,7 +114,6 @@ impl AccountInformationStorage for OnDiskAccountStorage {
 
         #[cfg(unix)]
         {
-            // Set directory permissions to 600 (rw------)
             let permissions = Permissions::from_mode(0o600);
             tokio::fs::set_permissions(self.path.clone(), permissions)
                 .await

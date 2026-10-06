@@ -23,8 +23,8 @@ pub trait AndroidSecureEnclaveProvider: Send + Sync {
     /// Delete the key with the given alias from secure enclave
     fn delete_key(&self, alias: String) -> Result<()>;
 
-    /// Check if a key with the given alias exists in secure enclave
-    fn has_key(&self, alias: String) -> Result<bool>;
+    /// Get object standing in-place of key that can be used to perform encryption or decryption.
+    fn get_key(&self, alias: String) -> Result<Arc<dyn AndroidSecureEnclaveKey>>;
 }
 
 pub struct AndroidKeyStoreProvider {
@@ -40,7 +40,6 @@ impl AndroidKeyStoreProvider {
 impl SecureEnclaveProvider for AndroidKeyStoreProvider {
     fn create_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
         let key = self.inner.create_key(alias.to_owned())?;
-        // let cast_key: Arc<dyn SecureEnclaveKey> = key;
         Ok(Arc::new(AndroidSecureEnclaveKeyBridge::new(key)))
     }
 
@@ -48,8 +47,9 @@ impl SecureEnclaveProvider for AndroidKeyStoreProvider {
         self.inner.delete_key(alias.to_owned())
     }
 
-    fn has_key(&self, alias: &str) -> Result<bool> {
-        self.inner.has_key(alias.to_owned())
+    fn get_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
+        let key = self.inner.get_key(alias.to_owned())?;
+        Ok(Arc::new(AndroidSecureEnclaveKeyBridge::new(key)))
     }
 }
 

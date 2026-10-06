@@ -36,7 +36,7 @@ impl SecureEnclave {
         self.inner.delete_key(alias)
     }
 
-    pub fn has_key(&self, alias: &str) -> Result<bool> {
-        self.inner.has_key(alias)
+    pub fn get_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
+        self.inner.get_key(alias)
     }
 }
