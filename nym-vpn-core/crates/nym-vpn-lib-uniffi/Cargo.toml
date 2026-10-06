@@ -83,6 +83,7 @@ rustls = { workspace = true, default-features = false, features = [
     "std",
 ] }
 inventory.workspace = true
+nym-secure-enclave.workspace = true
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [

@@ -8003,6 +8003,7 @@ dependencies = [
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-sdk",
+ "nym-secure-enclave",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
