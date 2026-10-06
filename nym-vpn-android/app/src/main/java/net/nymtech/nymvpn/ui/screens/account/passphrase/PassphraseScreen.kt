@@ -45,6 +45,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
+import net.nymtech.nymvpn.ui.common.functions.SecureScreen
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
@@ -62,6 +63,8 @@ import net.nymtech.nymvpn.util.extensions.sensitiveClipData
 
 @Composable
 fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
+	SecureScreen()
+
 	val clipboardManager = LocalClipboard.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }

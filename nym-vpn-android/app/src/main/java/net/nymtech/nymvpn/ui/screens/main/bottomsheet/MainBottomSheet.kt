@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -22,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.common.NymModalBottomSheet
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.AuthComponent
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.processing.ProcessingComponent
 
@@ -49,7 +49,7 @@ fun MainBottomSheet(
 	)
 	val containerColor = MaterialTheme.colorScheme.surface
 
-	ModalBottomSheet(
+	NymModalBottomSheet(
 		onDismissRequest = {
 			if (!isProcessing) onDismissRequest()
 		},

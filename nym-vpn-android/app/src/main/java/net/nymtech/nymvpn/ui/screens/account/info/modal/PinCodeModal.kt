@@ -46,6 +46,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.functions.SecureScreen
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -96,6 +97,7 @@ fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 			)
 		},
 		text = {
+			SecureScreen()
 			Column(horizontalAlignment = Alignment.CenterHorizontally) {
 				Text(
 					text = stringResource(R.string.pin_code_subtitle),
