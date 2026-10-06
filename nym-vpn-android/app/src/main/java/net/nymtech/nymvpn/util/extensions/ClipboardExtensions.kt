@@ -26,18 +26,25 @@ private fun sensitiveClipData(text: String): ClipData = ClipData.newPlainText(""
 	description.extras = PersistableBundle().apply { putBoolean(key, true) }
 }
 
-/** Copies [text] as sensitive and clears the clipboard after [SENSITIVE_CLIP_CLEAR_DELAY_SECONDS] */
+/** Copies [text] as sensitive and tries to clear it after [SENSITIVE_CLIP_CLEAR_DELAY_SECONDS] (best-effort) */
 fun Context.copySensitiveToClipboard(text: String) {
 	val clipboard = applicationContext.getSystemService(ClipboardManager::class.java) ?: return
-	clipboard.setPrimaryClip(sensitiveClipData(text))
+	val clip = sensitiveClipData(text)
+	clipboard.setPrimaryClip(clip)
 	Toast.makeText(this, getString(R.string.clipboard_sensitive_copied, SENSITIVE_CLIP_CLEAR_DELAY_SECONDS), Toast.LENGTH_LONG).show()
 	clipboardClearJob?.cancel()
 	clipboardClearJob = clipboardClearScope.launch {
 		delay(SENSITIVE_CLIP_CLEAR_DELAY_SECONDS * 1_000L)
+		if (!clipboard.isCurrentClip(clip)) return@launch
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 			clipboard.clearPrimaryClip()
 		} else {
 			clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
 		}
 	}
+}
+
+private fun ClipboardManager.isCurrentClip(clip: ClipData): Boolean {
+	val current = primaryClip ?: return true
+	return current.itemCount == 1 && current.getItemAt(0).text?.toString() == clip.getItemAt(0).text?.toString()
 }
