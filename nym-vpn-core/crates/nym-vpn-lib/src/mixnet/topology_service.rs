@@ -194,7 +194,7 @@ impl VpnTopologyService {
         .map_err(VpnTopologyServiceError::CreateHttpClient)?;
 
         let mut topology_provider =
-            NymApiTopologyProvider::new(clone_config(&self.config), validator_client);
+            NymApiTopologyProvider::new(self.config.clone(), validator_client);
 
         let topology = topology_provider
             .get_new_topology()
@@ -202,15 +202,6 @@ impl VpnTopologyService {
             .ok_or(VpnTopologyServiceError::NetworkError)?;
 
         Ok(topology)
-    }
-}
-
-fn clone_config(config: &Config) -> Config {
-    Config {
-        min_mixnode_performance: config.min_mixnode_performance,
-        min_gateway_performance: config.min_gateway_performance,
-        use_extended_topology: config.use_extended_topology,
-        ignore_egress_epoch_role: config.ignore_egress_epoch_role,
     }
 }
 
