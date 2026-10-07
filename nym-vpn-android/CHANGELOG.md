@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.13.0]
+## [2026.13.0] - TBD
 
 ### Added
 - Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Log out asks every time whether the passphrase is saved (https://github.com/nymtech/nym-vpn-client/pull/6480)
 - Screen lock confirmation for passphrase, subscription, social login and shortcuts (https://github.com/nymtech/nym-vpn-client/pull/6504)
 - Screen lock required for account creation (https://github.com/nymtech/nym-vpn-client/pull/6504)
+- Block screenshots on passphrase/PIN screens (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Clear copied passphrase/PIN after 60s (https://github.com/nymtech/nym-vpn-client/pull/6562)
 
 ### Changed
 - Maestro UI suite: repair the five flows broken by the dVPN rename, the Connection profiles settings row and the Passphrase download removal; replace assertions that could not fail; correct mock gateway uptime to a 0-1 fraction
@@ -35,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove camera usage (https://github.com/nymtech/nym-vpn-client/pull/6449)
 - Download function removed from Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/6460)
 - Remove unused permissions (https://github.com/nymtech/nym-vpn-client/pull/6479)
+- Dismissible screen lock alert on Main Screen (https://github.com/nymtech/nym-vpn-client/pull/6562)
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
@@ -45,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 - Fix NavComponent crash after libs version update (https://github.com/nymtech/nym-vpn-client/pull/6442)
 - Screen lock confirmation on Android 7–10 devices with only a PIN, pattern or password (https://github.com/nymtech/nym-vpn-client/pull/6504)
+- Fix grey nav bar on bottom sheets (https://github.com/nymtech/nym-vpn-client/pull/6562)
 
 ## [2026.12.3] - 2026-08-27
 
