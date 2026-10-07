@@ -1,12 +1,14 @@
 package net.nymtech.nymvpn.ui
 
 import net.nymtech.connectivity.NetworkStatus
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.config.CoreVpnConfig
@@ -91,25 +93,29 @@ data class AppUiState(
 		else -> null
 	}
 
-	val entryPointName: String = when (val entry = effectiveEntryPoint) {
+	val entryPointName: StringValue = when (val entry = effectiveEntryPoint) {
 		is EntryPoint.Gateway -> {
-			entryGateways().firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
+			StringValue.DynamicString(entryGateways().firstOrNull { it.identity == entry.identity }?.name ?: entry.identity)
 		}
-		is EntryPoint.Country -> entry.toDisplayCountry()
-		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region
-		is EntryPoint.Auto -> "Automatic selection"
-		is EntryPoint.Random -> "Random selection"
+		is EntryPoint.Country -> StringValue.DynamicString(entry.toDisplayCountry())
+		is EntryPoint.Region -> StringValue.DynamicString(
+			entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region,
+		)
+		is EntryPoint.Auto -> StringValue.StringResource(R.string.profiles_safest_title)
+		is EntryPoint.Random -> StringValue.StringResource(R.string.profiles_random_title)
 	}
 
-	val exitPointName: String = when (val exit = effectiveExitPoint) {
-		is ExitPoint.Address -> exit.address
+	val exitPointName: StringValue = when (val exit = effectiveExitPoint) {
+		is ExitPoint.Address -> StringValue.DynamicString(exit.address)
 		is ExitPoint.Gateway -> {
-			exitGateways().firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
+			StringValue.DynamicString(exitGateways().firstOrNull { it.identity == exit.identity }?.name ?: exit.identity)
 		}
-		is ExitPoint.Country -> exit.toDisplayCountry()
-		is ExitPoint.Region -> exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region
-		is ExitPoint.Auto -> "Automatic selection"
-		is ExitPoint.Random -> "Random selection"
+		is ExitPoint.Country -> StringValue.DynamicString(exit.toDisplayCountry())
+		is ExitPoint.Region -> StringValue.DynamicString(
+			exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region,
+		)
+		is ExitPoint.Auto -> StringValue.StringResource(R.string.profiles_safest_title)
+		is ExitPoint.Random -> StringValue.StringResource(R.string.profiles_random_title)
 	}
 
 	val entryPointLocation: String? = when (val entry = effectiveEntryPoint) {
@@ -149,6 +155,9 @@ data class AppUiState(
 		else -> null
 	}
 
+	// Derived from the live entry/exit/hop-mode combination only (mirrors Apple's
+	// ConnectionManager.currentProfile) — stealthMode is an independent toggle and isn't
+	// part of how a profile is identified, so it's deliberately excluded from this match.
 	val currentProfile: Profile? = run {
 		val entry = vpnConfig.entryPoint
 		val exit = vpnConfig.exitPoint
@@ -156,22 +165,18 @@ data class AppUiState(
 			entry is EntryPoint.Auto &&
 				exit is ExitPoint.Auto &&
 				entry.excludeUserCountry &&
-				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
-				vpnConfig.stealthMode -> Profile.SAFEST
+				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.SAFEST
 			entry is EntryPoint.Auto &&
 				exit is ExitPoint.Auto &&
 				entry.excludeUserCountry &&
-				vpnConfig.mode == Tunnel.Mode.FIVE_HOP_MIXNET &&
-				!vpnConfig.stealthMode -> Profile.MOST_PRIVATE
+				vpnConfig.mode == Tunnel.Mode.FIVE_HOP_MIXNET -> Profile.MOST_PRIVATE
 			entry is EntryPoint.Auto &&
 				exit is ExitPoint.Auto &&
 				!entry.excludeUserCountry &&
-				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
-				!vpnConfig.stealthMode -> Profile.FASTEST
+				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.FASTEST
 			entry is EntryPoint.Random &&
 				exit is ExitPoint.Random &&
-				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
-				!vpnConfig.stealthMode -> Profile.RANDOM
+				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.RANDOM
 			else -> null
 		}
 	}
