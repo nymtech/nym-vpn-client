@@ -18716,13 +18716,13 @@
         }
       }
     },
-    "mixnetTuning.fasterSpeed" : {
+    "mixnetTuning.slower" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Faster speed"
+            "value" : "Slower"
           }
         }
       }
@@ -18760,17 +18760,6 @@
         }
       }
     },
-    "mixnetTuning.lessBatteryData" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use less battery & data"
-          }
-        }
-      }
-    },
     "mixnetTuning.low" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18778,17 +18767,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Low"
-          }
-        }
-      }
-    },
-    "mixnetTuning.maximumAnonimity" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max. anonimity"
           }
         }
       }
@@ -18925,17 +18903,6 @@
         }
       }
     },
-    "mixnetTuning.speed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speed"
-          }
-        }
-      }
-    },
     "mixnetTuning.upTo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18964,7 +18931,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Customise your mixnet traffic patterns."
+            "value" : "Customize your mixnet traffic patterns."
           }
         }
       }

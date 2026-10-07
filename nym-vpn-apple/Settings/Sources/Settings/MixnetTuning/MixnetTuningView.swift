@@ -17,7 +17,10 @@ struct MixnetTuningView: View {
         mixnetDefaults.allBackgroundTraffic()
     }
     private var continuousTrafficOptions: [ContinuousTrafficSendingRate] {
-        mixnetDefaults.allContinuousTraffic()
+        // Reversed so the faster (2 Mbps) end sits on the LEFT of the slider, matching the
+        // "Faster" label and the delay slider's "drag-left = faster" direction. All access is
+        // by index/firstIndex, so reversing here flips the slider without affecting the daemon value.
+        Array(mixnetDefaults.allContinuousTraffic().reversed())
     }
 
     @EnvironmentObject private var appSettings: AppSettings
@@ -272,7 +275,7 @@ private extension MixnetTuningView {
             Text("mixnetTuning.faster".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.anonymityPlus".localizedString)
+            Text("mixnetTuning.slower".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
@@ -290,15 +293,15 @@ private extension MixnetTuningView {
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("\("mixnetTuning.low".localizedString)\n0.7 Mbps")
+            Text("2 Mbps")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
-            Text("\("mixnetTuning.balanced".localizedString)\n1 Mbps")
+            Text("1 Mbps")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
-            Text("\("mixnetTuning.high".localizedString)\n2 Mbps")
+            Text("0.7 Mbps")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
         }
