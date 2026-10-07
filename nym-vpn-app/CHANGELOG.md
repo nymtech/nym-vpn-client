@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- (windows) Fix `cannot move state from Destroyed` panic on shutdown, logoff or Restart Manager close by bumping tauri to 2.12.1 (tao 0.37) (https://github.com/nymtech/nym-vpn-client/pull/6617)
+
 ## [2026.12.4] - 2026-09-16
 
 ### Added
