@@ -328,8 +328,8 @@ jobs:
             exit 0
           fi
 
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
-            echo "::error:: Release $TAG already exists. Aborting"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --silent ; then
+            echo "::error:: Tag $TAG already exists. Aborting"
             exit 1
           fi
 
