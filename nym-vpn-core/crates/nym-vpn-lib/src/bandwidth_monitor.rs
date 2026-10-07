@@ -5,7 +5,6 @@ use std::{net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
 
-use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
 use nym_bandwidth_controller::{
     DEFAULT_TICKETS_TO_SPEND, requests::BandwidthControllerRequestSender,
 };
@@ -622,7 +621,6 @@ pub(crate) struct BandwidthMonitor {
     shutdown_token: CancellationToken,
     successful_checks: u64,
     upgrade_mode_enabled_on_last_check: bool,
-    metadata_path_health: Option<MetadataPathHealth>,
 }
 
 impl BandwidthMonitor {
@@ -633,7 +631,6 @@ impl BandwidthMonitor {
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
         shutdown_token: CancellationToken,
-        metadata_path_health: Option<MetadataPathHealth>,
     ) -> Self {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
@@ -651,7 +648,6 @@ impl BandwidthMonitor {
             shutdown_token,
             successful_checks: 0,
             upgrade_mode_enabled_on_last_check: false,
-            metadata_path_health,
         }
     }
 
@@ -744,7 +740,6 @@ impl BandwidthMonitor {
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
-        metadata_path_health: MetadataPathHealth,
     ) -> BandwidthMonitor {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
@@ -767,7 +762,6 @@ impl BandwidthMonitor {
             wg_entry_client,
             wg_exit_client,
             cancel_token.clone(),
-            Some(metadata_path_health),
         )
     }
 
@@ -981,11 +975,7 @@ impl BandwidthMonitor {
         None
     }
 
-    async fn check_bandwidth(
-        &mut self,
-        entry: bool,
-        current_period: Duration,
-    ) -> (Option<Duration>, bool) {
+    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
         let bw_client = if entry {
             &mut self.wg_entry_gateway_client
         } else {
@@ -996,21 +986,17 @@ impl BandwidthMonitor {
                 tracing::trace!("BandwidthMonitor: Received shutdown");
             }
             ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
-                return match ret {
+                match ret {
                     Ok(query_res) => {
-                        let next_interval = self
+                        return self
                             .handle_bandwidth_query(entry, current_period, query_res)
                             .await;
-                        (next_interval, true)
                     }
-                    Err(err) => {
-                        self.handle_bandwidth_query_error(entry, err).await;
-                        (None, false)
-                    }
-                };
+                    Err(err) => self.handle_bandwidth_query_error(entry, err).await,
+                }
             }
         }
-        (None, false)
+        None
     }
 
     async fn init_clients(&mut self) {
@@ -1057,15 +1043,8 @@ impl BandwidthMonitor {
                 }
                 _ = self.timeout_check_interval.next() => {
                     let current_period = self.timeout_check_interval.as_ref().period();
-                    let (entry_duration, entry_query_ok) =
-                        self.check_bandwidth(true, current_period).await;
-                    let (exit_duration, exit_query_ok) =
-                        self.check_bandwidth(false, current_period).await;
-                    update_metadata_path_health(
-                        &self.metadata_path_health,
-                        entry_query_ok,
-                        exit_query_ok,
-                    );
+                    let entry_duration = self.check_bandwidth(true, current_period).await;
+                    let exit_duration = self.check_bandwidth(false, current_period).await;
                     if let Some(minimal_duration) = match (entry_duration, exit_duration) {
                         (Some(d1), Some(d2)) => {
                             if d1 < d2 {
