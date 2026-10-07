@@ -1553,10 +1553,8 @@ impl TunnelStateMachine {
                 NextTunnelState::Finished => break,
             }
 
-            let checks = self.conflict_tracker.poll(
-                &self.current_state,
-                self.shared_state.tunnel_settings.enable_conflict_detection,
-            );
+            // Conflict detection is disabled until it is reworked.
+            let checks = self.conflict_tracker.poll(&self.current_state, false);
             if !checks.is_empty() {
                 let scan_cancellation = CancellationToken::new();
                 self.conflict_tracker
