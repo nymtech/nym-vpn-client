@@ -155,9 +155,7 @@ data class AppUiState(
 		else -> null
 	}
 
-	// Derived from the live entry/exit/hop-mode combination only (mirrors Apple's
-	// ConnectionManager.currentProfile) — stealthMode is an independent toggle and isn't
-	// part of how a profile is identified, so it's deliberately excluded from this match.
+	// Derived from the live entry/exit/hop-mode combination only
 	val currentProfile: Profile? = run {
 		val entry = vpnConfig.entryPoint
 		val exit = vpnConfig.exitPoint
