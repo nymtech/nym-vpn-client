@@ -24,14 +24,6 @@ on:
         description: "Publish to S3 (Garage)"
         type: boolean
         default: true
-      release_channel:
-        description: "Release channel"
-        type: choice
-        default: nightly
-        options:
-          - nightly   # daily prerelease
-          - beta      # release candidate
-          - ship      # stable release
       android:
         description: "Android → Google Play"
         type: boolean
@@ -70,10 +62,10 @@ on:
         description: "Publish to S3 (Garage)"
         type: boolean
         default: true
-      release_channel:
-        description: "Release channel"
-        type: string # nightly, beta, ship
-        default: nightly
+      is_nightly:
+        description: "Nightly release"
+        type: boolean
+        default: false
       android:
         description: "Android → Google Play"
         type: boolean
@@ -106,10 +98,8 @@ on:
 permissions:
   contents: read
 
-# Ship/beta runs key off the ref so different release branches/versions run in parallel.
-# Nightly runs (cron + the no-platform-selected fallback) all share ONE group:
 concurrency:
-  group: ${{ github.workflow }}-${{ inputs.release_channel }}
+  group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: false
 
 env:
@@ -163,12 +153,58 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
-      - name: Resolve channel + platform flags
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core/Cargo.toml
+
+      - name: Resolve channel + version + tag
+        id: v
+        env:
+          IS_NIGHTLY: ${{ inputs.is_nightly }}
+          FULL: ${{ steps.package-version.outputs.metadata }}
+        run: |
+          set -euo pipefail
+
+          BASE="${FULL%%-*}"
+          NIGHTLY_TIMESTAMP=""
+          BUILD_TIMESTAMP="$(date -u +%Y%m%d%H%M)"
+
+          if [ "$IS_NIGHTLY" = "true" ]; then
+            CHANNEL="nightly"
+            NIGHTLY_TIMESTAMP="${BUILD_TIMESTAMP:0:8}"
+            VERSION="${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
+          elif [[ "$FULL" =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            CHANNEL="beta"
+            VERSION="${FULL}"
+          elif [[ "$FULL" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            CHANNEL="ship"
+            VERSION="${FULL}"
+          else
+            echo "::error:: unsupported version: ${FULL} (expected X.Y.Z or X.Y.Z-beta.N)"
+            exit 1
+          fi
+          TAG="nym-vpn-v${VERSION}"
+
+          echo "::notice:: channel=${CHANNEL} cargo_version=${FULL} version=${VERSION} tag=${TAG}"
+          {
+            echo "channel=${CHANNEL}"
+            echo "version=${VERSION}"
+            echo "tag=${TAG}"
+            echo "build_timestamp=${BUILD_TIMESTAMP}"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ -n "$NIGHTLY_TIMESTAMP" ]; then
+            echo "nightly_timestamp=${NIGHTLY_TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve platform flags
         id: flags
         env:
           EVENT: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
-          IN_CHANNEL: ${{ inputs.release_channel }}
+          CHANNEL: ${{ steps.v.outputs.channel }}
           IN_ANDROID: ${{ inputs.android }}
           IN_FDROID: ${{ inputs.fdroid }}
           IN_LINUX: ${{ inputs.linux }}
@@ -182,8 +218,6 @@ jobs:
           set -euo pipefail
 
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
-
-          CHANNEL="${IN_CHANNEL:-nightly}"
 
           # Platform set: a cron run, OR a dispatch with NO platform box ticked, builds
           # EVERY platform for that channel. Any box ticked builds only the ticked ones.
@@ -242,7 +276,6 @@ jobs:
           echo "::notice:: Publish to S3?: $PUBLISH_S3"
 
           {
-            echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
             echo "publish_metadata=$PUBLISH_METADATA"
@@ -250,18 +283,6 @@ jobs:
             echo "publish_github=$PUBLISH_GITHUB"
             echo "publish_s3=$PUBLISH_S3"
           } >> "$GITHUB_OUTPUT"
-
-      - uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Resolve version + tag
-        id: v
-        env:
-          RELEASE_CHANNEL: ${{ steps.flags.outputs.channel }}
-          # beta auto-advances its -beta.N by reading prior beta releases/tags
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash .github/scripts/release/resolve-version.sh
 
   check-release-exists:
     name: Check release exists
@@ -280,8 +301,8 @@ jobs:
             exit 0
           fi
 
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
-            echo "::error:: Release $TAG already exists. Aborting"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --silent ; then
+            echo "::error:: Tag $TAG already exists. Aborting"
             exit 1
           fi
 
