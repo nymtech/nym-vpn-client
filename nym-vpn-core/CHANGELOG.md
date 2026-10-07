@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Keep the cached gateway list on the first connect and when a discovery refresh updates the current network, instead of refetching it
 - Keep the in-flight location lookup instead of restarting it on each connect or settings update, so automatic gateway selection is less likely to fall back to random
 - Treat a built-in or unknown-age gateway cache as stale on startup so a fresh list is fetched (including an on-disk cache older than the Windows system uptime)
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
