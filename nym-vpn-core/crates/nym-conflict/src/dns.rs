@@ -51,7 +51,7 @@ async fn probe_dns_interception() -> bool {
         }
         Err(_) => {
             tracing::debug!("conflict probe: DNS resolution timed out");
-            true
+            false
         }
     }
 }

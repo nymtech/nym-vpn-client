@@ -1273,6 +1273,10 @@ impl ConflictTracker {
                     nym_conflict::ConflictCheck::CompetingFirewall,
                 ]
             }
+            TunnelState::Connecting { .. } => {
+                self.checked_dns = false;
+                Vec::new()
+            }
             TunnelState::Connected { .. } if enabled && !self.checked_dns => {
                 self.checked_dns = true;
                 vec![nym_conflict::ConflictCheck::InterceptedDns]
