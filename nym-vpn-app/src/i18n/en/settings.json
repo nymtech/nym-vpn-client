@@ -120,13 +120,14 @@
   "mixnet-tuning": {
     "title": "Mixnet tuning",
     "desc": "Customize traffic patterns of Mixnet mode",
-    "top-description": "Customize your <strong>mixnet</strong> traffic patterns.",
+    "top-description": "Customize your mixnet traffic patterns.",
     "learn-more": "Learn more about mixnet tuning",
     "save-custom-settings": "Save custom settings",
-    "restore-default-settings": "Reset to default settings",
+    "restore-default-settings": "Restore default settings",
     "slider": {
       "faster": "Faster",
-      "anonymity": "+ Anonymity"
+      "anonymity": "+ Anonymity",
+      "slower": "Slower"
     },
     "performance": {
       "title": "Expected performance of current settings:",
@@ -143,16 +144,7 @@
     "continuous-traffic": {
       "title": "Send continuous traffic",
       "description": "Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.",
-      "warning": "⚠️ Your packets will be sent as they become available. This could reveal traffic patterns.",
-      "low": {
-        "label": "Low"
-      },
-      "balanced": {
-        "label": "Balanced"
-      },
-      "high": {
-        "label": "High"
-      }
+      "warning": "⚠️ Your packets will be sent as they become available. This could reveal traffic patterns."
     },
     "background-cover": {
       "title": "Background cover traffic rate",
