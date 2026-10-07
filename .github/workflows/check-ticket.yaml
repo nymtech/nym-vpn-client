@@ -51,7 +51,7 @@ jobs:
                   },
               )
               try:
-                  with urllib.request.urlopen(req, timeout=15) as resp:
+                  with urllib.request.urlopen(req, timeout=10) as resp:
                       data = json.load(resp)
               except urllib.error.HTTPError as e:
                   if e.code in (404, 410):
