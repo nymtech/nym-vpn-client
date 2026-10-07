@@ -36,9 +36,10 @@ jobs:
           python3 - <<'PY'
           import json, os, re, sys, urllib.error, urllib.request
           body = json.loads(os.environ["PR_BODY"] or "null") or ""
-          n = int(os.environ["PR_NUMBER"])
+          pr_number = int(os.environ["PR_NUMBER"])
           repo = os.environ["GITHUB_REPOSITORY"].lower()
           api = os.environ.get("GITHUB_API_URL", "https://api.github.com")
+          MAX_API_REQUESTS = 5
 
           def is_issue(full, num):
               req = urllib.request.Request(
@@ -67,12 +68,19 @@ jobs:
               r"(?i)(?<![\w/#&])(nymtech/[\w.-]+)?#(\d+)(?!\w)",
               body,
           )
+          external_refs = []
+          nums = []
           for full, num in refs:
-              full = (full or repo).lower()
-              if full == repo and int(num) == n:
-                  continue
-              if is_issue(full, num):
+              if full and full.lower() != repo:
+                  external_refs.append((full, num))
+              elif int(num) != pr_number and int(num) not in nums:
+                  nums.append(int(num))
+          for full, num in external_refs:
+              print(f"Accepting {full}#{num} without verification")
+              sys.exit(0)
+          for num in nums[:MAX_API_REQUESTS]:
+              if is_issue(repo, num):
                   sys.exit(0)
-          print("::error::Need a real JIRA ticket (NYM-1234) or nymtech GitHub issue (URL, #1234 or nymtech/repo#1234). Pull requests do not count. Use label no-ticket to skip.")
+          print(f"::error::Need a real JIRA ticket (NYM-1234) or nymtech GitHub issue (URL, #1234 or nymtech/repo#1234). Pull requests do not count. Only the first {MAX_API_REQUESTS} references to this repository are checked. Use label no-ticket to skip.")
           sys.exit(1)
           PY
