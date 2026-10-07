@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">Canale di NymVPN</string>
+	<string name="channel_description">Un canale per le notifiche relative alla VPN.</string>
+	<string name="disconnect">Disconnetti</string>
+	<string name="state_connected">Connesso</string>
+	<string name="state_disconnected">Disconnesso</string>
+	<string name="state_initializing">Inizializzazione client…</string>
+	<string name="state_establishing">Connessione in corso…</string>
+	<string name="state_disconnecting">Disconnessione in corso…</string>
+	<string name="state_reconnecting">Riconnessione in corso…</string>
+	<string name="state_offline">In attesa della rete…</string>
+	<string name="state_error">Errore di connessione</string>
+	<string name="notification_entry">Ingresso: %1$s</string>
+	<string name="notification_exit">Uscita: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Applicazione della regola del firewall fallita.</string>
+	<string name="error_reason_set_routing">Configurazione dell\'instradamento di rete fallita.</string>
+	<string name="error_reason_set_dns">Configurazione delle impostazioni DNS fallita.</string>
+	<string name="error_reason_tun_device">Inizializzazione dell\'interfaccia del tunnel VPN fallita.</string>
+	<string name="error_reason_tunnel_provider">Configurazione del fornitore del tunnel di pacchetti fallita.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 è disattivato su questo sistema.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">I gateway d\'ingresso e di uscita non possono essere gli stessi.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Nessun gateway d\'ingresso trovato.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Nessun gateway di uscita idoneo trovato.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Identità del gateway d\'ingresso non valida.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Identità del gateway di uscita non valida.</string>
+	<string name="error_reason_invalid_entry_gateway_country">La nazione dell\'ingresso selezionato non è valida.</string>
+	<string name="error_reason_invalid_exit_gateway_country">La nazione dell\'uscita selezionata non è valida.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Il gateway d\'ingresso non risponde.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Il gateway di uscita non risponde.</string>
+	<string name="error_reason_bandwidth_exceeded">Limite di larghezza di banda superato.</string>
+	<string name="error_reason_credential_fetching_failed">Impossibile recuperare le credenziali.</string>
+	<string name="error_reason_no_credential_available">Nessuna credenziale disponibile.</string>
+	<string name="error_reason_inactive_account">Il tuo account è inattivo.</string>
+	<string name="error_reason_inactive_subscription">Il tuo abbonamento è inattivo.</string>
+	<string name="error_reason_max_devices_reached">Numero massimo di dispositivi raggiunto.</string>
+	<string name="error_reason_device_logged_out">Il dispositivo è disconnesso.</string>
+	<string name="error_reason_needs_device_location">L\'instradamento automatico non è disponibile; impossibile determinare la posizione del dispositivo.</string>
+	<string name="error_reason_connection_attempts_exceeded">Impossibile connettersi dopo diversi tentativi.</string>
+	<string name="error_reason_internal">Errore interno: %1$s</string>
+</resources>
