@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [Linux] Stop falsely reporting DNS interception on systemd-resolved systems, and re-check DNS after a reconnect
+- Only report connected once both the in-tunnel ping and the gateway metadata check pass, and tear down the tunnel when the ping check fails (removes the metadata-based teardown deferral from #5762 and the connect-on-healthy-metadata fallback from #6091)
+- Keep the cached gateway list on the first connect and when a discovery refresh updates the current network, instead of refetching it
+- Keep the in-flight location lookup instead of restarting it on each connect or settings update, so automatic gateway selection is less likely to fall back to random
+- Treat a built-in or unknown-age gateway cache as stale on startup so a fresh list is fetched (including an on-disk cache older than the Windows system uptime)
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
 - [macOS] Fix file permissions for `nym-vpnc` in the macOS installer package, helping ensure the installed application can run correctly (https://github.com/nymtech/nym-vpn-client/pull/6456)
 
