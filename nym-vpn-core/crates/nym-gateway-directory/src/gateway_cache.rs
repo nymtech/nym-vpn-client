@@ -209,8 +209,8 @@ pub struct GatewayCache {
     // The underlying client that actually does the work
     gateway_client: GatewayClient,
 
-    // The cached gateways and their last updated time
-    cached_gateways: HashMap<GatewayType, (GatewayList, Instant)>,
+    // The cached gateways and their last updated time, `None` when the age is unknown (stale)
+    cached_gateways: HashMap<GatewayType, (GatewayList, Option<Instant>)>,
 
     // The cached full node list (with nr_address) for SOCKS5
     cached_nymnodes: Option<(NymNodeList, Instant)>,
@@ -316,16 +316,10 @@ impl GatewayCache {
     }
 
     async fn seed_from_disk_or_builtin(&mut self) {
-        // Builtin-seeded entries are backdated so they're treated as stale and a real fetch is
-        // retried on the next lookup: the builtin snapshot is static data bundled at build time,
-        // not the result of a real fetch, so we don't want to sit on it for a full MAX_CACHE_AGE.
-        // `checked_sub` avoids a panic on platforms where `Instant` is boot-relative and the
-        // process has been up for less than MAX_CACHE_AGE + 1s; in that rare case we just fall
-        // back to `now`, so the seed is briefly treated as fresh instead.
+        // Builtin-seeded entries have no update time so they're treated as stale and a real fetch
+        // is retried on the next lookup: the builtin snapshot is static data bundled at build
+        // time, not the result of a real fetch, so we don't want to sit on it for MAX_CACHE_AGE.
         let now = Instant::now();
-        let backdated_for_builtin = now
-            .checked_sub(MAX_CACHE_AGE + Duration::from_secs(1))
-            .unwrap_or(now);
 
         for (gw_type, result) in
             gateway_store::seed_all(&self.data_dir, self.allow_builtin_fallback).await
@@ -334,8 +328,9 @@ impl GatewayCache {
                 Ok(Some(gateway_store::SeededGateways::FromDisk { gateways, age })) => {
                     // Preserve the on-disk cache's real age instead of always backdating it, so a
                     // cache that's still fresh from a previous run doesn't trigger an unnecessary
-                    // refetch on every startup — a real cost on mobile.
-                    let last_updated = now.checked_sub(age).unwrap_or(now);
+                    // refetch on every startup — a real cost on mobile. On Windows `Instant` is
+                    // unsigned and boot-relative, so an age past uptime is stale (`None`).
+                    let last_updated = now.checked_sub(age);
                     tracing::debug!(
                         "Seeded {} gateways for {gw_type:?} from on-disk cache (age: {age:?})",
                         gateways.len()
@@ -348,8 +343,7 @@ impl GatewayCache {
                         "Seeded {} gateways for {gw_type:?} from builtin fallback",
                         gateways.len()
                     );
-                    self.cached_gateways
-                        .insert(gw_type, (gateways, backdated_for_builtin));
+                    self.cached_gateways.insert(gw_type, (gateways, None));
                 }
                 Ok(None) => {
                     tracing::debug!(
@@ -455,8 +449,8 @@ impl GatewayCache {
         self.cached_gateways
             .get(gw_type)
             .as_ref()
-            .map(|(_, last_updated)| last_updated.elapsed() < MAX_CACHE_AGE)
-            .unwrap_or_default()
+            .and_then(|(_, last_updated)| *last_updated)
+            .is_some_and(|last_updated| last_updated.elapsed() < MAX_CACHE_AGE)
     }
 
     /// Convert a freshly-fetched raw gateway list, persist it to disk (best-effort — a write
@@ -474,12 +468,12 @@ impl GatewayCache {
         }
 
         self.cached_gateways
-            .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
+            .insert(gw_type, (refreshed_gateways.clone(), Some(Instant::now())));
         refreshed_gateways
     }
 
     async fn refresh_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {
-        if let Some((gw_list, last_updated)) = self.cached_gateways.get(&gw_type)
+        if let Some((gw_list, Some(last_updated))) = self.cached_gateways.get(&gw_type)
             && last_updated.elapsed() < MAX_CACHE_AGE
         {
             return Ok(gw_list.clone());
