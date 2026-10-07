@@ -48,6 +48,8 @@ build-universal: build-mac-package build-ios-package
 	  -headers $(NYM_VPN_LIB_MACOS_DEST)/NymVPNLibUniffi.xcframework/$(MACOS_XCFFRAMEWORK_TARGET_DIR)/Headers \
 	  -library $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64/libnym_vpn_lib_uniffi.a \
 	  -headers $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64/Headers \
+	  -library $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64_x86_64-simulator/libnym_vpn_lib_uniffi.a \
+	  -headers $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64_x86_64-simulator/Headers \
 	  -output $(NYM_VPN_LIB_UNIVERSAL_DEST)/NymVPNLibUniffi.xcframework
 
 	mkdir -p $(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/{ios,macos}
