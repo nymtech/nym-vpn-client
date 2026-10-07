@@ -4,12 +4,6 @@ import { Button } from '@headlessui/react';
 import { CardHeaderSwitch, CardNew, CardNewBody, Slider } from '../../../ui';
 import { useMixnetTrafficConfig } from './context';
 
-const CONTINUOUS_TRAFFIC_SENDING_RATE_LABELS = [
-  'low',
-  'balanced',
-  'high',
-] as const;
-
 function ContinuousTrafficSlider({
   value,
   setValue,
@@ -22,11 +16,8 @@ function ContinuousTrafficSlider({
   const { t } = useTranslation('settings');
   const { continuousItems } = useMixnetTrafficConfig();
 
-  const items = continuousItems.map((item, index) => ({
-    value: item.value,
-    label: CONTINUOUS_TRAFFIC_SENDING_RATE_LABELS[index],
-    speed: item.label,
-  }));
+  // Reversed so the faster (2 Mbps) end sits on the LEFT, matching the "Faster" label.
+  const items = [...continuousItems].reverse();
 
   return (
     <div className="mt-0 w-full space-y-5">
@@ -36,7 +27,7 @@ function ContinuousTrafficSlider({
 
       <div className="text-text-secondary flex justify-between text-sm">
         <span>{t('mixnet-tuning.slider.faster')}</span>
-        <span>{t('mixnet-tuning.slider.anonymity')}</span>
+        <span>{t('mixnet-tuning.slider.slower')}</span>
       </div>
       <Slider
         className="px-2"
@@ -49,22 +40,18 @@ function ContinuousTrafficSlider({
         ariaLabel={t('mixnet-tuning.continuous-traffic.title')}
         labels={items.map((item, index) => (
           <Button
-            key={item.label}
+            key={item.value}
             disabled={disabled}
             className={clsx('flex flex-col text-sm', {
               'text-brand-primary': value === index,
               'text-text-secondary': value !== index,
               'items-start': index === 0,
-              'items-end': index === continuousItems.length - 1,
-              'items-center':
-                index !== 0 && index !== continuousItems.length - 1,
+              'items-end': index === items.length - 1,
+              'items-center': index !== 0 && index !== items.length - 1,
             })}
             onClick={() => setValue(index)}
           >
-            <span className="whitespace-nowrap">
-              {t(`mixnet-tuning.continuous-traffic.${item.label}.label`)}
-            </span>
-            <span className="whitespace-nowrap">{item.speed}</span>
+            <span className="whitespace-nowrap">{item.label}</span>
           </Button>
         ))}
       />
@@ -77,11 +64,14 @@ export function ContinuousTrafficCard() {
 
   const { state, updateField, continuousItems } = useMixnetTrafficConfig();
 
+  // Reversed to match the slider (faster / 2 Mbps on the left).
+  const reversedItems = [...continuousItems].reverse();
+
   const enabled = !state.disablePoissonRate;
   const toggle = () => updateField('disablePoissonRate', enabled);
 
   const setMessageSendingAverageDelay = (index: number) => {
-    const item = continuousItems[index];
+    const item = reversedItems[index];
     if (item) {
       updateField('messageSendingAverageDelay', item.value);
     }
@@ -101,7 +91,7 @@ export function ContinuousTrafficCard() {
 
       <CardNewBody className="pb-5">
         <ContinuousTrafficSlider
-          value={continuousItems.findIndex(
+          value={reversedItems.findIndex(
             (item) => item.value === state.messageSendingAverageDelay,
           )}
           setValue={setMessageSendingAverageDelay}
