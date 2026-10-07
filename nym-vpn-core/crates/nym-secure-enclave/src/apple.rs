@@ -38,6 +38,8 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
 struct OSSecureEnclaveKey {
     inner: secure_enclave_rs::SecureEnclaveKey,
 }
+/// SAFETY: on macOS, the underlying SecRef should not be accessed concurrently.
+unsafe impl Send for OSSecureEnclaveKey {}
 
 impl SecureEnclaveKey for OSSecureEnclaveKey {
     fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {

@@ -58,14 +58,16 @@ impl AesGcmStoreCipher {
 
 impl StoreCipherTrait for AesGcmStoreCipher {
     fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        let encrypted_data = self.inner.encrypt_data_ref(data)?;
-        todo!("serialize encrypted data")
+        let encrypted_data: EncryptedData =
+            serde_json::from_slice(data).map_err(StoreCipherError::Deserialize)?;
+
+        Ok(self.inner.decrypt_data(encrypted_data)?)
     }
 
     fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        let encrypted_data: EncryptedData = todo!("deserialize EncryptedData from Vec<u8>");
+        let encrypted_data = self.inner.encrypt_data_ref(data)?;
 
-        Ok(self.inner.decrypt_data(encrypted_data)?)
+        serde_json::to_vec(&encrypted_data).map_err(StoreCipherError::Serialize)
     }
 }
 

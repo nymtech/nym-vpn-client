@@ -4,6 +4,8 @@
 pub mod account;
 pub mod account_summary;
 pub mod ciphers;
+pub mod encrypted_file;
+pub mod encrypted_sqlite;
 pub mod keys;
 
 pub trait VpnStorage:
