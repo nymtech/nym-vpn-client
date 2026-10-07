@@ -9,12 +9,12 @@ repository = "https://github.com/nymtech/nym-vpn-client"
 edition = "2024"
 
 [build-dependencies]
-tauri-build = { version = "2.6.3", features = [] }
+tauri-build = { version = "2.7.1", features = [] }
 build-info-build = "0.0.46"
 toml = "1.1.6"
 
 [dependencies]
-tauri = { version = "2.11.5", features = [
+tauri = { version = "2.12.1", features = [
     "protocol-asset",
     "tray-icon",
     "image-png",
