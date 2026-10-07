@@ -14,8 +14,10 @@ use crate::Conflict;
 /// Canary domain resolved by [`detect`] to detect DNS interception. Callers
 /// that also run NymVPN's own DNS resolver (see `nym-vpn-lib`'s `resolver`
 /// module) must answer this domain with [`PROBE_ADDR`], regardless of
-/// ad-block/filter configuration.
-pub const PROBE_DOMAIN: &str = "nym-conflict-probe.invalid.";
+/// ad-block/filter configuration. It has no public record, so only our
+/// resolver answers it. Not a special-use name: systemd-resolved answers
+/// `.invalid` locally (RFC 6761) and never forwards it to our resolver.
+pub const PROBE_DOMAIN: &str = "nym-conflict-probe.nymvpn.com.";
 
 /// The address NymVPN's own DNS resolver answers [`PROBE_DOMAIN`] with.
 /// Taken from the IPv4 documentation range (RFC 5737 TEST-NET-1) so it can
@@ -49,7 +51,7 @@ async fn probe_dns_interception() -> bool {
         }
         Err(_) => {
             tracing::debug!("conflict probe: DNS resolution timed out");
-            true
+            false
         }
     }
 }
