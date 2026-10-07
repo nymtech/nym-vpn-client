@@ -251,17 +251,65 @@ jobs:
             echo "publish_s3=$PUBLISH_S3"
           } >> "$GITHUB_OUTPUT"
 
-      - uses: baptiste0928/cargo-install@v3
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
         with:
-          crate: cargo-get
+          subcommand: workspace.package.version --entry nym-vpn-core/Cargo.toml
 
       - name: Resolve version + tag
         id: v
         env:
-          RELEASE_CHANNEL: ${{ steps.flags.outputs.channel }}
-          # beta auto-advances its -beta.N by reading prior beta releases/tags
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash .github/scripts/release/resolve-version.sh
+          CHANNEL: ${{ steps.flags.outputs.channel }}
+          FULL: ${{ steps.package-version.outputs.metadata }}
+        run: |
+          set -euo pipefail
+
+          BASE="${FULL%%-*}"
+          echo "::notice:: channel=${CHANNEL} cargo_version=${FULL} base=${BASE}"
+
+          NIGHTLY_TIMESTAMP=""
+          BUILD_TIMESTAMP="$(date -u +%Y%m%d%H%M)"
+
+          case "$CHANNEL" in
+            nightly)
+              NIGHTLY_TIMESTAMP="$(date -u +%Y%m%d)"
+              VERSION="${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
+              TAG="nym-vpn-v${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
+              ;;
+            beta)
+              if [[ "$FULL" == *-beta* ]]; then
+                echo "::error:: refusing to ship a beta version: ${FULL}"
+                exit 1
+              fi
+              VERSION="${FULL}"
+              TAG="nym-vpn-v${FULL}"
+              ;;
+            ship)
+              if [[ ! "$FULL" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                echo "::error:: refusing to ship a version with a suffix: ${FULL}"
+                exit 1
+              fi
+              VERSION="${FULL}"
+              TAG="nym-vpn-v${FULL}"
+              ;;
+            *)
+              echo "::error:: unknown release channel: ${CHANNEL} (expected nightly|beta|ship)"
+              exit 1
+              ;;
+          esac
+
+          echo "::notice:: version=${VERSION} tag=${TAG}"
+          {
+            echo "channel=${CHANNEL}"
+            echo "version=${VERSION}"
+            echo "tag=${TAG}"
+            echo "build_timestamp=${BUILD_TIMESTAMP}"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ -n "$NIGHTLY_TIMESTAMP" ]; then
+            echo "nightly_timestamp=${NIGHTLY_TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          fi
 
   check-release-exists:
     name: Check release exists
