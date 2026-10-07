@@ -74,20 +74,24 @@ fun <T> DiscreteTuningSlider(items: List<T>, selected: T, onSelectedChange: (T) 
 	)
 }
 
-/** The "Faster" / "+ Anonymity" labels shown above every tuning slider on this screen. */
+/** The start / end labels shown above a tuning slider (default "Faster" / "+ Anonymity"). */
 @Composable
-fun SliderRangeLabels(modifier: Modifier = Modifier) {
+fun SliderRangeLabels(
+	modifier: Modifier = Modifier,
+	startLabel: String = stringResource(R.string.mixnet_tuning_slider_faster_label),
+	endLabel: String = stringResource(R.string.mixnet_tuning_slider_anonymity_label),
+) {
 	Row(
 		modifier = modifier.fillMaxWidth(),
 		horizontalArrangement = Arrangement.SpaceBetween,
 	) {
 		Text(
-			text = stringResource(R.string.mixnet_tuning_slider_faster_label),
+			text = startLabel,
 			style = MaterialTheme.typography.bodySmall,
 			color = MaterialTheme.colorScheme.onBackground,
 		)
 		Text(
-			text = stringResource(R.string.mixnet_tuning_slider_anonymity_label),
+			text = endLabel,
 			style = MaterialTheme.typography.bodySmall,
 			color = MaterialTheme.colorScheme.onBackground,
 		)
