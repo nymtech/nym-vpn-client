@@ -82,11 +82,13 @@ use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
     DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    gateway_directory::{
+        self, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
+    },
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},
     tunnel_state_machine::{
-        NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
+        GatewayPerformanceOptions, NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
         tunnel::gateway_provider::GatewayProvider,
     },
 };
@@ -344,9 +346,6 @@ pub struct NymVpnService {
 
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
-
-    // Topology service handle
-    topology_service_handle: crate::VpnTopologyServiceHandle,
 
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
@@ -628,9 +627,13 @@ impl NymVpnService {
             .nym_vpn_api_urls()
             .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
-        let gateway_config =
-            gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
-                .map_err(Error::CreateGatewayClient)?;
+        let gateway_config = gateway_directory::Config::new(
+            nyxd_url,
+            nym_api_urls.clone(),
+            nym_vpn_api_urls,
+            min_gateway_performance(tunnel_settings.gateway_performance_options),
+        )
+        .map_err(Error::CreateGatewayClient)?;
 
         let (network_tx, network_rx) = watch::channel(network_env.clone());
         let nym_config = NymConfig {
@@ -744,7 +747,7 @@ impl NymVpnService {
             bandwidth_command_tx.clone(),
             skew_manager,
             statistics_event_sender.clone(),
-            topology_service.clone(),
+            topology_service,
             connectivity_handle,
             discovery_refresher_command_tx,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -782,7 +785,6 @@ impl NymVpnService {
             statistics_controller_handle,
             bandwidth_controller_handle,
             topology_service_join_handle,
-            topology_service_handle: topology_service,
             config_manager,
             command_sender,
             event_receiver,
@@ -1022,11 +1024,15 @@ impl NymVpnService {
 
         tracing::info!("Network environment updated");
 
-        // Update gateway cache and topology cache for new environment
+        // Point the gateway client at the refreshed API endpoints
         crate::cache_refresh::update_caches_for_network(
             &new_network,
             &self.gateway_cache_handle,
-            &self.topology_service_handle,
+            min_gateway_performance(
+                self.config_manager
+                    .generate_tunnel_settings()
+                    .gateway_performance_options,
+            ),
             &self.user_agent,
         )
         .await;
@@ -2517,6 +2523,17 @@ impl NymVpnService {
         self.config_manager.set_profile(profile).await;
         self.update_tunnel_settings_with_throttle();
     }
+}
+
+/// The thresholds the tunnel monitor installs on connect. The gateway cache is cleared when a
+/// replacement client carries different ones, so every client given to it must use these.
+fn min_gateway_performance(options: GatewayPerformanceOptions) -> Option<GatewayMinPerformance> {
+    GatewayMinPerformance::from_percentage_values(
+        options.mixnet_min_performance.map(u64::from),
+        options.vpn_min_performance.map(u64::from),
+    )
+    .inspect_err(|err| tracing::warn!("Ignoring invalid gateway performance options: {err}"))
+    .ok()
 }
 
 /// Updates `network_tx` with `new_network` if it differs from the currently active network,
