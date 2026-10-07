@@ -41,7 +41,7 @@
     "@radix-ui/react-slider": "^1.4.7",
     "@radix-ui/react-toast": "^1.2.23",
     "@tauri-apps/api": "2.11.1",
-    "@tauri-apps/plugin-autostart": "^2.5.0",
+    "@tauri-apps/plugin-autostart": "^2.7.0",
     "@tauri-apps/plugin-clipboard-manager": "^2.3.3",
     "@tauri-apps/plugin-deep-link": "2.6.1",
     "@tauri-apps/plugin-dialog": "^2.7.3",
