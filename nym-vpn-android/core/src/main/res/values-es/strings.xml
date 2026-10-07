@@ -8,6 +8,10 @@
 	<string name="state_disconnected">Desconectado</string>
 	<string name="state_initializing">Iniciando cliente…</string>
 	<string name="state_establishing">Estableciendo conexión…</string>
+	<string name="state_disconnecting">Desconectando…</string>
+	<string name="state_reconnecting">Volviendo a conectarse…</string>
+	<string name="state_offline">Esperando a que se conecte la red…</string>
+	<string name="state_error">Error de conexión</string>
 	<string name="notification_entry">Entrada: %1$s</string>
 	<string name="notification_exit">Salir: %1$s</string>
 	<string name="error_reason_set_firewall_policy">No se pudo aplicar la política de cortafuegos.</string>
@@ -26,9 +30,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Gateway de entrada no responde.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Gateway de salida no responde.</string>
 	<string name="error_reason_bandwidth_exceeded">Límite de ancho de banda excedido.</string>
+	<string name="error_reason_credential_fetching_failed">Error al recuperar las credenciales.</string>
+	<string name="error_reason_no_credential_available">No hay credenciales disponibles.</string>
 	<string name="error_reason_inactive_account">Tu cuenta está inactiva.</string>
 	<string name="error_reason_inactive_subscription">Tu suscripción está inactiva.</string>
 	<string name="error_reason_max_devices_reached">Número máximo de dispositivos alcanzado.</string>
 	<string name="error_reason_device_logged_out">El dispositivo está desconectado.</string>
+	<string name="error_reason_needs_device_location">El enrutamiento automático no está disponible; no se ha podido determinar la ubicación del dispositivo.</string>
+	<string name="error_reason_connection_attempts_exceeded">No se ha podido establecer la conexión tras varios intentos.</string>
 	<string name="error_reason_internal">Error interno: %1$s</string>
 </resources>

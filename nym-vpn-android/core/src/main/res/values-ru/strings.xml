@@ -8,6 +8,10 @@
 	<string name="state_disconnected">Отключено</string>
 	<string name="state_initializing">Инициализация клиента…</string>
 	<string name="state_establishing">Устанавливаем соединение…</string>
+	<string name="state_disconnecting">Отключаемся…</string>
+	<string name="state_reconnecting">Переподключаемся…</string>
+	<string name="state_offline">Ожидаем подключения к сети…</string>
+	<string name="state_error">Ошибка подключения</string>
 	<string name="notification_entry">Вход: %1$s</string>
 	<string name="notification_exit">Выход: %1$s</string>
 	<string name="error_reason_set_firewall_policy">Не удалось применить политику брандмауэра.</string>
@@ -26,9 +30,13 @@
 	<string name="error_reason_credential_wasted_on_entry_gateway">Входной шлюз не отвечает.</string>
 	<string name="error_reason_credential_wasted_on_exit_gateway">Выходной шлюз не отвечает.</string>
 	<string name="error_reason_bandwidth_exceeded">Превышен лимит трафика.</string>
+	<string name="error_reason_credential_fetching_failed">Не удалось получить учётные данные.</string>
+	<string name="error_reason_no_credential_available">Нет доступных учётных данных.</string>
 	<string name="error_reason_inactive_account">Ваш аккаунт неактивен.</string>
 	<string name="error_reason_inactive_subscription">Ваша подписка неактивна.</string>
 	<string name="error_reason_max_devices_reached">Достигнуто максимальное количество устройств.</string>
 	<string name="error_reason_device_logged_out">Устройство вышло из системы.</string>
+	<string name="error_reason_needs_device_location">Автоматическая маршрутизация недоступна; не удалось определить местоположение устройства.</string>
+	<string name="error_reason_connection_attempts_exceeded">Не удалось подключиться после нескольких попыток.</string>
 	<string name="error_reason_internal">Внутренняя ошибка: %1$s</string>
 </resources>
