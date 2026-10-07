@@ -139,7 +139,6 @@ jobs:
         with:
           ruby-version: "3.3"
           bundler-cache: true
-          working-directory: nym-vpn-apple
 
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@v3
