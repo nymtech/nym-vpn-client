@@ -15,7 +15,7 @@ jobs:
     with:
       gh_release: none
       publish_s3: true
-      release_channel: nightly
+      is_nightly: true
       android: false
       fdroid: true
       linux: true

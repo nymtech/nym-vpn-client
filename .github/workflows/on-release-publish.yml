@@ -80,8 +80,8 @@ jobs:
   # Ship is the line's final release: clear the -beta.N releases that led to it so
   # the Releases page shows only shipped versions. Scoped to the shipped base line
   # (a ship of 2026.11.0 only clears 2026.11.0-beta.*). Tags are KEPT (no
-  # --cleanup-tag) — they stay the immutable ledger that resolve-version reads to
-  # never recompute onto a used beta number. Only fires on ship: the caller gates the
+  # --cleanup-tag) — they stay as the immutable record of each beta cut. Only fires
+  # on ship: the caller gates the
   # fan-out on gh_release_type == 'release', so beta and nightly runs never reach here.
   delete-betas:
     needs: setup
