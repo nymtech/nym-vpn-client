@@ -400,6 +400,9 @@ private fun MainScreenContent(
 	previewAlertMessage: AlertMessage? = null,
 ) {
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
+	// Safest/Most private/Fastest all reduce to .Auto, so when a profile is matched its own
+	// title takes over the generic per-hop label (mirrors Apple's applyProfileOverride).
+	val profileName = appUiState.currentProfile?.let { stringResource(it.titleRes) }
 	val panelState = ConnectPanelState(
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
@@ -407,9 +410,9 @@ private fun MainScreenContent(
 		connectMode = connectMode,
 		exitNode = ServerNode(
 			id = appUiState.exitPointGateway?.identity ?: "",
-			name = appUiState.exitPointName,
+			name = profileName ?: appUiState.exitPointName,
 			countryCode = appUiState.exitPointCountry,
-			location = appUiState.exitPointLocation,
+			location = if (profileName != null) null else appUiState.exitPointLocation,
 			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
@@ -419,9 +422,9 @@ private fun MainScreenContent(
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
-			name = appUiState.entryPointName,
+			name = profileName ?: appUiState.entryPointName,
 			countryCode = appUiState.entryPointCountry,
-			location = appUiState.entryPointLocation,
+			location = if (profileName != null) null else appUiState.entryPointLocation,
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
 				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,
