@@ -978,21 +978,6 @@ impl NymVpnService {
                 tracing::error!("Failed to update tunnel state to {new_state}");
             }
 
-            // A gateway that just connected works, so an earlier timeout no longer counts against it.
-            if let TunnelState::Connected { connection_data } = new_state {
-                let blacklisted = self.gateway_provider.blacklisted_gateways();
-                for id in [
-                    &connection_data.entry_gateway.id,
-                    &connection_data.exit_gateway.id,
-                ] {
-                    if let Ok(identity) = NodeIdentity::from_base58_string(id)
-                        && let Err(err) = blacklisted.remove(&identity)
-                    {
-                        tracing::error!("Failed to remove gateway {id} from the blacklist: {err}");
-                    }
-                }
-            }
-
             // Auto-disable SOCKS5 when VPN disconnects
             if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_))
                 && self.socks5_service.is_enabled()
