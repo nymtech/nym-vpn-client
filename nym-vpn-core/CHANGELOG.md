@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Treat a built-in or unknown-age gateway cache as stale on startup so a fresh list is fetched (including an on-disk cache older than the Windows system uptime)
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
 - [macOS] Fix file permissions for `nym-vpnc` in the macOS installer package, helping ensure the installed application can run correctly (https://github.com/nymtech/nym-vpn-client/pull/6456)
 
