@@ -189,7 +189,7 @@
 	<string name="connection_status_fast_mode">dVPN 模式保護</string>
 	<string name="connection_status_anonymous">mixnet保護</string>
 	<!-- Server Screen -->
-	<string name="gateway_safest">汽車</string>
+	<string name="gateway_safest">自動</string>
 	<string name="gateway_random">隨機服務器</string>
 	<string name="server_entry_tab">入口</string>
 	<string name="server_exit_tab">出口</string>
