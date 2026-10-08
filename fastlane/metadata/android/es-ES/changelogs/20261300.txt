@@ -1,0 +1,13 @@
+Perfiles: configuraciones «Auto», «Anónimo», «Más rápido» y «Aleatorio» con un toque.
+
+«Más seguro» ahora es «Auto».
+
+Ajuste de Mixnet: interruptor de tráfico de cobertura y control deslizante para equilibrar velocidad y privacidad.
+
+Prioriza el Wi-Fi frente a los datos móviles para el túnel de cobertura.
+
+Selección de servidores y reconexiones más fiables.
+
+Mayor privacidad: permisos más restrictivos, cámara eliminada, análisis desactivados por defecto.
+
+Ahora en italiano e indonesio.

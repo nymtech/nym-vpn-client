@@ -1,0 +1,13 @@
+Profil: pengaturan «Auto», «Anonim», «Tercepat», dan «Acak» dengan satu ketukan.
+
+«Teraman» kini menjadi «Auto».
+
+Penyesuaian Mixnet: tombol lalu lintas penyamaran dan penggeser untuk menyeimbangkan kecepatan dan privasi.
+
+Mengutamakan Wi-Fi daripada seluler untuk terowongan penyamaran.
+
+Pemilihan server dan koneksi ulang lebih andal.
+
+Privasi lebih kuat: izin lebih ketat, kamera dihapus, analitik mati secara default.
+
+Kini tersedia dalam bahasa Italia dan Indonesia.

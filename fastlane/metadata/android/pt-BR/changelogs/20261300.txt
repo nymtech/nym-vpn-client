@@ -1,0 +1,13 @@
+Perfis: configurações «Auto», «Anônimo», «Mais rápido» e «Aleatório» com um toque.
+
+«Mais seguro» agora é «Auto».
+
+Ajuste do Mixnet: botão de tráfego de disfarce e controle deslizante para equilibrar velocidade e privacidade.
+
+Prioriza o Wi-Fi em vez do celular para o túnel de disfarce.
+
+Seleção de servidores e reconexões mais confiáveis.
+
+Privacidade reforçada: permissões mais restritas, câmera removida, análises desativadas por padrão.
+
+Agora em italiano e indonésio.

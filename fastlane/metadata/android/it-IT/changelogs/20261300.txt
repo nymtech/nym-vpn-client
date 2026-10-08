@@ -1,0 +1,13 @@
+Profili: impostazioni «Auto», «Anonimo», «Più veloce» e «Casuale» con un tocco.
+
+«Più sicuro» ora si chiama «Auto».
+
+Regolazione Mixnet: interruttore del traffico di copertura e cursore per bilanciare velocità e privacy.
+
+Preferisce il Wi-Fi alla rete cellulare per il tunnel di copertura.
+
+Selezione dei server e riconnessioni più affidabili.
+
+Maggiore privacy: permessi più restrittivi, fotocamera rimossa, analisi disattivate per impostazione predefinita.
+
+Ora in italiano e indonesiano.

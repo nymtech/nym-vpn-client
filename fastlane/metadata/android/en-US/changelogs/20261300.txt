@@ -1,0 +1,13 @@
+Profiles: one-tap Auto, Anonymous, Fastest and Random setups.
+
+"Safest" is now "Auto".
+
+Mixnet tuning: cover-traffic toggle and slider to balance speed and privacy.
+
+Prefers Wi-Fi over cellular for the cover tunnel.
+
+More reliable server selection and reconnects.
+
+Stronger privacy: tighter permissions, camera removed, analytics off by default.
+
+Now in Italian and Indonesian.

@@ -189,7 +189,7 @@
 	<string name="connection_status_fast_mode">快速模式保護</string>
 	<string name="connection_status_anonymous">混合網絡保護</string>
 	<!-- Server Screen -->
-	<string name="gateway_safest">汽車</string>
+	<string name="gateway_safest">自動</string>
 	<string name="gateway_random">隨機服務器</string>
 	<string name="server_entry_tab">入口</string>
 	<string name="server_exit_tab">出口</string>
@@ -620,7 +620,7 @@
 	<string name="app_icon_change_confirm">更改圖標</string>
 	<!-- Profiles -->
 	<string name="profiles_title">設定檔</string>
-	<string name="profiles_safest_title">汽車</string>
+	<string name="profiles_safest_title">自動</string>
 	<string name="profiles_safest_description">表現最佳的伺服器，絕非您所在的國家</string>
 	<string name="profiles_random_title">隨機</string>
 	<string name="profiles_random_description">每項連線皆使用不同的伺服器</string>
