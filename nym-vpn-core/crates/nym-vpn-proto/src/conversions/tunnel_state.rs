@@ -40,6 +40,7 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::SetDns => Self::SetDns,
             Reason::TunDevice => Self::TunDevice,
             Reason::TunnelProvider => Self::TunnelProvider,
+            Reason::SetLocalDnsResolverConfig => Self::SetLocalDnsResolverConfig,
             Reason::Ipv6Unavailable => Self::Ipv6Unavailable,
             Reason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             Reason::PerformantEntryGatewayUnavailable => Self::PerformantEntryGatewayUnavailable,
@@ -90,6 +91,10 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::TunnelProvider => Self {
                 reason: Reason::TunnelProvider.into(),
+                message: None,
+            },
+            ErrorStateReason::SetLocalDnsResolverConfig => Self {
+                reason: Reason::SetLocalDnsResolverConfig.into(),
                 message: None,
             },
             ErrorStateReason::Ipv6Unavailable => Self {

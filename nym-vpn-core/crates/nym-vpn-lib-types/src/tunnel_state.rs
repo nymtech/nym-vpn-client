@@ -251,6 +251,9 @@ pub enum ErrorStateReason {
     /// Failure to configure packet tunnel provider (iOS and Android only)
     TunnelProvider,
 
+    /// Failure to configure local DNS resolver
+    SetLocalDnsResolverConfig,
+
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
 
@@ -331,6 +334,7 @@ impl std::fmt::Display for ErrorStateReason {
             Self::SetDns => f.write_str("SetDns"),
             Self::TunDevice => f.write_str("TunDevice"),
             Self::TunnelProvider => f.write_str("TunnelProvider"),
+            Self::SetLocalDnsResolverConfig => f.write_str("SetLocalDnsResolverConfig"),
             Self::Ipv6Unavailable => f.write_str("Ipv6Unavailable"),
             Self::SameEntryAndExitGateway => f.write_str("SameEntryAndExitGateway"),
             Self::PerformantEntryGatewayUnavailable => {
@@ -366,7 +370,7 @@ impl std::fmt::Display for ErrorStateReason {
 
 impl ErrorStateReason {
     /// Returns true if block reason indicates that filtering resolver cannot be configured.
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)
     }
