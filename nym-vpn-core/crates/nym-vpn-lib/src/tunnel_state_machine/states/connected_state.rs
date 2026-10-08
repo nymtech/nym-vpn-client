@@ -11,8 +11,6 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "ios")]
-use crate::tunnel_state_machine::Result;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -20,6 +18,8 @@ use crate::tunnel_state_machine::{
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
 };
+#[cfg(target_os = "ios")]
+use crate::tunnel_state_machine::{Error, Result};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
 #[cfg(not(any(target_os = "android")))]
