@@ -9,7 +9,7 @@ import TunnelMixnet
 import Tunnels
 import AppVersionProvider
 
-class PacketTunnelProvider: NEPacketTunnelProvider {
+final class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
 
     lazy var logger = Logger(label: "MixnetTunnel")
