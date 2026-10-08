@@ -1303,7 +1303,7 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RunDiagnostic(tx, params) => {
-                let _ = tx.send(self.handle_run_diagnostic(params).await);
+                self.handle_run_diagnostic(params, tx);
             }
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
@@ -2354,14 +2354,23 @@ impl NymVpnService {
         self.stats_control_commands_sender.get_seed().await
     }
 
-    async fn handle_run_diagnostic(&self, params: DiagnosticRunParams) -> DiagnosticReport {
+    fn handle_run_diagnostic(
+        &self,
+        params: DiagnosticRunParams,
+        completion_tx: oneshot::Sender<DiagnosticReport>,
+    ) {
         let network = *self.network_tx.borrow().clone();
-        let report = DiagnosticHandler::run(network, params).await;
-        match serde_json::to_string_pretty(&report) {
-            Ok(report_log) => tracing::info!("{report_log}"),
-            Err(e) => tracing::error!("Error serializing report :{e}"),
-        }
-        report
+
+        // Spawned because a diagnostic can take minutes on a blocked network, and the command loop
+        // must stay free to handle a disconnect meanwhile.
+        tokio::spawn(async move {
+            let report = DiagnosticHandler::run(network, params).await;
+            match serde_json::to_string_pretty(&report) {
+                Ok(report_log) => tracing::info!("{report_log}"),
+                Err(e) => tracing::error!("Error serializing report :{e}"),
+            }
+            completion_tx.send(report).ok();
+        });
     }
 
     async fn handle_register_diagnostic(
