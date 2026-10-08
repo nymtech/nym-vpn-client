@@ -718,7 +718,7 @@ extension CredentialsManager {
         grpcManager.$errorReason.sink { [weak self] error in
             guard let self,
                   let errorReason = error as? ErrorReason,
-                  errorReason == .noAccountStored
+                  errorReason.code == .noAccountStored
             else {
                 return
             }
