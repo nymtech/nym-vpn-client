@@ -1,14 +1,20 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
+use crate::{
+    environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor,
+    vpn_service::TunnelStatusListener,
+};
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use nym_bandwidth_controller::{
     AvailableTicketbooks, BandwidthController, requests::BandwidthControllerRequestSender,
 };
-use tokio::{sync::Mutex, task::JoinHandle};
+use tokio::{
+    sync::{Mutex, broadcast},
+    task::JoinHandle,
+};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
@@ -16,13 +22,14 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    RegisterAccountRequest, RegisterAccountResponse, StorableAccount, StoreAccountRequest,
+    QrUrl, RegisterAccountRequest, RegisterAccountResponse, StorableAccount, StoreAccountRequest,
     StoredAccountMode, UserAgent, VpnAccountSummary,
 };
 
 struct State {
     account_join_handle: JoinHandle<()>,
     bandwidth_join_handle: JoinHandle<()>,
+    event_handler: JoinHandle<()>,
     shutdown_drop_guard: DropGuard,
 }
 
@@ -43,6 +50,7 @@ impl NymAccountController {
         user_agent: UserAgent,
         network_env: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
+        event_listener: Arc<dyn TunnelStatusListener>,
     ) -> Result<Self, VpnError> {
         // Storage setup
         let storage_path = data_dir.join(network_env.network_name());
@@ -84,6 +92,14 @@ impl NymAccountController {
         };
 
         let connectivity_handle = offline_monitor.inner();
+
+        let (tunnel_event_tx, mut tunnel_event_rx) = broadcast::channel(10);
+        let event_handler = tokio::spawn(async move {
+            while let Ok(event) = tunnel_event_rx.recv().await {
+                event_listener.on_event(event);
+            }
+        });
+
         let account_controller = nym_vpn_account_controller::AccountController::new(
             nym_vpn_api_client,
             nyxd_client,
@@ -91,6 +107,7 @@ impl NymAccountController {
             storage,
             connectivity_handle,
             bandwidth_command_sender.clone(),
+            tunnel_event_tx,
             shutdown_token.child_token(),
         )
         .await
@@ -111,6 +128,7 @@ impl NymAccountController {
             state: Arc::new(Mutex::new(Some(State {
                 account_join_handle,
                 bandwidth_join_handle,
+                event_handler,
                 shutdown_drop_guard,
             }))),
         })
@@ -129,6 +147,10 @@ impl NymAccountController {
 
         if let Err(err) = state.bandwidth_join_handle.await {
             tracing::error!("Failed to wait on bandwidth controller join handle: {err}");
+        }
+
+        if let Err(err) = state.event_handler.await {
+            tracing::error!("Failed to wait on tunnel event join handle: {err}");
         }
     }
 
@@ -240,6 +262,13 @@ impl NymAccountController {
                 })
             }
         }
+    }
+
+    pub async fn pair_account(&self) -> Result<QrUrl, VpnError> {
+        self.account_command_sender
+            .qr_pair_account()
+            .await
+            .map_err(VpnError::from)
     }
 
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {

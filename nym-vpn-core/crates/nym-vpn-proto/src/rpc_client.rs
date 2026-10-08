@@ -16,7 +16,7 @@ use nym_vpn_lib_types::{
     AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, DnsServer, EntryPoint,
     ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
     ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, QrUrl, RecentGateways,
     RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
@@ -706,6 +706,17 @@ impl RpcClient {
             .into_inner();
 
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn start_pairing_account(&mut self) -> Result<QrUrl> {
+        let response = self
+            .0
+            .start_pairing_account(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrUrl::from(response))
     }
 
     pub async fn get_log_path(&mut self) -> Result<Option<LogPath>> {

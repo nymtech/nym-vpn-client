@@ -137,3 +137,8 @@ pub struct LinkAccountRequestBody {
     pub kind: String,
     pub label: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PairAccountRequestBody {
+    pub pubkey: String,
+}

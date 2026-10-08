@@ -4,7 +4,7 @@
 use nym_vpn_lib_types::{
     AccountControllerState, BandwidthEvent, ConflictDetected, ConnectionEvent,
     ConnectionStatisticsEvent, DiagnosticsSuggestionReason, ErrorStateReason, MixnetEvent,
-    SphinxPacketRates, TunnelEvent, TunnelState,
+    PairingCheckResult, SphinxPacketRates, TunnelEvent, TunnelState,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -39,6 +39,9 @@ impl TryFrom<proto::TunnelEvent> for TunnelEvent {
             proto::tunnel_event::Event::ConflictDetectedEvent(event) => {
                 TunnelEvent::ConflictDetected(ConflictDetected::try_from(event)?)
             }
+            proto::tunnel_event::Event::PairingCheckResult(res) => {
+                TunnelEvent::PairingCheck(PairingCheckResult::try_from(res)?)
+            }
         })
     }
 }
@@ -69,6 +72,9 @@ impl From<TunnelEvent> for proto::TunnelEvent {
                 proto::tunnel_event::Event::ConflictDetectedEvent(
                     proto::ConflictDetectedEvent::from(conflict),
                 )
+            }
+            TunnelEvent::PairingCheck(res) => {
+                proto::tunnel_event::Event::PairingCheckResult(proto::PairingCheckResult::from(res))
             }
         };
         Self { event: Some(event) }
@@ -106,6 +112,39 @@ impl From<ConflictDetected> for proto::ConflictDetectedEvent {
         Self {
             conflict: conflict as i32,
         }
+    }
+}
+
+impl From<PairingCheckResult> for proto::PairingCheckResult {
+    fn from(value: PairingCheckResult) -> Self {
+        let res = match value {
+            PairingCheckResult::Cancelled => proto::pairing_check_result::Result::Cancelled(()),
+            PairingCheckResult::TimedOut => proto::pairing_check_result::Result::TimedOut(()),
+            PairingCheckResult::Error(err) => proto::pairing_check_result::Result::Error(err),
+            PairingCheckResult::PinCode(pin_code) => {
+                proto::pairing_check_result::Result::PinCode(pin_code)
+            }
+        };
+        Self { result: Some(res) }
+    }
+}
+
+impl TryFrom<proto::PairingCheckResult> for PairingCheckResult {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::PairingCheckResult) -> Result<Self, ConversionError> {
+        let result = value
+            .result
+            .ok_or(ConversionError::NoValueSet("PairingCheckResult.result"))?;
+
+        Ok(match result {
+            proto::pairing_check_result::Result::Cancelled(_) => PairingCheckResult::Cancelled,
+            proto::pairing_check_result::Result::TimedOut(_) => PairingCheckResult::TimedOut,
+            proto::pairing_check_result::Result::Error(err) => PairingCheckResult::Error(err),
+            proto::pairing_check_result::Result::PinCode(pin_code) => {
+                PairingCheckResult::PinCode(pin_code)
+            }
+        })
     }
 }
 

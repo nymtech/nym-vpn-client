@@ -29,17 +29,19 @@ use crate::{
     request::{
         AccountKind, AppleIntroOfferEligibilityRequestBody, ApplyFreepassRequestBody,
         CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody, CreateSubscriptionKind,
-        CreateSubscriptionRequestBody, LinkAccountRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        CreateSubscriptionRequestBody, LinkAccountRequestBody, PairAccountRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         AppleIntroOfferEligibilityResponse, NymDirectoryGatewayCountriesResponse,
         NymDirectoryGatewaysResponse, NymUserGeoIpLocationResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse,
         NymVpnCanonicalAccountIdentityResponse, NymVpnDevice, NymVpnDevicesResponse,
-        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
-        NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
+        NymVpnHealthResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse,
+        NymVpnRegisterAccountResponse, NymVpnSubscription, NymVpnSubscriptionResponse,
+        NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost,
+        NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     skew_manager::{RemoteTimeProvider, SkewManager},
@@ -625,6 +627,55 @@ impl VpnApiClient {
         .inspect_err(|e| tracing::error!("Failed to link account: {e:?}"))
         .map_err(Box::new)
         .map_err(VpnApiClientError::LinkPrivyAccount)
+    }
+
+    pub async fn pair_account(
+        &self,
+        account: &VpnAccount,
+        qr_pub_key: &str,
+    ) -> Result<NymVpnPairingResponse> {
+        let request = PairAccountRequestBody {
+            pubkey: qr_pub_key.to_string(),
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+            ],
+            &request,
+            account,
+            None,
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to pair account: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::PairAccount)
+    }
+
+    pub async fn check_pairing_account(
+        &self,
+        account: &VpnAccount,
+    ) -> Result<NymVpnPairingCheckResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+                routes::CHECK,
+            ],
+            account,
+            None,
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to check pairing account status: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::CheckPairingAccount)
     }
 
     pub async fn get_canonical_account_identity(
