@@ -184,7 +184,7 @@
 	<string name="one_click_nym_entry_node">Máy chủ vào</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Không được bảo vệ</string>
-	<string name="connection_status_fast_mode">Bảo vệ bởi chế độ Nhanh</string>
+	<string name="connection_status_fast_mode">chế độ bảo vệ dVPN</string>
 	<string name="connection_status_anonymous">Bảo vệ từ mixnet</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Tự động</string>
@@ -534,25 +534,24 @@
 	<string name="mixnet_tuning_current_description">Độ trễ khứ hồi (RTT) dự kiến ​​trên mạng tiêu chuẩn</string>
 	<string name="mixnet_tuning_traffic_title">Gửi lưu lượng truy cập liên tục</string>
 	<string name="mixnet_tuning_traffic_off_title">Tỷ lệ lưu lượng nền</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ Các gói tin của bạn sẽ được gửi đi ngay khi chúng sẵn sàng. Điều này có thể làm lộ các mô hình lưu lượng truy cập.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">Lưu lượng che phủ luôn được gửi đi để duy trì sự đồng nhất của mô hình. Hãy điều chỉnh tốc độ gửi các gói tin của bạn.</string>
 	<string name="mixnet_tuning_traffic_off_description">Hãy chọn mức độ bảo vệ bạn cần.</string>
-	<string name="mixnet_tuning_traffic_on_low">0,7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">Thấp\n0,7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">Cao\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Cân bằng\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Thấp</string>
 	<string name="mixnet_tuning_traffic_off_high">Cao\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Cân bằng\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Trung bình\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Chức năng bảo vệ theo thời gian hiện đang bị tắt. Điều này có thể gây nguy hiểm cho quyền riêng tư của bạn.</string>
-	<string name="mixnet_tuning_delays_title">Xáo trộn gói tin</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Đặt độ trễ về 0 sẽ loại bỏ quá trình trộn, làm giảm tính ẩn danh</string>
+	<string name="mixnet_tuning_delays_title">Độ trễ xáo trộn dữ liệu</string>
 	<string name="mixnet_tuning_delays_description">Điều chỉnh độ trễ thời gian để thay đổi cách các gói dữ liệu được trộn.</string>
 	<string name="mixnet_tuning_delays_low">Thấp\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Cao\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Mặc định\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Hiện tại\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Nhanh hơn</string>
-	<string name="mixnet_tuning_slider_slower_label">Chậm hơn</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Tính ẩn danh</string>
 	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số tinh chỉnh mixnet</string>
 	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>

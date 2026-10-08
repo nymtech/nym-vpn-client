@@ -184,7 +184,7 @@
 	<string name="one_click_nym_entry_node">एंट्री सर्वर</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">संरक्षित नहीं</string>
-	<string name="connection_status_fast_mode">तेज़ मोड सुरक्षा</string>
+	<string name="connection_status_fast_mode">dVPN मोड सुरक्षा</string>
 	<string name="connection_status_anonymous">मिक्सनेट सुरक्षा</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">स्वचालित</string>
@@ -537,25 +537,24 @@
 	<string name="mixnet_tuning_current_description">मानक नेटवर्क पर अपेक्षित राउंड-ट्रिप लेटेंसी (RTT)</string>
 	<string name="mixnet_tuning_traffic_title">लगातार ट्रैफ़िक भेजें</string>
 	<string name="mixnet_tuning_traffic_off_title">पृष्ठभूमि कवर ट्रैफ़िक दर</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ आपके पैकेट उपलब्ध होते ही भेज दिए जाएँगे। इससे ट्रैफ़िक पैटर्न का पता चल सकता है।</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">पैटर्न को एकसमान बनाए रखने के लिए कवर ट्रैफ़िक हमेशा भेजा जाता है। अपने पैकेट्स की भेजने की दर समायोजित करें।</string>
 	<string name="mixnet_tuning_traffic_off_description">चुनें कि आपको कितना कवर चाहिए।</string>
-	<string name="mixnet_tuning_traffic_on_low">0.7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 एमबीपीएस</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 एमबीपीएस</string>
+	<string name="mixnet_tuning_traffic_on_low">कम\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">उच्च\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">संतुलित\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Kam</string>
 	<string name="mixnet_tuning_traffic_off_high">उच्च\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">संतुलित\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">मध्यम\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ समय सुरक्षा वर्तमान में बंद है। इससे आपकी प्राइवेसी खतरे में पड़ सकती है।</string>
-	<string name="mixnet_tuning_delays_title">पैकेट मिक्सिंग</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ देरी को 0 पर सेट करने से मिक्सिंग हट जाती है, जिससे गुमनामी कम हो जाती है।</string>
+	<string name="mixnet_tuning_delays_title">मिक्सिंग में देरी</string>
 	<string name="mixnet_tuning_delays_description">पैकेटों के मिश्रण की गुणवत्ता को बदलने के लिए समय विलंब को समायोजित करें।</string>
 	<string name="mixnet_tuning_delays_low">निम्न\n0 मिलीसेकंड</string>
 	<string name="mixnet_tuning_delays_high">उच्च\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">डिफ़ॉल्ट\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">वर्तमान\n%1$s मिलीसेकंड</string>
 	<string name="mixnet_tuning_slider_faster_label">तेज़</string>
-	<string name="mixnet_tuning_slider_slower_label">धीमा</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ गुमनामी</string>
 	<string name="mixnet_tuning_link_text">मिक्सनेट ट्यूनिंग के बारे में और जानें</string>
 	<string name="mixnet_tuning_save_button">कस्टम सेटिंग्स सेव करें</string>

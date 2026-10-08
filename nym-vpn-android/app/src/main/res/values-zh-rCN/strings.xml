@@ -186,7 +186,7 @@
 	<string name="one_click_nym_entry_node">入口服务器</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">不受保护</string>
-	<string name="connection_status_fast_mode">快速模式保护</string>
+	<string name="connection_status_fast_mode">dVPN 模式保护</string>
 	<string name="connection_status_anonymous">混合网络保护</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
@@ -536,25 +536,24 @@
 	<string name="mixnet_tuning_current_description">标准网络上的预期往返延迟（RTT）</string>
 	<string name="mixnet_tuning_traffic_title">发送连续流量</string>
 	<string name="mixnet_tuning_traffic_off_title">掩护流量传输速率</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ 您的数据包将在生成后立即发送。这可能会暴露流量模式。</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">掩护流量会一直发送以确保流量特征的一致性。调整数据包的发送速率。</string>
 	<string name="mixnet_tuning_traffic_off_description">选择您需要多少掩护流量。</string>
-	<string name="mixnet_tuning_traffic_on_low">0.7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">低\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">高\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">平衡\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">低</string>
 	<string name="mixnet_tuning_traffic_off_high">高\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">平衡\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">中等\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ 时间延迟保护当前已关闭。这可能会使您的隐私处于危险之中。</string>
-	<string name="mixnet_tuning_delays_title">数据包混合</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ 将延迟调整为 0 会移除数据包混合，降低您的匿名性</string>
+	<string name="mixnet_tuning_delays_title">数据包延迟</string>
 	<string name="mixnet_tuning_delays_description">调整时间延迟以改变您的数据包混合的程度。</string>
 	<string name="mixnet_tuning_delays_low">低\n0 毫秒</string>
 	<string name="mixnet_tuning_delays_high">高\n200 毫秒</string>
 	<string name="mixnet_tuning_delays_default">默认\n15 毫秒</string>
 	<string name="mixnet_tuning_delays_current">当前\n%1$s 毫秒</string>
 	<string name="mixnet_tuning_slider_faster_label">更快</string>
-	<string name="mixnet_tuning_slider_slower_label">较慢</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ 匿名性</string>
 	<string name="mixnet_tuning_link_text">了解更多关于自定义混合网络参数的信息</string>
 	<string name="mixnet_tuning_save_button">保存自定义设置</string>

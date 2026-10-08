@@ -186,7 +186,7 @@
 	<string name="one_click_nym_entry_node">سرور ورودی</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">محافظت نشده</string>
-	<string name="connection_status_fast_mode">محافظت حالت سریع</string>
+	<string name="connection_status_fast_mode">حفاظت حالت dVPN</string>
 	<string name="connection_status_anonymous">محافظت میکس‌نتی</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">خودکار</string>
@@ -539,25 +539,24 @@
 	<string name="mixnet_tuning_current_description">تأخیر رفت‌وبرگشت مورد انتظار (RTT) در یک شبکه استاندارد</string>
 	<string name="mixnet_tuning_traffic_title">ارسال ترافیک مداوم</string>
 	<string name="mixnet_tuning_traffic_off_title">نرخ ترافیک پوشش پس‌زمینه</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ بسته‌های شما به محض در دسترس قرار گرفتن ارسال خواهند شد. این می‌تواند الگوهای ترافیک را فاش کند.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">ترافیک پوششی همیشه ارسال می‌شود تا الگو یکنواخت باقی بماند. نرخ ارسال بسته‌های خود را تنظیم کنید.</string>
 	<string name="mixnet_tuning_traffic_off_description">انتخاب کنید چه میزان پوشش نیاز دارید.</string>
-	<string name="mixnet_tuning_traffic_on_low">۰.۷ مگابیت بر ثانیه</string>
-	<string name="mixnet_tuning_traffic_on_high">۲ مگابیت بر ثانیه</string>
-	<string name="mixnet_tuning_traffic_on_balanced">۱ مگابیت بر ثانیه</string>
+	<string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">زیاد\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">بالانس\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">پایین</string>
 	<string name="mixnet_tuning_traffic_off_high">زیاد\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">متعادل\n۵بار</string>
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n۱۰بار</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ محافظت زمانی در حال حاضر غیرفعال است. این موضوع می‌تواند حریم خصوصی شما را در معرض خطر قرار دهد.</string>
-	<string name="mixnet_tuning_delays_title">تلفیق بسته‌ها</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ تنظیم تأخیر روی ۰، میکس را حذف می‌کند و ناشناس‌بودن را کاهش می‌دهد.</string>
+	<string name="mixnet_tuning_delays_title">تأخیرهای اختلاط</string>
 	<string name="mixnet_tuning_delays_description">با تنظیم تأخیر زمانی، میزان اختلاط بسته‌های خود را تغییر دهید.</string>
 	<string name="mixnet_tuning_delays_low">پایین\n۰ میلی‌ثانیه</string>
 	<string name="mixnet_tuning_delays_high">زیاد\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">جاری\n%1$s میلی‌ثانیه</string>
 	<string name="mixnet_tuning_slider_faster_label">سریع‌تر</string>
-	<string name="mixnet_tuning_slider_slower_label">کندتر</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ ناشناس‌بودن</string>
 	<string name="mixnet_tuning_link_text">دربارهٔ تنظیم میکس‌نت بیشتر بیاموزید</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>
