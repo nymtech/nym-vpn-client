@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fall back to plain WireGuard for the rest of the connection when the QUIC bridge cannot connect, instead of retrying the bridge
+- Run diagnostics in the background so a slow one no longer blocks other commands, such as disconnect
 - Remove a gateway from the blacklist once a tunnel through it connects, so a working server is not hidden from the server list
 - Only report connected once both the in-tunnel ping and the gateway metadata check pass, and tear down the tunnel when the ping check fails (removes the metadata-based teardown deferral from #5762 and the connect-on-healthy-metadata fallback from #6091)
 - Keep the cached gateway list on the first connect and when a discovery refresh updates the current network, instead of refetching it
