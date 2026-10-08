@@ -81,7 +81,7 @@ regex = "1.13.1"
 tauri-plugin-single-instance = { version = "2.4.4", features = ["deep-link"] }
 tauri-plugin-window-state = "2.4.1"
 tauri-plugin-opener = "2.5.5"
-tauri-plugin-autostart = "2.5.1"
+tauri-plugin-autostart = "2.7.0"
 tauri-plugin-deep-link = "2"
 
 [target."cfg(windows)".dependencies]
