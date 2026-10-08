@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix panic in logging system initialization (https://github.com/nymtech/nym-vpn-client/pull/6674)
 - Rotate logs on iOS and Android on per session basis (https://github.com/nymtech/nym-vpn-client/pull/6679)
 - Remove SQLite WAL and shared-memory files (-wal, -shm) along with their databases when wiping local storage. (https://github.com/nymtech/nym-vpn-client/pull/6706)
+- Fall back to plain WireGuard for the rest of the connection when the QUIC bridge cannot connect, instead of retrying the bridge
 
 ### Security
 
