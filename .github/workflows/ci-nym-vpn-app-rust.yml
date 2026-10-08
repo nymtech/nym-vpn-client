@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/ci-nym-vpn-app-rust.yml"
       - "nym-vpn-app/src-tauri/**"
+      - "nym-vpn-app/package.json"
+      - "nym-vpn-app/package-lock.json"
       - "nym-vpn-core/crates/nym-vpn-proto/**"
   workflow_dispatch:
 
@@ -96,3 +98,8 @@ jobs:
       - name: Typecheck
         working-directory: nym-vpn-app
         run: npm run tscheck
+
+      - name: Build app
+        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest')
+        working-directory: nym-vpn-app
+        run: npm run tauri build -- --debug --no-bundle
