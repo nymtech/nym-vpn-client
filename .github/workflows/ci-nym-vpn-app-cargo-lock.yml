@@ -11,6 +11,9 @@ on:
       - "nym-vpn-core/crates/**/Cargo.toml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: arc-linux-latest
