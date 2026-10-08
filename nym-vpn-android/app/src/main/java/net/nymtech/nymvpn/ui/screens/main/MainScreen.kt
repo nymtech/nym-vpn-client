@@ -214,10 +214,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	LaunchedEffect(authRoute) {
-		if (authRoute == null) return@LaunchedEffect
-		if (authRoute == AuthRoute.TechOpt || !appUiState.managerState.isMnemonicStored) {
-			bottomSheetContent = MainBottomSheetContent.Auth(authRoute)
+	LaunchedEffect(authRoute, appUiState.managerState.isInitialized) {
+		if (authRoute == null || !appUiState.managerState.isInitialized) return@LaunchedEffect
+		when {
+			authRoute == AuthRoute.TechOpt -> if (!appUiState.settings.technicalOptCompleted) {
+				bottomSheetContent = MainBottomSheetContent.Auth(authRoute)
+			}
+			!appUiState.managerState.isMnemonicStored -> bottomSheetContent = MainBottomSheetContent.Auth(authRoute)
 		}
 	}
 

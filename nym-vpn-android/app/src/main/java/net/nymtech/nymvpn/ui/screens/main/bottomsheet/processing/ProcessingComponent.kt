@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
@@ -55,6 +56,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
 import nym_vpn_lib_types.AccountControllerState
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -86,7 +88,11 @@ fun ProcessingComponent(onProcessingComplete: () -> Unit, authSheetMinHeightPx: 
 		}
 		viewModel.consumeNavigationRoute()
 		onProcessingComplete()
-		navController.navigateAndForget(destination)
+		if (destination is Route.Main) {
+			navController.navigateAndForgetToMain(destination)
+		} else {
+			navController.navigateAndForget(destination)
+		}
 	}
 
 	ProcessingComponentContent(
