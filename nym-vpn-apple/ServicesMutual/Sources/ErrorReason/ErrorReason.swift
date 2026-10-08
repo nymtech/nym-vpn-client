@@ -71,7 +71,7 @@ public struct ErrorReason: LocalizedError, Codable {
     }
 
     public init(with errorStateReason: ErrorStateReason) {
-        self.init(Code(with: errorStateReason))
+        self.init(Code(with: errorStateReason), details: errorStateReason.details)
     }
 
     public var errorDescription: String? {
@@ -125,11 +125,21 @@ private extension ErrorReason.Code {
     }
 }
 
+private extension ErrorStateReason {
+    var details: String? {
+        if case let .internal(details) = self {
+            details
+        } else {
+            nil
+        }
+    }
+}
+
 private extension ErrorReason.Code {
     init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
         case .internal:
-            self = .internalUnknown
+            self = .internalError
         case .sameEntryAndExitGateway:
             self = .sameEntryAndExitGateway
         case .invalidEntryGatewayCountry:

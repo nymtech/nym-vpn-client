@@ -45,7 +45,7 @@ extension GRPCManager {
             connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
-            errorReason = resolveError(with: details)
+            errorReason = ErrorReason(with: details)
         case let .offline(reconnect: reconnect):
             if reconnect {
                 tunnelStatus = .offlineReconnect
@@ -53,15 +53,6 @@ extension GRPCManager {
                 tunnelStatus = .offline
             }
         }
-    }
-}
-
-extension GRPCManager {
-    func resolveError(with tunnelStateError: ErrorStateReason) -> Error? {
-        if case let .internal(details) = tunnelStateError {
-            return ErrorReason(.internalError, details: details)
-        }
-        return ErrorReason(with: tunnelStateError)
     }
 }
 
