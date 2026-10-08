@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Download function removed from Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/6460)
 - Remove unused permissions (https://github.com/nymtech/nym-vpn-client/pull/6479)
 - Dismissible screen lock alert on Main Screen (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Unify nav transitions and fix predictive back flash (https://github.com/nymtech/nym-vpn-client/compare/as/bug-fixing?expand=1)
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix NavComponent crash after libs version update (https://github.com/nymtech/nym-vpn-client/pull/6442)
 - Screen lock confirmation on Android 7–10 devices with only a PIN, pattern or password (https://github.com/nymtech/nym-vpn-client/pull/6504)
 - Fix grey nav bar on bottom sheets (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Fix TechOptView transition (https://github.com/nymtech/nym-vpn-client/compare/as/bug-fixing?expand=1)
 
 ## [2026.12.3] - 2026-08-27
 
