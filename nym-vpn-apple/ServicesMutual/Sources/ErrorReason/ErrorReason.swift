@@ -37,6 +37,7 @@ public enum ErrorReason: LocalizedError, Codable {
     case inactiveSubscription
     case tunDevice
     case tunnelProvider
+    case setLocalDnsResolverConfig
     case inactiveAccount
     case deviceLoggedOut
     case credentialWastedOnEntryGateway
@@ -113,6 +114,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .needsDeviceLocation
         case .connectionAttemptsExceeded:
             self = .connectionAttemptsExceeded
+        case .setLocalDnsResolverConfig:
+            self = .setLocalDnsResolverConfig
         }
     }
 #endif
@@ -207,6 +210,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .needsDeviceLocation
         case .connectionAttemptsExceeded:
             self = .connectionAttemptsExceeded
+        case .setLocalDnsResolverConfig:
+            self = .setLocalDnsResolverConfig
         }
     }
 
@@ -315,6 +320,8 @@ private extension ErrorReason {
             "errorReason.credentialFetchingFailed".localizedString
         case .noCredentialAvailable:
             "errorReason.noCredentialAvailable".localizedString
+        case .setLocalDnsResolverConfig:
+            "errorReason.setLocalDnsResolverConfig".localizedString
         }
     }
 }
@@ -356,6 +363,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case inactiveSubscription
     case tunDevice
     case tunnelProvider
+    case setLocalDnsResolverConfig
     case inactiveAccount
     case deviceLoggedOut
     case credentialWastedOnEntryGateway
@@ -450,6 +458,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .needsDeviceLocation
         case .connectionAttemptsExceeded:
             self = .connectionAttemptsExceeded
+        case .setLocalDnsResolverConfig:
+            self = .setLocalDnsResolverConfig
         }
     }
 }
