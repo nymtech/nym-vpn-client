@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
+
+### Fixed
+
+- Enter error state on failure to configure local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/6629)
+- Auto selection no longer treats US states as separate jurisdictions: "exclude my country" and the entry/exit country check now compare whole countries only
+
+
+## [2026.13.0] - TBD
+
+### Added
+
 - Detect when the diagnostics check should be run (https://github.com/nymtech/nym-vpn-client/pull/5993)
 - Persist gateway list to disk, seeded from a built-in list (https://github.com/nymtech/nym-vpn-client/pull/6015)
 - [Linux] Authenticate also via UNIX group "nym-vpn" membership, or root (https://github.com/nymtech/nym-vpn-client/pull/6100)
