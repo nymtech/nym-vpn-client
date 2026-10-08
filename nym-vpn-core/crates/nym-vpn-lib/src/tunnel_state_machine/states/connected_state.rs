@@ -186,34 +186,18 @@ impl ConnectedState {
         #[cfg(any(target_os = "linux", target_os = "windows", target_os = "ios"))]
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
-        tracing::debug!(
-            "Enabling local DNS forwarder to: {}",
-            dns_config
-                .iter()
-                .map(|ns| {
-                    let protos = ns
-                        .connections
-                        .iter()
-                        .map(|conn| format!("{}/{}", conn.port, conn.protocol.to_protocol()))
-                        .collect::<Vec<_>>()
-                        .join(",");
-                    format!("{} ({})", ns.ip, protos)
-                })
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
+        tracing::debug!("Enabling local DNS forwarder to: {dns_config}");
 
-        if let Err(err) = shared_state
+        shared_state
             .filtering_resolver
             .enable_forward(
-                dns_config,
+                dns_config.into_inner(),
                 #[cfg(target_os = "ios")]
                 Some(tunnel_metadata.interface.clone()),
             )
             .await
-        {
-            trace_err_chain!(err, "failed to enable dns forwarding");
-        }
+            .inspect_err(|err| trace_err_chain!(err, "failed to enable dns forwarding"))
+            .map_err(Error::SetLocalDnsResolverConfig)?;
 
         #[cfg(any(target_os = "linux", target_os = "windows"))]
         {

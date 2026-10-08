@@ -210,6 +210,34 @@ pub struct TunnelSettings {
     pub gateway_independence: GatewayIndependence,
 }
 
+pub struct ResolverConfig(pub Vec<NameServerConfig>);
+
+impl ResolverConfig {
+    pub fn into_inner(self) -> Vec<NameServerConfig> {
+        self.0
+    }
+}
+
+impl std::fmt::Display for ResolverConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self
+            .0
+            .iter()
+            .map(|ns| {
+                let protos = ns
+                    .connections
+                    .iter()
+                    .map(|conn| format!("{}/{}", conn.port, conn.protocol.to_protocol()))
+                    .collect::<Vec<_>>()
+                    .join(",");
+                format!("{} ({})", ns.ip, protos)
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        f.write_str(&s)
+    }
+}
+
 impl TunnelSettings {
     /// The tunnel type to be used
     pub fn tunnel_type_used(&self) -> TunnelType {
@@ -232,7 +260,7 @@ impl TunnelSettings {
         }
     }
 
-    pub fn resolver_config(&self) -> Vec<NameServerConfig> {
+    pub fn resolver_config(&self) -> ResolverConfig {
         let defaults = || crate::DEFAULT_DNS_SERVERS_CONFIG.clone();
 
         let mut config = match self.dns {
@@ -250,7 +278,7 @@ impl TunnelSettings {
             }
         };
         config.retain(|ns| ns.ip.is_ipv4() || (ns.ip.is_ipv6() && self.enable_ipv6));
-        config
+        ResolverConfig(config)
     }
 
     /// Returns IP addresses of the DNS servers suitable for Android DNS configuraiton.
@@ -1365,8 +1393,12 @@ impl TunnelStateMachine {
 
         #[cfg(not(target_os = "android"))]
         {
-            let dns_filter = adblocker.get_dns_filter();
-            filtering_resolver.set_dns_filter(dns_filter).await;
+            if let Err(err) = filtering_resolver
+                .set_dns_filter(adblocker.get_dns_filter())
+                .await
+            {
+                nym_common::trace_err_chain!(err, "failed to set dns filter");
+            }
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1645,6 +1677,10 @@ pub enum Error {
     #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
 
+    #[cfg(not(target_os = "android"))]
+    #[error("failed to set local dns resolver config")]
+    SetLocalDnsResolverConfig(#[source] resolver::Error),
+
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     #[error("failed to start split tunnel task")]
     StartSplitTunnelTask(#[source] nym_split_tunnel::Error),
@@ -1747,6 +1783,8 @@ impl Error {
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(not(target_os = "android"))]
             Self::StartLocalDnsResolver(_) => None?,
+            #[cfg(not(target_os = "android"))]
+            Self::SetLocalDnsResolverConfig(_) => ErrorStateReason::SetLocalDnsResolverConfig,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartSplitTunnelTask(_) => None?,
             #[cfg(windows)]

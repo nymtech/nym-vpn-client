@@ -140,18 +140,9 @@ pub enum Error {
     /// Failed to create DNS resolver
     #[error("failed to create DNS resolver")]
     CreateResolver(#[source] hickory_resolver::net::NetError),
-}
 
-/// A DNS resolver that forwards queries to some other DNS server
-///
-/// Is controlled by commands sent through [ResolverHandle]s.
-pub struct LocalResolver {
-    rx: mpsc::UnboundedReceiver<ResolverMessage>,
-    dns_server_task: tokio::task::JoinHandle<()>,
-    bound_to: SocketAddr,
-    inner_resolver: Resolver,
-    dns_filter: DnsFilter,
-    shutdown_token: CancellationToken,
+    #[error("channel closed")]
+    ChannelClosed,
 }
 
 /// A message to [LocalResolver]
@@ -369,8 +360,8 @@ impl ResolverHandle {
         #[cfg(target_os = "ios")] bind_interface: Option<String>,
     ) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
-        if self
-            .tx
+
+        self.tx
             .send(ResolverMessage::SetConfig {
                 new_config: Config::Forwarding {
                     dns_servers,
@@ -379,45 +370,53 @@ impl ResolverHandle {
                 },
                 response_tx,
             })
-            .is_ok()
-        {
-            response_rx.await.ok().unwrap_or(Ok(()))
-        } else {
-            Ok(())
-        }
+            .map_err(|_| Error::ChannelClosed)?;
+
+        response_rx.await.map_err(|_| Error::ChannelClosed)?
     }
 
     /// Disable forwarding.
+    /// This call cannot fail except when resolver is down.
     pub async fn disable_forward(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
-        if self
-            .tx
+
+        self.tx
             .send(ResolverMessage::SetConfig {
                 new_config: Config::Blocking,
                 response_tx,
             })
-            .is_ok()
-        {
-            response_rx.await.ok().unwrap_or(Ok(()))
-        } else {
-            Ok(())
-        }
+            .map_err(|_| Error::ChannelClosed)?;
+
+        response_rx.await.map_err(|_| Error::ChannelClosed)?
     }
 
     /// Set the DNS filter.
-    pub async fn set_dns_filter(&self, dns_filter: DnsFilter) {
+    pub async fn set_dns_filter(&self, dns_filter: DnsFilter) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
-        if self
-            .tx
+
+        self.tx
             .send(ResolverMessage::SetDnsFilter {
                 dns_filter,
                 response_tx,
             })
-            .is_ok()
-        {
-            response_rx.await.ok();
-        }
+            .map_err(|_| Error::ChannelClosed)?;
+
+        response_rx.await.map_err(|_| Error::ChannelClosed)?;
+
+        Ok(())
     }
+}
+
+/// A DNS resolver that forwards queries to some other DNS server
+///
+/// It is controlled by commands sent through [ResolverHandle].
+pub struct LocalResolver {
+    rx: mpsc::UnboundedReceiver<ResolverMessage>,
+    dns_server_task: tokio::task::JoinHandle<()>,
+    bound_to: SocketAddr,
+    inner_resolver: Resolver,
+    dns_filter: DnsFilter,
+    shutdown_token: CancellationToken,
 }
 
 impl LocalResolver {
