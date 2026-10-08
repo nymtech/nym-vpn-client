@@ -9188,6 +9188,17 @@
         }
       }
     },
+    "errorReason.setLocalDnsResolverConfig" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure local DNS resolver"
+          }
+        }
+      }
+    },
     "errorReason.splitTunnel" : {
       "extractionState" : "manual",
       "localizations" : {
