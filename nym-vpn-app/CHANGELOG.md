@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Connection profiles: Auto, Anonymous, Fastest and Random (https://github.com/nymtech/nym-vpn-client/pull/6141, https://github.com/nymtech/nym-vpn-client/pull/6314)
+- Recently used servers (https://github.com/nymtech/nym-vpn-client/pull/6118)
+- Upcoming-expiry renewal reminder (https://github.com/nymtech/nym-vpn-client/pull/6512)
+- Mixnet tuning: cover-traffic toggle and tuning slider (https://github.com/nymtech/nym-vpn-client/pull/6598)
+- Italian and Indonesian locales (https://github.com/nymtech/nym-vpn-client/pull/6327)
+
+### Changed
+
+- Rename "Safest" to "Auto" (https://github.com/nymtech/nym-vpn-client/pull/6424)
+- Beta pill on the App & Wallet proxy setting (https://github.com/nymtech/nym-vpn-client/pull/6409)
+
 ### Fixed
 
 - (windows) Fix `cannot move state from Destroyed` panic on shutdown, logoff or Restart Manager close by bumping tauri to 2.12.1 (tao 0.37) (https://github.com/nymtech/nym-vpn-client/pull/6617)
