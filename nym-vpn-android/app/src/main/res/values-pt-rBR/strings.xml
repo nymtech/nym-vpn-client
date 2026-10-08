@@ -186,7 +186,7 @@
 	<string name="one_click_nym_entry_node">Servidor de entrada</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Não protegido</string>
-	<string name="connection_status_fast_mode">Proteção do modo rápido</string>
+	<string name="connection_status_fast_mode">proteção do modo dVPN</string>
 	<string name="connection_status_anonymous">Proteção Mixnet</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
@@ -543,18 +543,18 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="mixnet_tuning_current_description">Latência de ida e volta estimada (RTT) em uma rede padrão</string>
 	<string name="mixnet_tuning_traffic_title">Enviar tráfego contínuo</string>
 	<string name="mixnet_tuning_traffic_off_title">Taxa de tráfego de cobertura em segundo plano</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ Os seus pacotes serão enviados assim que estiverem disponíveis. Isso pode revelar padrões de tráfego.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">O tráfego de cobertura é sempre enviado para manter o padrão uniforme. Ajuste a taxa de envio dos seus pacotes.</string>
 	<string name="mixnet_tuning_traffic_off_description">Escolha a cobertura que você precisa.</string>
-	<string name="mixnet_tuning_traffic_on_low">0,7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">Baixo\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">Alto\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Balanceado\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Baixa</string>
 	<string name="mixnet_tuning_traffic_off_high">Alto\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Balanceado\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Médio\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ A proteção de temporização está desativada. Isso pode colocar sua privacidade em risco.</string>
-	<string name="mixnet_tuning_delays_title">Mistura de pacotes</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Configurar o atraso para 0 remove a mixagem, reduzindo o anonimato</string>
+	<string name="mixnet_tuning_delays_title">Atrasos de mixagem</string>
 	<string name="mixnet_tuning_delays_description">Ajuste os atrasos para melhorar a forma como seus pacotes são misturados.</string>
 	<string name="mixnet_tuning_delays_low">Baixo\n0m</string>
 	<string name="mixnet_tuning_delays_high">Alto\n200 ms</string>
@@ -562,7 +562,6 @@ Nota: Implementado apenas no lado do cliente.</string>
 15 ms</string>
 	<string name="mixnet_tuning_delays_current">Atual\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Mais rápido</string>
-	<string name="mixnet_tuning_slider_slower_label">Mais lento</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimato</string>
 	<string name="mixnet_tuning_link_text">Saiba mais sobre ajuste da mixnet</string>
 	<string name="mixnet_tuning_save_button">Salvar configurações personalizadas</string>

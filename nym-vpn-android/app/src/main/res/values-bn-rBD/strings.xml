@@ -184,7 +184,7 @@
 	<string name="one_click_nym_entry_node">এন্ট্রি সার্ভার</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">সুরক্ষিত নয়</string>
-	<string name="connection_status_fast_mode">ফাস্ট মোড সুরক্ষা</string>
+	<string name="connection_status_fast_mode">dVPN মোড সুরক্ষা</string>
 	<string name="connection_status_anonymous">মিক্সনেট সুরক্ষা</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">স্বয়ংক্রিয়</string>
@@ -536,25 +536,24 @@
 	<string name="mixnet_tuning_current_description">একটি স্ট্যান্ডার্ড নেটওয়ার্কে প্রত্যাশিত রাউন্ড-ট্রিপ লেটেন্সি (RTT)</string>
 	<string name="mixnet_tuning_traffic_title">অবিরত ট্র্যাফিক পাঠান</string>
 	<string name="mixnet_tuning_traffic_off_title">পটভূমি কভার ট্র্যাফিক রেট</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ আপনার প্যাকেটগুলো উপলব্ধ হওয়া মাত্রই পাঠানো হবে। এতে ট্র্যাফিকের ধরণ প্রকাশ পেতে পারে।</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ অবিচ্ছিন্ন ট্র্যাফিক বন্ধ করা হয়েছে। আপনার প্যাকেটগুলো উপলব্ধ হওয়া মাত্রই পাঠানো হবে। এর ফলে ট্র্যাফিকের ধরন প্রকাশ পেতে পারে।</string>
 	<string name="mixnet_tuning_traffic_on_description">ধরণ অভিন্ন রাখতে সর্বদা কভার ট্র্যাফিক পাঠানো হয়। আপনার প্যাকেট পাঠানোর হার সামঞ্জস্য করুন।</string>
 	<string name="mixnet_tuning_traffic_off_description">আপনি কতটা কভার চান তা নির্বাচন করুন।</string>
-	<string name="mixnet_tuning_traffic_on_low">0.7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">সর্বনিম্ন\n০.৭ Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">সর্বোচ্চ\n২ Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">ভারসাম্যপূর্ণ\n১ Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">নিম্ন</string>
 	<string name="mixnet_tuning_traffic_off_high">সর্বোচ্চ\n২০x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">ভারসাম্যপূর্ণ\n৫x</string>
 	<string name="mixnet_tuning_traffic_off_medium">মাঝারি\n১০x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ সময় সুরক্ষা বর্তমানে বন্ধ আছে। এটি আপনার গোপনীয়তাকে ঝুঁকিতে ফেলতে পারে।</string>
-	<string name="mixnet_tuning_delays_title">প্যাকেট মিক্সিং</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ ডিলে ০-তে সেট করলে মিক্সিং বন্ধ হয়ে যায়, ফলে পরিচয় গোপন থাকার সম্ভাবনা কমে যায়</string>
+	<string name="mixnet_tuning_delays_title">মিক্সিং বিলম্ব</string>
 	<string name="mixnet_tuning_delays_description">আপনার প্যাকেটগুলো কতটা ভালোভাবে মিশ্রিত হবে তা পরিবর্তন করতে টাইমিং ডিলে সমন্বয় করুন।</string>
 	<string name="mixnet_tuning_delays_low">নিম্ন\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">উচ্চ\n২০০ ms</string>
 	<string name="mixnet_tuning_delays_default">ডিফল্ট\n১৫ ms</string>
 	<string name="mixnet_tuning_delays_current">বর্তমান\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">দ্রুততর</string>
-	<string name="mixnet_tuning_slider_slower_label">ধীর</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ অজ্ঞাতনামা</string>
 	<string name="mixnet_tuning_link_text">মিক্সনেট টিউনিং সম্পর্কে আরও জানুন</string>
 	<string name="mixnet_tuning_save_button">কাস্টম সেটিংস সংরক্ষণ করুন</string>

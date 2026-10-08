@@ -186,7 +186,7 @@
 	<string name="one_click_nym_entry_node">Сервер входа</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Не защищено</string>
-	<string name="connection_status_fast_mode">Защита в быстром режиме</string>
+	<string name="connection_status_fast_mode">Защита в режиме dVPN</string>
 	<string name="connection_status_anonymous">Защита микснета</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Авто</string>
@@ -542,25 +542,24 @@
 	<string name="mixnet_tuning_current_description">Ожидаемая круговая задержка (RTT) в стандартной сети</string>
 	<string name="mixnet_tuning_traffic_title">Непрерывная отправка трафика</string>
 	<string name="mixnet_tuning_traffic_off_title">Скорость фонового прикрывающего трафика</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ Ваши пакеты будут отправляться по мере поступления. Это может раскрывать сетевые паттерны.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">Прикрывающий трафик отправляется постоянно для поддержания единообразия паттерна. Настройте скорость отправки ваших пакетов.</string>
 	<string name="mixnet_tuning_traffic_off_description">Выберите нужный уровень маскировки.</string>
-	<string name="mixnet_tuning_traffic_on_low">0,7 Мбит/с</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Мбит/с</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Мбит/с</string>
+	<string name="mixnet_tuning_traffic_on_low">Низкий\n0,7 Мбит/с</string>
+	<string name="mixnet_tuning_traffic_on_high">Высокий\n2 Мбит/с</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Сбалансированный\n1 Мбит/с</string>
 	<string name="mixnet_tuning_traffic_off_low">Низкий</string>
 	<string name="mixnet_tuning_traffic_off_high">Высокая\nx20</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Сбалансированная\nx5</string>
 	<string name="mixnet_tuning_traffic_off_medium">Средняя\nx10</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Защита на основе временных задержек отключена. Это может поставить под угрозу вашу конфиденциальность.</string>
-	<string name="mixnet_tuning_delays_title">Смешивание пакетов</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Установка задержки на 0 отключает перемешивание, что снижает анонимность</string>
+	<string name="mixnet_tuning_delays_title">Задержки микширования</string>
 	<string name="mixnet_tuning_delays_description">Настройте временные задержки, определяющие степень перемешивания ваших пакетов.</string>
 	<string name="mixnet_tuning_delays_low">Низкая\n0 мс</string>
 	<string name="mixnet_tuning_delays_high">Высокая\n200 мс</string>
 	<string name="mixnet_tuning_delays_default">По умолчанию\n15 мс</string>
 	<string name="mixnet_tuning_delays_current">Текущее\n%1$s мс</string>
 	<string name="mixnet_tuning_slider_faster_label">Быстрее</string>
-	<string name="mixnet_tuning_slider_slower_label">Медленнее</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Анонимность</string>
 	<string name="mixnet_tuning_link_text">Узнайте больше о настройке микснета</string>
 	<string name="mixnet_tuning_save_button">Сохранить пользовательские настройки</string>

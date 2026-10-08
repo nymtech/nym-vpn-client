@@ -184,7 +184,7 @@
 	<string name="one_click_nym_entry_node">Giriş sunucusu</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Korunmuyor</string>
-	<string name="connection_status_fast_mode">Hızlı mod koruması</string>
+	<string name="connection_status_fast_mode">dVPN modu koruması</string>
 	<string name="connection_status_anonymous">Mixnet koruması</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Otomatik</string>
@@ -538,25 +538,24 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_current_description">Standart bir ağda tahmini gidiş-dönüş gecikme süresi (RTT)</string>
 	<string name="mixnet_tuning_traffic_title">Sürekli trafik gönder</string>
 	<string name="mixnet_tuning_traffic_off_title">Arka planda gönderilen sahte trafik hızı</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ Paketleriniz hazır olur olmaz gönderilecektir. Bu durum, trafik desenlerinin ortaya çıkmasına neden olabilir.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Kesintisiz trafik devre dışı. Paketleriniz hazır olduğunda gönderilecek, bu da trafik desenlerinin ortaya çıkmasına neden olabilir.</string>
 	<string name="mixnet_tuning_traffic_on_description">Trafik desenini korumak için sahte paketler sürekli gönderilir. Paketlerinizin gönderim hızını ayarlayabilirsiniz.</string>
 	<string name="mixnet_tuning_traffic_off_description">İhtiyacınız olan teminat tutarını seçin.</string>
-	<string name="mixnet_tuning_traffic_on_low">0,7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">Düşük\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">Yüksek\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Dengeli\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Düşük</string>
 	<string name="mixnet_tuning_traffic_off_high">Yüksek\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Dengeli\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Orta\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Zamanlama koruması devre dışı. Bu durum, gizliliğinizi tehlikeye atabilir.</string>
-	<string name="mixnet_tuning_delays_title">Paket karıştırma</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Gecikmeyi 0\'a ayarlamak mixing özelliğini kaldırır, anonimlik seviyesini düşürür</string>
+	<string name="mixnet_tuning_delays_title">Paket karıştırma gecikmeleri</string>
 	<string name="mixnet_tuning_delays_description">Paketlerinizin karışma düzeyini değiştirmek için zamanlama gecikmelerini ayarlayabilirsiniz.</string>
 	<string name="mixnet_tuning_delays_low">Düşük\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Yüksek\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Varsayılan\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Mevcut\n%1$s</string>
 	<string name="mixnet_tuning_slider_faster_label">Daha Hızlı</string>
-	<string name="mixnet_tuning_slider_slower_label">Daha yavaş</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimlik</string>
 	<string name="mixnet_tuning_link_text">Mixnet parametreleri hakkında daha fazla bilgi edinin</string>
 	<string name="mixnet_tuning_save_button">Özel ayarları kaydedin</string>

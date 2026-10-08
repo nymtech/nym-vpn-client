@@ -185,7 +185,7 @@
 	<string name="one_click_nym_entry_node">Server entri</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Tidak terlindungi</string>
-	<string name="connection_status_fast_mode">Perlindungan mode cepat</string>
+	<string name="connection_status_fast_mode">Perlindungan mode dVPN</string>
 	<string name="connection_status_anonymous">Perlindungan Mixnet</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
@@ -535,25 +535,24 @@
 	<string name="mixnet_tuning_current_description">Latensi bolak-balik (RTT) yang diperkirakan pada jaringan standar</string>
 	<string name="mixnet_tuning_traffic_title">Mengirimkan lalu lintas secara terus-menerus</string>
 	<string name="mixnet_tuning_traffic_off_title">Latar belakang, cakupan, dan tingkat lalu lintas</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ Paket-paket Anda akan dikirim begitu tersedia. Hal ini dapat mengungkap pola lalu lintas.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Fitur lalu lintas berkelanjutan telah dinonaktifkan. Paket data Anda akan dikirim begitu tersedia. Hal ini berpotensi mengungkap pola lalu lintas.</string>
 	<string name="mixnet_tuning_traffic_on_description">Lalu lintas penyamaran senantiasa dikirimkan untuk menjaga keseragaman pola. Sesuaikan laju pengiriman paket Anda.</string>
 	<string name="mixnet_tuning_traffic_off_description">Pilih besaran pertanggungan yang Anda butuhkan.</string>
-	<string name="mixnet_tuning_traffic_on_low">0,7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">Rendah\n0,7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">Tinggi\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Seimbang\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">Rendah</string>
 	<string name="mixnet_tuning_traffic_off_high">Tinggi\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Seimbang\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Sedang\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Fitur perlindungan waktu saat ini dinonaktifkan. Hal ini dapat membahayakan privasi Anda.</string>
-	<string name="mixnet_tuning_delays_title">Pencampuran paket</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Menetapkan penundaan ke 0 akan menonaktifkan pencampuran, sehingga mengurangi tingkat anonimitas</string>
+	<string name="mixnet_tuning_delays_title">Penundaan pencampuran</string>
 	<string name="mixnet_tuning_delays_description">Sesuaikan penundaan waktu untuk mengubah seberapa baik paket-paket Anda dicampur.</string>
 	<string name="mixnet_tuning_delays_low">Rendah\n0 ms</string>
 	<string name="mixnet_tuning_delays_high">Tinggi\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
 	<string name="mixnet_tuning_delays_current">Saat ini\n%1$s ms</string>
 	<string name="mixnet_tuning_slider_faster_label">Lebih cepat</string>
-	<string name="mixnet_tuning_slider_slower_label">Lebih lambat</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ Anonimitas</string>
 	<string name="mixnet_tuning_link_text">Pelajari lebih lanjut tentang penyetelan Mixnet</string>
 	<string name="mixnet_tuning_save_button">Simpan pengaturan khusus</string>

@@ -186,7 +186,7 @@
 	<string name="one_click_nym_entry_node">خادم الإدخال</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">غير محمي</string>
-	<string name="connection_status_fast_mode">حماية الوضع السريع</string>
+	<string name="connection_status_fast_mode">حماية وضع dVPN</string>
 	<string name="connection_status_anonymous">حماية Mixnet</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">تلقائي</string>
@@ -546,25 +546,24 @@
 	<string name="mixnet_tuning_current_description">التأخير المتوقع للرحلة ذهابا وإيابا على شبكة قياسية</string>
 	<string name="mixnet_tuning_traffic_title">إرسال حركة مرور مستمرة</string>
 	<string name="mixnet_tuning_traffic_off_title">معدل حركة مرور غطاء الخلفية</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ سيتم إرسال حزم البيانات الخاصة بك فور توفرها. وقد يؤدي ذلك إلى الكشف عن أنماط حركة المرور.</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ تم إيقاف حركة المرور المستمرة. سيتم إرسال الحزم الخاصة بك عندما تصبح متاحة. قد يكشف هذا عن أنماط حركة المرور.</string>
 	<string name="mixnet_tuning_traffic_on_description">يتم إرسال حركة المرور التغطية دائمًا للحفاظ على توحيد النمط. اضبط معدل إرسال الحزم الخاصة بك.</string>
 	<string name="mixnet_tuning_traffic_off_description">اختر مقدار التغطية التي تحتاجها.</string>
-	<string name="mixnet_tuning_traffic_on_low">0.7 ميجابت في الثانية</string>
-	<string name="mixnet_tuning_traffic_on_high">2 ميجابت في الثانية</string>
-	<string name="mixnet_tuning_traffic_on_balanced">1 ميجابت في الثانية</string>
+	<string name="mixnet_tuning_traffic_on_low">منخفض\n0.7 ميغابايت</string>
+	<string name="mixnet_tuning_traffic_on_high">عالي\n2 ميغابايت</string>
+	<string name="mixnet_tuning_traffic_on_balanced">متوازنة\n1 ميغابايت</string>
 	<string name="mixnet_tuning_traffic_off_low">منخفض</string>
 	<string name="mixnet_tuning_traffic_off_high">عالي\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">متوازن\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ تم إيقاف حماية التوقيت حاليا. هذا يمكن أن يعرض خصوصيتك للخطر.</string>
-	<string name="mixnet_tuning_delays_title">مزج الحزم</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ ضبط التأخير على 0 يؤدي إلى إزالة المزج، مما يقلل من مستوى إخفاء الهوية</string>
+	<string name="mixnet_tuning_delays_title">خلط التأخيرات</string>
 	<string name="mixnet_tuning_delays_description">ضبط تأخير التوقيت لتغيير مدى خلط الحزم الخاصة بك.</string>
 	<string name="mixnet_tuning_delays_low">منخفض\n0 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_high">عالي\n200 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_default">إفتراضي\n15 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_current">الحالي\n%1$s مللي ثانية</string>
 	<string name="mixnet_tuning_slider_faster_label">أسرع</string>
-	<string name="mixnet_tuning_slider_slower_label">أبطأ</string>
 	<string name="mixnet_tuning_slider_anonymity_label">+ إخفاء الهوية</string>
 	<string name="mixnet_tuning_link_text">تعرف على المزيد حول ضبط Mixnet</string>
 	<string name="mixnet_tuning_save_button">حفظ الإعدادات المخصصة</string>
