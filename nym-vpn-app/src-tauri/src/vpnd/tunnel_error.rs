@@ -24,6 +24,7 @@ pub enum TunnelError {
     Ipv6Unavailable,
     TunDevice,
     TunnelProvider,
+    SetLocalDnsResolverConfig,
     InactiveAccount,
     CredentialWastedOnEntryGateway,
     CredentialWastedOnExitGateway,
@@ -60,6 +61,9 @@ impl From<lib::ErrorStateReason> for TunnelError {
             lib::ErrorStateReason::SetRouting => TunnelError::SetRouting,
             lib::ErrorStateReason::TunDevice => TunnelError::TunDevice,
             lib::ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider,
+            lib::ErrorStateReason::SetLocalDnsResolverConfig => {
+                TunnelError::SetLocalDnsResolverConfig
+            }
             lib::ErrorStateReason::InactiveAccount => TunnelError::InactiveAccount,
             lib::ErrorStateReason::DeviceLoggedOut => TunnelError::DeviceLoggedOut,
             lib::ErrorStateReason::CredentialWastedOnEntryGateway => {
