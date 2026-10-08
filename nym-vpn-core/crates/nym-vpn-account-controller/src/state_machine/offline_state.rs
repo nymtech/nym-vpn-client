@@ -60,6 +60,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::DeleteAccount(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::LinkAccount(return_sender, _) => return_no_connectivity(return_sender),
+                    AccountCommand::QrPairAccount(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::RotateKeys(return_sender) => {
                         return_sender.send(handler::handle_rotate_keys(shared_state).await)
                     },

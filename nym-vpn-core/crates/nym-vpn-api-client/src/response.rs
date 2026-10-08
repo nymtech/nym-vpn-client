@@ -855,6 +855,18 @@ pub struct NymUserGeoIpLocationResponse {
     pub location: Location,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnPairingResponse {
+    pub ttl_seconds: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnPairingCheckResponse {
+    pub pin_code: Option<String>,
+}
+
 pub type RegisteredNetworksResponse = HashSet<String>;
 
 #[cfg(test)]

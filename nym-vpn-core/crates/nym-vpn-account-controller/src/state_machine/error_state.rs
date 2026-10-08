@@ -107,6 +107,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         let res = handler::handle_link_account(shared_state, privy_account).await;
                         return_sender.send(res);
                     },
+                    AccountCommand::QrPairAccount(return_sender) => {
+                        let res = handler::handle_qr_pair_account(shared_state).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::RotateKeys(return_sender) => {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);

@@ -995,6 +995,20 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn start_pairing_account(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::QrUrlResponse>> {
+        let qr_url = self
+            .send_and_wait(VpnServiceCommand::StartPairingAccount, ())
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to start pairing: {err}")))?;
+
+        let response = proto::QrUrlResponse::from(qr_url);
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,

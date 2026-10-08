@@ -11,8 +11,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, RegisterAccountResponse, StorableAccount,
-    StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, QrUrl, RegisterAccountResponse,
+    StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 
 use tokio::sync::mpsc::UnboundedSender;
@@ -61,6 +61,15 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::LinkAccount(tx, privy_account))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn qr_pair_account(&self) -> Result<QrUrl, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::QrPairAccount(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

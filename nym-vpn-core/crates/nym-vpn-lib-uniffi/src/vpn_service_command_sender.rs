@@ -13,7 +13,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     DiagnosticRunParams, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
+    QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
     VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
@@ -442,6 +442,13 @@ impl NymVpnServiceCommandSender {
                 VpnServiceCommand::DeeplinkStoreAccount,
                 deeplink_callback_url,
             )
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn start_pairing_account(&self) -> Result<QrUrl> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::StartPairingAccount, ())
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
