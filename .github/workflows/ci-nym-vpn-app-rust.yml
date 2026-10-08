@@ -89,11 +89,11 @@ jobs:
 
       - name: clippy check
         working-directory: nym-vpn-app/src-tauri
-        run: cargo clippy -- -Dwarnings
+        run: cargo clippy --locked -- -Dwarnings
 
       - name: Generate TS types
         working-directory: nym-vpn-app/src-tauri
-        run: cargo test
+        run: cargo test --locked
 
       - name: Typecheck
         working-directory: nym-vpn-app
@@ -102,4 +102,4 @@ jobs:
       - name: Build app
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest')
         working-directory: nym-vpn-app
-        run: npm run tauri build -- --debug --no-bundle
+        run: npm run tauri build -- --debug --no-bundle -- --locked

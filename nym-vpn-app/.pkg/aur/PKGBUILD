@@ -39,7 +39,7 @@ build() {
   npm i
 
   export RUSTUP_TOOLCHAIN=stable
-  npm run tauri build -- --no-bundle
+  npm run tauri build -- --no-bundle -- --locked
 }
 
 package() {
