@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration profiles: Safest, Most Private, Fastest and Random (https://github.com/nymtech/nym-vpn-client/pull/6073)
 - Add `six_months` subscription kind to the vpn-api models and gRPC proto (https://github.com/nymtech/nym-vpn-client/pull/6320)
 - Add end-to-end plumbing for dynamically applying DNS fallbacks from Discovery (https://github.com/nymtech/nym-vpn-client/pull/6126)
-- [Desktop] Detect conflicting software and report it to the user (https://github.com/nymtech/nym-vpn-client/pull/6122)
+- [Desktop] Detect conflicting software and report it to the user (https://github.com/nymtech/nym-vpn-client/pull/6122). Temporarily disabled, as it falsely reports DNS interception on systemd-resolved systems
 
 ### Changed
 
@@ -37,6 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Run diagnostics in the background so a slow one no longer blocks other commands, such as disconnect
+- Remove a gateway from the blacklist once a tunnel through it connects, so a working server is not hidden from the server list
+- Only report connected once both the in-tunnel ping and the gateway metadata check pass, and tear down the tunnel when the ping check fails (removes the metadata-based teardown deferral from #5762 and the connect-on-healthy-metadata fallback from #6091)
+- Keep the cached gateway list on the first connect and when a discovery refresh updates the current network, instead of refetching it
+- Keep the in-flight location lookup instead of restarting it on each connect or settings update, so automatic gateway selection is less likely to fall back to random
+- Treat a built-in or unknown-age gateway cache as stale on startup so a fresh list is fetched (including an on-disk cache older than the Windows system uptime)
 - Remove failed pending requests before creating new ones (https://github.com/nymtech/nym-vpn-client/pull/6295)
 - [macOS] Fix file permissions for `nym-vpnc` in the macOS installer package, helping ensure the installed application can run correctly (https://github.com/nymtech/nym-vpn-client/pull/6456)
 
