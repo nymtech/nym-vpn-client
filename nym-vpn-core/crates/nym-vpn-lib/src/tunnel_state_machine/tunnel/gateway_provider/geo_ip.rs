@@ -58,11 +58,9 @@ pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
         x.two_letter_iso_country_code.as_str(),
         y.two_letter_iso_country_code.as_str(),
     );
-    if a == b {
-        // US gateways are distinguished per-region rather than per-country.
-        return a != "US" || x.region == y.region;
-    }
-    same_jurisdiction_group(a, b)
+    // Sub-national regions (e.g. US states) are never treated as separate
+    // jurisdictions: the same country code always means the same jurisdiction.
+    a == b || same_jurisdiction_group(a, b)
 }
 
 // Compare two gateways' distance to a given reference point
@@ -288,6 +286,38 @@ pub mod tests {
         assert!(!same_jurisdiction_group("TW", "JP"));
         assert!(!same_jurisdiction_group("US", "GB"));
         assert!(!same_jurisdiction_group("DE", "FR"));
+    }
+
+    fn location(country: &str, region: &str) -> Location {
+        Location {
+            two_letter_iso_country_code: country.to_string(),
+            region: region.to_string(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn same_country_is_same_jurisdiction_regardless_of_region() {
+        // US states are not separate jurisdictions: a user in New York must not
+        // be offered a California gateway when excluding their own country.
+        assert!(same_jurisdiction(
+            &location("US", "New York"),
+            &location("US", "California")
+        ));
+        assert!(same_jurisdiction(
+            &location("US", "Texas"),
+            &location("US", "Texas")
+        ));
+        assert!(same_jurisdiction(
+            &location("DE", "Bavaria"),
+            &location("DE", "Berlin")
+        ));
+        assert!(!same_jurisdiction(
+            &location("US", "New York"),
+            &location("CA", "Ontario")
+        ));
+        // Jurisdiction groups still apply across different country codes.
+        assert!(same_jurisdiction(&location("CN", ""), &location("TW", "")));
     }
 
     #[derive(Clone)]
