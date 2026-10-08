@@ -236,6 +236,9 @@ pub enum TunnelMonitorEvent {
         gateway_id: NodeIdentity,
     },
 
+    /// The bridge to the entry gateway could not be opened.
+    BridgeFailed,
+
     /// Connection has failed
     ConnectionFailed {
         /// Entry gateway used during the failed attempt.
@@ -673,7 +676,8 @@ impl TunnelMonitor {
                 let bridge_close_tx = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
                     let (entry_bridge_addr, transport_fwd_handle) = self
                         .start_bridges(&selected_gateways, bridge_close_tx)
-                        .await?;
+                        .await
+                        .inspect_err(|_| self.send_event(TunnelMonitorEvent::BridgeFailed))?;
 
                     wg_tunnel_runtime.transport_fwd_handle = Some(transport_fwd_handle);
                     connection_data.entry_bridge_addr = Some(entry_bridge_addr);

@@ -807,6 +807,13 @@ impl TunnelStateHandler for ConnectingState {
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
+                    TunnelMonitorEvent::BridgeFailed => {
+                        // The bridge is unreachable from this network, so retry over plain
+                        // WireGuard. Only the running settings change, the saved ones stay.
+                        tracing::warn!("Bridge connection failed, falling back to plain WireGuard");
+                        shared_state.tunnel_settings.wireguard_tunnel_options.enable_bridges = false;
+                        NextTunnelState::SameState(self)
+                    }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
                         // Registration with the entry gateway failed; blacklist it to avoid
                         // re-selecting the same failing gateway.
