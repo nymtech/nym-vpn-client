@@ -13,6 +13,7 @@ mod deeplink;
 mod error;
 mod event_sender;
 mod nyxd_client;
+mod qr_pairing;
 mod shared_state;
 mod state_machine;
 mod state_receiver;

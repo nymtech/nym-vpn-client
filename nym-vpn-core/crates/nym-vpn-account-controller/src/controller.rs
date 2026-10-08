@@ -7,6 +7,7 @@ use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
 use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
 use tokio::sync::{
+    broadcast,
     mpsc::{self, UnboundedReceiver, UnboundedSender},
     watch,
 };
@@ -64,6 +65,7 @@ where
     S: VpnStorage + Send + Sync + 'static,
     C: ConnectivityMonitor,
 {
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         nym_vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
@@ -71,6 +73,7 @@ where
         storage: S,
         connectivity_handle: C,
         bandwidth_control_command_tx: BandwidthControllerRequestSender,
+        tunnel_event_tx: broadcast::Sender<nym_vpn_lib_types::TunnelEvent>,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -122,6 +125,7 @@ where
             device_keys,
             storage_op_sender,
             event_channel,
+            tunnel_event_tx,
             cancel_token.clone(),
         );
 
