@@ -671,22 +671,32 @@ extension CredentialsManager {
                 sawStale = sawStale || mark?.stale == true
                 let elapsedSinceRefresh = TimeInterval(started.duration(to: .now).components.seconds)
                 switch AccountSummaryRefreshPolicy.manualRefreshPoll(
-                    hasSummary: mark != nil, stale: mark?.stale == true, sawStale: sawStale,
+                    hasSummary: mark != nil,
+                    stale: mark?.stale == true,
+                    sawStale: sawStale,
                     lastSyncedUnixSeconds: mark?.lastSyncedUnixSeconds,
-                    syncedBeforeRefresh: before?.lastSyncedUnixSeconds, elapsedSeconds: elapsedSinceRefresh,
+                    syncedBeforeRefresh: before?.lastSyncedUnixSeconds,
+                    elapsedSeconds: elapsedSinceRefresh,
                     followUpMissing: false
                 ) {
-                case .keepWaiting: try await Task.sleep(for: .milliseconds(400))
+                case .keepWaiting:
+                    try await Task.sleep(for: .milliseconds(400))
                 case .apply:
                     let summary = try await grpcManager.accountSummary()
                     guard AccountSummaryRefreshPolicy.manualRefreshPoll(
-                        hasSummary: summary != nil, stale: false, sawStale: summary != nil,
-                        lastSyncedUnixSeconds: nil, syncedBeforeRefresh: nil, elapsedSeconds: 0, followUpMissing: summary == nil
+                        hasSummary: summary != nil,
+                        stale: false,
+                        sawStale: summary != nil,
+                        lastSyncedUnixSeconds: nil,
+                        syncedBeforeRefresh: nil,
+                        elapsedSeconds: 0,
+                        followUpMissing: summary == nil
                     ) == .apply, let summary else { throw AccountDaemonRefreshError.summaryUnavailable }
                     accountSummary = summary
                     accountSummaryLastFetchFailed = false
                     return
-                case .giveUp: throw AccountDaemonRefreshError.timedOut
+                case .giveUp:
+                    throw AccountDaemonRefreshError.timedOut
                 }
             }
         } catch {
