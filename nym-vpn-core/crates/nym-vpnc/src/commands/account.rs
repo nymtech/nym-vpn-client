@@ -73,6 +73,8 @@ pub enum Command {
         #[arg(long)]
         url: String,
     },
+    /// Start QR pairing
+    StartPairing,
 }
 
 impl Command {
@@ -223,6 +225,11 @@ impl Command {
                 } else {
                     println!("Deeplink account stored successfully");
                 }
+                Ok(())
+            }
+            Command::StartPairing => {
+                let response = rpc_client.start_pairing_account().await?;
+                println!("Pairing process started with URL: {}", response.url);
                 Ok(())
             }
         }

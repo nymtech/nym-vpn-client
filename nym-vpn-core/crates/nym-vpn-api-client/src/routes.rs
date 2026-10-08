@@ -31,6 +31,8 @@ pub(crate) const AGGREGATED_EXPIRATION_DATE_SIGNATURES: &str =
     "aggregated-expiration-date-signatures";
 pub(crate) const GEO: &str = "geo";
 pub(crate) const IP: &str = "ip";
+pub(crate) const PAIRING: &str = "pairing";
+pub(crate) const CHECK: &str = "check";
 
 pub(crate) const EPOCH_ID: &str = "epoch-id";
 pub(crate) const EXPIRATION_DATE: &str = "expiration-date";

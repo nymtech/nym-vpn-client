@@ -35,6 +35,7 @@ pub enum TunnelEvent {
     AccountState(AccountControllerState),
     DiagnosticsSuggested(DiagnosticsSuggestionReason),
     ConflictDetected(ConflictDetected),
+    PairingCheck(PairingCheckResult),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -49,6 +50,9 @@ impl fmt::Display for TunnelEvent {
             }
             Self::ConflictDetected(conflict) => {
                 write!(f, "Conflict detected: {conflict}")
+            }
+            Self::PairingCheck(result) => {
+                write!(f, "Pairing check result: {result}")
             }
         }
     }
@@ -87,6 +91,41 @@ impl fmt::Display for ConflictDetected {
             Self::CompetingFirewall => write!(
                 f,
                 "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity"
+            ),
+        }
+    }
+}
+
+/// The out of band result of doing background checks on the started QR pairing process.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum PairingCheckResult {
+    Cancelled,
+    TimedOut,
+    Error(String),
+    PinCode(String),
+}
+
+impl fmt::Display for PairingCheckResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cancelled => write!(f, "QR pairing process was cancelled"),
+            Self::TimedOut => write!(
+                f,
+                "No device scanned the QR code, so it became invalid. Please retry the process with a new QR code."
+            ),
+            Self::Error(err) => write!(f, "An error occurred while pairing a new device: {err}"),
+            Self::PinCode(_) => write!(
+                f,
+                "Obtained the PIN code. Please show it to the user and ask for confirmation that it matches the PIN code displayed on the other device."
             ),
         }
     }

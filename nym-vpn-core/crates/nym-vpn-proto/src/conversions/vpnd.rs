@@ -12,7 +12,7 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, GatewayType,
     LewesProtocolDetails, LewesProtocolDetailsData, ListGatewaysOptions, LogPath,
-    NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions, SshClientOptions,
+    NymNetworkDetails, NymVpnNetwork, Performance, QrUrl, QuicClientOptions, SshClientOptions,
     StoreAccountRequest, SystemMessage, TlsClientOptions, UserAgent, VpnServiceInfo,
 };
 
@@ -964,5 +964,17 @@ impl From<nym_vpn_lib_types::Country> for proto::Country {
         proto::Country {
             two_letter_iso_country_code: country.iso_code().to_string(),
         }
+    }
+}
+
+impl From<QrUrl> for proto::QrUrlResponse {
+    fn from(value: QrUrl) -> Self {
+        Self { url: value.url }
+    }
+}
+
+impl From<proto::QrUrlResponse> for QrUrl {
+    fn from(value: proto::QrUrlResponse) -> Self {
+        Self { url: value.url }
     }
 }

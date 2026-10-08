@@ -8,7 +8,7 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, RegisterAccountResponse, StorableAccount,
+    AccountCommandError, AutologinResponse, QrUrl, RegisterAccountResponse, StorableAccount,
     StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
@@ -33,6 +33,9 @@ pub enum AccountCommand {
 
     /// Link another account with the currently logged-on API account
     LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
+
+    /// Pair another device to this logged-on account via a QR code
+    QrPairAccount(ReturnSender<QrUrl, AccountCommandError>),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
@@ -67,6 +70,7 @@ impl AccountCommand {
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::QrPairAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),
