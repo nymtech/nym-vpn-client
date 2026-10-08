@@ -1,0 +1,13 @@
+Profils : « Auto », « Anonyme », « Le plus rapide » et « Aléatoire » en un clic.
+
+« Le plus sûr » devient « Auto ».
+
+Réglage Mixnet : bouton de trafic de couverture et curseur pour équilibrer vitesse et confidentialité.
+
+Préfère le Wi-Fi au réseau mobile pour le tunnel de couverture.
+
+Sélection des serveurs et reconnexions plus fiables.
+
+Confidentialité renforcée : autorisations plus strictes, caméra supprimée, analyses désactivées par défaut.
+
+Désormais en italien et en indonésien.

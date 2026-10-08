@@ -1,0 +1,13 @@
+Profile: „Auto“, „Anonym“, „Am schnellsten“ und „Zufällig“ per Fingertipp.
+
+„Sicherste“ heißt jetzt „Auto“.
+
+Mixnet-Optimierung: Cover-Traffic-Schalter und Schieberegler für die Balance aus Tempo und Datenschutz.
+
+Bevorzugt Wi-Fi statt Mobilfunk für den Cover-Tunnel.
+
+Zuverlässigere Serverauswahl und Wiederverbindungen.
+
+Stärkerer Datenschutz: strengere Berechtigungen, Kamera entfernt, Analysen standardmäßig aus.
+
+Jetzt auch auf Italienisch und Indonesisch.

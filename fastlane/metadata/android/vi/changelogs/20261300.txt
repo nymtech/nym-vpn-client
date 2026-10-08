@@ -1,0 +1,13 @@
+Cấu hình: thiết lập «Tự động», «Ẩn danh», «Nhanh nhất» và «Ngẫu nhiên» chỉ với một chạm.
+
+«An toàn nhất» nay đổi thành «Tự động».
+
+Tinh chỉnh Mixnet: công tắc lưu lượng che giấu và thanh trượt cân bằng tốc độ và quyền riêng tư.
+
+Ưu tiên Wi-Fi hơn mạng di động cho đường hầm che giấu.
+
+Chọn máy chủ và kết nối lại đáng tin cậy hơn.
+
+Bảo mật mạnh hơn: quyền chặt chẽ hơn, gỡ quyền camera, tắt phân tích mặc định.
+
+Giờ có tiếng Ý và tiếng Indonesia.

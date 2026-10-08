@@ -1,0 +1,13 @@
+Profiller: tek dokunuşla «Otomatik», «Anonim», «En hızlı» ve «Rastgele» ayarları.
+
+«En güvenli» artık «Otomatik» oldu.
+
+Mixnet ayarı: gizleme trafiği anahtarı ve hız ile gizlilik dengesini kuran kaydırıcı.
+
+Gizleme tüneli için hücresel yerine Wi-Fi tercih edilir.
+
+Daha güvenilir sunucu seçimi ve yeniden bağlanma.
+
+Daha güçlü gizlilik: daha sıkı izinler, kamera kaldırıldı, analizler varsayılan kapalı.
+
+Artık İtalyanca ve Endonezce.
