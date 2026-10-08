@@ -43,7 +43,7 @@ impl ErrorState {
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if !reason.prevents_filtering_resolver() {
+        if !reason.is_dns_error() {
             // Set system DNS to our local DNS resolver
             if Self::set_local_dns_resolver(shared_state).await.is_err() {
                 return Box::pin(Self::enter(ErrorStateReason::SetDns, shared_state)).await;
