@@ -2,21 +2,16 @@ RELEASE ?= true
 CORE_DIR := $(CURDIR)/../nym-vpn-core
 ARCH ?= fat # x86_64, arm64, fat
 
-# Map ARCH values to corresponding xcframework subdirectory names
-ifeq ($(ARCH),x86_64)
-    MACOS_XCFFRAMEWORK_TARGET_DIR := macos-x86_64
-else ifeq ($(ARCH),arm64)
-    MACOS_XCFFRAMEWORK_TARGET_DIR := macos-arm64
-else
-    MACOS_XCFFRAMEWORK_TARGET_DIR := macos-arm64_x86_64
-endif
-
 NYM_VPN_LIB_SRC := $(CORE_DIR)/crates/nym-vpn-lib-uniffi/NymVPNLib
 NYM_VPN_LIB_MACOS_DIR :=$(CURDIR)/macos
 NYM_VPN_LIB_IOS_DIR :=$(CURDIR)/ios
 NYM_VPN_LIB_MACOS_DEST := $(NYM_VPN_LIB_MACOS_DIR)/NymVPNLib
 NYM_VPN_LIB_IOS_DEST := $(NYM_VPN_LIB_IOS_DIR)/NymVPNLib
 NYM_VPN_LIB_UNIVERSAL_DEST := $(CURDIR)/NymVPNLib
+
+NYM_VPN_LIB_SLICES = $(dir $(wildcard \
+	$(NYM_VPN_LIB_MACOS_DEST)/NymVPNLibUniffi.xcframework/*/libnym_vpn_lib_uniffi.a \
+	$(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/*/libnym_vpn_lib_uniffi.a))
 
 NYM_VPND_SRC_DIR := $(CORE_DIR)/upload/mac
 NYM_VPND_DEST_DIR := ${CURDIR}/NymVPND
@@ -44,12 +39,7 @@ build-universal: build-mac-package build-ios-package
 
 	# Merge iOS and macOS frameworks together
 	xcodebuild -create-xcframework \
-	  -library $(NYM_VPN_LIB_MACOS_DEST)/NymVPNLibUniffi.xcframework/$(MACOS_XCFFRAMEWORK_TARGET_DIR)/libnym_vpn_lib_uniffi.a\
-	  -headers $(NYM_VPN_LIB_MACOS_DEST)/NymVPNLibUniffi.xcframework/$(MACOS_XCFFRAMEWORK_TARGET_DIR)/Headers \
-	  -library $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64/libnym_vpn_lib_uniffi.a \
-	  -headers $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64/Headers \
-	  -library $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64_x86_64-simulator/libnym_vpn_lib_uniffi.a \
-	  -headers $(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/ios-arm64_x86_64-simulator/Headers \
+	  $(foreach slice,$(NYM_VPN_LIB_SLICES),-library $(slice)libnym_vpn_lib_uniffi.a -headers $(slice)Headers) \
 	  -output $(NYM_VPN_LIB_UNIVERSAL_DEST)/NymVPNLibUniffi.xcframework
 
 	mkdir -p $(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/{ios,macos}
