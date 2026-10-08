@@ -38,6 +38,7 @@ impl LoggedOutState {
     ) {
         // No account: nothing for a credential fetcher to do.
         let _ = shared_state.clear_credential_fetcher().await;
+        shared_state.qr_pairing_handler.cancel_pairing_check();
 
         (Box::new(Self), PrivateAccountControllerState::LoggedOut)
     }
@@ -57,6 +58,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
+                        shared_state.qr_pairing_handler.cancel_get_pairing_secret();
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
@@ -65,12 +67,21 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
+                            shared_state.qr_pairing_handler.cancel_get_pairing_secret();
                             NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::DeleteAccount(return_sender) => return_no_account(return_sender),
                     AccountCommand::LinkAccount(return_sender, _) => return_no_account(return_sender),
+                    AccountCommand::StartPairing(return_sender) => return_no_account(return_sender),
+                    AccountCommand::ScannedKey(return_sender, remote_qr_pub_key) => {
+                        return_sender.send(handler::handle_qr_scanned_key(shared_state, &remote_qr_pub_key).await);
+                    }
+                    AccountCommand::VerifiedPairingPin(return_sender, _) => return_no_account(return_sender),
+                    AccountCommand::CancelPairingProcess(return_sender) => {
+                        return_sender.send(handler::handle_qr_cancel_pairing_process(shared_state));
+                    },
                     AccountCommand::RotateKeys(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
                     AccountCommand::ObtainTicketbooks(return_sender) => return_no_account(return_sender),

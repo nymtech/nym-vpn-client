@@ -68,6 +68,21 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::DeeplinkError(message) => {
                 Self::DeeplinkError(message)
             }
+            proto::account_command_error::ErrorDetail::InvalidPublicKey(err) => {
+                Self::InvalidPublicKey(err)
+            }
+            proto::account_command_error::ErrorDetail::PairingNotStarted(_) => {
+                Self::PairingNotStarted
+            }
+            proto::account_command_error::ErrorDetail::PairingSessionIdMismatch(_) => {
+                Self::PairingSessionIdMismatch
+            }
+            proto::account_command_error::ErrorDetail::NoPairingSharedSecret(_) => {
+                Self::NoPairingSharedSecret
+            }
+            proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
+                Self::PairingDerivingSharedSecret(err)
+            }
         })
     }
 }
@@ -155,6 +170,31 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::InvalidSecret(
                     err,
                 )),
+            },
+            AccountCommandError::InvalidPublicKey(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::InvalidPublicKey(
+                    err,
+                )),
+            },
+            AccountCommandError::PairingNotStarted => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::PairingNotStarted(true),
+                ),
+            },
+            AccountCommandError::PairingSessionIdMismatch => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::PairingSessionIdMismatch(true),
+                ),
+            },
+            AccountCommandError::NoPairingSharedSecret => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::NoPairingSharedSecret(true),
+                ),
+            },
+            AccountCommandError::PairingDerivingSharedSecret(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err),
+                ),
             },
             AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {
                 error_detail: Some(
