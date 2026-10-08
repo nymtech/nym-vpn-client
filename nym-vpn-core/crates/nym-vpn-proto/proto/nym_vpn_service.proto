@@ -663,6 +663,7 @@ message TunnelEvent {
     AccountControllerState account_state = 4;
     DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
     ConflictDetectedEvent conflict_detected_event = 6;
+    PairingCheckResult pairing_check_result = 7;
   }
 }
 
@@ -686,6 +687,16 @@ message ConflictDetectedEvent {
     COMPETING_FIREWALL = 2;
   }
   Conflict conflict = 1;
+}
+
+// The result from the pairing process has arrived and needs to be actioned in the UI
+message PairingCheckResult {
+  oneof result {
+    google.protobuf.Empty cancelled = 1;
+    google.protobuf.Empty timed_out = 2;
+    string error = 3;
+    string pin_code = 4;
+  }
 }
 
 message MixnetEvent {
@@ -1178,6 +1189,10 @@ message AutologinResponse {
   string pin_code = 2;
 }
 
+message QrUrlResponse {
+  string url = 1;
+}
+
 message GetDeeplinkParams {
   DeeplinkClient client = 1;
   string locale = 2;
@@ -1355,6 +1370,9 @@ service NymVpnService {
 
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
+  // Pair a device with this account using a QR encoded URL
+  rpc StartPairingAccount(google.protobuf.Empty) returns (QrUrlResponse) {}
 
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}

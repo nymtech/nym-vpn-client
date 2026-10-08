@@ -1,9 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
-use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
+use crate::{
+    SharedAccountState, commands::ReturnSender, qr_pairing::QrPairingProcess,
+    storage::AccountStorageOp,
+};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
@@ -11,7 +14,7 @@ use nym_vpn_api_client::{
     types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, RegisterAccountResponse, StorableAccount, VpnApiError,
+    AccountCommandError, QrUrl, RegisterAccountResponse, StorableAccount, VpnApiError,
 };
 use nym_vpn_store::keys::wireguard::WireguardKeyStore;
 
@@ -224,6 +227,43 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
     }
 }
 
+pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<QrUrl, AccountCommandError> {
+    // We can only pair a new device to the account if we're currently logged-in with an API account
+    if let Some(ref account) = shared_state.vpn_api_account
+        && account.mode().is_api()
+    {
+        let qr_pairing_cancel_token = shared_state.cancel_token.child_token();
+        let qr_pairing_process = QrPairingProcess::new(
+            shared_state.vpn_api_client.clone(),
+            account.clone(),
+            shared_state.tunnel_event_tx.clone(),
+            qr_pairing_cancel_token.clone(),
+        );
+        shared_state.qr_pairing_cancel_token = Some(qr_pairing_cancel_token.drop_guard());
+
+        let response = shared_state
+            .vpn_api_client
+            .pair_account(account, &qr_pairing_process.qr_public_key())
+            .await?;
+
+        let ret = QrUrl {
+            url: format!(
+                "https://nym.com/qr-pairing?pubkey={}",
+                qr_pairing_process.qr_public_key()
+            ),
+        };
+
+        qr_pairing_process.spawn_pairing_check_task(Duration::from_secs(response.ttl_seconds));
+
+        Ok(ret)
+    } else {
+        tracing::error!("Cannot pair another device when not logged-in with an API account");
+        Err(AccountCommandError::NoAccountStored)
+    }
+}
+
 pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
@@ -295,6 +335,7 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     // The device identity changed, so any installed credential fetcher is bound to a stale device.
     // Drop it; the next time we reach a state that needs one it will be rebuilt with the new device.
     shared_state.clear_credential_fetcher().await?;
+    shared_state.qr_pairing_cancel_token.take();
 
     Ok(())
 }
