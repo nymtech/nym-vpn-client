@@ -71,18 +71,18 @@ nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types", feat
 # tauri deps
 tauri-plugin-os = "2.3.2"
 tauri-plugin-notification = "2.4.0"
-tauri-plugin-dialog = "2.7.3"
+tauri-plugin-dialog = "2.8.1"
 tauri-plugin-process = "2.3.1"
 tauri-plugin-clipboard-manager = "2.3.3"
 tauri-plugin-updater = "2.11.0"
-tauri-plugin-shell = "2"
+tauri-plugin-shell = "2.4.0"
 regex = "1.13.1"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-single-instance = { version = "2.4.4", features = ["deep-link"] }
-tauri-plugin-window-state = "2.4.1"
-tauri-plugin-opener = "2.5.5"
-tauri-plugin-autostart = "2.5.1"
-tauri-plugin-deep-link = "2"
+tauri-plugin-window-state = "2.5.0"
+tauri-plugin-opener = "2.7.0"
+tauri-plugin-autostart = "2.7.0"
+tauri-plugin-deep-link = "2.6.1"
 
 [target."cfg(windows)".dependencies]
 windows = { version = "0.62.2", features = [
