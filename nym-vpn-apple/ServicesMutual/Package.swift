@@ -72,10 +72,15 @@ let package = Package(
         .target(
             name: "ErrorReason",
             dependencies: [
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS, .macOS])),
                 "Theme"
             ],
-            path: "Sources/ErrorReason"
+            path: "Sources/ErrorReason",
+            linkerSettings: [
+                // NymVPNLibUniffi static lib references SystemConfiguration/Network symbols
+                .linkedFramework("SystemConfiguration", .when(platforms: [.macOS])),
+                .linkedFramework("Network", .when(platforms: [.macOS]))
+            ]
         ),
         .target(
             name: "NymLogger",

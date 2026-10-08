@@ -49,7 +49,7 @@ actor TunnelActor {
 
         if let provider = tunnelProvider as? PacketTunnelProvider,
            let failure = provider.logInitFailure {
-            lastError = .createLogFailed(failure)
+            lastError = ErrorReason(.createLogFailed, details: failure)
         }
     }
 
@@ -83,7 +83,7 @@ actor TunnelActor {
     // MARK: - Gateway-independence pre-flight
 
     func reportNeedsRelaxedIndependence() {
-        lastError = .needsRelaxedIndependenceCriteria
+        lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
         tunnelState = .error(.needsRelaxedIndependenceCriteria)
     }
 
@@ -132,7 +132,7 @@ actor TunnelActor {
                 if reconnect {
                     break
                 } else {
-                    throw ErrorReason.offline.nsError
+                    throw ErrorReason(.offline).nsError
                 }
             }
         }

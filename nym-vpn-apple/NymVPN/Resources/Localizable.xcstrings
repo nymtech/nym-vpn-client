@@ -1,106 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "renewalReminder.action.getPlan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get a plan"
-          }
-        }
-      }
-    },
-    "renewalReminder.action.renew" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renew now"
-          }
-        }
-      }
-    },
-    "renewalReminder.day7.subscription.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your plan expires in 7 days"
-          }
-        }
-      }
-    },
-    "renewalReminder.day7.freepass.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your free pass expires in 7 days"
-          }
-        }
-      }
-    },
-    "renewalReminder.day3.subscription.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your plan expires in 3 days"
-          }
-        }
-      }
-    },
-    "renewalReminder.day3.freepass.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your free pass expires in 3 days"
-          }
-        }
-      }
-    },
-    "renewalReminder.hour24.subscription.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your plan expires in 24 hours"
-          }
-        }
-      }
-    },
-    "renewalReminder.hour24.freepass.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your free pass expires in 24 hours"
-          }
-        }
-      }
-    },
-    "renewalReminder.expired.subscription.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your plan has expired"
-          }
-        }
-      }
-    },
-    "renewalReminder.expired.freepass.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your free pass has expired"
-          }
-        }
-      }
-    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -6201,127 +6101,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "View default DNS"
-          }
-        }
-      }
-    },
-    "profiles.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profiles"
-          }
-        }
-      }
-    },
-    "profiles.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Profiles are connection templates you can use to connect quickly with the best type of server configuration for you."
-          }
-        }
-      }
-    },
-    "profiles.learnMore" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Learn more about profiles here"
-          }
-        }
-      }
-    },
-    "profiles.safest.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto"
-          }
-        }
-      }
-    },
-    "profiles.safest.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Best performing servers, never your own country"
-          }
-        }
-      }
-    },
-    "profiles.mostPrivate.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonymous"
-          }
-        }
-      }
-    },
-    "profiles.mostPrivate.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mixnet mode with closest servers to you"
-          }
-        }
-      }
-    },
-    "profiles.fastest.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fastest"
-          }
-        }
-      }
-    },
-    "profiles.fastest.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Closest, best performing servers"
-          }
-        }
-      }
-    },
-    "profiles.random.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Random"
-          }
-        }
-      }
-    },
-    "profiles.random.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Different servers for every connection"
           }
         }
       }
@@ -23135,6 +22914,127 @@
         }
       }
     },
+    "profiles.fastest.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closest, best performing servers"
+          }
+        }
+      }
+    },
+    "profiles.fastest.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest"
+          }
+        }
+      }
+    },
+    "profiles.learnMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn more about profiles here"
+          }
+        }
+      }
+    },
+    "profiles.mostPrivate.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mixnet mode with closest servers to you"
+          }
+        }
+      }
+    },
+    "profiles.mostPrivate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous"
+          }
+        }
+      }
+    },
+    "profiles.random.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Different servers for every connection"
+          }
+        }
+      }
+    },
+    "profiles.random.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random"
+          }
+        }
+      }
+    },
+    "profiles.safest.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best performing servers, never your own country"
+          }
+        }
+      }
+    },
+    "profiles.safest.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "profiles.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profiles are connection templates you can use to connect quickly with the best type of server configuration for you."
+          }
+        }
+      }
+    },
+    "profiles.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profiles"
+          }
+        }
+      }
+    },
     "proxy.activeConnections" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -24214,6 +24114,116 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出将停止所有任务并从菜单栏中删除 NymVPN"
+          }
+        }
+      }
+    },
+    "renewalReminder.action.getPlan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a plan"
+          }
+        }
+      }
+    },
+    "renewalReminder.action.renew" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renew now"
+          }
+        }
+      }
+    },
+    "renewalReminder.day3.freepass.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass expires in 3 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.day3.subscription.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan expires in 3 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.day7.freepass.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass expires in 7 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.day7.subscription.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan expires in 7 days"
+          }
+        }
+      }
+    },
+    "renewalReminder.expired.freepass.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass has expired"
+          }
+        }
+      }
+    },
+    "renewalReminder.expired.subscription.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan has expired"
+          }
+        }
+      }
+    },
+    "renewalReminder.hour24.freepass.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your free pass expires in 24 hours"
+          }
+        }
+      }
+    },
+    "renewalReminder.hour24.subscription.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your plan expires in 24 hours"
           }
         }
       }
@@ -28079,28 +28089,6 @@
         }
       }
     },
-    "settings.profiles.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connection profiles"
-          }
-        }
-      }
-    },
-    "settings.profiles.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Let us help you connect"
-          }
-        }
-      }
-    },
     "settings.notifications.serverFamilyReminders.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28343,6 +28331,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable debug logs"
+          }
+        }
+      }
+    },
+    "settings.profiles.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let us help you connect"
+          }
+        }
+      }
+    },
+    "settings.profiles.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection profiles"
           }
         }
       }
