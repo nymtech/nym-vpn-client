@@ -98,6 +98,18 @@ impl ConnectedState {
             }
         };
 
+        // A gateway that just connected works, so an earlier timeout no longer counts against it.
+        let blacklisted_gateways = shared_state.gateway_provider.blacklisted_gateways();
+        for gateway in [
+            selected_gateways.entry_gateway(),
+            selected_gateways.exit_gateway(),
+        ] {
+            let identity = gateway.identity();
+            if let Err(err) = blacklisted_gateways.remove(&identity) {
+                tracing::error!("Failed to remove gateway {identity} from the blacklist: {err}");
+            }
+        }
+
         let connected_state = Self {
             tunnel_monitor_handle,
             tunnel_monitor_event_receiver,
