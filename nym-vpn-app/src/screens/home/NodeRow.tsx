@@ -235,10 +235,16 @@ export function NodeRow({ type }: NodeRowProps) {
   // this memo when the underlying wg/mx lists arrive after a mode switch.
   // Include the list refs so the row updates as soon as gateways load.
   const gateway = useMemo(() => {
+    // In the `error` state the store keeps the dead session's `tunnel`
+    // (set-tunnel-inerror clears connectingState but not tunnel), so don't treat
+    // its gateway id as live — otherwise a country/random/auto hop keeps showing
+    // the dead session's score bar. An explicit gateway selection is unaffected.
     const gw =
-      type === 'entry'
-        ? tunnel?.entryGwId || connectingState?.entryGwId
-        : tunnel?.exitGwId || connectingState?.exitGwId;
+      state === 'error'
+        ? null
+        : type === 'entry'
+          ? tunnel?.entryGwId || connectingState?.entryGwId
+          : tunnel?.exitGwId || connectingState?.exitGwId;
 
     if (isGateway(userSelectedNode)) {
       return lookupGw(userSelectedNode.gateway.id, type);
@@ -252,6 +258,7 @@ export function NodeRow({ type }: NodeRowProps) {
     connectingState?.entryGwId,
     connectingState?.exitGwId,
     lookupGw,
+    state,
     tunnel?.entryGwId,
     tunnel?.exitGwId,
     type,
@@ -343,15 +350,18 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
+              {/* Quality bar only once a specific gateway is resolved (explicitly
+                  selected, or picked by the daemon on connect); a bare country
+                  selection has no gateway, so show just the flag. Mirrors Android. */}
               {placeholderProfile ? (
                 <ProfileIcon
                   profile={placeholderProfile}
                   size="sm"
                   className="text-text-secondary"
                 />
-              ) : (
+              ) : gateway ? (
                 <ScoreIndicator score={nodeDetails.score} />
-              )}
+              ) : null}
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode && (
                   <motion.div

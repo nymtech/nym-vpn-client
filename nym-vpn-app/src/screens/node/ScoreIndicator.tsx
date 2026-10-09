@@ -15,7 +15,10 @@ export const ScoreIndicator = ({ score }: { score?: Score }) => {
     case 'offline':
       return <SignalBardNoneIcon className="size-5" />;
     case 'high':
-    default:
       return <SignalBardGoodIcon className="size-5" />;
+    // Map an unknown/missing score to the no-signal icon, never a confident full
+    // bar — an optimistic default is the silent-misleading bug this guards against.
+    default:
+      return <SignalBardNoneIcon className="size-5" />;
   }
 };
