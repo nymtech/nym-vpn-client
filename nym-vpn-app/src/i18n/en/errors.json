@@ -21,7 +21,7 @@
     "performant-entry-gw-unavailable": "Can't reach entry server. Try another!",
     "performant-exit-gw-unavailable": "Can't reach exit server. Try another!",
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
-    "bandwidth-exceeded": "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong.",
+    "bandwidth-exceeded": "Daily allowance reached. It resets daily, see Account Status for the time. Contact Support if this seems wrong.",
     "subscription-expired": "Subscription has expired. Kill switch protects you. Tap Stop and renew your plan.",
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4",
     "tun-device": "TUN device error",
@@ -37,7 +37,7 @@
   "account": {
     "internal": "Internal account error",
     "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong.",
+    "bandwidth-exceeded": "Daily allowance reached. It resets daily, see Account Status for the time. Contact Support if this seems wrong.",
     "invalid-recovery-phrase": "Invalid passphrase",
     "no-account-stored": "No account stored",
     "no-device-stored": "No device stored",

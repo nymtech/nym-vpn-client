@@ -7053,7 +7053,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong."
+            "value" : "Daily allowance reached. It resets daily, see Account Status for the time. Contact Support if this seems wrong."
           }
         }
       }
@@ -25581,7 +25581,7 @@
         }
       }
     },
-    "settings.account.resetsDailyUtc" : {
+    "settings.account.resetsDaily" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
