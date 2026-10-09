@@ -33,12 +33,13 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         logger = Logger(label: "PacketTunnelProvider")
 
         super.init()
-
-        self.configureLogger()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
         await tunnelActor.setTunnelProvider(self)
+
+        try await tunnelActor.waitUntilProtectedDataAvailable()
+        configureLogger()
 
         guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
               let mixnetConfig = await tunnelProviderProtocol.asMixnetConfig()
@@ -60,6 +61,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     override func stopTunnel(with reason: NEProviderStopReason) async {
         logger.info("Stop tunnel... \(reason.rawValue)")
 
+        await tunnelActor.cancelProtectedDataWait()
         await tunnelActor.cancelRelaxConsent()
 
         if reason == .userInitiated {

@@ -64,11 +64,7 @@ public final class FileLogHandler: LogHandler, @unchecked Sendable {
         if !metadataOutput.isEmpty { metadataOutput = " " + metadataOutput }
 
         let logLine = "\(Date()) [\(label)] \(level.emoji) \(level)\(metadataOutput): \(message)\n"
-
-        // LogFileManager.write is @MainActor → hop safely
-        Task { @MainActor [logFileManager, logLine] in
-            logFileManager.write(logLine)
-        }
+        logFileManager.write(logLine)
     }
 }
 

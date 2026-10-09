@@ -9,8 +9,11 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
 
     // Access ONLY on ioQueue
     private var fileHandle: FileHandle?
+    /// Log data held in memory while the log file cannot be opened, i.e. before first unlock after boot.
+    private var pendingData = Data()
     private var notificationObservation: Cancellable?
 
+    private let maxPendingDataSize = 1024 * 1024  // 1 MB
     private let maxFileSize: UInt64 = 5 * 1024 * 1024  // 5 MB
     private let maxFileAge: TimeInterval = 7 * 24 * 60 * 60  // 1 week
 
@@ -134,7 +137,16 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         ioQueue.async { [weak self] in
             guard let self else { return }
             let data = Data(string.utf8)
-            try? self.fileHandle?.write(contentsOf: data)
+
+            if self.fileHandle == nil {
+                self.configureNoQueue()
+            }
+
+            if let fileHandle = self.fileHandle {
+                try? fileHandle.write(contentsOf: data)
+            } else if self.pendingData.count + data.count <= self.maxPendingDataSize {
+                self.pendingData.append(data)
+            }
         }
     }
 
@@ -195,6 +207,11 @@ private extension LogFileManager {
         if self.fileHandle == nil {
             self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
             _ = try? self.fileHandle?.seekToEnd()
+        }
+
+        if let fileHandle = self.fileHandle, !pendingData.isEmpty {
+            try? fileHandle.write(contentsOf: pendingData)
+            pendingData = Data()
         }
     }
 

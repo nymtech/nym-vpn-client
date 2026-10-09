@@ -1,3 +1,4 @@
+import Constants
 import Logging
 import NetworkExtension
 import ErrorReason
@@ -24,6 +25,8 @@ actor TunnelActor {
     /// for the user to accept relaxed criteria (resumed by the
     /// `setGatewayIndependence(false)` app message).
     private var relaxConsentContinuation: CheckedContinuation<Void, Error>?
+
+    private var protectedDataWaitTask: Task<Void, Error>?
 
     init() {
         let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
@@ -105,6 +108,47 @@ actor TunnelActor {
     func cancelRelaxConsent() {
         relaxConsentContinuation?.resume(throwing: CancellationError())
         relaxConsentContinuation = nil
+    }
+
+    // MARK: - Protected data
+
+    /// Waits until the device has been unlocked at least once since boot.
+    /// When started on boot, app group files and keychain are inaccessible until then.
+    func waitUntilProtectedDataAvailable() async throws {
+        guard !Self.isProtectedDataAvailable() else { return }
+
+        logger.info("Waiting for protected data to become available...")
+
+        let task = Task {
+            while !Self.isProtectedDataAvailable() {
+                try await Task.sleep(for: .seconds(3))
+            }
+        }
+        protectedDataWaitTask = task
+        defer { protectedDataWaitTask = nil }
+
+        try await task.value
+
+        logger.info("Protected data is available.")
+    }
+
+    func cancelProtectedDataWait() {
+        protectedDataWaitTask?.cancel()
+    }
+
+    private static func isProtectedDataAvailable() -> Bool {
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue
+        ) else {
+            return false
+        }
+        let probeURL = containerURL.appendingPathComponent(".protected-data-probe")
+        do {
+            try Data().write(to: probeURL, options: .completeFileProtectionUntilFirstUserAuthentication)
+            return true
+        } catch {
+            return false
+        }
     }
 
     func clearError() {
