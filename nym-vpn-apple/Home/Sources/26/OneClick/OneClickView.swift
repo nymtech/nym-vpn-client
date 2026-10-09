@@ -98,7 +98,6 @@ private extension OneClickView {
             switch viewModel.selectionPhase {
             case .selecting:
                 selectingRowCompact(
-                    score: .offline,
                     showCarets: animatedDisplayMode.caretSlot == .exitInfoStack
                 )
             case let .selected(info):
@@ -113,9 +112,8 @@ private extension OneClickView {
         .accessibilityAddTraits(.isButton)
     }
 
-    func selectingRowCompact(score: OneClickServerScore, showCarets: Bool) -> some View {
+    func selectingRowCompact(showCarets: Bool) -> some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: score)
             randomGlyph
             Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)
@@ -146,7 +144,13 @@ private extension OneClickView {
         let primaryText = info.title
         let secondaryText: String? = (info.subtitle?.isEmpty ?? true) ? nil : info.subtitle
         return HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: info.score)
+            // Show the quality bar only once a concrete server is in play — an
+            // explicit gateway or a live connection — not for a bare
+            // country/region/random/auto selection. Matches Android, which hides
+            // the bar until a gateway is selected.
+            if info.hasConcreteServer {
+                scoreBars(score: info.score)
+            }
             flagImage(
                 countryCode: info.countryCode,
                 isRandomSelection: info.isRandomSelection,
@@ -304,7 +308,7 @@ private extension OneClickView {
             Group {
                 switch viewModel.entrySelectionPhase {
                 case .selecting:
-                    selectingEntryRowCompact
+                    selectingRowCompact(showCarets: false)
                 case let .selected(info):
                     selectedRowCompact(info: info, showCarets: false)
                 }
@@ -315,17 +319,6 @@ private extension OneClickView {
                 onSelectEntry()
             }
             .accessibilityAddTraits(viewModel.displayMode == .nerd ? .isButton : [])
-        }
-    }
-
-    var selectingEntryRowCompact: some View {
-        HStack(alignment: .center, spacing: NymSpacing.medium) {
-            scoreBars(score: .offline)
-            randomGlyph
-            Text("gatewaysView.random".localizedString)
-                .nymTextStyle(.bodySmall)
-                .foregroundStyle(Color.Nym.textPrimary)
-            Spacer()
         }
     }
 

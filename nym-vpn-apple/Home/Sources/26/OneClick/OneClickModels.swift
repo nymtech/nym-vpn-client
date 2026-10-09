@@ -107,6 +107,13 @@ public struct OneClickServerInfo: Equatable {
         self.isSafestSelection = isSafestSelection
         self.profileImageName = profileImageName
     }
+
+    /// A concrete server is in play — an explicitly chosen gateway or a live
+    /// connection — as opposed to a country/region/random/auto placeholder. The
+    /// quality bar is only meaningful then. Currently tracks `showsInfoButton`
+    /// (both surface a concrete server); kept as its own name so the bar's
+    /// visibility isn't an accidental alias of info-button policy.
+    public var hasConcreteServer: Bool { showsInfoButton }
 }
 
 public enum OneClickSelectionPhase: Equatable {
