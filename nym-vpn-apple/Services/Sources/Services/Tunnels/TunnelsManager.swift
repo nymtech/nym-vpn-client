@@ -146,7 +146,7 @@ private extension TunnelsManager {
             case VPNErrorReason.domain:
                 lastError = VPNErrorReason(nsError: error)
             case ErrorReason.domain:
-                lastError = ErrorReason(nsError: error)
+                lastError = ErrorReason(nsError: error) ?? error
             default:
                 lastError = error
             }
