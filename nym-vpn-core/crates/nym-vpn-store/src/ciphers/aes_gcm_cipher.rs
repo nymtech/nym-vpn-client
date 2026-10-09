@@ -4,8 +4,7 @@
 use std::sync::Arc;
 
 use nym_store_cipher::{
-    ARGON2_SALT_SIZE, Aes256Gcm, Algorithm, CURRENT_VERSION, EncryptedData, KdfInfo, Params,
-    StoreCipher, Version,
+    ARGON2_SALT_SIZE, Algorithm, EncryptedData, KdfInfo, Params, StoreCipher, Version,
 };
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
