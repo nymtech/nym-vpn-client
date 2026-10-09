@@ -98,7 +98,8 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
     let logging_setup = nym_vpn_lib::logging::setup_logging_with_file_remover(
         options,
         shutdown_token.child_token(),
-    );
+    )
+    .context("failed to configure logging")?;
     paths.log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
     let remove_log_file_signal = logging_setup
         .as_ref()
