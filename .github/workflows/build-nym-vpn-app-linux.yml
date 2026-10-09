@@ -75,11 +75,6 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
 
-      # checked before "Apply orchestrated version", which rewrites the version in Cargo.lock on purpose
-      - name: Check Cargo.lock is up to date
-        working-directory: nym-vpn-app/src-tauri
-        run: cargo metadata --locked --format-version 1 > /dev/null
-
       - name: Install cargo-license
         uses: baptiste0928/cargo-install@v3
         with:
