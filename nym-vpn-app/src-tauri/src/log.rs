@@ -2,6 +2,7 @@ use crate::Cli;
 use crate::fs::path::APP_LOG_DIR;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, PoisonError};
 
 use anyhow::{Result, anyhow};
 use sentry::integrations::tracing as sentry_tracing;
@@ -16,6 +17,11 @@ use tracing_subscriber::{EnvFilter, Layer};
 const LOG_FILE: &str = "app.log";
 const LOG_FILE_OLD: &str = "app.old.log";
 
+/// Keeps the non-blocking appender's worker thread alive while file logging
+/// is enabled. Dropping it flushes the queued lines and stops the writer.
+/// Kept in a static so the panic hook can flush before the process dies.
+static FILE_LOG_GUARD: Mutex<Option<WorkerGuard>> = Mutex::new(None);
+
 /// Closure that toggles the file logging layer at runtime.
 /// Returns the new [`WorkerGuard`] when enabling (which must be kept alive
 /// while logging to file), or `None` when disabling.
@@ -27,9 +33,6 @@ type ApplyFn = Box<dyn Fn(bool) -> Result<Option<WorkerGuard>> + Send + Sync>;
 /// layer. Toggling this control hot-swaps the file layer in place.
 pub struct DebugLogging {
     apply: ApplyFn,
-    /// Keeps the non-blocking appender's worker thread alive while enabled.
-    /// Dropping it flushes and stops the writer.
-    guard: Option<WorkerGuard>,
     enabled: bool,
 }
 
@@ -37,7 +40,6 @@ impl DebugLogging {
     fn new(apply: ApplyFn) -> Self {
         DebugLogging {
             apply,
-            guard: None,
             enabled: false,
         }
     }
@@ -46,7 +48,10 @@ impl DebugLogging {
         if self.enabled == enabled {
             return Ok(());
         }
-        self.guard = (self.apply)(enabled)?;
+        let guard = (self.apply)(enabled)?;
+        *FILE_LOG_GUARD
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = guard;
         self.enabled = enabled;
         Ok(())
     }
@@ -62,6 +67,32 @@ impl std::fmt::Debug for DebugLogging {
             .field("enabled", &self.enabled)
             .finish()
     }
+}
+
+/// Log panics through tracing so they land in the app log file.
+/// A panic on the main thread takes the whole app down, so the hook also
+/// drops the file writer's guard to flush the queued lines before exiting.
+/// Panics on other threads only kill that thread or task, and the queue
+/// writes the line as usual.
+pub fn install_panic_hook() {
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let thread = std::thread::current();
+        let thread = thread.name().unwrap_or("<unnamed>");
+        let location = info
+            .location()
+            .map(|l| l.to_string())
+            .unwrap_or_else(|| "<unknown>".to_string());
+        let payload = info.payload_as_str().unwrap_or("Box<dyn Any>");
+        error!("thread '{thread}' panicked at {location}: {payload}");
+        // `try_lock` so a panic while toggling file logging can't deadlock
+        if thread == "main"
+            && let Ok(mut guard) = FILE_LOG_GUARD.try_lock()
+        {
+            drop(guard.take());
+        }
+        default_hook(info);
+    }));
 }
 
 fn rotate_log_file(log_dir: &Path) -> Result<Option<PathBuf>> {
