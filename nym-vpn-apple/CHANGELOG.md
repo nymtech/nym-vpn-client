@@ -7,16 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.13.0] - TBD
+## [2026.13.0] - 2026-10-09
 
 ### Added
 
 - Six-month subscription kind (https://github.com/nymtech/nym-vpn-client/pull/6320)
 - Add Profiles: UI & logic (https://github.com/nymtech/nym-vpn-client/pull/6364)
+- Upcoming-expiry renewal reminder (https://github.com/nymtech/nym-vpn-client/pull/6507)
+- Mixnet tuning: cover-traffic toggle and tuning slider (https://github.com/nymtech/nym-vpn-client/pull/6596)
+- Italian and Indonesian locales (https://github.com/nymtech/nym-vpn-client/pull/6327)
+
+### Changed
+
+- Rename "Safest" to "Auto" (https://github.com/nymtech/nym-vpn-client/pull/6424)
 
 ### Removed
 
 - Widget support for both iOS & macOS (https://github.com/nymtech/nym-vpn-client/pull/6255)
+
+### Fixed
+
+- Account bar refresh on iOS and macOS (https://github.com/nymtech/nym-vpn-client/pull/6458)
+- Home and exit server caret alignment (https://github.com/nymtech/nym-vpn-client/pull/6464, https://github.com/nymtech/nym-vpn-client/pull/6518)
+- Disable Sentry PII collection (https://github.com/nymtech/nym-vpn-client/pull/6441)
 
 ## [2026.12.3] - 2026-08-27
 
