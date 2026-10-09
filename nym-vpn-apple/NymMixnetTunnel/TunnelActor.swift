@@ -46,11 +46,6 @@ actor TunnelActor {
 
     func setTunnelProvider(_ tunnelProvider: NEPacketTunnelProvider?) {
         self.tunnelProvider = tunnelProvider
-
-        if let provider = tunnelProvider as? PacketTunnelProvider,
-           let failure = provider.logInitFailure {
-            lastError = ErrorReason(.createLogFailed, details: failure)
-        }
     }
 
     private func setCurrentState(_ state: TunnelState) async {

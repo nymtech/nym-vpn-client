@@ -9,19 +9,15 @@ import TunnelMixnet
 import Tunnels
 import AppVersionProvider
 
-class PacketTunnelProvider: NEPacketTunnelProvider {
+final class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
-
-    lazy var logger = Logger(label: "MixnetTunnel")
-    var logInitFailure: String?
+    let logger: Logger
     var vpnService: NymVpnService?
     var commandSender: NymVpnServiceCommandSender?
 
     override init() {
         tunnelActor = TunnelActor()
-        super.init()
 
-        self.configureLogger()
         LoggingSystem.bootstrap { label in
             let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG
@@ -34,6 +30,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return fileLogHandler
 #endif
         }
+        logger = Logger(label: "PacketTunnelProvider")
+
+        super.init()
+
+        self.configureLogger()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {

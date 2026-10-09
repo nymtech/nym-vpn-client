@@ -12,8 +12,6 @@ public struct ErrorReason: LocalizedError, Codable {
         case offline
         case noAccountStored
         case noDeviceStored
-        // PacketTunnelProvider
-        case createLogFailed
         // Tunnel
         case setFirewallPolicy
         case setRouting
@@ -76,8 +74,6 @@ public struct ErrorReason: LocalizedError, Codable {
 
     public var errorDescription: String? {
         switch code {
-        case .createLogFailed:
-            code.localizedString + ": " + (details ?? "Unknown")
         case .internalError, .apiStatusCode, .apiResponse:
             details ?? "generalNymError.somethingWentWrong".localizedString
         default:
