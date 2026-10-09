@@ -3,12 +3,11 @@
 
 use std::path::PathBuf;
 
-use std::io::SeekFrom;
 use tokio::{
     fs::OpenOptions,
-    io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt},
+    io::{AsyncReadExt, AsyncWriteExt},
 };
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroize;
 
 use super::ciphers::{StoreCipher, StoreCipherError};
 
