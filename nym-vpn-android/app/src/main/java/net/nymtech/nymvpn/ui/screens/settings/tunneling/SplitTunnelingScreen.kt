@@ -133,6 +133,7 @@ internal fun SplitTunnelingScreen(
 		onSelectAllDirectAppsClick = viewModel::onSelectAllDirectAppsClick,
 		onSelectAllVpnPassThroughClick = viewModel::onSelectAllVpnPassThroughClick,
 		onChangeSelection = viewModel::onChangeSelection,
+		onToggleAllApps = viewModel::onToggleAllApps,
 		onSave = {
 			viewModel.saveChangesAndMaybeReconnect(isActuallyConnected)
 			if (!isActuallyConnected) {
@@ -170,6 +171,7 @@ private fun SplitTunnelingContent(
 	onSelectAllDirectAppsClick: () -> Unit,
 	onSelectAllVpnPassThroughClick: () -> Unit,
 	onChangeSelection: (String) -> Unit,
+	onToggleAllApps: (Boolean) -> Unit,
 	onSave: () -> Unit,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
@@ -195,6 +197,7 @@ private fun SplitTunnelingContent(
 					onQueryChange = onQueryChange,
 					onSelectAllDirectAppsClick = onSelectAllDirectAppsClick,
 					onSelectAllVpnPassThroughClick = onSelectAllVpnPassThroughClick,
+					onToggleAllApps = onToggleAllApps,
 				)
 			}
 
@@ -299,6 +302,7 @@ internal fun SplitTunnelingPreview() {
 				onSelectAllDirectAppsClick = {},
 				onSelectAllVpnPassThroughClick = {},
 				onChangeSelection = {},
+				onToggleAllApps = {},
 				onSave = {},
 			)
 		}

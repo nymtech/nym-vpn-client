@@ -515,6 +515,7 @@
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
 	<string name="split_tunneling_search_apps_hint">Search apps</string>
 	<string name="split_tunneling_apps">Apps</string>
+	<string name="split_tunneling_all_apps">All apps via NymVPN</string>
 	<string name="split_tunneling_direct">Direct</string>
 	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
 	<string name="split_tunneling_via_vpn">Via NymVPN</string>

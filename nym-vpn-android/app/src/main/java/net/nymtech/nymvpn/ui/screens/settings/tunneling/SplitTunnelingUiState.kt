@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
 import kotlinx.serialization.Serializable
+import net.nymtech.nymvpn.util.allPassThroughVpn
 import net.nymtech.vpn.backend.Tunnel
 
 data class SplitTunnelingUiState(
@@ -16,7 +17,10 @@ data class SplitTunnelingUiState(
 	val hasUnsavedChanges: Boolean = false,
 	val showSaveChangesDialog: Boolean = false,
 	val navigateBack: Boolean = false,
-)
+) {
+	/** On when every installed app (not just the filtered ones) is routed via the VPN. */
+	val allAppsViaVpn: Boolean get() = (systemApps + normalApps).allPassThroughVpn()
+}
 
 @Serializable
 data class AppInfo(val name: String, val packageName: String, val icon: Int, val passThroughVpn: Boolean = true)

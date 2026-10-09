@@ -351,6 +351,7 @@ async fn main() -> Result<()> {
             tunnel::get_app_list,
             tunnel::add_app_to_split_tunnel,
             tunnel::remove_app_from_split_tunnel,
+            tunnel::clear_split_tunnel_apps,
             tunnel::is_split_tunnel_supported,
             tunnel::add_custom_split_tunnel_app,
             tunnel::remove_custom_split_tunnel_app,
