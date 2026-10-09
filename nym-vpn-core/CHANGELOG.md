@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enter error state on failure to configure local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/6629)
 - Auto selection no longer treats US states as separate jurisdictions: "exclude my country" and the entry/exit country check now compare whole countries only
+- Fix panic in logging system initialization (https://github.com/nymtech/nym-vpn-client/pull/6674)
 
 
 ## [2026.13.0] - TBD
