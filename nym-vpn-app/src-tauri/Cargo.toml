@@ -70,7 +70,7 @@ nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types", feat
 
 # tauri deps
 tauri-plugin-os = "2.3.2"
-tauri-plugin-notification = "2.4.0"
+tauri-plugin-notification = "2.5.1"
 tauri-plugin-dialog = "2.8.1"
 tauri-plugin-process = "2.3.1"
 tauri-plugin-clipboard-manager = "2.4.1"
