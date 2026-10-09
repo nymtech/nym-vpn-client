@@ -785,6 +785,8 @@ pub struct SystemConfigurationResponse {
     pub wg_thresholds: ScoreThresholdsResponse,
     pub statistics_api: Option<String>,
     pub min_supported_app_versions: Option<NetworkCompatibility>,
+    #[serde(default)]
+    pub app_update_policy: Option<String>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

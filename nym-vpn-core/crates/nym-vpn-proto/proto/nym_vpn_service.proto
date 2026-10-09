@@ -236,6 +236,7 @@ message NetworkCompatibility {
   string macos = 3;
   string tauri = 4;
   string android = 5;
+  string app_update_policy = 6;
 }
 
 // no point in importing entire cosmos-sdk protobuf definition for just this one type

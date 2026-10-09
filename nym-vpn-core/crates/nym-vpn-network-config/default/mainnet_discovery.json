@@ -128,6 +128,7 @@
       "macos": "2.15.1",
       "tauri": "1.21.0"
     },
+    "app_update_policy": "dismissible",
     "statistics_api": "https://nym-statistics-api.nymtech.cc"
   },
   "feature_flags": {
