@@ -74,7 +74,7 @@ tauri-plugin-notification = "2.4.0"
 tauri-plugin-dialog = "2.8.1"
 tauri-plugin-process = "2.3.1"
 tauri-plugin-clipboard-manager = "2.3.3"
-tauri-plugin-updater = "2.11.0"
+tauri-plugin-updater = "2.13.1"
 tauri-plugin-shell = "2.4.0"
 regex = "1.13.1"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
