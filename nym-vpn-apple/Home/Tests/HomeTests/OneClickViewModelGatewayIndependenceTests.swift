@@ -60,7 +60,7 @@ final class OneClickViewModelGatewayIndependenceTests: XCTestCase {
     func testIndependenceErrorMapsToStopConnectState() async {
         let viewModel = makeViewModel()
         ConnectionManager.shared.currentTunnelStatus = .error
-        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
+        ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
         await Task.yield()
         XCTAssertEqual(viewModel.connectState, .stop)
     }
@@ -95,12 +95,12 @@ final class OneClickViewModelGatewayIndependenceTests: XCTestCase {
     func testIndependenceConsentIsPreservedButButtonStaysStop() async {
         let viewModel = makeViewModel()
         ConnectionManager.shared.currentTunnelStatus = .error
-        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
+        ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
         await Task.yield()
         XCTAssertTrue(
             GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
                 status: .error,
-                lastError: ErrorReason.needsRelaxedIndependenceCriteria
+                lastError: ErrorReason(.needsRelaxedIndependenceCriteria)
             )
         )
         XCTAssertEqual(viewModel.connectState, .stop)

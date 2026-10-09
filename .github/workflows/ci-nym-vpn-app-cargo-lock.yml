@@ -1,0 +1,50 @@
+name: ci-nym-vpn-app-cargo-lock
+
+# The app depends on core crates by path, so core manifest changes can make
+# nym-vpn-app/src-tauri/Cargo.lock stale. Fail the core PR so it updates the app lock too.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/ci-nym-vpn-app-cargo-lock.yml"
+      - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/crates/**/Cargo.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: arc-linux-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Check Cargo.lock is up to date
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          if ! cargo metadata --locked --format-version 1 > /dev/null; then
+            echo "::error::nym-vpn-app/src-tauri/Cargo.lock is out of date. Run 'cargo update -p <crate>' in nym-vpn-app/src-tauri and commit the lock file."
+            exit 1
+          fi

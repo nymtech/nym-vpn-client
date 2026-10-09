@@ -30,7 +30,7 @@ final class ConnectionStatusViewModelTests: XCTestCase {
         let viewModel = makeViewModel()
         viewModel.status = .error
         viewModel.lastDisplayedStep = .establishingConnection
-        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
+        ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
 
         XCTAssertEqual(viewModel.arcProgressState, .awaitingGatewayConsent)
     }
@@ -39,7 +39,7 @@ final class ConnectionStatusViewModelTests: XCTestCase {
         let viewModel = makeViewModel()
         viewModel.status = .error
         viewModel.lastDisplayedStep = .establishingConnection
-        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
+        ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
 
         if case .step(.establishingConnection) = viewModel.arcProgressState {
             XCTFail("Independence error must not present establishingConnection arc step")
@@ -67,7 +67,7 @@ final class ConnectionStatusViewModelTests: XCTestCase {
     func testClearingIndependenceErrorRemovesAwaitingGatewayConsentArc() {
         let viewModel = makeViewModel()
         viewModel.status = .error
-        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
+        ConnectionManager.shared.lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
         XCTAssertEqual(viewModel.arcProgressState, .awaitingGatewayConsent)
 
         ConnectionManager.shared.lastError = nil
