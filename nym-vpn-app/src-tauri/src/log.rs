@@ -69,7 +69,7 @@ impl std::fmt::Debug for DebugLogging {
     }
 }
 
-/// Log panics through tracing so they land in the app log file. 
+/// Log panics through tracing so they land in the app log file.
 /// A panic on the main thread takes the whole app down, so the hook also
 /// drops the file writer's guard to flush the queued lines before exiting.
 /// Panics on other threads only kill that thread or task, and the queue
