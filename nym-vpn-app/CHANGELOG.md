@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.13.0] - 2026-10-09
+
 ### Added
 
 - Connection profiles: Auto, Anonymous, Fastest and Random (https://github.com/nymtech/nym-vpn-client/pull/6141, https://github.com/nymtech/nym-vpn-client/pull/6314)
