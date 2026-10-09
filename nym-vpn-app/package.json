@@ -42,7 +42,7 @@
     "@radix-ui/react-toast": "^1.2.24",
     "@tauri-apps/api": "2.12.1",
     "@tauri-apps/plugin-autostart": "^2.7.0",
-    "@tauri-apps/plugin-clipboard-manager": "^2.3.3",
+    "@tauri-apps/plugin-clipboard-manager": "^2.4.1",
     "@tauri-apps/plugin-deep-link": "2.6.1",
     "@tauri-apps/plugin-dialog": "^2.8.1",
     "@tauri-apps/plugin-notification": "2.4.0",
