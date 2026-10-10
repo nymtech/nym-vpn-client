@@ -1,0 +1,71 @@
+# name: Apply nym-config override
+# description: Optionally checkout a separate config repo and overlay files into nym-vpn-network-config defaults
+
+# inputs:
+#   repository:
+#     description: Owner/repo for the config repository
+#     required: false
+#     default: nymtech/nym-config
+#   ref:
+#     description: Optional git ref for the config repository
+#     required: false
+#     default: ""
+#   source_path:
+#     description: Path inside the config repository to copy from
+#     required: false
+#     default: build/discovery
+#   target_path:
+#     description: Path inside this repository to copy into
+#     required: false
+#     default: nym-vpn-core/crates/nym-vpn-network-config/default
+#   clean_target:
+#     description: Set to true to clean target_path before copying
+#     required: false
+#     default: "false"
+#   checkout_token:
+#     description: Optional token for checking out private repositories
+#     required: false
+#     default: ""
+
+# runs:
+#   using: composite
+#   steps:
+#     - name: Checkout config repo
+#       uses: actions/checkout@v6
+#       with:
+#         repository: ${{ inputs.repository }}
+#         ref: ${{ inputs.ref }}
+#         path: .tmp/nym-config-override
+#         fetch-depth: 1
+#         persist-credentials: false
+#         token: ${{ inputs.checkout_token != '' && inputs.checkout_token || github.token }}
+
+#     - name: Overlay config files into workspace
+#       shell: bash
+#       env:
+#         REPOSITORY: ${{ inputs.repository }}
+#         SOURCE_PATH: ${{ inputs.source_path }}
+#         TARGET_PATH: ${{ inputs.target_path }}
+#         CLEAN_TARGET: ${{ inputs.clean_target }}
+#       run: |
+#         set -euo pipefail
+
+#         src=".tmp/nym-config-override/${SOURCE_PATH}"
+#         dst="${TARGET_PATH}"
+
+#         if [[ ! -d "$src" ]]; then
+#           echo "::error::Source path '$src' does not exist in '${REPOSITORY}'"
+#           exit 1
+#         fi
+
+#         mkdir -p "$dst"
+
+#         if [[ "${CLEAN_TARGET}" == "true" ]]; then
+#           rm -rf -- "$dst"
+#           mkdir -p "$dst"
+#         fi
+
+#         cp -a "$src"/. "$dst"/
+
+#         echo "Applied nym-config override from '$src' to '$dst'"
+#         ls -la "$dst"
