@@ -73,6 +73,20 @@ This monorepo contains all NymVPN client source, separate from the Nym network [
 | Linux / Windows (desktop) | `nym-vpn-app`, `nym-vpn-windows` | Tauri + TypeScript |
 | WireGuard integration | `wireguard` | Rust / C |
 
+# SHA-256 certificate fingerprints:
+
+**Package ID:** net.nymtech.nymvpn
+
+**GitHub APK:**
+```
+3C:98:A0:16:AA:4F:14:A3:BA:18:5C:76:4E:D3:63:41:5C:F7:FF:3C:3D:32:8A:87:FF:FF:2F:F1:B1:40:FF:06
+```
+
+**Google Play:**
+```
+C0:FA:AA:D7:4F:17:BB:CB:4A:C2:30:93:F0:6A:B5:2E:8C:5C:95:F9:FB:AA:A2:D3:BF:02:24:2C:75:7E:82:BD
+```
+
 # Contributing
 
 Contributions welcome across the stack: Rust core (networking, crypto, protocols), mobile (Kotlin/SwiftUI), desktop (SwiftUI/Tauri), protocol research, and security review. See the [Contribution Guide](https://github.com/nymtech/nym-vpn-client/blob/develop/CONTRIBUTING.md), [Code of Conduct](https://github.com/nymtech/nym-vpn-client/blob/develop/CODE_OF_CONDUCT.md), and [Security Policy](https://github.com/nymtech/nym-vpn-client/blob/develop/SECURITY.md). Localization is crowdsourced via [Crowdin](https://crowdin.com/editor/nymvpn-apps).
