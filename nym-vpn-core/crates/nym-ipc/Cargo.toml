@@ -30,7 +30,7 @@ zbus_polkit = { workspace = true, optional = true }
 block2 = { workspace = true }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true, features = ["CFString"] }
-objc2-foundation = { workspace = true, features = [
+objc2-foundation = { workspace = true, optional = true, features = [
     "NSString",
     "NSXPCConnection",
 ] }
@@ -49,7 +49,7 @@ tempfile.workspace = true
 cc = { workspace = true }
 
 [features]
-xpc = []
+xpc = ["dep:objc2-foundation"]
 daemon = [
     "async-stream",
     "async-trait",
