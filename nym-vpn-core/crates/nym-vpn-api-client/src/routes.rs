@@ -33,6 +33,8 @@ pub(crate) const GEO: &str = "geo";
 pub(crate) const IP: &str = "ip";
 pub(crate) const PAIRING: &str = "pairing";
 pub(crate) const CHECK: &str = "check";
+pub(crate) const PAIR: &str = "pair";
+pub(crate) const GET_SECRET: &str = "get-secret";
 
 pub(crate) const EPOCH_ID: &str = "epoch-id";
 pub(crate) const EXPIRATION_DATE: &str = "expiration-date";
@@ -40,6 +42,7 @@ pub(crate) const EXPIRATION_DATE: &str = "expiration-date";
 pub(crate) const SHOW_VPN_ONLY: &str = "show_vpn_only";
 pub(crate) const VPN_MIN_PERFORMANCE: &str = "vpn_min_performance";
 pub(crate) const MIXNET_MIN_PERFORMANCE: &str = "mixnet_min_performance";
+pub(crate) const PAIRING_TOKEN: &str = "pairing_token";
 
 pub(crate) const WELLKNOWN: &str = ".wellknown";
 pub(crate) const ENVS_FILE: &str = "envs.json";

@@ -59,7 +59,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     // If we nevertheless do, we can't forget the account, because maybe the tunnel is in Offline {reconnect : true} state, and we shouldn't remove the account if it's the case
                     AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::LinkAccount(return_sender, _) => return_no_connectivity(return_sender),
-                    AccountCommand::QrPairAccount(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::StartPairing(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::ScannedKey(return_sender, _) => return_no_connectivity(return_sender),
                     AccountCommand::RotateKeys(return_sender) => {
                         return_sender.send(handler::handle_rotate_keys(shared_state).await)
                     },

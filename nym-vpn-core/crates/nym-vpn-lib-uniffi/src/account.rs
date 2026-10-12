@@ -22,8 +22,8 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    QrUrl, RegisterAccountRequest, RegisterAccountResponse, StorableAccount, StoreAccountRequest,
-    StoredAccountMode, UserAgent, VpnAccountSummary,
+    QrPairingConfirmation, QrUrl, RegisterAccountRequest, RegisterAccountResponse, StorableAccount,
+    StoreAccountRequest, StoredAccountMode, UserAgent, VpnAccountSummary,
 };
 
 struct State {
@@ -264,9 +264,16 @@ impl NymAccountController {
         }
     }
 
-    pub async fn pair_account(&self) -> Result<QrUrl, VpnError> {
+    pub async fn start_pairing(&self) -> Result<QrUrl, VpnError> {
         self.account_command_sender
-            .qr_pair_account()
+            .start_pairing()
+            .await
+            .map_err(VpnError::from)
+    }
+
+    pub async fn scanned_key(&self, pub_key: String) -> Result<QrPairingConfirmation, VpnError> {
+        self.account_command_sender
+            .scanned_key(pub_key)
             .await
             .map_err(VpnError::from)
     }

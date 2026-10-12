@@ -14,7 +14,8 @@ use nym_vpn_api_client::{
     types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, QrUrl, RegisterAccountResponse, StorableAccount, VpnApiError,
+    AccountCommandError, QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount,
+    VpnApiError,
 };
 use nym_vpn_store::keys::wireguard::WireguardKeyStore;
 
@@ -234,14 +235,11 @@ pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
     if let Some(ref account) = shared_state.vpn_api_account
         && account.mode().is_api()
     {
-        let qr_pairing_cancel_token = shared_state.cancel_token.child_token();
         let qr_pairing_process = QrPairingProcess::new(
             shared_state.vpn_api_client.clone(),
-            account.clone(),
             shared_state.tunnel_event_tx.clone(),
-            qr_pairing_cancel_token.clone(),
+            shared_state.cancel_token.child_token(),
         );
-        shared_state.qr_pairing_cancel_token = Some(qr_pairing_cancel_token.drop_guard());
 
         let response = shared_state
             .vpn_api_client
@@ -255,12 +253,52 @@ pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
             ),
         };
 
-        qr_pairing_process.spawn_pairing_check_task(Duration::from_secs(response.ttl_seconds));
+        shared_state.qr_pairing_process_cancel_token = qr_pairing_process
+            .spawn_pairing_check_task(account.clone(), Duration::from_secs(response.ttl_seconds));
 
         Ok(ret)
     } else {
         tracing::error!("Cannot pair another device when not logged-in with an API account");
         Err(AccountCommandError::NoAccountStored)
+    }
+}
+
+pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    remote_qr_pub_key: String,
+) -> Result<QrPairingConfirmation, AccountCommandError> {
+    // We can only pair a new device to the account if we're currently logged-out
+    if shared_state.vpn_api_account.is_none() {
+        let qr_pairing_process = QrPairingProcess::new(
+            shared_state.vpn_api_client.clone(),
+            shared_state.tunnel_event_tx.clone(),
+            shared_state.cancel_token.child_token(),
+        );
+
+        let pin_code = String::new();
+        let token = String::new();
+
+        let response = shared_state
+            .vpn_api_client
+            .try_to_pair_to_account(
+                &remote_qr_pub_key,
+                &qr_pairing_process.qr_public_key(),
+                &pin_code,
+                &token,
+            )
+            .await?;
+
+        shared_state.qr_pairing_process_cancel_token = qr_pairing_process
+            .spawn_get_pairing_secret_task(
+                remote_qr_pub_key,
+                token,
+                Duration::from_secs(response.ttl_seconds),
+            );
+
+        Ok(QrPairingConfirmation { pin_code })
+    } else {
+        tracing::error!("Cannot pair another device when not logged-in with an API account");
+        Err(AccountCommandError::ExistingAccount)
     }
 }
 
@@ -335,7 +373,9 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     // The device identity changed, so any installed credential fetcher is bound to a stale device.
     // Drop it; the next time we reach a state that needs one it will be rebuilt with the new device.
     shared_state.clear_credential_fetcher().await?;
-    shared_state.qr_pairing_cancel_token.take();
+    shared_state
+        .qr_pairing_process_cancel_token
+        .drop_pairing_check();
 
     Ok(())
 }

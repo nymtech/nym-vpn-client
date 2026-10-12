@@ -11,8 +11,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, QrUrl, RegisterAccountResponse,
-    StorableAccount, StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, QrPairingConfirmation, QrUrl,
+    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 
 use tokio::sync::mpsc::UnboundedSender;
@@ -66,10 +66,22 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn qr_pair_account(&self) -> Result<QrUrl, AccountCommandError> {
+    pub async fn start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::QrPairAccount(tx))
+            .send(AccountCommand::StartPairing(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn scanned_key(
+        &self,
+        pub_key: String,
+    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ScannedKey(tx, pub_key))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

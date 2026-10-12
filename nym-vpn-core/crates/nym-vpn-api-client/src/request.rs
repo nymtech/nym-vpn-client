@@ -132,3 +132,10 @@ pub struct LinkAccountRequestBody {
 pub struct PairAccountRequestBody {
     pub pubkey: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TryToPairRequestBody {
+    pub pubkey: String,
+    pub pin_code: String,
+    pub token: String,
+}

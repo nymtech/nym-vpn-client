@@ -828,6 +828,12 @@ pub struct NymVpnPairingCheckResponse {
     pub pin_code: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnGetPairingSecretResponse {
+    pub mnemonic: Option<String>,
+}
+
 pub type RegisteredNetworksResponse = HashSet<String>;
 
 #[cfg(test)]
