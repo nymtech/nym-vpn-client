@@ -25,7 +25,7 @@ sqlx = { workspace = true, features = [
     "time",
 ] }
 nym-sqlx-pool-guard.workspace = true
-sysinfo.workspace = true
+sysinfo = { workspace = true, features = ["system"] }
 thiserror.workspace = true
 tokio = { workspace = true, features = ["macros"] }
 tokio-util.workspace = true

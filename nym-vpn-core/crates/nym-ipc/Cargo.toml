@@ -56,6 +56,7 @@ daemon = [
     "nix",
     "nym-windows",
     "thiserror",
+    "tokio/fs",
     "zbus",
     "zbus_polkit",
 ]
