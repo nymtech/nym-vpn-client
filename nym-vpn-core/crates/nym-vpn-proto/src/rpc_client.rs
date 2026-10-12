@@ -16,10 +16,10 @@ use nym_vpn_lib_types::{
     AutologinResponse, AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags,
     FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath,
     LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, ProfileOptions, QrUrl, RecentGateways, RegistrationReport,
-    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    PrivyDerivationMessage, ProfileOptions, QrPairingConfirmation, QrUrl, RecentGateways,
+    RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -708,15 +708,26 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn start_pairing_account(&mut self) -> Result<QrUrl> {
+    pub async fn start_pairing(&mut self) -> Result<QrUrl> {
         let response = self
             .0
-            .start_pairing_account(())
+            .start_pairing(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
 
         Ok(QrUrl::from(response))
+    }
+
+    pub async fn scanned_key(&mut self, pub_key: String) -> Result<QrPairingConfirmation> {
+        let response = self
+            .0
+            .scanned_key(pub_key)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrPairingConfirmation::from(response))
     }
 
     pub async fn get_log_path(&mut self) -> Result<Option<LogPath>> {

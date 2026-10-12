@@ -286,6 +286,17 @@ impl VpnApiTimeSynced {
     }
 }
 
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
+pub struct PairingParams {
+    pub token: String,
+}
+
+impl PairingParams {
+    pub(crate) fn to_param(&self) -> Vec<(String, String)> {
+        vec![(crate::routes::PAIRING_TOKEN.to_string(), self.token.clone())]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::types::test_fixtures::{TEST_DEFAULT_MNEMONIC, TEST_DEFAULT_MNEMONIC_ID};
