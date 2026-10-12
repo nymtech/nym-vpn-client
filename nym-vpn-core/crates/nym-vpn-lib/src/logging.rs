@@ -118,32 +118,16 @@ impl SharedFileAppender {
         // drop the file appeneder, so that we can remove the file in the next step
         let _ = file_lock.take();
 
-        tokio::fs::remove_file(log_path).await.or_else(|err| {
-            if err.kind() == std::io::ErrorKind::NotFound {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })?;
-
-        tokio::fs::remove_file(old_log_path).await.or_else(|err| {
-            if err.kind() == std::io::ErrorKind::NotFound {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })?;
+        let remove_result = Self::remove_file_if_exists(&log_path)
+            .await
+            .and(Self::remove_file_if_exists(&old_log_path).await);
 
         let rolling_appender = Self::create_rolling_appender(&self.log_dir, &self.log_file_name)
             .map_err(SharedFileAppenderError::InitRollingAppender)?;
 
         *file_lock = Some(rolling_appender);
 
-        Ok(())
-    }
-
-    fn old_log_file_path(log_dir: &Path, log_file_name: &str) -> PathBuf {
-        log_dir.join(Path::new(log_file_name).with_extension(BACKUP_LOG_EXTENSION))
+        Ok(remove_result?)
     }
 
     pub fn create_rolling_appender(
@@ -155,6 +139,20 @@ impl SharedFileAppender {
             .rotation(tracing_appender::rolling::Rotation::NEVER)
             .filename_prefix(log_file_name)
             .build(log_dir)
+    }
+
+    fn old_log_file_path(log_dir: &Path, log_file_name: &str) -> PathBuf {
+        log_dir.join(Path::new(log_file_name).with_extension(BACKUP_LOG_EXTENSION))
+    }
+
+    async fn remove_file_if_exists(path: &Path) -> std::io::Result<()> {
+        tokio::fs::remove_file(path).await.or_else(|err| {
+            if err.kind() == std::io::ErrorKind::NotFound {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
     }
 }
 
