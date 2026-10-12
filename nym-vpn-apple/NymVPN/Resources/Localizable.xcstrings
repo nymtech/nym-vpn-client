@@ -2246,6 +2246,17 @@
         }
       }
     },
+    "Applibrary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Library"
+          }
+        }
+      }
+    },
     "arcProgress.anonymousModeProtection" : {
       "extractionState" : "manual",
       "localizations" : {

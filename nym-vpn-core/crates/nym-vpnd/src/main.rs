@@ -32,6 +32,8 @@ use windows_service::{
 
 use crate::cli::{CliArgs, Command, RunArgs};
 
+const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> anyhow::Result<()> {
     let cli_args = CliArgs::parse();
@@ -88,8 +90,8 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
         verbosity_level: cli_args.verbosity_level(),
         enable_stdout_log: !run_as_service,
         enable_json_log: cli_args.json_output,
-        log_dir: if run_as_service {
-            Some(paths.log_dir.clone())
+        log_file_path: if run_as_service {
+            Some(paths.log_dir.join(DEFAULT_LOG_FILE))
         } else {
             None
         },

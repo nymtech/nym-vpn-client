@@ -40,4 +40,5 @@ public enum Constants: String {
     case serverMonitoring = "https://harbourmaster.nymtech.net"
 
     case logFileName = "libnymvpn.log"
+    case appLibraryLogFileName = "libnymvpn-app.log"
 }

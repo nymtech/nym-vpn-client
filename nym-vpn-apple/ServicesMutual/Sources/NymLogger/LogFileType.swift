@@ -3,6 +3,7 @@ public enum LogFileType: String, CaseIterable {
     case app
     case tunnel
     case library
+    case appLibrary
 #elseif os(macOS)
     case app
     case daemon

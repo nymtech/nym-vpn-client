@@ -26,7 +26,20 @@ import NymVPNLib
 struct NymVPNApp: App {
     private let logFileManager: LogFileManager = {
         let manager = LogFileManager(logFileType: .app)
-        initLogger(logDir: LogFileManager.logsDirectory()?.path(), logLevel: .debug, sentryMonitoring: false)
+
+        let logFilePath = LogFileManager.logsDirectory()?
+            .appendingPathComponent(Constants.appLibraryLogFileName.rawValue)
+            .path()
+
+        let logLevel: LogLevel = switch ConfigurationManager.shared.debugLevel {
+        case .debug:
+            .debug
+        case .info:
+            .info
+        }
+
+        initLogger(logFilePath: logFilePath, logLevel: logLevel, sentryMonitoring: false)
+
         LoggingSystem.bootstrap { label in
             let fileLogger = FileLogHandler(label: label, logFileManager: manager)
 

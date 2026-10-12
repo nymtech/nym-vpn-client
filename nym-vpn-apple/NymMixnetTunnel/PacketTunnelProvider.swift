@@ -105,7 +105,7 @@ extension PacketTunnelProvider {
     }
 
     func configureLogger() {
-        let logDir = LogFileManager.logsDirectory()?.path()
+        let logFilePath = LogFileManager.logFileURL(logFileType: .library)?.path()
         // Extracted from ConfigurationManager.shared.debugLevel
         let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
         let isDebugLogsOn = UserDefaults(
@@ -113,7 +113,7 @@ extension PacketTunnelProvider {
         )?.bool(forKey: "isDebugLogsOn") ?? false
 
         let logLevel: LogLevel = (isTestFlight || isDebugLogsOn) ? .debug : .info
-        initLogger(logDir: logDir, logLevel: logLevel, sentryMonitoring: true)
+        initLogger(logFilePath: logFilePath, logLevel: logLevel, sentryMonitoring: true)
     }
 }
 
