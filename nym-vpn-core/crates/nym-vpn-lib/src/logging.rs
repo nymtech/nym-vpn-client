@@ -83,6 +83,7 @@ pub struct SharedFileAppender {
     inner: Arc<Mutex<Option<RollingFileAppender>>>,
     log_dir: PathBuf,
     log_file_name: String,
+    old_log_file_name: String,
 }
 
 impl SharedFileAppender {
@@ -115,18 +116,28 @@ impl SharedFileAppender {
             inner: Arc::new(Mutex::new(Some(rolling_appender))),
             log_dir,
             log_file_name: log_file_name.to_owned(),
+            old_log_file_name: old_log_file_name.to_owned(),
         })
     }
 
     /// Empty the log file by removing it and opening a new one in its place.
     pub async fn delete_log_file(&mut self) -> Result<(), SharedFileAppenderError> {
-        let file_path = self.log_dir.join(&self.log_file_name);
+        let log_path = self.log_dir.join(&self.log_file_name);
+        let old_log_path = self.log_dir.join(&self.old_log_file_name);
 
         let mut file_lock = self.inner.lock().await;
         // drop the file appeneder, so that we can remove the file in the next step
         let _ = file_lock.take();
 
-        tokio::fs::remove_file(file_path).await.or_else(|err| {
+        tokio::fs::remove_file(log_path).await.or_else(|err| {
+            if err.kind() == std::io::ErrorKind::NotFound {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })?;
+
+        tokio::fs::remove_file(old_log_path).await.or_else(|err| {
             if err.kind() == std::io::ErrorKind::NotFound {
                 Ok(())
             } else {
