@@ -9,10 +9,16 @@ import net.nymtech.logcatutil.model.LogType
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.RandomAccessFile
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 class LogFileManager(private val logDir: String, private val maxFileSize: Long, private val maxFolderSize: Long) {
+	companion object {
+		private const val CORE_LOG_PREFIX = "libnymvpn"
+		private const val CORE_LOG_FILE = "$CORE_LOG_PREFIX.log"
+	}
+
 	private val ioDispatcher = Dispatchers.IO
 	private val mutex = Mutex()
 
@@ -83,6 +89,7 @@ class LogFileManager(private val logDir: String, private val maxFileSize: Long, 
 		fileName.startsWith("tunnel_", ignoreCase = true) -> "tunnel"
 		fileName.startsWith("core_", ignoreCase = true) -> "core"
 		fileName.startsWith("logcat_", ignoreCase = true) -> "raw"
+		isCoreLibLog(fileName) -> "lib"
 		else -> "other"
 	}
 
@@ -91,7 +98,14 @@ class LogFileManager(private val logDir: String, private val maxFileSize: Long, 
 		try {
 			mutex.withLock {
 				closeAllLocked()
-				File(logDir).listFiles()?.forEach { it.deleteRecursively() }
+				File(logDir).listFiles()?.forEach { file ->
+					if (file.name == CORE_LOG_FILE) {
+						// Rust keeps it open in append mode, so truncate instead of unlinking
+						runCatching { RandomAccessFile(file, "rw").use { it.setLength(0) } }
+					} else {
+						file.deleteRecursively()
+					}
+				}
 			}
 		} finally {
 			StrictMode.setThreadPolicy(oldPolicy)
@@ -157,10 +171,10 @@ class LogFileManager(private val logDir: String, private val maxFileSize: Long, 
 		val dir = File(logDir)
 		if (!dir.exists()) return
 
-		var folderSize = getFolderSize(dir)
+		var folderSize = getOwnedFilesSize(dir)
 		while (folderSize >= maxFolderSize) {
 			val oldest = dir.listFiles()
-				?.filter { it.isFile }
+				?.filter { it.isFile && !isCoreLibLog(it.name) }
 				?.minByOrNull { it.lastModified() }
 				?: break
 
@@ -176,8 +190,20 @@ class LogFileManager(private val logDir: String, private val maxFileSize: Long, 
 			}
 
 			oldest.delete()
-			folderSize = getFolderSize(dir)
+			folderSize = getOwnedFilesSize(dir)
 		}
+	}
+
+	// Matches the active log and its .old.log backup
+	private fun isCoreLibLog(fileName: String): Boolean = fileName.startsWith(CORE_LOG_PREFIX)
+
+	private fun getOwnedFilesSize(dir: File): Long {
+		var size = 0L
+		dir.listFiles()?.forEach { f ->
+			if (isCoreLibLog(f.name)) return@forEach
+			size += if (f.isDirectory) getFolderSize(f) else f.length()
+		}
+		return size
 	}
 
 	private fun getFolderSize(dir: File): Long {
