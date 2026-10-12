@@ -148,13 +148,16 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         ioQueue.async { [weak self] in
             guard let self else { return }
 
+            try? self.fileHandle?.close()
+            self.fileHandle = nil
+
             LogFileType.allCases.forEach { type in
                 guard let logFileURL = LogFileManager.logFileURL(logFileType: type) else { return }
                 try? FileManager.default.removeItem(at: logFileURL)
-            }
 
-            try? self.fileHandle?.close()
-            self.fileHandle = nil
+                let oldLogFileURL = logFileURL.deletingPathExtension().appendingPathExtension("old.log")
+                try? FileManager.default.removeItem(at: oldLogFileURL)
+            }
 
             // Post notification on the main actor
             Task { @MainActor in
