@@ -247,6 +247,16 @@ jobs:
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
+      - name: Guard F-Droid compile env
+        env:
+          BUILD_FLAVOR: ${{ inputs.build_flavor }}
+        run: |
+          set -euo pipefail
+          if [ "$BUILD_FLAVOR" = fdroid ] && [ -n "${VPNLIB_SENTRY_DSN+x}" ]; then
+            echo "::error::VPNLIB_SENTRY_DSN must be unset for F-Droid so option_env matches fdroiddata"
+            exit 1
+          fi
+
       - name: Build Google Play Release Bundle
         if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
@@ -275,13 +285,13 @@ jobs:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Release Apk
+        # F-Droid rebuilds without VPNLIB_SENTRY_DSN; baking it changes libnym_vpn_lib.so.
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidRelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Release Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
@@ -290,7 +300,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Prerelease Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
@@ -299,7 +308,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Prerelease Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
@@ -308,7 +316,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Nightly Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
@@ -317,7 +324,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Nightly Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
@@ -326,7 +332,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Debug Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
@@ -335,7 +340,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Debug Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
@@ -344,7 +348,6 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Get output path
         id: output-path
