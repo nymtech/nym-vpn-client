@@ -9,8 +9,5 @@ edition.workspace = true
 [lints]
 workspace = true
 
-[dependencies]
-tracing.workspace = true
-
 [dev-dependencies]
 tracing-test.workspace = true
