@@ -67,10 +67,10 @@ This monorepo contains all NymVPN client source, separate from the Nym network [
 
 | Component | Path | Stack |
 |---|---|---|
-| Core VPN engine | `nym-vpn-core` | Rust |
+| Core VPN engine | `nym-vpn-core`, `nym-vpn-windows` | Rust |
 | Android | `nym-vpn-android` | Kotlin |
 | iOS / macOS | `nym-vpn-apple` | SwiftUI |
-| Linux / Windows (desktop) | `nym-vpn-app`, `nym-vpn-windows` | Tauri + TypeScript |
+| Linux / Windows (desktop) | `nym-vpn-app` | Tauri + TypeScript |
 | WireGuard integration | `wireguard` | Rust / C |
 
 # Contributing
