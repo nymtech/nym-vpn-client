@@ -288,7 +288,7 @@ class VpnCoreController(
 		val storagePath = service.filesDir.absolutePath
 		val logPath = "$storagePath${File.separator}logs"
 		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
-		initLogger(storagePath, level, sentryMonitoring = sentry)
+		initLogger(logPath, level, sentryMonitoring = sentry)
 
 		val env =
 			if (useMainnetFallback) {
