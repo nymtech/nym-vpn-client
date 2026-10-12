@@ -14,11 +14,11 @@ use std::sync::Arc;
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::{broadcast, mpsc};
-use tokio_util::sync::{CancellationToken, DropGuard};
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     AccountControllerConfig, AccountControllerEventSender, deeplink::Deeplinks,
-    nyxd_client::NyxdClient, storage::AccountStorageOp,
+    nyxd_client::NyxdClient, qr_pairing::QrPairingProcessDropGuard, storage::AccountStorageOp,
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -71,9 +71,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Channel for broadcasting global `Tunnel` events
     pub(crate) tunnel_event_tx: broadcast::Sender<nym_vpn_lib_types::TunnelEvent>,
 
-    /// Cancellation token for the QR pairing process, if one is active, in cases where the
-    /// process is invalidated (e.g. the user closes the pairing page) and we want to cancel it.
-    pub(crate) qr_pairing_cancel_token: Option<DropGuard>,
+    /// Cancellation drop guard for the QR pairing process, if one is active, in cases where the
+    /// process is invalidated and we want to cancel it.
+    pub(crate) qr_pairing_process_cancel_token: QrPairingProcessDropGuard,
 
     /// AccountController cancellation token; child tokens are handed to constructed fetchers so
     /// controller shutdown interrupts their in-flight work.
@@ -115,7 +115,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             storage_op_sender,
             event_sender,
             tunnel_event_tx,
-            qr_pairing_cancel_token: None,
+            qr_pairing_process_cancel_token: Default::default(),
             cancel_token,
         }
     }

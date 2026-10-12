@@ -93,10 +93,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                         let res = handler::handle_link_account(shared_state, privy_account).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::QrPairAccount(return_sender) => {
+                    AccountCommand::StartPairing(return_sender) => {
                         let res = handler::handle_qr_pair_account(shared_state).await;
                         return_sender.send(res);
                     },
+                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::RotateKeys(return_sender) => {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);

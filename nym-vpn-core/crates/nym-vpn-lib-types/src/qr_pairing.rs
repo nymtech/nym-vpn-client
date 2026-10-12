@@ -6,3 +6,9 @@
 pub struct QrUrl {
     pub url: String,
 }
+
+#[derive(Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+pub struct QrPairingConfirmation {
+    pub pin_code: String,
+}

@@ -35,7 +35,7 @@ pub enum TunnelEvent {
     AccountState(AccountControllerState),
     DiagnosticsSuggested(DiagnosticsSuggestionReason),
     ConflictDetected(ConflictDetected),
-    PairingCheck(PairingCheckResult),
+    Pairing(PairingResult),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -51,7 +51,7 @@ impl fmt::Display for TunnelEvent {
             Self::ConflictDetected(conflict) => {
                 write!(f, "Conflict detected: {conflict}")
             }
-            Self::PairingCheck(result) => {
+            Self::Pairing(result) => {
                 write!(f, "Pairing check result: {result}")
             }
         }
@@ -107,25 +107,30 @@ impl fmt::Display for ConflictDetected {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub enum PairingCheckResult {
+pub enum PairingResult {
     Cancelled,
     TimedOut,
     Error(String),
     PinCode(String),
+    Mnemonic(String),
 }
 
-impl fmt::Display for PairingCheckResult {
+impl fmt::Display for PairingResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Cancelled => write!(f, "QR pairing process was cancelled"),
             Self::TimedOut => write!(
                 f,
-                "No device scanned the QR code, so it became invalid. Please retry the process with a new QR code."
+                "Pairing did not finish in time. Restart the pairing process."
             ),
-            Self::Error(err) => write!(f, "An error occurred while pairing a new device: {err}"),
+            Self::Error(err) => write!(f, "An error occurred while pairing: {err}"),
             Self::PinCode(_) => write!(
                 f,
-                "Obtained the PIN code. Please show it to the user and ask for confirmation that it matches the PIN code displayed on the other device."
+                "Obtained the PIN code. Show it to the user and ask for confirmation that it matches the PIN code displayed on the other device."
+            ),
+            Self::Mnemonic(_) => write!(
+                f,
+                "Obtained the account mnemonic. Use it for triggering the log in flow."
             ),
         }
     }

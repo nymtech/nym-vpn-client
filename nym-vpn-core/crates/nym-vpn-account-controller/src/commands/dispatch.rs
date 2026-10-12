@@ -8,8 +8,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, QrUrl, RegisterAccountResponse, StorableAccount,
-    StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, QrPairingConfirmation, QrUrl, RegisterAccountResponse,
+    StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 use tokio::sync::oneshot;
 
@@ -38,7 +38,13 @@ pub enum AccountCommand {
     LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
     /// Pair another device to this logged-on account via a QR code
-    QrPairAccount(ReturnSender<QrUrl, AccountCommandError>),
+    StartPairing(ReturnSender<QrUrl, AccountCommandError>),
+
+    /// Pair this device to a logged-on device account via a QR code
+    ScannedKey(
+        ReturnSender<QrPairingConfirmation, AccountCommandError>,
+        String,
+    ),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
@@ -74,7 +80,8 @@ impl AccountCommand {
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::DeleteAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
-            AccountCommand::QrPairAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::StartPairing(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),
