@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.13.1] - 2026-10-12
+
 ### Added
 
 - Log panics to the app log file, flushing queued log lines when the main thread panics (https://github.com/nymtech/nym-vpn-client/pull/6673)
