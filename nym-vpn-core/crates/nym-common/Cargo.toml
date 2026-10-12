@@ -10,4 +10,5 @@ edition.workspace = true
 workspace = true
 
 [dev-dependencies]
+tracing.workspace = true
 tracing-test.workspace = true
