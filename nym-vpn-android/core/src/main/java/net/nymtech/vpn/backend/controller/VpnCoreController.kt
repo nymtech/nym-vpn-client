@@ -286,9 +286,10 @@ class VpnCoreController(
 		}
 
 		val storagePath = service.filesDir.absolutePath
-		val logPath = "$storagePath${File.separator}logs"
+		val logDir = "$storagePath${File.separator}logs"
 		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
-		initLogger(storagePath, level, sentryMonitoring = sentry)
+		val serviceLogFile = "$logDir${File.separator}libnymvpn.log"
+		initLogger(serviceLogFile, level, sentryMonitoring = sentry)
 
 		val env =
 			if (useMainnetFallback) {
@@ -310,7 +311,7 @@ class VpnCoreController(
 		val initialConfig = VpnConfig(
 			configDir = storagePath,
 			dataDir = storagePath,
-			logDir = logPath,
+			logDir = logDir,
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,

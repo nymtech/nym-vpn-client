@@ -28,17 +28,7 @@ use tracing_subscriber::{
 
 use nym_vpn_lib_types::LogPath;
 
-#[cfg(any(target_os = "android", target_os = "ios"))]
-pub const DEFAULT_LOG_FILE: &str = "libnymvpn.log";
-
-#[cfg(any(target_os = "android", target_os = "ios"))]
-pub const DEFAULT_OLD_LOG_FILE: &str = "libnymvpn.log";
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
+const BACKUP_LOG_EXTENSION: &str = "old.log";
 
 static INFO_TARGETS: [&str; 16] = [
     "hyper",
@@ -65,7 +55,8 @@ pub struct Options {
     pub verbosity_level: Level,
     pub enable_stdout_log: bool,
     pub enable_json_log: bool,
-    pub log_dir: Option<PathBuf>,
+    /// Path to the log file. File logging is disabled when `None`.
+    pub log_file_path: Option<PathBuf>,
     pub sentry: bool,
 }
 
@@ -76,6 +67,9 @@ pub enum SharedFileAppenderError {
 
     #[error("I/O error")]
     Io(#[from] std::io::Error),
+
+    #[error("invalid log file path: {0}")]
+    InvalidLogFilePath(PathBuf),
 }
 
 #[derive(Clone, Debug)]
@@ -86,22 +80,20 @@ pub struct SharedFileAppender {
 }
 
 impl SharedFileAppender {
-    /// Create new file appender and making a backup of existing log file
+    /// Create new file appender and make a backup of the existing log file.
     ///
-    /// ## Arguments
-    ///
-    /// * `log_dir`: Directory where the log files are stored.
-    /// * `log_file_name`: Current log file (i.e. "nym_vpn.log")
-    /// * `old_log_file_name`: Backup log file (i.e. "nym_vpn.log.old")
-    pub fn new(
-        log_dir: PathBuf,
-        log_file_name: &str,
-        old_log_file_name: &str,
-    ) -> Result<Self, SharedFileAppenderError> {
-        let log_file_path = log_dir.join(log_file_name);
-        let old_log_file_path = log_dir.join(old_log_file_name);
+    /// The backup is stored next to the log file with the `.old.log` extension, i.e.
+    /// "nym-vpnd.log" is backed up as "nym-vpnd.old.log".
+    pub fn new(log_file_path: &Path) -> Result<Self, SharedFileAppenderError> {
+        let invalid_path = || SharedFileAppenderError::InvalidLogFilePath(log_file_path.to_owned());
+        let log_dir = log_file_path.parent().ok_or_else(invalid_path)?;
+        let log_file_name = log_file_path
+            .file_name()
+            .and_then(|file_name| file_name.to_str())
+            .ok_or_else(invalid_path)?;
+        let old_log_file_path = Self::old_log_file_path(log_file_path);
 
-        if let Err(err) = std::fs::rename(&log_file_path, &old_log_file_path)
+        if let Err(err) = std::fs::rename(log_file_path, &old_log_file_path)
             && err.kind() != std::io::ErrorKind::NotFound
         {
             tracing::warn!(
@@ -109,37 +101,34 @@ impl SharedFileAppender {
             );
         }
 
-        let rolling_appender = Self::create_rolling_appender(&log_dir, log_file_name)?;
+        let rolling_appender = Self::create_rolling_appender(log_dir, log_file_name)?;
 
         Ok(Self {
             inner: Arc::new(Mutex::new(Some(rolling_appender))),
-            log_dir,
+            log_dir: log_dir.to_owned(),
             log_file_name: log_file_name.to_owned(),
         })
     }
 
     /// Empty the log file by removing it and opening a new one in its place.
     pub async fn delete_log_file(&mut self) -> Result<(), SharedFileAppenderError> {
-        let file_path = self.log_dir.join(&self.log_file_name);
+        let log_path = self.log_dir.join(&self.log_file_name);
+        let old_log_path = Self::old_log_file_path(&log_path);
 
         let mut file_lock = self.inner.lock().await;
         // drop the file appeneder, so that we can remove the file in the next step
         let _ = file_lock.take();
 
-        tokio::fs::remove_file(file_path).await.or_else(|err| {
-            if err.kind() == std::io::ErrorKind::NotFound {
-                Ok(())
-            } else {
-                Err(err)
-            }
-        })?;
+        let remove_result = Self::remove_file_if_exists(&log_path)
+            .await
+            .and(Self::remove_file_if_exists(&old_log_path).await);
 
         let rolling_appender = Self::create_rolling_appender(&self.log_dir, &self.log_file_name)
             .map_err(SharedFileAppenderError::InitRollingAppender)?;
 
         *file_lock = Some(rolling_appender);
 
-        Ok(())
+        Ok(remove_result?)
     }
 
     pub fn create_rolling_appender(
@@ -151,6 +140,20 @@ impl SharedFileAppender {
             .rotation(tracing_appender::rolling::Rotation::NEVER)
             .filename_prefix(log_file_name)
             .build(log_dir)
+    }
+
+    fn old_log_file_path(log_file_path: &Path) -> PathBuf {
+        log_file_path.with_extension(BACKUP_LOG_EXTENSION)
+    }
+
+    async fn remove_file_if_exists(path: &Path) -> std::io::Result<()> {
+        tokio::fs::remove_file(path).await.or_else(|err| {
+            if err.kind() == std::io::ErrorKind::NotFound {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
     }
 }
 
@@ -392,8 +395,8 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
 
     // File log setup
     let (file_appender, file_appender_error) = match options
-        .log_dir
-        .map(|log_dir| SharedFileAppender::new(log_dir, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE))
+        .log_file_path
+        .map(|log_file_path| SharedFileAppender::new(&log_file_path))
         .transpose()
     {
         Ok(file_appender) => (file_appender, None),
