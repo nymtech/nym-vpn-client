@@ -697,6 +697,7 @@ message PairingCheckResult {
     google.protobuf.Empty timed_out = 2;
     string error = 3;
     string pin_code = 4;
+    string mnemonic = 5;
   }
 }
 
@@ -1204,6 +1205,10 @@ message QrUrlResponse {
   string url = 1;
 }
 
+message QrPairingConfirmationResponse {
+  string pin_code = 1;
+}
+
 message GetDeeplinkParams {
   DeeplinkClient client = 1;
   string locale = 2;
@@ -1383,7 +1388,10 @@ service NymVpnService {
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
   // Pair a device with this account using a QR encoded URL
-  rpc StartPairingAccount(google.protobuf.Empty) returns (QrUrlResponse) {}
+  rpc StartPairing(google.protobuf.Empty) returns (QrUrlResponse) {}
+
+  // Pair this device with the account using the public key value embedded in a QR URL
+  rpc ScannedKey(google.protobuf.StringValue) returns (QrPairingConfirmationResponse) {}
 
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}

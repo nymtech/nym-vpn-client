@@ -12,11 +12,15 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, GatewayType,
     LewesProtocolDetails, LewesProtocolDetailsData, ListGatewaysOptions, LogPath,
-    NymNetworkDetails, NymVpnNetwork, Performance, QrUrl, QuicClientOptions, SshClientOptions,
-    StoreAccountRequest, SystemMessage, TlsClientOptions, UserAgent, VpnServiceInfo,
+    NymNetworkDetails, NymVpnNetwork, Performance, QrPairingConfirmation, QrUrl, QuicClientOptions,
+    SshClientOptions, StoreAccountRequest, SystemMessage, TlsClientOptions, UserAgent,
+    VpnServiceInfo,
 };
 
-use crate::{conversions::ConversionError, proto};
+use crate::{
+    conversions::ConversionError,
+    proto::{self},
+};
 
 impl TryFrom<proto::Location> for nym_vpn_lib_types::Location {
     type Error = ConversionError;
@@ -979,5 +983,21 @@ impl From<QrUrl> for proto::QrUrlResponse {
 impl From<proto::QrUrlResponse> for QrUrl {
     fn from(value: proto::QrUrlResponse) -> Self {
         Self { url: value.url }
+    }
+}
+
+impl From<QrPairingConfirmation> for proto::QrPairingConfirmationResponse {
+    fn from(value: QrPairingConfirmation) -> Self {
+        Self {
+            pin_code: value.pin_code,
+        }
+    }
+}
+
+impl From<proto::QrPairingConfirmationResponse> for QrPairingConfirmation {
+    fn from(value: proto::QrPairingConfirmationResponse) -> Self {
+        Self {
+            pin_code: value.pin_code,
+        }
     }
 }

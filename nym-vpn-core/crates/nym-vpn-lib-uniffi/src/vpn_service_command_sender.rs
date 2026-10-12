@@ -13,9 +13,9 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     DiagnosticRunParams, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -446,9 +446,16 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    pub async fn start_pairing_account(&self) -> Result<QrUrl> {
+    pub async fn start_pairing(&self) -> Result<QrUrl> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::StartPairingAccount, ())
+            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn scanned_key(&self, pub_key: String) -> Result<QrPairingConfirmation> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::ScannedKey, pub_key)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }

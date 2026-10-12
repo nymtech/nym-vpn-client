@@ -73,8 +73,14 @@ pub enum Command {
         #[arg(long)]
         url: String,
     },
-    /// Start QR pairing
+    /// Start pairing this account via QR code
     StartPairing,
+    /// Start pairing to a remote account via a public key scanned from a QR code
+    ScannedKey {
+        /// Remote QR public key
+        #[arg(long)]
+        pub_key: String,
+    },
 }
 
 impl Command {
@@ -228,8 +234,16 @@ impl Command {
                 Ok(())
             }
             Command::StartPairing => {
-                let response = rpc_client.start_pairing_account().await?;
+                let response = rpc_client.start_pairing().await?;
                 println!("Pairing process started with URL: {}", response.url);
+                Ok(())
+            }
+            Command::ScannedKey { pub_key } => {
+                let response = rpc_client.scanned_key(pub_key).await?;
+                println!(
+                    "Pairing process needs confirmation for PIN: {}",
+                    response.pin_code
+                );
                 Ok(())
             }
         }

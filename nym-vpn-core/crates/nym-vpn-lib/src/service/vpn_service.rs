@@ -55,9 +55,10 @@ use nym_vpn_lib_types::{
     DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, Profile, QrUrl, RecentGateways, RegistrationReport, StorableAccount,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways, RegistrationReport,
+    StorableAccount, StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState,
+    TentativeGateways, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -220,7 +221,11 @@ pub enum VpnServiceCommand {
         GetDeeplinkParams,
     ),
     DeeplinkStoreAccount(oneshot::Sender<Result<(), AccountCommandError>>, String),
-    StartPairingAccount(oneshot::Sender<Result<QrUrl, AccountCommandError>>, ()),
+    StartPairing(oneshot::Sender<Result<QrUrl, AccountCommandError>>, ()),
+    ScannedKey(
+        oneshot::Sender<Result<QrPairingConfirmation, AccountCommandError>>,
+        String,
+    ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -1242,8 +1247,11 @@ impl NymVpnService {
                         .await,
                 );
             }
-            VpnServiceCommand::StartPairingAccount(tx, ()) => {
-                let _ = tx.send(self.handle_start_pairing_account().await);
+            VpnServiceCommand::StartPairing(tx, ()) => {
+                let _ = tx.send(self.handle_start_pairing().await);
+            }
+            VpnServiceCommand::ScannedKey(tx, pub_key) => {
+                let _ = tx.send(self.handle_scanned_key(pub_key).await);
             }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.paths.log_path.clone());
@@ -2311,8 +2319,15 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_start_pairing_account(&self) -> Result<QrUrl, AccountCommandError> {
-        self.account_command_tx.qr_pair_account().await
+    async fn handle_start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
+        self.account_command_tx.start_pairing().await
+    }
+
+    async fn handle_scanned_key(
+        &self,
+        pub_key: String,
+    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+        self.account_command_tx.scanned_key(pub_key).await
     }
 
     async fn handle_delete_log_file(&self) {
