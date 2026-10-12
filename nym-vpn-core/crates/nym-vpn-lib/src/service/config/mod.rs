@@ -36,6 +36,7 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 use tokio::{
     fs,
@@ -80,10 +81,10 @@ impl fmt::Display for NetworkEnvironments {
     }
 }
 
-impl TryFrom<&str> for NetworkEnvironments {
-    type Error = &'static str;
+impl FromStr for NetworkEnvironments {
+    type Err = &'static str;
 
-    fn try_from(env: &str) -> Result<Self, Self::Error> {
+    fn from_str(env: &str) -> Result<Self, Self::Err> {
         match env {
             "mainnet" => Ok(NetworkEnvironments::Mainnet),
             "sandbox" => Ok(NetworkEnvironments::Sandbox),

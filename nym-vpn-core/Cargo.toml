@@ -62,7 +62,6 @@ version = "2026.14.0-beta.1"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
-documentation = "https://nymtech.net"
 edition = "2024"
 license = "GPL-3.0-only"
 rust-version = "1.97"
@@ -119,7 +118,6 @@ hex = "0.4"
 hickory-proto = "0.26.3"
 hickory-resolver = "0.26.3"
 hickory-server = "0.26.3"
-http = "1.5.0"
 http-body-util = "0.1.5"
 hyper-rustls = { version = "0.27.9" }
 hkdf = "0.13"
@@ -196,7 +194,6 @@ sysinfo = { version = "0.39.6", default-features = false }
 system-configuration = "0.8.0"
 tun = "0.8.14"
 tabled = "0.22"
-tap = "1.0.1"
 tempfile = "3.27"
 thiserror = "2.0"
 time = "0.3.55"
@@ -282,8 +279,8 @@ test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
 nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
+# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
+# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
@@ -292,14 +289,14 @@ nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/rele
 nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
+# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
+# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }

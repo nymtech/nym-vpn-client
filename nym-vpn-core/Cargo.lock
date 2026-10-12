@@ -6905,7 +6905,6 @@ name = "nym-macos"
 version = "2026.14.0-beta.1"
 dependencies = [
  "nix 0.31.3",
- "tokio",
  "tracing",
 ]
 
@@ -12344,7 +12343,6 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "pnet_packet",
  "regex",
  "serde",
  "serde_json",
@@ -12361,7 +12359,6 @@ dependencies = [
  "tokio-util",
  "tonic",
  "tower",
- "tun",
  "uuid",
 ]
 

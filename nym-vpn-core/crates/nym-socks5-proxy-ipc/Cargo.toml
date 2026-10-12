@@ -4,7 +4,6 @@ version.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "IPC protocol types shared between nym-vpnd and nym-socks5-proxy"
