@@ -87,7 +87,7 @@ async fn try_open_encrypted(
     let encrypted_options = SqliteConnectOptions::default()
         .filename(path)
         .journal_mode(journal_mode)
-        .pragma("key", key.to_owned());
+        .pragma("key", quote_key(key));
 
     if let Some(conn) =
         try_open(&encrypted_options)
@@ -225,7 +225,7 @@ async fn remove_journal_files(database_path: &Path) -> Result<(), EncryptSqliteS
 }
 
 fn append_suffix(db_path: &Path, suffix: &str) -> PathBuf {
-    let mut file_path = db_path.to_owned();
+    let mut file_path = db_path.as_os_str().to_owned();
     file_path.push(suffix);
     PathBuf::from(file_path)
 }
@@ -250,6 +250,11 @@ async fn try_open(options: &SqliteConnectOptions) -> sqlx::Result<Option<SqliteC
     }
 }
 
+/// Quotes the key as SQL string literal, because pragma values are not bound as parameters.
+fn quote_key(key: &str) -> String {
+    format!("'{}'", key.replace('\'', "''"))
+}
+
 /// SQLCipher reports SQLITE_NOTADB (26, "file is not a database") when a database is opened
 /// without the correct key.
 fn is_not_a_database(e: &sqlx::Error) -> bool {
@@ -261,4 +266,213 @@ fn is_not_a_database(e: &sqlx::Error) -> bool {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    const KEY: &str = "correct horse battery staple";
+    const OTHER_KEY: &str = "wrong key";
+    const USER_VERSION: i64 = 7;
+
+    #[tokio::test]
+    async fn missing_database_is_not_migrated() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Wal, KEY)
+            .await
+            .unwrap();
+
+        assert!(matches!(result, MigrationResult::NoDatabaseExist));
+        assert!(!tokio::fs::try_exists(&path).await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn encrypts_plaintext_database() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        create_plaintext_database(&path, SqliteJournalMode::Delete).await;
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY)
+            .await
+            .unwrap();
+
+        assert!(matches!(result, MigrationResult::Completed));
+        assert_encrypted_with(&path, KEY).await;
+        assert_no_leftover_files(&path).await;
+    }
+
+    #[tokio::test]
+    async fn encrypts_plaintext_database_in_wal_mode() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        create_plaintext_database(&path, SqliteJournalMode::Wal).await;
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Wal, KEY)
+            .await
+            .unwrap();
+
+        assert!(matches!(result, MigrationResult::Completed));
+        assert_encrypted_with(&path, KEY).await;
+        assert_no_leftover_files(&path).await;
+    }
+
+    #[tokio::test]
+    async fn removes_stale_journal_files() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        create_plaintext_database(&path, SqliteJournalMode::Delete).await;
+        for suffix in ["-wal", "-shm"] {
+            tokio::fs::write(append_suffix(&path, suffix), b"")
+                .await
+                .unwrap();
+        }
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY)
+            .await
+            .unwrap();
+
+        assert!(matches!(result, MigrationResult::Completed));
+        assert_encrypted_with(&path, KEY).await;
+        assert_no_leftover_files(&path).await;
+    }
+
+    #[tokio::test]
+    async fn replaces_stale_temporary_database() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        create_plaintext_database(&path, SqliteJournalMode::Delete).await;
+        tokio::fs::write(path.with_added_extension("encrypted"), b"stale")
+            .await
+            .unwrap();
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY)
+            .await
+            .unwrap();
+
+        assert!(matches!(result, MigrationResult::Completed));
+        assert_encrypted_with(&path, KEY).await;
+        assert_no_leftover_files(&path).await;
+    }
+
+    #[tokio::test]
+    async fn already_encrypted_database_is_left_untouched() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        create_plaintext_database(&path, SqliteJournalMode::Delete).await;
+        encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY)
+            .await
+            .unwrap();
+        let encrypted_contents = tokio::fs::read(&path).await.unwrap();
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY)
+            .await
+            .unwrap();
+
+        assert!(matches!(result, MigrationResult::AlreadyEncrypted));
+        assert_eq!(tokio::fs::read(&path).await.unwrap(), encrypted_contents);
+        assert_encrypted_with(&path, KEY).await;
+    }
+
+    #[tokio::test]
+    async fn database_encrypted_with_different_key_is_rejected() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        create_plaintext_database(&path, SqliteJournalMode::Delete).await;
+        encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY)
+            .await
+            .unwrap();
+        let encrypted_contents = tokio::fs::read(&path).await.unwrap();
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Delete, OTHER_KEY).await;
+
+        assert!(matches!(result, Err(EncryptSqliteStoreError::NotADatabase)));
+        assert_eq!(tokio::fs::read(&path).await.unwrap(), encrypted_contents);
+        assert_encrypted_with(&path, KEY).await;
+    }
+
+    #[tokio::test]
+    async fn file_that_is_not_a_database_is_rejected() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("store.sqlite");
+        let contents = b"this is definitely not an sqlite database".repeat(64);
+        tokio::fs::write(&path, &contents).await.unwrap();
+
+        let result = encrypt_sqlite_store(&path, SqliteJournalMode::Delete, KEY).await;
+
+        assert!(matches!(result, Err(EncryptSqliteStoreError::NotADatabase)));
+        assert_eq!(tokio::fs::read(&path).await.unwrap(), contents);
+    }
+
+    async fn create_plaintext_database(path: &Path, journal_mode: SqliteJournalMode) {
+        let options = SqliteConnectOptions::default()
+            .filename(path)
+            .journal_mode(journal_mode)
+            .create_if_missing(true);
+        let mut conn = SqliteConnection::connect_with(&options).await.unwrap();
+
+        conn.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT NOT NULL);")
+            .await
+            .unwrap();
+        conn.execute("INSERT INTO items (name) VALUES ('first'), ('second');")
+            .await
+            .unwrap();
+        conn.execute(AssertSqlSafe(format!(
+            "PRAGMA user_version = {USER_VERSION};"
+        )))
+        .await
+        .unwrap();
+        conn.close().await.unwrap();
+    }
+
+    async fn open(path: &Path, key: Option<&str>) -> sqlx::Result<SqliteConnection> {
+        let mut options = SqliteConnectOptions::default()
+            .filename(path)
+            .journal_mode(SqliteJournalMode::Delete);
+        if let Some(key) = key {
+            options = options.pragma("key", quote_key(key));
+        }
+        SqliteConnection::connect_with(&options).await
+    }
+
+    async fn read_items(conn: &mut SqliteConnection) -> sqlx::Result<Vec<String>> {
+        sqlx::query_scalar("SELECT name FROM items ORDER BY id;")
+            .fetch_all(conn)
+            .await
+    }
+
+    async fn assert_encrypted_with(path: &Path, key: &str) {
+        let mut conn = open(path, Some(key)).await.unwrap();
+        assert_eq!(read_items(&mut conn).await.unwrap(), ["first", "second"]);
+
+        let user_version: i64 = sqlx::query_scalar("PRAGMA user_version;")
+            .fetch_one(&mut conn)
+            .await
+            .unwrap();
+        assert_eq!(user_version, USER_VERSION);
+        conn.close().await.unwrap();
+
+        let plaintext_read = match open(path, None).await {
+            Ok(mut conn) => read_items(&mut conn).await.map(|_| ()),
+            Err(err) => Err(err),
+        };
+        assert!(
+            plaintext_read.as_ref().is_err_and(is_not_a_database),
+            "database must not be readable without a key: {plaintext_read:?}"
+        );
+    }
+
+    async fn assert_no_leftover_files(path: &Path) {
+        let leftovers = SQLITE_JOURNAL_SUFFIXES
+            .iter()
+            .map(|suffix| append_suffix(path, suffix))
+            .chain([path.with_added_extension("encrypted")]);
+
+        for leftover in leftovers {
+            assert!(
+                !tokio::fs::try_exists(&leftover).await.unwrap(),
+                "unexpected leftover file: {}",
+                leftover.display()
+            );
+        }
+    }
+}
