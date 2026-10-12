@@ -32,7 +32,7 @@ use nym_vpn_lib_types::LogPath;
 pub const DEFAULT_LOG_FILE: &str = "libnymvpn.log";
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
-pub const DEFAULT_OLD_LOG_FILE: &str = "libnymvpn.log";
+pub const DEFAULT_OLD_LOG_FILE: &str = "libnymvpn.old.log";
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
