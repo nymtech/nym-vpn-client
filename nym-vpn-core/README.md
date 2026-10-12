@@ -271,7 +271,7 @@ export ANDROID_NDK_HOME="/opt/android/android-ndk-r28c"
 export NDK_TOOLCHAIN_DIR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
 # macos
-export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/28.0.12433566
+export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/28.0.12433566
 export NDK_TOOLCHAIN_DIR=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin
 
 make -C nym-vpn-core -f Android.mk
