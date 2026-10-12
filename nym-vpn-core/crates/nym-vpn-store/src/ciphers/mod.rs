@@ -25,15 +25,7 @@ pub enum StoreCipherError {
 
 pub type Result<T, E = StoreCipherError> = std::result::Result<T, E>;
 
-/// Marker at the start of every encrypted item. Plaintext JSON, PEM, base58 and bincode never
-/// begin with these bytes, so the loader can tell the two formats apart.
-pub const MAGIC: &[u8; 7] = b"NYMENC1";
-
 pub trait StoreCipher {
     fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
     fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
-}
-
-fn is_encrypted(bytes: &[u8]) -> bool {
-    bytes.starts_with(MAGIC)
 }
