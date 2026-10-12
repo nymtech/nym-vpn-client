@@ -11,7 +11,10 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+async-trait.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true, features = ["sync", "rt"] }
+zeroize.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
 uniffi.workspace = true

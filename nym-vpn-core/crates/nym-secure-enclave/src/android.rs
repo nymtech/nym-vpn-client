@@ -3,6 +3,8 @@
 
 use std::sync::Arc;
 
+use crate::SecureEnclaveError;
+
 use super::{Result, SecureEnclaveKey, SecureEnclaveProvider};
 
 // Traits that must be implemented in Android app
@@ -37,38 +39,62 @@ impl AndroidKeyStoreProvider {
     }
 }
 
+#[async_trait::async_trait]
 impl SecureEnclaveProvider for AndroidKeyStoreProvider {
-    fn create_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
-        let key = self.inner.create_key(alias.to_owned())?;
-        Ok(Arc::new(AndroidSecureEnclaveKeyBridge::new(key)))
+    type Key = AndroidKeyStoreKey;
+
+    async fn create_key(&self, alias: String) -> Result<Self::Key> {
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || {
+            let key = inner.create_key(alias)?;
+            Ok(AndroidKeyStoreKey::new(key))
+        })
+        .await
+        .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    fn delete_key(&self, alias: &str) -> Result<()> {
-        self.inner.delete_key(alias.to_owned())
+    async fn delete_key(&self, alias: String) -> Result<()> {
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || inner.delete_key(alias))
+            .await
+            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    fn get_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
-        let key = self.inner.get_key(alias.to_owned())?;
-        Ok(Arc::new(AndroidSecureEnclaveKeyBridge::new(key)))
+    async fn get_key(&self, alias: String) -> Result<Self::Key> {
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || {
+            let key = inner.get_key(alias)?;
+            Ok(AndroidKeyStoreKey::new(key))
+        })
+        .await
+        .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 }
 
-struct AndroidSecureEnclaveKeyBridge {
+#[derive(Clone)]
+pub struct AndroidKeyStoreKey {
     inner: Arc<dyn AndroidSecureEnclaveKey>,
 }
 
-impl AndroidSecureEnclaveKeyBridge {
+impl AndroidKeyStoreKey {
     fn new(inner: Arc<dyn AndroidSecureEnclaveKey>) -> Self {
         Self { inner }
     }
 }
 
-impl SecureEnclaveKey for AndroidSecureEnclaveKeyBridge {
-    fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        self.inner.decrypt(bytes.to_owned())
+#[async_trait::async_trait]
+impl SecureEnclaveKey for AndroidKeyStoreKey {
+    async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || inner.decrypt(bytes))
+            .await
+            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
-        self.inner.encrypt(bytes.to_owned())
+    async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || inner.encrypt(bytes))
+            .await
+            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 }

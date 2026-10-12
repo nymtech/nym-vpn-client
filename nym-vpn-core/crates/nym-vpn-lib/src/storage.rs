@@ -7,6 +7,7 @@ use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use nym_vpn_store::{
     account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
     account_summary::{AccountSummaryStorage, on_disk::OnDiskAccountSummaryStorageError},
+    ciphers::StoreCipher,
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
 };
 
@@ -20,13 +21,27 @@ pub struct VpnClientOnDiskStorage {
 }
 
 impl VpnClientOnDiskStorage {
-    pub fn new<P: AsRef<Path>>(base_data_directory: P) -> Self {
+    pub fn new(
+        base_data_directory: impl AsRef<Path>,
+
+        #[cfg(target_os = "android")] secure_enclave_provider: Arc<
+            dyn AndroidSecureEnclaveProvider,
+        >,
+    ) -> Self {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
         let key_store = nym_vpn_store::keys::device::OnDiskKeys::new(device_key_paths);
 
+        let se_enclave = nym_secure_enclave::SecureEnclave::new(
+            #[cfg(target_os = "android")]
+            secure_enclave_provider,
+        );
+        let mnemonic_cipher = nym_vpn_store::ciphers::noop_cipher::NoopStoreCipher::default();
+
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
-        let mnemonic_storage =
-            nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(mnemonic_storage_path);
+        let mnemonic_storage = nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(
+            mnemonic_storage_path,
+            mnemonic_cipher,
+        );
 
         let summary_storage_path = base_data_directory.as_ref().join(ACCOUNT_SUMMARY_FILE_NAME);
         let summary_storage =

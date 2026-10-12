@@ -3,14 +3,16 @@
 
 use super::{Result, StoreCipher};
 
-pub struct NoopStoreCipher {}
+#[derive(Default)]
+pub struct NoopStoreCipher;
 
+#[async_trait::async_trait]
 impl StoreCipher for NoopStoreCipher {
-    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
         Ok(data.to_vec())
     }
 
-    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
         Ok(data.to_vec())
     }
 }

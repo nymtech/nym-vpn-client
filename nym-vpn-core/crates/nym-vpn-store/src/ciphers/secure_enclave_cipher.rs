@@ -7,23 +7,24 @@ use nym_secure_enclave::{SecureEnclaveError, SecureEnclaveKey};
 
 use super::{Result, StoreCipher, StoreCipherError};
 
-pub struct SecureEnclaveCipher {
-    key: Arc<dyn SecureEnclaveKey>,
+pub struct SecureEnclaveCipher<K> {
+    key: K,
 }
 
-impl SecureEnclaveCipher {
-    fn new(key: Arc<dyn SecureEnclaveKey>) -> Self {
+impl<K: SecureEnclaveKey> SecureEnclaveCipher<K> {
+    fn new(key: K) -> Self {
         Self { key }
     }
 }
 
-impl StoreCipher for SecureEnclaveCipher {
-    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        Ok(self.key.encrypt(data)?)
+#[async_trait::async_trait]
+impl<K: SecureEnclaveKey> StoreCipher for SecureEnclaveCipher<K> {
+    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        Ok(self.key.decrypt(data.to_owned()).await?)
     }
 
-    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        Ok(self.key.decrypt(data)?)
+    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        Ok(self.key.encrypt(data.to_owned()).await?)
     }
 }
 

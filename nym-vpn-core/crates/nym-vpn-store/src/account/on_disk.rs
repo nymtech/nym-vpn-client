@@ -9,6 +9,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::ciphers::StoreCipher;
+
 use super::{AccountInformationStorage, StoredAccount};
 
 #[derive(Debug, thiserror::Error)]
@@ -37,12 +39,14 @@ pub enum OnDiskMnemonicStorageError {
 
 pub struct OnDiskAccountStorage {
     path: PathBuf,
+    cipher: Box<dyn StoreCipher>,
 }
 
 impl OnDiskAccountStorage {
-    pub fn new<P: AsRef<Path>>(path: P) -> Self {
+    pub fn new(path: impl AsRef<Path>, cipher: impl StoreCipher + 'static) -> Self {
         Self {
             path: path.as_ref().to_path_buf(),
+            cipher: Box::new(cipher),
         }
     }
 }
@@ -166,9 +170,12 @@ impl AccountInformationStorage for OnDiskAccountStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::account::{
-        Nonce,
-        test_fixtures::{account_fixture, mnemonic_fixture},
+    use crate::{
+        account::{
+            Nonce,
+            test_fixtures::{account_fixture, mnemonic_fixture},
+        },
+        ciphers::noop_cipher::NoopStoreCipher,
     };
     use bip39::Mnemonic;
     use nym_vpn_lib_types::StoredAccountMode;
@@ -181,7 +188,7 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
 
-        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
         account_storage
             .store_account(account.clone())
             .await
@@ -197,7 +204,7 @@ mod tests {
 
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
         account_storage
             .store_account(account.clone())
             .await
@@ -214,7 +221,7 @@ mod tests {
     async fn load_return_none_if_file_does_not_exist() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
         let result = account_storage.load_account().await;
         assert!(matches!(result, Ok(None)));
     }
@@ -223,7 +230,7 @@ mod tests {
     async fn load_fails_if_no_mnemonic_stored() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
         let _ = File::create(&path).unwrap();
         let result = account_storage.load_account().await;
         assert!(matches!(
@@ -263,7 +270,7 @@ mod tests {
             mode: StoredAccountMode::Api,
         };
 
-        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
         let loaded = account_storage.load_account().await?;
         assert_eq!(Some(expected), loaded);
 
