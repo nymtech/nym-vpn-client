@@ -339,6 +339,30 @@ make -C nym-vpn-core -f Android.mk
   specified directory if it isn't mounted already. This will only have an effect on older systems
   where cgroup v1 is used for split tunneling.
 
+## Log file locations
+
+On desktop, `nym-vpnd` writes log files only when started with `run-as-service`, which is how the
+installed service runs on every platform. On each start the previous log file is renamed to
+`nym-vpnd.old.log`. The log directory can be overridden with the `NYM_VPND_LOG_DIR` environment
+variable.
+
+On mobile, the app passes the log directory to `initLogger` and the library writes
+`libnymvpn.log` there, keeping the previous one as `libnymvpn.old.log`.
+
+| OS | Current log | Previous log |
+|---|---|---|
+| Linux | `/var/log/nym-vpnd/nym-vpnd.log` | `/var/log/nym-vpnd/nym-vpnd.old.log` |
+| macOS | `/var/log/nym-vpnd/nym-vpnd.log` | `/var/log/nym-vpnd/nym-vpnd.old.log` |
+| Windows | `%ProgramData%\nym-vpnd\log\nym-vpnd.log` | `%ProgramData%\nym-vpnd\log\nym-vpnd.old.log` |
+| iOS | `<group.net.nymtech.vpn>/net.nymtech.vpn/Logs/libnymvpn.log` | `<group.net.nymtech.vpn>/net.nymtech.vpn/Logs/libnymvpn.old.log` |
+| Android | `/data/data/net.nymtech.nymvpn/files/logs/libnymvpn.log` | `/data/data/net.nymtech.nymvpn/files/logs/libnymvpn.old.log` |
+
+`%ProgramData%` is usually `C:\ProgramData`. On iOS, `<group.net.nymtech.vpn>` is the shared App
+Group container of the app and its packet tunnel extension. On Android, non-release builds use an
+application ID suffix (e.g. `net.nymtech.nymvpn.debug`). On macOS and iOS, logs are also sent to
+the unified logging system under the `net.nymtech.vpn.agent` subsystem and can be viewed in
+Console.app. On Android, logs are also sent to logcat.
+
 ## Firewall logging
 
 ### Linux
