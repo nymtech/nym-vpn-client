@@ -1,9 +1,9 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod aes_gcm_cipher;
-mod noop_cipher;
-#[cfg(any(target_os = "ios", target_os = "android"))]
+pub mod aes_gcm_cipher;
+pub mod noop_cipher;
+#[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
 mod secure_enclave_cipher;
 
 use std::sync::Arc;
@@ -25,7 +25,8 @@ pub enum StoreCipherError {
 
 pub type Result<T, E = StoreCipherError> = std::result::Result<T, E>;
 
-pub trait StoreCipher {
-    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
-    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
+#[async_trait::async_trait]
+pub trait StoreCipher: Send + Sync {
+    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
+    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
 }

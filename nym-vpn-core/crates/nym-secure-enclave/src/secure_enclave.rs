@@ -1,19 +1,25 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "android")]
 use std::sync::Arc;
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use super::AppleSecureEnclaveProvider;
 #[cfg(target_os = "android")]
 use super::{AndroidKeyStoreProvider, AndroidSecureEnclaveProvider};
-use super::{Result, SecureEnclaveKey, SecureEnclaveProvider};
+use super::{Result, SecureEnclaveProvider};
+
+#[cfg(target_os = "android")]
+type PlatformProvider = AndroidKeyStoreProvider;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+type PlatformProvider = AppleSecureEnclaveProvider;
+
+/// Key type returned by [`SecureEnclave`] on the current platform.
+pub type PlatformSecureEnclaveKey = <PlatformProvider as SecureEnclaveProvider>::Key;
 
 pub struct SecureEnclave {
-    #[cfg(target_os = "android")]
-    inner: AndroidKeyStoreProvider,
-    #[cfg(any(target_os = "macos", target_os = "ios"))]
-    inner: AppleSecureEnclaveProvider,
+    inner: PlatformProvider,
 }
 
 impl SecureEnclave {
@@ -28,15 +34,15 @@ impl SecureEnclave {
         }
     }
 
-    pub fn create_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
-        self.inner.create_key(alias)
+    pub async fn create_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
+        self.inner.create_key(alias).await
     }
 
-    pub fn delete_key(&self, alias: &str) -> Result<()> {
-        self.inner.delete_key(alias)
+    pub async fn delete_key(&self, alias: String) -> Result<()> {
+        self.inner.delete_key(alias).await
     }
 
-    pub fn get_key(&self, alias: &str) -> Result<Arc<dyn SecureEnclaveKey>> {
-        self.inner.get_key(alias)
+    pub async fn get_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
+        self.inner.get_key(alias).await
     }
 }

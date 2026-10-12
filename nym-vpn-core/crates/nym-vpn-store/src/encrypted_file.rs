@@ -50,7 +50,7 @@ where
         // Check if data has magic cookie, if it doesn't then it means the file is not encrypted
         // Write the data to the file to encrypt it
         if data.starts_with(MAGIC) {
-            Ok(self.cipher.decrypt(&data[MAGIC.len()..])?)
+            Ok(self.cipher.decrypt(&data[MAGIC.len()..]).await?)
         } else {
             match self.write(&data).await {
                 Ok(_) => Ok(data),
@@ -67,7 +67,7 @@ where
         // Write file to temporary location first
         let temp_file = self.path.with_added_extension("tmp");
         {
-            let cipherdata = self.cipher.encrypt(data)?;
+            let cipherdata = self.cipher.encrypt(data).await?;
             let mut file = OpenOptions::new()
                 .write(true)
                 .truncate(true)
@@ -122,7 +122,7 @@ mod tests {
 
         let contents = tokio::fs::read(&path).await.unwrap();
         let ciphertext = contents.strip_prefix(MAGIC).expect("missing magic");
-        assert_eq!(ciphertext, XorCipher.encrypt(PLAINTEXT).unwrap());
+        assert_eq!(ciphertext, XorCipher.encrypt(PLAINTEXT).await.unwrap());
         assert_ne!(ciphertext, PLAINTEXT);
     }
 
@@ -166,6 +166,7 @@ mod tests {
             Err(Error::Cipher(StoreCipherError::AuthenticationFailed))
         ));
         assert_eq!(tokio::fs::read(&path).await.unwrap(), contents);
+        assert_eq!(file_names(tempdir.path()).await, ["store.json"]);
     }
 
     #[tokio::test]
@@ -226,24 +227,26 @@ mod tests {
 
     struct XorCipher;
 
+    #[async_trait::async_trait]
     impl StoreCipher for XorCipher {
-        fn encrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn encrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
             Ok(data.iter().map(|byte| byte ^ 0x5a).collect())
         }
 
-        fn decrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
-            self.encrypt(data)
+        async fn decrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+            self.encrypt(data).await
         }
     }
 
     struct FailingCipher;
 
+    #[async_trait::async_trait]
     impl StoreCipher for FailingCipher {
-        fn encrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn encrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
             Err(StoreCipherError::AuthenticationFailed)
         }
 
-        fn decrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn decrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
             Err(StoreCipherError::AuthenticationFailed)
         }
     }
