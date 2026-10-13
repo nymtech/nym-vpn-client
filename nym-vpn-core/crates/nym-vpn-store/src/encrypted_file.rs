@@ -97,7 +97,7 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let file = encrypted_file(tempdir.path().join("store.json"));
 
-        file.write(PLAINTEXT).await.unwrap();
+        file.write(PLAINTEXT.to_vec()).await.unwrap();
 
         assert_eq!(file.read().await.unwrap(), PLAINTEXT);
     }
@@ -107,7 +107,7 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let file = encrypted_file(tempdir.path().join("store.json"));
 
-        file.write(b"").await.unwrap();
+        file.write(b"".to_vec()).await.unwrap();
 
         assert_eq!(file.read().await.unwrap(), b"");
     }
@@ -118,11 +118,14 @@ mod tests {
         let path = tempdir.path().join("store.json");
         let file = encrypted_file(path.clone());
 
-        file.write(PLAINTEXT).await.unwrap();
+        file.write(PLAINTEXT.to_vec()).await.unwrap();
 
         let contents = tokio::fs::read(&path).await.unwrap();
         let ciphertext = contents.strip_prefix(MAGIC).expect("missing magic");
-        assert_eq!(ciphertext, XorCipher.encrypt(PLAINTEXT).await.unwrap());
+        assert_eq!(
+            ciphertext,
+            XorCipher.encrypt(PLAINTEXT.to_vec()).await.unwrap()
+        );
         assert_ne!(ciphertext, PLAINTEXT);
     }
 
@@ -130,11 +133,11 @@ mod tests {
     async fn write_overwrites_existing_content() {
         let tempdir = tempfile::tempdir().unwrap();
         let file = encrypted_file(tempdir.path().join("store.json"));
-        file.write(b"a much longer piece of data that is replaced")
+        file.write(b"a much longer piece of data that is replaced".to_vec())
             .await
             .unwrap();
 
-        file.write(PLAINTEXT).await.unwrap();
+        file.write(PLAINTEXT.to_vec()).await.unwrap();
 
         assert_eq!(file.read().await.unwrap(), PLAINTEXT);
     }
@@ -145,7 +148,7 @@ mod tests {
         let path = tempdir.path().join("store.json");
         let file = encrypted_file(path.clone());
 
-        file.write(PLAINTEXT).await.unwrap();
+        file.write(PLAINTEXT.to_vec()).await.unwrap();
 
         assert_eq!(file_names(tempdir.path()).await, ["store.json"]);
     }
@@ -154,11 +157,14 @@ mod tests {
     async fn write_failure_keeps_existing_file() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("store.json");
-        encrypted_file(path.clone()).write(PLAINTEXT).await.unwrap();
+        encrypted_file(path.clone())
+            .write(PLAINTEXT.to_vec())
+            .await
+            .unwrap();
         let contents = tokio::fs::read(&path).await.unwrap();
 
         let result = EncryptedFile::new(path.clone(), FailingCipher)
-            .write(b"new data")
+            .write(b"new data".to_vec())
             .await;
 
         assert!(matches!(
@@ -215,7 +221,10 @@ mod tests {
     async fn read_fails_when_decryption_fails() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("store.json");
-        encrypted_file(path.clone()).write(PLAINTEXT).await.unwrap();
+        encrypted_file(path.clone())
+            .write(PLAINTEXT.to_vec())
+            .await
+            .unwrap();
 
         let result = EncryptedFile::new(path, FailingCipher).read().await;
 
@@ -229,11 +238,11 @@ mod tests {
 
     #[async_trait::async_trait]
     impl StoreCipher for XorCipher {
-        async fn encrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn encrypt(&self, data: Vec<u8>) -> crate::ciphers::Result<Vec<u8>> {
             Ok(data.iter().map(|byte| byte ^ 0x5a).collect())
         }
 
-        async fn decrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn decrypt(&self, data: Vec<u8>) -> crate::ciphers::Result<Vec<u8>> {
             self.encrypt(data).await
         }
     }
@@ -242,11 +251,11 @@ mod tests {
 
     #[async_trait::async_trait]
     impl StoreCipher for FailingCipher {
-        async fn encrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn encrypt(&self, _data: Vec<u8>) -> crate::ciphers::Result<Vec<u8>> {
             Err(StoreCipherError::AuthenticationFailed)
         }
 
-        async fn decrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn decrypt(&self, _data: Vec<u8>) -> crate::ciphers::Result<Vec<u8>> {
             Err(StoreCipherError::AuthenticationFailed)
         }
     }
