@@ -285,6 +285,8 @@ pub struct NymVpnServiceParameters {
     #[cfg(target_os = "android")]
     pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "android")]
+    pub secure_enclave_provider: Arc<dyn nym_secure_enclave::AndroidSecureEnclaveProvider>,
+    #[cfg(target_os = "android")]
     pub connectivity_monitor: Box<dyn nym_offline_monitor::NativeConnectivityAdapter + 'static>,
 }
 
@@ -480,7 +482,11 @@ impl NymVpnService {
             .await
             .map_err(Error::PathsSetup)?;
 
-        let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
+        let storage = crate::storage::VpnClientOnDiskStorage::new(
+            paths.network_data_dir.clone(),
+            #[cfg(target_os = "android")]
+
+        );
 
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();
