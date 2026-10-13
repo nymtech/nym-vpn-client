@@ -54,11 +54,12 @@ impl Default for AppleSecureEnclaveProvider {
 impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     type Key = OSSecureEnclaveKey;
 
-    async fn create_key(&self, alias: String) -> Result<Self::Key> {
+    async fn create_key(&self, alias: &str) -> Result<Self::Key> {
+        let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
             let key = secure_enclave_rs::SecureEnclaveKey::generate(
                 &secure_enclave_rs::SecureEnclaveKeyOptions {
-                    tag: alias.as_bytes(),
+                    tag: &alias_bytes,
                     access_flags: secure_enclave_rs::SecAccessControlFlags::USER_PRESENCE,
                     permanent: true,
                 },
@@ -66,26 +67,26 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
             Ok(state.insert(key))
         })
         .await?;
-
         Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
     }
 
-    async fn delete_key(&self, alias: String) -> Result<()> {
+    async fn delete_key(&self, alias: &str) -> Result<()> {
+        let alias_bytes = alias.as_bytes().to_vec();
         run_on_worker(&self.pool, move |_state| {
             Ok(secure_enclave_rs::SecureEnclaveKey::remove_by_tag(
-                alias.as_bytes(),
+                &alias_bytes,
             )?)
         })
         .await
     }
 
-    async fn get_key(&self, alias: String) -> Result<Self::Key> {
+    async fn get_key(&self, alias: &str) -> Result<Self::Key> {
+        let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
-            let key = secure_enclave_rs::SecureEnclaveKey::get(alias.as_bytes())?;
+            let key = secure_enclave_rs::SecureEnclaveKey::get(&alias_bytes)?;
             Ok(state.insert(key))
         })
         .await?;
-
         Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
     }
 }
@@ -107,12 +108,10 @@ impl OSSecureEnclaveKey {
 impl SecureEnclaveKey for OSSecureEnclaveKey {
     async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
         let key_id = self.handle.id;
-        let mut plaintext = run_on_worker(&self.handle.pool, move |state| {
-            Ok(Zeroizing::new(state.key(key_id)?.decrypt(&bytes)?))
+        run_on_worker(&self.handle.pool, move |state| {
+            Ok(state.key(key_id)?.decrypt(&bytes)?)
         })
-        .await?;
-
-        Ok(std::mem::take(&mut *plaintext))
+        .await
     }
 
     async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {

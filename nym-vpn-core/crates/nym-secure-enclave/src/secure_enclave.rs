@@ -36,23 +36,25 @@ impl SecureEnclave {
         }
     }
 
-    pub async fn create_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
+    #[tracing::instrument(skip(self))]
+    pub async fn create_key(&self, alias: &str) -> Result<PlatformSecureEnclaveKey> {
         self.inner.create_key(alias).await
     }
 
-    pub async fn delete_key(&self, alias: String) -> Result<()> {
+    pub async fn delete_key(&self, alias: &str) -> Result<()> {
         self.inner.delete_key(alias).await
     }
 
-    pub async fn get_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
+    pub async fn get_key(&self, alias: &str) -> Result<PlatformSecureEnclaveKey> {
         self.inner.get_key(alias).await
     }
 
-    pub async fn get_or_create_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
-        self.get_key(alias.clone())
+    #[tracing::instrument(skip(self))]
+    pub async fn get_or_create_key(&self, alias: &str) -> Result<PlatformSecureEnclaveKey> {
+        self.get_key(alias)
             .or_else(|err| async {
                 if err == SecureEnclaveError::KeyNotFound {
-                    self.create_key(alias).await
+                    self.create_key(&alias).await
                 } else {
                     Err(err)
                 }
