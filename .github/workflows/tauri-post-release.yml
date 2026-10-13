@@ -11,6 +11,10 @@ on:
       core_release_tag:
         type: string
         required: true
+      linux:
+        description: "Bump Linux installer script and flatpak metainfo"
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       release_tag:
@@ -28,6 +32,10 @@ on:
         type: string
         required: true
         default: "nym-vpn-core-v1.2.3"
+      linux:
+        description: "Bump Linux installer script and flatpak metainfo"
+        type: boolean
+        default: true
 
 jobs:
   post-release:
@@ -62,6 +70,7 @@ jobs:
           cat CHANGELOG.md
 
       - name: Bump installer script
+        if: ${{ inputs.linux }}
         working-directory: .pkg/linux
         env:
           APP_TAG: ${{ inputs.release_tag }}
@@ -70,6 +79,7 @@ jobs:
           ./bump.sh
 
       - name: Update flatpak metainfo
+        if: ${{ inputs.linux }}
         working-directory: nym-vpn-app/.pkg/flatpak
         env:
           METAINFO_XML: net.nymtech.NymVPN.metainfo.xml
