@@ -7213,6 +7213,7 @@ dependencies = [
  "thiserror 2.0.20",
  "tokio",
  "tokio-util",
+ "tracing",
  "uniffi",
  "zeroize",
 ]

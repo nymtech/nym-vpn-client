@@ -51,13 +51,13 @@ pub trait SecureEnclaveProvider {
     type Key: SecureEnclaveKey;
 
     /// Create a new key in secure enclave with the given alias
-    async fn create_key(&self, alias: String) -> Result<Self::Key>;
+    async fn create_key(&self, alias: &str) -> Result<Self::Key>;
 
     /// Delete the key with the given alias from secure enclave
-    async fn delete_key(&self, alias: String) -> Result<()>;
+    async fn delete_key(&self, alias: &str) -> Result<()>;
 
     /// Get object standing in-place of key that can be used to perform encryption or decryption.
-    async fn get_key(&self, alias: String) -> Result<Self::Key>;
+    async fn get_key(&self, alias: &str) -> Result<Self::Key>;
 }
 
 #[cfg(target_os = "android")]
