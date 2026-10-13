@@ -24,7 +24,6 @@ sqlx = { workspace = true, features = [
     "sqlite",
     "time",
 ] }
-nym-sqlx-pool-guard.workspace = true
 sysinfo = { workspace = true, features = ["system"] }
 thiserror.workspace = true
 tokio = { workspace = true, features = ["macros"] }
