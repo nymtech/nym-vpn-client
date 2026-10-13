@@ -13,6 +13,7 @@ workspace = true
 [dependencies]
 async-trait.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
+futures.workspace = true
 libsqlite3-sys.workspace = true
 nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
 nym-store-cipher.workspace = true

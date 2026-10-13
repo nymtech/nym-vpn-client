@@ -15,9 +15,6 @@ const ITERATIONS: u32 = 3;
 const PARALLELISM: u32 = 1;
 const OUTPUT_LENGTH: usize = 32;
 
-// AES256GCM Nonce is 96 bit long.
-const IV_LEN: usize = 12;
-
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct Credentials {
     pub passphrase: Vec<u8>,

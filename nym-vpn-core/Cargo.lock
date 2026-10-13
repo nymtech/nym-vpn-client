@@ -8220,6 +8220,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "bip39",
+ "futures",
  "libsqlite3-sys",
  "nym-crypto",
  "nym-pemstore",
