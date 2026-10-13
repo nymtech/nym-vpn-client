@@ -106,19 +106,20 @@ impl OSSecureEnclaveKey {
 
 #[async_trait::async_trait]
 impl SecureEnclaveKey for OSSecureEnclaveKey {
-    async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
+    async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let key_id = self.handle.id;
+        let bytes_owned = bytes.to_vec();
         run_on_worker(&self.handle.pool, move |state| {
-            Ok(state.key(key_id)?.decrypt(&bytes)?)
+            Ok(state.key(key_id)?.decrypt(&bytes_owned)?)
         })
         .await
     }
 
-    async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
+    async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let key_id = self.handle.id;
-        let bytes = Zeroizing::new(bytes);
+        let bytes = Zeroizing::new(bytes.to_vec());
         run_on_worker(&self.handle.pool, move |state| {
-            Ok(state.key(key_id)?.encrypt(&bytes)?)
+            Ok(state.key(key_id)?.encrypt(bytes.as_slice())?)
         })
         .await
     }

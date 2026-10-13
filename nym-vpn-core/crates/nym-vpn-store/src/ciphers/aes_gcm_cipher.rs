@@ -55,15 +55,15 @@ impl AesGcmStoreCipher {
 
 #[async_trait::async_trait]
 impl StoreCipherTrait for AesGcmStoreCipher {
-    async fn decrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
         let encrypted_data: EncryptedData =
             serde_json::from_slice(&data).map_err(StoreCipherError::Deserialize)?;
 
         Ok(self.inner.decrypt_data(encrypted_data)?)
     }
 
-    async fn encrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
-        let encrypted_data = self.inner.encrypt_data(data)?;
+    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
+        let encrypted_data = self.inner.encrypt_data_ref(data)?;
 
         serde_json::to_vec(&encrypted_data).map_err(StoreCipherError::Serialize)
     }

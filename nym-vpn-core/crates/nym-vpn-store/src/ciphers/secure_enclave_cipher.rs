@@ -39,11 +39,11 @@ impl SecureEnclaveCipher {
 
 #[async_trait::async_trait]
 impl StoreCipher for SecureEnclaveCipher {
-    async fn decrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
         Ok(self.get_key().await?.decrypt(data).await?)
     }
 
-    async fn encrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
         Ok(self.get_key().await?.encrypt(data).await?)
     }
 }
