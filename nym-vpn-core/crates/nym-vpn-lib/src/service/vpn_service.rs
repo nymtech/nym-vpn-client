@@ -484,7 +484,7 @@ impl NymVpnService {
             .await
             .map_err(Error::PathsSetup)?;
 
-        #[cfg(any(target_os = "ios", target_os = "android"))]
+        #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
         let secure_enclave = nym_secure_enclave::SecureEnclave::new(
             #[cfg(target_os = "android")]
             parameters.secure_enclave_provider,
@@ -492,7 +492,7 @@ impl NymVpnService {
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(
             paths.network_data_dir.clone(),
-            #[cfg(any(target_os = "ios", target_os = "android"))]
+            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
             secure_enclave,
         );
 
