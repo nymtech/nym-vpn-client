@@ -19,10 +19,13 @@ pub struct SecureEnclaveCipher {
 }
 
 impl SecureEnclaveCipher {
-    pub fn new(key_fn: LazySecureEnclaveKeyFn) -> Self {
+    pub fn new<F>(key_fn: F) -> Self
+    where
+        F: LazySecureEnclaveKeyFn,
+    {
         Self {
             key: OnceCell::new(),
-            key_fn,
+            key_fn: Box::new(key_fn),
         }
     }
 

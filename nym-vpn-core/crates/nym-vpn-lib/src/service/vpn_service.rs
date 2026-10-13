@@ -492,8 +492,7 @@ impl NymVpnService {
             paths.network_data_dir.clone(),
             #[cfg(any(target_os = "ios", target_os = "android"))]
             secure_enclave,
-        )
-        .await;
+        );
 
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();

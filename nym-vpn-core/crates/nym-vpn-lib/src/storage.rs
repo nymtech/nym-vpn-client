@@ -31,7 +31,7 @@ pub struct VpnClientOnDiskStorage {
 }
 
 impl VpnClientOnDiskStorage {
-    pub async fn new(
+    pub fn new(
         base_data_directory: impl AsRef<Path>,
         #[cfg(any(target_os = "ios", target_os = "android"))] secure_enclave: SecureEnclave,
     ) -> Self {
@@ -42,8 +42,7 @@ impl VpnClientOnDiskStorage {
         let mnemonic_storage_cipher = mnemonic_cipher(
             #[cfg(any(target_os = "ios", target_os = "android"))]
             secure_enclave,
-        )
-        .await;
+        );
         let mnemonic_storage = nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(
             mnemonic_storage_path,
             mnemonic_storage_cipher,
@@ -125,11 +124,11 @@ impl AccountSummaryStorage for VpnClientOnDiskStorage {
 }
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
-async fn mnemonic_cipher(secure_enclave: SecureEnclave) -> SecureEnclaveCipher {
-    let se_cipher = SecureEnclaveCipher::new(async move {
+fn mnemonic_cipher(secure_enclave: SecureEnclave) -> SecureEnclaveCipher {
+    SecureEnclaveCipher::new(|| async move {
         let alias = MNEMONIC_SE_KEY.to_owned();
 
-        let se_key = secure_enclave
+        secure_enclave
             .get_key(alias.clone())
             .or_else(|err| async {
                 if err == SecureEnclaveError::KeyNotFound {
@@ -138,13 +137,11 @@ async fn mnemonic_cipher(secure_enclave: SecureEnclave) -> SecureEnclaveCipher {
                     Err(err)
                 }
             })
-            .await?;
-    });
-
-    Ok(se_cipher)
+            .await
+    })
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-async fn mnemonic_cipher() -> NoopStoreCipher {
+fn mnemonic_cipher() -> NoopStoreCipher {
     NoopStoreCipher::default()
 }
