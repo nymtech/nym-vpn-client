@@ -442,6 +442,8 @@
 	<string name="screen_lock_setup_not_now">Not now</string>
 	<string name="device_auth_error">Couldn\'t confirm it\'s you. Try again.</string>
 	<string name="device_auth_use_screen_lock">Use screen lock</string>
+	<string name="secure_enclave_auth_title">Confirm it\'s you</string>
+	<string name="secure_enclave_auth_subtitle">Unlock your account credentials</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Your account passphrase</string>
 	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>

@@ -1,0 +1,4 @@
+[bindings.kotlin]
+package_name = "nym_secure_enclave"
+# See nym-vpn-lib-uniffi/uniffi.toml for why the checksum check is skipped.
+omit_checksums = true
