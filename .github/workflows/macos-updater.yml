@@ -20,8 +20,7 @@ jobs:
   macos-updater:
     runs-on: custom-macos-15
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       - name: "Cleanup working directory"
         shell: bash

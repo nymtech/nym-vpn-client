@@ -216,8 +216,7 @@ jobs:
     uses: ./.github/workflows/macos-updater.yml
     secrets: inherit
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     with:
       version_tag: ${{ needs.setup.outputs.tag }}
 
