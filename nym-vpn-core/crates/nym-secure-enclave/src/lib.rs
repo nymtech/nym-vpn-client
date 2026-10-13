@@ -37,12 +37,12 @@ pub trait SecureEnclaveKey: Send + Sync {
     /// Encrypt data using the key stored in secure enclave
     ///
     /// Implementation guarantees to zero out plaintext before returning result
-    async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>>;
 
     /// Decrypt data using the key stored in secure enclave
     ///
     /// Responsibility to zero out plaintext is upheld by the caller
-    async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
+    async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>>;
 }
 
 #[async_trait::async_trait]

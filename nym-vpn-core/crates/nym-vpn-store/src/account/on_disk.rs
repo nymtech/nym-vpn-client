@@ -132,7 +132,7 @@ impl AccountInformationStorage for OnDiskAccountStorage {
 
         let ciphertext = self
             .cipher
-            .encrypt(plaintext)
+            .encrypt(&plaintext)
             .await
             .map_err(OnDiskMnemonicStorageError::Encrypt)?;
 

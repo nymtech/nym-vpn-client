@@ -7,6 +7,41 @@ use crate::SecureEnclaveError;
 
 use super::{Result, SecureEnclaveKey, SecureEnclaveProvider};
 
+/*
+
+#[uniffi::export(with_foreign)]
+pub trait AndroidSecureEnclaveKey: Send + Sync {
+    // Pass the memory location pointer and length over FFI
+    fn encrypt_raw(&self, ptr_address: u64, len: u32) -> Result<Vec<u8>>;
+    fn decrypt_raw(&self, ptr_address: u64, len: u32) -> Result<Vec<u8>>;
+}
+
+import java.nio.ByteBuffer
+
+class MyAndroidKey : AndroidSecureEnclaveKey {
+    override fun encryptRaw(ptrAddress: Long, len: Int): ByteArray {
+        // Create a direct byte buffer targeting the raw native address without copying
+        val byteBuffer = UniFfiDirectBuffer(ptrAddress, len)
+        val bytes = ByteArray(len)
+        byteBuffer.get(bytes)
+
+        // Execute enclave logic...
+        return encryptWithSecureEnclave(bytes)
+    }
+
+    override fun decryptRaw(ptrAddress: Long, len: Int): ByteArray { ... }
+}
+
+// Helper block to map direct memory address to a readable ByteBuffer
+fun UniFfiDirectBuffer(address: Long, capacity: Int): ByteBuffer {
+    val clazz = Class.forName("java.nio.DirectByteBuffer")
+    val constructor = clazz.getDeclaredConstructor(Long::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+    constructor.isAccessible = true
+    return constructor.newInstance(address, capacity) as ByteBuffer
+}
+
+ */
+
 // Traits that must be implemented in Android app
 #[uniffi::export(with_foreign)]
 pub trait AndroidSecureEnclaveKey: Send + Sync {
@@ -87,15 +122,17 @@ impl AndroidKeyStoreKey {
 
 #[async_trait::async_trait]
 impl SecureEnclaveKey for AndroidKeyStoreKey {
-    async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
+    async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let inner = self.inner.clone();
+        let bytes = bytes.to_vec();
         tokio::task::spawn_blocking(move || inner.decrypt(bytes))
             .await
             .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
+    async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let inner = self.inner.clone();
+        let bytes = bytes.to_vec();
         tokio::task::spawn_blocking(move || inner.encrypt(bytes))
             .await
             .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
