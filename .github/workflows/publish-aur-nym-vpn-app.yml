@@ -38,6 +38,9 @@ on:
         type: string
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   aur-publish:
     name: Publish package in AUR

@@ -1,29 +1,5 @@
 name: on-release-publish
 
-# Auto-runs the post-publish steps that release-all-platforms DEFERS while the
-# unified release is still a draft (they consume PUBLIC release assets that 404
-# on a draft). Runs as soon as the release is public -- see the trigger notes below:
-#   aur-vpnd, aur-app        -> publish PKGBUILDs to AUR
-#   post-release             -> changelog/installer/flatpak PR
-#   win-sigs + windows-updater -> tauri Windows updater feed PR (skips if no win build)
-#
-# (macOS Sparkle appcast PR is opened during the build/draft phase by
-#  build-nym-vpn-apple.yml as a DRAFT PR — not deferred here.)
-#
-# There is deliberately NO `release: [released]` trigger: this workflow never fires on
-# its own. A manual release -- a human clicking Publish on a draft -- must not drag the
-# whole fan-out along behind it; AUR pushes, beta deletion and the stable updater feeds
-# are only ever driven on purpose. Two ways in, both explicit:
-#   workflow_call     -- release-all-platforms calls us when it publishes the release
-#                        itself (the gh_release=auto + ship path), gated there on
-#                        gh_release_type == 'release' so beta/nightly never reach us.
-#   workflow_dispatch -- manual recovery for a release that missed the call above.
-#
-# Nightlies and betas therefore never reach AUR -- which is intended (canonical
-# nym-vpnd / nym-vpn-app AUR packages stay stable-only).
-#
-# Assumes this workflow + its callees exist on the release commit / default
-# branch (reusable callees resolve at the caller's ref).
 on:
   workflow_call:
     inputs:
@@ -31,9 +7,24 @@ on:
         type: string
         description: Release tag
         required: true
+      linux:
+        type: boolean
+        description: Whether this release built Linux (gates AUR + installer/flatpak bump)
+        required: false
+        default: true
+      windows:
+        type: boolean
+        description: Whether this release built Windows (gates the tauri updater feed)
+        required: false
+        default: true
       macos:
         type: boolean
         description: Whether this release built macOS (gates the Sparkle appcast)
+        required: false
+        default: true
+      fdroid:
+        type: boolean
+        description: Whether this release built F-Droid (gates the fdroid repo dispatch)
         required: false
         default: true
   workflow_dispatch:
@@ -41,9 +32,21 @@ on:
       tag_name:
         type: string
         description: Release tag
+      linux:
+        type: boolean
+        description: Whether this release built Linux (gates AUR + installer/flatpak bump)
+        default: true
+      windows:
+        type: boolean
+        description: Whether this release built Windows (gates the tauri updater feed)
+        default: true
       macos:
         type: boolean
         description: Whether this release built macOS (gates the Sparkle appcast)
+        default: true
+      fdroid:
+        type: boolean
+        description: Whether this release built F-Droid (gates the fdroid repo dispatch)
         default: true
 
 permissions:
@@ -77,12 +80,6 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "::notice:: post-release fan-out for ${TAG} (version ${version})"
 
-  # Ship is the line's final release: clear the -beta.N releases that led to it so
-  # the Releases page shows only shipped versions. Scoped to the shipped base line
-  # (a ship of 2026.11.0 only clears 2026.11.0-beta.*). Tags are KEPT (no
-  # --cleanup-tag) — they stay as the immutable record of each beta cut. Only fires
-  # on ship: the caller gates the
-  # fan-out on gh_release_type == 'release', so beta and nightly runs never reach here.
   delete-betas:
     needs: setup
     runs-on: arc-linux-latest
@@ -111,6 +108,7 @@ jobs:
 
   aur-vpnd:
     needs: setup
+    if: ${{ inputs.linux }}
     uses: ./.github/workflows/publish-aur-nym-vpnd.yml
     secrets: inherit
     with:
@@ -121,6 +119,7 @@ jobs:
 
   aur-vpnc:
     needs: setup
+    if: ${{ inputs.linux }}
     uses: ./.github/workflows/publish-aur-nym-vpnc.yml
     secrets: inherit
     with:
@@ -131,6 +130,7 @@ jobs:
 
   aur-app:
     needs: setup
+    if: ${{ inputs.linux }}
     uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
     secrets: inherit
     with:
@@ -141,6 +141,7 @@ jobs:
 
   post-release:
     needs: setup
+    if: ${{ inputs.linux || inputs.windows }}
     uses: ./.github/workflows/tauri-post-release.yml
     permissions:
       contents: write
@@ -149,14 +150,11 @@ jobs:
       release_tag: ${{ needs.setup.outputs.tag }}
       version: ${{ needs.setup.outputs.version }}
       core_release_tag: ${{ needs.setup.outputs.tag }}
+      linux: ${{ inputs.linux }}
 
-  # Tauri Windows updater feed. tauri-updater.yml wants the bundle signatures as
-  # inputs; under orchestration they came from the build job's outputs, which are
-  # gone by publish time. Recover them from the *setup.exe.sig assets attached to
-  # the release. The app version is embedded in the .sig filename
-  # (NymVPN_<ver>_x64-setup.exe.sig) — parse it rather than assume tag==app version.
   win-sigs:
     needs: setup
+    if: ${{ inputs.windows }}
     runs-on: arc-linux-latest
     outputs:
       enabled: ${{ steps.sig.outputs.enabled }}
@@ -218,14 +216,14 @@ jobs:
     uses: ./.github/workflows/macos-updater.yml
     secrets: inherit
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     with:
       version_tag: ${{ needs.setup.outputs.tag }}
 
   update-nym-fdroid:
     runs-on: arc-linux-latest
     needs: setup
+    if: ${{ inputs.fdroid }}
     steps:
       - name: Dispatch update for fdroid repo
         uses: peter-evans/repository-dispatch@v4

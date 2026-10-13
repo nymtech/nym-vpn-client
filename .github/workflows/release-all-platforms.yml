@@ -664,5 +664,8 @@ jobs:
       pull-requests: write
     with:
       tag_name: ${{ needs.resolve.outputs.tag }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
       macos: ${{ needs.resolve.outputs.macos == 'true' }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
     secrets: inherit
