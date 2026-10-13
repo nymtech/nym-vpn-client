@@ -132,7 +132,7 @@ extension ConnectionManager {
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
-        credentialsManager.shutdownControllers()
+        await credentialsManager.shutdownAccountControllerAndWait()
         do {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
