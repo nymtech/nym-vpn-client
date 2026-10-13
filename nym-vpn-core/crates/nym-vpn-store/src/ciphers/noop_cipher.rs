@@ -8,11 +8,11 @@ pub struct NoopStoreCipher;
 
 #[async_trait::async_trait]
 impl StoreCipher for NoopStoreCipher {
-    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        Ok(data.to_vec())
+    async fn decrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(data)
     }
 
-    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        Ok(data.to_vec())
+    async fn encrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(data)
     }
 }

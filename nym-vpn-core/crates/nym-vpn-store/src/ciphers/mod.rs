@@ -14,7 +14,7 @@ pub enum StoreCipherError {
     AuthenticationFailed,
 
     #[error("key store error")]
-    KeyStore(Arc<dyn std::error::Error>),
+    KeyStore(Arc<dyn std::error::Error + Send + Sync>),
 
     #[error("deserialize error")]
     Deserialize(serde_json::Error),
@@ -27,6 +27,6 @@ pub type Result<T, E = StoreCipherError> = std::result::Result<T, E>;
 
 #[async_trait::async_trait]
 pub trait StoreCipher: Send + Sync {
-    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
-    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>>;
+    async fn encrypt(&self, data: Vec<u8>) -> Result<Vec<u8>>;
+    async fn decrypt(&self, data: Vec<u8>) -> Result<Vec<u8>>;
 }
