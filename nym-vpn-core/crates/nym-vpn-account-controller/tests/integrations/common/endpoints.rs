@@ -112,6 +112,26 @@ pub fn confirm_zk_nym_download_by_id_200(credential_proxy: MockCredentialProxy) 
         .respond_with(credential_proxy.confirm_zk_nym_download_by_id_200())
 }
 
+// Active subscription endpoint, used for trial eligibility. The body is passed as raw JSON on
+// purpose: the real API never sends a remaining allowance field, and serializing the Rust
+// response type would hide that.
+
+pub fn active_subscription_200_raw(body: &'static str) -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/subscription/active$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(body, "application/json"))
+}
+
+pub fn active_subscription_403(error_response: NymErrorResponse) -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/subscription/active$"
+        )))
+        .respond_with(ResponseTemplate::new(403).set_body_json(error_response))
+}
+
 // Other
 
 pub fn get_usage_200() -> Mock {

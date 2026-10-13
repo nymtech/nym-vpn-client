@@ -4,3 +4,4 @@
 mod commands;
 mod common;
 mod paths;
+mod trial_eligibility;

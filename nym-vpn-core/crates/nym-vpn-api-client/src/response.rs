@@ -311,7 +311,10 @@ pub enum NymVpnSubscriptionKind {
 pub struct NymVpnSubscriptionResponse {
     pub is_subscription_active: bool,
     pub subscription: Option<NymVpnSubscription>,
-    pub remaining_allowance_in_gb: f64,
+    /// The API declares this field as optional and spells it `remainingAllowanceInGB`;
+    /// Populated conditionally.
+    #[serde(default, alias = "remainingAllowanceInGB")]
+    pub remaining_allowance_in_gb: Option<f64>,
     /// Whether the account may be offered a free trial. Only `Some(true)` means a trial can be
     /// offered; `Some(false)` and `None` (older API versions) both mean no trial.
     #[serde(default)]
@@ -841,16 +844,55 @@ mod tests {
         assert!(res.is_ok());
     }
 
+    // The bodies below are the exact shapes the VPN API's `subscription/active` route returns
+    // (see its route tests). It never sends a remaining allowance field.
+
     #[test]
-    fn nym_vpn_subscription_response_trial_eligible_defaults_to_none() {
-        let raw = r#"{"isSubscriptionActive":false,"remainingAllowanceInGb":0}"#;
+    fn nym_vpn_subscription_response_fresh_account() {
+        let raw = r#"{"isSubscriptionActive":false,"trialEligible":true}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert!(!res.is_subscription_active);
+        assert_eq!(res.subscription, None);
+        assert_eq!(res.remaining_allowance_in_gb, None);
+        assert_eq!(res.trial_eligible, Some(true));
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_account_with_history() {
+        let raw = r#"{"isSubscriptionActive":false,"trialEligible":false}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert!(!res.is_subscription_active);
+        assert_eq!(res.trial_eligible, Some(false));
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_active_subscription() {
+        let raw = r#"{"isSubscriptionActive":true,"subscription":{"id":"sub_1","kind":"one_year","status":"complete","isRecurring":true,"isTrialing":true,"is_freepass_period":false,"valid_from_utc":"2026-10-01 00:00:00.000Z","valid_until_utc":"2027-10-01 00:00:00.000Z","created_on_utc":"2026-10-01 00:00:00.000Z","last_updated_utc":"2026-10-01 00:00:00.000Z"},"trialEligible":false}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert!(res.is_subscription_active);
+        let subscription = res.subscription.unwrap();
+        assert_eq!(subscription.id, "sub_1");
+        assert_eq!(subscription.kind, NymVpnSubscriptionKind::OneYear);
+        assert!(subscription.is_recurring);
+        assert_eq!(res.trial_eligible, Some(false));
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_older_api_without_trial_eligible() {
+        let raw = r#"{"isSubscriptionActive":false}"#;
         let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
         assert_eq!(res.trial_eligible, None);
+    }
 
-        let raw =
-            r#"{"isSubscriptionActive":false,"remainingAllowanceInGb":0,"trialEligible":true}"#;
+    #[test]
+    fn nym_vpn_subscription_response_remaining_allowance_accepts_both_spellings() {
+        let raw = r#"{"isSubscriptionActive":false,"remainingAllowanceInGB":2.5}"#;
         let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
-        assert_eq!(res.trial_eligible, Some(true));
+        assert_eq!(res.remaining_allowance_in_gb, Some(2.5));
+
+        let raw = r#"{"isSubscriptionActive":false,"remainingAllowanceInGb":2.5}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert_eq!(res.remaining_allowance_in_gb, Some(2.5));
     }
 
     #[test]
