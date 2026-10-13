@@ -28,7 +28,7 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 	private val keyStore: KeyStore by lazy { KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) } }
 
 	override fun createKey(alias: String): AndroidSecureEnclaveKey = secureEnclaveCall {
-		check(!keyStore.containsAlias(alias)) { "key already exists" }
+		if (keyStore.containsAlias(alias)) throw SecureEnclaveException.KeyAlreadyExists()
 
 		if (hasStrongBox()) {
 			try {

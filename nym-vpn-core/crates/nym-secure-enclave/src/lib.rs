@@ -26,6 +26,9 @@ pub enum SecureEnclaveError {
     #[error("Key is not found")]
     KeyNotFound,
 
+    #[error("Key already exists")]
+    KeyAlreadyExists,
+
     #[error("Other error: {0}")]
     Other(String),
 }
