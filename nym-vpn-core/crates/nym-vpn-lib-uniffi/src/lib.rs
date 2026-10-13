@@ -179,9 +179,7 @@ uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
 
 mod environment;
 pub(crate) mod error;
-#[cfg(target_os = "ios")]
 mod favorites;
-#[cfg(target_os = "ios")]
 mod gateway_cache;
 mod offline_monitor;
 
