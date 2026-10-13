@@ -109,6 +109,8 @@ impl NymVpnService {
                     tun_provider,
                     #[cfg(target_os = "android")]
                     connectivity_monitor: Box::new(connectivity_monitor),
+                    #[cfg(target_os = "android")]
+                    secure_enclave_provider: config.secure_enclave_provider,
                 };
 
                 let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();

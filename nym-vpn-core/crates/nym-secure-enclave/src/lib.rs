@@ -35,9 +35,13 @@ pub type Result<T, E = SecureEnclaveError> = std::result::Result<T, E>;
 #[async_trait::async_trait]
 pub trait SecureEnclaveKey: Send + Sync {
     /// Encrypt data using the key stored in secure enclave
+    ///
+    /// Implementation guarantees to zero out plaintext before returning result
     async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
 
     /// Decrypt data using the key stored in secure enclave
+    ///
+    /// Responsibility to zero out plaintext is upheld by the caller
     async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>>;
 }
 

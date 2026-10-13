@@ -3,6 +3,8 @@
 
 use std::path::Path;
 
+use futures::TryFutureExt;
+use nym_secure_enclave::SecureEnclaveError;
 use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use nym_vpn_store::{
     account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
@@ -14,6 +16,8 @@ use nym_vpn_store::{
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
 const ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
 
+const MNEMONIC_SE_KEY: &str = "mnemonic-key";
+
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
     account_storage: nym_vpn_store::account::on_disk::OnDiskAccountStorage,
@@ -23,7 +27,6 @@ pub struct VpnClientOnDiskStorage {
 impl VpnClientOnDiskStorage {
     pub fn new(
         base_data_directory: impl AsRef<Path>,
-
         #[cfg(target_os = "android")] secure_enclave_provider: Arc<
             dyn AndroidSecureEnclaveProvider,
         >,
@@ -31,16 +34,10 @@ impl VpnClientOnDiskStorage {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
         let key_store = nym_vpn_store::keys::device::OnDiskKeys::new(device_key_paths);
 
-        let se_enclave = nym_secure_enclave::SecureEnclave::new(
-            #[cfg(target_os = "android")]
-            secure_enclave_provider,
-        );
-        let mnemonic_cipher = nym_vpn_store::ciphers::noop_cipher::NoopStoreCipher::default();
-
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
         let mnemonic_storage = nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(
             mnemonic_storage_path,
-            mnemonic_cipher,
+            mnemonic_cipher(secure_enclave_provider),
         );
 
         let summary_storage_path = base_data_directory.as_ref().join(ACCOUNT_SUMMARY_FILE_NAME);
@@ -117,3 +114,35 @@ impl AccountSummaryStorage for VpnClientOnDiskStorage {
         self.summary_storage.remove_summary().await
     }
 }
+
+// #[cfg(any(target_os = "android", target_os = "ios"))]
+async fn mnemonic_cipher(
+    secure_enclave_provider: Arc<dyn AndroidSecureEnclaveProvider>,
+) -> Result<Arc<dyn StoreCipher>> {
+    let se_enclave = nym_secure_enclave::SecureEnclave::new(
+        #[cfg(target_os = "android")]
+        secure_enclave_provider,
+    );
+
+    let se_key = se_enclave
+        .get_key(MNEMONIC_SE_KEY.to_owned())
+        .or_else(|err| async {
+            if err == SecureEnclaveError::KeyNotFound {
+                se_enclave.create_key(alias).await
+            } else {
+                Err(err)
+            }
+        })
+        .await?;
+
+    let se_cipher = nym_vpn_store::ciphers::secure_enclave_cipher::SecureEnclaveCipher::new(se_key);
+
+    Ok(se_cipher)
+}
+
+// #[not(cfg(any(target_os = "android", target_os = "ios")))]
+// async fn mnemonic_cipher(
+//     secure_enclave_provider: Arc<dyn AndroidSecureEnclaveProvider>,
+// ) -> Result<Arc<dyn StoreCipher>> {
+//     nym_vpn_store::ciphers::noop_cipher::NoopStoreCipher::default()
+// }

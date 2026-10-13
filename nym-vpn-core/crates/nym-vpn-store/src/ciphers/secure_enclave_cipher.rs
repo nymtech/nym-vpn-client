@@ -3,28 +3,28 @@
 
 use std::sync::Arc;
 
-use nym_secure_enclave::{SecureEnclaveError, SecureEnclaveKey};
+use nym_secure_enclave::{PlatformSecureEnclaveKey, SecureEnclaveError, SecureEnclaveKey};
 
 use super::{Result, StoreCipher, StoreCipherError};
 
-pub struct SecureEnclaveCipher<K> {
-    key: K,
+pub struct SecureEnclaveCipher {
+    key: PlatformSecureEnclaveKey,
 }
 
-impl<K: SecureEnclaveKey> SecureEnclaveCipher<K> {
-    fn new(key: K) -> Self {
+impl SecureEnclaveCipher {
+    pub fn new(key: PlatformSecureEnclaveKey) -> Self {
         Self { key }
     }
 }
 
 #[async_trait::async_trait]
-impl<K: SecureEnclaveKey> StoreCipher for SecureEnclaveCipher<K> {
-    async fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        Ok(self.key.decrypt(data.to_owned()).await?)
+impl StoreCipher for SecureEnclaveCipher {
+    async fn decrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(self.key.decrypt(data).await?)
     }
 
-    async fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>> {
-        Ok(self.key.encrypt(data.to_owned()).await?)
+    async fn encrypt(&self, data: Vec<u8>) -> Result<Vec<u8>> {
+        Ok(self.key.encrypt(data).await?)
     }
 }
 

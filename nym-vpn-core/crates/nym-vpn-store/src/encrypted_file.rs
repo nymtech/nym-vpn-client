@@ -50,9 +50,10 @@ where
         // Check if data has magic cookie, if it doesn't then it means the file is not encrypted
         // Write the data to the file to encrypt it
         if data.starts_with(MAGIC) {
-            Ok(self.cipher.decrypt(&data[MAGIC.len()..]).await?)
+            data.drain(0..MAGIC.len());
+            Ok(self.cipher.decrypt(data).await?)
         } else {
-            match self.write(&data).await {
+            match self.write(data.clone()).await {
                 Ok(_) => Ok(data),
                 Err(err) => {
                     data.zeroize();
@@ -62,8 +63,7 @@ where
         }
     }
 
-    /// Writes encrypted data to the file, overwriting any existing content.
-    pub async fn write(&self, data: &[u8]) -> Result<()> {
+    pub async fn write(&self, data: Vec<u8>) -> Result<()> {
         // Write file to temporary location first
         let temp_file = self.path.with_added_extension("tmp");
         {
