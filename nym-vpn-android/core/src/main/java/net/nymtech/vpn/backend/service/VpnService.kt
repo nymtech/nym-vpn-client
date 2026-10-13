@@ -32,6 +32,7 @@ import net.nymtech.vpn.model.VpnServiceEvent
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.notifications.StopVpnReceiver
+import nym_secure_enclave.AndroidSecureEnclaveProvider
 import nym_vpn_lib.AndroidConnectivityMonitor
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.TunnelNetworkSettings
@@ -64,6 +65,7 @@ class VpnService :
 	@InstallIn(SingletonComponent::class)
 	interface ServiceEntryPoint {
 		fun appConfigProvider(): CoreAppConfigProvider
+		fun secureEnclaveProvider(): AndroidSecureEnclaveProvider
 	}
 
 	private val binder = LocalBinder()
@@ -117,6 +119,7 @@ class VpnService :
 			foreground = foreground,
 			tun = tun,
 			appConfigProvider = appConfigProvider,
+			secureEnclaveProvider = entryPoint.secureEnclaveProvider(),
 		)
 
 		connectivity = VpnConnectivityBridge(
