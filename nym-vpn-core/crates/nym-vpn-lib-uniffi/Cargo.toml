@@ -37,6 +37,7 @@ nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-common.workspace = true
 nym-favorites.workspace = true
+nym-secure-enclave.workspace = true
 
 # Dependencies specific to macOS rpc client usage
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -83,7 +84,6 @@ rustls = { workspace = true, default-features = false, features = [
     "std",
 ] }
 inventory.workspace = true
-nym-secure-enclave.workspace = true
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [

@@ -7292,9 +7292,11 @@ name = "nym-secure-enclave"
 version = "2026.14.0-beta.1"
 dependencies = [
  "async-trait",
+ "futures-util",
  "secure-enclave-rs",
  "thiserror 2.0.20",
  "tokio",
+ "tokio-util",
  "uniffi",
  "zeroize",
 ]
