@@ -1409,7 +1409,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
-            &route_handler,
+            &args.route_handler,
             dns_handler_shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
@@ -1419,13 +1419,13 @@ impl TunnelStateMachine {
             allow_lan: args.tunnel_settings.allow_lan,
             initial_state: InitialFirewallState::None,
             #[cfg(target_os = "linux")]
-            fwmark: tunnel_constants.fwmark,
+            fwmark: args.tunnel_constants.fwmark,
             #[cfg(target_os = "linux")]
-            table_id: tunnel_constants.table_id,
+            table_id: args.tunnel_constants.table_id,
             #[cfg(target_os = "linux")]
-            excluded_cgroup2: split_tunnel_config.excluded_cgroup2,
+            excluded_cgroup2: args.split_tunnel_config.excluded_cgroup2,
             #[cfg(target_os = "linux")]
-            net_cls: split_tunnel_config.net_cls,
+            net_cls: args.split_tunnel_config.net_cls,
         })
         .map_err(Error::CreateFirewall)?;
 
