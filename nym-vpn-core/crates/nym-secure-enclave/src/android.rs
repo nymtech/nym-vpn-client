@@ -43,8 +43,9 @@ impl AndroidKeyStoreProvider {
 impl SecureEnclaveProvider for AndroidKeyStoreProvider {
     type Key = AndroidKeyStoreKey;
 
-    async fn create_key(&self, alias: String) -> Result<Self::Key> {
+    async fn create_key(&self, alias: &str) -> Result<Self::Key> {
         let inner = self.inner.clone();
+        let alias = alias.to_owned();
         tokio::task::spawn_blocking(move || {
             let key = inner.create_key(alias)?;
             Ok(AndroidKeyStoreKey::new(key))
@@ -53,15 +54,17 @@ impl SecureEnclaveProvider for AndroidKeyStoreProvider {
         .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    async fn delete_key(&self, alias: String) -> Result<()> {
+    async fn delete_key(&self, alias: &str) -> Result<()> {
         let inner = self.inner.clone();
+        let alias = alias.to_owned();
         tokio::task::spawn_blocking(move || inner.delete_key(alias))
             .await
             .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    async fn get_key(&self, alias: String) -> Result<Self::Key> {
+    async fn get_key(&self, alias: &str) -> Result<Self::Key> {
         let inner = self.inner.clone();
+        let alias = alias.to_owned();
         tokio::task::spawn_blocking(move || {
             let key = inner.get_key(alias)?;
             Ok(AndroidKeyStoreKey::new(key))

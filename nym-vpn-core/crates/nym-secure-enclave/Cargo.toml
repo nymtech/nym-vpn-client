@@ -15,6 +15,7 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["sync", "rt"] }
 futures-util.workspace = true
 zeroize.workspace = true
+tracing.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
 uniffi.workspace = true

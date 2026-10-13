@@ -29,7 +29,7 @@ impl SecureEnclaveCipher {
         self.cached_key
             .get_or_try_init(|| async {
                 self.secure_enclave
-                    .get_or_create_key(self.key_alias.clone())
+                    .get_or_create_key(&self.key_alias)
                     .await
                     .map_err(StoreCipherError::from)
             })
