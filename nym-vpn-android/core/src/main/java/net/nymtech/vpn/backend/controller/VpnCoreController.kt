@@ -22,6 +22,7 @@ import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.model.VpnServiceEvent.*
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
 import net.nymtech.vpn.util.extensions.asTunnelState
+import nym_secure_enclave.AndroidSecureEnclaveProvider
 import nym_vpn_lib.LogLevel
 import nym_vpn_lib.NoHandle
 import nym_vpn_lib.NymEnvironment
@@ -48,6 +49,7 @@ class VpnCoreController(
 	private val foreground: VpnForegroundController,
 	private val tun: VpnTunController,
 	private val appConfigProvider: CoreAppConfigProvider,
+	private val secureEnclaveProvider: AndroidSecureEnclaveProvider,
 ) {
 	companion object {
 		private const val TAG = "core-vpn"
@@ -323,6 +325,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
+			secureEnclaveProvider = secureEnclaveProvider,
 		)
 
 		val networkStatsEnabled = appConfigProvider.isNetworkStatsEnabled()

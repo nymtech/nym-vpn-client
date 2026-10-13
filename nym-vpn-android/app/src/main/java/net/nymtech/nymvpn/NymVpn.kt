@@ -35,6 +35,7 @@ import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.secureenclave.ForegroundActivityTracker
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.logs.ExitReasons
 import net.nymtech.nymvpn.util.GraphicsFallback
@@ -101,6 +102,9 @@ class NymVpn : Application() {
 	@Inject
 	lateinit var logReader: LogReader
 
+	@Inject
+	lateinit var foregroundActivityTracker: ForegroundActivityTracker
+
 	@Volatile
 	private var logsEnabled: Boolean = true
 
@@ -122,6 +126,7 @@ class NymVpn : Application() {
 
 		instance = this
 		AppLifecycleObserver.init()
+		registerActivityLifecycleCallbacks(foregroundActivityTracker)
 
 		Timber.plant(NoLogTree())
 
