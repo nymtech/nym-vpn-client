@@ -4,11 +4,13 @@
 #[cfg(target_os = "android")]
 use std::sync::Arc;
 
+use futures_util::TryFutureExt;
+
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use super::AppleSecureEnclaveProvider;
 #[cfg(target_os = "android")]
 use super::{AndroidKeyStoreProvider, AndroidSecureEnclaveProvider};
-use super::{Result, SecureEnclaveProvider};
+use super::{Result, SecureEnclaveError, SecureEnclaveProvider};
 
 #[cfg(target_os = "android")]
 type PlatformProvider = AndroidKeyStoreProvider;
@@ -44,5 +46,17 @@ impl SecureEnclave {
 
     pub async fn get_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
         self.inner.get_key(alias).await
+    }
+
+    pub async fn get_or_create_key(&self, alias: String) -> Result<PlatformSecureEnclaveKey> {
+        self.get_key(alias.clone())
+            .or_else(|err| async {
+                if err == SecureEnclaveError::KeyNotFound {
+                    self.create_key(alias).await
+                } else {
+                    Err(err)
+                }
+            })
+            .await
     }
 }

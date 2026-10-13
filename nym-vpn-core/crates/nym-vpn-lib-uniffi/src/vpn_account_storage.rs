@@ -47,8 +47,9 @@ impl NymVpnAccountStorage {
     pub fn new(data_dir: PathBuf, environment: Arc<NymEnvironment>) -> Self {
         // todo: ensure account controller is not running?
         let storage_path = data_dir.join(environment.network_name());
+        let secure_enclave = nym_secure_enclave::SecureEnclave::new();
         Self {
-            storage: VpnClientOnDiskStorage::new(&storage_path),
+            storage: VpnClientOnDiskStorage::new(&storage_path, secure_enclave),
             storage_path,
             environment,
         }

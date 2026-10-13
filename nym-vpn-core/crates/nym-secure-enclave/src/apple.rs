@@ -1,84 +1,143 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use zeroize::{Zeroize, Zeroizing};
+use std::{cell::RefCell, collections::HashMap, sync::Arc};
+
+use tokio_util::task::LocalPoolHandle;
+use zeroize::Zeroizing;
 
 use crate::{Result, SecureEnclaveError, SecureEnclaveKey, SecureEnclaveProvider};
 
+type KeyId = u64;
+
+thread_local! {
+    /// Keys owned by the worker thread. `secure_enclave_rs::SecureEnclaveKey` cannot be sent
+    /// between threads, so it never leaves the thread it was created on.
+    static WORKER_STATE: RefCell<WorkerState> = RefCell::default();
+}
+
 #[derive(Default)]
-pub struct AppleSecureEnclaveProvider;
+struct WorkerState {
+    keys: HashMap<KeyId, secure_enclave_rs::SecureEnclaveKey>,
+    next_key_id: KeyId,
+}
+
+impl WorkerState {
+    fn insert(&mut self, key: secure_enclave_rs::SecureEnclaveKey) -> KeyId {
+        let key_id = self.next_key_id;
+        self.next_key_id += 1;
+        self.keys.insert(key_id, key);
+        key_id
+    }
+
+    fn key(&self, key_id: KeyId) -> Result<&secure_enclave_rs::SecureEnclaveKey> {
+        self.keys
+            .get(&key_id)
+            .ok_or_else(|| SecureEnclaveError::Other("key is released".to_owned()))
+    }
+}
+
+pub struct AppleSecureEnclaveProvider {
+    /// Pool with a single worker thread performing all calls into secure enclave.
+    pool: LocalPoolHandle,
+}
+
+impl Default for AppleSecureEnclaveProvider {
+    fn default() -> Self {
+        Self {
+            pool: LocalPoolHandle::new(1),
+        }
+    }
+}
 
 #[async_trait::async_trait]
 impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     type Key = OSSecureEnclaveKey;
 
     async fn create_key(&self, alias: String) -> Result<Self::Key> {
-        let (tx, rx) = tokio::sync::mpsc::unbounded_channel::<SecureEnclaveOperation>();
-
-        spawn_worker_thread(rx, move || {
-            secure_enclave_rs::SecureEnclaveKey::generate(
+        let id = run_on_worker(&self.pool, move |state| {
+            let key = secure_enclave_rs::SecureEnclaveKey::generate(
                 &secure_enclave_rs::SecureEnclaveKeyOptions {
                     tag: alias.as_bytes(),
                     access_flags: secure_enclave_rs::SecAccessControlFlags::USER_PRESENCE,
                     permanent: true,
                 },
-            )
-            .map_err(SecureEnclaveError::from)
+            )?;
+            Ok(state.insert(key))
         })
         .await?;
 
-        Ok(OSSecureEnclaveKey::new(tx))
+        Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
     }
 
     async fn delete_key(&self, alias: String) -> Result<()> {
-        secure_enclave_rs::SecureEnclaveKey::remove_by_tag(alias.as_bytes())?;
-        Ok(())
+        run_on_worker(&self.pool, move |_state| {
+            Ok(secure_enclave_rs::SecureEnclaveKey::remove_by_tag(
+                alias.as_bytes(),
+            )?)
+        })
+        .await
     }
 
     async fn get_key(&self, alias: String) -> Result<Self::Key> {
-        let (tx, rx) = tokio::sync::mpsc::unbounded_channel::<SecureEnclaveOperation>();
-
-        spawn_worker_thread(rx, move || {
-            secure_enclave_rs::SecureEnclaveKey::get(alias.as_bytes())
-                .map_err(SecureEnclaveError::from)
+        let id = run_on_worker(&self.pool, move |state| {
+            let key = secure_enclave_rs::SecureEnclaveKey::get(alias.as_bytes())?;
+            Ok(state.insert(key))
         })
         .await?;
 
-        Ok(OSSecureEnclaveKey::new(tx))
+        Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
     }
 }
 
 #[derive(Clone)]
 pub struct OSSecureEnclaveKey {
-    tx: tokio::sync::mpsc::UnboundedSender<SecureEnclaveOperation>,
+    handle: Arc<KeyHandle>,
 }
 
 impl OSSecureEnclaveKey {
-    fn new(tx: tokio::sync::mpsc::UnboundedSender<SecureEnclaveOperation>) -> Self {
-        Self { tx }
+    fn new(id: KeyId, pool: LocalPoolHandle) -> Self {
+        Self {
+            handle: Arc::new(KeyHandle { id, pool }),
+        }
     }
 }
 
 #[async_trait::async_trait]
 impl SecureEnclaveKey for OSSecureEnclaveKey {
     async fn decrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        let (tx, rx) = tokio::sync::oneshot::channel();
-        let _ = self.tx.send(SecureEnclaveOperation::Decrypt {
-            bytes,
-            completion: tx,
-        });
-        rx.await
-            .map_err(|_| SecureEnclaveError::Other("channel closed".to_owned()))?
+        let key_id = self.handle.id;
+        let mut plaintext = run_on_worker(&self.handle.pool, move |state| {
+            Ok(Zeroizing::new(state.key(key_id)?.decrypt(&bytes)?))
+        })
+        .await?;
+
+        Ok(std::mem::take(&mut *plaintext))
     }
 
     async fn encrypt(&self, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        let (tx, rx) = tokio::sync::oneshot::channel();
-        let _ = self.tx.send(SecureEnclaveOperation::Encrypt {
-            bytes: Zeroizing::new(bytes),
-            completion: tx,
+        let key_id = self.handle.id;
+        let bytes = Zeroizing::new(bytes);
+        run_on_worker(&self.handle.pool, move |state| {
+            Ok(state.key(key_id)?.encrypt(&bytes)?)
+        })
+        .await
+    }
+}
+
+/// Reference to the key owned by the worker thread. The key is released once the last handle is
+/// dropped.
+struct KeyHandle {
+    id: KeyId,
+    pool: LocalPoolHandle,
+}
+
+impl Drop for KeyHandle {
+    fn drop(&mut self) {
+        let key_id = self.id;
+        let _join_handle = self.pool.spawn_pinned(move || async move {
+            WORKER_STATE.with_borrow_mut(|state| state.keys.remove(&key_id));
         });
-        rx.await
-            .map_err(|_| SecureEnclaveError::Other("channel closed".to_owned()))?
     }
 }
 
@@ -92,56 +151,13 @@ impl From<secure_enclave_rs::Error> for SecureEnclaveError {
     }
 }
 
-enum SecureEnclaveOperation {
-    Decrypt {
-        bytes: Vec<u8>,
-        completion: tokio::sync::oneshot::Sender<Result<Vec<u8>>>,
-    },
-    Encrypt {
-        bytes: Zeroizing<Vec<u8>>,
-        completion: tokio::sync::oneshot::Sender<Result<Vec<u8>>>,
-    },
-}
-
-/// Spawn a new thread binding `secure_enclave_rs::SecureEnclaveKey` key to it and establishing communication using channels
-async fn spawn_worker_thread<F>(
-    mut command_rx: tokio::sync::mpsc::UnboundedReceiver<SecureEnclaveOperation>,
-    key_fn: F,
-) -> Result<()>
+/// Run the closure on the worker thread and wait for it to complete.
+async fn run_on_worker<T, F>(pool: &LocalPoolHandle, f: F) -> Result<T>
 where
-    F: FnOnce() -> Result<secure_enclave_rs::SecureEnclaveKey>,
-    F: Send + 'static,
+    F: FnOnce(&mut WorkerState) -> Result<T> + Send + 'static,
+    T: Send + 'static,
 {
-    let (init_tx, init_rx) = tokio::sync::oneshot::channel();
-
-    let _join_handle = std::thread::spawn(move || match key_fn() {
-        Ok(key) => {
-            let _ = init_tx.send(Ok(()));
-
-            while let Some(op) = command_rx.blocking_recv() {
-                match op {
-                    SecureEnclaveOperation::Decrypt { bytes, completion } => {
-                        let res = key.decrypt(&bytes);
-                        if let Err(Ok(mut plaintext)) =
-                            completion.send(res.map_err(SecureEnclaveError::from))
-                        {
-                            plaintext.zeroize();
-                        }
-                    }
-                    SecureEnclaveOperation::Encrypt { bytes, completion } => {
-                        let res = key.encrypt(&bytes);
-                        let _ = completion.send(res.map_err(SecureEnclaveError::from));
-                    }
-                }
-            }
-        }
-        Err(err) => {
-            let _ = init_tx.send(Err(err));
-            return;
-        }
-    });
-
-    init_rx
+    pool.spawn_pinned(move || async move { WORKER_STATE.with_borrow_mut(f) })
         .await
-        .map_err(|_| SecureEnclaveError::Other("channel closed".to_owned()))?
+        .map_err(|_| SecureEnclaveError::Other("secure enclave worker failed".to_owned()))?
 }
