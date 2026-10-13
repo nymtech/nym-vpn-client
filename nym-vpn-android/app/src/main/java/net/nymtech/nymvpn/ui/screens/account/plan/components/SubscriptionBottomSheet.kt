@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,13 +21,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.TrialEligibility
 import net.nymtech.nymvpn.ui.common.NymModalBottomSheet
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -35,32 +37,20 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubscriptionBottomSheet(products: List<ProductData>, trialEligible: Boolean, selectable: Boolean, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
+fun SubscriptionBottomSheet(products: List<ProductData>, trialEligibility: TrialEligibility, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
 	NymModalBottomSheet(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
 		containerColor = MaterialTheme.colorScheme.surface,
 		tonalElevation = 4.dp,
 	) {
-		SubscriptionBottomSheetContent(products, trialEligible, selectable, onDismiss, onSelect)
+		SubscriptionBottomSheetContent(products, trialEligibility, onDismiss, onSelect)
 	}
 }
 
-/**
- * The trial label is shown only when the account is eligible AND Play offers a trial for the
- * product, so the label always matches the offer that will be launched.
- *
- * While eligibility is being read ([selectable] is false) plans can't be picked and no trial label
- * is shown, so a quick tap can't launch an offer based on a stale answer.
- */
+/** A loader replaces the list until eligibility resolves, so rows never grow and plans can't be picked on a stale answer. */
 @Composable
-fun SubscriptionBottomSheetContent(
-	products: List<ProductData>,
-	trialEligible: Boolean,
-	selectable: Boolean,
-	onDismiss: () -> Unit,
-	onSelect: (ProductData) -> Unit,
-) {
+fun SubscriptionBottomSheetContent(products: List<ProductData>, trialEligibility: TrialEligibility, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -75,53 +65,19 @@ fun SubscriptionBottomSheetContent(
 			modifier = Modifier.align(Alignment.CenterHorizontally),
 		)
 
-		if (!selectable) {
-			CircularProgressIndicator(
-				modifier = Modifier.align(Alignment.CenterHorizontally).size(24.dp),
-				strokeWidth = 2.dp,
-			)
-		}
-
-		Column(
-			modifier = Modifier
-				.alpha(if (selectable) 1f else 0.5f)
-				.clip(RoundedCornerShape(8.dp))
-				.fillMaxWidth()
-				.border(
-					BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-					RoundedCornerShape(8.dp),
+		when (trialEligibility) {
+			TrialEligibility.Loading -> Box(
+				contentAlignment = Alignment.Center,
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(PRODUCT_ROW_HEIGHT * products.size),
+			) {
+				CircularProgressIndicator(
+					modifier = Modifier.size(24.dp),
+					strokeWidth = 2.dp,
 				)
-				.background(MaterialTheme.colorScheme.primaryContainer),
-		) {
-			products.forEachIndexed { index, product ->
-				Column(
-					modifier = Modifier
-						.fillMaxWidth()
-						.clickable(enabled = selectable) { onSelect(product) }
-						.padding(vertical = 24.dp, horizontal = 16.dp),
-					verticalArrangement = Arrangement.spacedBy(4.dp),
-				) {
-					Text(
-						text = product.name + " (${product.price})",
-						style = MaterialTheme.typography.titleMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-					if (selectable && trialEligible && product.freeTrialDays != null) {
-						Text(
-							text = stringResource(R.string.select_plan_modal_free_trial),
-							style = MaterialTheme.typography.bodyLarge,
-							color = MaterialTheme.colorScheme.onBackground,
-						)
-					}
-				}
-
-				if (index < products.lastIndex) {
-					HorizontalDivider(
-						color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-						thickness = 1.dp,
-					)
-				}
 			}
+			is TrialEligibility.Resolved -> ProductList(products, trialEligibility.eligible, onSelect)
 		}
 
 		OutlineStyledButton(
@@ -136,6 +92,54 @@ fun SubscriptionBottomSheetContent(
 				)
 			},
 		)
+	}
+}
+
+// Row without a trial line: 2 × 24dp padding + one titleMedium line.
+private val PRODUCT_ROW_HEIGHT = 72.dp
+
+@Composable
+private fun ProductList(products: List<ProductData>, trialEligible: Boolean, onSelect: (ProductData) -> Unit) {
+	Column(
+		modifier = Modifier
+			.clip(RoundedCornerShape(8.dp))
+			.fillMaxWidth()
+			.border(
+				BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+				RoundedCornerShape(8.dp),
+			)
+			.background(MaterialTheme.colorScheme.primaryContainer),
+	) {
+		products.forEachIndexed { index, product ->
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.clickable { onSelect(product) }
+					.padding(vertical = 24.dp, horizontal = 16.dp),
+				verticalArrangement = Arrangement.spacedBy(4.dp),
+			) {
+				Text(
+					text = product.name + " (${product.price})",
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+				)
+				val trialDays = product.freeTrialDays
+				if (trialEligible && trialDays != null) {
+					Text(
+						text = pluralStringResource(R.plurals.select_plan_modal_free_trial_days, trialDays, trialDays),
+						style = MaterialTheme.typography.bodyLarge,
+						color = MaterialTheme.colorScheme.onBackground,
+					)
+				}
+			}
+
+			if (index < products.lastIndex) {
+				HorizontalDivider(
+					color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+					thickness = 1.dp,
+				)
+			}
+		}
 	}
 }
 
@@ -164,8 +168,7 @@ private fun SubscriptionBottomSheetContentPreview() {
 	NymVPNTheme(Theme.default()) {
 		SubscriptionBottomSheetContent(
 			products = mockProducts,
-			trialEligible = true,
-			selectable = true,
+			trialEligibility = TrialEligibility.Resolved(eligible = true),
 			onDismiss = {},
 			onSelect = {},
 		)

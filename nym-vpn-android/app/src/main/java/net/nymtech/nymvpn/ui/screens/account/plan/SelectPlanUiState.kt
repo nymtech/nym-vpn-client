@@ -1,16 +1,18 @@
 package net.nymtech.nymvpn.ui.screens.account.plan
 
 import net.nymtech.billing.model.ProductData
+import net.nymtech.nymvpn.manager.billing.TrialEligibility
 
-/**
- * [trialEligible] is false until the backend explicitly confirms eligibility, so the trial label
- * is never shown for an account that would be charged the full price.
- *
- * [trialEligibilityResolved] is false while eligibility is being (re)read. Plans can't be selected
- * until it is true, so the launched offer always uses a fresh answer.
- */
+/** [lastResolvedTrialEligible] keeps the previous answer while the sheet re-reads eligibility, so the benefits list doesn't flicker. */
 data class SelectPlanUiState(
 	val subscriptions: List<ProductData> = emptyList(),
-	val trialEligible: Boolean = false,
-	val trialEligibilityResolved: Boolean = false,
-)
+	val productsResolved: Boolean = false,
+	val trialEligibility: TrialEligibility = TrialEligibility.Loading,
+	val lastResolvedTrialEligible: Boolean? = null,
+) {
+	val benefitsResolved: Boolean get() = productsResolved && lastResolvedTrialEligible != null
+
+	/** Shortest Play trial when eligible, so the label never overpromises; null hides the row. */
+	val benefitsTrialDays: Int?
+		get() = if (lastResolvedTrialEligible == true) subscriptions.mapNotNull { it.freeTrialDays }.minOrNull() else null
+}

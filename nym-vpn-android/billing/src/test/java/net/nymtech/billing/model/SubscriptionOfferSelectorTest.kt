@@ -5,31 +5,44 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SubscriptionOfferSelectorTest {
-	private val trial = SubscriptionOffer(offerToken = "trial", hasFreePhase = true)
-	private val regular = SubscriptionOffer(offerToken = "regular", hasFreePhase = false)
+	private val basePlan = SubscriptionOffer(offerToken = "base", offerId = null, hasFreePhase = false)
+	private val trial = SubscriptionOffer(offerToken = "trial", offerId = "free-trial", hasFreePhase = true)
+	private val discount = SubscriptionOffer(offerToken = "discount", offerId = "intro-discount", hasFreePhase = false)
 
 	@Test
 	fun eligibleAccountGetsTrialOffer() {
-		assertEquals(trial, SubscriptionOfferSelector.select(listOf(regular, trial), trialEligible = true))
+		assertEquals(trial, SubscriptionOfferSelector.select(listOf(basePlan, trial), trialEligible = true))
 	}
 
 	@Test
-	fun ineligibleAccountGetsRegularOfferEvenWhenTrialIsListedFirst() {
-		assertEquals(regular, SubscriptionOfferSelector.select(listOf(trial, regular), trialEligible = false))
+	fun ineligibleAccountGetsBasePlanEvenWhenTrialIsListedFirst() {
+		assertEquals(basePlan, SubscriptionOfferSelector.select(listOf(trial, basePlan), trialEligible = false))
 	}
 
 	@Test
-	fun eligibleAccountWithoutTrialOfferFallsBackToRegularOffer() {
-		assertEquals(regular, SubscriptionOfferSelector.select(listOf(regular), trialEligible = true))
+	fun eligibleAccountWithoutTrialOfferGetsBasePlan() {
+		assertEquals(basePlan, SubscriptionOfferSelector.select(listOf(basePlan), trialEligible = true))
 	}
 
 	@Test
-	fun ineligibleAccountNeverGetsTrialOffer() {
+	fun basePlanIsChosenOverNonFreeDiscountOffer() {
+		assertEquals(basePlan, SubscriptionOfferSelector.select(listOf(discount, basePlan), trialEligible = false))
+		assertEquals(basePlan, SubscriptionOfferSelector.select(listOf(discount, basePlan), trialEligible = true))
+	}
+
+	@Test
+	fun ineligibleAccountNeverGetsTrialOfferEvenWhenItIsTheOnlyOffer() {
 		assertNull(SubscriptionOfferSelector.select(listOf(trial), trialEligible = false))
+	}
+
+	@Test
+	fun discountOfferIsNeverUsedAsBasePlanFallback() {
+		assertNull(SubscriptionOfferSelector.select(listOf(discount), trialEligible = false))
 	}
 
 	@Test
 	fun noOffersSelectsNothing() {
 		assertNull(SubscriptionOfferSelector.select(emptyList(), trialEligible = true))
+		assertNull(SubscriptionOfferSelector.select(emptyList(), trialEligible = false))
 	}
 }

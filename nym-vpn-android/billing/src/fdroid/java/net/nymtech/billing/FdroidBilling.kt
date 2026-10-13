@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flowOf
 import net.nymtech.billing.model.BillingInfo
 import net.nymtech.billing.model.BillingPurchase
 import net.nymtech.billing.model.ProductData
+import net.nymtech.billing.model.PurchaseFlowResult
 import net.nymtech.billing.model.PurchaseInfo
 
 class FdroidBilling : Billing {
@@ -31,8 +32,7 @@ class FdroidBilling : Billing {
 	override fun fetchSubscriptions() {
 	}
 
-	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean) {
-	}
+	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean): PurchaseFlowResult = PurchaseFlowResult.Failed("Billing unavailable")
 
 	override fun endConnection() {
 	}

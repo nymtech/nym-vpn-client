@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
+import net.nymtech.billing.model.PurchaseFlowResult
 import net.nymtech.billing.model.PurchaseState
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
@@ -151,7 +152,11 @@ constructor(private val billingManager: BillingManager, private val backendManag
 		viewModelScope.launch {
 			if (!accountId.isNullOrBlank()) {
 				Timber.tag(TAG).i("PurchaseFlowRequested productId=%s trialEligible=%b", productId, trialEligible)
-				billingManager.launchPurchaseFlow(activity, productId, accountId!!, trialEligible)
+				val result = billingManager.launchPurchaseFlow(activity, productId, accountId!!, trialEligible)
+				if (result is PurchaseFlowResult.Failed) {
+					Timber.tag(TAG).w("PurchaseFlowFailed productId=%s reason=%s", productId, result.reason)
+					_events.tryEmit(PaymentUiEvent.PaymentError(result.reason))
+				}
 			} else {
 				Timber.tag(TAG).w("PurchaseFlowRejected reason=missing_user_id productId=%s", productId)
 				_events.tryEmit(PaymentUiEvent.PaymentError("Missing user id"))

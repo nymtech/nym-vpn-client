@@ -1,25 +1,15 @@
 package net.nymtech.billing.model
 
-/**
- * A Play subscription offer reduced to what offer selection needs.
- */
-data class SubscriptionOffer(val offerToken: String, val hasFreePhase: Boolean)
+/** [offerId] is null for the base plan; trials and discounts are offers on top of it. */
+data class SubscriptionOffer(val offerToken: String, val offerId: String?, val hasFreePhase: Boolean) {
+	val isBasePlan: Boolean get() = offerId == null
+	val isTrial: Boolean get() = offerId != null && hasFreePhase
+}
 
 object SubscriptionOfferSelector {
-	/**
-	 * Picks the offer to launch for a subscription product.
-	 *
-	 * The trial offer (an offer whose pricing phases contain a free phase) is picked only when the
-	 * backend said the account is eligible AND Play returned such an offer. Play omits the trial
-	 * offer when the Google account already used one, in which case the account is treated as
-	 * ineligible and the regular offer is launched. Returns null when no usable offer exists.
-	 */
+	/** Trial offer if eligible and Play returned one, else the base plan; null (no base plan) must be reported as a failure. */
 	fun select(offers: List<SubscriptionOffer>, trialEligible: Boolean): SubscriptionOffer? {
-		val trial = offers.firstOrNull { it.hasFreePhase }
-		val regular = offers.firstOrNull { !it.hasFreePhase }
-		return when {
-			trialEligible && trial != null -> trial
-			else -> regular
-		}
+		if (trialEligible) offers.firstOrNull { it.isTrial }?.let { return it }
+		return offers.firstOrNull { it.isBasePlan }
 	}
 }

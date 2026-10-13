@@ -311,13 +311,11 @@
 	<string name="onboarding_plan_try_suffix">，無需長期承諾。</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">選擇您的\n訂閲方案</string>
-	<string name="select_plan_line_0">7 天免費試用</string>
 	<string name="select_plan_line_1">包含完整功能</string>
 	<string name="select_plan_line_2">沒有廣告</string>
 	<string name="select_plan_line_3">隨時取消</string>
 	<string name="select_plan_button">選擇我的 NymVPN 訂閲方案</string>
 	<string name="select_plan_modal_title">選擇您的訂閲方案。包含所有功能，隨時取消。</string>
-	<string name="select_plan_modal_free_trial">今天開始 7 天免費試用</string>
 	<!-- Server Details screen -->
 	<string name="details_title">服務器詳情</string>
 	<string name="details_features_title">節點功能</string>

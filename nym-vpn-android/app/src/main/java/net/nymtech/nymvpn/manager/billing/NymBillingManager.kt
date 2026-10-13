@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import net.nymtech.billing.Billing
 import net.nymtech.billing.initBilling
 import net.nymtech.billing.model.ProductData
+import net.nymtech.billing.model.PurchaseFlowResult
 import net.nymtech.billing.model.PurchaseInfo
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
@@ -51,10 +52,11 @@ class NymBillingManager @Inject constructor(
 			.onFailure { Timber.tag(TAG).e(it, "BillingFetchSubscriptionsFailed") }
 	}
 
-	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean) {
+	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean): PurchaseFlowResult {
 		Timber.tag(TAG).i("BillingPurchaseFlowRequested productId=%s trialEligible=%b", productId, trialEligible)
-		runCatching { billing.launchPurchaseFlow(activity, productId, userId, trialEligible) }
+		return runCatching { billing.launchPurchaseFlow(activity, productId, userId, trialEligible) }
 			.onFailure { Timber.tag(TAG).e(it, "BillingPurchaseFlowFailed productId=%s", productId) }
+			.getOrElse { PurchaseFlowResult.Failed(it.message ?: "Purchase flow failed") }
 	}
 
 	override fun endConnection() {

@@ -4,6 +4,7 @@ import android.app.Activity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import net.nymtech.billing.model.ProductData
+import net.nymtech.billing.model.PurchaseFlowResult
 import net.nymtech.billing.model.PurchaseInfo
 
 interface Billing {
@@ -13,7 +14,7 @@ interface Billing {
 	val products: Flow<List<ProductData>>
 	fun initialize()
 	fun fetchSubscriptions()
-	suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean)
+	suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean): PurchaseFlowResult
 	fun endConnection()
 	suspend fun hasActiveSubscription(): Boolean
 }

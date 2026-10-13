@@ -26,7 +26,9 @@ data class NymProductData(
 
 		private fun ProductDetails.getFreeTrialDays(): Int? {
 			val offers = subscriptionOfferDetails ?: return null
+			// Same rule as SubscriptionOffer.isTrial.
 			val trialPhase = offers
+				.filter { it.offerId != null }
 				.flatMap { it.pricingPhases.pricingPhaseList }
 				.firstOrNull { it.priceAmountMicros == 0L }
 			val billingPeriod = trialPhase?.billingPeriod ?: return null

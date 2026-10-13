@@ -317,13 +317,11 @@
 	<string name="onboarding_plan_try_suffix">, никаких обязательств.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Выберите ваш \nтарифный план</string>
-	<string name="select_plan_line_0">7-дневная пробная версия</string>
 	<string name="select_plan_line_1">Все функции включены</string>
 	<string name="select_plan_line_2">Никакой рекламы</string>
 	<string name="select_plan_line_3">Отмена в любое время</string>
 	<string name="select_plan_button">Выбрать тарифный план NymVPN</string>
 	<string name="select_plan_modal_title">Выберите свой тариф. Все функции, отмена в любое время.</string>
-	<string name="select_plan_modal_free_trial">Получите 7-дневный пробный период прямо сейчас</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Детали сервера</string>
 	<string name="details_features_title">Функционал нод</string>

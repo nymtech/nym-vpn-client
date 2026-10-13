@@ -311,13 +311,11 @@
 	<string name="onboarding_plan_try_suffix">, sans engagement.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choisissez votre \nabonnement</string>
-	<string name="select_plan_line_0">Essai gratuit de 7 jours</string>
 	<string name="select_plan_line_1">Toutes les fonctionnalités incluses</string>
 	<string name="select_plan_line_2">Aucune publicité</string>
 	<string name="select_plan_line_3">Sans engagement</string>
 	<string name="select_plan_button">Choisir mon abonnement NymVPN</string>
 	<string name="select_plan_modal_title">Choisissez votre abonnement. Toutes les fonctionnalités incluses, sans engagement.</string>
-	<string name="select_plan_modal_free_trial">Essai gratuit de 7 jours à partir de maintenant</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Détails du serveur</string>
 	<string name="details_features_title">Fonctionnalités du noeud</string>
