@@ -408,6 +408,15 @@ impl NymVpnServiceCommandSender {
         Ok(())
     }
 
+    /// Whether the signed-in account may be offered a free trial. Only `true` means a trial can
+    /// be offered; callers treat any error as not eligible.
+    pub async fn is_trial_eligible(&self) -> Result<bool> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::IsTrialEligible, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self
             .send_and_wait(VpnServiceCommand::GetDeeplink, params)

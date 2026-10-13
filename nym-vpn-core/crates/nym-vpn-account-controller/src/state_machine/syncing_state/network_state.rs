@@ -325,9 +325,7 @@ impl From<VpnApiClientError> for SyncError {
         match NymErrorResponse::try_from(value) {
             Ok(error_response) => {
                 // SW Use UUID when it will be available
-                if error_response.status == "access_denied"
-                    && error_response.message == "Account not found"
-                {
+                if error_response.is_account_not_found() {
                     // Request was fine, but account is unregistered
                     // Later down the line we can maybe register it here
                     SyncError::UnregisteredAccount

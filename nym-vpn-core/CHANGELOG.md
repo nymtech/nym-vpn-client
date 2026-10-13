@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Expose free trial eligibility (`trialEligible` from the active subscription endpoint) to mobile clients through the account controller
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
 
 ### Fixed

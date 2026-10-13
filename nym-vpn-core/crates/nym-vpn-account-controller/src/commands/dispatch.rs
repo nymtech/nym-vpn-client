@@ -86,6 +86,7 @@ impl AccountCommand {
                 CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::IsTrialEligible(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetAutologinDeeplink(return_sender, _) => {
                     return_sender.send(Err(error))
@@ -127,6 +128,10 @@ pub enum CommonCommand {
 
     /// Returns the VPN account summary if the account is logged-in
     GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, AccountCommandError>),
+
+    /// Asks the API whether the account may be offered a free trial. True when the API says so,
+    /// or when the account is not registered with the API yet (no history). False otherwise.
+    IsTrialEligible(ReturnSender<bool, AccountCommandError>),
 
     /// Return the deeplink URL for the specfied deeplink kind and name
     GetDeeplink(

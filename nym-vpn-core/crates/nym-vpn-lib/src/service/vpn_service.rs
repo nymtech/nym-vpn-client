@@ -209,6 +209,7 @@ pub enum VpnServiceCommand {
         (),
     ),
     HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    IsTrialEligible(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
         GetDeeplinkParams,
@@ -1246,6 +1247,9 @@ impl NymVpnService {
             VpnServiceCommand::HandleSubscriptionPayment(tx, ()) => {
                 let _ = tx.send(self.handle_subscription_payment().await);
             }
+            VpnServiceCommand::IsTrialEligible(tx, ()) => {
+                let _ = tx.send(self.handle_is_trial_eligible().await);
+            }
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
             }
@@ -2190,6 +2194,10 @@ impl NymVpnService {
             return Err(AccountCommandError::NoAccountStored);
         }
         self.account_command_tx.refresh_account_state(true).await
+    }
+
+    async fn handle_is_trial_eligible(&self) -> Result<bool, AccountCommandError> {
+        self.account_command_tx.is_trial_eligible().await
     }
 
     async fn handle_get_deeplink(

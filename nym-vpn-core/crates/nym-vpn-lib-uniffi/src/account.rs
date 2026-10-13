@@ -272,6 +272,15 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
+    /// Whether the signed-in account may be offered a free trial. Only `true` means a trial can
+    /// be offered; callers treat any error as not eligible.
+    pub async fn is_trial_eligible(&self) -> Result<bool, VpnError> {
+        self.account_command_sender
+            .is_trial_eligible()
+            .await
+            .map_err(VpnError::from)
+    }
+
     /// Import the account mnemonic
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
         let account =

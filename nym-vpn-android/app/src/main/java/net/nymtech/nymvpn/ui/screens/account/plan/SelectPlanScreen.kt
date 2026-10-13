@@ -91,6 +91,8 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 
 	SelectPlanScreen(
 		products = uiState.subscriptions,
+		trialEligible = uiState.trialEligible,
+		trialEligibilityResolved = uiState.trialEligibilityResolved,
 		showSheet = showSheet,
 		onSelectPlanButtonClick = {
 			if (viewModel.isBillingAvailable()) {
@@ -103,7 +105,7 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 		onDismissSheet = { showSheet = false },
 		onSelectSubscription = { product ->
 			showSheet = false
-			navController.navigate(Route.Payment(product.id))
+			navController.navigate(Route.Payment(product.id, trialEligible = uiState.trialEligible))
 		},
 	)
 }
@@ -133,6 +135,8 @@ private fun FilledProgressBar4(modifier: Modifier = Modifier) {
 @Composable
 fun SelectPlanScreen(
 	products: List<ProductData> = emptyList(),
+	trialEligible: Boolean = false,
+	trialEligibilityResolved: Boolean,
 	showSheet: Boolean = false,
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
@@ -186,19 +190,21 @@ fun SelectPlanScreen(
 				verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
 				modifier = Modifier.padding(horizontal = 52.dp).fillMaxWidth(),
 			) {
-				Row {
-					Icon(
-						imageVector = ImageVector.vectorResource(R.drawable.ic_gift),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(16.dp),
-					)
-					Spacer(Modifier.width(8.dp))
-					Text(
-						text = stringResource(R.string.select_plan_line_0),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
+				if (trialEligible) {
+					Row {
+						Icon(
+							imageVector = ImageVector.vectorResource(R.drawable.ic_gift),
+							contentDescription = null,
+							tint = MaterialTheme.colorScheme.primary,
+							modifier = Modifier.size(16.dp),
+						)
+						Spacer(Modifier.width(8.dp))
+						Text(
+							text = stringResource(R.string.select_plan_line_0),
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					}
 				}
 				Row {
 					Icon(
@@ -268,6 +274,8 @@ fun SelectPlanScreen(
 	if (showSheet && products.isNotEmpty()) {
 		SubscriptionBottomSheet(
 			products = products,
+			trialEligible = trialEligible,
+			selectable = trialEligibilityResolved,
 			onDismiss = onDismissSheet,
 			onSelect = onSelectSubscription,
 		)
@@ -296,6 +304,6 @@ internal fun PreviewSelectPlanScreen() {
 				override val priceCurrencyCode = null
 			},
 		)
-		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
+		SelectPlanScreen(products = mockProducts, trialEligible = true, trialEligibilityResolved = true, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
 	}
 }

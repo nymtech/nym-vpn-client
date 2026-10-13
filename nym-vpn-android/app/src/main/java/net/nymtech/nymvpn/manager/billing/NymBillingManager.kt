@@ -51,9 +51,9 @@ class NymBillingManager @Inject constructor(
 			.onFailure { Timber.tag(TAG).e(it, "BillingFetchSubscriptionsFailed") }
 	}
 
-	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String) {
-		Timber.tag(TAG).i("BillingPurchaseFlowRequested productId=%s", productId)
-		runCatching { billing.launchPurchaseFlow(activity, productId, userId) }
+	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean) {
+		Timber.tag(TAG).i("BillingPurchaseFlowRequested productId=%s trialEligible=%b", productId, trialEligible)
+		runCatching { billing.launchPurchaseFlow(activity, productId, userId, trialEligible) }
 			.onFailure { Timber.tag(TAG).e(it, "BillingPurchaseFlowFailed productId=%s", productId) }
 	}
 

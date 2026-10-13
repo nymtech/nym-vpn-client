@@ -13,7 +13,7 @@ interface Billing {
 	val products: Flow<List<ProductData>>
 	fun initialize()
 	fun fetchSubscriptions()
-	suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String)
+	suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean)
 	fun endConnection()
 	suspend fun hasActiveSubscription(): Boolean
 }

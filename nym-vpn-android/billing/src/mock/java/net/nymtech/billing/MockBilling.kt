@@ -31,7 +31,7 @@ class MockBilling : Billing {
 	override fun fetchSubscriptions() {
 	}
 
-	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String) {
+	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean) {
 	}
 
 	override fun endConnection() {

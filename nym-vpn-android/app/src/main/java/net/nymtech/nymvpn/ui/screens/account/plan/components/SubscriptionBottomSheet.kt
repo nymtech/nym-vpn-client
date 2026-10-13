@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,19 +35,32 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubscriptionBottomSheet(products: List<ProductData>, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
+fun SubscriptionBottomSheet(products: List<ProductData>, trialEligible: Boolean, selectable: Boolean, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
 	NymModalBottomSheet(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
 		containerColor = MaterialTheme.colorScheme.surface,
 		tonalElevation = 4.dp,
 	) {
-		SubscriptionBottomSheetContent(products, onDismiss, onSelect)
+		SubscriptionBottomSheetContent(products, trialEligible, selectable, onDismiss, onSelect)
 	}
 }
 
+/**
+ * The trial label is shown only when the account is eligible AND Play offers a trial for the
+ * product, so the label always matches the offer that will be launched.
+ *
+ * While eligibility is being read ([selectable] is false) plans can't be picked and no trial label
+ * is shown, so a quick tap can't launch an offer based on a stale answer.
+ */
 @Composable
-fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
+fun SubscriptionBottomSheetContent(
+	products: List<ProductData>,
+	trialEligible: Boolean,
+	selectable: Boolean,
+	onDismiss: () -> Unit,
+	onSelect: (ProductData) -> Unit,
+) {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -59,8 +75,16 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 			modifier = Modifier.align(Alignment.CenterHorizontally),
 		)
 
+		if (!selectable) {
+			CircularProgressIndicator(
+				modifier = Modifier.align(Alignment.CenterHorizontally).size(24.dp),
+				strokeWidth = 2.dp,
+			)
+		}
+
 		Column(
 			modifier = Modifier
+				.alpha(if (selectable) 1f else 0.5f)
 				.clip(RoundedCornerShape(8.dp))
 				.fillMaxWidth()
 				.border(
@@ -73,7 +97,7 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 				Column(
 					modifier = Modifier
 						.fillMaxWidth()
-						.clickable { onSelect(product) }
+						.clickable(enabled = selectable) { onSelect(product) }
 						.padding(vertical = 24.dp, horizontal = 16.dp),
 					verticalArrangement = Arrangement.spacedBy(4.dp),
 				) {
@@ -82,7 +106,7 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 						style = MaterialTheme.typography.titleMedium,
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
-					product.freeTrialDays?.let { _ ->
+					if (selectable && trialEligible && product.freeTrialDays != null) {
 						Text(
 							text = stringResource(R.string.select_plan_modal_free_trial),
 							style = MaterialTheme.typography.bodyLarge,
@@ -140,6 +164,8 @@ private fun SubscriptionBottomSheetContentPreview() {
 	NymVPNTheme(Theme.default()) {
 		SubscriptionBottomSheetContent(
 			products = mockProducts,
+			trialEligible = true,
+			selectable = true,
 			onDismiss = {},
 			onSelect = {},
 		)

@@ -3,7 +3,7 @@
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
+    response::{NymVpnDevice, NymVpnUsage, extract_error_response},
     types::VpnAccountMode,
 };
 use nym_vpn_lib_types::{
@@ -49,6 +49,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::GetAccountSummary(result_tx) => {
             result_tx.send(handle_get_account_summary(shared_state).await);
+        }
+        CommonCommand::IsTrialEligible(result_tx) => {
+            result_tx.send(handle_is_trial_eligible(shared_state).await);
         }
         CommonCommand::GetDeeplink(result_tx, params) => {
             result_tx.send(handle_get_deeplink(shared_state, params).await)
@@ -186,6 +189,39 @@ pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
     Ok(shared_state.vpn_account_summary.clone())
+}
+
+async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<bool, AccountCommandError> {
+    let account = shared_state
+        .vpn_api_account
+        .as_ref()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+
+    let response = match shared_state
+        .vpn_api_client
+        .get_active_subscriptions(account)
+        .await
+    {
+        Ok(response) => response,
+        // A brand-new account is registered only after its first purchase, so the API does not
+        // know it yet. No account means no history, which makes it eligible.
+        Err(err) if extract_error_response(&err).is_some_and(|e| e.is_account_not_found()) => {
+            tracing::debug!("Trial eligible: true (account not registered yet)");
+            return Ok(true);
+        }
+        Err(err) => return Err(err.into()),
+    };
+
+    // Only an explicit `true` grants a trial. An absent field means an older API that does not
+    // know about eligibility, which must not be mistaken for eligible.
+    let eligible = response.trial_eligible == Some(true);
+    tracing::debug!(
+        "Trial eligible: {eligible} (raw: {:?})",
+        response.trial_eligible
+    );
+    Ok(eligible)
 }
 
 pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(

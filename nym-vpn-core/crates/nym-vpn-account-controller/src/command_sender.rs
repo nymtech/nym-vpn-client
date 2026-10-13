@@ -202,6 +202,15 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn is_trial_eligible(&self) -> Result<bool, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::IsTrialEligible(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn get_deeplink(
         &self,
         kind: DeeplinkKind,

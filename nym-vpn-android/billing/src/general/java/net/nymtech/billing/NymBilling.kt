@@ -28,6 +28,8 @@ import kotlinx.coroutines.withContext
 import net.nymtech.billing.model.NymProductData
 import net.nymtech.billing.model.NymPurchaseInfo
 import net.nymtech.billing.model.ProductId
+import net.nymtech.billing.model.SubscriptionOffer
+import net.nymtech.billing.model.SubscriptionOfferSelector
 import timber.log.Timber
 import kotlin.coroutines.resume
 
@@ -139,8 +141,8 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 		}
 	}
 
-	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String) {
-		Timber.tag(TAG).i("PurchaseFlowRequested productId=%s", productId)
+	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean) {
+		Timber.tag(TAG).i("PurchaseFlowRequested productId=%s trialEligible=%b", productId, trialEligible)
 
 		if (!billingClient.isReady) {
 			Timber.tag(TAG).w("PurchaseFlowRejected reason=not_ready productId=%s", productId)
@@ -176,12 +178,26 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 			return
 		}
 
-		val offer = productDetails.subscriptionOfferDetails
-			?.firstOrNull { offer -> offer.pricingPhases.pricingPhaseList.isNotEmpty() }
-			?: run {
-				Timber.tag(TAG).w("PurchaseFlowNoOffer productId=%s", productId)
-				return
+		val offers = productDetails.subscriptionOfferDetails
+			?.filter { offer -> offer.pricingPhases.pricingPhaseList.isNotEmpty() }
+			?.map { offer ->
+				SubscriptionOffer(
+					offerToken = offer.offerToken,
+					hasFreePhase = offer.pricingPhases.pricingPhaseList.any { it.priceAmountMicros == 0L },
+				)
 			}
+			?: emptyList()
+
+		val offer = SubscriptionOfferSelector.select(offers, trialEligible) ?: run {
+			Timber.tag(TAG).w("PurchaseFlowNoOffer productId=%s trialEligible=%b", productId, trialEligible)
+			return
+		}
+
+		Timber.tag(TAG).i(
+			"PurchaseFlowOfferSelected productId=%s trial=%b",
+			productId,
+			offer.hasFreePhase,
+		)
 
 		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
 			.setProductDetails(productDetails)

@@ -174,6 +174,7 @@ private class FakeBackendManager(initialAccountState: AccountControllerState = A
 	override suspend fun storeDeeplinkAccount(url: String) = unsupported()
 	override suspend fun getAccountMode(): StoredAccountMode? = null
 	override suspend fun getAccountSummary(): VpnAccountSummary? = null
+	override suspend fun isTrialEligible(): Boolean = false
 	override suspend fun runDiagnostic(): String? = null
 	override suspend fun getTentativeGateways(): TentativeGateways? = null
 	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) = unsupported()

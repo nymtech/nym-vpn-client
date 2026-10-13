@@ -145,13 +145,13 @@ constructor(private val billingManager: BillingManager, private val backendManag
 		return if (shouldShowTechnical) Route.Main(authRoute = AuthRoute.TechOpt.routeName) else Route.Main()
 	}
 
-	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?) {
+	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?, trialEligible: Boolean) {
 		accountId = userId
 
 		viewModelScope.launch {
 			if (!accountId.isNullOrBlank()) {
-				Timber.tag(TAG).i("PurchaseFlowRequested productId=%s", productId)
-				billingManager.launchPurchaseFlow(activity, productId, accountId!!)
+				Timber.tag(TAG).i("PurchaseFlowRequested productId=%s trialEligible=%b", productId, trialEligible)
+				billingManager.launchPurchaseFlow(activity, productId, accountId!!, trialEligible)
 			} else {
 				Timber.tag(TAG).w("PurchaseFlowRejected reason=missing_user_id productId=%s", productId)
 				_events.tryEmit(PaymentUiEvent.PaymentError("Missing user id"))

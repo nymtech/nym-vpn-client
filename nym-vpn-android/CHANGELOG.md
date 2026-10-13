@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Free trial is offered only when the backend reports the account as trial eligible: the Play offer is selected explicitly (trial offer vs. regular offer) and the trial label is hidden whenever the regular offer will be launched
+
 ## [2026.13.0] - 2026-10-09
 
 ### Added
