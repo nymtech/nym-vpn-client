@@ -159,6 +159,7 @@ fn test_matching_quic_enabled() {
                     id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
                 },
             )],
+            amnezia: vec![],
         }))
         .build();
 
@@ -172,6 +173,7 @@ fn test_matching_quic_enabled() {
         .bridge_params(Some(BridgeInformation {
             version: String::from("1"),
             transports: vec![],
+            amnezia: vec![],
         }))
         .build();
 

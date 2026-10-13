@@ -685,6 +685,14 @@ impl TunnelMonitor {
 
                     None
                 } else {
+                    if let Some(params) = &selected_gateways.entry_gateway().bridge_params
+                        && let Some((endpoint, amnezia)) =
+                            transports::amnezia_entry(params, connection_data.entry.endpoint)
+                    {
+                        tracing::info!("Using AmneziaWG bridge translator at {endpoint}");
+                        connection_data.entry.endpoint = endpoint;
+                        connection_data.entry_amnezia = Some(amnezia);
+                    }
                     // Return bridge_close_tx back to avoid it being dropped
                     Some(bridge_close_tx)
                 };
@@ -1240,6 +1248,7 @@ impl TunnelMonitor {
 
         let connection_data = WgConnectionData {
             entry_bridge_addr: None,
+            entry_amnezia: None,
             entry: entry_gateway_data,
             exit: exit_gateway_data,
         };

@@ -141,6 +141,7 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let entry_mtu = self.entry_mtu();
         let exit_mtu = self.exit_mtu();
+        let entry_amnezia_config = self.connection_data.entry_amnezia.clone();
         let (wg_entry_data, wg_exit_data) =
             self.connection_data.into_effective_entry_and_exit_data();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
@@ -156,7 +157,8 @@ impl ConnectedTunnel {
             Some(tunnel_constants.fwmark),
         );
         if entry_amnezia {
-            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+            wg_entry_config = wg_entry_config
+                .with_amnezia_config(entry_amnezia_config.unwrap_or(AmneziaConfig::BASE));
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
@@ -285,6 +287,7 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let entry_mtu = self.entry_mtu();
         let exit_mtu = self.exit_mtu();
+        let entry_amnezia_config = self.connection_data.entry_amnezia.clone();
         let (wg_entry_data, wg_exit_data) =
             self.connection_data.into_effective_entry_and_exit_data();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
@@ -301,7 +304,8 @@ impl ConnectedTunnel {
         );
 
         if entry_amnezia {
-            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+            wg_entry_config = wg_entry_config
+                .with_amnezia_config(entry_amnezia_config.unwrap_or(AmneziaConfig::BASE));
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(

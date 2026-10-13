@@ -3,6 +3,7 @@
 
 use crate::tunnel_state_machine::TunnelMetadata;
 use nym_registration_common::WireguardConfiguration;
+use nym_wg_go::amnezia::AmneziaConfig;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 
@@ -21,6 +22,8 @@ pub mod two_hop_config;
 #[derive(Debug)]
 pub struct ConnectionData {
     pub entry_bridge_addr: Option<BridgeAddress>,
+    /// AmneziaWG config advertised by the entry bridge translator, `BASE` is used when absent.
+    pub entry_amnezia: Option<AmneziaConfig>,
     pub entry: WireguardConfiguration,
     pub exit: WireguardConfiguration,
 }

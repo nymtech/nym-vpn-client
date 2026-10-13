@@ -486,9 +486,11 @@ impl TryFrom<proto::BridgeInformation> for BridgeInformation {
             .map(BridgeParameters::try_from)
             .collect::<Result<Vec<BridgeParameters>, ConversionError>>()?;
 
+        // Apps only display bridge transports; the daemon reads AmneziaWG params from the directory.
         Ok(Self {
             version: value.version,
             transports,
+            amnezia: vec![],
         })
     }
 }
