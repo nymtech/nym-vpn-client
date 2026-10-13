@@ -110,6 +110,14 @@ impl SelectedGateways {
         &self.exit.gateway
     }
 
+    /// Forget the entry's AmneziaWG bridge profiles, so the next attempt uses base mode on the
+    /// plain WireGuard port.
+    pub fn clear_entry_amnezia(&mut self) {
+        if let Some(params) = &mut self.entry.gateway.bridge_params {
+            params.amnezia.clear();
+        }
+    }
+
     pub fn entry_keypair(&self) -> &Arc<KeyPair> {
         &self.entry.keys
     }
@@ -590,6 +598,38 @@ mod tests {
                 uptime_percentage_last_24_hours: Default::default(),
             })
             .build()
+    }
+
+    #[test]
+    fn clear_entry_amnezia_keeps_the_rest_of_the_bridge_params() {
+        let bridge_params: nym_bridges::types::PersistedClientConfig = serde_json::from_str(
+            r#"{"version":"0","transports":[],"amnezia":[{"protocol_version":1,
+                "addresses":["1.2.3.4:51830"],"params":{"init_pkt_junk_size":44,
+                "response_pkt_junk_size":52,"under_load_pkt_magic_header":123456789,
+                "transport_pkt_magic_header":1623456789}}]}"#,
+        )
+        .unwrap();
+        let keys = Arc::new(KeyPair::from(
+            nym_crypto::asymmetric::x25519::PrivateKey::from_bytes(&[7; 32]).unwrap(),
+        ));
+        let mut entry = gateway_id_to_gateway(GW_ID_1);
+        entry.bridge_params = Some(bridge_params);
+        let mut selected = SelectedGateways {
+            entry: Box::new(GatewayWithKeys {
+                gateway: entry,
+                keys: keys.clone(),
+            }),
+            exit: Box::new(GatewayWithKeys {
+                gateway: gateway_id_to_gateway(GW_ID_2),
+                keys,
+            }),
+        };
+
+        selected.clear_entry_amnezia();
+
+        let params = selected.entry_gateway().bridge_params.as_ref().unwrap();
+        assert!(params.amnezia.is_empty());
+        assert_eq!(params.version, "0");
     }
 
     #[tokio::test]
