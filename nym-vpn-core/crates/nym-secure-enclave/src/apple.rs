@@ -57,14 +57,21 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     async fn create_key(&self, alias: &str) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
-            let key = secure_enclave_rs::SecureEnclaveKey::generate(
-                &secure_enclave_rs::SecureEnclaveKeyOptions {
-                    tag: &alias_bytes,
-                    access_flags: secure_enclave_rs::SecAccessControlFlags::USER_PRESENCE,
-                    permanent: true,
-                },
-            )?;
-            Ok(state.insert(key))
+            // Prevent creating more than one key with the same alias.
+            // This should work as long as there is only one copy of `AppleSecureEnclaveProvider`
+            // See: https://github.com/carlvoller/secure-enclave-rs/issues/3
+            if secure_enclave_rs::SecureEnclaveKey::get(&alias_bytes).is_ok() {
+                Err(SecureEnclaveError::KeyAlreadyExists)
+            } else {
+                let key = secure_enclave_rs::SecureEnclaveKey::generate(
+                    &secure_enclave_rs::SecureEnclaveKeyOptions {
+                        tag: &alias_bytes,
+                        access_flags: secure_enclave_rs::SecAccessControlFlags::USER_PRESENCE,
+                        permanent: true,
+                    },
+                )?;
+                Ok(state.insert(key))
+            }
         })
         .await?;
         Ok(OSSecureEnclaveKey::new(id, self.pool.clone()))
