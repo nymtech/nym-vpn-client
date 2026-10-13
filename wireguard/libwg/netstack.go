@@ -15,8 +15,8 @@ import (
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/forwarders"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 
-	"github.com/amnezia-vpn/amneziawg-go/device"
-	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
+	"github.com/amnezia-vpn/amneziawg-go/v3/device"
+	"github.com/amnezia-vpn/amneziawg-go/v3/tun/netstack"
 )
 
 type NetTunnelHandle struct {

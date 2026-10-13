@@ -16,7 +16,7 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/v3/device"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
 )
 
