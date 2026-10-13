@@ -4,7 +4,7 @@ version = "2026.14.0-beta.1"
 description = "NymVPN desktop client"
 authors = ["Nym Technologies SA <contact@nymtech.net>"]
 license = "GPL-3.0-only"
-documentation = "https://nymtech.net"
+homepage = "https://nymvpn.com/"
 repository = "https://github.com/nymtech/nym-vpn-client"
 edition = "2024"
 

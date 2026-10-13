@@ -1543,7 +1543,8 @@ impl NymVpnService {
                 source: source.into(),
             })?;
 
-        let network_selected = NetworkEnvironments::try_from(network.as_str())
+        let network_selected = network
+            .parse::<NetworkEnvironments>()
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
