@@ -89,7 +89,7 @@ use crate::{
     paths::{NymConfigPaths, Paths},
     tunnel_state_machine::{
         GatewayPerformanceOptions, NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
-        tunnel::gateway_provider::GatewayProvider,
+        TunnelStateMachineArguments, tunnel::gateway_provider::GatewayProvider,
     },
 };
 
@@ -736,34 +736,34 @@ impl NymVpnService {
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
-        let state_machine_handle = TunnelStateMachine::spawn(
+        let state_machine_handle = TunnelStateMachine::spawn(TunnelStateMachineArguments {
             command_receiver,
             event_sender,
             nym_config,
             tunnel_settings,
             tunnel_constants,
-            account_command_tx.clone(),
-            account_state_rx.clone(),
-            bandwidth_command_tx.clone(),
+            account_command_tx: account_command_tx.clone(),
+            account_state_rx: account_state_rx.clone(),
+            bandwidth_command_tx: bandwidth_command_tx.clone(),
             skew_manager,
-            statistics_event_sender.clone(),
-            topology_service,
+            statistics_event_sender: statistics_event_sender.clone(),
+            topology_service: topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
-            split_tunnel.clone(),
-            gateway_provider.clone(),
-            recents_manager.clone(),
+            split_tunnel: split_tunnel.clone(),
+            gateway_provider: gateway_provider.clone(),
+            recents_manager: recents_manager.clone(),
             #[cfg(target_os = "linux")]
             split_tunnel_config,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            parameters.tun_provider,
+            tun_provider: parameters.tun_provider,
             file_updater_handle,
-            parameters.user_agent.clone(),
-            state_machine_shutdown_token.child_token(),
-        )
+            user_agent: parameters.user_agent.clone(),
+            shutdown_token: state_machine_shutdown_token.child_token(),
+        })
         .await
         .map_err(Error::StateMachine)?;
 
