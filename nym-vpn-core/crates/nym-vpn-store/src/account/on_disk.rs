@@ -1,17 +1,19 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::StorableAccount;
+use std::path::{Path, PathBuf};
 #[cfg(unix)]
 use std::{fs::Permissions, os::unix::fs::PermissionsExt};
-use std::{
+
+use tokio::{
     fs::{File, OpenOptions},
-    path::{Path, PathBuf},
+    io::{AsyncReadExt, AsyncWriteExt},
 };
 
-use crate::ciphers::StoreCipher;
+use nym_vpn_lib_types::StorableAccount;
 
 use super::{AccountInformationStorage, StoredAccount};
+use crate::ciphers::StoreCipher;
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
@@ -28,13 +30,25 @@ pub enum OnDiskMnemonicStorageError {
     FileOpenError(#[source] std::io::Error),
 
     #[error("failed to read mnemonic from file")]
-    ReadError(#[source] serde_json::Error),
+    ReadError(#[source] std::io::Error),
+
+    #[error("failed to serialize mnemonic")]
+    Serialize(#[source] serde_json::Error),
+
+    #[error("failed to deserialize mnemonic")]
+    Deserialize(#[source] serde_json::Error),
 
     #[error("failed to write mnemonic to file")]
-    WriteError(#[source] serde_json::Error),
+    WriteError(#[source] std::io::Error),
 
     #[error("failed to remove mnemonic file")]
     RemoveError(#[source] std::io::Error),
+
+    #[error("failed to encrypt data")]
+    Encrypt(#[source] crate::ciphers::StoreCipherError),
+
+    #[error("failed to encrypt data")]
+    Decrypt(#[source] crate::ciphers::StoreCipherError),
 }
 
 pub struct OnDiskAccountStorage {
@@ -103,17 +117,27 @@ impl AccountInformationStorage for OnDiskAccountStorage {
         }
 
         // Another layer of defense, only create the file if it doesn't already exist
-        tracing::debug!("Only creating the file if it doesn't already exist");
-        let file = OpenOptions::new()
+        let mut file = OpenOptions::new()
             .create_new(true)
             .write(true)
             .open(&self.path)
+            .await
             .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
                 path: self.path.clone(),
                 source: err,
             })?;
 
-        serde_json::to_writer(file, &stored_account)
+        let plaintext =
+            serde_json::to_vec(&stored_account).map_err(OnDiskMnemonicStorageError::Serialize)?;
+
+        let ciphertext = self
+            .cipher
+            .encrypt(plaintext)
+            .await
+            .map_err(OnDiskMnemonicStorageError::Encrypt)?;
+
+        file.write_all(&ciphertext)
+            .await
             .map_err(OnDiskMnemonicStorageError::WriteError)?;
 
         #[cfg(unix)]
@@ -146,14 +170,19 @@ impl AccountInformationStorage for OnDiskAccountStorage {
             }
         }
         // We still that checks, for non-unix at least
-        let file = match File::open(&self.path) {
+        let mut file = match File::open(&self.path).await {
             Ok(f) => f,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
             Err(e) => return Err(OnDiskMnemonicStorageError::FileOpenError(e)),
         };
 
-        serde_json::from_reader(file)
-            .map_err(OnDiskMnemonicStorageError::ReadError)
+        let mut buf = Vec::new();
+        file.read_to_end(&mut buf)
+            .await
+            .map_err(OnDiskMnemonicStorageError::ReadError)?;
+
+        serde_json::from_slice(&buf)
+            .map_err(OnDiskMnemonicStorageError::Deserialize)
             .map(|s: StoredAccount| Some(s.into()))
     }
 
@@ -231,7 +260,7 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
         let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
-        let _ = File::create(&path).unwrap();
+        let _ = File::create(&path).await.unwrap();
         let result = account_storage.load_account().await;
         assert!(matches!(
             result,
@@ -259,11 +288,12 @@ mod tests {
 
         // save legacy data
         tokio::fs::create_dir_all(tempdir.path()).await?;
-        let file = OpenOptions::new()
+        let mut file = OpenOptions::new()
             .create_new(true)
             .write(true)
-            .open(&path)?;
-        serde_json::to_writer(file, &legacy)?;
+            .open(&path)
+            .await?;
+        file.write_all(&serde_json::to_vec(&legacy)?).await?;
 
         let expected = StorableAccount {
             mnemonic: mnemonic_fixture(),
