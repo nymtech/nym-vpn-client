@@ -156,11 +156,7 @@ impl From<proto::NetworkCompatibility> for nym_vpn_lib_types::NetworkCompatibili
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
-            app_update_policy: if value.app_update_policy == "required" {
-                "required".to_owned()
-            } else {
-                "dismissible".to_owned()
-            },
+            app_update_policy: value.app_update_policy,
         }
     }
 }
@@ -321,11 +317,7 @@ impl From<nym_vpn_lib_types::NetworkCompatibility> for proto::NetworkCompatibili
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
-            app_update_policy: if value.app_update_policy == "required" {
-                "required".to_owned()
-            } else {
-                "dismissible".to_owned()
-            },
+            app_update_policy: value.app_update_policy,
         }
     }
 }
@@ -445,36 +437,20 @@ mod tests {
             original.networking.dns_fallbacks[0].addresses
         );
     }
-}
 
-#[cfg(test)]
-mod app_update_policy_tests {
-    use super::*;
-
-    fn versions(policy: &str) -> proto::NetworkCompatibility {
-        proto::NetworkCompatibility {
+    #[test]
+    fn app_update_policy_survives_proto_round_trip() {
+        let original = nym_vpn_lib_types::NetworkCompatibility {
             core: "2026.12.4".to_owned(),
             ios: "2026.12.4".to_owned(),
             macos: "2026.12.4".to_owned(),
             tauri: "2026.12.4".to_owned(),
             android: "2026.12.4".to_owned(),
-            app_update_policy: policy.to_owned(),
-        }
-    }
-
-    #[test]
-    fn app_update_policy_required_roundtrip() {
-        let lib = nym_vpn_lib_types::NetworkCompatibility::from(versions("required"));
-        assert_eq!(lib.app_update_policy, "required");
-        let back = proto::NetworkCompatibility::from(lib);
+            app_update_policy: "required".to_owned(),
+        };
+        let back = nym_vpn_lib_types::NetworkCompatibility::from(
+            proto::NetworkCompatibility::from(original),
+        );
         assert_eq!(back.app_update_policy, "required");
-    }
-
-    #[test]
-    fn app_update_policy_unknown_is_dismissible() {
-        let lib = nym_vpn_lib_types::NetworkCompatibility::from(versions("nope"));
-        assert_eq!(lib.app_update_policy, "dismissible");
-        let back = proto::NetworkCompatibility::from(lib);
-        assert_eq!(back.app_update_policy, "dismissible");
     }
 }
