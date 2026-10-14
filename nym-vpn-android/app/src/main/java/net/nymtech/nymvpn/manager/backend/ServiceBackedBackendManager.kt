@@ -105,16 +105,17 @@ class ServiceBackedBackendManager @Inject constructor(
 			refreshAccountSummary()
 
 			val versions = runCatching { api.getNetworkVersions() }.getOrNull()
+			val policy = versions?.appUpdatePolicies?.get("android") ?: versions?.appUpdatePolicy
 			val decision = appUpdateDecision(
 				local = BuildConfig.VERSION_NAME,
 				floor = versions?.android,
-				policy = versions?.appUpdatePolicy,
+				policy = policy,
 			)
 			Timber.tag(TAG).i(
 				"AppUpdateDecision local=%s floor=%s policy=%s show=%s block=%s",
 				BuildConfig.VERSION_NAME,
 				versions?.android,
-				versions?.appUpdatePolicy,
+				policy,
 				decision.showDialog,
 				decision.blockConnect,
 			)

@@ -15,7 +15,7 @@ extension GRPCManager {
             return CompatibleVersions(
                 macOS: result.macos,
                 core: result.core,
-                policy: result.appUpdatePolicy
+                policy: result.appUpdatePolicies["macos"] ?? result.appUpdatePolicy
             )
         }.value
     }

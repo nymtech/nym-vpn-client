@@ -280,7 +280,7 @@ private extension ConfigurationManager {
 #if os(iOS)
                 let versions = await networkEnv?.networkCompatibility()
                 await MainActor.run {
-                    self.appUpdatePolicy = versions?.appUpdatePolicy ?? "dismissible"
+                    self.appUpdatePolicy = versions?.appUpdatePolicies["ios"] ?? versions?.appUpdatePolicy ?? "dismissible"
                     self.lastCompatibleAppVersion = versions?.ios
                     self.lastCompatibleCoreVersion = versions?.core
                 }
