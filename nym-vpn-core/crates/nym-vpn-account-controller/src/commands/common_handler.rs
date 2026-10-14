@@ -199,28 +199,26 @@ async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let response = match shared_state
+    let eligible = shared_state
         .vpn_api_client
         .get_active_subscriptions(account)
         .await
-    {
-        Ok(response) => response,
-        // A brand-new account is registered only after its first purchase, so the API does not
-        // know it yet. No account means no history, which makes it eligible.
-        Err(err) if extract_error_response(&err).is_some_and(|e| e.is_account_not_found()) => {
-            tracing::debug!("Trial eligible: true (account not registered yet)");
-            return Ok(true);
-        }
-        Err(err) => return Err(err.into()),
-    };
+        .map(|response| {
+            tracing::debug!("Trial eligibility (raw: {:?})", response.trial_eligible);
+            response.trial_eligible == Some(true)
+        })
+        .or_else(|err| {
+            // A brand-new account is registered only after its first purchase, so the API does
+            // not know it yet. No account means no history, which makes it eligible.
+            if extract_error_response(&err).is_some_and(|e| e.is_account_not_found()) {
+                tracing::debug!("Trial eligibility: account not registered yet");
+                Ok(true)
+            } else {
+                Err(err)
+            }
+        })?;
 
-    // Only an explicit `true` grants a trial. An absent field means an older API that does not
-    // know about eligibility, which must not be mistaken for eligible.
-    let eligible = response.trial_eligible == Some(true);
-    tracing::debug!(
-        "Trial eligible: {eligible} (raw: {:?})",
-        response.trial_eligible
-    );
+    tracing::debug!("Trial eligible: {eligible}");
     Ok(eligible)
 }
 

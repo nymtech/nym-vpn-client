@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.manager.billing
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -12,9 +11,6 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.lang.reflect.Proxy
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class TrialEligibilityRepositoryTest {
 
@@ -52,20 +48,13 @@ class TrialEligibilityRepositoryTest {
 	}
 
 	@Test
-	fun backendTimesOut_isNotEligible() = runBlocking {
-		val backend = FakeBackend(accountStored = true) { awaitCancellation() }
-
-		assertEquals(TrialEligibility.Resolved(eligible = false), resolve(backend, timeout = 50.milliseconds))
-	}
-
-	@Test
 	fun staleAnswerDoesNotOverwriteNewerOne() = runBlocking {
 		val older = CompletableDeferred<Boolean>()
 		val newer = CompletableDeferred<Boolean>()
 		val answers = ArrayDeque(listOf(older, newer))
 		// NonCancellable: the stale call still delivers its answer.
 		val backend = FakeBackend(accountStored = true) { withContext(NonCancellable) { answers.removeFirst().await() } }
-		val repository = TrialEligibilityRepository(backend, 5.seconds)
+		val repository = TrialEligibilityRepository(backend)
 
 		repository.refresh(this)
 		yield()
@@ -85,7 +74,7 @@ class TrialEligibilityRepositoryTest {
 	fun refreshGoesBackToLoadingAndReadsAgain() = runBlocking {
 		var answer = true
 		val backend = FakeBackend(accountStored = true) { answer }
-		val repository = TrialEligibilityRepository(backend, 5.seconds)
+		val repository = TrialEligibilityRepository(backend)
 
 		assertEquals(TrialEligibility.Resolved(eligible = true), repository.resolveIn(this))
 		answer = false
@@ -93,7 +82,7 @@ class TrialEligibilityRepositoryTest {
 		assertEquals(2, backend.trialEligibleCalls)
 	}
 
-	private suspend fun CoroutineScope.resolve(backend: BackendManager, timeout: Duration = 5.seconds): TrialEligibility = TrialEligibilityRepository(backend, timeout).resolveIn(this)
+	private suspend fun CoroutineScope.resolve(backend: BackendManager): TrialEligibility = TrialEligibilityRepository(backend).resolveIn(this)
 
 	private suspend fun TrialEligibilityRepository.resolveIn(scope: CoroutineScope): TrialEligibility {
 		refresh(scope)
