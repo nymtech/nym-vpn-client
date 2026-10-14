@@ -4,7 +4,6 @@ version.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
@@ -57,6 +56,7 @@ daemon = [
     "nix",
     "nym-windows",
     "thiserror",
+    "tokio/fs",
     "zbus",
     "zbus_polkit",
 ]

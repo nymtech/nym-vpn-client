@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, OnceLock},
 };
 
 use itertools::Itertools;
+use nym_common::trace_err_chain;
 use opentelemetry::trace::{TraceContextExt, TracerProvider};
 use sentry::integrations::tracing as sentry_tracing;
 use tokio::{
@@ -27,17 +28,7 @@ use tracing_subscriber::{
 
 use nym_vpn_lib_types::LogPath;
 
-#[cfg(any(target_os = "android", target_os = "ios"))]
-pub const DEFAULT_LOG_FILE: &str = "libnymvpn.log";
-
-#[cfg(any(target_os = "android", target_os = "ios"))]
-pub const DEFAULT_OLD_LOG_FILE: &str = "libnymvpn.log";
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
+const BACKUP_LOG_EXTENSION: &str = "old.log";
 
 static INFO_TARGETS: [&str; 16] = [
     "hyper",
@@ -64,30 +55,45 @@ pub struct Options {
     pub verbosity_level: Level,
     pub enable_stdout_log: bool,
     pub enable_json_log: bool,
-    pub log_dir: Option<PathBuf>,
+    /// Path to the log file. File logging is disabled when `None`.
+    pub log_file_path: Option<PathBuf>,
     pub sentry: bool,
 }
 
-#[derive(Clone, Debug)]
-pub struct FileAppender {
-    inner: Arc<Mutex<Option<RollingFileAppender>>>,
-    log_dir: PathBuf,
-    log_file: String,
+#[derive(thiserror::Error, Debug)]
+pub enum SharedFileAppenderError {
+    #[error("failed to init rolling appender")]
+    InitRollingAppender(#[from] tracing_appender::rolling::InitError),
+
+    #[error("I/O error")]
+    Io(#[from] std::io::Error),
+
+    #[error("invalid log file path: {0}")]
+    InvalidLogFilePath(PathBuf),
 }
 
-impl FileAppender {
-    /// Create new file appender and making a backup of existing log file
-    ///
-    /// ## Arguments
-    ///
-    /// * `log_dir`: Directory where the log files are stored.
-    /// * `log_file_name`: Current log file (i.e. "nym_vpn.log")
-    /// * `old_log_file_name`: Backup log file (i.e. "nym_vpn.log.old")
-    pub fn new(log_dir: PathBuf, log_file_name: &str, old_log_file_name: &str) -> Self {
-        let log_file_path = log_dir.join(log_file_name);
-        let old_log_file_path = log_dir.join(old_log_file_name);
+#[derive(Clone, Debug)]
+pub struct SharedFileAppender {
+    inner: Arc<Mutex<Option<RollingFileAppender>>>,
+    log_dir: PathBuf,
+    log_file_name: String,
+}
 
-        if let Err(err) = std::fs::rename(&log_file_path, &old_log_file_path)
+impl SharedFileAppender {
+    /// Create new file appender and make a backup of the existing log file.
+    ///
+    /// The backup is stored next to the log file with the `.old.log` extension, i.e.
+    /// "nym-vpnd.log" is backed up as "nym-vpnd.old.log".
+    pub fn new(log_file_path: &Path) -> Result<Self, SharedFileAppenderError> {
+        let invalid_path = || SharedFileAppenderError::InvalidLogFilePath(log_file_path.to_owned());
+        let log_dir = log_file_path.parent().ok_or_else(invalid_path)?;
+        let log_file_name = log_file_path
+            .file_name()
+            .and_then(|file_name| file_name.to_str())
+            .ok_or_else(invalid_path)?;
+        let old_log_file_path = Self::old_log_file_path(log_file_path);
+
+        if let Err(err) = std::fs::rename(log_file_path, &old_log_file_path)
             && err.kind() != std::io::ErrorKind::NotFound
         {
             tracing::warn!(
@@ -95,45 +101,89 @@ impl FileAppender {
             );
         }
 
-        let inner = Arc::new(Mutex::new(Some(tracing_appender::rolling::never(
-            log_dir.clone(),
-            log_file_name,
-        ))));
+        let rolling_appender = Self::create_rolling_appender(log_dir, log_file_name)?;
 
-        Self {
-            inner,
-            log_dir,
-            log_file: log_file_name.to_owned(),
-        }
+        Ok(Self {
+            inner: Arc::new(Mutex::new(Some(rolling_appender))),
+            log_dir: log_dir.to_owned(),
+            log_file_name: log_file_name.to_owned(),
+        })
     }
 
-    pub async fn refresh(&mut self) {
-        let mut file_path = self.log_dir.clone();
-        file_path.push(&self.log_file);
+    /// Empty the log file by removing it and opening a new one in its place.
+    pub async fn delete_log_file(&mut self) -> Result<(), SharedFileAppenderError> {
+        let log_path = self.log_dir.join(&self.log_file_name);
+        let old_log_path = Self::old_log_file_path(&log_path);
+
         let mut file_lock = self.inner.lock().await;
         // drop the file appeneder, so that we can remove the file in the next step
         let _ = file_lock.take();
-        if let Err(err) = tokio::fs::remove_file(file_path).await {
-            tracing::warn!("Could not remove log file: {err}");
-            return;
+
+        let remove_result = Self::remove_file_if_exists(&log_path)
+            .await
+            .and(Self::remove_file_if_exists(&old_log_path).await);
+
+        let rolling_appender = Self::create_rolling_appender(&self.log_dir, &self.log_file_name)
+            .map_err(SharedFileAppenderError::InitRollingAppender)?;
+
+        *file_lock = Some(rolling_appender);
+
+        Ok(remove_result?)
+    }
+
+    pub fn create_rolling_appender(
+        log_dir: &Path,
+        log_file_name: &str,
+    ) -> Result<tracing_appender::rolling::RollingFileAppender, tracing_appender::rolling::InitError>
+    {
+        tracing_appender::rolling::RollingFileAppender::builder()
+            .rotation(tracing_appender::rolling::Rotation::NEVER)
+            .filename_prefix(log_file_name)
+            .build(log_dir)
+    }
+
+    fn old_log_file_path(log_file_path: &Path) -> PathBuf {
+        log_file_path.with_extension(BACKUP_LOG_EXTENSION)
+    }
+
+    async fn remove_file_if_exists(path: &Path) -> std::io::Result<()> {
+        tokio::fs::remove_file(path).await.or_else(|err| {
+            if err.kind() == std::io::ErrorKind::NotFound {
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
+    }
+}
+
+impl std::io::Write for SharedFileAppender {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self.inner.blocking_lock().as_mut() {
+            Some(writer) => writer.write(buf),
+            None => Ok(buf.len()),
         }
-        // re-create the empty file
-        *file_lock = Some(tracing_appender::rolling::never(
-            &self.log_dir,
-            &self.log_file,
-        ));
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.inner
+            .blocking_lock()
+            .as_mut()
+            .map(|writer| writer.flush())
+            .transpose()?;
+        Ok(())
     }
 }
 
 pub struct LogFileRemover {
     command_rx: mpsc::UnboundedReceiver<()>,
-    file_appender: FileAppender,
+    file_appender: SharedFileAppender,
     shutdown_handle: CancellationToken,
 }
 
 impl LogFileRemover {
     pub fn spawn(
-        file_appender: FileAppender,
+        file_appender: SharedFileAppender,
         shutdown_handle: CancellationToken,
     ) -> (LogFileRemoverHandle, JoinHandle<()>) {
         let (tx, rx) = mpsc::unbounded_channel();
@@ -152,7 +202,9 @@ impl LogFileRemover {
             tokio::select! {
                 Some(_) = self.command_rx.recv() => {
                     tracing::debug!("Received command to delete log file");
-                    self.file_appender.refresh().await
+                    if let Err(err) = self.file_appender.delete_log_file().await {
+                        trace_err_chain!(err, "failed to delete log file");
+                    }
                 }
                 _ = self.shutdown_handle.cancelled() => {
                     tracing::warn!("Exiting log file remover event loop");
@@ -179,15 +231,15 @@ impl LogFileRemoverHandle {
 
 pub struct LoggingSetup {
     pub worker_guard: WorkerGuard,
-    pub file_appender: FileAppender,
+    pub file_appender: SharedFileAppender,
     pub log_path: LogPath,
 }
 
 impl LoggingSetup {
-    pub fn new(worker_guard: WorkerGuard, file_appender: FileAppender) -> Self {
+    pub fn new(worker_guard: WorkerGuard, file_appender: SharedFileAppender) -> Self {
         let log_path = LogPath::new(
             file_appender.log_dir.clone(),
-            file_appender.log_file.to_string(),
+            file_appender.log_file_name.clone(),
         );
         Self {
             worker_guard,
@@ -206,39 +258,6 @@ pub struct LoggingSetupWithFileRemover {
     /// A guard that flushes the log file when dropped.
     /// This worker guard should be retained for the lifetime of application.
     pub worker_guard: WorkerGuard,
-}
-
-struct FileManager {
-    file_appender: FileAppender,
-}
-
-impl FileManager {
-    pub fn new(file_appender: FileAppender) -> Self {
-        Self { file_appender }
-    }
-}
-
-impl std::io::Write for FileManager {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        Ok(self
-            .file_appender
-            .inner
-            .blocking_lock()
-            .as_mut()
-            .map(|writer| writer.write(buf))
-            .transpose()?
-            .unwrap_or(0))
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.file_appender
-            .inner
-            .blocking_lock()
-            .as_mut()
-            .map(|writer| writer.flush())
-            .transpose()?;
-        Ok(())
-    }
 }
 
 /// Layer which sole purpose is to capture `Dispatch`
@@ -321,6 +340,21 @@ where
     }
 }
 
+/// Install the global tracing subscriber and panic logger.
+///
+/// Log filtering is taken from `RUST_LOG` when set, otherwise from `options.verbosity_level`
+/// combined with built-in per-crate overrides. Output goes to the platform logger (os_log on
+/// Apple platforms, logcat on Android) and, depending on `options`, to stdout, a log file in
+/// `options.log_dir` (the previous log file is kept as a backup) and Sentry.
+///
+/// Returns `None` when `options.log_dir` is `None` or the log file cannot be opened, in which case
+/// the error is logged once the subscriber is installed and file logging is disabled. Otherwise
+/// the returned [`LoggingSetup`] must be kept alive for as long as logs should be written to the
+/// file.
+///
+/// ## Panics
+///
+/// Panics if a global tracing subscriber has already been installed.
 pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     // Right now we only use opentelemetry for generating trace ID and span ID in JSON logs,
     // which are harder to read but better for automated tools.
@@ -360,10 +394,16 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     let json_layer = JsonLogLayer::new(dispatch.clone());
 
     // File log setup
-    let (mut file_writer, worker_guard) = if let Some(log_dir) = options.log_dir {
-        let file_appender = FileAppender::new(log_dir, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE);
-        let file_manager = FileManager::new(file_appender.clone());
-        let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
+    let (file_appender, file_appender_error) = match options
+        .log_file_path
+        .map(|log_file_path| SharedFileAppender::new(&log_file_path))
+        .transpose()
+    {
+        Ok(file_appender) => (file_appender, None),
+        Err(err) => (None, Some(err)),
+    };
+    let (mut file_writer, logging_setup) = if let Some(file_appender) = file_appender {
+        let (file_writer, worker_guard) = tracing_appender::non_blocking(file_appender.clone());
 
         (
             Some(file_writer),
@@ -456,8 +496,12 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .with(telemetry_layer)
         .init();
 
+    if let Some(err) = file_appender_error {
+        trace_err_chain!(err, "failed to set up file logging");
+    }
+
     log_panics::init();
-    worker_guard
+    logging_setup
 }
 
 pub fn setup_logging_with_file_remover(

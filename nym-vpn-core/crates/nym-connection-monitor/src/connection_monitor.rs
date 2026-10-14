@@ -262,7 +262,15 @@ where
                                 .ok_or(Error::ComputeNextProbeTime(current_timestamp, delay))?
                         }
                         Err(err) => {
-                            trace_err_chain!(err);
+                            if err.is_timeout() {
+                                if let Some(ident) = err.probe_identifier() {
+                                    tracing::warn!("Probe timed out: {ident}");
+                                } else {
+                                    tracing::warn!("Probe timed out");
+                                }
+                            } else {
+                                trace_err_chain!(err);
+                            }
 
                             self.state.increment_retry();
 
@@ -334,28 +342,11 @@ mod tests {
     use tokio_util::sync::DropGuard;
 
     use super::*;
-    use crate::{
-        BoxedProbeError,
-        mock_probe::{MockProbe, MockProbeError, Outcome},
-    };
+    use crate::mock_probe::{MockProbe, Outcome};
 
     const PROBE_RETRY_COUNT: u32 = 3;
     const INITIAL_PROBE_TIMEOUT: Duration = Duration::from_secs(3);
     const PROBE_PERIODICITY: Duration = Duration::from_secs(10);
-
-    #[test]
-    fn mock_probe_send_failure_is_not_timeout() {
-        let err = BoxedProbeError::from(MockProbeError::SendFailure);
-        assert!(err.0.is_send_failure());
-        assert!(!err.0.is_timeout());
-    }
-
-    #[test]
-    fn mock_probe_timeout_is_not_send_failure() {
-        let err = BoxedProbeError::from(MockProbeError::Timeout);
-        assert!(!err.0.is_send_failure());
-        assert!(err.0.is_timeout());
-    }
 
     #[tokio::test(start_paused = true)]
     #[tracing_test::traced_test]

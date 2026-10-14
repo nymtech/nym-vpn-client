@@ -50,6 +50,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
@@ -70,6 +72,9 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
+	val deviceAuth = rememberDeviceAuth { action ->
+		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+	}
 
 	when (val autologin = autologinState) {
 		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = appViewModel::cancelAutologin)
@@ -92,7 +97,7 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 				viewModel.fetchSubscriptions()
 				showSheet = true
 			} else {
-				appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+				deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
 			}
 		},
 		onDismissSheet = { showSheet = false },

@@ -29,7 +29,6 @@ inventory = { workspace = true }
 itertools = { workspace = true }
 libc = { workspace = true }
 log = { workspace = true }
-pnet_packet = { workspace = true }
 nix = { workspace = true, features = ["net"] }
 regex = { workspace = true }
 serde = { workspace = true }
@@ -59,5 +58,4 @@ bip39 = { workspace = true }
 tokio = { workspace = true, features = ["process", "test-util"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-tun = { workspace = true }
 nix = { workspace = true, features = ["signal", "process"] }

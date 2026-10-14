@@ -82,12 +82,14 @@ use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
     DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    gateway_directory::{
+        self, GatewayCache, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
+    },
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},
     tunnel_state_machine::{
-        NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
-        tunnel::gateway_provider::GatewayProvider,
+        GatewayPerformanceOptions, NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
+        TunnelStateMachineArguments, tunnel::gateway_provider::GatewayProvider,
     },
 };
 
@@ -344,9 +346,6 @@ pub struct NymVpnService {
 
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
-
-    // Topology service handle
-    topology_service_handle: crate::VpnTopologyServiceHandle,
 
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
@@ -628,9 +627,13 @@ impl NymVpnService {
             .nym_vpn_api_urls()
             .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
-        let gateway_config =
-            gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
-                .map_err(Error::CreateGatewayClient)?;
+        let gateway_config = gateway_directory::Config::new(
+            nyxd_url,
+            nym_api_urls.clone(),
+            nym_vpn_api_urls,
+            min_gateway_performance(tunnel_settings.gateway_performance_options),
+        )
+        .map_err(Error::CreateGatewayClient)?;
 
         let (network_tx, network_rx) = watch::channel(network_env.clone());
         let nym_config = NymConfig {
@@ -733,34 +736,34 @@ impl NymVpnService {
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
 
-        let state_machine_handle = TunnelStateMachine::spawn(
+        let state_machine_handle = TunnelStateMachine::spawn(TunnelStateMachineArguments {
             command_receiver,
             event_sender,
             nym_config,
             tunnel_settings,
             tunnel_constants,
-            account_command_tx.clone(),
-            account_state_rx.clone(),
-            bandwidth_command_tx.clone(),
+            account_command_tx: account_command_tx.clone(),
+            account_state_rx: account_state_rx.clone(),
+            bandwidth_command_tx: bandwidth_command_tx.clone(),
             skew_manager,
-            statistics_event_sender.clone(),
-            topology_service.clone(),
+            statistics_event_sender: statistics_event_sender.clone(),
+            topology_service: topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
-            split_tunnel.clone(),
-            gateway_provider.clone(),
-            recents_manager.clone(),
+            split_tunnel: split_tunnel.clone(),
+            gateway_provider: gateway_provider.clone(),
+            recents_manager: recents_manager.clone(),
             #[cfg(target_os = "linux")]
             split_tunnel_config,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            parameters.tun_provider,
+            tun_provider: parameters.tun_provider,
             file_updater_handle,
-            parameters.user_agent.clone(),
-            state_machine_shutdown_token.child_token(),
-        )
+            user_agent: parameters.user_agent.clone(),
+            shutdown_token: state_machine_shutdown_token.child_token(),
+        })
         .await
         .map_err(Error::StateMachine)?;
 
@@ -782,7 +785,6 @@ impl NymVpnService {
             statistics_controller_handle,
             bandwidth_controller_handle,
             topology_service_join_handle,
-            topology_service_handle: topology_service,
             config_manager,
             command_sender,
             event_receiver,
@@ -1022,11 +1024,15 @@ impl NymVpnService {
 
         tracing::info!("Network environment updated");
 
-        // Update gateway cache and topology cache for new environment
+        // Point the gateway client at the refreshed API endpoints
         crate::cache_refresh::update_caches_for_network(
             &new_network,
             &self.gateway_cache_handle,
-            &self.topology_service_handle,
+            min_gateway_performance(
+                self.config_manager
+                    .generate_tunnel_settings()
+                    .gateway_performance_options,
+            ),
             &self.user_agent,
         )
         .await;
@@ -1297,7 +1303,7 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RunDiagnostic(tx, params) => {
-                let _ = tx.send(self.handle_run_diagnostic(params).await);
+                self.handle_run_diagnostic(params, tx);
             }
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
@@ -1537,7 +1543,8 @@ impl NymVpnService {
                 source: source.into(),
             })?;
 
-        let network_selected = NetworkEnvironments::try_from(network.as_str())
+        let network_selected = network
+            .parse::<NetworkEnvironments>()
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
@@ -2349,14 +2356,23 @@ impl NymVpnService {
         self.stats_control_commands_sender.get_seed().await
     }
 
-    async fn handle_run_diagnostic(&self, params: DiagnosticRunParams) -> DiagnosticReport {
+    fn handle_run_diagnostic(
+        &self,
+        params: DiagnosticRunParams,
+        completion_tx: oneshot::Sender<DiagnosticReport>,
+    ) {
         let network = *self.network_tx.borrow().clone();
-        let report = DiagnosticHandler::run(network, params).await;
-        match serde_json::to_string_pretty(&report) {
-            Ok(report_log) => tracing::info!("{report_log}"),
-            Err(e) => tracing::error!("Error serializing report :{e}"),
-        }
-        report
+
+        // Spawned because a diagnostic can take minutes on a blocked network, and the command loop
+        // must stay free to handle a disconnect meanwhile.
+        tokio::spawn(async move {
+            let report = DiagnosticHandler::run(network, params).await;
+            match serde_json::to_string_pretty(&report) {
+                Ok(report_log) => tracing::info!("{report_log}"),
+                Err(e) => tracing::error!("Error serializing report :{e}"),
+            }
+            completion_tx.send(report).ok();
+        });
     }
 
     async fn handle_register_diagnostic(
@@ -2518,6 +2534,17 @@ impl NymVpnService {
         self.config_manager.set_profile(profile).await;
         self.update_tunnel_settings_with_throttle();
     }
+}
+
+/// The thresholds the tunnel monitor installs on connect. The gateway cache is cleared when a
+/// replacement client carries different ones, so every client given to it must use these.
+fn min_gateway_performance(options: GatewayPerformanceOptions) -> Option<GatewayMinPerformance> {
+    GatewayMinPerformance::from_percentage_values(
+        options.mixnet_min_performance.map(u64::from),
+        options.vpn_min_performance.map(u64::from),
+    )
+    .inspect_err(|err| tracing::warn!("Ignoring invalid gateway performance options: {err}"))
+    .ok()
 }
 
 /// Updates `network_tx` with `new_network` if it differs from the currently active network,

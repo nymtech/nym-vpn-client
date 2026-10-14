@@ -1,10 +1,13 @@
+# Searching the server list by name filters it.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
 - tapOn:
     text: "Safest"
-    index: 0
+    below: "Exit server"
 
 - assertNotVisible: "Mock-Entry-DE-01"
 

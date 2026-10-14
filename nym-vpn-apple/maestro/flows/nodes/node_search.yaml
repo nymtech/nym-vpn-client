@@ -14,4 +14,10 @@ tags:
 
 - tapOn: "Search location or server"
 - inputText: "United"
+# The list is live network data; both countries consistently host gateways.
+# Full-match regex, so the "United" typed into the search field cannot satisfy it.
+- extendedWaitUntil:
+    visible:
+      text: "United (States|Kingdom)"
+    timeout: 10000
 - assertNotVisible: "No results found."

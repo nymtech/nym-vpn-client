@@ -39,22 +39,32 @@ struct AccountReportTests {
 
     /// The branch key the production property selects, under the test bundle (raw keys).
     private func expectedBranchKey(_ s: AccountSummary) -> String {
-        if !s.isActive { return "noActivePlan" }
+        if !s.isActive {
+            return "noActivePlan"
+        }
         return (s.isExpiringSoon || s.isExpiringWarning) ? "planExpiresOn" : "planValidUntil"
     }
 
     /// Real displayed sentence, rebuilt from the resolved English strings.
     private func displayedText(_ s: AccountSummary, _ r: XCStringsResolver) -> String {
-        if !s.isActive { return r.string("noActivePlan") }
+        if !s.isActive {
+            return r.string("noActivePlan")
+        }
         let date = s.formattedValidUntilDate ?? "-"
         let key = (s.isExpiringSoon || s.isExpiringWarning) ? "planExpiresOn" : "planValidUntil"
         return "\(r.string(key)) \(date)"
     }
 
     private func colorLabel(_ s: AccountSummary) -> String {
-        if !s.isActive { return "error" }
-        if s.isExpiringSoon { return "orange" }
-        if s.isExpiringWarning { return "warning" }
+        if !s.isActive {
+            return "error"
+        }
+        if s.isExpiringSoon {
+            return "orange"
+        }
+        if s.isExpiringWarning {
+            return "warning"
+        }
         return "accent"
     }
 

@@ -9,19 +9,15 @@ import TunnelMixnet
 import Tunnels
 import AppVersionProvider
 
-class PacketTunnelProvider: NEPacketTunnelProvider {
+final class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
-
-    lazy var logger = Logger(label: "MixnetTunnel")
-    var logInitFailure: String?
+    let logger: Logger
     var vpnService: NymVpnService?
     var commandSender: NymVpnServiceCommandSender?
 
     override init() {
         tunnelActor = TunnelActor()
-        super.init()
 
-        self.configureLogger()
         LoggingSystem.bootstrap { label in
             let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG
@@ -34,6 +30,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return fileLogHandler
 #endif
         }
+        logger = Logger(label: "PacketTunnelProvider")
+
+        super.init()
+
+        self.configureLogger()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
@@ -104,7 +105,7 @@ extension PacketTunnelProvider {
     }
 
     func configureLogger() {
-        let logDir = LogFileManager.logsDirectory()?.path()
+        let logFilePath = LogFileManager.logFileURL(logFileType: .library)?.path()
         // Extracted from ConfigurationManager.shared.debugLevel
         let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
         let isDebugLogsOn = UserDefaults(
@@ -112,7 +113,7 @@ extension PacketTunnelProvider {
         )?.bool(forKey: "isDebugLogsOn") ?? false
 
         let logLevel: LogLevel = (isTestFlight || isDebugLogsOn) ? .debug : .info
-        initLogger(logDir: logDir, logLevel: logLevel, sentryMonitoring: true)
+        initLogger(logFilePath: logFilePath, logLevel: logLevel, sentryMonitoring: true)
     }
 }
 

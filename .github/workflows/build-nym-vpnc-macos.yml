@@ -70,12 +70,18 @@ jobs:
 
       - name: Add Homebrew to PATH
         run: |
-          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          BREW_PREFIX=$(brew --prefix)
+          echo "$BREW_PREFIX/bin" >> "$GITHUB_PATH"
 
       - name: Set Xcode directories
         run: |
           echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
+
+      - name: Install system dependencies
+        run: |
+          brew install xmlstarlet
+          brew install jq
 
       - name: Install python3
         run: |
@@ -159,7 +165,7 @@ jobs:
       - name: Codesign binary
         env:
           APP_SIGNING_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
-          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
+          BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/${{ env.BINARY_NAME }}
         run: |
           set -euo pipefail
 
@@ -182,7 +188,6 @@ jobs:
           BINARY: ${{ env.CORE_ARTIFACTS_MACOS }}/nym-vpnc
         run: |
           set -euo pipefail
-          which xmlstarlet || brew install xmlstarlet
 
           STAGING_DIR="$PWD/build/pkg"
           STAGING_BIN_DIR="$STAGING_DIR/payload"
@@ -200,7 +205,8 @@ jobs:
           mkdir -p "$STAGING_BIN_DIR"
 
           # Copy binary into payload
-          cp "$BINARY" "$STAGING_BIN_DIR/nym-vpnc"
+          cp "$BINARY" "$STAGING_BIN_DIR/$BINARY_NAME"
+          chmod +x "$STAGING_BIN_DIR/$BINARY_NAME"
 
           # Build the component package
           pkgbuild \
@@ -253,9 +259,10 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          KEY_DIR="$HOME/private_keys"
-          mkdir -p "$KEY_DIR"
+          KEY_DIR="$GITHUB_WORKSPACE/private_keys"
           KEY_PATH="$KEY_DIR/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8"
+
+          mkdir -p "$KEY_DIR"
           echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
           echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
 
@@ -268,7 +275,6 @@ jobs:
           ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euxo pipefail
-          which jq || brew install jq
 
           PKG="${{ steps.make-pkg.outputs.pkg_path }}"
           OUT_JSON="$PWD/build/pkg/notarytool-log.json"
@@ -318,15 +324,20 @@ jobs:
 
       - name: Cleanup Keychain
         if: always()
+        env:
+          ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euo pipefail
 
           echo "🧹 Cleaning up Codemagic keychain..."
-          keychain delete
+          if command -v keychain &> /dev/null; then
+            keychain delete
+          fi
 
           echo "Removing ASC API key..."
-          if [ -d "$HOME/private_keys" ]; then
-            rm -rf "$HOME/private_keys"
+          if [[ -n "$ASC_KEY_PATH" && -f "$ASC_KEY_PATH" ]]; then
+            rm -f "$ASC_KEY_PATH"
+            echo "✅ Removed ASC API key"
           fi
 
           echo "🧹 Removing downloaded certificates..."

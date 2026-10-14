@@ -4,7 +4,6 @@ version.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
@@ -22,8 +21,10 @@ tokio-util.workspace = true
 
 nym-common.workspace = true
 nym-routing.workspace = true
-nym-windows.workspace = true
 async-trait.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+nym-windows.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 dispatch2.workspace = true

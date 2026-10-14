@@ -7,7 +7,7 @@ public enum GatewayIndependenceArcPolicy {
     public static func isIndependenceConsentError(_ error: Error?) -> Bool {
         guard let error else { return false }
         let reason = (error as? ErrorReason) ?? ErrorReason(nsError: error as NSError)
-        return reason == .needsRelaxedIndependenceCriteria
+        return reason?.code == .needsRelaxedIndependenceCriteria
     }
 
     /// True when the connection arc should use the red failed state for a tunnel error.

@@ -286,12 +286,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc7bb162ec39d46ab1ca8c77bf72e890535becd1751bb45f64c597edb4c8c6b3"
 
 [[package]]
+name = "alloc-no-stdlib"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2fb6cfd47bf496ff64095c20eaba0c201404ee38714d4142fcfa1dc334fcc7a"
+
+[[package]]
 name = "alloc-stdlib"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e76a019e91224d279006ff972f1e984179a6e9feb050adba6ce8274aef23195"
 dependencies = [
- "alloc-no-stdlib",
+ "alloc-no-stdlib 2.0.4",
+]
+
+[[package]]
+name = "alloc-stdlib"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b5c1865780388bfa186411ab5f247819487fc4864c6e9c3106611fa347586e1"
+dependencies = [
+ "alloc-no-stdlib 3.0.0",
 ]
 
 [[package]]
@@ -762,13 +777,16 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "auto-launch"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f012b8cc0c850f34117ec8252a44418f2e34a2cf501de89e29b241ae5f79471"
+checksum = "17918dba7ecf78b9a14507ec9f984e7977d13fad87dc86d61038980a45d128cf"
 dependencies = [
- "dirs 4.0.0",
- "thiserror 1.0.69",
- "winreg 0.10.1",
+ "dirs 6.0.0",
+ "os_info",
+ "smappservice-rs",
+ "thiserror 2.0.20",
+ "windows-registry",
+ "windows-result 0.4.1",
 ]
 
 [[package]]
@@ -1147,9 +1165,20 @@ version = "8.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5cc91aac060a7a1e25823bdccbfb6af1875b88f17c6daac97894eed8207166b3"
 dependencies = [
- "alloc-no-stdlib",
- "alloc-stdlib",
- "brotli-decompressor",
+ "alloc-no-stdlib 2.0.4",
+ "alloc-stdlib 0.2.4",
+ "brotli-decompressor 5.0.3",
+]
+
+[[package]]
+name = "brotli"
+version = "9.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8b851b75c23ca7873623d612fe49bd1989aeb03d08fb9432187eb253d3d4c6b"
+dependencies = [
+ "alloc-no-stdlib 3.0.0",
+ "alloc-stdlib 0.3.0",
+ "brotli-decompressor 6.0.1",
 ]
 
 [[package]]
@@ -1158,8 +1187,18 @@ version = "5.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a32acac15fe1967bc3986b2a6347dffc965602354ea6f450ad07e8bfd253583"
 dependencies = [
- "alloc-no-stdlib",
- "alloc-stdlib",
+ "alloc-no-stdlib 2.0.4",
+ "alloc-stdlib 0.2.4",
+]
+
+[[package]]
+name = "brotli-decompressor"
+version = "6.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "941cd9bd4ddab83cb46fa5a2d428f1c857b24ac78cb876cf7beb710840934bd7"
+dependencies = [
+ "alloc-no-stdlib 3.0.0",
+ "alloc-stdlib 0.3.0",
 ]
 
 [[package]]
@@ -1257,16 +1296,6 @@ name = "byte-tools"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3b5ca7a04898ad4bcd41c90c5285445ff5b791899bb1b0abdd2a2aa791211d7"
-
-[[package]]
-name = "bytecodec"
-version = "0.4.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adf4c9d0bbf32eea58d7c0f812058138ee8edaf0f2802b6d03561b504729a325"
-dependencies = [
- "byteorder",
- "trackable 0.2.24",
-]
 
 [[package]]
 name = "bytemuck"
@@ -1401,12 +1430,13 @@ dependencies = [
 
 [[package]]
 name = "cargo_toml"
-version = "0.22.3"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "374b7c592d9c00c1f4972ea58390ac6b18cbb6ab79011f3bdc90a0b82ca06b77"
+checksum = "82f4b26e751e711a5302649417f2da046dce6391b2ea30a4820f37462314f0b9"
 dependencies = [
+ "semver",
  "serde",
- "toml 0.9.12+spec-1.1.0",
+ "toml 1.1.6+spec-1.1.0",
 ]
 
 [[package]]
@@ -1448,13 +1478,13 @@ dependencies = [
 
 [[package]]
 name = "cfb"
-version = "0.7.3"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d38f2da7a0a2c4ccf0065be06397cc26a81f4e528be095826eee9d4adbb8c60f"
+checksum = "a347dcabdae9c31b0825fd6a8bed285ec9c2acb89c47827126d52fa4f59cece3"
 dependencies = [
- "byteorder",
  "fnv",
  "uuid",
+ "web-time",
 ]
 
 [[package]]
@@ -1705,7 +1735,7 @@ version = "0.4.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef16c47ba2797aa6a909cc37d39911f3a6743811fe7408ac0b0cc0276b656e9"
 dependencies = [
- "brotli",
+ "brotli 8.0.4",
  "compression-core",
  "flate2",
  "memchr",
@@ -2138,9 +2168,9 @@ dependencies = [
 
 [[package]]
 name = "cssparser"
-version = "0.36.0"
+version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dae61cf9c0abb83bd659dab65b7e4e38d8236824c85f0f804f173567bda257d2"
+checksum = "8c9cdaae01d5ed7882b04d795e7f752f46ff52d2fa3b50a20d28c464510bba98"
 dependencies = [
  "cssparser-macros",
  "dtoa-short",
@@ -2151,12 +2181,12 @@ dependencies = [
 
 [[package]]
 name = "cssparser-macros"
-version = "0.6.1"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13b588ba4ac1a99f7f2964d24b3d896ddc6bf847ee3855dbd4366f058cfcd331"
+checksum = "d045de693cb712d0b22c6a64be5b953f67b3ce00ab5ad3dd5d8b441886ab8e1a"
 dependencies = [
  "quote",
- "syn 2.0.119",
+ "syn 3.0.6",
 ]
 
 [[package]]
@@ -2167,19 +2197,9 @@ checksum = "49fb0c6640b4507ebd99ff67677009e381ba5eee1d14df78de4a3d16eb123c39"
 
 [[package]]
 name = "ctor"
-version = "0.8.0"
+version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "352d39c2f7bef1d6ad73db6f5160efcaed66d94ef8c6c573a8410c00bf909a98"
-dependencies = [
- "ctor-proc-macro",
- "dtor",
-]
-
-[[package]]
-name = "ctor-proc-macro"
-version = "0.0.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52560adf09603e58c9a7ee1fe1dcb95a16927b17c127f0ac02d6e768a0e25bc1"
+checksum = "914a755b7c2d4af2bdcff7ce1739e2db9a1b81a9b07123d8015786ae03c0980d"
 
 [[package]]
 name = "ctr"
@@ -2606,15 +2626,6 @@ dependencies = [
 
 [[package]]
 name = "dirs"
-version = "4.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca3aa72a6f96ea37bbc5aa912f6788242832f75369bdfdadcb0e38423f100059"
-dependencies = [
- "dirs-sys 0.3.7",
-]
-
-[[package]]
-name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
@@ -2638,17 +2649,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d57d423b3c82e89b9a24ca3091fee61f456a26edbd28d26c65906f4bc1dcd8f"
 dependencies = [
  "dirs-sys 0.5.0",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b1d1d91c932ef41c0f2663aa8b0ca0342d444d842c06914aa0a7e352d0bada6"
-dependencies = [
- "libc",
- "redox_users 0.4.6",
- "winapi",
 ]
 
 [[package]]
@@ -2732,9 +2732,9 @@ dependencies = [
 
 [[package]]
 name = "dom_query"
-version = "0.27.0"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "521e380c0c8afb8d9a1e83a1822ee03556fc3e3e7dbc1fd30be14e37f9cb3f89"
+checksum = "fac5fca71e65e94cc718a6e2af65d6e0f9c6027751c2aa562fbb5087fda639bc"
 dependencies = [
  "bit-set",
  "cssparser",
@@ -2780,21 +2780,6 @@ checksum = "cd1511a7b6a56299bd043a9c167a6d2bfb37bf84a6dfceaba651168adfb43c87"
 dependencies = [
  "dtoa",
 ]
-
-[[package]]
-name = "dtor"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1057d6c64987086ff8ed0fd3fbf377a6b7d205cc7715868cd401705f715cbe4"
-dependencies = [
- "dtor-proc-macro",
-]
-
-[[package]]
-name = "dtor-proc-macro"
-version = "0.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f678cf4a922c215c63e0de95eb1ff08a958a81d47e485cf9da1e27bf6305cfa5"
 
 [[package]]
 name = "dunce"
@@ -4198,9 +4183,9 @@ dependencies = [
 
 [[package]]
 name = "html5ever"
-version = "0.38.0"
+version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1054432bae2f14e0061e33d23402fbaa67a921d319d56adc6bcf887ddad1cbc2"
+checksum = "46a1761807faccc9a19e86944bbf40610014066306f96edcdedc2fb714bcb7b8"
 dependencies = [
  "log",
  "markup5ever",
@@ -4272,16 +4257,6 @@ name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87"
-
-[[package]]
-name = "httpcodec"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f49d64351430cabd543943b79d48aaf0bc95a41d9ccf5b8774c2cfd23422775"
-dependencies = [
- "bytecodec",
- "trackable 0.2.24",
-]
 
 [[package]]
 name = "httpdate"
@@ -4441,7 +4416,7 @@ dependencies = [
  "tokio",
  "tower-service",
  "tracing",
- "windows-registry 0.6.1",
+ "windows-registry",
 ]
 
 [[package]]
@@ -4639,9 +4614,9 @@ dependencies = [
 
 [[package]]
 name = "infer"
-version = "0.19.0"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a588916bfdfd92e71cacef98a63d9b1f0d74d6599980d11894290e7ddefffcf7"
+checksum = "f4200d433cbd5178df7797c9c2e75b348b728e39631cf14520d1e2fc424201f4"
 dependencies = [
  "cfb",
 ]
@@ -4719,7 +4694,7 @@ checksum = "4d40460c0ce33d6ce4b0630ad68ff63d6661961c48b6dba35e5a4d81cfb48222"
 dependencies = [
  "socket2 0.6.5",
  "widestring",
- "windows-registry 0.6.1",
+ "windows-registry",
  "windows-result 0.4.1",
  "windows-sys 0.61.2",
 ]
@@ -4980,21 +4955,21 @@ dependencies = [
 
 [[package]]
 name = "json-patch"
-version = "3.0.1"
+version = "4.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "863726d7afb6bc2590eeff7135d923545e5e964f004c2ccf8716c25e70a86f08"
+checksum = "7421438de105a0827e44fadd05377727847d717c80ce29a229f85fd04c427b72"
 dependencies = [
  "jsonptr",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
 ]
 
 [[package]]
 name = "jsonptr"
-version = "0.6.3"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dea2b27dd239b2556ed7a25ba842fe47fd602e7fc7433c2a8d6106d4d9edd70"
+checksum = "a5a3cc660ba5d72bce0b3bb295bf20847ccbb40fd423f3f05b61273672e561fe"
 dependencies = [
  "serde",
  "serde_json",
@@ -5052,13 +5027,12 @@ dependencies = [
 
 [[package]]
 name = "keyboard-types"
-version = "0.7.0"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b750dcadc39a09dbadd74e118f6dd6598df77fa01df0cfcdc52c28dece74528a"
+checksum = "0fbe853b403ae61a04233030ae8a79d94975281ed9770a1f9e246732b534b28d"
 dependencies = [
  "bitflags 2.13.2",
  "serde",
- "unicode-segmentation",
 ]
 
 [[package]]
@@ -5602,9 +5576,9 @@ dependencies = [
 
 [[package]]
 name = "markup5ever"
-version = "0.38.0"
+version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8983d30f2915feeaaab2d6babdd6bc7e9ed1a00b66b5e6d74df19aa9c0e91862"
+checksum = "7122d987ec5f704ee56f6e5b41a7d93722e9aae27ae07cafa4036c4d3f9757de"
 dependencies = [
  "log",
  "tendril",
@@ -5757,9 +5731,9 @@ dependencies = [
 
 [[package]]
 name = "muda"
-version = "0.19.3"
+version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dd04e60bc0b07438a6771710ee1698f98f6ebbc7f89b61264af1563b8aeb878"
+checksum = "cca139e57da4383727f189e43e66e84fa372347027fc996f9f1a007ec0a37996"
 dependencies = [
  "crossbeam-channel",
  "dpi",
@@ -6116,8 +6090,8 @@ dependencies = [
 
 [[package]]
 name = "nym-api-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "celes",
@@ -6159,7 +6133,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "block2",
  "dispatch2",
@@ -6171,8 +6145,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -6195,8 +6169,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-controller"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "log",
@@ -6217,8 +6191,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-fetcher"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6239,8 +6213,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bin-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "const-str",
  "log",
@@ -6281,9 +6255,10 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
+ "arc-swap",
  "async-trait",
  "base64 0.22.1",
  "bs58",
@@ -6342,8 +6317,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-config-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -6358,8 +6333,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-gateways-storage"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6378,8 +6353,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-surb-storage"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6397,8 +6372,8 @@ dependencies = [
 
 [[package]]
 name = "nym-coconut-dkg-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6411,8 +6386,8 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -6420,16 +6395,12 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "2026.13.0-beta.1"
-dependencies = [
- "tracing",
- "tracing-test",
-]
+version = "2026.14.0-beta.1"
 
 [[package]]
 name = "nym-compact-ecash"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bs58",
@@ -6451,8 +6422,8 @@ dependencies = [
 
 [[package]]
 name = "nym-config"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dirs 6.0.0",
  "handlebars",
@@ -6466,8 +6437,8 @@ dependencies = [
 
 [[package]]
 name = "nym-contracts-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6481,8 +6452,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-proxy-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -6502,8 +6473,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-storage"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6523,8 +6494,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "cosmrs",
@@ -6549,8 +6520,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials-interface"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-bls12_381-fork",
  "nym-compact-ecash",
@@ -6568,8 +6539,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "aead 0.5.2",
  "aes 0.8.4",
@@ -6603,7 +6574,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "dbus",
  "libc",
@@ -6614,8 +6585,8 @@ dependencies = [
 
 [[package]]
 name = "nym-directory-attestation"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "blake3",
@@ -6632,8 +6603,8 @@ dependencies = [
 
 [[package]]
 name = "nym-directory-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6647,8 +6618,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6661,8 +6632,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-signer-check-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -6677,8 +6648,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-time"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -6686,8 +6657,8 @@ dependencies = [
 
 [[package]]
 name = "nym-exit-policy"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "serde",
  "serde_json",
@@ -6698,7 +6669,7 @@ dependencies = [
 
 [[package]]
 name = "nym-favorites"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "async-trait",
  "itertools 0.15.0",
@@ -6713,8 +6684,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -6752,7 +6723,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -6780,8 +6751,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "futures",
@@ -6810,8 +6781,8 @@ dependencies = [
 
 [[package]]
 name = "nym-geolocation-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6824,8 +6795,8 @@ dependencies = [
 
 [[package]]
 name = "nym-group-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -6836,8 +6807,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -6872,8 +6843,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client-macro"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "proc-macro-crate 3.5.0",
  "proc-macro2",
@@ -6884,8 +6855,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "serde",
@@ -6895,8 +6866,8 @@ dependencies = [
 
 [[package]]
 name = "nym-id"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -6908,8 +6879,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6928,7 +6899,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "block2",
  "cc",
@@ -6947,8 +6918,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-ciphersuite"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "num_enum",
  "semver",
@@ -6959,12 +6930,12 @@ dependencies = [
 
 [[package]]
 name = "nym-lp-data"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bytes",
  "num_enum",
- "nym-common 1.22.0",
+ "nym-common 1.22.1",
  "semver",
  "thiserror 2.0.20",
  "tracing",
@@ -6972,8 +6943,8 @@ dependencies = [
 
 [[package]]
 name = "nym-lthash"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "blake3",
  "digest 0.10.7",
@@ -6983,8 +6954,8 @@ dependencies = [
 
 [[package]]
 name = "nym-metrics"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -6994,8 +6965,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dashmap",
  "futures",
@@ -7012,8 +6983,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -7033,8 +7004,8 @@ dependencies = [
 
 [[package]]
 name = "nym-multisig-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7049,8 +7020,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-defaults"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -7065,8 +7036,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-monitors-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7078,8 +7049,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-families-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7094,8 +7065,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "celes",
  "humantime-serde",
@@ -7119,8 +7090,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -7140,8 +7111,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise-keys"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -7151,8 +7122,8 @@ dependencies = [
 
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -7162,14 +7133,14 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "async-trait",
  "debounced",
  "dispatch2",
  "futures",
  "nym-apple-network",
- "nym-common 2026.13.0-beta.1",
+ "nym-common 2026.14.0-beta.1",
  "nym-routing",
  "nym-windows",
  "thiserror 2.0.20",
@@ -7181,8 +7152,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ordered-buffer"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "log",
  "thiserror 2.0.20",
@@ -7190,8 +7161,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "pem",
  "tracing",
@@ -7200,8 +7171,8 @@ dependencies = [
 
 [[package]]
 name = "nym-performance-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7214,7 +7185,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "hex",
  "nym-dbus",
@@ -7227,8 +7198,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "nym-authenticator-requests",
@@ -7239,19 +7210,20 @@ dependencies = [
  "nym-sphinx",
  "nym-wireguard-types",
  "serde",
+ "time",
  "tracing",
 ]
 
 [[package]]
 name = "nym-routing"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",
  "ipnetwork",
  "libc",
  "nix 0.31.3",
- "nym-common 2026.13.0-beta.1",
+ "nym-common 2026.14.0-beta.1",
  "nym-windows",
  "rtnetlink",
  "system-configuration 0.8.0",
@@ -7264,22 +7236,19 @@ dependencies = [
 
 [[package]]
 name = "nym-sdk"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "async-trait",
  "bincode",
  "bip39",
- "bytecodec",
  "bytes",
  "celes",
  "clap",
  "dashmap",
  "dirs 6.0.0",
  "futures",
- "http 1.5.0",
- "httpcodec",
  "log",
  "nym-bandwidth-controller",
  "nym-bandwidth-fetcher",
@@ -7294,8 +7263,6 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-lp-data",
  "nym-network-defaults",
- "nym-ordered-buffer",
- "nym-service-providers-common",
  "nym-socks5-client-core",
  "nym-socks5-requests",
  "nym-sphinx",
@@ -7307,7 +7274,6 @@ dependencies = [
  "rand 0.8.8",
  "semver",
  "serde",
- "tap",
  "tempfile",
  "thiserror 2.0.20",
  "tokio",
@@ -7315,7 +7281,6 @@ dependencies = [
  "tokio-util",
  "toml 0.8.23",
  "tracing",
- "tracing-subscriber",
  "url",
  "uuid",
  "zeroize",
@@ -7323,8 +7288,8 @@ dependencies = [
 
 [[package]]
 name = "nym-serde-helpers"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "serde",
  "serde_with",
@@ -7333,8 +7298,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-provider-requests-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "serde",
  "thiserror 2.0.20",
@@ -7342,8 +7307,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-providers-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "log",
@@ -7358,8 +7323,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-client-core"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "anyhow",
  "dirs 6.0.0",
@@ -7391,8 +7356,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-helpers"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bytes",
  "futures",
@@ -7406,8 +7371,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-requests"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bincode",
  "log",
@@ -7422,8 +7387,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -7448,8 +7413,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-acknowledgements"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -7466,8 +7431,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-addressing"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -7477,8 +7442,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-anonymous-replies"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -7495,8 +7460,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-chunking"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "dashmap",
  "log",
@@ -7514,8 +7479,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-cover"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -7532,8 +7497,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-forwarding"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -7544,8 +7509,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-framing"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -7561,8 +7526,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-params"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -7572,8 +7537,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-routing"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -7582,8 +7547,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "sphinx-packet",
  "thiserror 2.0.20",
@@ -7591,8 +7556,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sqlx-pool-guard"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -7603,8 +7568,8 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "futures",
  "log",
@@ -7628,8 +7593,8 @@ dependencies = [
 
 [[package]]
 name = "nym-task"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cfg-if",
  "futures",
@@ -7645,8 +7610,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ticketbooks-merkle"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -7660,8 +7625,8 @@ dependencies = [
 
 [[package]]
 name = "nym-topology"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -7680,8 +7645,8 @@ dependencies = [
 
 [[package]]
 name = "nym-upgrade-mode-check"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -7697,8 +7662,8 @@ dependencies = [
 
 [[package]]
 name = "nym-validator-client"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -7752,8 +7717,8 @@ dependencies = [
 
 [[package]]
 name = "nym-vesting-contract-common"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7765,7 +7730,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "async-trait",
  "backon",
@@ -7775,7 +7740,7 @@ dependencies = [
  "hex",
  "itertools 0.15.0",
  "nym-bridges-types",
- "nym-common 2026.13.0-beta.1",
+ "nym-common 2026.14.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
@@ -7799,7 +7764,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "anyhow",
  "build-info",
@@ -7861,7 +7826,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "bip39",
  "ipnetwork",
@@ -7889,10 +7854,10 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "itertools 0.15.0",
- "nym-common 2026.13.0-beta.1",
+ "nym-common 2026.14.0-beta.1",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -7913,7 +7878,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "hyper 1.11.1",
  "nym-ipc",
@@ -7932,8 +7897,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wasm-utils"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -7947,7 +7912,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 dependencies = [
  "bitflags 2.13.2",
  "futures",
@@ -7961,8 +7926,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-types"
-version = "1.22.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.18-essaouria#2631de5b04b1e5b300729c4af8d48f5783db865f"
+version = "1.22.1"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -8014,6 +7979,7 @@ dependencies = [
  "objc2-core-foundation",
  "objc2-core-graphics",
  "objc2-foundation",
+ "objc2-quartz-core",
 ]
 
 [[package]]
@@ -8190,6 +8156,19 @@ dependencies = [
  "libc",
  "objc2",
  "objc2-core-foundation",
+]
+
+[[package]]
+name = "objc2-service-management"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b213642d6959cc6023ceb1217aa595eaaf09b8094ce95127c103cab611fe65e8"
+dependencies = [
+ "block2",
+ "objc2",
+ "objc2-core-foundation",
+ "objc2-foundation",
+ "objc2-security",
 ]
 
 [[package]]
@@ -10176,9 +10155,9 @@ dependencies = [
 
 [[package]]
 name = "selectors"
-version = "0.36.1"
+version = "0.38.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5d9c0c92a92d33f08817311cf3f2c29a3538a8240e94a6a3c622ce652d7e00c"
+checksum = "8adfa1c298912827b8a28b223b3b874357397ae706e6190acd9bf28cee99114d"
 dependencies = [
  "bitflags 2.13.2",
  "cssparser",
@@ -10772,6 +10751,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba467056f1b547ed52077911161fc86985becbc60e8e1857c8a144dab0def891"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "smappservice-rs"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52703b97a53101cf5d4580e0737aaa634ce1fdcfc123c16b2a9658e358013488"
+dependencies = [
+ "objc2",
+ "objc2-foundation",
+ "objc2-service-management",
+ "thiserror 2.0.20",
 ]
 
 [[package]]
@@ -11425,9 +11416,9 @@ checksum = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417"
 
 [[package]]
 name = "tao"
-version = "0.35.3"
+version = "0.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1c93047acf68669466a34690ac58cca7010bd1b201e1ec86f1fd0a75d3dd4a9"
+checksum = "f37f381f4e048e6cdf038b5705f8cf14ad108279d46eb968140a7b291aba9400"
 dependencies = [
  "bitflags 2.13.2",
  "block2",
@@ -11445,20 +11436,20 @@ dependencies = [
  "libc",
  "log",
  "ndk",
+ "ndk-context",
  "ndk-sys",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
  "objc2-ui-kit",
- "once_cell",
  "parking_lot 0.12.5",
  "percent-encoding",
  "raw-window-handle",
  "tao-macros",
  "unicode-segmentation",
  "url",
- "windows 0.61.3",
- "windows-core 0.61.2",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
  "windows-version",
  "x11-dl",
 ]
@@ -11508,14 +11499,14 @@ dependencies = [
 
 [[package]]
 name = "tauri"
-version = "2.11.5"
+version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "667b20e2726d572dea2de7370da16e188eb06008faf9a92fab7cdc46791190b5"
+checksum = "ed99ee9694a2deb776d91cae48ac7411ddfc89ecae2f9b5041111d8c88f2ace9"
 dependencies = [
  "anyhow",
  "bytes",
  "cookie",
- "dirs 6.0.0",
+ "dirs 7.0.0",
  "dunce",
  "embed_plist",
  "getrandom 0.3.3",
@@ -11556,18 +11547,18 @@ dependencies = [
  "webkit2gtk",
  "webview2-com",
  "window-vibrancy",
- "windows 0.61.3",
+ "windows 0.62.2",
 ]
 
 [[package]]
 name = "tauri-build"
-version = "2.6.3"
+version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc9ce40b16101cb6ea63d3e221567affd1c3a9205f95d7bc574941a10636b632"
+checksum = "59563ca5b331fd97f27ee9672ec8d36d33bb3c9e2c9f6710a1a5687256052e45"
 dependencies = [
  "anyhow",
  "cargo_toml",
- "dirs 6.0.0",
+ "dirs 7.0.0",
  "glob",
  "heck 0.5.0",
  "json-patch",
@@ -11582,16 +11573,16 @@ dependencies = [
 
 [[package]]
 name = "tauri-codegen"
-version = "2.6.3"
+version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08279169ff42f8fc45a1dbc9dcae888893ba95288142e5880c59b93a26d2cfc5"
+checksum = "e50213e463086ecc283d7e9f51c30cc0fd304ad457425158018be26dbf0d0a80"
 dependencies = [
  "base64 0.22.1",
- "brotli",
+ "brotli 9.0.0",
  "ico",
  "json-patch",
  "plist",
- "png 0.17.16",
+ "png 0.18.1",
  "proc-macro2",
  "quote",
  "semver",
@@ -11609,9 +11600,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-macros"
-version = "2.6.3"
+version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8b394794f399a421811d06966343e7933fcae92d59f5180b9388d1174497a45"
+checksum = "8129fb43bb6e0d6b73ad3315cd172beaab17cd28899c594b1b32c80edbbfd99c"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -11623,9 +11614,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin"
-version = "2.6.3"
+version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74be5dd4bed9afbd145e5716b5fa2ec28cbc29c34ffa61c258c9273d896c8020"
+checksum = "1140cf34a3b3b836a13103dcab17f18831d5cc3534cbd435dc01a5c6daa65aa2"
 dependencies = [
  "anyhow",
  "glob",
@@ -11639,9 +11630,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-autostart"
-version = "2.5.1"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "459383cebc193cdd03d1ba4acc40f2c408a7abce419d64bdcd2d745bc2886f70"
+checksum = "bce56ceb0a99b8ab5eebc977ba9ffc62391b862648cb9ab76fc8bc7231b8f7e2"
 dependencies = [
  "auto-launch",
  "serde",
@@ -11653,9 +11644,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-clipboard-manager"
-version = "2.3.3"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4136fb69d967753d000423d7e5f863f89bf949efbdfbecb43a580426a01a0194"
+checksum = "333d3b6beeb1c2c7fc040233d4ea7b6c03a9f8f039592b7400833c43fb5b568a"
 dependencies = [
  "arboard",
  "log",
@@ -11668,9 +11659,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-deep-link"
-version = "2.4.10"
+version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92d489b8ecceae1cd09f6e1f7606f2095ac721cc8d54cf2f0e6bb377cc52cff6"
+checksum = "4ac7a92a46ab5c88f44532ca50906d6e448a948d4ddf8c5376ab125e3260f736"
 dependencies = [
  "dunce",
  "plist",
@@ -11683,15 +11674,15 @@ dependencies = [
  "thiserror 2.0.20",
  "tracing",
  "url",
- "windows-registry 0.5.3",
- "windows-result 0.3.4",
+ "windows-registry",
+ "windows-result 0.4.1",
 ]
 
 [[package]]
 name = "tauri-plugin-dialog"
-version = "2.7.3"
+version = "2.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61854a36651aa48381e5e209f69a01273b77f3f9f91f0c430b1b98d33bd47229"
+checksum = "daf9a5c92e39bdd84f22f6be9230e39d0c4e140345f71ffe6058dca4f71127cf"
 dependencies = [
  "log",
  "raw-window-handle",
@@ -11707,9 +11698,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-fs"
-version = "2.5.2"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de22eef34fd78c0da050e748710edd50bf127e651d02ea1b2bfada1523cc5c51"
+checksum = "466eb32466fe5021b6728b06862f9ff14a9f7e1af890047654e03a96d7c0e1bb"
 dependencies = [
  "anyhow",
  "dunce",
@@ -11731,9 +11722,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-notification"
-version = "2.4.0"
+version = "2.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad2fd40946aef810c4be9fd33a2d1b9b397cb79042b2d21c81a0a8f204354fd1"
+checksum = "533770889abb60a0407d5a32096182f0e6463f5a3dfaa675be94580aa14070e1"
 dependencies = [
  "log",
  "notify-rust",
@@ -11750,9 +11741,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-opener"
-version = "2.5.5"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60d60366174b745b4ef5824b8bbc1c457fd08f0ce101ff643c0a49181a9f4e91"
+checksum = "d39404b2572927e0d3ed30a7ca226037f7508d22e79c96ee6ef0d42b6a4b3345"
 dependencies = [
  "dunce",
  "glob",
@@ -11766,7 +11757,7 @@ dependencies = [
  "tauri-plugin",
  "thiserror 2.0.20",
  "url",
- "windows 0.61.3",
+ "windows 0.62.2",
  "zbus",
 ]
 
@@ -11800,9 +11791,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-shell"
-version = "2.3.6"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8548af174c5516e4f71f142acea4d02e00316296ea9aafa58798851481003e3c"
+checksum = "9bd8f131731087b2608ad604969af43b06c5411d094d635a81fc8c852dda5634"
 dependencies = [
  "encoding_rs",
  "log",
@@ -11838,12 +11829,12 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-updater"
-version = "2.11.0"
+version = "2.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b28d8cabdeb0564f03ae261963de4bc3d98321cd3d213e76a81b7d344e5df606"
+checksum = "3cb0b2ea3e85ca287990d3859a29cc5cb18024240fd78f62e027fb7963670f18"
 dependencies = [
  "base64 0.22.1",
- "dirs 6.0.0",
+ "dirs 7.0.0",
  "flate2",
  "futures-util",
  "http 1.5.0",
@@ -11865,15 +11856,15 @@ dependencies = [
  "time",
  "tokio",
  "url",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
  "zip 4.6.1",
 ]
 
 [[package]]
 name = "tauri-plugin-window-state"
-version = "2.4.1"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73736611e14142408d15353e21e3cca2f12a3cfb523ad0ce85999b6d2ef1a704"
+checksum = "5d6815cab7b212f9cfe16a9d79d8d22f9e14159e4a9460f7dec1467167a008e3"
 dependencies = [
  "bitflags 2.13.2",
  "log",
@@ -11886,9 +11877,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime"
-version = "2.11.3"
+version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0b4bc95aed361b0019067d189a1174a603d460d0f6c72606512d59fc9c12ec8"
+checksum = "c2a57a2a9b8c8b7fc00d35b510fe808ded7f9f1b44fc1cdda6aee38632ea5413"
 dependencies = [
  "cookie",
  "dpi",
@@ -11906,14 +11897,14 @@ dependencies = [
  "url",
  "webkit2gtk",
  "webview2-com",
- "windows 0.61.3",
+ "windows 0.62.2",
 ]
 
 [[package]]
 name = "tauri-runtime-wry"
-version = "2.11.4"
+version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e6fac707727b7a2f48e4ded90976324267371073edbb415ffb73bb0458d203f"
+checksum = "7f9e7e0c9f80a5130773cfabb6df4dc924518fb1b2c923726966804634b57d22"
 dependencies = [
  "gtk",
  "http 1.5.0",
@@ -11931,18 +11922,18 @@ dependencies = [
  "url",
  "webkit2gtk",
  "webview2-com",
- "windows 0.61.3",
+ "windows 0.62.2",
  "wry",
 ]
 
 [[package]]
 name = "tauri-utils"
-version = "2.9.3"
+version = "2.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e176a18e67764923c4f1ce66f25ae4abe5f688384d5eb1a0fa6c77f3d90f887"
+checksum = "2ff55a614843b9a3f010f211df637c94df2607175b8d0f6e0f4a7c19e18621ee"
 dependencies = [
  "anyhow",
- "brotli",
+ "brotli 9.0.0",
  "cargo_metadata 0.19.2",
  "ctor",
  "dom_query",
@@ -12758,42 +12749,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "trackable"
-version = "0.2.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b98abb9e7300b9ac902cc04920945a874c1973e08c310627cc4458c04b70dd32"
-dependencies = [
- "trackable 1.3.0",
- "trackable_derive",
-]
-
-[[package]]
-name = "trackable"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b15bd114abb99ef8cee977e517c8f37aee63f184f2d08e3e6ceca092373369ae"
-dependencies = [
- "trackable_derive",
-]
-
-[[package]]
-name = "trackable_derive"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebeb235c5847e2f82cfe0f07eb971d1e5f6804b18dac2ae16349cc604380f82f"
-dependencies = [
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "tray-icon"
-version = "0.24.2"
+version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "045979e3f037cd18ad1cb2a419dfda133c5c29c9f3453370079f2255d46c257e"
+checksum = "b2b9c52859a94554803ccd4a24b98f74148ebc73b90676d783f3490b1bff9d72"
 dependencies = [
  "crossbeam-channel",
- "dirs 6.0.0",
+ "dirs 7.0.0",
  "libappindicator",
  "muda",
  "objc2",
@@ -12931,47 +12893,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b72f89f0ca32e4db1c04e2a72f5345d59796d4866a1ee0609084569f73683dc8"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "unic-char-property"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8c57a407d9b6fa02b4795eb81c5b6652060a15a7903ea981f3d723e6c0be221"
-dependencies = [
- "unic-char-range",
-]
-
-[[package]]
-name = "unic-char-range"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0398022d5f700414f6b899e10b8348231abf9173fa93144cbc1a43b9793c1fbc"
-
-[[package]]
-name = "unic-common"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d7ff825a6a654ee85a63e80f92f054f904f21e7d12da4e22f9834a4aaa35bc"
-
-[[package]]
-name = "unic-ucd-ident"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e230a37c0381caa9219d67cf063aa3a375ffed5bf541a452db16e744bdab6987"
-dependencies = [
- "unic-char-property",
- "unic-char-range",
- "unic-ucd-version",
-]
-
-[[package]]
-name = "unic-ucd-version"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96bd2f2237fe450fcd0a1d2f5f4e91711124f7857ba2e964247776ebeeb7b0c4"
-dependencies = [
- "unic-common",
 ]
 
 [[package]]
@@ -13234,13 +13155,13 @@ dependencies = [
 
 [[package]]
 name = "urlpattern"
-version = "0.3.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70acd30e3aa1450bc2eece896ce2ad0d178e9c079493819301573dae3c37ba6d"
+checksum = "df16f50ef4cc145211879a3867ba757076b25dfee812040dcb0658bd9ae7904b"
 dependencies = [
+ "icu_properties",
  "regex",
  "serde",
- "unic-ucd-ident",
  "url",
 ]
 
@@ -13704,16 +13625,14 @@ dependencies = [
 
 [[package]]
 name = "webview2-com"
-version = "0.38.2"
+version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7130243a7a5b33c54a444e54842e6a9e133de08b5ad7b5861cd8ed9a6a5bc96a"
+checksum = "3f89fca7a704cee10dcb3654c1dbb8941d1783132f1917358af75bec37a7d7e6"
 dependencies = [
  "webview2-com-macros",
  "webview2-com-sys",
- "windows 0.61.3",
- "windows-core 0.61.2",
- "windows-implement",
- "windows-interface",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -13729,13 +13648,13 @@ dependencies = [
 
 [[package]]
 name = "webview2-com-sys"
-version = "0.38.2"
+version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "381336cfffd772377d291702245447a5251a2ffa5bad679c99e61bc48bacbf9c"
+checksum = "b3a07132775117d6065853d9d1178157b8c90e228de47129d6bce2c7edebedfb"
 dependencies = [
  "thiserror 2.0.20",
- "windows 0.61.3",
- "windows-core 0.61.2",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -13802,16 +13721,17 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "window-vibrancy"
-version = "0.6.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9bec5a31f3f9362f2258fd0e9c9dd61a9ca432e7306cc78c444258f0dce9a9c"
+checksum = "111e51caca442cafd9bab396628ac4d814880eaea4e63dfd76a12e9f342b5580"
 dependencies = [
  "objc2",
  "objc2-app-kit",
  "objc2-core-foundation",
  "objc2-foundation",
+ "objc2-quartz-core",
  "raw-window-handle",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
  "windows-version",
 ]
 
@@ -13958,17 +13878,6 @@ checksum = "6e2e40844ac143cdb44aead537bbf727de9b044e107a0f1220392177d15b0f26"
 dependencies = [
  "windows-core 0.62.2",
  "windows-link 0.2.1",
-]
-
-[[package]]
-name = "windows-registry"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b8a9ed28765efc97bbc954883f4e6796c33a06546ebafacbabee9696967499e"
-dependencies = [
- "windows-link 0.1.3",
- "windows-result 0.3.4",
- "windows-strings 0.4.2",
 ]
 
 [[package]]
@@ -14371,15 +14280,6 @@ dependencies = [
 
 [[package]]
 name = "winreg"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
-dependencies = [
- "winapi",
-]
-
-[[package]]
-name = "winreg"
 version = "0.50.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
@@ -14440,15 +14340,15 @@ checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 
 [[package]]
 name = "wry"
-version = "0.55.1"
+version = "0.57.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "186f9871daa55fd9c016578b810d149de58367113db7fb72b462d2323ce19514"
+checksum = "a819957a01b3119af85e638a38d242af76dbc87d130dca67bfd0441072e21ff0"
 dependencies = [
  "base64 0.22.1",
  "block2",
  "cookie",
  "crossbeam-channel",
- "dirs 6.0.0",
+ "dirs 7.0.0",
  "dom_query",
  "dpi",
  "dunce",
@@ -14476,8 +14376,8 @@ dependencies = [
  "webkit2gtk",
  "webkit2gtk-sys",
  "webview2-com",
- "windows 0.61.3",
- "windows-core 0.61.2",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
  "windows-version",
  "x11-dl",
 ]

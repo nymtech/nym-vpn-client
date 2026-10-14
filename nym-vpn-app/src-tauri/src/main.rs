@@ -107,6 +107,7 @@ async fn main() -> Result<()> {
         .map(|cfg| cfg.debug_logging)
         .unwrap_or(DEFAULT_DEBUG_LOGGING);
     let debug_logging_control = log::setup_tracing(&cli, sentry_enabled, debug_logging).await?;
+    log::install_panic_hook();
     trace!("cli args: {:#?}", cli);
 
     let os = sys::OsInfo::new();

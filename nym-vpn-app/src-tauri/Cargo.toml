@@ -1,20 +1,20 @@
 [package]
 name = "nym-vpn-app"
-version = "2026.13.0-beta.1"
+version = "2026.14.0-beta.1"
 description = "NymVPN desktop client"
 authors = ["Nym Technologies SA <contact@nymtech.net>"]
 license = "GPL-3.0-only"
-documentation = "https://nymtech.net"
+homepage = "https://nymvpn.com/"
 repository = "https://github.com/nymtech/nym-vpn-client"
 edition = "2024"
 
 [build-dependencies]
-tauri-build = { version = "2.6.3", features = [] }
+tauri-build = { version = "2.7.1", features = [] }
 build-info-build = "0.0.46"
 toml = "1.1.6"
 
 [dependencies]
-tauri = { version = "2.11.5", features = [
+tauri = { version = "2.12.1", features = [
     "protocol-asset",
     "tray-icon",
     "image-png",
@@ -70,19 +70,19 @@ nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types", feat
 
 # tauri deps
 tauri-plugin-os = "2.3.2"
-tauri-plugin-notification = "2.4.0"
-tauri-plugin-dialog = "2.7.3"
+tauri-plugin-notification = "2.5.1"
+tauri-plugin-dialog = "2.8.1"
 tauri-plugin-process = "2.3.1"
-tauri-plugin-clipboard-manager = "2.3.3"
-tauri-plugin-updater = "2.11.0"
-tauri-plugin-shell = "2"
+tauri-plugin-clipboard-manager = "2.4.1"
+tauri-plugin-updater = "2.13.1"
+tauri-plugin-shell = "2.4.0"
 regex = "1.13.1"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-single-instance = { version = "2.4.4", features = ["deep-link"] }
-tauri-plugin-window-state = "2.4.1"
-tauri-plugin-opener = "2.5.5"
-tauri-plugin-autostart = "2.5.1"
-tauri-plugin-deep-link = "2"
+tauri-plugin-window-state = "2.5.0"
+tauri-plugin-opener = "2.7.0"
+tauri-plugin-autostart = "2.7.0"
+tauri-plugin-deep-link = "2.6.1"
 
 [target."cfg(windows)".dependencies]
 windows = { version = "0.62.2", features = [

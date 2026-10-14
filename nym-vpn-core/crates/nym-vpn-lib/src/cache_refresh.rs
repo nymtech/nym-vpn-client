@@ -3,37 +3,27 @@
 
 //! Helper functions for refreshing caches when network environment changes.
 
-use nym_gateway_directory::{Config as GatewayConfig, GatewayClient};
+use nym_gateway_directory::{Config as GatewayConfig, GatewayClient, GatewayMinPerformance};
 use nym_http_api_client::UserAgent;
 use nym_vpn_network_config::Network;
 
-use crate::{VpnTopologyServiceHandle, gateway_directory::GatewayCacheHandle};
+use crate::gateway_directory::GatewayCacheHandle;
 
-/// Update gateway cache and topology cache for a new network environment.
-/// This is called when the discovery refresher detects an environment change.
+/// Point the gateway cache at the API endpoints of an updated network.
+/// Discovery only refreshes the running environment (a network switch needs a restart), so the
+/// cached gateway lists and topology stay valid and are not cleared. The cache clears itself when
+/// the replacement client has other min-performance thresholds, so the current ones are kept.
 pub async fn update_caches_for_network(
     network: &Network,
     gateway_cache_handle: &GatewayCacheHandle,
-    topology_service_handle: &VpnTopologyServiceHandle,
+    min_gateway_performance: Option<GatewayMinPerformance>,
     user_agent: &UserAgent,
 ) {
     let network_name = &network.nym_network.network_name;
     tracing::info!(
         network = %network_name,
-        "Updating gateway cache and topology cache for network environment change"
+        "Updating gateway client for network environment change"
     );
-
-    // Clear the gateway cache
-    if let Err(e) = gateway_cache_handle.clear_cache() {
-        tracing::warn!(
-            network = %network_name,
-            error = %e,
-            "Failed to clear gateway cache on environment change"
-        );
-    }
-
-    // Clear the topology cache
-    topology_service_handle.clear_cache().await;
 
     // Create new gateway client for the new environment
     let nyxd_url = network.nyxd_url();
@@ -60,7 +50,7 @@ pub async fn update_caches_for_network(
         nyxd_url,
         nym_api_urls.clone(),
         nym_vpn_api_urls.clone(),
-        None,
+        min_gateway_performance,
     ) {
         Ok(config) => config,
         Err(e) => {
@@ -97,7 +87,7 @@ pub async fn update_caches_for_network(
     } else {
         tracing::info!(
             network = %network_name,
-            "Gateway cache and topology cache successfully updated for new environment"
+            "Gateway client successfully updated for new environment"
         );
     }
 }

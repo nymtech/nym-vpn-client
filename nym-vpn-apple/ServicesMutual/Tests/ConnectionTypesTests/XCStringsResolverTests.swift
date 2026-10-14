@@ -50,6 +50,21 @@ struct XCStringsResolverTests {
         }
     }
 
+    @Test func resolvesRenewalReminderKeys() throws {
+        let resolver = try XCStringsResolver.default()
+        var keys = ["renewalReminder.action.renew", "renewalReminder.action.getPlan"]
+        for tier in ["day7", "day3", "hour24", "expired"] {
+            for suffix in ["subscription", "freepass"] {
+                keys.append("renewalReminder.\(tier).\(suffix).title")
+            }
+        }
+        for key in keys {
+            let value = resolver.string(key)
+            #expect(value != key, "Catalog must define English for \(key)")
+            #expect(!value.isEmpty)
+        }
+    }
+
     @Test func unknownKeyFallsBackToKey() throws {
         let resolver = try XCStringsResolver.default()
         #expect(resolver.string("totally.bogus.key") == "totally.bogus.key")

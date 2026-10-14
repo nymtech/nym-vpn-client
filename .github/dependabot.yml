@@ -1,11 +1,20 @@
 version: 2
+multi-ecosystem-groups:
+  # tauri requires JS and Rust packages on the same major/minor,
+  # so both sides are bumped together in one PR
+  tauri:
+    schedule:
+      interval: weekly
+    assignees:
+      - "agentpietrucha"
+    milestone: 6
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
     assignees:
-      - "Bykow"
+      - "pronebird"
     milestone: 6
   - package-ecosystem: gradle
     directory: /nym-vpn-android
@@ -26,7 +35,7 @@ updates:
       interval: weekly
     milestone: 6
     assignees:
-      - "rokas-ambrazevicius"
+      - "pronebird"
   - package-ecosystem: cargo
     directory: /nym-vpn-core
     assignees:
@@ -45,6 +54,8 @@ updates:
           - "patch"
   # - package-ecosystem: cargo
   #   directory: /nym-vpn-app/src-tauri
+  #   assignees:
+  #     - "agentpietrucha"
   #   schedule:
   #     interval: weekly
   #   milestone: 6
@@ -56,12 +67,28 @@ updates:
   #         - "patch"
   - package-ecosystem: npm
     directory: /nym-vpn-app
+    assignees:
+      - "agentpietrucha"
     schedule:
       interval: weekly
     milestone: 6
+    ignore:
+      # updated by the tauri multi-ecosystem group
+      - dependency-name: "@tauri-apps/*"
     groups:
       patch-updates:
         patterns:
           - "*"
         update-types:
           - "patch"
+  - package-ecosystem: npm
+    directory: /nym-vpn-app
+    multi-ecosystem-group: tauri
+    patterns:
+      - "@tauri-apps/*"
+  - package-ecosystem: cargo
+    directory: /nym-vpn-app/src-tauri
+    multi-ecosystem-group: tauri
+    patterns:
+      - "tauri"
+      - "tauri-*"

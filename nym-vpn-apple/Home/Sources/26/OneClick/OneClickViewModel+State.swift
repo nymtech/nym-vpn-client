@@ -203,10 +203,9 @@ extension OneClickViewModel {
         if let typed = error as? ErrorReason {
             reason = typed
         } else {
-            let nsError = error as NSError
-            reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
+            reason = ErrorReason(nsError: error as NSError)
         }
-        guard reason == .inactiveSubscription else { return }
+        guard reason?.code == .inactiveSubscription else { return }
         sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
     }
 

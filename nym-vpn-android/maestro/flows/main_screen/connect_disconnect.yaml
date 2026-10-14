@@ -1,4 +1,4 @@
-# Full connect and disconnect round trip in Fast mode.
+# Full connect and disconnect round trip in dVPN mode.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
@@ -6,7 +6,7 @@ tags:
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-- tapOn: "Fast"
+- tapOn: "dVPN"
 - assertVisible: "NOT PROTECTED"
 
 - runFlow: ../../subflows/connect.yaml

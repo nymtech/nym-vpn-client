@@ -1,10 +1,13 @@
+# Searching for a server that does not exist shows the empty state.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
 - tapOn:
     text: "Safest"
-    index: 0
+    below: "Exit server"
 
 - assertNotVisible: "No results found."
 - assertVisible: "Germany"

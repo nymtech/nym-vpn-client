@@ -12,9 +12,13 @@ public struct GatewaySafestCell: View {
     private var isSelected: Bool {
         switch hopType {
         case .entry:
-            if case .auto = entryGateway { return true }
+            if case .auto = entryGateway {
+                return true
+            }
         case .exit:
-            if case .auto = exitRouter { return true }
+            if case .auto = exitRouter {
+                return true
+            }
         }
         return false
     }

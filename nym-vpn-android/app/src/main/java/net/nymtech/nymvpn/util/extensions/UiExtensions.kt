@@ -183,6 +183,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> context.getString(R.string.node_families_error_message)
 	ErrorStateReason.NeedsDeviceLocation -> context.getString(R.string.error_needs_device_location)
 	ErrorStateReason.ConnectionAttemptsExceeded -> context.getString(R.string.error_connection_attempts_exceeded)
+	ErrorStateReason.SetLocalDnsResolverConfig -> ""
 }
 
 fun VpnException.toUserMessage(context: Context): String = when (this) {

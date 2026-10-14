@@ -14,7 +14,7 @@
 //! import NymVpnLib
 //!
 //! // Configure logging
-//! initLogger(logDir: "/path/to/log/dir", logLevel: LogLevel::Info, sentryMonitoring: true)
+//! initLogger(logFilePath: "/path/to/log/dir/libnymvpn.log", logLevel: LogLevel::Info, sentryMonitoring: true)
 //! ```
 //!
 //! ## Environment initialization

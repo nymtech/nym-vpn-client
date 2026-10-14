@@ -158,45 +158,20 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Add Homebrew, Ruby to PATH
+      - name: Add Homebrew to PATH
         run: |
-          set -euxo pipefail
-
-          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
-          RUBY_PREFIX="$(brew --prefix ruby)"
-          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
-          export PATH="${RUBY_PREFIX}/bin:$PATH"
-
-          # Show versions for debugging
-          brew --version
-          ruby --version
-          gem --version
+          BREW_PREFIX=$(brew --prefix)
+          echo "$BREW_PREFIX/bin" >> "$GITHUB_PATH"
 
       - name: Install system dependencies
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: "1"
-          HOMEBREW_NO_INSTALL_CLEANUP: "1"
-          HOMEBREW_NO_INSTALL_UPGRADE: "1"
         run: |
-          set -euo pipefail
-          lock="$(brew --prefix)/var/homebrew/locks/ci-jobs"
-          mkdir -p "$(dirname "$lock")"
-          n=0
-          while ! mkdir "$lock" 2>/dev/null; do
-            n=$((n + 1))
-            if [ "$n" -gt 60 ]; then
-              echo "timed out waiting for brew lock" >&2
-              exit 1
-            fi
-            echo "waiting for brew lock ($n)..."
-            sleep 5
-          done
-          trap 'rmdir "$lock"' EXIT
-          brew install xcbeautify xmlstarlet jq brotli
-          brew uninstall homebrew/core/sentry-cli || true
+          brew install xcbeautify
+          brew install crowdin
+          brew install xmlstarlet
+          brew install jq
+          brew install brotli
           brew install getsentry/tools/sentry-cli
+          brew install fastlane
 
       - name: Set locale (for Fastlane)
         run: |
@@ -207,12 +182,6 @@ jobs:
         run: |
           echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
-
-      - name: Install fastlane
-        working-directory: nym-vpn-apple
-        run: |
-          bundle install
-          fastlane --version
 
       - name: Install python3
         run: |
@@ -651,12 +620,12 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          KEY_DIR="$HOME/private_keys"
-          mkdir -p "$KEY_DIR"
+          KEY_DIR="$GITHUB_WORKSPACE/private_keys"
           KEY_PATH="$KEY_DIR/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8"
+
+          mkdir -p "$KEY_DIR"
           echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
           echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
-          echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize PKG (Developer Installer ID)
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
@@ -753,11 +722,21 @@ jobs:
 
       - name: Cleanup Keychain
         if: always()
+        env:
+          ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euo pipefail
 
           echo "🧹 Cleaning up Codemagic keychain..."
-          keychain delete
+          if command -v keychain &> /dev/null; then
+            keychain delete
+          fi
+
+          echo "Removing ASC API key..."
+          if [[ -n "$ASC_KEY_PATH" && -f "$ASC_KEY_PATH" ]]; then
+            rm -f "$ASC_KEY_PATH"
+            echo "✅ Removed ASC API key"
+          fi
 
           echo "🧹 Removing downloaded certificates..."
           if [ -d "$CERTIFICATES_DIR" ]; then

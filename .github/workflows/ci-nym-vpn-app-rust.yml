@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/ci-nym-vpn-app-rust.yml"
       - "nym-vpn-app/src-tauri/**"
+      - "nym-vpn-app/package.json"
+      - "nym-vpn-app/package-lock.json"
       - "nym-vpn-core/crates/nym-vpn-proto/**"
   workflow_dispatch:
 
@@ -87,12 +89,17 @@ jobs:
 
       - name: clippy check
         working-directory: nym-vpn-app/src-tauri
-        run: cargo clippy -- -Dwarnings
+        run: cargo clippy --locked -- -Dwarnings
 
       - name: Generate TS types
         working-directory: nym-vpn-app/src-tauri
-        run: cargo test
+        run: cargo test --locked
 
       - name: Typecheck
         working-directory: nym-vpn-app
         run: npm run tscheck
+
+      - name: Build app
+        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest')
+        working-directory: nym-vpn-app
+        run: npm run tauri build -- --debug --no-bundle -- --locked

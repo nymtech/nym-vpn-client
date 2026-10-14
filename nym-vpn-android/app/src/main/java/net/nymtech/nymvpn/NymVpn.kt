@@ -294,6 +294,7 @@ class NymVpn : Application() {
 			}
 
 			options.isSendDefaultPii = false
+			options.isAttachViewHierarchy = false
 			options.sampleRate = sampleRate
 			options.profileSessionSampleRate = profileSampleRate
 			// Session Replay must stay disabled: its recorder thread holds

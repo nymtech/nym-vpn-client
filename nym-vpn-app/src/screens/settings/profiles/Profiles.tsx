@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { PROFILES } from '../../../constants';
+import { PROFILES, ProfilesLearnMoreUrl } from '../../../constants';
 import { useSetProfile } from '../../../hooks';
-import { MsIcon, PageAnim, ProfileIcon } from '../../../ui';
+import { Link, PageAnim, ProfileIcon } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 
 function Profiles() {
@@ -39,10 +39,13 @@ function Profiles() {
               isSelectingRef.current = false;
             }
           },
-          trailing: (
-            <MsIcon icon="chevron_right" className="text-text-primary" />
-          ),
         }))}
+      />
+      <Link
+        text={t('profiles.learnMore')}
+        url={ProfilesLearnMoreUrl}
+        color="primary"
+        icon
       />
     </PageAnim>
   );

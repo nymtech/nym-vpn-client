@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.functions.SecureScreen
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -39,6 +40,8 @@ fun PassphraseView(
 	onSubmitMnemonic: () -> Unit,
 	modifier: Modifier = Modifier,
 ) {
+	SecureScreen()
+
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val isError = mnemonicError != null
 
@@ -110,7 +113,6 @@ fun PassphraseView(
 						modifier = Modifier.fillMaxWidth(),
 						text = when (mnemonicError) {
 							MnemonicError.INVALID_RECOVERY_PHRASE -> stringResource(R.string.invalid_recovery_phrase)
-							null -> ""
 						},
 						color = MaterialTheme.colorScheme.error,
 					)

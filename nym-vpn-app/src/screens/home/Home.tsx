@@ -10,6 +10,7 @@ import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import { showsNetworkUpdateDialog } from './networkUpdate';
 import UpdateDialog from './UpdateDialog';
+import useExpiryReminderToast from './useExpiryReminderToast';
 import { NewBottomComponent } from './NewBottomComponent';
 import { TunnelState } from './TunnelState';
 
@@ -20,6 +21,7 @@ function Home() {
   const networkCompat = useAppStore((s) => s.networkCompat);
   useGatewayIndependenceWatcher();
   useDeviceLocationErrorToast();
+  useExpiryReminderToast();
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 

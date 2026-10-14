@@ -388,6 +388,11 @@ import PathManager
 #endif
         checkCredentialImport()
         appSettings.clearAllAccountTokens()
+        // Clear any expiry-reminder dismissal so the next account doesn't inherit a
+        // suppressed reminder — the `expired|0` key (inactive, no expiry date) would
+        // otherwise collide across accounts.
+        appSettings.expiryReminderDismissedTier = ""
+        appSettings.expiryReminderDismissedValidUntil = 0
 #if SANTA
         isAccountSummaryOverridden = false
 #endif
@@ -482,7 +487,9 @@ import PathManager
     /// Uses `isActive` from AccountSummary (backend source of truth),
     /// falling back to local date check if accountSummary is nil.
     public func isAccountValid() async -> Bool {
-        if isMockMode { return true }
+        if isMockMode {
+            return true
+        }
         if isAccountActive() {
             return true
         } else {
@@ -494,9 +501,13 @@ import PathManager
     /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
         // Mock has no account summary — treat the seeded session as active (else the home shows the paywall).
-        if isMockMode { return true }
+        if isMockMode {
+            return true
+        }
         if let accountSummary {
-            if accountSummary.isActive { return true }
+            if accountSummary.isActive {
+                return true
+            }
             if let validUntilDate = accountSummary.validUntilDate,
                validUntilDate > Date() {
                 return true
@@ -644,15 +655,50 @@ extension CredentialsManager {
         guard isValidCredentialImported else { return }
 #if os(iOS)
         do {
-            try await refreshAccountSummaryOnIOS(untilActive: false, trigger: .general)
+            try await refreshAccountSummaryFromVpnApi()
         } catch {
             accountSummaryLastFetchFailed = true
             throw error
         }
 #elseif os(macOS)
         do {
-            accountSummary = try await grpcManager.accountSummary()
-            accountSummaryLastFetchFailed = false
+            let before = try await grpcManager.accountSummarySyncMark()
+            try await grpcManager.refreshAccountState()
+            let started = ContinuousClock.now
+            var sawStale = false
+            while true {
+                let mark = try await grpcManager.accountSummarySyncMark()
+                sawStale = sawStale || mark?.stale == true
+                let elapsedSinceRefresh = TimeInterval(started.duration(to: .now).components.seconds)
+                switch AccountSummaryRefreshPolicy.manualRefreshPoll(
+                    hasSummary: mark != nil,
+                    stale: mark?.stale == true,
+                    sawStale: sawStale,
+                    lastSyncedUnixSeconds: mark?.lastSyncedUnixSeconds,
+                    syncedBeforeRefresh: before?.lastSyncedUnixSeconds,
+                    elapsedSeconds: elapsedSinceRefresh,
+                    followUpMissing: false
+                ) {
+                case .keepWaiting:
+                    try await Task.sleep(for: .milliseconds(400))
+                case .apply:
+                    let summary = try await grpcManager.accountSummary()
+                    guard AccountSummaryRefreshPolicy.manualRefreshPoll(
+                        hasSummary: summary != nil,
+                        stale: false,
+                        sawStale: summary != nil,
+                        lastSyncedUnixSeconds: nil,
+                        syncedBeforeRefresh: nil,
+                        elapsedSeconds: 0,
+                        followUpMissing: summary == nil
+                    ) == .apply, let summary else { throw AccountDaemonRefreshError.summaryUnavailable }
+                    accountSummary = summary
+                    accountSummaryLastFetchFailed = false
+                    return
+                case .giveUp:
+                    throw AccountDaemonRefreshError.timedOut
+                }
+            }
         } catch {
             accountSummaryLastFetchFailed = true
             throw error
@@ -663,13 +709,12 @@ extension CredentialsManager {
     private func resetExpiryDismissalsIfNeeded() {
         guard let accountSummary,
               accountSummary.isActive,
-              !accountSummary.isExpiringSoon,
-              !accountSummary.isExpiringWarning
+              accountSummary.expiryReminderTier() == .none
         else {
             return
         }
-        appSettings.expiryWarningDismissedAt = 0
-        appSettings.expirySoonDismissedAt = 0
+        appSettings.expiryReminderDismissedTier = ""
+        appSettings.expiryReminderDismissedValidUntil = 0
     }
 }
 
@@ -683,7 +728,7 @@ extension CredentialsManager {
         grpcManager.$errorReason.sink { [weak self] error in
             guard let self,
                   let errorReason = error as? ErrorReason,
-                  errorReason == .noAccountStored
+                  errorReason.code == .noAccountStored
             else {
                 return
             }

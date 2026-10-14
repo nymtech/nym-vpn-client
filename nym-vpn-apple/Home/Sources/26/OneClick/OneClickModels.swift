@@ -17,6 +17,20 @@ public enum OneClickConnectState: Equatable {
 public enum OneClickDisplayMode: String, Codable, Equatable, Sendable, CaseIterable {
     case powerUser
     case nerd
+
+    var caretSlot: OneClickCaretSlot {
+        switch self {
+        case .powerUser:
+            .exitInfoStack
+        case .nerd:
+            .exitLabel
+        }
+    }
+}
+
+enum OneClickCaretSlot: Equatable {
+    case exitInfoStack
+    case exitLabel
 }
 
 public enum OneClickSpeedMode: String, Codable, Equatable, Sendable, CaseIterable {
@@ -100,7 +114,9 @@ public enum OneClickSelectionPhase: Equatable {
     case selected(OneClickServerInfo)
 
     var selectedInfo: OneClickServerInfo? {
-        if case let .selected(info) = self { return info }
+        if case let .selected(info) = self {
+            return info
+        }
         return nil
     }
 }

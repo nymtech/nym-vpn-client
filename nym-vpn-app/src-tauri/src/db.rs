@@ -34,6 +34,7 @@ pub enum Key {
     LastNetworkEnv,
     NetworkStatsEnabled,
     CustomSplitTunnelApps,
+    ExpiryReminderShown,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,

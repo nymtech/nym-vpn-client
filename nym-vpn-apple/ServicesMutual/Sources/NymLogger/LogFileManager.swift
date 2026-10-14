@@ -45,10 +45,13 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
 
         var hasLogFiles = false
         for logFileType in LogFileType.allCases {
-            if let logURL = logFileURL(logFileType: logFileType),
-                fileManager.fileExists(atPath: logURL.path(percentEncoded: false)) {
-                let destinationURL = logsDirectory.appendingPathComponent(logURL.lastPathComponent)
-                try? fileManager.copyItem(at: logURL, to: destinationURL)
+            guard let logURL = logFileURL(logFileType: logFileType) else { continue }
+            let oldLogURL = logURL.deletingPathExtension().appendingPathExtension("old.log")
+
+            for sourceURL in [logURL, oldLogURL]
+            where fileManager.fileExists(atPath: sourceURL.path(percentEncoded: false)) {
+                let destinationURL = logsDirectory.appendingPathComponent(sourceURL.lastPathComponent)
+                try? fileManager.copyItem(at: sourceURL, to: destinationURL)
                 hasLogFiles = true
             }
         }
@@ -103,9 +106,12 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
         let fileName: String
 #if os(iOS)
-        if logFileType == .library {
+        switch logFileType {
+        case .library:
             fileName = Constants.logFileName.rawValue
-        } else {
+        case .appLibrary:
+            fileName = Constants.appLibraryLogFileName.rawValue
+        case .app, .tunnel:
             fileName = "\(logFileType.rawValue)\(Constants.logFileName.rawValue)"
         }
 #elseif os(macOS)
@@ -142,13 +148,16 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         ioQueue.async { [weak self] in
             guard let self else { return }
 
+            try? self.fileHandle?.close()
+            self.fileHandle = nil
+
             LogFileType.allCases.forEach { type in
                 guard let logFileURL = LogFileManager.logFileURL(logFileType: type) else { return }
                 try? FileManager.default.removeItem(at: logFileURL)
-            }
 
-            try? self.fileHandle?.close()
-            self.fileHandle = nil
+                let oldLogFileURL = logFileURL.deletingPathExtension().appendingPathExtension("old.log")
+                try? FileManager.default.removeItem(at: oldLogFileURL)
+            }
 
             // Post notification on the main actor
             Task { @MainActor in

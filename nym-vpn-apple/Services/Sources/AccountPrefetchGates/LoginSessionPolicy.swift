@@ -12,8 +12,12 @@ public enum LoginSessionPolicy: Equatable, Sendable {
         validUntilIsFuture: Bool,
         hasAccountSummary: Bool
     ) -> Bool {
-        if isAccountActive { return true }
-        if hasAccountSummary, validUntilIsFuture { return true }
+        if isAccountActive {
+            return true
+        }
+        if hasAccountSummary, validUntilIsFuture {
+            return true
+        }
         return false
     }
 }

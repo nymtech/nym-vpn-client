@@ -47,6 +47,7 @@ class VpnCoreController(
 ) {
 	companion object {
 		private const val TAG = "core-vpn"
+		private const val CORE_LOG_FILE = "libnymvpn.log"
 	}
 
 	private val configRepo: CoreVpnConfigRepository by lazy(LazyThreadSafetyMode.NONE) {
@@ -286,9 +287,12 @@ class VpnCoreController(
 		}
 
 		val storagePath = service.filesDir.absolutePath
-		val logPath = "$storagePath${File.separator}logs"
+		val logDir = "$storagePath${File.separator}logs"
 		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
-		initLogger(storagePath, level, sentryMonitoring = sentry)
+		val serviceLogFile = "$logDir${File.separator}$CORE_LOG_FILE"
+		// Leftover from the old log location
+		runCatching { File(storagePath, CORE_LOG_FILE).delete() }
+		initLogger(serviceLogFile, level, sentryMonitoring = sentry)
 
 		val env =
 			if (useMainnetFallback) {
@@ -310,7 +314,7 @@ class VpnCoreController(
 		val initialConfig = VpnConfig(
 			configDir = storagePath,
 			dataDir = storagePath,
-			logDir = logPath,
+			logDir = logDir,
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,

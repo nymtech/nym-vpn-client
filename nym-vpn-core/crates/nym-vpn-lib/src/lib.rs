@@ -18,7 +18,6 @@ pub mod sentry;
 pub mod service;
 #[cfg(not(target_os = "ios"))]
 pub(crate) mod socks5_proxy;
-mod tunnel_health;
 #[cfg(any(target_os = "ios", target_os = "android", test))]
 pub mod tunnel_provider;
 pub mod tunnel_state_machine;

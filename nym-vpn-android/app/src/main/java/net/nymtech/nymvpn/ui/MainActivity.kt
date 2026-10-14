@@ -10,9 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -34,8 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -46,6 +44,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
+import net.nymtech.nymvpn.ui.common.navigation.AppNavHost
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
@@ -213,31 +212,21 @@ class MainActivity : AppCompatActivity() {
 								)
 							},
 						) { padding ->
-							NavHost(
+							AppNavHost(
 								navController = navController,
 								startDestination = Route.Splash,
 								modifier = Modifier
 									.fillMaxSize()
 									.padding(padding),
-								enterTransition = { fadeIn(tween(200)) },
-								exitTransition = { fadeOut(tween(200)) },
-								popEnterTransition = { fadeIn(tween(200)) },
-								popExitTransition = { fadeOut(tween(200)) },
+								useFade = { initialState.isTopLevel() || targetState.isTopLevel() },
 							) {
-								composable<Route.Splash>(
-									exitTransition = { fadeOut(tween(150)) },
-									popEnterTransition = { fadeIn(tween(200)) },
-								) { SplashScreen(appViewModel, appState, topOffset = padding.calculateTopPadding()) }
+								composable<Route.Splash> {
+									SplashScreen(appViewModel, appState, topOffset = padding.calculateTopPadding())
+								}
 
-								composable<Route.Onboarding>(
-									enterTransition = { fadeIn(tween(200)) },
-									exitTransition = { fadeOut(tween(150)) },
-								) { OnboardingScreen() }
+								composable<Route.Onboarding> { OnboardingScreen() }
 
-								composable<Route.Main>(
-									enterTransition = { fadeIn() },
-									exitTransition = { fadeOut() },
-								) {
+								composable<Route.Main> {
 									val args = it.toRoute<Route.Main>()
 									MainScreen(
 										appViewModel,
@@ -260,10 +249,7 @@ class MainActivity : AppCompatActivity() {
 									}
 								}
 
-								composable<Route.Settings>(
-									enterTransition = { fadeIn() },
-									exitTransition = { fadeOut() },
-								) {
+								composable<Route.Settings> {
 									val args = it.toRoute<Route.Settings>()
 									SettingsScreen(appState, appViewModel, args.showVpnSettings)
 								}
@@ -433,3 +419,8 @@ class MainActivity : AppCompatActivity() {
 		Route.Main(autoStart = false)
 	}
 }
+
+// Top-level swaps fade; everything below them uses shared axis X.
+private fun NavBackStackEntry.isTopLevel(): Boolean = destination.hasRoute(Route.Splash::class) ||
+	destination.hasRoute(Route.Onboarding::class) ||
+	destination.hasRoute(Route.Main::class)

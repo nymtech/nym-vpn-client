@@ -83,10 +83,6 @@ use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
     bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
-    tunnel_health::{
-        METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown,
-        should_treat_metadata_as_connect_viable,
-    },
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
@@ -815,10 +811,6 @@ impl TunnelMonitor {
         let mut has_sent_up_event = false;
         let mut ping_viable = false;
         let mut metadata_endpoint_viable = false;
-        let mut consecutive_deferred_probe_failures = 0u32;
-        let metadata_path_health = wg_tunnel_runtime
-            .as_ref()
-            .map(|runtime| runtime.metadata_path_health.clone());
         let connection_data = Box::new(ConnectionData {
             entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
             exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
@@ -840,7 +832,6 @@ impl TunnelMonitor {
                         match event.status {
                             ConnectionStatusEvent::Viable => {
                                 ping_viable = true;
-                                consecutive_deferred_probe_failures = 0;
                                 if !has_sent_up_event && metadata_endpoint_viable {
                                     tracing::info!("Tunnel connection is viable");
                                     has_sent_up_event = true;
@@ -854,48 +845,12 @@ impl TunnelMonitor {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
                             ConnectionStatusEvent::Failed => {
-                                if should_defer_probe_teardown(
-                                    uses_metadata_endpoint,
-                                    metadata_path_health.as_ref(),
-                                    METADATA_PATH_HEALTH_GRACE,
-                                    consecutive_deferred_probe_failures,
-                                ) {
-                                    consecutive_deferred_probe_failures =
-                                        consecutive_deferred_probe_failures.saturating_add(1);
-                                    tracing::warn!(
-                                        consecutive_deferred_probe_failures,
-                                        max_consecutive_deferred_probe_failures =
-                                            crate::tunnel_health::MAX_CONSECUTIVE_DEFERRED_PROBE_FAILURES,
-                                        "Probe declared tunnel down but in-tunnel metadata path recently succeeded; deferring teardown"
-                                    );
-                                    last_connection_status = None;
-                                } else if should_treat_metadata_as_connect_viable(
-                                    uses_metadata_endpoint,
-                                    metadata_path_health.as_ref(),
-                                    METADATA_PATH_HEALTH_GRACE,
-                                ) {
-                                    if !has_sent_up_event {
-                                        tracing::info!(
-                                            "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
-                                        );
-                                        has_sent_up_event = true;
-                                        self.send_event(TunnelMonitorEvent::Up {
-                                            tunnel_interface: tunnel_interface.clone(),
-                                            connection_data: connection_data.clone(),
-                                        });
-                                    }
-                                } else {
-                                    tracing::info!("Tunnel connection is down. Exiting");
-                                    self.send_event(TunnelMonitorEvent::ConnectionFailed {
-                                        entry_gateway_id: selected_gateways
-                                            .entry_gateway()
-                                            .identity(),
-                                        exit_gateway_id: selected_gateways
-                                            .exit_gateway()
-                                            .identity(),
-                                    });
-                                    break;
-                                }
+                                tracing::info!("Tunnel connection is down. Exiting");
+                                self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                                    entry_gateway_id: selected_gateways.entry_gateway().identity(),
+                                    exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                                });
+                                break;
                             }
                         }
                     }
@@ -908,9 +863,6 @@ impl TunnelMonitor {
                         break;
                     }
                     if !reachable.1 {
-                        if let Some(health) = metadata_path_health.as_ref() {
-                            health.clear_health();
-                        }
                         tracing::info!("Exit metadata endpoint not reachable. Exiting");
                         self.send_event(TunnelMonitorEvent::ConnectionFailed {
                             entry_gateway_id: selected_gateways.entry_gateway().identity(),
@@ -919,13 +871,7 @@ impl TunnelMonitor {
                         break;
                     } else {
                         metadata_endpoint_viable = true;
-                        consecutive_deferred_probe_failures = 0;
-                        let metadata_connect_viable = should_treat_metadata_as_connect_viable(
-                            uses_metadata_endpoint,
-                            metadata_path_health.as_ref(),
-                            METADATA_PATH_HEALTH_GRACE,
-                        );
-                        if !has_sent_up_event && (ping_viable || metadata_connect_viable) {
+                        if !has_sent_up_event && ping_viable {
                             tracing::info!("Tunnel connection is viable");
                             has_sent_up_event = true;
                             self.send_event(TunnelMonitorEvent::Up {
@@ -1253,8 +1199,6 @@ impl TunnelMonitor {
             .borrow()
             .gw_update_version();
 
-        let metadata_path_health = MetadataPathHealth::new();
-
         let bw = BandwidthMonitor::create(
             self.bandwidth_command_tx.clone(),
             self.skew_manager.clone(),
@@ -1267,7 +1211,6 @@ impl TunnelMonitor {
             exit_signal_rx,
             gw_update_version,
             self.shutdown_token.clone(),
-            metadata_path_health.clone(),
         );
 
         let authenticator_listener_handle = match authenticator_listener_handle {
@@ -1288,7 +1231,6 @@ impl TunnelMonitor {
             bandwidth_monitor_handle,
             transport_fwd_handle: None,
             authenticator_listener_handle,
-            metadata_path_health,
         };
 
         let connection_data = WgConnectionData {
@@ -2170,7 +2112,6 @@ struct WgTunnelRuntime {
     bandwidth_monitor_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
     authenticator_listener_handle: Option<AuthClientMixnetListenerHandle>,
-    metadata_path_health: MetadataPathHealth,
 }
 
 impl WgTunnelRuntime {

@@ -43,37 +43,6 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 				),
 			)
 
-// 			add(
-// 				SelectionItem(
-// 					leading = {
-// 						Icon(
-// 							ImageVector.vectorResource(R.drawable.ic_system_tray),
-// 							stringResource(R.string.settings_system_tray_title),
-// 							modifier = Modifier.size(iconSize.scaledWidth()),
-// 							tint = MaterialTheme.colorScheme.outline,
-// 						)
-// 					},
-// 					trailing = {
-// 						ScaledSwitch(
-// 							checked = values.appSystemTrayEnabled,
-// 							onClick = actions.onSystemTrayEnable,
-// 						)
-// 					},
-// 					title = {
-// 						Text(
-// 							stringResource(R.string.settings_system_tray_title),
-// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-// 						)
-// 					},
-// 					description = {
-// 						Text(
-// 							stringResource(R.string.settings_system_tray_description),
-// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-// 						)
-// 					},
-// 				),
-// 			)
-
 			add(
 				SelectionItem(
 					leading = {

@@ -1,4 +1,7 @@
+# Split tunnelling screen renders its state and filters the app list by search.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
@@ -8,9 +11,39 @@ appId: net.nymtech.nymvpn.mock.debug
     text: "Split tunneling"
     index: 1
 
-- assertVisible: "Set each app to use NymVPN or connect directly."
+- extendedWaitUntil:
+    visible:
+      text: "Set each app to use NymVPN or connect directly."
+    timeout: 10000
+
+- assertVisible: "Apps"
 - assertVisible: "Direct"
+- assertVisible: "Bypass NymVPN"
 - assertVisible: "Via NymVPN"
+- assertVisible: "Protected when connected"
 - assertVisible: "Save changes"
 
+- assertVisible:
+    text: "\\(0\\)"
+    rightOf: "Direct"
 
+- assertVisible: "System applications"
+- assertVisible: "Calendar"
+- assertVisible: "Messaging"
+
+- tapOn: "Search apps"
+- inputText: "Calendar"
+
+- extendedWaitUntil:
+    visible:
+      text: "Calendar"
+    timeout: 10000
+- assertNotVisible: "Messaging"
+- assertNotVisible: "WebView Shell"
+
+- eraseText
+- extendedWaitUntil:
+    visible:
+      text: "Messaging"
+    timeout: 10000
+- assertVisible: "Calendar"

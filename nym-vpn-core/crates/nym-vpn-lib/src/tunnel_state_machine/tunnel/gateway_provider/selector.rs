@@ -305,7 +305,12 @@ fn select_entry(
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
-    let entry_filters = if blacklisted_gateways.is_empty().unwrap_or(true) {
+    // A gateway picked by identity is the user's call, so the blacklist does not exclude it.
+    let pinned_entry = matches!(
+        tunnel_settings.entry_point.as_ref(),
+        nym_vpn_lib_types::EntryPoint::Gateway { .. }
+    );
+    let entry_filters = if pinned_entry || blacklisted_gateways.is_empty().unwrap_or(true) {
         GatewayFilters::default()
     } else {
         GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())])
@@ -352,7 +357,11 @@ fn select_exit(
         exit_filter_items.push(GatewayFilter::Exit);
         exit_filter_items.push(GatewayFilter::Residential);
     }
-    if !blacklisted_gateways.is_empty().unwrap_or(true) {
+    let pinned_exit = matches!(
+        tunnel_settings.exit_point.as_ref(),
+        nym_vpn_lib_types::ExitPoint::Gateway { .. } | nym_vpn_lib_types::ExitPoint::Address { .. }
+    );
+    if !pinned_exit && !blacklisted_gateways.is_empty().unwrap_or(true) {
         exit_filter_items.push(GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()));
     }
     let exit_filters = GatewayFilters::from(&exit_filter_items);
@@ -549,7 +558,7 @@ mod tests {
     use std::sync::Arc;
 
     use nym_gateway_directory::{
-        Asn, AsnKind, BlacklistedGateways, Location, Performance, ScoreValue,
+        Asn, AsnKind, BlacklistReason, BlacklistedGateways, Location, Performance, ScoreValue,
     };
     use nym_vpn_lib_types::{EntryPoint, ExitPoint, GatewayIndependence};
     use nym_vpn_store::keys::wireguard::WireguardKeysDb;
@@ -700,5 +709,59 @@ mod tests {
         .await;
 
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn pinned_gateways_ignore_the_blacklist() {
+        let asn = Asn {
+            asn: "AS100".to_string(),
+            name: "ISP".to_string(),
+            route: "10.10.10.10/16".parse().unwrap(),
+            kind: AsnKind::Other,
+        };
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            make_gw_with_asn(GW_ID_1, asn.clone()),
+            make_gw_with_asn(GW_ID_2, asn),
+        ])));
+        let blacklisted_gateways = BlacklistedGateways::new();
+        for id in [GW_ID_1, GW_ID_2] {
+            let identity = id.parse().unwrap();
+            blacklisted_gateways
+                .add(identity, BlacklistReason::ConnectionFailed)
+                .unwrap();
+        }
+
+        let mut settings = default_tunnel_settings();
+        *settings.entry_point = EntryPoint::Gateway {
+            identity: GW_ID_1.parse().unwrap(),
+        };
+        *settings.exit_point = ExitPoint::Gateway {
+            identity: GW_ID_2.parse().unwrap(),
+        };
+        let selected = select_gateways(
+            MockGatewayCache::new(gateways.clone()),
+            &blacklisted_gateways,
+            &settings,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await
+        .unwrap();
+        assert_eq!(selected.entry_gateway().identity().to_string(), GW_ID_1);
+        assert_eq!(selected.exit_gateway().identity().to_string(), GW_ID_2);
+
+        // An unpinned entry still honours the blacklist.
+        *settings.entry_point = EntryPoint::Random;
+        let result = select_gateways(
+            MockGatewayCache::new(gateways),
+            &blacklisted_gateways,
+            &settings,
+            None,
+            None,
+            &WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+        assert!(result.is_err());
     }
 }

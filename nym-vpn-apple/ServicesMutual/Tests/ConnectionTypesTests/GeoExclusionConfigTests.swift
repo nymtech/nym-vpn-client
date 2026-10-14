@@ -50,7 +50,7 @@ import Testing
     @Test func sanitizedPortTextStripsNonDigits() {
         #expect(Config.sanitizedPortText("12ab3") == "123")
         #expect(Config.sanitizedPortText("10 80") == "1080")
-        #expect(Config.sanitizedPortText("abcd") == "")
+        #expect(Config.sanitizedPortText("abcd").isEmpty)
     }
 
     @Test func sanitizedPortTextCapsAtFiveDigits() {

@@ -12,5 +12,10 @@ tags:
       text: "Account and devices"
     timeout: 10000
 
-- assertVisible: "Appearance"
 - assertVisible: "Anti-censorship"
+
+- scrollUntilVisible:
+    element:
+      text: "Appearance"
+    direction: DOWN
+- assertVisible: "Appearance"

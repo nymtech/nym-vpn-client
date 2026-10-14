@@ -1,25 +1,55 @@
-# Switching between Fast and Mixnet modes, and that the choice persists.
+# Switching between dVPN and Mixnet modes; each switch is confirmed by the connected banner.
 appId: net.nymtech.nymvpn.mock.debug
 tags:
   - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
-- assertVisible: "Fast"
+- assertVisible: "dVPN"
 - assertVisible: "Mixnet"
-- assertVisible: "NOT PROTECTED"
-
-- tapOn: "Mixnet"
-- assertVisible: "Mixnet"
-- assertVisible: "NOT PROTECTED"
-
-- tapOn: "Fast"
-- assertVisible: "Fast"
 - assertVisible: "NOT PROTECTED"
 
 - tapOn: "Mixnet"
 - tapOn: "Settings"
 - assertVisible: "Settings"
 - back
-- assertVisible: "Mixnet"
+- assertVisible: "Connect"
+
+- runFlow: ../../subflows/connect.yaml
+
+- extendedWaitUntil:
+    visible:
+      text: "MIXNET PROTECTION"
+    timeout: 30000
+- assertVisible: "Disconnect"
+
+- tapOn: "Disconnect"
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 30000
+
+- tapOn: "dVPN"
+- runFlow: ../../subflows/connect.yaml
+
+- extendedWaitUntil:
+    visible:
+      text: "FAST MODE PROTECTION"
+    timeout: 30000
+
+- tapOn: "Disconnect"
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 30000
 - assertVisible: "Connect"

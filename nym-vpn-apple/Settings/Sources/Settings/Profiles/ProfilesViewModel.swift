@@ -2,6 +2,8 @@ import Combine
 import SwiftUI
 import ConnectionManager
 import ConnectionTypes
+import Constants
+import ExternalLinkManager
 
 @MainActor public final class ProfilesViewModel: ObservableObject {
     private let connectionManager: ConnectionManager
@@ -31,6 +33,10 @@ extension ProfilesViewModel {
 
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    func learnMore() {
+        try? ExternalLinkManager.shared.openExternalURL(urlString: Constants.profilesLearnMoreURL.rawValue)
     }
 }
 

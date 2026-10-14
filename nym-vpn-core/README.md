@@ -271,7 +271,7 @@ export ANDROID_NDK_HOME="/opt/android/android-ndk-r28c"
 export NDK_TOOLCHAIN_DIR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
 # macos
-export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/28.0.12433566
+export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/28.0.12433566
 export NDK_TOOLCHAIN_DIR=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin
 
 make -C nym-vpn-core -f Android.mk
@@ -338,6 +338,21 @@ make -C nym-vpn-core -f Android.mk
 - `NYM_NET_CLS_MOUNT_DIR` - On Linux, forces the daemon to mount the `net_cls` controller in the
   specified directory if it isn't mounted already. This will only have an effect on older systems
   where cgroup v1 is used for split tunneling.
+
+## Log file locations
+
+| OS | Current log | Previous log |
+|---|---|---|
+| Linux | `/var/log/nym-vpnd/nym-vpnd.log` | `/var/log/nym-vpnd/nym-vpnd.old.log` |
+| macOS | `/var/log/nym-vpnd/nym-vpnd.log` | `/var/log/nym-vpnd/nym-vpnd.old.log` |
+| Windows | `%ProgramData%\nym-vpnd\log\nym-vpnd.log` | `%ProgramData%\nym-vpnd\log\nym-vpnd.old.log` |
+| iOS (network extension) | `<group.net.nymtech.vpn>/net.nymtech.vpn/Logs/libnymvpn.log` | `<group.net.nymtech.vpn>/net.nymtech.vpn/Logs/libnymvpn.old.log` |
+| iOS (app) | `<group.net.nymtech.vpn>/net.nymtech.vpn/Logs/libnymvpn-app.log` | `<group.net.nymtech.vpn>/net.nymtech.vpn/Logs/libnymvpn-app.old.log` |
+| Android | `/data/data/net.nymtech.nymvpn/files/logs/libnymvpn.log` | `/data/data/net.nymtech.nymvpn/files/logs/libnymvpn.old.log` |
+
+`%ProgramData%` is usually `C:\ProgramData`. On iOS, `<group.net.nymtech.vpn>` is the shared App
+Group container of the app and its packet tunnel extension. On Android, non-release builds use an
+application ID suffix (e.g. `net.nymtech.nymvpn.debug`).
 
 ## Firewall logging
 

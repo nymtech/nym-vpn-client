@@ -517,6 +517,7 @@ private extension SettingsViewModel {
                 title: "settings.proxy.title".localizedString,
                 subtitle: "settings.proxy.subtitle".localizedString,
                 imageName: "proxy",
+                badge: "general.beta".localizedString,
                 action: { [weak self] in
                     Task { @MainActor in
                         self?.navigateToProxy()

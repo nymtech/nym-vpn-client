@@ -4,10 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -33,6 +37,9 @@ fun MainAlerts(
 	onDismissExpiryBanner: () -> Unit,
 	onRenewSubscription: () -> Unit,
 	onNavigateToSelectPlan: () -> Unit,
+	isLoggedIn: Boolean,
+	isScreenLockSet: () -> Boolean,
+	onSetUpScreenLock: () -> Unit,
 ) {
 	val context = LocalContext.current
 	var expiredAlertShown by rememberSaveable { mutableStateOf(false) }
@@ -131,5 +138,44 @@ fun MainAlerts(
 			)
 			else -> AlertController.dismiss(id = AlertId.ConnectionError)
 		}
+	}
+
+	val noScreenLockTitle = stringResource(R.string.screen_lock_card_title)
+	val noScreenLockBody = stringResource(R.string.screen_lock_card_body)
+	val noScreenLockAction = stringResource(R.string.screen_lock_setup_button)
+	val currentIsScreenLockSet by rememberUpdatedState(isScreenLockSet)
+	val currentOnSetUpScreenLock by rememberUpdatedState(onSetUpScreenLock)
+	val activeAlert by AlertController.message.collectAsStateWithLifecycle()
+	val isAlertSlotFree = activeAlert == null
+	// session-only: the alert comes back on the next app launch
+	var noScreenLockDismissed by rememberSaveable { mutableStateOf(false) }
+	// the alert's action button also triggers onDismiss, so only the close icon counts as a dismissal
+	var noScreenLockSetupClicked by remember { mutableStateOf(false) }
+	LifecycleResumeEffect(isLoggedIn, isAlertSlotFree, noScreenLockDismissed) {
+		if (isLoggedIn && !currentIsScreenLockSet() && !noScreenLockDismissed) {
+			val current = AlertController.message.value
+			if (current == null || current.id == AlertId.NoScreenLock) {
+				AlertController.show(
+					AlertMessage(
+						type = AlertType.Warning,
+						title = noScreenLockTitle,
+						body = noScreenLockBody,
+						action = AlertAction(noScreenLockAction) {
+							noScreenLockSetupClicked = true
+							currentOnSetUpScreenLock()
+						},
+						duration = Long.MAX_VALUE,
+						onDismiss = {
+							if (noScreenLockSetupClicked) noScreenLockSetupClicked = false else noScreenLockDismissed = true
+						},
+						id = AlertId.NoScreenLock,
+						dismissable = true,
+					),
+				)
+			}
+		} else {
+			AlertController.dismiss(id = AlertId.NoScreenLock)
+		}
+		onPauseOrDispose {}
 	}
 }

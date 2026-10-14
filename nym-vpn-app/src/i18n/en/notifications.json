@@ -23,5 +23,27 @@
     "intercepted-dns": "Something on this system appears to be intercepting DNS queries, which may interfere with connectivity.",
     "competing-vpn": "Another VPN client's tunnel appears to be active alongside NymVPN's, which may interfere with connectivity.",
     "competing-firewall": "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity."
+  },
+  "renewal-reminder": {
+    "days": {
+      "subscription_one": "Your plan expires in {{count}} day",
+      "subscription_other": "Your plan expires in {{count}} days",
+      "freepass_one": "Your free pass expires in {{count}} day",
+      "freepass_other": "Your free pass expires in {{count}} days"
+    },
+    "hours": {
+      "subscription_one": "Your plan expires in {{count}} hour",
+      "subscription_other": "Your plan expires in {{count}} hours",
+      "freepass_one": "Your free pass expires in {{count}} hour",
+      "freepass_other": "Your free pass expires in {{count}} hours"
+    },
+    "expired": {
+      "subscription": "Your plan has expired",
+      "freepass": "Your free pass has expired"
+    },
+    "action": {
+      "renew": "Renew now",
+      "get-plan": "Get a plan"
+    }
   }
 }

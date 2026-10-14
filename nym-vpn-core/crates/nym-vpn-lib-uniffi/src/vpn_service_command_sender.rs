@@ -54,12 +54,14 @@ impl std::fmt::Display for NymVpnServiceCommandInnerError {
 #[derive(Debug, uniffi::Object)]
 #[uniffi::export(Display)]
 pub struct NymVpnServiceCommandError {
-    inner: NymVpnServiceCommandInnerError,
+    inner: Box<NymVpnServiceCommandInnerError>,
 }
 
 impl NymVpnServiceCommandError {
     fn new(inner: NymVpnServiceCommandInnerError) -> Self {
-        Self { inner }
+        Self {
+            inner: Box::new(inner),
+        }
     }
 }
 

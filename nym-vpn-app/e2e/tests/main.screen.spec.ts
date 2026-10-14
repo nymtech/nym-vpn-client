@@ -37,7 +37,7 @@ test.describe('MainScreen', () => {
     await expect(mainPage.serverRow('Entry')).toBeVisible();
     await expect(mainPage.serverRow('Exit')).toBeVisible();
     await expect(mainPage.serverRow('Entry')).toContainText(
-      'Safest server selection',
+      'Auto server selection',
     );
   });
 

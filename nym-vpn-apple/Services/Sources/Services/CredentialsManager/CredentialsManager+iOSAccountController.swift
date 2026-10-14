@@ -157,15 +157,15 @@ extension CredentialsManager {
         switch reason {
         case .inactiveSubscription:
             return .inactiveSubscription
-        case .accountStatusNotActive(let status):
+        case let .accountStatusNotActive(status):
             return .accountStatusNotActive(status: status)
-        case .storage(let context, let details):
+        case let .storage(context, details):
             return .storage(context: context, details: details)
-        case .apiFailure(let context, let details):
+        case let .apiFailure(context, details):
             return .apiFailure(context: context, details: details)
-        case .`internal`(let context, let details):
+        case let .`internal`(context, details):
             return .internalError(context: context, details: details)
-        case .bandwidthExceeded(let context):
+        case let .bandwidthExceeded(context):
             return .bandwidthExceeded(context: context)
         case .maxDeviceReached:
             return .maxDeviceReached
@@ -211,6 +211,23 @@ extension CredentialsManager {
         case subscriptionPayment
     }
 
+    private enum AccountBarRefreshError: Error { case summaryNotUpdated }
+
+    func refreshAccountSummaryFromVpnApi() async throws {
+        let environment = try resolvedRegistrationEnvironment()
+        let summary = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            return try await NymVpnAccountStorage(dataDir: dataDir, environment: environment).getAccountSummary()
+        }.value
+        guard let summary else { throw VPNErrorReason.noAccountStored }
+        let now = Int64(Date().timeIntervalSince1970)
+        guard AccountSummaryRefreshPolicy.isFreshVpnApiSummary(
+            lastSyncedUnixSeconds: summary.lastSyncedUtc,
+            nowUnixSeconds: now
+        ) else { throw AccountBarRefreshError.summaryNotUpdated }
+        applyVpnAccountSummary(summary)
+    }
+
     func refreshAccountSummaryOnIOS(
         untilActive: Bool,
         trigger: AccountSummaryRefreshTrigger = .general
@@ -240,7 +257,9 @@ extension CredentialsManager {
                     }
                     applyVpnAccountSummary(summary)
                     if untilActive {
-                        if summary.isSubscriptionActive() { return }
+                        if summary.isSubscriptionActive() {
+                            return
+                        }
                     } else {
                         return
                     }

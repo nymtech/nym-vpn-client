@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">Saluran NymVPN</string>
+	<string name="channel_description">Saluran untuk pemberitahuan terkait VPN.</string>
+	<string name="disconnect">Putuskan sambungan</string>
+	<string name="state_connected">Terhubung</string>
+	<string name="state_disconnected">Terputus</string>
+	<string name="state_initializing">Sedang menginisialisasi klien…</string>
+	<string name="state_establishing">Sedang membuat koneksi…</string>
+	<string name="state_disconnecting">Memutuskan sambungan…</string>
+	<string name="state_reconnecting">Sedang terhubung kembali…</string>
+	<string name="state_offline">Menunggu koneksi jaringan…</string>
+	<string name="state_error">Kesalahan koneksi</string>
+	<string name="notification_entry">Entri: %1$s</string>
+	<string name="notification_exit">Keluar: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Gagal menerapkan kebijakan firewall.</string>
+	<string name="error_reason_set_routing">Gagal mengonfigurasi perutean jaringan.</string>
+	<string name="error_reason_set_dns">Gagal mengonfigurasi pengaturan DNS.</string>
+	<string name="error_reason_tun_device">Gagal menginisialisasi antarmuka terowongan VPN.</string>
+	<string name="error_reason_tunnel_provider">Gagal mengonfigurasi penyedia terowongan paket.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 dinonaktifkan pada sistem ini.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Gerbang masuk dan gerbang keluar tidak boleh sama.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Tidak ditemukan gerbang masuk yang sesuai.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Tidak ditemukan gerbang keluar yang sesuai.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Identitas gateway yang dimasukkan tidak valid.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Identitas gerbang keluar tidak valid.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Negara tujuan yang dipilih tidak valid.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Negara tujuan yang dipilih tidak valid.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Gerbang masuk tidak merespons.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Gerbang keluar tidak merespons.</string>
+	<string name="error_reason_bandwidth_exceeded">Batas bandwidth terlampaui.</string>
+	<string name="error_reason_credential_fetching_failed">Gagal mengambil kredensial.</string>
+	<string name="error_reason_no_credential_available">Tidak ada kredensial yang tersedia.</string>
+	<string name="error_reason_inactive_account">Akun Anda tidak aktif.</string>
+	<string name="error_reason_inactive_subscription">Langganan Anda tidak aktif.</string>
+	<string name="error_reason_max_devices_reached">Jumlah perangkat maksimum telah tercapai.</string>
+	<string name="error_reason_device_logged_out">Perangkat telah keluar.</string>
+	<string name="error_reason_needs_device_location">Perutean otomatis tidak tersedia; lokasi perangkat tidak dapat ditentukan.</string>
+	<string name="error_reason_connection_attempts_exceeded">Tidak dapat terhubung setelah beberapa kali mencoba.</string>
+	<string name="error_reason_internal">Kesalahan internal: %1$s</string>
+</resources>

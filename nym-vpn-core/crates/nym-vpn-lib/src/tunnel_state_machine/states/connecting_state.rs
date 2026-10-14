@@ -778,8 +778,8 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed { entry_gateway_id, exit_gateway_id } => {
-                        // WG handshake timed out or connectivity probe failed without a healthy
-                        // metadata path; blacklist the exit so a different one is selected.
+                        // Exit metadata unreachable or connectivity probe failed; blacklist the
+                        // exit so a different one is selected.
                         shared_state.gateway_provider.add_blacklisted_gateway(
                             exit_gateway_id,
                             BlacklistReason::ConnectionFailed,

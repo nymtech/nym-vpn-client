@@ -124,7 +124,7 @@ jobs:
         if: ${{ steps.changes.outputs.has_changes == 'true' && inputs.dry_run == false }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: "ci/update-builtins-${{ github.run_number }}"
+          BRANCH_NAME: "automation/update-builtins-${{ github.run_number }}"
           BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
           gh auth setup-git

@@ -1,8 +1,9 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{cmp, sync::Arc, time::Duration};
+use std::{cmp, pin::pin, sync::Arc, time::Duration};
 
+use futures::future::{BoxFuture, Fuse, FusedFuture as _, FutureExt as _};
 use geo::{Distance, Haversine, Point};
 use nym_gateway_directory::{Gateway, Location};
 use nym_vpn_api_client::{
@@ -58,11 +59,9 @@ pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
         x.two_letter_iso_country_code.as_str(),
         y.two_letter_iso_country_code.as_str(),
     );
-    if a == b {
-        // US gateways are distinguished per-region rather than per-country.
-        return a != "US" || x.region == y.region;
-    }
-    same_jurisdiction_group(a, b)
+    // Sub-national regions (e.g. US states) are never treated as separate
+    // jurisdictions: the same country code always means the same jurisdiction.
+    a == b || same_jurisdiction_group(a, b)
 }
 
 // Compare two gateways' distance to a given reference point
@@ -131,7 +130,7 @@ pub(crate) enum FetcherCommand {
 pub(crate) struct GeoIpFetcher {
     state: State,
     query_control: Arc<RwLock<QueryControl>>,
-    client: Box<dyn GeoIpClient>,
+    client: Arc<dyn GeoIpClient>,
     command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
     update_location_tx: mpsc::UnboundedSender<Option<Location>>,
     shutdown_token: CancellationToken,
@@ -155,7 +154,7 @@ impl GeoIpFetcher {
         Self {
             state,
             query_control,
-            client,
+            client: Arc::from(client),
             command_rx,
             update_location_tx,
             shutdown_token,
@@ -175,7 +174,15 @@ impl GeoIpFetcher {
     pub(crate) async fn run(mut self) {
         let update_timer = tokio::time::sleep(GEO_IP_UPDATE_INTERVAL);
         tokio::pin!(update_timer);
+        // Kept across loop turns so a command does not drop and restart an in-flight query.
+        let mut fetch = pin!(Fuse::<
+            BoxFuture<'static, Result<NymUserGeoIpLocationResponse, VpnApiClientError>>,
+        >::terminated());
         loop {
+            if self.state == State::FetchInProgress && fetch.is_terminated() {
+                let client = self.client.clone();
+                fetch.set(async move { client.latest_geo_ip().await }.boxed().fuse());
+            }
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::debug!("GeoIpFetcher shut down");
@@ -185,7 +192,7 @@ impl GeoIpFetcher {
                     self.maybe_start_fetching().await;
                     update_timer.set(tokio::time::sleep(GEO_IP_UPDATE_INTERVAL));
                 }
-                ret = self.client.latest_geo_ip(), if self.state == State::FetchInProgress => {
+                ret = &mut fetch => {
                     self.state = State::Nothing;
                     match ret {
                         Ok(geo_ip_location) => {
@@ -207,6 +214,7 @@ impl GeoIpFetcher {
                         FetcherCommand::Fetch => self.maybe_start_fetching().await,
                         FetcherCommand::Abort(done) => {
                             self.state = State::Nothing;
+                            fetch.set(Fuse::terminated());
                             let _ = done.send(());
                         }
                     }
@@ -290,6 +298,38 @@ pub mod tests {
         assert!(!same_jurisdiction_group("DE", "FR"));
     }
 
+    fn location(country: &str, region: &str) -> Location {
+        Location {
+            two_letter_iso_country_code: country.to_string(),
+            region: region.to_string(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn same_country_is_same_jurisdiction_regardless_of_region() {
+        // US states are not separate jurisdictions: a user in New York must not
+        // be offered a California gateway when excluding their own country.
+        assert!(same_jurisdiction(
+            &location("US", "New York"),
+            &location("US", "California")
+        ));
+        assert!(same_jurisdiction(
+            &location("US", "Texas"),
+            &location("US", "Texas")
+        ));
+        assert!(same_jurisdiction(
+            &location("DE", "Bavaria"),
+            &location("DE", "Berlin")
+        ));
+        assert!(!same_jurisdiction(
+            &location("US", "New York"),
+            &location("CA", "Ontario")
+        ));
+        // Jurisdiction groups still apply across different country codes.
+        assert!(same_jurisdiction(&location("CN", ""), &location("TW", "")));
+    }
+
     #[derive(Clone)]
     pub struct MockGeoIpClient {}
 
@@ -314,5 +354,49 @@ pub mod tests {
                 },
             })
         }
+    }
+
+    /// Counts started queries and never answers, so a restarted query shows up as a second call.
+    #[derive(Clone, Default)]
+    struct PendingGeoIpClient {
+        calls: Arc<std::sync::atomic::AtomicUsize>,
+    }
+
+    impl GeoIpClient for PendingGeoIpClient {
+        fn latest_geo_ip<'life0, 'async_trait>(
+            &'life0 self,
+        ) -> BoxFuture<'async_trait, Result<NymUserGeoIpLocationResponse, VpnApiClientError>>
+        where
+            'life0: 'async_trait,
+            Self: 'async_trait,
+        {
+            self.calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            Box::pin(std::future::pending())
+        }
+    }
+
+    #[tokio::test]
+    async fn geo_ip_fetcher_fetch_keeps_in_flight_query() {
+        let client = PendingGeoIpClient::default();
+        let (command_tx, command_rx) = mpsc::unbounded_channel();
+        let (location_tx, _location_rx) = mpsc::unbounded_channel();
+        let fetcher = GeoIpFetcher::new(
+            true,
+            Box::new(client.clone()),
+            command_rx,
+            location_tx,
+            CancellationToken::new(),
+        );
+        tokio::spawn(fetcher.run());
+        // Let the fetcher poll the initial query first, `select!` picks ready branches at random.
+        tokio::task::yield_now().await;
+
+        // Commands are handled in order, so the abort reply means the fetch was handled first.
+        command_tx.send(FetcherCommand::Fetch).unwrap();
+        let (done_tx, done_rx) = oneshot::channel();
+        command_tx.send(FetcherCommand::Abort(done_tx)).unwrap();
+        done_rx.await.unwrap();
+
+        assert_eq!(client.calls.load(std::sync::atomic::Ordering::SeqCst), 1);
     }
 }

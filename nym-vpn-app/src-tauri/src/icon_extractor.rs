@@ -194,7 +194,7 @@ unsafe fn render_icon_to_png(hicon: HICON, output: &Path) -> Option<PathBuf> {
     }
 
     // BGRA → RGBA channel swap
-    for chunk in pixels.chunks_exact_mut(4) {
+    for chunk in pixels.as_chunks_mut::<4>().0 {
         chunk.swap(0, 2); // B ↔ R
     }
 

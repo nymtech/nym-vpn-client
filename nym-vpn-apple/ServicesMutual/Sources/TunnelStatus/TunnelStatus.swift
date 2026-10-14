@@ -31,3 +31,8 @@ public enum TunnelStatus: Int, Equatable, Codable {
         }
     }
 }
+
+public func connectionTimerAnchor(isConnected: Bool, tunnelConnectedAt: Date?) -> Date? {
+    guard isConnected, let tunnelConnectedAt else { return nil }
+    return tunnelConnectedAt
+}

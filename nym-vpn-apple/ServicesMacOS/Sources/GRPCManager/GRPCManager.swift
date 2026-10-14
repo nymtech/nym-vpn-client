@@ -55,7 +55,7 @@ let kRpcReconnectDelay = Duration.seconds(5)
                     logger.error("RPC error: \(error)")
                 }
 
-                try await Task.sleep(for: kRpcReconnectDelay)
+                try? await Task.sleep(for: kRpcReconnectDelay)
             }
         }
     }

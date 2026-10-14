@@ -5,35 +5,25 @@ public final class NymLogger {
     public let logFileManager: LogFileManager
 
     public init() {
-        let manager = LogFileManager(logFileType: .app)
-        self.logFileManager = manager
-
-        Bootstrap.once(using: manager)
+        logFileManager = Self.sharedLogFileManager
     }
-}
 
-private enum Bootstrap {
-    private static var didBootstrap = false
-    private static var lock = DispatchQueue(label: "Bootstrap.Lock")
+    private static let sharedLogFileManager: LogFileManager = {
+        let manager = LogFileManager(logFileType: .app)
 
-    static func once(using manager: LogFileManager) {
-        lock.sync {
-            guard !didBootstrap else { return }
-
-            LoggingSystem.bootstrap { label in
-                let fileLogger = FileLogHandler(label: label, logFileManager: manager)
+        LoggingSystem.bootstrap { label in
+            let fileLogger = FileLogHandler(label: label, logFileManager: manager)
 
 #if DEBUG
-                return MultiplexLogHandler([
-                    StreamLogHandler.standardOutput(label: label),
-                    fileLogger
-                ])
+            return MultiplexLogHandler([
+                StreamLogHandler.standardOutput(label: label),
+                fileLogger
+            ])
 #else
-                return fileLogger
+            return fileLogger
 #endif
-            }
-
-            didBootstrap = true
         }
-    }
+
+        return manager
+    }()
 }

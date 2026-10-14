@@ -59,12 +59,13 @@ export const LocationAccuracyLink =
 export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
 export const MixnetParametersLearnMoreUrl =
   'https://nym.com/features/mixnet-tuning';
+export const ProfilesLearnMoreUrl = 'https://nym.com/features/profiles';
 export const DocsUrl = 'https://nym.com/docs';
 
 // listed in display order; the matching icon lives in `ui/ProfileIcon`
 export const PROFILES: Profile[] = [
   'safest',
-  'random',
   'mostPrivate',
   'fastest',
+  'random',
 ];

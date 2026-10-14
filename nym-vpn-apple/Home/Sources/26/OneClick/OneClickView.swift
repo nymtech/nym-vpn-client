@@ -93,21 +93,33 @@ private extension OneClickView {
     }
 
     var exitNodeLabel: some View {
-        Text("oneClick.exitNode.label".localizedString)
-            .nymTextStyle(.bodySmall)
-            .foregroundStyle(Color.Nym.textSecondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom, NymSpacing.small)
-            .accessibilityHidden(viewModel.displayMode != .nerd)
+        HStack(alignment: .center, spacing: NymSpacing.medium) {
+            Text("oneClick.exitNode.label".localizedString)
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityHidden(viewModel.displayMode != .nerd)
+            if animatedDisplayMode.caretSlot == .exitLabel {
+                caretColumn
+                    .frame(width: Constants.InfoIcon.size, alignment: .center)
+            }
+        }
+        .padding(.bottom, NymSpacing.small)
     }
 
     @ViewBuilder var compactServerInfo: some View {
         Group {
             switch viewModel.selectionPhase {
             case .selecting:
-                selectingRowCompact(score: .offline)
+                selectingRowCompact(
+                    score: .offline,
+                    showCarets: animatedDisplayMode.caretSlot == .exitInfoStack
+                )
             case let .selected(info):
-                selectedRowCompact(info: info, showCarets: true)
+                selectedRowCompact(
+                    info: info,
+                    showCarets: animatedDisplayMode.caretSlot == .exitInfoStack
+                )
             }
         }
         .contentShape(Rectangle())
@@ -115,7 +127,7 @@ private extension OneClickView {
         .accessibilityAddTraits(.isButton)
     }
 
-    func selectingRowCompact(score: OneClickServerScore) -> some View {
+    func selectingRowCompact(score: OneClickServerScore, showCarets: Bool) -> some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
             scoreBars(score: score)
             randomGlyph
@@ -123,7 +135,9 @@ private extension OneClickView {
                 .nymTextStyle(.bodySmall)
                 .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
-            caretColumn
+            if showCarets {
+                exitInfoStack { EmptyView() }
+            }
         }
     }
 
@@ -176,13 +190,29 @@ private extension OneClickView {
                 }
             }
             Spacer()
-            if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
-                gatewayDetailsButton(gateway: gateway, hopType: hopType)
-            }
             if showCarets {
-                caretColumn
+                exitInfoStack {
+                    exitInfoButton(info)
+                }
+            } else {
+                exitInfoButton(info)
             }
         }
+    }
+
+    @ViewBuilder
+    func exitInfoButton(_ info: OneClickServerInfo) -> some View {
+        if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
+            gatewayDetailsButton(gateway: gateway, hopType: hopType)
+        }
+    }
+
+    func exitInfoStack<InfoButton: View>(@ViewBuilder infoButton: () -> InfoButton) -> some View {
+        VStack(spacing: NymSpacing.small) {
+            infoButton()
+            caretColumn
+        }
+        .frame(width: Constants.InfoIcon.size, alignment: .center)
     }
 
     func gatewayDetailsButton(gateway: GatewayNode, hopType: HopType) -> some View {

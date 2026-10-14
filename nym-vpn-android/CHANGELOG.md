@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.13.0] - 2026-10-09
+
 ### Added
 - Changelog validation workflow for Play Store (https://github.com/nymtech/nym-vpn-client/pull/6128)
 - Profiles: UI and logic (https://github.com/nymtech/nym-vpn-client/pull/6144)
@@ -15,14 +17,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Profiles screen to Settings (https://github.com/nymtech/nym-vpn-client/pull/6319)
 - Six-month subscription kind with long-plan expiry warnings (https://github.com/nymtech/nym-vpn-client/pull/6320)
 - Add error handling for Connect button (http://github.com/nymtech/nym-vpn-client/pull/6329)
+- Enable ARM Memory Tagging Extension (MTE) in async mode (https://github.com/nymtech/nym-vpn-client/pull/6436)
+- Log out asks every time whether the passphrase is saved (https://github.com/nymtech/nym-vpn-client/pull/6480)
+- Screen lock confirmation for passphrase, subscription, social login and shortcuts (https://github.com/nymtech/nym-vpn-client/pull/6504)
+- Screen lock required for account creation (https://github.com/nymtech/nym-vpn-client/pull/6504)
+- Block screenshots on passphrase/PIN screens (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Clear copied passphrase/PIN after 60s (https://github.com/nymtech/nym-vpn-client/pull/6562)
 
 ### Changed
+- Maestro UI suite: repair the five flows broken by the dVPN rename, the Connection profiles settings row and the Passphrase download removal; replace assertions that could not fail; correct mock gateway uptime to a 0-1 fraction
 - Remove score placeholder. Update animation (https://github.com/nymtech/nym-vpn-client/pull/6231)
 - Bump toolchain version to 25 (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Bump detekt (https://github.com/nymtech/nym-vpn-client/pull/6296)
 - Separate workflow for Play Store metadata (https://github.com/nymtech/nym-vpn-client/pull/6411)
 - Disable default PII in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6440)
+- Disable view hierarchy attachment in Sentry (https://github.com/nymtech/nym-vpn-client/pull/6533)
 - Remove unused libs (https://github.com/nymtech/nym-vpn-client/pull/6442)
+- Update notifications security (https://github.com/nymtech/nym-vpn-client/pull/6444)
+- Remove camera usage (https://github.com/nymtech/nym-vpn-client/pull/6449)
+- Download function removed from Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/6460)
+- Remove unused permissions (https://github.com/nymtech/nym-vpn-client/pull/6479)
+- Dismissible screen lock alert on Main Screen (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Unify nav transitions and fix predictive back flash (https://github.com/nymtech/nym-vpn-client/pull/6647)
 
 ### Fixed
 - Prefer validated WiFi or Ethernet over cellular when binding the VPN process on the cover TUN
@@ -32,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable Sentry Session Replay to stop foreground ANR kills (https://github.com/nymtech/nym-vpn-client/pull/6248)
 - Fail tunnel configure if the VPN app cannot be excluded from the blocking interface (https://github.com/nymtech/nym-vpn-client/pull/6213)
 - Fix NavComponent crash after libs version update (https://github.com/nymtech/nym-vpn-client/pull/6442)
+- Screen lock confirmation on Android 7–10 devices with only a PIN, pattern or password (https://github.com/nymtech/nym-vpn-client/pull/6504)
+- Fix grey nav bar on bottom sheets (https://github.com/nymtech/nym-vpn-client/pull/6562)
+- Fix TechOptView transition (https://github.com/nymtech/nym-vpn-client/pull/6647)
 
 ## [2026.12.3] - 2026-08-27
 

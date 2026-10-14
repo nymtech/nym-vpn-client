@@ -59,15 +59,15 @@ public enum OnboardingAccountPreparationPolicy {
         switch kind {
         case .inactiveSubscription:
             return "Inactive subscription"
-        case .accountStatusNotActive(let status):
+        case let .accountStatusNotActive(status):
             return "Account status not active: \(status)"
-        case .storage(let context, let details):
+        case let.storage(context, details):
             return "Storage error: \(context) - \(details) "
-        case .apiFailure(let context, let details):
+        case let .apiFailure(context, details):
             return "API failure: \(context) - \(details)"
-        case .internalError(let context, let details):
+        case let .internalError(context, details):
             return "Internal error: \(context) - \(details)"
-        case .bandwidthExceeded(let context):
+        case let .bandwidthExceeded(context):
             return "Bandwidth exceeded: \(context)"
         case .maxDeviceReached:
             return "Max device numbers reached"

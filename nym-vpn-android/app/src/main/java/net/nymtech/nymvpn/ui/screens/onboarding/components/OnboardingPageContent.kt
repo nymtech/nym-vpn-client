@@ -39,6 +39,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.airbnb.lottie.compose.rememberLottieDynamicProperties
 import com.airbnb.lottie.compose.rememberLottieDynamicProperty
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.functions.boldMarkupText
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.nymvpn.ui.screens.main.panel.components.ModeTabs
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -195,16 +196,6 @@ private fun planSubtitle(pricing: OnboardingPlanPricing?): AnnotatedString {
 		base(stringResource(R.string.onboarding_plan_try_prefix))
 		base(stringResource(R.string.onboarding_plan_one_month))
 		base(stringResource(R.string.onboarding_plan_try_suffix))
-	}
-}
-
-private fun boldMarkupText(raw: String): AnnotatedString = buildAnnotatedString {
-	raw.split("**").forEachIndexed { index, segment ->
-		if (index % 2 == 1) {
-			withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(segment) }
-		} else {
-			append(segment)
-		}
 	}
 }
 

@@ -20,8 +20,7 @@ jobs:
   macos-updater:
     runs-on: custom-macos-15
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       - name: "Cleanup working directory"
         shell: bash
@@ -296,7 +295,7 @@ jobs:
           body: |
             Automated Sparkle appcast update for macOS v${{ steps.pkg_metadata.outputs.short_version }}.
             Source: nym-vpn-client macos-updater
-          branch: automation/update-macos-appcast-v${{ steps.pkg_metadata.outputs.short_version }}-3
+          branch: automation/update-macos-appcast-v${{ steps.pkg_metadata.outputs.short_version }}
           base: main
           delete-branch: true
           reviewers: |

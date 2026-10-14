@@ -17,7 +17,10 @@ struct MixnetTuningView: View {
         mixnetDefaults.allBackgroundTraffic()
     }
     private var continuousTrafficOptions: [ContinuousTrafficSendingRate] {
-        mixnetDefaults.allContinuousTraffic()
+        // Reversed so the faster (2 Mbps) end sits on the LEFT of the slider, matching the
+        // "Faster" label and the delay slider's "drag-left = faster" direction. All access is
+        // by index/firstIndex, so reversing here flips the slider without affecting the daemon value.
+        Array(mixnetDefaults.allContinuousTraffic().reversed())
     }
 
     @EnvironmentObject private var appSettings: AppSettings
@@ -30,6 +33,7 @@ struct MixnetTuningView: View {
     @State private var continuousTrafficIndex: Double = 1
     @State private var mixingDelayIndex = 15.0
     @State private var isSendTrafficContinuouslyOn = false
+    @State private var isBackgroundCoverOn = true
     @State private var isSaveButtonDisabled = false
 
     @State private var config: MixnetTuningConfig?
@@ -49,6 +53,7 @@ struct MixnetTuningView: View {
             continuousTrafficIndex = Double(continuousTrafficOptions.firstIndex(of: oldConfig.continuousTraffic) ?? 0)
             mixingDelayIndex = Double(oldConfig.averagePacketDelay)
             isSendTrafficContinuouslyOn = !oldConfig.disablePoissonRate
+            isBackgroundCoverOn = !oldConfig.disableBackgroundCoverTraffic
 
             updateLatencyRTT()
             updateIsSaveButtonEnabled()
@@ -85,6 +90,9 @@ private extension MixnetTuningView {
         Spacer()
             .frame(height: 24)
         trafficSection
+        Spacer()
+            .frame(height: 24)
+        backgroundCoverSection
         Spacer()
             .frame(height: 24)
         delaySection
@@ -175,39 +183,51 @@ private extension MixnetTuningView {
 
     @ViewBuilder var trafficSubsection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !isSendTrafficContinuouslyOn {
-                backgroundCoverTrafficSection
-            } else {
-                continiuosTrafficSection
-            }
+            continiuosTrafficSection
         }
         .padding(.horizontal, 16)
     }
 
-    @ViewBuilder var backgroundCoverTrafficSection: some View {
-        Text("⚠️ \("mixnetTuning.sendTraffic.off".localizedString)")
-            .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
-        Spacer()
-            .frame(height: 16)
-        Text("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
-            .nymText(color: Color.Nym.textPrimary, style: .Headline.Small.regular)
-        Spacer()
-            .frame(height: 16)
-        Text("mixnetTuning.backgroundCoverTrafficState.subtitle".localizedString)
-            .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
-        Spacer()
-            .frame(height: 16)
-        coverTrafficSliderSection
-        Spacer()
-            .frame(height: 16)
+    var backgroundCoverSection: some View {
+        SettingsListItemCustomContent(
+            viewModel: SettingsListItemViewModel(
+                accessory: .toggle(isOn: $isBackgroundCoverOn),
+                title: "mixnetTuning.backgroundCoverTrafficState.title".localizedString,
+                position: .init(isFirst: true, isLast: true),
+                action: {}
+            ),
+            customContent: {
+                backgroundCoverBody
+            },
+            combineAccessibilityChildren: false
+        )
+        .onChange(of: isBackgroundCoverOn) {
+            config?.disableBackgroundCoverTraffic = !isBackgroundCoverOn
+            updateIsSaveButtonEnabled()
+        }
+    }
+
+    @ViewBuilder var backgroundCoverBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("mixnetTuning.backgroundCoverTrafficState.subtitle".localizedString)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
+            Spacer()
+                .frame(height: 16)
+            coverTrafficSliderSection
+                .disabled(!isBackgroundCoverOn)
+                .opacity(isBackgroundCoverOn ? 1 : 0.5)
+            Spacer()
+                .frame(height: 16)
+        }
+        .padding(.horizontal, 16)
     }
 
     @ViewBuilder var coverTrafficSliderSection: some View {
         HStack(spacing: 0) {
-            Text("mixnetTuning.performance".localizedString)
+            Text("mixnetTuning.faster".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.anonymity".localizedString)
+            Text("mixnetTuning.anonymityPlus".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
@@ -217,12 +237,13 @@ private extension MixnetTuningView {
             .accessibilityLabel("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
             .accessibilityValue(coverTrafficAccessibilityValue)
             .accessibilityAdjustableAction { direction in
+                guard isBackgroundCoverOn else { return }
                 adjustCoverTraffic(direction)
             }
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("\("mixnetTuning.base".localizedString)\n")
+            Text("\("mixnetTuning.low".localizedString)\n")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
@@ -241,41 +262,50 @@ private extension MixnetTuningView {
     }
 
     @ViewBuilder var continiuosTrafficSection: some View {
-        Text("mixnetTuning.sendTraffic.on".localizedString)
-            .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
+        if isSendTrafficContinuouslyOn {
+            Text("mixnetTuning.sendTraffic.on".localizedString)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
+        } else {
+            Text("⚠️ \("mixnetTuning.sendTraffic.off".localizedString)")
+                .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
+        }
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("mixnetTuning.performance".localizedString)
+            Text("mixnetTuning.faster".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.anonymity".localizedString)
+            Text("mixnetTuning.slower".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
         Slider(value: snapping($continuousTrafficIndex), in: 0.0...Double(continuousTrafficOptions.count - 1))
             .tint(Color.Nym.primary)
+            .disabled(!isSendTrafficContinuouslyOn)
+            .opacity(isSendTrafficContinuouslyOn ? 1 : 0.5)
             .accessibilityLabel("mixnetTuning.sendTrafficContinously".localizedString)
             .accessibilityValue(continuousTrafficAccessibilityValue)
             .accessibilityAdjustableAction { direction in
+                guard isSendTrafficContinuouslyOn else { return }
                 adjustContinuousTraffic(direction)
             }
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
-            Text("\("mixnetTuning.low".localizedString)\n0.7 Mbps")
+            Text("2 Mbps")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
-            Text("\("mixnetTuning.balanced".localizedString)\n1 Mbps")
+            Text("1 Mbps")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
-            Text("\("mixnetTuning.high".localizedString)\n2 Mbps")
+            Text("0.7 Mbps")
                 .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
         }
+        .opacity(isSendTrafficContinuouslyOn ? 1 : 0.5)
         Spacer()
             .frame(height: 16)
     }
@@ -302,10 +332,10 @@ private extension MixnetTuningView {
 
     @ViewBuilder var sliderValue: some View {
         HStack(spacing: 0) {
-            Text("mixnetTuning.performance".localizedString)
+            Text("mixnetTuning.faster".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
-            Text("mixnetTuning.anonymity".localizedString)
+            Text("mixnetTuning.anonymityPlus".localizedString)
                 .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
@@ -315,7 +345,7 @@ private extension MixnetTuningView {
             in: Double(mixnetDefaults.defaultMixingDelay().minValue)...Double(mixnetDefaults.defaultMixingDelay().maxValue)
         )
             .tint(Color.Nym.primary)
-            .accessibilityLabel("mixnetTuning.mixingDelays".localizedString)
+            .accessibilityLabel("mixnetTuning.packetMixingProfile".localizedString)
             .accessibilityValue(mixingDelayAccessibilityValue)
             .accessibilityAdjustableAction { direction in
                 adjustMixingDelay(direction)
@@ -410,7 +440,7 @@ private extension MixnetTuningView {
     var coverTrafficAccessibilityValue: String {
         switch safeCoverTrafficIndex {
         case 0:
-            "mixnetTuning.base".localizedString
+            "mixnetTuning.low".localizedString
         case 1:
             "mixnetTuning.balanced".localizedString
         case 2:
@@ -418,7 +448,7 @@ private extension MixnetTuningView {
         case 3:
             "mixnetTuning.high".localizedString
         default:
-            "mixnetTuning.base".localizedString
+            "mixnetTuning.low".localizedString
         }
     }
 
@@ -522,5 +552,6 @@ private extension MixnetTuningView {
         continuousTrafficIndex = Double(continuousTrafficOptions.firstIndex(of: defaultContTraffic) ?? 0)
 
         isSendTrafficContinuouslyOn = !mixnetDefaults.defaultDisablePoissionRate()
+        isBackgroundCoverOn = true
     }
 }

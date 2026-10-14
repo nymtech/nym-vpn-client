@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
+import net.nymtech.nymvpn.ui.common.functions.boldMarkupText
 import net.nymtech.nymvpn.ui.screens.settings.SettingsActions
 import net.nymtech.nymvpn.ui.screens.settings.SettingsValues
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -43,43 +44,13 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					onClick = actions.onKillSwitchClick,
 					description = {
 						Text(
-							stringResource(R.string.settings_kill_switch_description),
+							boldMarkupText(stringResource(R.string.settings_kill_switch_description)),
 							style = MaterialTheme.typography.bodySmall,
 							color = MaterialTheme.colorScheme.onBackground,
 						)
 					},
 				),
 			)
-// 			add(
-// 				SelectionItem(
-// 					leading = {
-// 						Icon(
-// 							Icons.Outlined.Loca,
-// 							stringResource(R.string.settings_ipv6_title),
-// 							modifier = Modifier.size(iconSize.scaledWidth()),
-// 							tint = MaterialTheme.colorScheme.outline,
-// 						)
-// 					},
-// 					trailing = {
-// 						ScaledSwitch(
-// 							checked = values.supportIPv6Enabled,
-// 							onClick = actions.onSupportIPv6Enable,
-// 						)
-// 					},
-// 					title = {
-// 						Text(
-// 							stringResource(R.string.settings_ipv6_title),
-// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-// 						)
-// 					},
-// 					description = {
-// 						Text(
-// 							stringResource(R.string.settings_ipv6_description),
-// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-// 						)
-// 					},
-// 				),
-// 			)
 
 			add(
 				SelectionItem(

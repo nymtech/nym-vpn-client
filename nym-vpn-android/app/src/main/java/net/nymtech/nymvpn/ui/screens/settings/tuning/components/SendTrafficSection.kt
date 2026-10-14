@@ -28,7 +28,10 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import nym_vpn_lib_types.ContinuousTrafficSendingRate
 
-private val RATES = ContinuousTrafficSendingRate.entries
+// Reversed so the faster (2 Mbps) rate sits on the LEFT, matching the "Faster" label and the
+// delay slider's "drag-left = faster" direction. The stored value is the rate not the index,
+// so reversing only flips the slider's visual direction.
+private val RATES = ContinuousTrafficSendingRate.entries.reversed()
 
 @Composable
 fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boolean) -> Unit, trafficRate: ContinuousTrafficSendingRate, onTrafficRateChange: (ContinuousTrafficSendingRate) -> Unit) {
@@ -71,7 +74,7 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 			)
 
 			Column(modifier = Modifier.fillMaxWidth()) {
-				SliderRangeLabels()
+				SliderRangeLabels(endLabel = stringResource(R.string.mixnet_tuning_slider_slower_label))
 				DiscreteTuningSlider(
 					items = RATES,
 					selected = trafficRate,
@@ -82,9 +85,9 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 
 			DiscreteRateLabels(
 				labels = listOf(
-					stringResource(R.string.mixnet_tuning_traffic_on_low),
-					stringResource(R.string.mixnet_tuning_traffic_on_balanced),
 					stringResource(R.string.mixnet_tuning_traffic_on_high),
+					stringResource(R.string.mixnet_tuning_traffic_on_balanced),
+					stringResource(R.string.mixnet_tuning_traffic_on_low),
 				),
 				selectedIndex = RATES.indexOf(trafficRate),
 			)

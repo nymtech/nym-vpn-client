@@ -12,6 +12,12 @@ tags:
     visible:
       text: "Disconnect"
     timeout: 30000
+# dVPN is the default mode; the status label proves the tunnel state, not just the button.
+- extendedWaitUntil:
+    visible:
+      text: "dVPN mode protection"
+    timeout: 30000
+- assertNotVisible: "Not protected"
 
 - tapOn: "Disconnect"
 
@@ -19,3 +25,7 @@ tags:
     visible:
       text: "Connect"
     timeout: 30000
+- extendedWaitUntil:
+    visible:
+      text: "Not protected"
+    timeout: 10000

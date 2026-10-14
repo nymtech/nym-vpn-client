@@ -195,8 +195,7 @@ let package = Package(
         .target(
             name: "Keychain",
             dependencies: [
-                .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "NymLogger", package: "ServicesMutual")
+                .product(name: "Constants", package: "ServicesMutual")
             ],
             path: "Sources/Services/Keychain"
         ),

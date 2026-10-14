@@ -7,7 +7,7 @@ tags:
 - runFlow: ../../subflows/open_app.yaml
 
 - assertVisible: "NOT PROTECTED"
-- assertVisible: "Fast"
+- assertVisible: "dVPN"
 - assertVisible: "Mixnet"
 - assertVisible: "Entry server"
 - assertVisible: "Exit server"

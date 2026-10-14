@@ -1,10 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
-import android.app.Activity
-import android.content.ClipData
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,9 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -44,11 +37,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
+import net.nymtech.nymvpn.ui.common.functions.SecureScreen
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
@@ -58,16 +53,16 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.DeviceAuthHelper
+import net.nymtech.nymvpn.util.extensions.copySensitiveToClipboard
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
 fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
-	val clipboardManager = LocalClipboard.current
+	SecureScreen()
+
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
 
@@ -88,69 +83,19 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
-	val activity = context as? FragmentActivity
-
-	val fileSaverLauncher = rememberLauncherForActivityResult(
-		contract = ActivityResultContracts.StartActivityForResult(),
-	) { result ->
-		if (result.resultCode == Activity.RESULT_OK) {
-			result.data?.data?.also { uri ->
-				try {
-					context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-						outputStream.write(passphrase.joinToString().toByteArray())
-					}
-				} catch (e: Exception) {
-					Timber.e(e, "Failed to write passphrase to file.")
-				}
-			}
-		}
-	}
-
-	val title = stringResource(R.string.passphrase_title)
-	val subtitle = stringResource(R.string.passphrase_description)
-
-	val promptInfo = remember(context) {
-		DeviceAuthHelper.buildPromptInfo(context, title = title, subtitle = subtitle)
-	}
 
 	LaunchedEffect(showSheet) {
 		onBackButtonVisibilityChange(showSheet)
 	}
 
-	fun requestAuthOrReveal() {
-		if (activity == null) {
-			showSheet = true
-			return
-		}
-
-		DeviceAuthHelper.authenticate(
-			activity = activity,
-			promptInfo = promptInfo,
-			onAuthenticated = { showSheet = true },
-			onUnavailable = { showSheet = true },
-			onError = { _, _ ->
-			},
-		)
-	}
+	val deviceAuth = rememberDeviceAuth { showSheet = true }
 
 	PassphraseScreen(
 		passphrase = passphrase,
 		show = showSheet,
-		onShowClick = { requestAuthOrReveal() },
+		onShowClick = { deviceAuth.request(DeviceAuthAction.REVEAL_PASSPHRASE) },
 		onCopyClick = {
-			scope.launch {
-				val text = passphrase.joinToString(" ")
-				val clipData = ClipData.newPlainText(text, text)
-				clipboardManager.setClipEntry(clipData.toClipEntry())
-			}
-		},
-		onDownloadClick = {
-			val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-				addCategory(Intent.CATEGORY_OPENABLE)
-				type = "text/plain"
-				putExtra(Intent.EXTRA_TITLE, "nym-passphrase.txt")
-			}
-			fileSaverLauncher.launch(intent)
+			context.copySensitiveToClipboard(passphrase.joinToString(" "))
 		},
 		onSaveClick = {
 			scope.launch {
@@ -162,7 +107,7 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 }
 
 @Composable
-fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit, onContinueClick: () -> Unit) {
+fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onSaveClick: () -> Unit, onContinueClick: () -> Unit) {
 	var confirmed by remember { mutableStateOf(false) }
 	Column(
 		modifier = Modifier
@@ -200,7 +145,7 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 		)
 
 		PassphraseCard(passphrase = passphrase, show = show, onShowClick = onShowClick)
-		PassphraseActions(show = show, onCopyClick = onCopyClick, onDownloadClick = onDownloadClick, onSaveClick = onSaveClick)
+		PassphraseActions(show = show, onCopyClick = onCopyClick, onSaveClick = onSaveClick)
 
 		if (show) {
 			Spacer(modifier = Modifier.weight(1f))
@@ -209,26 +154,11 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 					.fillMaxWidth()
 					.padding(top = 24.dp),
 			) {
-				Row(
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.spacedBy(16.dp),
-					modifier = Modifier
-						.fillMaxWidth()
-						.clickable { confirmed = !confirmed },
-				) {
-					Checkbox(
-						checked = confirmed,
-						onCheckedChange = { confirmed = it },
-						modifier = Modifier.size(20.dp),
-					)
-					Text(
-						text = stringResource(R.string.passphrase_saved),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
-						textAlign = TextAlign.Start,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
+				PassphraseSavedConfirmation(
+					checked = confirmed,
+					onCheckedChange = { confirmed = it },
+					text = stringResource(R.string.passphrase_saved),
+				)
 				MainStyledButton(
 					onClick = { if (confirmed) onContinueClick() },
 					content = {
@@ -250,6 +180,30 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 }
 
 @Composable
+fun PassphraseSavedConfirmation(checked: Boolean, onCheckedChange: (Boolean) -> Unit, text: String, modifier: Modifier = Modifier) {
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.spacedBy(16.dp),
+		modifier = modifier
+			.fillMaxWidth()
+			.clickable { onCheckedChange(!checked) },
+	) {
+		Checkbox(
+			checked = checked,
+			onCheckedChange = onCheckedChange,
+			modifier = Modifier.size(20.dp),
+		)
+		Text(
+			text = text,
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onSurface,
+			textAlign = TextAlign.Start,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+	}
+}
+
+@Composable
 @PreviewLightDark
 internal fun PreviewPassphraseScreen() {
 	NymVPNTheme(Theme.default()) {
@@ -262,7 +216,6 @@ internal fun PreviewPassphraseScreen() {
 			show = true,
 			onShowClick = {},
 			onCopyClick = {},
-			onDownloadClick = {},
 			onSaveClick = {},
 			onContinueClick = {},
 		)

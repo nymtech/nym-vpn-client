@@ -74,6 +74,10 @@ jobs:
           echo "✅ Updated Info.plist contents:"
           /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
 
+      - name: Lint Swift code
+        working-directory: nym-vpn-apple
+        run: swiftlint lint --reporter github-actions-logging
+
       - name: Build core
         run: |
           ARCH=$(uname -m)

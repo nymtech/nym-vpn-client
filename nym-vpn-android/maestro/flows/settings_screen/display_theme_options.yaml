@@ -1,4 +1,7 @@
+# Display theme screen lists every theme option with its description.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
 - runFlow: ../../subflows/open_app.yaml
 
@@ -9,6 +12,7 @@ appId: net.nymtech.nymvpn.mock.debug
       text: "Appearance"
       index: 1
     direction: DOWN
+    centerElement: true
 
 - tapOn:
     text: "Appearance"
@@ -21,14 +25,16 @@ appId: net.nymtech.nymvpn.mock.debug
 - assertVisible: "Display theme"
 
 - assertVisible: "Automatic"
+- assertVisible: "Use device theme"
 - assertVisible: "Dark theme"
 - assertVisible: "Light theme"
+- assertVisible: "Dynamic"
+- assertVisible: "System wallpaper theme"
 
 - tapOn: "Light theme"
+- assertVisible: "Display theme"
 - tapOn: "Dark theme"
+- assertVisible: "Display theme"
 
-- tapOn: "Back"
-
-
-
-
+- back
+- assertVisible: "Appearance"

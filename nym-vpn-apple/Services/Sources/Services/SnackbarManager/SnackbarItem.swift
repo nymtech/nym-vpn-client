@@ -21,6 +21,11 @@ public struct SnackbarItem: Identifiable {
     public var onAction: (@MainActor () -> Void)?
     public var secondaryActionTitle: String?
     public var onSecondaryAction: (@MainActor () -> Void)?
+    /// Invoked when the user explicitly dismisses the snackbar via its close
+    /// control. Not called when the snackbar is cleared programmatically (e.g. a
+    /// connection flow calling `clear()`), so callers can distinguish an explicit
+    /// dismissal from an incidental teardown.
+    public var onDismiss: (@MainActor () -> Void)?
     public var duration: TimeInterval?
 
     public init(
@@ -32,6 +37,7 @@ public struct SnackbarItem: Identifiable {
         onAction: (@MainActor () -> Void)? = nil,
         secondaryActionTitle: String? = nil,
         onSecondaryAction: (@MainActor () -> Void)? = nil,
+        onDismiss: (@MainActor () -> Void)? = nil,
         duration: TimeInterval? = 4
     ) {
         self.id = id
@@ -42,6 +48,7 @@ public struct SnackbarItem: Identifiable {
         self.onAction = onAction
         self.secondaryActionTitle = secondaryActionTitle
         self.onSecondaryAction = onSecondaryAction
+        self.onDismiss = onDismiss
         self.duration = duration
     }
 }

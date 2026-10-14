@@ -1,3 +1,4 @@
+import Foundation
 import ErrorReason
 
 public struct TunnelStatusResponse: Codable {
@@ -7,6 +8,7 @@ public struct TunnelStatusResponse: Codable {
     public let lastError: ErrorReason?
     public let tunnelConnectingState: TunnelConnectingState?
     public let connectionInfoData: ConnectionInfoData?
+    public let connectedAt: Date?
 
     public init(
         status: TunnelStatus,
@@ -14,7 +16,8 @@ public struct TunnelStatusResponse: Codable {
         afterDisconnectAction: AfterDisconnectAction?,
         lastError: ErrorReason?,
         tunnelConnectingState: TunnelConnectingState?,
-        connectionInfoData: ConnectionInfoData?
+        connectionInfoData: ConnectionInfoData?,
+        connectedAt: Date? = nil
     ) {
         self.status = status
         self.retryAttempt = retryAttempt
@@ -22,5 +25,6 @@ public struct TunnelStatusResponse: Codable {
         self.lastError = lastError
         self.tunnelConnectingState = tunnelConnectingState
         self.connectionInfoData = connectionInfoData
+        self.connectedAt = connectedAt
     }
 }

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 enum class AlertType { Confirmation, Neutral, Negative, Warning, Error }
 
-enum class AlertId { PendingSubscription, ExpiryWarning, Expired, ConnectionError }
+enum class AlertId { PendingSubscription, ExpiryWarning, Expired, ConnectionError, NoScreenLock }
 
 data class AlertMessage(
 	val type: AlertType = AlertType.Neutral,

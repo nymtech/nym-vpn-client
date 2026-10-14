@@ -46,11 +46,6 @@ actor TunnelActor {
 
     func setTunnelProvider(_ tunnelProvider: NEPacketTunnelProvider?) {
         self.tunnelProvider = tunnelProvider
-
-        if let provider = tunnelProvider as? PacketTunnelProvider,
-           let failure = provider.logInitFailure {
-            lastError = .createLogFailed(failure)
-        }
     }
 
     private func setCurrentState(_ state: TunnelState) async {
@@ -83,7 +78,7 @@ actor TunnelActor {
     // MARK: - Gateway-independence pre-flight
 
     func reportNeedsRelaxedIndependence() {
-        lastError = .needsRelaxedIndependenceCriteria
+        lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
         tunnelState = .error(.needsRelaxedIndependenceCriteria)
     }
 
@@ -132,7 +127,7 @@ actor TunnelActor {
                 if reconnect {
                     break
                 } else {
-                    throw ErrorReason.offline.nsError
+                    throw ErrorReason(.offline).nsError
                 }
             }
         }

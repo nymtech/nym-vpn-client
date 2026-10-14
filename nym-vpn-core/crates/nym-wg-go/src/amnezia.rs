@@ -134,7 +134,7 @@ impl AmneziaConfig {
     /// - H1/H2/H3/H4 — must be unique among each other;
     ///   recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
     pub fn validate(&self) -> bool {
-        if self.junk_pkt_count > 128
+        !(self.junk_pkt_count > 128
             || self.junk_pkt_max_size > 1280
             || self.junk_pkt_min_size > self.junk_pkt_max_size
             || self.init_pkt_junk_size > 1280
@@ -162,11 +162,7 @@ impl AmneziaConfig {
                 self.response_pkt_magic_header,
                 self.under_load_pkt_magic_header,
             ]
-            .contains(&self.transport_pkt_magic_header)
-        {
-            return false;
-        }
-        true
+            .contains(&self.transport_pkt_magic_header))
     }
 }
 

@@ -6,20 +6,20 @@ struct GatewayIndependenceArcPolicyTests {
     @Test func independenceConsentErrorRecognizesErrorReason() {
         #expect(
             GatewayIndependenceArcPolicy.isIndependenceConsentError(
-                ErrorReason.needsRelaxedIndependenceCriteria
+                ErrorReason(.needsRelaxedIndependenceCriteria)
             )
         )
     }
 
     @Test func independenceConsentErrorRecognizesNSErrorFromTunnel() {
-        let nsError = ErrorReason.needsRelaxedIndependenceCriteria.nsError
+        let nsError = ErrorReason(.needsRelaxedIndependenceCriteria).nsError
         #expect(GatewayIndependenceArcPolicy.isIndependenceConsentError(nsError))
     }
 
     @Test func independenceConsentErrorRejectsGenericFailure() {
         #expect(
             !GatewayIndependenceArcPolicy.isIndependenceConsentError(
-                ErrorReason.internalUnknown
+                ErrorReason(.internalUnknown)
             )
         )
         #expect(!GatewayIndependenceArcPolicy.isIndependenceConsentError(nil))
@@ -29,7 +29,7 @@ struct GatewayIndependenceArcPolicyTests {
         #expect(
             !GatewayIndependenceArcPolicy.shouldUseFailedArc(
                 status: .error,
-                lastError: ErrorReason.needsRelaxedIndependenceCriteria
+                lastError: ErrorReason(.needsRelaxedIndependenceCriteria)
             )
         )
     }
@@ -38,7 +38,7 @@ struct GatewayIndependenceArcPolicyTests {
         #expect(
             GatewayIndependenceArcPolicy.shouldUseFailedArc(
                 status: .error,
-                lastError: ErrorReason.internalUnknown
+                lastError: ErrorReason(.internalUnknown)
             )
         )
     }
@@ -46,12 +46,12 @@ struct GatewayIndependenceArcPolicyTests {
     @Test func independenceConsentDoesNotRecordConnectionFailure() {
         #expect(
             !GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(
-                ErrorReason.needsRelaxedIndependenceCriteria
+                ErrorReason(.needsRelaxedIndependenceCriteria)
             )
         )
         #expect(
             GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(
-                ErrorReason.internalUnknown
+                ErrorReason(.internalUnknown)
             )
         )
     }
@@ -60,19 +60,19 @@ struct GatewayIndependenceArcPolicyTests {
         #expect(
             GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
                 status: .error,
-                lastError: ErrorReason.needsRelaxedIndependenceCriteria
+                lastError: ErrorReason(.needsRelaxedIndependenceCriteria)
             )
         )
         #expect(
             !GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
                 status: .error,
-                lastError: ErrorReason.internalUnknown
+                lastError: ErrorReason(.internalUnknown)
             )
         )
         #expect(
             !GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
                 status: .connecting,
-                lastError: ErrorReason.needsRelaxedIndependenceCriteria
+                lastError: ErrorReason(.needsRelaxedIndependenceCriteria)
             )
         )
     }
@@ -96,7 +96,7 @@ struct GatewayIndependenceArcPolicyTests {
     }
 
     @Test func independenceConsentPreservesLastErrorOnErrorStatus() {
-        let error = ErrorReason.needsRelaxedIndependenceCriteria
+        let error = ErrorReason(.needsRelaxedIndependenceCriteria)
         #expect(
             GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
                 status: .error,
@@ -106,7 +106,7 @@ struct GatewayIndependenceArcPolicyTests {
         #expect(
             !GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
                 status: .error,
-                lastError: ErrorReason.internalUnknown
+                lastError: ErrorReason(.internalUnknown)
             )
         )
         #expect(
