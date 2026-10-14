@@ -48,17 +48,17 @@ ifeq ($(ARCH), x86_64)
     LIBWG_OBJS := $(LIBWG_X86_64_BUILD_DIR)/libwg.a
     BUILD_X86  := true
     BUILD_ARM  := false
-    LIB_BUILD_TARGET := --target x86_64-apple-darwin
+    LIB_TRIPLETS := x86_64-apple-darwin
 else ifeq ($(ARCH), arm64)
     LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a
     BUILD_X86  := false
     BUILD_ARM  := true
-    LIB_BUILD_TARGET := --target aarch64-apple-darwin
+    LIB_TRIPLETS := aarch64-apple-darwin
 else ifeq ($(ARCH), fat)
     LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a $(LIBWG_X86_64_BUILD_DIR)/libwg.a
     BUILD_X86  := true
     BUILD_ARM  := true
-    LIB_BUILD_TARGET :=
+    LIB_TRIPLETS := aarch64-apple-darwin x86_64-apple-darwin
 else
     $(error Unknown ARCH: $(ARCH). Please use 'x86_64', 'arm64', or 'fat')
 endif
@@ -83,18 +83,9 @@ $(LIBWG_OBJS): $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
 swift-package: $(LIBWG_OBJS)
-	cd $(LIB_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNLib --xcframework-name NymVPNLibUniffi $(LIB_BUILD_TARGET) $(RELEASE_FLAG)
-
-	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
-	cd $(LIB_CRATE_DIR); \
-	for HEADERS_DIR in NymVPNLib/NymVPNLibUniffi.xcframework/*/Headers ; do \
-		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
-			[[ -d "$${SUBDIR}" ]] || continue; \
-			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
-			rm -rf "$${SUBDIR}"; \
-		done \
-	done
+	$(ALL_IDEMPOTENT_FLAGS) \
+	$(CARGO) build --package nym-vpn-lib-uniffi $(addprefix --target ,$(LIB_TRIPLETS)) $(RELEASE_FLAG)
+	$(CURDIR)/scripts/build-swift-package.sh --profile $(BUILD_PROFILE) --platform macos --slice "$(LIB_TRIPLETS)"
 
 $(BIN_TARGETS): create-upload-dir
 	@if [ "$@" == "nym-vpnd" ]; then \

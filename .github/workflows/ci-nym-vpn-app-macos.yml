@@ -56,12 +56,6 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install cargo-swift
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-swift
-          version: ${{ env.CARGO_SWIFT_VERSION }}
-
       - name: Install system software
         run:  brew install xcbeautify swiftlint
 

@@ -49,12 +49,6 @@ jobs:
           # Simulator slices Maestro drives: aarch64-apple-ios-sim on Apple Silicon, x86_64-apple-ios on Intel hosts.
           targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios x86_64-apple-darwin
 
-      - name: Install cargo-swift
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-swift
-          version: ${{ env.CARGO_SWIFT_VERSION }}
-
       # Same protoc as ci-nym-vpn-core-ios.yml. The action queries the GitHub
       # releases API, which occasionally times out; retry once before failing.
       - name: Install Protoc
@@ -101,17 +95,6 @@ jobs:
           rm -rf "$LIB_DEST"
           cp -R "$LIB_SRC" "$LIB_DEST"
           echo "Staged NymVPNLib -> $LIB_DEST"
-          # Flatten xcframework headers for Xcode 26+ (no-op on older). Matches BuildCore.sh.
-          XCODE_VER="$(xcodebuild -version | head -1 | awk '{print $2}')"
-          if [[ "$(printf '%s\n' "26.4" "$XCODE_VER" | sort -V | head -1)" == "26.4" ]]; then
-            for HEADERS_DIR in "$LIB_DEST"/NymVPNLibUniffi.xcframework/*/Headers; do
-              for SUBDIR in "$HEADERS_DIR"/*/; do
-                [[ -d "$SUBDIR" ]] || continue
-                cp -n "$SUBDIR"* "$HEADERS_DIR/" 2>/dev/null || true
-              done
-            done
-            echo "Flattened NymVPNLib xcframework headers (Xcode $XCODE_VER)"
-          fi
 
       # Pick an available iPhone (newest runtime first) so build and install target the same device; "iPhone 16" no longer exists on the runner.
       - name: Select and boot iOS simulator
