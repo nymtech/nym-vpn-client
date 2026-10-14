@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show the update dialog on Linux, macOS and Windows when the app or daemon is below the minimum supported version. A required update cannot be dismissed and blocks new connections (https://github.com/nymtech/nym-vpn-client/pull/6452)
 - Log panics to the app log file, flushing queued log lines when the main thread panics (https://github.com/nymtech/nym-vpn-client/pull/6673)
 
 ## [2026.13.0] - 2026-10-09

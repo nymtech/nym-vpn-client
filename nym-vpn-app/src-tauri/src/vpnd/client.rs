@@ -794,8 +794,8 @@ impl VpndClient {
             .or_else(async |e| self.handle_rpc_error("get_app_compatibility", e).await)
             .await?;
 
-        debug!("network compat: {compat:?}");
-        Ok(compat.network.map(NetworkCompatVersions::from))
+        debug!("app compat: {compat:?}");
+        Ok(NetworkCompatVersions::from_app_compatibility(compat))
     }
 
     /// Is sentry enabled at daemon level
