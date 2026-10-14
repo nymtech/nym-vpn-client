@@ -58,6 +58,10 @@ jobs:
         working-directory: nym-vpn-app
         run: npm run fmt:check
 
+      - name: Network update decision
+        working-directory: nym-vpn-app
+        run: node --experimental-strip-types --test src/screens/home/networkUpdate.test.ts
+
       #      - name: Run tests
       #        working-directory: nym-vpn-app
       #        run: npm run test

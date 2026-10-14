@@ -263,7 +263,11 @@ export type MixnetTrafficDefaults = {
   allContinuousTraffic: Array<ContinuousTrafficSendingRate>;
 };
 
-export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
+export type NetworkCompat = {
+  core: boolean | null;
+  tauri: boolean | null;
+  appUpdatePolicy: string;
+};
 
 export type NetworkEnv = 'mainnet' | 'canary' | 'sandbox';
 

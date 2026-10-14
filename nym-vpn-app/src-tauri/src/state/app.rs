@@ -34,6 +34,7 @@ pub enum VpnMode {
 pub struct NetworkCompat {
     core: Option<bool>,
     tauri: Option<bool>,
+    app_update_policy: String,
 }
 
 // wrapper needed for Debug trait implem
@@ -151,7 +152,11 @@ impl AppState {
             .inspect_err(|e| warn!("failed to check tauri version: {e}"))
             .ok();
         log_compat(&tauri_ver, &compat.tauri, tauri_compat, "tauri");
-        self.network_compat = Some(NetworkCompat::new(core_compat, tauri_compat));
+        self.network_compat = Some(NetworkCompat::new(
+            core_compat,
+            tauri_compat,
+            compat.app_update_policy,
+        ));
     }
 
     #[instrument(skip_all)]
@@ -186,8 +191,12 @@ impl AppState {
 }
 
 impl NetworkCompat {
-    pub fn new(core: Option<bool>, tauri: Option<bool>) -> Self {
-        NetworkCompat { core, tauri }
+    pub fn new(core: Option<bool>, tauri: Option<bool>, app_update_policy: String) -> Self {
+        NetworkCompat {
+            core,
+            tauri,
+            app_update_policy,
+        }
     }
 }
 
@@ -211,6 +220,21 @@ fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &s
         Some(false) => warn!(
             "{comp_name} version is not compatible with the network, local version: [{local}], network version: [{network}]"
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::NetworkCompat;
+
+    #[test]
+    fn network_compat_ipc_payload_is_camel_case() {
+        let value = NetworkCompat::new(Some(false), Some(true), "required".to_owned());
+        let json = serde_json::to_value(&value).expect("network compat serializes");
+        assert_eq!(json["core"], false);
+        assert_eq!(json["tauri"], true);
+        assert_eq!(json["appUpdatePolicy"], "required");
+        assert!(json.get("app_update_policy").is_none());
     }
 }
 

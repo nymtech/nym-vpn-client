@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { type } from '@tauri-apps/plugin-os';
-
 import { motion } from 'motion/react';
 import { useAppStore } from '../../store';
 import {
@@ -10,12 +8,12 @@ import {
 import DiagnosticsSuggestedDialog from './DiagnosticsSuggestedDialog';
 import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
+import { showsNetworkUpdateDialog } from './networkUpdate';
 import UpdateDialog from './UpdateDialog';
 import { NewBottomComponent } from './NewBottomComponent';
 import { TunnelState } from './TunnelState';
 
 const devMode = window._APP.devMode;
-const os = type();
 let compatChecked = false;
 
 function Home() {
@@ -29,11 +27,7 @@ function Home() {
     if (devMode || compatChecked) {
       return;
     }
-    if (
-      networkCompat &&
-      (networkCompat.core === false || networkCompat.tauri === false)
-    ) {
-      // if either core or tauri is not compatible, show the update dialog
+    if (showsNetworkUpdateDialog(networkCompat, devMode)) {
       compatChecked = true;
       setIsDialogUpdateOpen(true);
     }
@@ -44,14 +38,13 @@ function Home() {
       <UpdateDialog />
       <DiagnosticsSuggestedDialog />
       <GatewayIndependenceWarningDialog />
-      {os !== 'windows' && (
-        <NetworkUpdateDialog
-          isOpen={isDialogUpdateOpen}
-          onClose={() => setIsDialogUpdateOpen(false)}
-          appUpdate={!networkCompat?.tauri}
-          daemonUpdate={!networkCompat?.core}
-        />
-      )}
+      <NetworkUpdateDialog
+        isOpen={isDialogUpdateOpen}
+        required={networkCompat?.appUpdatePolicy === 'required'}
+        onClose={() => setIsDialogUpdateOpen(false)}
+        appUpdate={!networkCompat?.tauri}
+        daemonUpdate={!networkCompat?.core}
+      />
       <motion.div
         initial={{ opacity: 0, x: '-1rem' }}
         animate={{ opacity: 1, x: 0 }}
