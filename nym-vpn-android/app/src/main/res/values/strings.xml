@@ -124,6 +124,8 @@
         using NymVPN.
     </string>
 	<string name="update_required">Update required!</string>
+	<string name="app_update_available_title">Update available</string>
+	<string name="app_update_available_body">A newer version of NymVPN is available. You can keep using this version, or update now.</string>
 	<string name="update">Update</string>
 	<string name="log_out_title">Log out of this device?</string>
 	<string name="log_out_body">You\'ll need your 24-word passphrase to sign in again.</string>

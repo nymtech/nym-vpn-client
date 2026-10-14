@@ -93,6 +93,12 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
+	val appUpdateRequired = appUiState.managerState.appUpdateRequired
+	LaunchedEffect(appUiState.managerState.isNetworkCompatible) {
+		if (!appUiState.managerState.isNetworkCompatible) {
+			showCompatibilityDialog = true
+		}
+	}
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	var showNodeFamiliesDialog by remember { mutableStateOf(false) }
@@ -311,11 +317,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onCancelAutologin = appViewModel::cancelAutologin,
 		onDismissAutologin = appViewModel::dismissAutologin,
 		onDismissInfo = { showInfoDialog = false },
-		onDismissCompatibility = { showCompatibilityDialog = false },
+		onDismissCompatibility = {
+			if (!appUpdateRequired) showCompatibilityDialog = false
+		},
 		onConfirmCompatibility = {
-			showCompatibilityDialog = false
+			if (!appUpdateRequired) showCompatibilityDialog = false
 			context.openWebUrl(downloadUrl)
 		},
+		allowCompatibilityDismiss = !appUpdateRequired,
 		onClickBatterySettings = {
 			val packageName = "package:${context.packageName}".toUri()
 			batteryOptResultState.launch(
