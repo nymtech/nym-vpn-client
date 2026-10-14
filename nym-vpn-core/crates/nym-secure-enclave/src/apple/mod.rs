@@ -1,36 +1,62 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod security;
+mod zeroing_allocator;
+
 use std::{cell::RefCell, collections::HashMap, sync::Arc};
 
+use objc2_core_foundation::{CFAllocator, CFRetained};
+use objc2_security::{
+    SecKey, errSecAuthFailed, errSecDataNotAvailable, errSecItemNotFound, errSecUserCanceled,
+};
 use tokio_util::task::LocalPoolHandle;
 use zeroize::Zeroizing;
 
+use self::{
+    security::{SecError, create_sec_key, decrypt_data, delete_sec_key, encrypt_data, get_sec_key},
+    zeroing_allocator::create_zeroing_allocator,
+};
 use crate::{Result, SecureEnclaveError, SecureEnclaveKey, SecureEnclaveProvider};
 
 type KeyId = u64;
 
 thread_local! {
-    /// Keys owned by the worker thread. `secure_enclave_rs::SecureEnclaveKey` cannot be sent
+    /// Keys owned by the worker thread. `SecKey` cannot be sent
     /// between threads, so it never leaves the thread it was created on.
     static WORKER_STATE: RefCell<WorkerState> = RefCell::default();
 }
 
-#[derive(Default)]
 struct WorkerState {
-    keys: HashMap<KeyId, secure_enclave_rs::SecureEnclaveKey>,
+    keys: HashMap<KeyId, CFRetained<SecKey>>,
     next_key_id: KeyId,
 }
 
+impl Default for WorkerState {
+    /// Runs once on the worker thread, before the first call into the Security framework.
+    fn default() -> Self {
+        // Set global default CFAllocator on current thread.
+        match create_zeroing_allocator() {
+            Some(allocator) => CFAllocator::set_default(Some(&allocator)),
+            None => tracing::warn!("Failed to create zeroing CFAllocator"),
+        }
+
+        Self {
+            keys: HashMap::new(),
+            next_key_id: 0,
+        }
+    }
+}
+
 impl WorkerState {
-    fn insert(&mut self, key: secure_enclave_rs::SecureEnclaveKey) -> KeyId {
+    fn insert(&mut self, key: CFRetained<SecKey>) -> KeyId {
         let key_id = self.next_key_id;
         self.next_key_id += 1;
         self.keys.insert(key_id, key);
         key_id
     }
 
-    fn key(&self, key_id: KeyId) -> Result<&secure_enclave_rs::SecureEnclaveKey> {
+    fn key(&self, key_id: KeyId) -> Result<&CFRetained<SecKey>> {
         self.keys
             .get(&key_id)
             .ok_or_else(|| SecureEnclaveError::Other("key is released".to_owned()))
@@ -54,22 +80,14 @@ impl Default for AppleSecureEnclaveProvider {
 impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
     type Key = OSSecureEnclaveKey;
 
-    async fn create_key(&self, alias: &str) -> Result<Self::Key> {
+    async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
             // Prevent creating more than one key with the same alias.
-            // This should work as long as there is only one copy of `AppleSecureEnclaveProvider`
-            // See: https://github.com/carlvoller/secure-enclave-rs/issues/3
-            if secure_enclave_rs::SecureEnclaveKey::get(&alias_bytes).is_ok() {
+            if get_sec_key(&alias_bytes).is_ok() {
                 Err(SecureEnclaveError::KeyAlreadyExists)
             } else {
-                let key = secure_enclave_rs::SecureEnclaveKey::generate(
-                    &secure_enclave_rs::SecureEnclaveKeyOptions {
-                        tag: &alias_bytes,
-                        access_flags: secure_enclave_rs::SecAccessControlFlags::USER_PRESENCE,
-                        permanent: true,
-                    },
-                )?;
+                let key = create_sec_key(&alias_bytes, user_presence)?;
                 Ok(state.insert(key))
             }
         })
@@ -79,18 +97,13 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
 
     async fn delete_key(&self, alias: &str) -> Result<()> {
         let alias_bytes = alias.as_bytes().to_vec();
-        run_on_worker(&self.pool, move |_state| {
-            Ok(secure_enclave_rs::SecureEnclaveKey::remove_by_tag(
-                &alias_bytes,
-            )?)
-        })
-        .await
+        run_on_worker(&self.pool, move |_state| Ok(delete_sec_key(&alias_bytes)?)).await
     }
 
     async fn get_key(&self, alias: &str) -> Result<Self::Key> {
         let alias_bytes = alias.as_bytes().to_vec();
         let id = run_on_worker(&self.pool, move |state| {
-            let key = secure_enclave_rs::SecureEnclaveKey::get(&alias_bytes)?;
+            let key = get_sec_key(&alias_bytes)?;
             Ok(state.insert(key))
         })
         .await?;
@@ -115,9 +128,11 @@ impl OSSecureEnclaveKey {
 impl SecureEnclaveKey for OSSecureEnclaveKey {
     async fn decrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let key_id = self.handle.id;
-        let bytes_owned = bytes.to_vec();
+        let bytes = bytes.to_vec();
+
         run_on_worker(&self.handle.pool, move |state| {
-            Ok(state.key(key_id)?.decrypt(&bytes_owned)?)
+            let private_key = state.key(key_id)?;
+            Ok(decrypt_data(private_key, &bytes)?)
         })
         .await
     }
@@ -125,8 +140,10 @@ impl SecureEnclaveKey for OSSecureEnclaveKey {
     async fn encrypt(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let key_id = self.handle.id;
         let bytes = Zeroizing::new(bytes.to_vec());
+
         run_on_worker(&self.handle.pool, move |state| {
-            Ok(state.key(key_id)?.encrypt(bytes.as_slice())?)
+            let private_key = state.key(key_id)?;
+            Ok(encrypt_data(private_key, &bytes)?)
         })
         .await
     }
@@ -148,12 +165,18 @@ impl Drop for KeyHandle {
     }
 }
 
-impl From<secure_enclave_rs::Error> for SecureEnclaveError {
-    fn from(error: secure_enclave_rs::Error) -> Self {
+impl From<SecError> for SecureEnclaveError {
+    fn from(error: SecError) -> Self {
         match error {
-            secure_enclave_rs::Error::AuthFailed => Self::AuthenticationFailed,
-            secure_enclave_rs::Error::NotFound => Self::KeyNotFound,
-            other => Self::Other(other.to_string()),
+            SecError::Os(os_status) => match os_status {
+                x if x == errSecAuthFailed => Self::AuthenticationFailed,
+                x if x == errSecDataNotAvailable => Self::AccessDeniedUntilDeviceUnlocked,
+                x if x == errSecUserCanceled => Self::UserCancelled,
+                x if x == errSecItemNotFound => Self::KeyNotFound,
+                _ => Self::Other(error.to_string()),
+            },
+            SecError::Cf(err) => Self::Other(err.to_string()),
+            SecError::Internal(msg) => Self::Other(msg.to_owned()),
         }
     }
 }
@@ -166,5 +189,5 @@ where
 {
     pool.spawn_pinned(move || async move { WORKER_STATE.with_borrow_mut(f) })
         .await
-        .map_err(|_| SecureEnclaveError::Other("secure enclave worker failed".to_owned()))?
+        .map_err(|_| SecureEnclaveError::Other("secure enclave worker panic".to_owned()))?
 }

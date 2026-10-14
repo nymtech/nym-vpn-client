@@ -7209,7 +7209,9 @@ version = "2026.14.0-beta.1"
 dependencies = [
  "async-trait",
  "futures-util",
- "secure-enclave-rs",
+ "libc",
+ "objc2-core-foundation",
+ "objc2-security",
  "thiserror 2.0.20",
  "tokio",
  "tokio-util",
@@ -10603,15 +10605,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4473013577ec77b4ee3668179ef1186df3146e2cf2d927bd200974c6fe60fd99"
 dependencies = [
  "cc",
-]
-
-[[package]]
-name = "secure-enclave-rs"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f04ae30ec6249761b38e696e502bcbc4acdeeba27b99c7a354faa18f67460c9f"
-dependencies = [
- "bitflags 2.13.1",
 ]
 
 [[package]]

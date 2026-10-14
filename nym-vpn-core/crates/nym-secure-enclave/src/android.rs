@@ -54,8 +54,13 @@ pub trait AndroidSecureEnclaveKey: Send + Sync {
 
 #[uniffi::export(with_foreign)]
 pub trait AndroidSecureEnclaveProvider: Send + Sync {
-    /// Create a new key in secure enclave with the given alias
-    fn create_key(&self, alias: String) -> Result<Arc<dyn AndroidSecureEnclaveKey>>;
+    /// Create a new key in secure enclave with the given alias.
+    /// When `user_presence` is set, every use of the key requires the user to authenticate.
+    fn create_key(
+        &self,
+        alias: String,
+        user_presence: bool,
+    ) -> Result<Arc<dyn AndroidSecureEnclaveKey>>;
 
     /// Delete the key with the given alias from secure enclave
     fn delete_key(&self, alias: String) -> Result<()>;
@@ -78,11 +83,11 @@ impl AndroidKeyStoreProvider {
 impl SecureEnclaveProvider for AndroidKeyStoreProvider {
     type Key = AndroidKeyStoreKey;
 
-    async fn create_key(&self, alias: &str) -> Result<Self::Key> {
+    async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key> {
         let inner = self.inner.clone();
         let alias = alias.to_owned();
         tokio::task::spawn_blocking(move || {
-            let key = inner.create_key(alias)?;
+            let key = inner.create_key(alias, user_presence)?;
             Ok(AndroidKeyStoreKey::new(key))
         })
         .await

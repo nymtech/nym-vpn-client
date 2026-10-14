@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyInfo
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
@@ -16,32 +17,33 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Manages hardware-backed AES-GCM keys in the Android keystore. Every use of a key has to be authorized by the user.
+ * Manages hardware-backed AES-GCM keys in the Android keystore.
  */
 @Singleton
 class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext private val context: Context, private val userPresencePrompt: UserPresencePrompt) : AndroidSecureEnclaveProvider {
 
 	private val keyStore: KeyStore by lazy { KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) } }
 
-	override fun createKey(alias: String): AndroidSecureEnclaveKey = secureEnclaveCall {
+	override fun createKey(alias: String, userPresence: Boolean): AndroidSecureEnclaveKey = secureEnclaveCall {
 		if (keyStore.containsAlias(alias)) throw SecureEnclaveException.KeyAlreadyExists()
 
 		if (hasStrongBox()) {
 			try {
-				generateKey(alias, strongBox = true)
+				generateKey(alias, userPresence, strongBox = true)
 			} catch (e: StrongBoxUnavailableException) {
 				Timber.tag(TAG).w(e, "StrongBoxUnavailable")
-				generateKey(alias, strongBox = false)
+				generateKey(alias, userPresence, strongBox = false)
 			}
 		} else {
-			generateKey(alias, strongBox = false)
+			generateKey(alias, userPresence, strongBox = false)
 		}
-		Timber.tag(TAG).i("KeyCreated")
-		KeystoreSecureEnclaveKey(secretKey(alias), userPresencePrompt)
+		Timber.tag(TAG).i("KeyCreated userPresence=%s", userPresence)
+		KeystoreSecureEnclaveKey(secretKey(alias), userPresence, userPresencePrompt)
 	}
 
 	override fun deleteKey(alias: String) = secureEnclaveCall {
@@ -58,10 +60,15 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 			keyStore.deleteEntry(alias)
 			throw SecureEnclaveException.KeyNotFound()
 		}
-		KeystoreSecureEnclaveKey(secretKey, userPresencePrompt)
+		KeystoreSecureEnclaveKey(secretKey, requiresUserPresence(secretKey), userPresencePrompt)
 	}
 
 	private fun secretKey(alias: String): SecretKey = keyStore.getKey(alias, null) as? SecretKey ?: throw SecureEnclaveException.KeyNotFound()
+
+	private fun requiresUserPresence(secretKey: SecretKey): Boolean {
+		val keyInfo = SecretKeyFactory.getInstance(secretKey.algorithm, ANDROID_KEYSTORE).getKeySpec(secretKey, KeyInfo::class.java) as KeyInfo
+		return keyInfo.isUserAuthenticationRequired
+	}
 
 	private fun isInvalidated(secretKey: SecretKey): Boolean = try {
 		Cipher.getInstance(KeystoreSecureEnclaveKey.TRANSFORMATION).init(Cipher.ENCRYPT_MODE, secretKey)
@@ -73,16 +80,19 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 	private fun hasStrongBox(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
 		context.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
 
-	private fun generateKey(alias: String, strongBox: Boolean) {
+	private fun generateKey(alias: String, userPresence: Boolean, strongBox: Boolean) {
 		val spec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
 			.setBlockModes(KeyProperties.BLOCK_MODE_GCM)
 			.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
 			.setKeySize(KEY_SIZE_BITS)
-			.setUserAuthenticationRequired(true)
-			.setInvalidatedByBiometricEnrollment(false)
 			.apply {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && UserPresencePrompt.ALLOWS_DEVICE_CREDENTIAL) {
-					setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
+				if (userPresence) {
+					setUserAuthenticationRequired(true)
+					setInvalidatedByBiometricEnrollment(false)
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && UserPresencePrompt.ALLOWS_DEVICE_CREDENTIAL) {
+						setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
+					}
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) setUnlockedDeviceRequired(true)
 				}
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && strongBox) setIsStrongBoxBacked(true)
 			}
