@@ -39,10 +39,9 @@ public struct OneClickView: View {
                 }
             }
             .alert(appUpdateAlertTitle, isPresented: appUpdatePresented) {
-                Button("OK") {
-                    if !configuration.blocksConnectForAppUpdate {
-                        dismissedAppUpdate = true
-                    }
+                Button("Update") { openUpdatePage() }
+                if !configuration.blocksConnectForAppUpdate {
+                    Button("Not now", role: .cancel) { }
                 }
             } message: {
                 if let message = appUpdateAlertMessage {

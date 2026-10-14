@@ -26,4 +26,9 @@ struct AppUpdatePromptTests {
         let decision = appUpdatePrompt(local: "2026.10.0", floor: "2026.12.4", policy: "nope")
         #expect(decision == AppUpdatePrompt(show: true, blockConnect: false))
     }
+
+    @Test func prereleaseOfTheFloorVersionIsBelowTheFloor() {
+        let decision = appUpdatePrompt(local: "2026.13.0-beta.1", floor: "2026.13.0", policy: "dismissible")
+        #expect(decision == AppUpdatePrompt(show: true, blockConnect: false))
+    }
 }

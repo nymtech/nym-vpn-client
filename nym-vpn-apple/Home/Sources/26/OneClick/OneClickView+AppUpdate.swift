@@ -1,5 +1,7 @@
 import SwiftUI
 import ConfigurationManager
+import Constants
+import ExternalLinkManager
 
 extension OneClickView {
     var appUpdatePresented: Binding<Bool> {
@@ -18,6 +20,10 @@ extension OneClickView {
                 }
             }
         )
+    }
+
+    func openUpdatePage() {
+        try? ExternalLinkManager.shared.openExternalURL(urlString: Constants.downloadLink.rawValue)
     }
 
     var connectButtonDisabled: Bool {

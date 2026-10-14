@@ -14,7 +14,11 @@ public func appUpdatePrompt(local: String?, floor: String?, policy: String?) -> 
     guard let local, let floor else {
         return AppUpdatePrompt(show: false, blockConnect: false)
     }
-    let older = local.compare(floor, options: .numeric) == .orderedAscending
+    // "2026.13.0-beta.1" is older than "2026.13.0"; `.numeric` alone ranks it newer.
+    let localParts = local.split(separator: "-", maxSplits: 1)
+    let floorParts = floor.split(separator: "-", maxSplits: 1)
+    let order = String(localParts[0]).compare(String(floorParts[0]), options: .numeric)
+    let older = order == .orderedAscending || (order == .orderedSame && localParts.count > floorParts.count)
     guard older else {
         return AppUpdatePrompt(show: false, blockConnect: false)
     }
