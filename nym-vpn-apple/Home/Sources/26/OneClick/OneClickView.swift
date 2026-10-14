@@ -13,7 +13,6 @@ public struct OneClickView: View {
     @Environment(\.accessibilityVoiceOverEnabled)
     private var voiceOverEnabled
     @State private var animatedDisplayMode: OneClickDisplayMode = .powerUser
-    @State var dismissedAppUpdate = false
     @State var appUpdateGeneration = 0
     @ObservedObject var configuration = ConfigurationManager.shared
 

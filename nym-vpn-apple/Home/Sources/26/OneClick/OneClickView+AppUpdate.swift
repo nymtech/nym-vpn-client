@@ -9,14 +9,14 @@ extension OneClickView {
             get: {
                 _ = appUpdateGeneration
                 return configuration.showsAppUpdatePrompt &&
-                    (configuration.blocksConnectForAppUpdate || !dismissedAppUpdate)
+                    (configuration.blocksConnectForAppUpdate || !configuration.appUpdatePromptDismissed)
             },
             set: { presented in
                 guard !presented else { return }
                 if configuration.blocksConnectForAppUpdate {
                     appUpdateGeneration += 1
                 } else {
-                    dismissedAppUpdate = true
+                    configuration.appUpdatePromptDismissed = true
                 }
             }
         )

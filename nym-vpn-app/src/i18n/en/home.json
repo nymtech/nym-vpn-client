@@ -38,7 +38,8 @@
     "description-2": "Please update to the latest version to continue using NymVPN.",
     "title-available": "Update available",
     "description-available": "A newer version of NymVPN is available. You can keep using this version, or update now.",
-    "button-update": "Update"
+    "button-update": "Update",
+    "button-not-now": "Not now"
   },
   "app-update-available": {
     "title": "Update available",

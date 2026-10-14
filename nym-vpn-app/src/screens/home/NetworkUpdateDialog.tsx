@@ -87,6 +87,15 @@ function NetworkUpdateDialog({
       >
         {t('update-dialog.button-update')}
       </Button>
+      {!required && (
+        <Button
+          variant="outlined"
+          onClick={onClose}
+          data-testid="update-dialog-dismiss"
+        >
+          {t('update-dialog.button-not-now')}
+        </Button>
+      )}
     </Dialog>
   );
 }

@@ -91,6 +91,8 @@ import AppUpdatePrompt
 
     @Published public var isCurrentAppVersionCompatible = true
     @Published public var showsAppUpdatePrompt = false
+    // Kept here, not in the view, so a dismissed prompt stays dismissed for the whole session.
+    @Published public var appUpdatePromptDismissed = false
     @Published public var blocksConnectForAppUpdate = false
 
     public var currentEnvString: String {

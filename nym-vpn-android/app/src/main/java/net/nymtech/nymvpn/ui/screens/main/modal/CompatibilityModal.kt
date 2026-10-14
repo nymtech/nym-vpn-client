@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
@@ -49,6 +50,23 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),
 			)
+		},
+		dismissButton = {
+			if (allowDismiss) {
+				TransparentButton(
+					onClick = onDismiss,
+					content = {
+						Text(
+							stringResource(R.string.app_update_not_now),
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(40.dp.scaledHeight()),
+				)
+			}
 		},
 	)
 }
