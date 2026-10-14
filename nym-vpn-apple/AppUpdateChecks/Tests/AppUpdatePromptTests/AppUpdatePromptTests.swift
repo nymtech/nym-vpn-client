@@ -20,6 +20,7 @@ struct AppUpdatePromptTests {
     @Test func missingVersionsAllowConnect() {
         let decision = appUpdatePrompt(local: nil, floor: nil, policy: "required")
         #expect(decision == AppUpdatePrompt(show: false, blockConnect: false))
+        #expect(appUpdatePrompt(local: "2026.10.0", floor: "", policy: "required") == decision)
     }
 
     @Test func unknownPolicyIsDismissible() {

@@ -17,7 +17,10 @@ public func appUpdatePrompt(local: String?, floor: String?, policy: String?) -> 
     // "2026.13.0-beta.1" is older than "2026.13.0"; `.numeric` alone ranks it newer.
     let localParts = local.split(separator: "-", maxSplits: 1)
     let floorParts = floor.split(separator: "-", maxSplits: 1)
-    let order = String(localParts[0]).compare(String(floorParts[0]), options: .numeric)
+    guard let localBase = localParts.first, let floorBase = floorParts.first else {
+        return AppUpdatePrompt(show: false, blockConnect: false)
+    }
+    let order = String(localBase).compare(String(floorBase), options: .numeric)
     let older = order == .orderedAscending || (order == .orderedSame && localParts.count > floorParts.count)
     guard older else {
         return AppUpdatePrompt(show: false, blockConnect: false)
