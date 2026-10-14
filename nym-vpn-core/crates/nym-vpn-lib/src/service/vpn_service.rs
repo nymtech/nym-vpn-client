@@ -1571,9 +1571,10 @@ impl NymVpnService {
         let network = self.network_tx.borrow();
         let sc = network.system_configuration.as_ref()?;
         let versions = sc.min_supported_app_versions.clone()?;
-        let mut compat = NetworkCompatibility::from(versions);
-        compat.app_update_policy = sc.app_update_policy.clone();
-        Some(compat)
+        Some(NetworkCompatibility::new(
+            versions,
+            sc.app_update_policy.clone(),
+        ))
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {

@@ -94,9 +94,10 @@ impl NymEnvironment {
     pub fn network_compatibility(&self) -> Option<NetworkCompatibility> {
         let sc = self.network.system_configuration.as_ref()?;
         let versions = sc.min_supported_app_versions.clone()?;
-        let mut compat = NetworkCompatibility::from(versions);
-        compat.app_update_policy = sc.app_update_policy.clone();
-        Some(compat)
+        Some(NetworkCompatibility::new(
+            versions,
+            sc.app_update_policy.clone(),
+        ))
     }
 
     pub fn account_links(

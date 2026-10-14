@@ -785,8 +785,23 @@ pub struct SystemConfigurationResponse {
     pub wg_thresholds: ScoreThresholdsResponse,
     pub statistics_api: Option<String>,
     pub min_supported_app_versions: Option<NetworkCompatibility>,
-    #[serde(default)]
-    pub app_update_policy: Option<String>,
+    // Exact "required" is a hard block. Anything else, or a missing value, is dismissible.
+    #[serde(
+        default = "default_app_update_policy",
+        deserialize_with = "known_app_update_policy"
+    )]
+    pub app_update_policy: String,
+}
+
+pub fn default_app_update_policy() -> String {
+    "dismissible".to_owned()
+}
+
+fn known_app_update_policy<'de, D: serde::Deserializer<'de>>(d: D) -> Result<String, D::Error> {
+    let policy = Option::<String>::deserialize(d)?;
+    Ok(policy
+        .filter(|policy| policy == "required")
+        .unwrap_or_else(default_app_update_policy))
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -823,6 +838,23 @@ pub type RegisteredNetworksResponse = HashSet<String>;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn app_update_policy_only_exact_required_is_required() {
+        let parse = |policy: &str| {
+            let json = format!(
+                r#"{{"mix_thresholds": {{"high": 75, "medium": 50, "low": 25}},
+                    "wg_thresholds": {{"high": 75, "medium": 50, "low": 25}}{policy}}}"#
+            );
+            serde_json::from_str::<SystemConfigurationResponse>(&json)
+                .unwrap()
+                .app_update_policy
+        };
+        assert_eq!(parse(r#", "app_update_policy": "required""#), "required");
+        assert_eq!(parse(r#", "app_update_policy": "nope""#), "dismissible");
+        assert_eq!(parse(r#", "app_update_policy": null"#), "dismissible");
+        assert_eq!(parse(""), "dismissible");
+    }
 
     #[test]
     fn nym_vpn_zk_nym_upgrade_mode_response_parsing() {

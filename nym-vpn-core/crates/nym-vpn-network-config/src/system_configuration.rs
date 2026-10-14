@@ -13,12 +13,8 @@ pub struct SystemConfiguration {
     pub statistics_api: Option<Url>,
     pub min_supported_app_versions: Option<nym_vpn_api_client::NetworkCompatibility>,
     // Absent on discovery caches written before this field existed.
-    #[serde(default = "default_app_update_policy")]
+    #[serde(default = "nym_vpn_api_client::response::default_app_update_policy")]
     pub app_update_policy: String,
-}
-
-fn default_app_update_policy() -> String {
-    "dismissible".to_owned()
 }
 
 impl fmt::Display for SystemConfiguration {
