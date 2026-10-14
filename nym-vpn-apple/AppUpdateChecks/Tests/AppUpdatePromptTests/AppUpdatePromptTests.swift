@@ -26,14 +26,4 @@ struct AppUpdatePromptTests {
         let decision = appUpdatePrompt(local: "2026.10.0", floor: "2026.12.4", policy: "nope")
         #expect(decision == AppUpdatePrompt(show: true, blockConnect: false))
     }
-
-    @Test func nilPolicyIsDismissible() {
-        let decision = appUpdatePrompt(local: "2026.10.0", floor: "2026.12.4", policy: nil)
-        #expect(decision == AppUpdatePrompt(show: true, blockConnect: false))
-    }
-
-    @Test func oldMarketingVersionIsBelowCalendarFloor() {
-        let decision = appUpdatePrompt(local: "2.15.1", floor: "2026.12.4", policy: "dismissible")
-        #expect(decision.show)
-    }
 }

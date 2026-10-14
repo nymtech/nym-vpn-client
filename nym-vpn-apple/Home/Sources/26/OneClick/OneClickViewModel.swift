@@ -1,7 +1,6 @@
 import Combine
 import Foundation
 import SwiftUI
-import ConfigurationManager
 import SnackbarManager
 import AccountPrefetchGates
 import AppSettings
@@ -116,14 +115,11 @@ public final class OneClickViewModel {
     func connectButtonTapped() {
         guard !isConnectDisconnectInFlight else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
-        let isConnectingTap = connectionManager.currentTunnelStatus != .connected
-        if connectionManager.currentTunnelStatus.startsNewTunnel &&
-            ConfigurationManager.shared.blocksConnectForAppUpdate {
-            return
-        }
 
         impactGenerator.impact()
         snackbarManager.clear()
+
+        let isConnectingTap = connectionManager.currentTunnelStatus != .connected
 
         connectDisconnectTask?.cancel()
         connectDisconnectTask = Task { @MainActor [weak self] in

@@ -1,6 +1,6 @@
 import NymVPNLib
 
-public struct CompatibleVersions: Equatable {
+public struct CompatibleVersions {
     public var macOS: String?
     public var core: String?
     public var policy: String

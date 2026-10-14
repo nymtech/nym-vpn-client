@@ -16,19 +16,10 @@ let package = Package(
             name: "AppUpdatePrompt",
             path: "Sources/AppUpdatePrompt"
         ),
-        .target(
-            name: "TunnelStatus",
-            path: "Sources/TunnelStatus"
-        ),
         .testTarget(
             name: "AppUpdatePromptTests",
             dependencies: ["AppUpdatePrompt"],
             path: "Tests/AppUpdatePromptTests"
-        ),
-        .testTarget(
-            name: "StartsNewTunnelTests",
-            dependencies: ["TunnelStatus"],
-            path: "Tests/StartsNewTunnelTests"
         )
     ]
 )
