@@ -253,19 +253,40 @@ impl NymVpnAccountStorage {
     pub async fn rotate_keys(&self) -> Result<(), VpnError> {
         let db_path = self.storage_path.join(DB_NAME);
         match tokio::fs::remove_file(&db_path).await {
-            Ok(_) => tracing::trace!("Removed file: {}", db_path.display()),
+            Ok(_) => tracing::info!("Removed file: {}", db_path.display()),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                tracing::trace!("File not found: {}", db_path.display())
+                tracing::debug!("File not found: {}", db_path.display())
             }
             Err(e) => {
                 trace_err_chain!(e, "Failed to remove file: {}", db_path.display());
-
                 return Err(VpnError::InternalError {
                     details: e.to_string(),
                 });
             }
         }
-        Ok(())
+
+        let mut first_err = None;
+
+        for suffix in ["-wal", "-shm"] {
+            let db_path = self.storage_path.join(format!("{DB_NAME}{suffix}"));
+            match tokio::fs::remove_file(&db_path).await {
+                Ok(_) => tracing::info!("Removed file: {}", db_path.display()),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    tracing::debug!("File not found: {}", db_path.display())
+                }
+                Err(e) => {
+                    trace_err_chain!(e, "Failed to remove file: {}", db_path.display());
+                    first_err.get_or_insert(e);
+                }
+            }
+        }
+
+        match first_err {
+            Some(e) => Err(VpnError::InternalError {
+                details: e.to_string(),
+            }),
+            None => Ok(()),
+        }
     }
 
     /// Get the account identity
