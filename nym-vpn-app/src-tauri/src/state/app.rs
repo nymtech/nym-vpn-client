@@ -223,6 +223,16 @@ fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &s
     }
 }
 
+impl std::fmt::Debug for SentryClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.0.is_some() {
+            write!(f, "SentryClient(Some)")
+        } else {
+            write!(f, "SentryClient(None)")
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::NetworkCompat;
@@ -235,15 +245,5 @@ mod tests {
         assert_eq!(json["tauri"], true);
         assert_eq!(json["appUpdatePolicy"], "required");
         assert!(json.get("app_update_policy").is_none());
-    }
-}
-
-impl std::fmt::Debug for SentryClient {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.0.is_some() {
-            write!(f, "SentryClient(Some)")
-        } else {
-            write!(f, "SentryClient(None)")
-        }
     }
 }

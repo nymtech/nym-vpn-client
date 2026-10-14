@@ -4,11 +4,6 @@ import { type } from '@tauri-apps/plugin-os';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Button, Dialog, MsIcon } from '../../ui';
 import { DownloadAppUrl } from '../../constants';
-import {
-  networkUpdateBodyKey,
-  networkUpdateDownloadUrl,
-  networkUpdateTitleKey,
-} from './networkUpdate';
 
 export type Props = {
   isOpen: boolean;
@@ -31,9 +26,8 @@ function NetworkUpdateDialog({
   const os = type();
 
   const handleClose = () => {
-    const downloadUrl = networkUpdateDownloadUrl(os, DownloadAppUrl);
-    if (downloadUrl) {
-      openUrl(downloadUrl);
+    if (os === 'linux' || os === 'windows' || os === 'macos') {
+      openUrl(`${DownloadAppUrl}/${os}`);
     }
     if (!required) {
       onClose();
@@ -72,7 +66,9 @@ function NetworkUpdateDialog({
           className="text-text-primary text-xl"
           data-testid="update-dialog-title"
         >
-          {t(networkUpdateTitleKey(required))}
+          {t(
+            required ? 'update-dialog.title' : 'update-dialog.title-available',
+          )}
         </DialogTitle>
       </div>
       <p
@@ -80,8 +76,8 @@ function NetworkUpdateDialog({
         data-testid="update-dialog-description"
       >
         {required
-          ? `${description() ?? ''} ${t(networkUpdateBodyKey(true))}`.trim()
-          : t(networkUpdateBodyKey(false))}
+          ? `${description() ?? ''} ${t('update-dialog.description-2')}`.trim()
+          : t('update-dialog.description-available')}
       </p>
       <Button
         variant="primary"
