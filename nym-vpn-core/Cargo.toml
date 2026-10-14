@@ -307,6 +307,7 @@ nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2
 nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
+nym-serde-helpers = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }

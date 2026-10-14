@@ -39,8 +39,8 @@ impl LoggedOutState {
         // No account: nothing for a credential fetcher to do.
         let _ = shared_state.clear_credential_fetcher().await;
         shared_state
-            .qr_pairing_process_cancel_token
-            .drop_get_pairing_secret();
+            .qr_pairing_process_handle
+            .cancel_get_pairing_secret();
 
         (Box::new(Self), PrivateAccountControllerState::LoggedOut)
     }
@@ -60,7 +60,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
-                        shared_state.qr_pairing_process_cancel_token.drop_get_pairing_secret();
+                        shared_state.qr_pairing_process_handle.cancel_get_pairing_secret();
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
@@ -69,7 +69,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
-                            shared_state.qr_pairing_process_cancel_token.drop_get_pairing_secret();
+                            shared_state.qr_pairing_process_handle.cancel_get_pairing_secret();
                             NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
                         }
                     },
@@ -77,8 +77,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                     AccountCommand::LinkAccount(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::StartPairing(return_sender) => return_no_account(return_sender),
                     AccountCommand::ScannedKey(return_sender, remote_qr_pub_key) => {
-                        return_sender.send(handler::handle_qr_scanned_key(shared_state, remote_qr_pub_key).await);
+                        return_sender.send(handler::handle_qr_scanned_key(shared_state, &remote_qr_pub_key).await);
                     }
+                    AccountCommand::VerifiedPairingPin(return_sender) => return_no_account(return_sender),
                     AccountCommand::RotateKeys(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
                     AccountCommand::ObtainTicketbooks(return_sender) => return_no_account(return_sender),
@@ -120,7 +121,6 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
             }
             Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
-                    shared_state.qr_pairing_process_cancel_token.drop_get_pairing_secret();
                     NextAccountControllerState::NewState(OfflineState::enter())
                 } else {
                     NextAccountControllerState::SameState(self)

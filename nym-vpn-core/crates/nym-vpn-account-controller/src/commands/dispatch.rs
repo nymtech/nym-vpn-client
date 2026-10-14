@@ -43,6 +43,9 @@ pub enum AccountCommand {
         String,
     ),
 
+    /// After confirming PIN match, the account mnemonic can be shared, encrypted
+    VerifiedPairingPin(ReturnSender<(), AccountCommandError>),
+
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
 
@@ -78,6 +81,7 @@ impl AccountCommand {
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::StartPairing(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::VerifiedPairingPin(return_sender) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),
