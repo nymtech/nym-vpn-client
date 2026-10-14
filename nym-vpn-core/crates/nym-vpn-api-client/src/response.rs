@@ -677,6 +677,8 @@ pub struct NymErrorResponse {
 impl NymErrorResponse {
     /// The request was valid, but the account was never registered with the API. Distinct from
     /// "Account is not active", which is a banned or deleted account.
+    // TODO: match on `code_reference_id` once the API assigns one to this error; the message
+    // string is not a stable contract.
     pub fn is_account_not_found(&self) -> bool {
         self.status == "access_denied" && self.message == "Account not found"
     }
