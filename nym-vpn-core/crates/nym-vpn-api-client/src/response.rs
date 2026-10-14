@@ -1,7 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, fmt, net::IpAddr};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+    net::IpAddr,
+};
 
 use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
 use itertools::Itertools;
@@ -791,17 +795,39 @@ pub struct SystemConfigurationResponse {
         deserialize_with = "known_app_update_policy"
     )]
     pub app_update_policy: String,
+    // Per-platform overrides of `app_update_policy`, keyed by platform (android, ios, macos, tauri).
+    #[serde(default, deserialize_with = "known_app_update_policies")]
+    pub app_update_policies: HashMap<String, String>,
 }
 
 pub fn default_app_update_policy() -> String {
     "dismissible".to_owned()
 }
 
+// A malformed policy must never fail the whole discovery parse, so read it as raw JSON.
 fn known_app_update_policy<'de, D: serde::Deserializer<'de>>(d: D) -> Result<String, D::Error> {
-    let policy = Option::<String>::deserialize(d)?;
-    Ok(policy
-        .filter(|policy| policy == "required")
-        .unwrap_or_else(default_app_update_policy))
+    Ok(match serde_json::Value::deserialize(d)? {
+        serde_json::Value::String(policy) if policy == "required" => policy,
+        _ => default_app_update_policy(),
+    })
+}
+
+fn known_app_update_policies<'de, D: serde::Deserializer<'de>>(
+    d: D,
+) -> Result<HashMap<String, String>, D::Error> {
+    Ok(match serde_json::Value::deserialize(d)? {
+        serde_json::Value::Object(policies) => policies
+            .into_iter()
+            .map(|(platform, policy)| {
+                let policy = match policy {
+                    serde_json::Value::String(policy) if policy == "required" => policy,
+                    _ => default_app_update_policy(),
+                };
+                (platform, policy)
+            })
+            .collect(),
+        _ => HashMap::new(),
+    })
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -854,6 +880,28 @@ mod tests {
         assert_eq!(parse(r#", "app_update_policy": "nope""#), "dismissible");
         assert_eq!(parse(r#", "app_update_policy": null"#), "dismissible");
         assert_eq!(parse(""), "dismissible");
+        // a malformed value must not fail the whole discovery parse
+        assert_eq!(parse(r#", "app_update_policy": 5"#), "dismissible");
+    }
+
+    #[test]
+    fn app_update_policies_keep_only_exact_required_per_platform() {
+        let parse = |policies: &str| {
+            let json = format!(
+                r#"{{"mix_thresholds": {{"high": 75, "medium": 50, "low": 25}},
+                    "wg_thresholds": {{"high": 75, "medium": 50, "low": 25}}{policies}}}"#
+            );
+            serde_json::from_str::<SystemConfigurationResponse>(&json)
+                .unwrap()
+                .app_update_policies
+        };
+        let policies =
+            parse(r#", "app_update_policies": {"android": "required", "ios": "nope", "macos": 5}"#);
+        assert_eq!(policies["android"], "required");
+        assert_eq!(policies["ios"], "dismissible");
+        assert_eq!(policies["macos"], "dismissible");
+        assert!(parse(r#", "app_update_policies": "required""#).is_empty());
+        assert!(parse("").is_empty());
     }
 
     #[test]

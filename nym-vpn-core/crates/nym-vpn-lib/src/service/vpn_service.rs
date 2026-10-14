@@ -1581,6 +1581,7 @@ impl NymVpnService {
         Some(NetworkCompatibility::new(
             versions,
             sc.app_update_policy.clone(),
+            sc.app_update_policies.clone(),
         ))
     }
 

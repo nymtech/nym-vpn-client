@@ -287,6 +287,7 @@ pub struct SystemConfiguration {
     pub statistics_api: Option<String>,
     pub min_supported_app_versions: Option<NetworkCompatibility>,
     pub app_update_policy: String,
+    pub app_update_policies: HashMap<String, String>,
 }
 
 #[derive(Clone, Debug)]
@@ -328,6 +329,7 @@ pub struct NetworkCompatibility {
     pub tauri: String,
     pub android: String,
     pub app_update_policy: String,
+    pub app_update_policies: HashMap<String, String>,
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -338,9 +340,14 @@ impl From<nym_vpn_api_client::response::SystemConfigurationResponse> for SystemC
             mix_thresholds: ScoreThresholds::from(value.mix_thresholds),
             statistics_api: value.statistics_api,
             min_supported_app_versions: value.min_supported_app_versions.map(|versions| {
-                NetworkCompatibility::new(versions, value.app_update_policy.clone())
+                NetworkCompatibility::new(
+                    versions,
+                    value.app_update_policy.clone(),
+                    value.app_update_policies.clone(),
+                )
             }),
             app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
         }
     }
 }
@@ -353,9 +360,14 @@ impl From<nym_vpn_network_config::SystemConfiguration> for SystemConfiguration {
             mix_thresholds: ScoreThresholds::from(value.mix_thresholds),
             statistics_api: value.statistics_api.map(|url| url.to_string()),
             min_supported_app_versions: value.min_supported_app_versions.map(|versions| {
-                NetworkCompatibility::new(versions, value.app_update_policy.clone())
+                NetworkCompatibility::new(
+                    versions,
+                    value.app_update_policy.clone(),
+                    value.app_update_policies.clone(),
+                )
             }),
             app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
         }
     }
 }
@@ -397,7 +409,11 @@ impl From<nym_vpn_network_config::Network> for Network {
 
 #[cfg(feature = "nym-type-conversions")]
 impl NetworkCompatibility {
-    pub fn new(value: nym_vpn_api_client::NetworkCompatibility, app_update_policy: String) -> Self {
+    pub fn new(
+        value: nym_vpn_api_client::NetworkCompatibility,
+        app_update_policy: String,
+        app_update_policies: HashMap<String, String>,
+    ) -> Self {
         Self {
             core: value.core,
             ios: value.ios,
@@ -405,6 +421,7 @@ impl NetworkCompatibility {
             tauri: value.tauri,
             android: value.android,
             app_update_policy,
+            app_update_policies,
         }
     }
 }
@@ -606,12 +623,12 @@ mod tests {
             wg_thresholds: thresholds,
             statistics_api: None,
             min_supported_app_versions: Some(versions),
-            app_update_policy: "required".to_owned(),
+            app_update_policy: "dismissible".to_owned(),
+            app_update_policies: HashMap::from([("android".to_owned(), "required".to_owned())]),
         });
-        assert_eq!(sc.app_update_policy, "required");
-        assert_eq!(
-            sc.min_supported_app_versions.unwrap().app_update_policy,
-            "required"
-        );
+        assert_eq!(sc.app_update_policies["android"], "required");
+        let compat = sc.min_supported_app_versions.unwrap();
+        assert_eq!(compat.app_update_policy, "dismissible");
+        assert_eq!(compat.app_update_policies["android"], "required");
     }
 }

@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -15,6 +15,8 @@ pub struct SystemConfiguration {
     // Absent on discovery caches written before this field existed.
     #[serde(default = "nym_vpn_api_client::response::default_app_update_policy")]
     pub app_update_policy: String,
+    #[serde(default)]
+    pub app_update_policies: HashMap<String, String>,
 }
 
 impl fmt::Display for SystemConfiguration {
