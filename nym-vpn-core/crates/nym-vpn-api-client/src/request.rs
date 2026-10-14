@@ -139,3 +139,11 @@ pub struct TryToPairRequestBody {
     pub pin_code: String,
     pub token: String,
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SharePairSecretBody {
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub enc_mnemonic: Vec<u8>,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub nonce: Vec<u8>,
+}

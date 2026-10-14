@@ -788,6 +788,9 @@ message AccountCommandError {
     bool account_not_decentralised = 16;
     string zk_nym_acquisition_failure = 17;
     string deeplink_error = 18;
+    string invalid_public_key = 19;
+    bool pairing_not_started = 20;
+    bool no_pairing_shared_secret = 21;
   }
 }
 

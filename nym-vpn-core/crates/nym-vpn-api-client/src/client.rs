@@ -26,8 +26,8 @@ use crate::{
         AccountKind, ApplyFreepassRequestBody, CreateAndroidAccountRequestBody,
         CreateAppleAccountRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
         LinkAccountRequestBody, PairAccountRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody, TryToPairRequestBody, UpdateDeviceRequestBody,
-        UpdateDeviceRequestStatus,
+        RequestZkNymRequestBody, SharePairSecretBody, TryToPairRequestBody,
+        UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse,
@@ -922,6 +922,36 @@ impl VpnApiClient {
         .inspect_err(|e| tracing::error!("Failed to get pairing account secret: {e:?}"))
         .map_err(Box::new)
         .map_err(VpnApiClientError::GetPairingSecretAccount)
+    }
+
+    pub async fn share_secret_account(
+        &self,
+        account: &VpnAccount,
+        enc_mnemonic: Vec<u8>,
+        nonce: Vec<u8>,
+    ) -> Result<()> {
+        let request = SharePairSecretBody {
+            enc_mnemonic,
+            nonce,
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::PAIRING,
+                routes::SHARE_SECRET,
+            ],
+            &request,
+            account,
+            None,
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to share secret account: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::PairAccount)
     }
 
     pub async fn get_canonical_account_identity(
