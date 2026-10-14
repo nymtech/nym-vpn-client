@@ -23,11 +23,17 @@ pub enum SecureEnclaveError {
     #[error("Authentication failed")]
     AuthenticationFailed,
 
+    #[error("Access denied until device is unlocked")]
+    AccessDeniedUntilDeviceUnlocked,
+
     #[error("Key is not found")]
     KeyNotFound,
 
     #[error("Key already exists")]
     KeyAlreadyExists,
+
+    #[error("User cancelled")]
+    UserCancelled,
 
     #[error("Other error: {0}")]
     Other(String),
@@ -50,7 +56,7 @@ pub trait SecureEnclaveProvider {
     type Key: SecureEnclaveKey;
 
     /// Create a new key in secure enclave with the given alias
-    async fn create_key(&self, alias: &str) -> Result<Self::Key>;
+    async fn create_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key>;
 
     /// Delete the key with the given alias from secure enclave
     async fn delete_key(&self, alias: &str) -> Result<()>;

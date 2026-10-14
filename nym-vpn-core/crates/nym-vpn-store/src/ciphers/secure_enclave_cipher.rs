@@ -10,18 +10,23 @@ use nym_secure_enclave::{
     PlatformSecureEnclaveKey, SecureEnclave, SecureEnclaveError, SecureEnclaveKey,
 };
 
+pub struct SecureEnclaveCipherOptions {
+    pub key_alias: String,
+    pub user_presence: bool,
+}
+
 pub struct SecureEnclaveCipher {
     cached_key: OnceCell<PlatformSecureEnclaveKey>,
     secure_enclave: SecureEnclave,
-    key_alias: String,
+    options: SecureEnclaveCipherOptions,
 }
 
 impl SecureEnclaveCipher {
-    pub fn new(secure_enclave: SecureEnclave, key_alias: String) -> Self {
+    pub fn new(secure_enclave: SecureEnclave, options: SecureEnclaveCipherOptions) -> Self {
         Self {
             cached_key: OnceCell::new(),
             secure_enclave,
-            key_alias,
+            options,
         }
     }
 
@@ -29,7 +34,7 @@ impl SecureEnclaveCipher {
         self.cached_key
             .get_or_try_init(|| async {
                 self.secure_enclave
-                    .get_or_create_key(&self.key_alias)
+                    .get_or_create_key(&self.options.key_alias, self.options.user_presence)
                     .await
                     .map_err(StoreCipherError::from)
             })
