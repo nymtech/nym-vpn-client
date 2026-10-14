@@ -386,12 +386,7 @@ class ServiceBackedBackendManager @Inject constructor(
 
 internal data class AppUpdateDecision(val showDialog: Boolean, val blockConnect: Boolean)
 
-internal fun appUpdateDecision(
-	local: String?,
-	floor: String?,
-	policy: String?,
-	overrides: Map<String, String>? = null,
-): AppUpdateDecision {
+internal fun appUpdateDecision(local: String?, floor: String?, policy: String?, overrides: Map<String, String>? = null): AppUpdateDecision {
 	val localVersion = local?.let { Semver.coerce(it) }
 	val floorVersion = floor?.let { Semver.coerce(it) }
 	if (localVersion == null || floorVersion == null) {
