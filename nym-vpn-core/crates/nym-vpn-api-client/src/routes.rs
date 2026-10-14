@@ -36,6 +36,7 @@ pub(crate) const PAIRING: &str = "pairing";
 pub(crate) const CHECK: &str = "check";
 pub(crate) const PAIR: &str = "pair";
 pub(crate) const GET_SECRET: &str = "get-secret";
+pub(crate) const SHARE_SECRET: &str = "share-secret";
 
 pub(crate) const EPOCH_ID: &str = "epoch-id";
 pub(crate) const EXPIRATION_DATE: &str = "expiration-date";

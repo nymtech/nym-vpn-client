@@ -7773,6 +7773,7 @@ dependencies = [
  "nym-crypto",
  "nym-http-api-client",
  "nym-network-defaults",
+ "nym-serde-helpers",
  "nym-validator-client",
  "serde",
  "serde_json",
