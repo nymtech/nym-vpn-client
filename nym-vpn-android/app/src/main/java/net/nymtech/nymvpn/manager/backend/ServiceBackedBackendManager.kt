@@ -110,6 +110,14 @@ class ServiceBackedBackendManager @Inject constructor(
 				floor = versions?.android,
 				policy = versions?.appUpdatePolicy,
 			)
+			Timber.tag(TAG).i(
+				"AppUpdateDecision local=%s floor=%s policy=%s show=%s block=%s",
+				BuildConfig.VERSION_NAME,
+				versions?.android,
+				versions?.appUpdatePolicy,
+				decision.showDialog,
+				decision.blockConnect,
+			)
 			_state.update {
 				it.copy(
 					isInitialized = true,

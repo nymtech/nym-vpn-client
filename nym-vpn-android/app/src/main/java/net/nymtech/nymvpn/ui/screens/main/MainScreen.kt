@@ -102,9 +102,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
+	// Survives leaving and re-entering Home, so a dismissed prompt does not come back until the next app start.
+	var compatibilityDismissed by rememberSaveable { mutableStateOf(false) }
 	val appUpdateRequired = appUiState.managerState.appUpdateRequired
 	LaunchedEffect(appUiState.managerState.isNetworkCompatible) {
-		if (!appUiState.managerState.isNetworkCompatible) {
+		if (!appUiState.managerState.isNetworkCompatible && !compatibilityDismissed) {
 			showCompatibilityDialog = true
 		}
 	}
@@ -333,10 +335,16 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onDismissAutologin = appViewModel::dismissAutologin,
 		onDismissInfo = { showInfoDialog = false },
 		onDismissCompatibility = {
-			if (!appUpdateRequired) showCompatibilityDialog = false
+			if (!appUpdateRequired) {
+				showCompatibilityDialog = false
+				compatibilityDismissed = true
+			}
 		},
 		onConfirmCompatibility = {
-			if (!appUpdateRequired) showCompatibilityDialog = false
+			if (!appUpdateRequired) {
+				showCompatibilityDialog = false
+				compatibilityDismissed = true
+			}
 			context.openWebUrl(downloadUrl)
 		},
 		allowCompatibilityDismiss = !appUpdateRequired,
