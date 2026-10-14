@@ -297,7 +297,7 @@ async fn accept_loop(
                             if let Err(err) =
                                 handle_connection(stream, peer_addr, default_interface_rx_clone, tunnel_addrs_rx_clone, db, shutdown, #[cfg(target_os = "android")] socket_protector).await
                             {
-                                tracing::warn!("SOCKS5 connection error for peer address {peer_addr}: {err:#}");
+                                tracing::debug!("SOCKS5 connection error for peer address {peer_addr}: {err:#}");
                             }
                         });
                     }
