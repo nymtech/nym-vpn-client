@@ -9,9 +9,19 @@ NYM_VPN_LIB_MACOS_DEST := $(NYM_VPN_LIB_MACOS_DIR)/NymVPNLib
 NYM_VPN_LIB_IOS_DEST := $(NYM_VPN_LIB_IOS_DIR)/NymVPNLib
 NYM_VPN_LIB_UNIVERSAL_DEST := $(CURDIR)/NymVPNLib
 
-NYM_VPN_LIB_SLICES = $(dir $(wildcard \
-	$(NYM_VPN_LIB_MACOS_DEST)/NymVPNLibUniffi.xcframework/*/libnym_vpn_lib_uniffi.a \
-	$(NYM_VPN_LIB_IOS_DEST)/NymVPNLibUniffi.xcframework/*/libnym_vpn_lib_uniffi.a))
+ifeq ($(RELEASE), true)
+BUILD_PROFILE := release
+else
+BUILD_PROFILE := debug
+endif
+
+ifeq ($(strip $(ARCH)), x86_64)
+MACOS_TRIPLETS := x86_64-apple-darwin
+else ifeq ($(strip $(ARCH)), arm64)
+MACOS_TRIPLETS := aarch64-apple-darwin
+else
+MACOS_TRIPLETS := aarch64-apple-darwin x86_64-apple-darwin
+endif
 
 NYM_VPND_SRC_DIR := $(CORE_DIR)/upload/mac
 NYM_VPND_DEST_DIR := ${CURDIR}/NymVPND
@@ -34,43 +44,11 @@ build-mac: build-mac-package
 
 # Build universal NymVPNLib for iOS and macOS
 build-universal: build-mac-package build-ios-package
-	rm -rf $(NYM_VPN_LIB_UNIVERSAL_DEST) || true
-	mkdir -p $(NYM_VPN_LIB_UNIVERSAL_DEST)
-
-	# Merge iOS and macOS frameworks together
-	xcodebuild -create-xcframework \
-	  $(foreach slice,$(NYM_VPN_LIB_SLICES),-library $(slice)libnym_vpn_lib_uniffi.a -headers $(slice)Headers) \
-	  -output $(NYM_VPN_LIB_UNIVERSAL_DEST)/NymVPNLibUniffi.xcframework
-
-	mkdir -p $(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/{ios,macos}
-
-	# Add package.swift for universal binary framework
-	cp "$(CURDIR)/NymVPNLib-Package.swift.template" "$(NYM_VPN_LIB_UNIVERSAL_DEST)/Package.swift"
-
-	# Copy Swift sources into different directories
-	cp $(NYM_VPN_LIB_IOS_DEST)/Sources/NymVPNLib/*.swift "$(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/ios"
-	cp $(NYM_VPN_LIB_MACOS_DEST)/Sources/NymVPNLib/*.swift "$(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/macos"
-
-	# Add per-platform conditional compilation to source files
-	pushd "$(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/ios" ; \
-	find . -name "*.swift" -type f | while read -r file; do \
-		echo "Processing $$file" ; \
-	    content=$$(cat "$$file") ; \
-		new_file="$${file%.swift}-ios.swift" ; \
-	    printf "#if os(iOS)\n\n%s\n\n#endif\n" "$$content" > "$$new_file" ; \
-		rm "$$file" ; \
-	done ; \
-	popd
-
-	pushd "$(NYM_VPN_LIB_UNIVERSAL_DEST)/Sources/NymVPNLib/macos" ; \
-	find . -name "*.swift" -type f | while read -r file; do \
-	    echo "Processing $$file" ; \
-	    content=$$(cat "$$file") ; \
-		new_file="$${file%.swift}-macos.swift" ; \
-	    printf "#if os(macOS)\n\n%s\n\n#endif\n" "$$content" > "$$new_file" ; \
-		rm "$$file" ; \
-	done ; \
-	popd
+	$(CORE_DIR)/scripts/build-swift-package.sh --profile $(BUILD_PROFILE) \
+		--platform ios --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim x86_64-apple-ios" \
+		--platform macos --slice "$(MACOS_TRIPLETS)"
+	rm -rf "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
+	cp -R "$(NYM_VPN_LIB_SRC)" "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
 
 build-mac-package:
 	$(MAKE) -C $(CORE_DIR) -f macOS.mk build-all RELEASE=$(RELEASE) ARCH=$(ARCH)

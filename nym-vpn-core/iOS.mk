@@ -21,10 +21,10 @@ endif
 # into a single xcframework. Otherwise build only the given target.
 ifeq ($(RUST_TRIPLET),)
 RUST_TRIPLETS := aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
-SWIFT_TARGET_FLAGS :=
+SWIFT_SLICES := --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim x86_64-apple-ios"
 else
 RUST_TRIPLETS := $(RUST_TRIPLET)
-SWIFT_TARGET_FLAGS := --target $(RUST_TRIPLET)
+SWIFT_SLICES := --slice "$(RUST_TRIPLET)"
 endif
 
 LIB_CRATE_NAME := nym-vpn-lib-uniffi
@@ -49,19 +49,8 @@ build: libwg
 	fi
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --package $(LIB_CRATE_NAME) $(addprefix --target ,$(RUST_TRIPLETS)) $(RELEASE_FLAG)
 
-swift-package: libwg
-	cd $(LIB_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib $(SWIFT_TARGET_FLAGS) --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
-
-	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
-	cd $(LIB_CRATE_DIR); \
-	for HEADERS_DIR in NymVPNLib/NymVPNLibUniffi.xcframework/*/Headers ; do \
-		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
-			[[ -d "$${SUBDIR}" ]] || continue; \
-			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
-			rm -rf "$${SUBDIR}"; \
-		done \
-	done
+swift-package: build
+	$(CURDIR)/scripts/build-swift-package.sh --profile $(TARGET_DIR) --platform ios $(SWIFT_SLICES)
 
 libwg: $(LIBWG_LIBS)
 
