@@ -135,7 +135,7 @@ class VpnQuickTile :
 	}
 
 	private suspend fun startOrExplainUpdate() {
-		if (quickTileExplainsUpdate(backendManager.stateFlow.value.appUpdateRequired)) {
+		if (backendManager.stateFlow.value.appUpdateRequired) {
 			setTileDescription(getString(R.string.update_required))
 			setInactive()
 		}
@@ -223,5 +223,3 @@ class VpnQuickTile :
 	override val lifecycle: Lifecycle
 		get() = lifecycleRegistry
 }
-
-internal fun quickTileExplainsUpdate(appUpdateRequired: Boolean): Boolean = appUpdateRequired
