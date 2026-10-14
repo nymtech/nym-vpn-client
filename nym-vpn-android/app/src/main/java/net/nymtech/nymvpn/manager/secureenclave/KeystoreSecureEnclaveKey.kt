@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.manager.secureenclave
 
 import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.UserNotAuthenticatedException
 import nym_secure_enclave.AndroidSecureEnclaveKey
 import nym_secure_enclave.SecureEnclaveException
 import timber.log.Timber
@@ -13,7 +14,7 @@ import javax.crypto.spec.GCMParameterSpec
  *
  * Ciphertext layout: 12 byte IV followed by the GCM output (ciphertext and tag).
  */
-class KeystoreSecureEnclaveKey(private val secretKey: SecretKey, private val userPresencePrompt: UserPresencePrompt) : AndroidSecureEnclaveKey {
+class KeystoreSecureEnclaveKey(private val secretKey: SecretKey, private val requiresUserPresence: Boolean, private val userPresencePrompt: UserPresencePrompt) : AndroidSecureEnclaveKey {
 
 	override fun encrypt(bytes: ByteArray): ByteArray = try {
 		secureEnclaveCall {
@@ -40,7 +41,7 @@ class KeystoreSecureEnclaveKey(private val secretKey: SecretKey, private val use
 			Timber.tag(TAG).w(e, "KeyInvalidated")
 			throw SecureEnclaveException.KeyNotFound()
 		}
-		return userPresencePrompt.unlock(cipher) ?: throw SecureEnclaveException.AuthenticationFailed()
+		return if (requiresUserPresence) userPresencePrompt.unlock(cipher) else cipher
 	}
 
 	companion object {
@@ -59,6 +60,9 @@ internal inline fun <T> secureEnclaveCall(block: () -> T): T = try {
 	block()
 } catch (e: SecureEnclaveException) {
 	throw e
+} catch (e: UserNotAuthenticatedException) {
+	Timber.tag("secure-enclave").w(e, "DeviceLocked")
+	throw SecureEnclaveException.AccessDeniedUntilDeviceUnlocked()
 } catch (e: Exception) {
 	Timber.tag("secure-enclave").e(e, "SecureEnclaveCallFailed")
 	throw SecureEnclaveException.Other(e.toString())
