@@ -3,7 +3,9 @@ use std::fmt;
 
 use crate::response::NetworkCompatibilityResponse;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+// A platform that is missing from discovery parses as an empty minimum version, which never prompts.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct NetworkCompatibility {
     pub core: String,
     pub ios: String,
@@ -31,5 +33,18 @@ impl From<NetworkCompatibilityResponse> for NetworkCompatibility {
             tauri: response.tauri,
             android: response.android,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_platform_minimum_parses_as_empty_instead_of_failing() {
+        let parsed: NetworkCompatibility =
+            serde_json::from_str(r#"{"android": "2026.14.0"}"#).unwrap();
+        assert_eq!(parsed.android, "2026.14.0");
+        assert_eq!(parsed.ios, "");
     }
 }
