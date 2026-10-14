@@ -35,6 +35,8 @@ pub enum Key {
     NetworkStatsEnabled,
     CustomSplitTunnelApps,
     ExpiryReminderShown,
+    // the minimum versions of the update prompt the user dismissed
+    AppUpdateDismissed,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,

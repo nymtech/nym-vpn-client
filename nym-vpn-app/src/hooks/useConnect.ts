@@ -13,9 +13,17 @@ function useConnect() {
   const notificationsEnabled = useAppStore(
     (s) => s.gatewayIndependenceNotifications,
   );
+  const networkCompat = useAppStore((s) => s.networkCompat);
   const { requestConfirmation } = useGwIndependenceWarning();
 
   return useCallback(async () => {
+    // Dev mode never sets networkCompat, so this does not block there.
+    if (
+      networkCompat?.appUpdatePolicy === 'required' &&
+      (networkCompat.core === false || networkCompat.tauri === false)
+    ) {
+      return;
+    }
     await invoke('set_gateway_independence', { enabled: true });
 
     const tentative = await invoke<TentativeGateways>('get_tentative_gateways');
@@ -29,7 +37,7 @@ function useConnect() {
     dispatch({ type: 'reset-error' });
     dispatch({ type: 'connect' });
     await invoke('connect');
-  }, [notificationsEnabled, requestConfirmation]);
+  }, [networkCompat, notificationsEnabled, requestConfirmation]);
 }
 
 export default useConnect;
