@@ -385,7 +385,7 @@ async fn serve_socks5(
         decide_route_for_addrs(&target_addrs, tunnel_addrs, &db.geo_ip)
     };
 
-    tracing::info!("SOCKS5 CONNECT {peer_addr} -> {target_addr}");
+    tracing::debug!("SOCKS5 CONNECT {peer_addr} -> {target_addr}");
     tracing::debug!(
         "domain_excluded={domain_excluded} target_addrs={target_addrs:?} \
          routing_decision={routing_decision:?} \
@@ -431,7 +431,7 @@ async fn serve_socks5(
 
     transfer(inner, outbound).await;
 
-    tracing::info!("SOCKS5 connection {peer_addr} -> {target_addr} closed");
+    tracing::debug!("SOCKS5 connection {peer_addr} -> {target_addr} closed");
 
     Ok(())
 }
