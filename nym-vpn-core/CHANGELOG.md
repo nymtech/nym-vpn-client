@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix panic in logging system initialization (https://github.com/nymtech/nym-vpn-client/pull/6674)
 - Rotate logs on iOS and Android on per session basis (https://github.com/nymtech/nym-vpn-client/pull/6679)
 
+### Security
+
+- Decide the route for each resolved IP address individually in the geo-exclusion proxy. Previously, if any address resolved for a domain was excluded, all of that domain’s addresses were routed outside the tunnel. (https://github.com/nymtech/nym-vpn-client/pull/6705)
+
 
 ## [2026.13.0] - 2026-10-09
 
