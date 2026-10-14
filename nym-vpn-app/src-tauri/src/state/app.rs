@@ -34,6 +34,8 @@ pub enum VpnMode {
 pub struct NetworkCompat {
     core: Option<bool>,
     tauri: Option<bool>,
+    app_update_policy: String,
+    floors: String,
 }
 
 // wrapper needed for Debug trait implem
@@ -151,7 +153,12 @@ impl AppState {
             .inspect_err(|e| warn!("failed to check tauri version: {e}"))
             .ok();
         log_compat(&tauri_ver, &compat.tauri, tauri_compat, "tauri");
-        self.network_compat = Some(NetworkCompat::new(core_compat, tauri_compat));
+        self.network_compat = Some(NetworkCompat::new(
+            core_compat,
+            tauri_compat,
+            compat.app_update_policy,
+            format!("{}|{}", compat.core, compat.tauri),
+        ));
     }
 
     #[instrument(skip_all)]
@@ -186,8 +193,18 @@ impl AppState {
 }
 
 impl NetworkCompat {
-    pub fn new(core: Option<bool>, tauri: Option<bool>) -> Self {
-        NetworkCompat { core, tauri }
+    pub fn new(
+        core: Option<bool>,
+        tauri: Option<bool>,
+        app_update_policy: String,
+        floors: String,
+    ) -> Self {
+        NetworkCompat {
+            core,
+            tauri,
+            app_update_policy,
+            floors,
+        }
     }
 }
 
