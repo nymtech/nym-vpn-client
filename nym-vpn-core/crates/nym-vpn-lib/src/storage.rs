@@ -9,7 +9,9 @@ use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
 use nym_vpn_store::ciphers::noop_cipher::NoopStoreCipher;
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-use nym_vpn_store::ciphers::secure_enclave_cipher::SecureEnclaveCipher;
+use nym_vpn_store::ciphers::secure_enclave_cipher::{
+    SecureEnclaveCipher, SecureEnclaveCipherOptions,
+};
 use nym_vpn_store::{
     account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
     account_summary::{AccountSummaryStorage, on_disk::OnDiskAccountSummaryStorageError},
@@ -40,8 +42,13 @@ impl VpnClientOnDiskStorage {
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
 
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-        let mnemonic_storage_cipher =
-            SecureEnclaveCipher::new(secure_enclave, MNEMONIC_SE_KEY.to_owned());
+        let mnemonic_storage_cipher = SecureEnclaveCipher::new(
+            secure_enclave,
+            SecureEnclaveCipherOptions {
+                key_alias: MNEMONIC_SE_KEY.to_owned(),
+                user_presence: true,
+            },
+        );
 
         #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
         let mnemonic_storage_cipher = NoopStoreCipher::default();
