@@ -10,7 +10,13 @@ public struct AppUpdatePrompt: Equatable {
     }
 }
 
-public func appUpdatePrompt(local: String?, floor: String?, policy: String?) -> AppUpdatePrompt {
+public func appUpdatePrompt(
+    local: String?,
+    floor: String?,
+    policy: String?,
+    policies: [String: String] = [:],
+    platform: String = ""
+) -> AppUpdatePrompt {
     guard let local, let floor else {
         return AppUpdatePrompt(show: false, blockConnect: false)
     }
@@ -25,5 +31,6 @@ public func appUpdatePrompt(local: String?, floor: String?, policy: String?) -> 
     guard older else {
         return AppUpdatePrompt(show: false, blockConnect: false)
     }
-    return AppUpdatePrompt(show: true, blockConnect: policy == "required")
+    // This platform's own policy wins over the default.
+    return AppUpdatePrompt(show: true, blockConnect: (policies[platform] ?? policy) == "required")
 }

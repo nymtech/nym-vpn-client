@@ -32,4 +32,19 @@ struct AppUpdatePromptTests {
         let decision = appUpdatePrompt(local: "2026.13.0-beta.1", floor: "2026.13.0", policy: "dismissible")
         #expect(decision == AppUpdatePrompt(show: true, blockConnect: false))
     }
+
+    @Test func platformOverrideBeatsTheDefaultPolicy() {
+        func prompt(_ policy: String, _ policies: [String: String]) -> AppUpdatePrompt {
+            appUpdatePrompt(
+                local: "2026.10.0",
+                floor: "2026.12.4",
+                policy: policy,
+                policies: policies,
+                platform: "ios"
+            )
+        }
+        #expect(prompt("dismissible", ["ios": "required"]) == AppUpdatePrompt(show: true, blockConnect: true))
+        #expect(prompt("required", ["ios": "dismissible"]) == AppUpdatePrompt(show: true, blockConnect: false))
+        #expect(prompt("dismissible", ["macos": "required"]) == AppUpdatePrompt(show: true, blockConnect: false))
+    }
 }

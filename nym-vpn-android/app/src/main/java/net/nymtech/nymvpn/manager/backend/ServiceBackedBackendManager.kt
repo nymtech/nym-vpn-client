@@ -105,17 +105,18 @@ class ServiceBackedBackendManager @Inject constructor(
 			refreshAccountSummary()
 
 			val versions = runCatching { api.getNetworkVersions() }.getOrNull()
-			val policy = versions?.appUpdatePolicies?.get("android") ?: versions?.appUpdatePolicy
 			val decision = appUpdateDecision(
 				local = BuildConfig.VERSION_NAME,
 				floor = versions?.android,
-				policy = policy,
+				policy = versions?.appUpdatePolicy,
+				overrides = versions?.appUpdatePolicies,
 			)
 			Timber.tag(TAG).i(
-				"AppUpdateDecision local=%s floor=%s policy=%s show=%s block=%s",
+				"AppUpdateDecision local=%s floor=%s policy=%s overrides=%s show=%s block=%s",
 				BuildConfig.VERSION_NAME,
 				versions?.android,
-				policy,
+				versions?.appUpdatePolicy,
+				versions?.appUpdatePolicies,
 				decision.showDialog,
 				decision.blockConnect,
 			)
@@ -385,7 +386,12 @@ class ServiceBackedBackendManager @Inject constructor(
 
 internal data class AppUpdateDecision(val showDialog: Boolean, val blockConnect: Boolean)
 
-internal fun appUpdateDecision(local: String?, floor: String?, policy: String?): AppUpdateDecision {
+internal fun appUpdateDecision(
+	local: String?,
+	floor: String?,
+	policy: String?,
+	overrides: Map<String, String>? = null,
+): AppUpdateDecision {
 	val localVersion = local?.let { Semver.coerce(it) }
 	val floorVersion = floor?.let { Semver.coerce(it) }
 	if (localVersion == null || floorVersion == null) {
@@ -394,6 +400,7 @@ internal fun appUpdateDecision(local: String?, floor: String?, policy: String?):
 	if (!localVersion.isLowerThan(floorVersion)) {
 		return AppUpdateDecision(showDialog = false, blockConnect = false)
 	}
-	val required = policy == "required"
+	// This platform's own policy wins over the default.
+	val required = (overrides?.get("android") ?: policy) == "required"
 	return AppUpdateDecision(showDialog = true, blockConnect = required)
 }

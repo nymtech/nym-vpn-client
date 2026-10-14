@@ -27,13 +27,21 @@ import AppUpdatePrompt
 
     private var cancellables = Set<AnyCancellable>()
     private var appUpdatePolicy = "dismissible"
+    private var appUpdatePolicies: [String: String] = [:]
+#if os(iOS)
+    private let updatePlatform = "ios"
+#else
+    private let updatePlatform = "macos"
+#endif
     private var lastCompatibleAppVersion: String? {
         didSet {
             Task { @MainActor in
                 let decision = appUpdatePrompt(
                     local: appVersion,
                     floor: lastCompatibleAppVersion,
-                    policy: appUpdatePolicy
+                    policy: appUpdatePolicy,
+                    policies: appUpdatePolicies,
+                    platform: updatePlatform
                 )
                 isCurrentAppVersionCompatible = !decision.show
                 showsAppUpdatePrompt = decision.show
@@ -280,7 +288,8 @@ private extension ConfigurationManager {
 #if os(iOS)
                 let versions = await networkEnv?.networkCompatibility()
                 await MainActor.run {
-                    self.appUpdatePolicy = versions?.appUpdatePolicies["ios"] ?? versions?.appUpdatePolicy ?? "dismissible"
+                    self.appUpdatePolicy = versions?.appUpdatePolicy ?? "dismissible"
+                    self.appUpdatePolicies = versions?.appUpdatePolicies ?? [:]
                     self.lastCompatibleAppVersion = versions?.ios
                     self.lastCompatibleCoreVersion = versions?.core
                 }
@@ -288,6 +297,7 @@ private extension ConfigurationManager {
                 let versions = try await self.grpcManager.fetchCompatibleVersions()
                 await MainActor.run {
                     self.appUpdatePolicy = versions.policy
+                    self.appUpdatePolicies = versions.policies
                     self.lastCompatibleAppVersion = versions.macOS
                     self.lastCompatibleCoreVersion = versions.core
                 }
