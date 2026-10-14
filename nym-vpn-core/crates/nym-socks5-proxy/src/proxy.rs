@@ -11,7 +11,7 @@ use std::{
 use crate::{
     default_interface::DefaultInterface,
     file_manager,
-    routing::{RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain},
+    routing::{RoutingDatabase, RoutingDecision, decide_route_for_addr, is_excluded_domain},
 };
 
 #[cfg(target_os = "windows")]
@@ -379,20 +379,30 @@ async fn serve_socks5(
         bail!("No addresses resolved for {target_addr} (from {peer_addr})");
     }
 
-    let routing_decision = if domain_excluded {
-        RoutingDecision::DefaultInterface
-    } else {
-        decide_route_for_addrs(&target_addrs, tunnel_addrs, &db.geo_ip)
-    };
+    let routes: Vec<(SocketAddr, RoutingDecision)> = target_addrs
+        .iter()
+        .map(|&addr| {
+            let routing_decision = if domain_excluded {
+                RoutingDecision::DefaultInterface
+            } else {
+                decide_route_for_addr(addr.ip(), tunnel_addrs, &db.geo_ip)
+            };
+            (addr, routing_decision)
+        })
+        .collect();
 
     tracing::debug!("SOCKS5 CONNECT {peer_addr} -> {target_addr}");
     tracing::debug!(
-        "domain_excluded={domain_excluded} target_addrs={target_addrs:?} \
-         routing_decision={routing_decision:?} \
+        "domain_excluded={domain_excluded} routes={routes:?} \
          default_interface={default_interface:?} tunnel_addrs={tunnel_addrs:?}"
     );
 
-    if routing_decision == RoutingDecision::Reject {
+    let routes: Vec<(SocketAddr, RoutingDecision)> = routes
+        .into_iter()
+        .filter(|(_, routing_decision)| *routing_decision != RoutingDecision::Reject)
+        .collect();
+
+    if routes.is_empty() {
         let _ = proto.reply_error(&ReplyError::NetworkUnreachable).await;
         bail!(
             "Refusing non-excluded {target_addr} (from {peer_addr}): no active VPN tunnel to carry it"
@@ -400,12 +410,8 @@ async fn serve_socks5(
     }
 
     let outbound = match connect_to_target(
-        if routing_decision == RoutingDecision::DefaultInterface {
-            Some(default_interface)
-        } else {
-            None
-        },
-        &target_addrs,
+        default_interface,
+        &routes,
         #[cfg(target_os = "android")]
         &socket_protector,
     )
@@ -436,16 +442,19 @@ async fn serve_socks5(
     Ok(())
 }
 
-// If default_interface is Some, then we attempt to bind to the default interface,
-// else we bind to the INADDR_ANY and allow routing to direct traffic through the VPN tunnel.
+// Addresses routed via DefaultInterface are bound to the default interface,
+// others are bound to INADDR_ANY and routing directs traffic through the VPN tunnel.
 async fn connect_to_target(
-    default_interface: Option<&DefaultInterface>,
-    addrs: &[SocketAddr],
+    default_interface: &DefaultInterface,
+    routes: &[(SocketAddr, RoutingDecision)],
     #[cfg(target_os = "android")] socket_protector: &crate::SocketProtector,
 ) -> Result<TcpStream> {
     let mut last_err: Option<Error> = None;
 
-    for &addr in addrs {
+    for &(addr, routing_decision) in routes {
+        let default_interface =
+            (routing_decision == RoutingDecision::DefaultInterface).then_some(default_interface);
+
         let socket = match addr {
             SocketAddr::V4(_) => TcpSocket::new_v4().context("Failed to create IPv4 socket")?,
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
