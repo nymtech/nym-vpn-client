@@ -54,6 +54,15 @@ pub enum VpnError {
     #[error("failed to parse secret with error: {details}")]
     InvalidSecret { details: String },
 
+    #[error("invalid public key: {details}")]
+    InvalidPublicKey { details: String },
+
+    #[error("verify PIN has to be called after starting the pairing process")]
+    PairingNotStarted,
+
+    #[error("pairing process hasn't produced a shared secret yet")]
+    NoPairingSharedSecret,
+
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
@@ -138,6 +147,9 @@ impl From<AccountCommandError> for VpnError {
                 Self::ZkNymAcquisitionFailure { details }
             }
             AccountCommandError::DeeplinkError(message) => Self::DeeplinkError { details: message },
+            AccountCommandError::InvalidPublicKey(err) => Self::InvalidPublicKey { details: err },
+            AccountCommandError::PairingNotStarted => Self::PairingNotStarted,
+            AccountCommandError::NoPairingSharedSecret => Self::NoPairingSharedSecret,
         }
     }
 }
