@@ -27,15 +27,14 @@ pub async fn remove_files_for_account(
 ) -> Result<(), Error> {
     // Files specific to the VPN client
     let mut vpn_paths = vec![
-        DEFAULT_PRIVATE_DEVICE_KEY_FILENAME,
-        DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
+        data_dir.join(DEFAULT_PRIVATE_DEVICE_KEY_FILENAME),
+        data_dir.join(DEFAULT_PUBLIC_DEVICE_KEY_FILENAME),
     ];
 
     if remove_wireguard_keys_db {
-        vpn_paths.push(DB_NAME);
+        vpn_paths
+            .extend(["", "-wal", "-shm"].map(|suffix| data_dir.join(format!("{DB_NAME}{suffix}"))));
     }
-
-    let vpn_paths = vpn_paths.iter().map(|file| data_dir.join(file));
 
     // Files specific to the mixnet client
     let storage_paths =
@@ -52,7 +51,7 @@ pub async fn remove_files_for_account(
             storage_paths.ack_key,
         ]);
 
-    let files_to_remove = vpn_paths.chain(mixnet_paths);
+    let files_to_remove = vpn_paths.into_iter().chain(mixnet_paths);
 
     for file_path in files_to_remove {
         tracing::info!("Removing file: {}", file_path.display());
