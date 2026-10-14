@@ -45,6 +45,7 @@ let package = Package(
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
     dependencies: [
+        .package(path: "../AppUpdateChecks"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
@@ -76,6 +77,7 @@ let package = Package(
             name: "ConfigurationManager",
             dependencies: [
                 "AppSettings",
+                .product(name: "AppUpdatePrompt", package: "AppUpdateChecks"),
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),

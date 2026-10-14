@@ -186,7 +186,7 @@ extension ConnectionManager {
         if MockMode.isEnabled {
             if currentTunnelStatus == .connected || currentTunnelStatus == .connecting {
                 MockConnectionState.shared.disconnect()
-            } else {
+            } else if !ConfigurationManager.shared.blocksConnectForAppUpdate {
                 MockConnectionState.shared.connect()
             }
             return
@@ -198,6 +198,9 @@ extension ConnectionManager {
                 lastError = nil
             }
         } else {
+            if ConfigurationManager.shared.blocksConnectForAppUpdate {
+                return
+            }
             let config = try generateConfig()
             try await connect(with: config)
         }

@@ -77,50 +77,7 @@ struct NymVPNDaemonApp: App {
 
     var body: some Scene {
         Window(windowId, id: windowId) {
-            ZStack {
-                AppFeatureView(viewModel: appFeatureViewModel)
-                    .transition(.slide)
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                        .transition(.opacity)
-                }
-            }
-            .animation(.easeInOut, value: splashScreenDidDisplay)
-            .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
-            .onAppear {
-                DispatchQueue.main.async {
-                    appDelegate.bringWindowToFront()
-                }
-                externalLinkManager.deeplinkHandler = { url in
-                    await deeplinkManager.handleURL(url)
-                }
-            }
-            .onDisappear {
-                if autoUpdater.didPrepareForQuit {
-                    quitApp()
-                }
-            }
-            .onOpenURL { incomingURL in
-                deeplinkManager.handle(url: incomingURL)
-            }
-            .alert(alertTitle, isPresented: $isDisplayingAlert) {
-                Button("ok".localizedString, role: .cancel) { }
-            }
-            .overlay {
-                quitModalOverlay()
-            }
-            .environmentObject(appSettings)
-            .environmentObject(configurationManager)
-            .environmentObject(connectionManager)
-            .environmentObject(credentialsManager)
-            .environmentObject(externalLinkManager)
-            .environmentObject(featureFlagsManager)
-            .environmentObject(gatewayManager)
-            .environmentObject(grpcManager)
-            .environmentObject(impactGenerator)
-            .environmentObject(nymLogger.logFileManager)
-            .environment(deeplinkManager)
-            .environment(appDiscoveryService)
+            mainWindowContent()
         }
         .onChange(of: appSettings.appMode) { _, newMode in
             appDelegate.configureActivationPolicy(with: newMode)
@@ -145,6 +102,53 @@ struct NymVPNDaemonApp: App {
 }
 
 private extension NymVPNDaemonApp {
+    func mainWindowContent() -> some View {
+        ZStack {
+            AppFeatureView(viewModel: appFeatureViewModel)
+                .transition(.slide)
+            if !splashScreenDidDisplay {
+                LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: splashScreenDidDisplay)
+        .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
+        .onAppear {
+            DispatchQueue.main.async {
+                appDelegate.bringWindowToFront()
+            }
+            externalLinkManager.deeplinkHandler = { url in
+                await deeplinkManager.handleURL(url)
+            }
+        }
+        .onDisappear {
+            if autoUpdater.didPrepareForQuit {
+                quitApp()
+            }
+        }
+        .onOpenURL { incomingURL in
+            deeplinkManager.handle(url: incomingURL)
+        }
+        .alert(alertTitle, isPresented: $isDisplayingAlert) {
+            Button("ok".localizedString, role: .cancel) { }
+        }
+        .overlay {
+            quitModalOverlay()
+        }
+        .environmentObject(appSettings)
+        .environmentObject(configurationManager)
+        .environmentObject(connectionManager)
+        .environmentObject(credentialsManager)
+        .environmentObject(externalLinkManager)
+        .environmentObject(featureFlagsManager)
+        .environmentObject(gatewayManager)
+        .environmentObject(grpcManager)
+        .environmentObject(impactGenerator)
+        .environmentObject(nymLogger.logFileManager)
+        .environment(deeplinkManager)
+        .environment(appDiscoveryService)
+    }
+
     func setup() {
         ThemeConfiguration.setup()
         Task {
@@ -259,6 +263,10 @@ private extension NymVPNDaemonApp {
         if menuBarConnectButtonState.menuBarItemIsAction {
             Button(menuBarConnectButtonState.localizedTitle) {
                 Task { @MainActor in
+                    if connectionManager.currentTunnelStatus.startsNewTunnel &&
+                        ConfigurationManager.shared.blocksConnectForAppUpdate {
+                        return
+                    }
                     try? await connectionManager.connectDisconnect()
                 }
             }
