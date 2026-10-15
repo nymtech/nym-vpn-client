@@ -14,6 +14,7 @@ class PrivacyViewModel @Inject constructor(private val vpnConfigRepository: VpnC
 
 	fun onNetworkStatsEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setStatisticsEnabled(enabled)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetworkStatsEnabled(enabled))
 	}
 
 	fun onMonitoringEnabled(enabled: Boolean) = viewModelScope.launch {

@@ -321,7 +321,9 @@ class VpnCoreController(
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
-		commandSender = svc.getCommandSender()
+		val sender = svc.getCommandSender()
+		syncNetworkStats(sender)
+		commandSender = sender
 		nymVpnService = svc
 
 		if (!initialized.isCompleted) initialized.complete(Unit)
@@ -380,6 +382,14 @@ class VpnCoreController(
 		}.onFailure { Timber.tag(TAG).w(it, "refreshCoreStateAfterInit failed") }
 	}
 
+	private suspend fun syncNetworkStats(sender: NymVpnServiceCommandSender) {
+		runCatching {
+			val enabled = appConfigProvider.isNetworkStatsEnabled()
+			sender.setNetworkStatsEnabled(enabled)
+			Timber.tag(TAG).i("NetworkStatsSynced enabled=%b", enabled)
+		}.onFailure { Timber.tag(TAG).e(it, "NetworkStatsSyncFailed") }
+	}
+
 	private fun syncLocalTunSettings(prefs: LocalVpnPrefs) {
 		tun.setDisallowedApps(prefs.restrictedApps)
 		tun.setBypassLan(prefs.bypassLan)
@@ -390,6 +400,7 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetNetwork -> configRepo.updateLocalPrefs { it.copy(network = update.value) }
 			is CoreVpnConfigUpdate.SetDebugLog -> configRepo.updateLocalPrefs { it.copy(debugLog = update.value) }
 			is CoreVpnConfigUpdate.SetSentry -> configRepo.updateLocalPrefs { it.copy(sentry = update.value) }
+			is CoreVpnConfigUpdate.SetNetworkStatsEnabled -> requireCoreSender { it.setNetworkStatsEnabled(update.value) }
 			is CoreVpnConfigUpdate.SetBypassLan -> {
 				configRepo.updateLocalPrefs { it.copy(bypassLan = update.value) }
 				tun.setBypassLan(update.value)
