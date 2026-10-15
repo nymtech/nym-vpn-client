@@ -1,4 +1,5 @@
 import SwiftUI
+import ConfigurationManager
 import ConnectionTypes
 import Theme
 import UIComponents
@@ -12,6 +13,8 @@ public struct OneClickView: View {
     @Environment(\.accessibilityVoiceOverEnabled)
     private var voiceOverEnabled
     @State private var animatedDisplayMode: OneClickDisplayMode = .powerUser
+    @State var appUpdateGeneration = 0
+    @ObservedObject var configuration = ConfigurationManager.shared
 
     public init(
         viewModel: OneClickViewModel,
@@ -33,6 +36,21 @@ public struct OneClickView: View {
                 withAnimation(Constants.Animation.spring) {
                     animatedDisplayMode = newMode
                 }
+            }
+            .alert(
+                (configuration.blocksConnectForAppUpdate ? "appUpdate.required.title" : "appUpdate.available.title")
+                    .localizedString,
+                isPresented: appUpdatePresented
+            ) {
+                Button("appUpdate.update".localizedString) { openUpdatePage() }
+                if !configuration.blocksConnectForAppUpdate {
+                    Button("appUpdate.notNow".localizedString, role: .cancel) { }
+                }
+            } message: {
+                Text(
+                    (configuration.blocksConnectForAppUpdate ? "appUpdate.required.message" : "appUpdate.available.message")
+                        .localizedString
+                )
             }
 #if os(iOS)
             .simultaneousGesture(
@@ -369,15 +387,6 @@ private extension OneClickView {
             .destructive
         case .connected:
             .connected
-        }
-    }
-
-    var connectButtonDisabled: Bool {
-        switch viewModel.connectState {
-        case .connecting, .disconnecting, .noInternet:
-            true
-        case .disconnected, .stop, .connected, .noSubscription:
-            false
         }
     }
 
