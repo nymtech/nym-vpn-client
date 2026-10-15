@@ -2257,6 +2257,72 @@
         }
       }
     },
+    "appUpdate.available.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A newer version of NymVPN is available. You can keep using this version, or update now."
+          }
+        }
+      }
+    },
+    "appUpdate.available.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available"
+          }
+        }
+      }
+    },
+    "appUpdate.notNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        }
+      }
+    },
+    "appUpdate.required.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your app is no longer supported. Please update to the latest version to continue using NymVPN."
+          }
+        }
+      }
+    },
+    "appUpdate.required.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update required"
+          }
+        }
+      }
+    },
+    "appUpdate.update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
     "arcProgress.anonymousModeProtection" : {
       "extractionState" : "manual",
       "localizations" : {
