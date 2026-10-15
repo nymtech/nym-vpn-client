@@ -278,6 +278,13 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
+    pub async fn verified_pairing_pin(&self) -> Result<(), VpnError> {
+        self.account_command_sender
+            .verified_pairing_pin()
+            .await
+            .map_err(VpnError::from)
+    }
+
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         self.account_command_sender
             .get_account_summary()

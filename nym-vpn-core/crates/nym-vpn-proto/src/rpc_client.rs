@@ -730,6 +730,17 @@ impl RpcClient {
         Ok(QrPairingConfirmation::from(response))
     }
 
+    pub async fn verified_pairing_pin(&mut self) -> Result<QrPairingConfirmation> {
+        let response = self
+            .0
+            .verified_pairing_pin(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrPairingConfirmation::from(response))
+    }
+
     pub async fn get_log_path(&mut self) -> Result<Option<LogPath>> {
         let response = self
             .0

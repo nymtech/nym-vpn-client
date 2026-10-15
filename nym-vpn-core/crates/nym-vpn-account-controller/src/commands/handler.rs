@@ -303,7 +303,9 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
             )
             .await
     } else {
-        tracing::error!("Cannot pair another device when not logged-in with an API account");
+        tracing::error!(
+            "Cannot pair to another account when already logged-in with an API account"
+        );
         Err(AccountCommandError::ExistingAccount)
     }
 }

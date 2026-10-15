@@ -7,21 +7,23 @@ use nym_crypto::{
     Aes256GcmSiv, blake3,
     generic_array::typenum::Unsigned,
     hkdf,
-    symmetric::aead::{self, AeadKey, KeySizeUser, Nonce, random_nonce},
+    symmetric::aead::{self, AeadKey, KeySizeUser, Nonce, nonce_size, random_nonce},
 };
 use nym_sdk::mixnet::x25519::{KeyPair, PublicKey};
 use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
-    response::{NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse},
+    response::{
+        NymVpnGetPairingSecretResponse, NymVpnPairingCheckResponse, NymVpnPairingResponse, StatusOk,
+    },
     types::{PairingParams, VpnAccount},
 };
 use nym_vpn_lib_types::{
     AccountCommandError, PairingResult, QrPairingConfirmation, QrUrl, TunnelEvent,
 };
-use rand08::rngs::OsRng;
+use rand08::{RngCore, rngs::OsRng};
 use tokio::sync::{Mutex, broadcast};
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 
 const RETRY_INTERVAL: Duration = Duration::from_secs(5);
 
@@ -34,8 +36,12 @@ impl SharedSymmetricKey {
         random_nonce::<Aes256GcmSiv, _>(&mut OsRng)
     }
 
-    pub fn validate_aead_nonce(raw: &[u8]) -> Nonce<Aes256GcmSiv> {
-        Nonce::<Aes256GcmSiv>::clone_from_slice(raw)
+    pub fn validate_aead_nonce(raw: &[u8]) -> Option<Nonce<Aes256GcmSiv>> {
+        if raw.len() != nonce_size::<Aes256GcmSiv>() {
+            None
+        } else {
+            Some(Nonce::<Aes256GcmSiv>::clone_from_slice(raw))
+        }
     }
 
     pub fn encrypt(&self, plaintext: &[u8], nonce: &Nonce<Aes256GcmSiv>) -> Option<Vec<u8>> {
@@ -55,24 +61,22 @@ enum QrPairingProcessHandle {
     None,
     PairingCheck {
         shared_key: Arc<Mutex<Option<SharedSymmetricKey>>>,
-        cancel_token: CancellationToken,
+        _drop_guard: DropGuard,
     },
     GetPairingSecret {
-        cancel_token: CancellationToken,
+        _drop_guard: DropGuard,
     },
 }
 
 impl QrPairingProcessHandle {
     pub fn cancel_pairing_check(&mut self) {
-        if let QrPairingProcessHandle::PairingCheck { cancel_token, .. } = self {
-            cancel_token.cancel();
+        if let QrPairingProcessHandle::PairingCheck { .. } = self {
             *self = QrPairingProcessHandle::None;
         }
     }
 
     pub fn cancel_get_pairing_secret(&mut self) {
-        if let QrPairingProcessHandle::GetPairingSecret { cancel_token } = self {
-            cancel_token.cancel();
+        if let QrPairingProcessHandle::GetPairingSecret { .. } = self {
             *self = QrPairingProcessHandle::None;
         }
     }
@@ -148,7 +152,8 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                             Ok(response) => {
                                 if let Some(response) = response.inner {
                                     let Ok(remote_pub_key) = PublicKey::from_str(&response.remote_pub_key) else {
-                                        tracing::error!("Invalid public key received in QR pairing reponse");
+                                        tracing::error!("Invalid public key received in QR pairing response");
+                                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error("invalid public key received from API".to_string()))).ok();
                                         break;
                                     };
                                     *shared_key_setter.lock().await = Some(self.derive_shared_key(&remote_pub_key));
@@ -171,7 +176,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         });
 
         QrPairingProcessHandle::PairingCheck {
-            cancel_token,
+            _drop_guard: cancel_token.drop_guard(),
             shared_key,
         }
     }
@@ -209,15 +214,16 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                         {
                             Ok(response) => {
                                 if let Some(response) = response.inner {
-                                    let Some(mnemonic_bytes) = shared_key.decrypt(
-                                        &response.enc_mnemonic,
-                                        &SharedSymmetricKey::validate_aead_nonce(&response.nonce),
+                                    let Some(mnemonic_bytes) = SharedSymmetricKey::validate_aead_nonce(&response.nonce)
+                                        .and_then(|nonce| shared_key.decrypt(&response.enc_mnemonic, &nonce)
                                     ) else {
                                         tracing::error!("decrypt mnemonic");
+                                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error("could not decrypt mnemonic".to_string()))).ok();
                                         break;
                                     };
                                     let Ok(mnemonic) = String::from_utf8(mnemonic_bytes) else {
                                         tracing::error!("decode mnemonic bytes");
+                                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error("could not decode mnemonic".to_string()))).ok();
                                         break;
                                     };
                                     tracing::debug!("Received account secret mnemonic, pairing completed");
@@ -238,7 +244,9 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
             }
         });
 
-        QrPairingProcessHandle::GetPairingSecret { cancel_token }
+        QrPairingProcessHandle::GetPairingSecret {
+            _drop_guard: cancel_token.drop_guard(),
+        }
     }
 }
 
@@ -270,7 +278,7 @@ pub trait PairingApiClient: Clone {
         account: &VpnAccount,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
-    ) -> Result<(), VpnApiClientError>;
+    ) -> Result<StatusOk, VpnApiClientError>;
 }
 
 #[async_trait::async_trait]
@@ -315,10 +323,22 @@ impl PairingApiClient for VpnApiClient {
         account: &VpnAccount,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
-    ) -> Result<(), VpnApiClientError> {
+    ) -> Result<StatusOk, VpnApiClientError> {
         self.share_secret_account(account, enc_mnemonic, nonce)
             .await
     }
+}
+
+fn random_pin() -> String {
+    let mut random = vec![0u8; 6];
+    OsRng.fill_bytes(&mut random);
+    random.iter().map(|n| (n % 10).to_string()).collect()
+}
+
+fn random_token() -> String {
+    let mut random = vec![0u8; 16];
+    OsRng.fill_bytes(&mut random);
+    bs58::encode(random).into_string()
 }
 
 pub struct QrPairingHandler<C: PairingApiClient> {
@@ -370,8 +390,8 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         let qr_pairing_process =
             QrPairingProcess::new(self.vpn_api_client.clone(), event_sender, cancel_token);
 
-        let pin_code = String::new();
-        let token = String::new();
+        let pin_code = random_pin();
+        let token = random_token();
         let remote_qr_pub_key = PublicKey::from_str(remote_qr_pub_key_str)
             .map_err(|err| AccountCommandError::InvalidPublicKey(err.to_string()))?;
 
@@ -394,8 +414,8 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         Ok(QrPairingConfirmation { pin_code })
     }
 
-    pub(crate) async fn verified_pairing_pin(
-        &mut self,
+    async fn verified_pairing_pin_can_fail(
+        &self,
         account: &Arc<VpnAccount>,
     ) -> Result<(), AccountCommandError> {
         let QrPairingProcessHandle::PairingCheck { ref shared_key, .. } = self.process_handle
@@ -406,7 +426,9 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         let (enc_mnemonic, nonce) = {
             let shared_key_lock = shared_key.lock().await;
             let Some(shared_key) = shared_key_lock.as_ref() else {
-                tracing::warn!("Cannot authorize secret sharing if there is no DH shared secret");
+                tracing::error!(
+                    "Function was called without actually awaiting for the PIN, aborting pairing"
+                );
                 return Err(AccountCommandError::NoPairingSharedSecret);
             };
 
@@ -423,9 +445,16 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
             .share_secret_account(account, enc_mnemonic, nonce.to_vec())
             .await?;
 
-        self.process_handle = QrPairingProcessHandle::None;
-
         Ok(())
+    }
+
+    pub(crate) async fn verified_pairing_pin(
+        &mut self,
+        account: &Arc<VpnAccount>,
+    ) -> Result<(), AccountCommandError> {
+        let ret = self.verified_pairing_pin_can_fail(account).await;
+        self.process_handle = QrPairingProcessHandle::None;
+        ret
     }
 
     pub fn cancel_pairing_check(&mut self) {
@@ -627,7 +656,7 @@ mod tests {
             account: &VpnAccount,
             enc_mnemonic: Vec<u8>,
             nonce: Vec<u8>,
-        ) -> Result<(), VpnApiClientError> {
+        ) -> Result<StatusOk, VpnApiClientError> {
             let mut db = self.api_db.lock().await;
 
             let Some(qr_pub_key) = db.account_to_pub_key.get(account.pub_key()).cloned() else {
@@ -647,7 +676,9 @@ mod tests {
                 },
             );
 
-            Ok(())
+            Ok(StatusOk {
+                status: "Ok".to_string(),
+            })
         }
     }
 
@@ -708,5 +739,672 @@ mod tests {
 
         // check that the correct mnemonic was shared between devices
         assert_eq!(*account.get_mnemonic(), mnemonic);
+    }
+
+    type TestHandler = QrPairingHandler<MockedApiClient>;
+
+    fn new_handler(
+        api_db: &Arc<Mutex<ApiDb>>,
+    ) -> (
+        TestHandler,
+        broadcast::Sender<TunnelEvent>,
+        broadcast::Receiver<TunnelEvent>,
+    ) {
+        let (event_tx, event_rx) = broadcast::channel(10);
+        (
+            QrPairingHandler::new(MockedApiClient::new(api_db.clone())),
+            event_tx,
+            event_rx,
+        )
+    }
+
+    fn new_account() -> Arc<VpnAccount> {
+        Arc::new(VpnAccount::generate_new().unwrap().0)
+    }
+
+    fn pub_key_from_url(url: &QrUrl) -> &str {
+        url.url.split("pubkey=").last().unwrap()
+    }
+
+    async fn next_pairing_event(event_rx: &mut broadcast::Receiver<TunnelEvent>) -> PairingResult {
+        match event_rx.recv().await.unwrap() {
+            TunnelEvent::Pairing(result) => result,
+            other => panic!("unexpected event: {other:?}"),
+        }
+    }
+
+    async fn assert_no_event_for(event_rx: &mut broadcast::Receiver<TunnelEvent>, wait: Duration) {
+        if let Ok(event) = tokio::time::timeout(wait, event_rx.recv()).await {
+            panic!("unexpected event: {event:?}");
+        }
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn pairing_check_times_out_when_qr_is_never_scanned() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        let started = Instant::now();
+        logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // nothing should happen for the whole TTL
+        assert_no_event_for(&mut logged_in_event_rx, TTL).await;
+
+        // the timeout is detected on the first retry tick after the TTL
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::TimedOut), "{event:?}");
+        assert!(started.elapsed() > TTL);
+        assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
+
+        // the shared key was never derived, so the PIN can't be verified
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+
+        // the failed verification also discards the timed out process
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn get_pairing_secret_times_out_when_pin_is_never_verified() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        let started = Instant::now();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // the logged in device never confirms the PIN
+        assert_no_event_for(&mut logged_out_event_rx, TTL - started.elapsed()).await;
+
+        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        assert!(matches!(event, PairingResult::TimedOut), "{event:?}");
+        assert!(started.elapsed() > TTL);
+        assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
+    }
+
+    #[tokio::test]
+    async fn pairing_check_is_cancelled_by_parent_token() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let cancel_token = CancellationToken::new();
+
+        logged_in_handler
+            .pair_account(&account, logged_in_event_tx, cancel_token.child_token())
+            .await
+            .unwrap();
+
+        cancel_token.cancel();
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+    }
+
+    #[tokio::test]
+    async fn cancelled_pairing_check_cannot_be_verified() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        logged_in_handler.cancel_pairing_check();
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancel_only_affects_matching_process_kind() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // the logged in device runs a pairing check, not a secret query
+        logged_in_handler.cancel_get_pairing_secret();
+        assert_no_event_for(&mut logged_in_event_rx, RETRY_INTERVAL * 2).await;
+
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // the logged out device runs a secret query, not a pairing check
+        logged_out_handler.cancel_pairing_check();
+        assert_no_event_for(&mut logged_out_event_rx, RETRY_INTERVAL * 2).await;
+
+        logged_out_handler.cancel_get_pairing_secret();
+        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+    }
+
+    #[tokio::test]
+    async fn verify_pin_before_pairing_started() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, _, _) = new_handler(&api_db);
+
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert!(api_db.lock().await.pairing_secret_data.is_empty());
+    }
+
+    #[tokio::test]
+    async fn verify_pin_before_qr_is_scanned() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+        assert!(api_db.lock().await.pairing_secret_data.is_empty());
+
+        // verifying too early aborts the pairing
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+    }
+
+    #[tokio::test]
+    async fn verify_pin_twice() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, _logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap();
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+    }
+
+    #[tokio::test]
+    async fn verify_pin_on_logged_out_device() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, _logged_in_event_rx) = new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+
+        // the logged out device is waiting for the secret, it has no PIN to verify
+        let err = logged_out_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+
+        // and the secret query is aborted
+        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+    }
+
+    #[tokio::test]
+    async fn scanned_key_is_not_a_valid_public_key() {
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_out_handler, logged_out_event_tx, _logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let err = logged_out_handler
+            .scanned_key(
+                "not-a-public-key",
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap_err();
+        assert!(
+            matches!(err, AccountCommandError::InvalidPublicKey(_)),
+            "{err:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn scanned_key_without_pairing_started() {
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_out_handler, logged_out_event_tx, _logged_out_event_rx) =
+            new_handler(&api_db);
+        let unknown_key = KeyPair::new(&mut OsRng).public_key().to_string();
+
+        let err = logged_out_handler
+            .scanned_key(&unknown_key, logged_out_event_tx, CancellationToken::new())
+            .await
+            .unwrap_err();
+        assert!(matches!(err, AccountCommandError::Internal(_)), "{err:?}");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn second_device_scanning_same_qr_is_rejected() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+        let (mut intruder_handler, intruder_event_tx, _intruder_event_rx) = new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+
+        let err = intruder_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                intruder_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap_err();
+        assert!(matches!(err, AccountCommandError::Internal(_)), "{err:?}");
+
+        // the first device to scan still completes the pairing
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+        logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap();
+        let PairingResult::Mnemonic(mnemonic) = next_pairing_event(&mut logged_out_event_rx).await
+        else {
+            panic!("no mnemonic received")
+        };
+        assert_eq!(*account.get_mnemonic(), mnemonic);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn pairing_check_reports_api_error() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // the API forgets about the pairing process
+        *api_db.lock().await = ApiDb::default();
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let PairingResult::Error(err) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(err, "failed to check account pairing");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn get_pairing_secret_reports_api_error() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, _logged_in_event_rx) = new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+
+        // the API forgets about the pairing process
+        *api_db.lock().await = ApiDb::default();
+
+        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let PairingResult::Error(err) = event else {
+            panic!("unexpected event: {event:?}")
+        };
+        assert_eq!(err, "failed to get pairing secret account");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn tampered_secret_is_reported() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // a secret not encrypted with the DH shared key ends up on the API
+        let nonce = random_nonce::<Aes256GcmSiv, _>(&mut OsRng);
+        MockedApiClient::new(api_db.clone())
+            .share_secret_account(&account, vec![0u8; 64], nonce.to_vec())
+            .await
+            .unwrap();
+
+        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        assert!(matches!(event, PairingResult::Error(_)), "{event:?}");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn secret_with_wrong_nonce_length_is_reported() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        MockedApiClient::new(api_db.clone())
+            .share_secret_account(&account, vec![0u8; 64], vec![0u8; 3])
+            .await
+            .unwrap();
+
+        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        assert!(matches!(event, PairingResult::Error(_)), "{event:?}");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn pairing_check_reports_invalid_remote_key() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // the API hands back a malformed key for the scanning device
+        MockedApiClient::new(api_db.clone())
+            .try_to_pair_to_account(pub_key_from_url(&url), "not-a-public-key", "", "")
+            .await
+            .unwrap();
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::Error(_)), "{event:?}");
+
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn restarting_pairing_cancels_previous_check() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, first_event_tx, mut first_event_rx) = new_handler(&api_db);
+        let (second_event_tx, mut second_event_rx) = broadcast::channel(10);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let first_url = logged_in_handler
+            .pair_account(&account, first_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let second_url = logged_in_handler
+            .pair_account(&account, second_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        assert_ne!(first_url.url, second_url.url);
+
+        let event = next_pairing_event(&mut first_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&second_url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut second_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap();
+        let PairingResult::Mnemonic(mnemonic) = next_pairing_event(&mut logged_out_event_rx).await
+        else {
+            panic!("no mnemonic received")
+        };
+        assert_eq!(*account.get_mnemonic(), mnemonic);
+
+        // the first process is gone for good
+        assert!(matches!(
+            first_event_rx.recv().await,
+            Err(broadcast::error::RecvError::Closed)
+        ));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn rescanning_cancels_previous_secret_query() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, first_event_tx, mut first_event_rx) = new_handler(&api_db);
+        let (second_event_tx, mut second_event_rx) = broadcast::channel(10);
+
+        let first_url = logged_in_handler
+            .pair_account(
+                &account,
+                logged_in_event_tx.clone(),
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&first_url),
+                first_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // the user restarts the whole flow and scans a new QR code
+        let second_url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&second_url),
+                second_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+
+        let event = next_pairing_event(&mut first_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+        logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap();
+        let PairingResult::Mnemonic(mnemonic) = next_pairing_event(&mut second_event_rx).await
+        else {
+            panic!("no mnemonic received")
+        };
+        assert_eq!(*account.get_mnemonic(), mnemonic);
+    }
+
+    #[tokio::test]
+    async fn dropping_handler_cancels_process() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        drop(logged_in_handler);
+
+        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+    }
+
+    #[test]
+    fn pin_generation() {
+        let pin = random_pin();
+        assert_eq!(pin.len(), 6);
+        for c in pin.chars() {
+            assert!(c >= '0' && c <= '9');
+        }
     }
 }
