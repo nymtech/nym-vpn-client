@@ -64,6 +64,11 @@ if [[ -z "$PROFILE" || ${#SLICES[@]} -eq 0 ]]; then
     exit 1
 fi
 
+SWIFT_FORMAT="$(xcrun --find swift-format 2>/dev/null || command -v swift-format || true)"
+if [[ -z "$SWIFT_FORMAT" ]]; then
+    echo "warning: swift-format not found, generated Swift sources will not be formatted" >&2
+fi
+
 rm -rf "$OUT_DIR" "$GEN_DIR"
 mkdir -p "$SOURCES_DIR"
 
@@ -91,6 +96,10 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --language swift \
             --out-dir "$BINDINGS_DIR"
     )
+
+    if [[ -n "$SWIFT_FORMAT" ]]; then
+        "$SWIFT_FORMAT" format --in-place "$BINDINGS_DIR"/*.swift
+    fi
 
     cp "$BINDINGS_DIR"/*.h "$HEADERS_DIR/"
     for MODULEMAP in "$BINDINGS_DIR"/*.modulemap; do
