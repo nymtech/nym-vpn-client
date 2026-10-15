@@ -21,6 +21,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val locale = stringPreferencesKey("LOCALE")
 	private val batteryDialogSkip = booleanPreferencesKey("BATTERY_DIALOG_SKIP")
+	private val dismissedUpdateFloor = stringPreferencesKey("DISMISSED_UPDATE_FLOOR")
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
 	private val technicalOptScreenCompleted = booleanPreferencesKey("TECHNICAL_OPT_SCREEN_COMPLETE")
@@ -85,6 +86,12 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun isBatteryDialogSkipped(): Boolean = dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
+
+	override suspend fun getDismissedUpdateFloor(): String? = dataStoreManager.getFromStore(dismissedUpdateFloor)
+
+	override suspend fun setDismissedUpdateFloor(floor: String) {
+		dataStoreManager.saveToDataStore(dismissedUpdateFloor, floor)
+	}
 
 	override suspend fun getStatisticsEnabled(): Boolean = dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
 
