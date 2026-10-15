@@ -1,13 +1,19 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
 use nym_common::trace_err_chain;
 
 use crate::{Error, PersistentRecord, Result, discovery::Discovery};
 
 type CachedDiscovery = PersistentRecord<Box<Discovery>>;
+
+// While an update is required, refresh often so lifting the requirement reaches users quickly.
+const REQUIRED_UPDATE_MAX_AGE: Duration = Duration::from_secs(5 * 60);
 
 /// Persistent discovery store that keeps track of last modification date
 #[derive(Debug)]
@@ -95,7 +101,19 @@ impl PersistentDiscovery {
 
     /// Returns true if the value held is considered to be stale and needs to be refreshed
     pub fn is_stale(&self) -> bool {
+        let update_required = self
+            .value()
+            .system_configuration
+            .as_ref()
+            .is_some_and(|sc| {
+                sc.app_update_policy == "required"
+                    || sc
+                        .app_update_policies
+                        .values()
+                        .any(|policy| policy == "required")
+            });
         self.cached_discovery.is_stale()
+            || (update_required && self.cached_discovery.is_older_than(REQUIRED_UPDATE_MAX_AGE))
     }
 
     async fn write(&self) -> Result<()> {
@@ -232,5 +250,27 @@ mod tests {
                 .is_err_and(|err| err.is_inconsistent_network())
         );
         assert_eq!(persistent_discovery.network_name(), "mainnet");
+    }
+
+    #[tokio::test]
+    async fn required_update_makes_the_cache_stale_after_minutes_not_an_hour() {
+        let ten_minutes_ago = time::UtcDateTime::now() - time::Duration::minutes(10);
+        let with_policy = |policy: &str| {
+            let mut discovery = Discovery::default_mainnet();
+            discovery
+                .system_configuration
+                .as_mut()
+                .unwrap()
+                .app_update_policy = policy.to_owned();
+            PersistentDiscovery {
+                cache_dir: PathBuf::new(),
+                cached_discovery: CachedDiscovery {
+                    updated_at: Some(ten_minutes_ago),
+                    value: Box::new(discovery),
+                },
+            }
+        };
+        assert!(with_policy("required").is_stale());
+        assert!(!with_policy("dismissible").is_stale());
     }
 }
