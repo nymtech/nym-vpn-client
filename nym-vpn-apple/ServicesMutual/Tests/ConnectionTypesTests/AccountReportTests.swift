@@ -170,7 +170,7 @@ struct AccountReportTests {
             dir.appendingPathComponent("AccountAndDevicesView+AccountStatus.swift")
         ]
         var source = ""
-        for f in files { source += (try? String(contentsOf: f, encoding: .utf8)) ?? "" }
+        for f in files { source += try String(contentsOf: f, encoding: .utf8) }
 
         // Non-button `title:` args we must NOT treat as buttons:
         //  - navbar title (CustomNavBar): "settings.account"

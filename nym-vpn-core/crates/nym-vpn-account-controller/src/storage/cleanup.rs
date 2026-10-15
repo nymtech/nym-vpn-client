@@ -25,46 +25,36 @@ pub async fn remove_files_for_account(
     data_dir: &Path,
     remove_wireguard_keys_db: bool,
 ) -> Result<(), Error> {
-    // Files specific to the VPN client
-    let mut vpn_paths = vec![
-        DEFAULT_PRIVATE_DEVICE_KEY_FILENAME,
-        DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
+    let storage_paths =
+        StoragePaths::new_from_dir(data_dir).map_err(|err| Error::StoragePaths(Box::new(err)))?;
+
+    let files_to_remove = [
+        // Files specific to the VPN client
+        data_dir.join(DEFAULT_PRIVATE_DEVICE_KEY_FILENAME),
+        data_dir.join(DEFAULT_PUBLIC_DEVICE_KEY_FILENAME),
+        // Files specific to the mixnet client
+        storage_paths.private_identity,
+        storage_paths.public_identity,
+        storage_paths.private_encryption,
+        storage_paths.public_encryption,
+        storage_paths.ack_key,
+    ];
+
+    for file_path in files_to_remove {
+        remove_file(&file_path).await;
+    }
+
+    let mut databases_to_remove = vec![
+        storage_paths.reply_surb_database_path,
+        storage_paths.gateway_registrations,
     ];
 
     if remove_wireguard_keys_db {
-        vpn_paths.push(DB_NAME);
+        databases_to_remove.push(data_dir.join(DB_NAME));
     }
 
-    let vpn_paths = vpn_paths.iter().map(|file| data_dir.join(file));
-
-    // Files specific to the mixnet client
-    let storage_paths =
-        StoragePaths::new_from_dir(data_dir).map_err(|err| Error::StoragePaths(Box::new(err)))?;
-    let mixnet_paths = storage_paths
-        .reply_surb_database_paths()
-        .into_iter()
-        .chain(storage_paths.gateway_registrations_paths())
-        .chain([
-            storage_paths.private_identity,
-            storage_paths.public_identity,
-            storage_paths.private_encryption,
-            storage_paths.public_encryption,
-            storage_paths.ack_key,
-        ]);
-
-    let files_to_remove = vpn_paths.chain(mixnet_paths);
-
-    for file_path in files_to_remove {
-        tracing::info!("Removing file: {}", file_path.display());
-        match tokio::fs::remove_file(&file_path).await {
-            Ok(_) => tracing::info!("Removed file: {}", file_path.display()),
-            Err(err) if err.kind() == io::ErrorKind::NotFound => {
-                tracing::debug!("File not found, skipping: {}", file_path.display());
-            }
-            Err(err) => {
-                trace_err_chain!(err, "Failed to remove file {}", file_path.display());
-            }
-        }
+    for db_path in databases_to_remove {
+        remove_sqlite_database(&db_path).await;
     }
 
     // For the persistent reply store we also have backups of corrupted files. They have the same
@@ -106,6 +96,38 @@ pub async fn remove_files_for_account(
     }
 
     Ok(())
+}
+
+/// Removes the SQLite database, then its `-wal` and `-shm` files once the database is gone.
+async fn remove_sqlite_database(db_path: &Path) {
+    if !remove_file(db_path).await {
+        return;
+    }
+
+    for suffix in ["-wal", "-shm"] {
+        let mut path = db_path.as_os_str().to_owned();
+        path.push(suffix);
+        remove_file(Path::new(&path)).await;
+    }
+}
+
+/// Returns `false` if the file exists but could not be removed.
+async fn remove_file(file_path: &Path) -> bool {
+    tracing::info!("Removing file: {}", file_path.display());
+    match tokio::fs::remove_file(file_path).await {
+        Ok(_) => {
+            tracing::info!("Removed file: {}", file_path.display());
+            true
+        }
+        Err(err) if err.kind() == io::ErrorKind::NotFound => {
+            tracing::debug!("File not found, skipping: {}", file_path.display());
+            true
+        }
+        Err(err) => {
+            trace_err_chain!(err, "Failed to remove file {}", file_path.display());
+            false
+        }
+    }
 }
 
 async fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
