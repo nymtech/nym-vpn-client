@@ -118,16 +118,27 @@ fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> PathMonitor {
 
 fn map_network_path_to_connectivity(nw_path: &Path) -> Connectivity {
     match nw_path.status() {
-        PathStatus::Satisfiable | PathStatus::Satisfied => Connectivity::Status {
-            ipv4: nw_path.supports_ipv4(),
-            ipv6: nw_path.supports_ipv6(),
-        },
+        PathStatus::Satisfiable | PathStatus::Satisfied => {
+            // Simulator falsely reports that host network does not support neither ipv4 nor ipv6
+            #[cfg(target_env = "sim")]
+            {
+                Connectivity::PresumeOnline
+            }
+
+            #[cfg(not(target_env = "sim"))]
+            {
+                Connectivity::Status {
+                    ipv4: nw_path.supports_ipv4(),
+                    ipv6: nw_path.supports_ipv6(),
+                }
+            }
+        }
         PathStatus::Unsatisfied => Connectivity::Status {
             ipv4: false,
             ipv6: false,
         },
         path_status @ PathStatus::Unknown(_) | path_status @ PathStatus::Invalid => {
-            tracing::warn!("Cannot map {:?} path status to connectivity.", path_status);
+            tracing::warn!("Cannot map {:?} path status to connectivity", path_status);
             Connectivity::PresumeOnline
         }
     }
