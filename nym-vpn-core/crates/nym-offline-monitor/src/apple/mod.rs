@@ -3,6 +3,8 @@
 
 mod path_monitor;
 
+pub use path_monitor::{NetworkPath, PathMonitor, start_path_monitor};
+
 #[cfg(target_os = "macos")]
 mod macos;
 

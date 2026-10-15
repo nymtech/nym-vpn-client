@@ -33,6 +33,9 @@ mod imp;
 #[cfg(target_os = "android")]
 pub use imp::NativeConnectivityAdapter;
 
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub use imp::{NetworkPath, PathMonitor, start_path_monitor};
+
 /// Disables offline monitor
 static FORCE_DISABLE_OFFLINE_MONITOR: LazyLock<bool> = LazyLock::new(|| {
     std::env::var("NYM_DISABLE_OFFLINE_MONITOR")

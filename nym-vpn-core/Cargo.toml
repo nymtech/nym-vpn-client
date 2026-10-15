@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/nym-apple-network",
     "crates/nym-common",
     "crates/nym-connection-monitor",
     "crates/nym-cgroup",
@@ -142,6 +141,7 @@ nix = "0.31.3"
 objc2 = "0.6.4"
 objc2-core-foundation = "0.3.2"
 objc2-foundation = "0.3.2"
+objc2-network = { git = "https://github.com/madsmtm/objc2", branch = "main" }
 objc2-security = "0.3.2"
 once_cell = "1.21"
 opentelemetry = "0.32.0"
@@ -240,7 +240,6 @@ zbus = "5.19.0"
 zbus_polkit = "5.1.0"
 zeroize = "1.9.0"
 
-nym-apple-network = { path = "crates/nym-apple-network" }
 nym-cgroup = { path = "crates/nym-cgroup" }
 nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }

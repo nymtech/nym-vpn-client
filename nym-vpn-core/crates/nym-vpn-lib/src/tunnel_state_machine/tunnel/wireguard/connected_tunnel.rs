@@ -10,11 +10,7 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(target_os = "ios")]
-use dispatch2::{DispatchQueue, DispatchQueueAttr};
 use ipnetwork::IpNetwork;
-#[cfg(target_os = "ios")]
-use nym_apple_network::PathMonitor;
 use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_routing::{Callback, CallbackHandle, EventType};
@@ -441,25 +437,17 @@ impl ConnectedTunnel {
                     DEFAULT_PATH_DEBOUNCE,
                 );
 
-                let queue = DispatchQueue::new(
-                    "net.nymtech.vpn.wg-path-monitor",
-                    DispatchQueueAttr::SERIAL,
+                let _path_monitor = nym_offline_monitor::start_path_monitor(
+                    c"net.nymtech.vpn.wg-path-monitor",
+                    default_path_tx,
                 );
-                let mut path_monitor = PathMonitor::new();
-                path_monitor.set_dispatch_queue(&queue);
-                path_monitor.set_update_handler(move |network_path| {
-                    if let Err(e) = default_path_tx.send(network_path) {
-                        tracing::error!("Failed to send new default path: {}", e);
-                    }
-                });
-                path_monitor.start();
 
                 let mut old_resolved_peer = entry_peer_update.clone();
 
                 loop {
                     tokio::select! {
                         Some(new_path) = default_path_rx.next() => {
-                            tracing::debug!("New default path: {}", new_path.description());
+                            tracing::debug!("New default path: {:?}", new_path);
 
                             // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
                             // For instance when device connects to IPv4-only server from IPv6-only network,
