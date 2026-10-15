@@ -71,7 +71,7 @@
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.23.3",
     "@eslint/js": "^9.8.0",
-    "@playwright/test": "~1.63.0",
+    "@playwright/test": "~1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/cli": "=2.12.1",
     "@types/eslint__js": "^8.42.3",
