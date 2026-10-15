@@ -28,7 +28,7 @@ NYM_VPND_DEST_DIR := ${CURDIR}/NymVPND
 
 TARGETS := nym-vpnd nym-socks5-proxy nym-diagnostic nym-setup
 
-.PHONY: all build-mac build-ios build-universal build-mac-package build-ios-package
+.PHONY: all build-mac build-ios build-universal build-mac-package build-ios-package mac-binaries
 
 all: build-universal
 
@@ -43,20 +43,24 @@ build-mac: build-mac-package
 	mv $(NYM_VPN_LIB_MACOS_DEST) $(NYM_VPN_LIB_UNIVERSAL_DEST)
 
 # Build universal NymVPNLib for iOS and macOS
-build-universal: build-mac-package build-ios-package
+build-universal: mac-binaries
+	$(MAKE) -C $(CORE_DIR) -f macOS.mk lib RELEASE=$(RELEASE) ARCH=$(ARCH)
+	$(MAKE) -C $(CORE_DIR) -f iOS.mk build RELEASE=$(RELEASE)
 	$(CORE_DIR)/scripts/build-swift-package.sh --profile $(BUILD_PROFILE) \
 		--platform ios --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim x86_64-apple-ios" \
 		--platform macos --slice "$(MACOS_TRIPLETS)"
 	rm -rf "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
 	cp -R "$(NYM_VPN_LIB_SRC)" "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
 
-build-mac-package:
-	$(MAKE) -C $(CORE_DIR) -f macOS.mk build-all RELEASE=$(RELEASE) ARCH=$(ARCH)
+build-mac-package: mac-binaries
+	$(MAKE) -C $(CORE_DIR) -f macOS.mk swift-package RELEASE=$(RELEASE) ARCH=$(ARCH)
 	rm -rf "${NYM_VPN_LIB_MACOS_DEST}"
 	mkdir -p "$(NYM_VPN_LIB_MACOS_DIR)"
 	cp -R "${NYM_VPN_LIB_SRC}" "${NYM_VPN_LIB_MACOS_DEST}"
 	echo "Copied NymVPNLib → ${NYM_VPN_LIB_MACOS_DEST}"
 
+mac-binaries:
+	$(MAKE) -C $(CORE_DIR) -f macOS.mk binaries RELEASE=$(RELEASE) ARCH=$(ARCH)
 	mkdir -p "$(NYM_VPND_DEST_DIR)"
 	for f in $(TARGETS); do \
 	    if [[ ! -f "$(NYM_VPND_SRC_DIR)/$${f}" ]]; then \
