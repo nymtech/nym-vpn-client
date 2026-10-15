@@ -156,6 +156,17 @@ import PathManager
                 self?.updateAccountLinks()
             }
             .store(in: &cancellables)
+
+#if os(macOS)
+        // The daemon may not be reachable yet when the app starts, so ask again once it is.
+        grpcManager.$isServing
+            .removeDuplicates()
+            .filter { $0 }
+            .sink { [weak self] _ in
+                self?.updateCompatibilityVersions()
+            }
+            .store(in: &cancellables)
+#endif
     }
 
     @discardableResult
