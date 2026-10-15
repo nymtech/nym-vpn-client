@@ -125,13 +125,21 @@ class VpnQuickTile :
 		unlockAndRun {
 			lifecycleScope.launch {
 				when (val state = backendManager.getState()) {
-					Tunnel.State.Down -> backendManager.startTunnel()
+					Tunnel.State.Down -> startOrExplainUpdate()
 					is Tunnel.State.Offline ->
-						if (state.reconnect) backendManager.stopTunnel() else backendManager.startTunnel()
+						if (state.reconnect) backendManager.stopTunnel() else startOrExplainUpdate()
 					else -> backendManager.stopTunnel()
 				}
 			}
 		}
+	}
+
+	private suspend fun startOrExplainUpdate() {
+		if (backendManager.stateFlow.value.appUpdateRequired) {
+			setTileDescription(getString(R.string.update_required))
+			setInactive()
+		}
+		backendManager.startTunnel()
 	}
 
 	private suspend fun setTileText() {

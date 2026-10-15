@@ -112,6 +112,9 @@
         using NymVPN.
     </string>
 	<string name="update_required">Update required!</string>
+	<string name="app_update_available_title">Update available</string>
+	<string name="app_update_available_body">A newer version of NymVPN is available. You can keep using this version, or update now.</string>
+	<string name="app_update_not_now">Not now</string>
 	<string name="update">Update</string>
 	<string name="log_out_title">Log out of this device?</string>
 	<string name="log_out_body">This disconnects the VPN and removes your account from this device. Without your passphrase, you can\'t log back in.</string>
