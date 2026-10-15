@@ -38,7 +38,7 @@ impl LoggedOutState {
     ) {
         // No account: nothing for a credential fetcher to do.
         let _ = shared_state.clear_credential_fetcher().await;
-        shared_state.qr_pairing_handler.cancel_get_pairing_secret();
+        shared_state.qr_pairing_handler.cancel_pairing_check();
 
         (Box::new(Self), PrivateAccountControllerState::LoggedOut)
     }

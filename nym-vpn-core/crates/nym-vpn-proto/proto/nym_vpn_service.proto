@@ -1383,6 +1383,9 @@ service NymVpnService {
   // Pair this device with the account using the public key value embedded in a QR URL
   rpc ScannedKey(google.protobuf.StringValue) returns (QrPairingConfirmationResponse) {}
 
+  // Pair this device with the account using the public key value embedded in a QR URL
+  rpc VerifiedPairingPin(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}
 

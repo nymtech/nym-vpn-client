@@ -87,6 +87,15 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn verified_pairing_pin(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::VerifiedPairingPin(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

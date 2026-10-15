@@ -444,6 +444,13 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
+    pub async fn verified_pairing_ping(&self) -> Result<QrPairingConfirmation> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::VerifiedPairingPin, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
     pub async fn get_autologin_deeplink(
         &self,
         params: GetDeeplinkParams,

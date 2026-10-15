@@ -929,7 +929,7 @@ impl VpnApiClient {
         account: &VpnAccount,
         enc_mnemonic: Vec<u8>,
         nonce: Vec<u8>,
-    ) -> Result<()> {
+    ) -> Result<StatusOk> {
         let request = SharePairSecretBody {
             enc_mnemonic,
             nonce,
