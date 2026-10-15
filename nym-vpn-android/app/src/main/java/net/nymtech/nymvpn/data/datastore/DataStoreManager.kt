@@ -41,6 +41,16 @@ class DataStoreManager(private val context: Context, private val ioDispatcher: C
 		}
 	}
 
+	suspend fun clear(keys: List<Preferences.Key<*>>) {
+		withContext(ioDispatcher) {
+			try {
+				context.dataStore.edit { prefs -> keys.forEach { prefs.remove(it) } }
+			} catch (e: IOException) {
+				Timber.e(e)
+			}
+		}
+	}
+
 	suspend fun <T> getFromStore(key: Preferences.Key<T>): T? = withContext(ioDispatcher) {
 		try {
 			context.dataStore.data.map { it[key] }.first()

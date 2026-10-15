@@ -6,11 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -20,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.connectivity.NetworkService
+import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -53,7 +56,7 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
-	networkService: NetworkService,
+	private val networkService: NetworkService,
 ) : ViewModel() {
 
 	companion object {
@@ -304,9 +307,13 @@ constructor(
 
 		Timber.tag(TAG).i("AppReady")
 
-		launch { gatewayCacheService.updateExitGatewayCache() }
-		launch { gatewayCacheService.updateEntryGatewayCache() }
-		launch { gatewayCacheService.updateWgGatewayCache() }
+		launch {
+			// Only the lists the active mode needs, re-attempted whenever connectivity returns;
+			// the TTL inside the service dedupes with the server screen and skips recent successes.
+			gatewayRefreshTriggers(vpnConfigRepository.configFlow.map { it.mode }, networkService.networkStatus).collect { mode ->
+				gatewayCacheService.refreshForMode(mode).onFailure { Timber.tag(TAG).w(it, "GatewayRefreshFailed mode=%s", mode) }
+			}
+		}
 
 		launch { checkSystemMessages() }
 
@@ -330,3 +337,9 @@ constructor(
 		}.getOrDefault(false)
 	}
 }
+
+/** Emits the tunnel mode whose gateway lists should be refreshed: on every mode change and every time the network comes back. */
+internal fun gatewayRefreshTriggers(modes: Flow<Tunnel.Mode>, network: Flow<NetworkStatus>): Flow<Tunnel.Mode> =
+	combine(modes.distinctUntilChanged(), network.map { it == NetworkStatus.Connected }.distinctUntilChanged()) { mode, connected -> mode to connected }
+		.filter { (_, connected) -> connected }
+		.map { (mode, _) -> mode }

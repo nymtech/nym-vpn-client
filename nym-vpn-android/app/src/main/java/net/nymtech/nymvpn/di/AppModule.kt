@@ -21,7 +21,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
-import net.nymtech.nymvpn.service.gateway.GatewayDataStoreCacheService
+import net.nymtech.nymvpn.service.gateway.TtlGatewayCacheService
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.FileUtils
@@ -38,7 +38,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): GatewayCacheService = GatewayDataStoreCacheService(gatewayRepository, backendManager)
+	fun provideGatewayCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): GatewayCacheService =
+		TtlGatewayCacheService(gatewayRepository, fetch = backendManager::getGateways)
 
 	@Singleton
 	@Provides

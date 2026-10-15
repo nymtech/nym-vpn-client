@@ -3,119 +3,150 @@ package net.nymtech.nymvpn.ui.screens.server
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
+import net.nymtech.nymvpn.di.qualifiers.DefaultDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.favorites.FavoritesManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
-import net.nymtech.nymvpn.util.extensions.isQuicSupported
-import net.nymtech.nymvpn.util.extensions.iso3CountryOrEmpty
-import net.nymtech.nymvpn.util.extensions.scoreSorted
-import net.nymtech.nymvpn.util.extensions.toLocale
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import net.nymtech.vpn.util.extensions.asFavoriteSelector
-import net.nymtech.vpn.util.extensions.toDisplayCountry
 import nym_vpn_lib_types.FavoriteSelector
-import nym_vpn_lib_types.FavoriteSelectors
 import nym_vpn_lib_types.GatewayType
 import timber.log.Timber
-import java.text.Collator
-import java.util.Locale
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ServerViewModel @Inject constructor(
-	private val settingsRepository: SettingsRepository,
+	settingsRepository: SettingsRepository,
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val gatewayCacheService: GatewayCacheService,
-	private val gatewayRepository: GatewayRepository,
+	gatewayRepository: GatewayRepository,
 	private val favoritesManager: FavoritesManager,
 	private val backendManager: BackendManager,
+	@DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-server-vm"
 		private const val RECENT_LIMIT = 20
+		private const val QUERY_DEBOUNCE_MS = 150L
 	}
+
+	private data class Screen(val gatewayType: GatewayType, val location: GatewayLocation, val selectedKey: String?)
 
 	private val _uiState = MutableStateFlow(ServerUiState())
 	val uiState = _uiState.asStateFlow()
 
-	private var gatewayType: GatewayType? = null
-	private var allGateways: List<NymGateway> = emptyList()
-	private var recentGateways: List<NymGateway> = emptyList()
-	private var favorites = FavoriteSelectors(entry = emptyList(), exit = emptyList())
-	private var isQuicOnlyGatewaysFilterRequired = false
-	private var isExitScreen = false
-	private var userSelectedFilter = false
-	private var isInitialLoad = true
+	private val screen = MutableStateFlow<Screen?>(null)
+	private val query = MutableStateFlow("")
+	private val filter = MutableStateFlow(ServerListFilter.ALL_SERVERS)
+	private val recents = MutableStateFlow<List<NymGateway>>(emptyList())
+
+	/** Explicit expand/collapse choices, keyed "location/filter/rowKey" so each tab keeps its own state. */
+	private val userExpansion = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+
 	private var tunnelMode = Tunnel.Mode.FIVE_HOP_MIXNET
+
+	private val index = combine(
+		gatewayRepository.gatewayFlow,
+		screen.filterNotNull(),
+		vpnConfigRepository.configFlow.map { it.mode }.distinctUntilChanged(),
+		settingsRepository.settingsFlow.map { it.quicEnabled }.distinctUntilChanged(),
+	) { gateways, screen, mode, quicEnabled ->
+		tunnelMode = mode
+		val list = when (screen.gatewayType) {
+			GatewayType.MIXNET_ENTRY -> gateways.entryGateways
+			GatewayType.MIXNET_EXIT -> gateways.exitGateways
+			GatewayType.WG -> gateways.wgGateways
+		}
+		val quicOnly = quicEnabled && mode == Tunnel.Mode.TWO_HOP_MIXNET && screen.location == GatewayLocation.ENTRY
+		Triple(list, mode, quicOnly)
+	}.distinctUntilChanged().mapLatest { (list, mode, quicOnly) ->
+		GatewayIndex.build(list, mode, quicOnly, Constants.countryCodesForRegionSupport)
+	}
 
 	init {
 		viewModelScope.launch {
-			updateQuicState()
-			tunnelMode = vpnConfigRepository.getConfig().mode
-
-			combine(gatewayRepository.gatewayFlow, favoritesManager.favoritesFlow) { gateways, selectors ->
-				gateways to selectors
-			}.collect { (gateways, selectors) ->
-				favorites = selectors
-				val type = gatewayType ?: return@collect
-				allGateways = when (type) {
-					GatewayType.MIXNET_ENTRY -> gateways.entryGateways
-					GatewayType.MIXNET_EXIT -> gateways.exitGateways
-					GatewayType.WG -> gateways.wgGateways
+			combine(
+				combine(index, screen.filterNotNull(), filter, query.debounce(QUERY_DEBOUNCE_MS)) { index, screen, filter, query -> ListInputs(index, screen, filter, query) },
+				favoritesManager.favoritesFlow,
+				recents,
+				userExpansion,
+			) { inputs, favorites, recents, expansion ->
+				val selectors = if (inputs.screen.location == GatewayLocation.EXIT) favorites.exit else favorites.entry
+				val prefix = "${inputs.screen.location}/${inputs.filter}/"
+				val scopedExpansion = expansion.filterKeys { it.startsWith(prefix) }.mapKeys { it.key.removePrefix(prefix) }
+				ServerListBuilder.build(inputs.index, inputs.filter, inputs.query, selectors, recents, inputs.screen.selectedKey, scopedExpansion)
+			}.flowOn(defaultDispatcher).collect { result ->
+				_uiState.update {
+					it.copy(
+						rows = result.rows,
+						countryCount = result.countryCount,
+						nodeCount = result.nodeCount,
+						isEmpty = result.isEmpty,
+						favoriteGatewayIds = result.favoriteGatewayIds,
+						scrollTargetIndex = result.scrollTargetIndex,
+					)
 				}
-				if (isInitialLoad && !userSelectedFilter) {
-					_uiState.update { it.copy(filter = defaultFilterFor(isExitScreen)) }
-				}
-				isInitialLoad = false
-				updateFilteredData()
 			}
 		}
 	}
 
-	private suspend fun updateQuicState() {
-		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
-		val isFastVpn = vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET
+	private data class ListInputs(val index: GatewayIndex, val screen: Screen, val filter: ServerListFilter, val query: String)
 
-		isQuicOnlyGatewaysFilterRequired = isQuicToggleEnabled && isFastVpn && !isExitScreen
-	}
-
-	fun initializeGateways(initialGateways: List<NymGateway>, isExitScreen: Boolean = false) {
-		viewModelScope.launch {
-			allGateways = initialGateways
-			recentGateways = emptyList()
-			this@ServerViewModel.isExitScreen = isExitScreen
-			userSelectedFilter = false
-			updateQuicState()
-			_uiState.update { it.copy(query = "", filter = defaultFilterFor(isExitScreen), isLoading = false) }
-			updateFilteredData()
-		}
+	/** Called when the screen opens or the Entry/Exit tab changes. Resets query and picks the default filter. */
+	fun initialize(gatewayType: GatewayType, location: GatewayLocation, selectedKey: String?) {
+		val current = screen.value
+		screen.value = Screen(gatewayType, location, selectedKey)
+		if (current?.gatewayType == gatewayType && current.location == location) return
+		query.value = ""
+		filter.value = defaultFilterFor(location)
+		_uiState.update { it.copy(query = "", filter = filter.value, error = false, isLoading = false) }
+		refresh(gatewayType, force = false)
 	}
 
 	fun onQueryChange(query: String) {
+		this.query.value = query
 		_uiState.update { it.copy(query = query) }
-		updateFilteredData()
 	}
 
 	fun onFilterSelected(filter: ServerListFilter) {
-		userSelectedFilter = true
-		_uiState.update { it.copy(query = "", filter = filter, items = emptyList(), isEmpty = true, isLoading = filter == ServerListFilter.RECENT) }
-		if (filter == ServerListFilter.RECENT) refreshRecents() else updateFilteredData()
+		query.value = ""
+		this.filter.value = filter
+		_uiState.update { it.copy(query = "", filter = filter, rows = emptyList(), isEmpty = true, isLoading = filter == ServerListFilter.RECENT) }
+		if (filter == ServerListFilter.RECENT) refreshRecents()
+	}
+
+	fun onToggleExpanded(rowKey: String, expanded: Boolean) {
+		val screen = screen.value ?: return
+		val key = "${screen.location}/${filter.value}/$rowKey"
+		userExpansion.update { it + (key to !expanded) }
 	}
 
 	fun onToggleFavorite(id: String, isFavorite: Boolean) = viewModelScope.launch {
+		val isExitScreen = screen.value?.location == GatewayLocation.EXIT
 		val selector = id.asFavoriteSelector()
 		runCatching {
 			when {
@@ -127,213 +158,34 @@ class ServerViewModel @Inject constructor(
 		}.onFailure { t -> Timber.tag(TAG).e(t, "ToggleFavoriteFailed") }
 	}
 
-	fun updateCountryCache(type: GatewayType) = viewModelScope.launch {
-		gatewayType = type
-		_uiState.update { it.copy(error = false) }
+	fun onRefresh() {
+		val screen = screen.value ?: return
+		refresh(screen.gatewayType, force = true)
+		if (filter.value == ServerListFilter.RECENT) refreshRecents()
+	}
 
-		runCatching {
-			when (type) {
-				GatewayType.MIXNET_ENTRY -> gatewayCacheService.updateEntryGatewayCache()
-				GatewayType.MIXNET_EXIT -> gatewayCacheService.updateExitGatewayCache()
-				GatewayType.WG -> gatewayCacheService.updateWgGatewayCache()
-			}.getOrThrow()
-		}.onFailure { t ->
+	private fun refresh(type: GatewayType, force: Boolean) = viewModelScope.launch {
+		_uiState.update { it.copy(error = false) }
+		gatewayCacheService.refresh(type, force).onFailure { t ->
 			Timber.tag(TAG).e(t, "GatewayCacheRefreshFailed type=%s", type)
 			_uiState.update { state -> state.copy(error = true) }
 		}
 	}
 
-	fun onRefresh(type: GatewayType) {
-		updateCountryCache(type)
-		if (_uiState.value.filter == ServerListFilter.RECENT) refreshRecents()
-	}
-
 	private fun refreshRecents() = viewModelScope.launch {
-		runCatching { backendManager.getRecentGateways(tunnelMode.toTunnelType()) }
-			.onSuccess { result ->
-				val recent = if (isExitScreen) result?.exit else result?.entry
-				recentGateways = recent.orEmpty().take(RECENT_LIMIT)
-				updateFilteredData()
-			}
-			.onFailure { t ->
-				Timber.tag(TAG).e(t, "GetRecentGatewaysFailed")
-				recentGateways = emptyList()
-				updateFilteredData()
-			}
+		val isExitScreen = screen.value?.location == GatewayLocation.EXIT
+		val result = runCatching { backendManager.getRecentGateways(tunnelMode.toTunnelType()) }
+			.onFailure { t -> Timber.tag(TAG).e(t, "GetRecentGatewaysFailed") }
+			.getOrNull()
+		val recent = if (isExitScreen) result?.exit else result?.entry
+		recents.value = recent.orEmpty().take(RECENT_LIMIT)
+		_uiState.update { it.copy(isLoading = false) }
 	}
 
-	private fun defaultFilterFor(isExitScreen: Boolean): ServerListFilter {
-		val relevant = if (isExitScreen) favorites.exit else favorites.entry
+	private fun defaultFilterFor(location: GatewayLocation): ServerListFilter {
+		val favorites = favoritesManager.favoritesFlow.value
+		val relevant: List<FavoriteSelector> = if (location == GatewayLocation.EXIT) favorites.exit else favorites.entry
 		return if (relevant.isNotEmpty()) ServerListFilter.FAVORITES else ServerListFilter.ALL_SERVERS
-	}
-
-	private fun currentFavoriteSelectors(): List<FavoriteSelector> = if (isExitScreen) favorites.exit else favorites.entry
-
-	private fun updateFilteredData() {
-		when (_uiState.value.filter) {
-			ServerListFilter.ALL_SERVERS -> updateAllServersItems(_uiState.value.query)
-			ServerListFilter.FAVORITES -> updateFavoritesItems(_uiState.value.query)
-			ServerListFilter.RECENT -> updateRecentItems(_uiState.value.query)
-		}
-	}
-
-	private fun updateAllServersItems(query: String) {
-		val lowercaseQuery = query.lowercase()
-		val collator = Collator.getInstance()
-		val selectors = currentFavoriteSelectors()
-		val resultItems = mutableListOf<ItemType>()
-
-		// 1) Eligible pool
-		val eligibleGateways = allGateways.asSequence()
-			.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
-
-		// 2) Group by country
-		val allCountryGroups = eligibleGateways
-			.filter { it.twoLetterCountryISO != null }
-			.groupBy { it.toLocale() }
-
-		// 3) Country items, filtered by query
-		val countryItems = allCountryGroups
-			.filter { (locale, countryGateways) ->
-				locale != null &&
-					(
-						locale.displayCountry.lowercase().contains(lowercaseQuery) ||
-							locale.country.lowercase().contains(lowercaseQuery) ||
-							locale.iso3CountryOrEmpty().lowercase().contains(lowercaseQuery) ||
-							countryGateways.any { it.region?.lowercase()?.contains(lowercaseQuery) == true }
-						)
-			}
-			.mapNotNull { (locale, countryGateways) ->
-				if (locale == null) return@mapNotNull null
-				val sortedByScore = countryGateways.scoreSorted(tunnelMode)
-				createCountryItem(locale, sortedByScore, selectors)
-			}
-			.distinctBy { it.locale.displayCountry }
-			.sortedWith(compareBy(collator) { it.locale.displayCountry })
-
-		resultItems.addAll(countryItems)
-
-		// 4) Direct gateway matches appended when query is active
-		if (query.isNotBlank()) {
-			val gatewayItems = eligibleGateways
-				.filter {
-					it.identity.lowercase().contains(lowercaseQuery) ||
-						it.name.lowercase().contains(lowercaseQuery)
-				}
-				.distinctBy { it.identity }
-				.toList()
-				.scoreSorted(tunnelMode)
-				.map { ItemType.GatewayItem(it, isGatewayFavorite(it.identity, selectors)) }
-
-			resultItems.addAll(gatewayItems)
-		}
-
-		_uiState.update {
-			it.copy(
-				items = resultItems,
-				countryCount = eligibleGateways.mapNotNull { g -> g.twoLetterCountryISO }.distinct().count(),
-				nodeCount = eligibleGateways.count(),
-				isEmpty = eligibleGateways.none(),
-				favoriteGatewayIds = favoriteGatewayIds(selectors),
-			)
-		}
-	}
-
-	private fun updateFavoritesItems(query: String) {
-		val lowercaseQuery = query.lowercase()
-		val collator = Collator.getInstance()
-		val selectors = currentFavoriteSelectors()
-
-		val favoriteGatewayIds = selectors.filterIsInstance<FavoriteSelector.Gateway>().map { it.identity }.toSet()
-		val favoriteRegions = selectors.filterIsInstance<FavoriteSelector.Region>().map { it.region.lowercase() }.toSet()
-		val favoriteCountries = selectors.filterIsInstance<FavoriteSelector.Country>().map { it.twoLetterIsoCountryCode.lowercase() }.toSet()
-
-		val eligibleGateways = allGateways.asSequence()
-			.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
-			.filter { it.twoLetterCountryISO != null }
-
-		val gatewaysByCountry = eligibleGateways.groupBy { it.twoLetterCountryISO!!.lowercase() }
-
-		val relevantCountryCodes = favoriteCountries + gatewaysByCountry.filterValues { countryGateways ->
-			countryGateways.any { it.identity in favoriteGatewayIds || (it.region != null && it.region!!.lowercase() in favoriteRegions) }
-		}.keys
-
-		val allFavoriteItems = relevantCountryCodes.mapNotNull { code ->
-			val countryGateways = gatewaysByCountry[code] ?: return@mapNotNull null
-			val locale = countryGateways.first().toLocale() ?: return@mapNotNull null
-			val full = createCountryItem(locale, countryGateways.scoreSorted(tunnelMode), selectors)
-			pruneToFavorites(full, code in favoriteCountries, favoriteRegions, favoriteGatewayIds)
-		}.filter { it.gateways.isNotEmpty() || !it.regions.isNullOrEmpty() }
-
-		val allNodeIds = mutableSetOf<String>()
-		allFavoriteItems.forEach { item ->
-			val grouped = item.regions?.flatMap { it.gateways }.orEmpty()
-			val ungrouped = if (item.regions != null) item.gateways.filter { it.region == null } else item.gateways
-			allNodeIds += (grouped + ungrouped).map { it.identity }
-		}
-
-		val countryItems = allFavoriteItems
-			.filter { item ->
-				query.isBlank() ||
-					item.locale.displayCountry.lowercase().contains(lowercaseQuery) ||
-					item.locale.country.lowercase().contains(lowercaseQuery) ||
-					item.locale.iso3CountryOrEmpty().lowercase().contains(lowercaseQuery) ||
-					item.regions?.any { it.region.lowercase().contains(lowercaseQuery) } == true
-			}
-			.sortedWith(compareBy(collator) { it.locale.displayCountry })
-
-		val resultItems = mutableListOf<ItemType>()
-		resultItems.addAll(countryItems)
-
-		if (query.isNotBlank()) {
-			val gatewayItems = eligibleGateways
-				.filter { it.identity in allNodeIds }
-				.filter {
-					it.identity.lowercase().contains(lowercaseQuery) ||
-						it.name.lowercase().contains(lowercaseQuery)
-				}
-				.distinctBy { it.identity }
-				.toList()
-				.scoreSorted(tunnelMode)
-				.map { ItemType.GatewayItem(it, true) }
-			resultItems.addAll(gatewayItems)
-		}
-
-		_uiState.update {
-			it.copy(
-				items = resultItems,
-				countryCount = allFavoriteItems.size,
-				nodeCount = allNodeIds.size,
-				isEmpty = allFavoriteItems.isEmpty(),
-				favoriteGatewayIds = favoriteGatewayIds,
-			)
-		}
-	}
-
-	private fun updateRecentItems(query: String) {
-		val lowercaseQuery = query.lowercase()
-		val selectors = currentFavoriteSelectors()
-
-		val filtered = recentGateways.filter { gateway ->
-			query.isBlank() ||
-				gateway.name.lowercase().contains(lowercaseQuery) ||
-				gateway.identity.lowercase().contains(lowercaseQuery) ||
-				gateway.city?.lowercase()?.contains(lowercaseQuery) == true ||
-				gateway.twoLetterCountryISO?.let { toDisplayCountry(it).lowercase().contains(lowercaseQuery) } == true
-		}
-
-		val items = filtered.map { ItemType.GatewayItem(it, isGatewayFavorite(it.identity, selectors)) }
-
-		_uiState.update {
-			it.copy(
-				items = items,
-				countryCount = recentGateways.mapNotNull { g -> g.twoLetterCountryISO }.distinct().size,
-				nodeCount = recentGateways.size,
-				isEmpty = recentGateways.isEmpty(),
-				isLoading = false,
-				favoriteGatewayIds = favoriteGatewayIds(selectors),
-			)
-		}
 	}
 
 	suspend fun onSelected(id: String, gatewayLocation: GatewayLocation) {
@@ -355,50 +207,4 @@ class ServerViewModel @Inject constructor(
 			Timber.tag(TAG).e(t, "GatewaySelectionFailed location=%s", gatewayLocation)
 		}
 	}
-
-	private fun createCountryItem(locale: Locale, gateways: List<NymGateway>, selectors: List<FavoriteSelector>): ItemType.CountryItem {
-		val countryCode = locale.country
-		val regions = if (countryCode.equals("us", ignoreCase = true)) {
-			gateways.filter { it.region != null }
-				.groupBy { it.region }
-				.mapNotNull { (region, regionGateways) ->
-					if (region == null) return@mapNotNull null
-					ItemType.CountryItem.Region(region, regionGateways, isRegionFavorite(region, selectors))
-				}
-				.sortedBy { it.region }
-		} else {
-			null
-		}
-		return ItemType.CountryItem(locale, gateways, regions, isCountryFavorite(countryCode, selectors))
-	}
-
-	private fun pruneToFavorites(item: ItemType.CountryItem, isCountryFavorite: Boolean, favoriteRegions: Set<String>, favoriteGatewayIds: Set<String>): ItemType.CountryItem {
-		val regions = item.regions?.mapNotNull { region ->
-			val isRegionFavorite = region.region.lowercase() in favoriteRegions
-			val keepGateways = if (isCountryFavorite || isRegionFavorite) {
-				region.gateways
-			} else {
-				region.gateways.filter { it.identity in favoriteGatewayIds }
-			}
-			if (!isCountryFavorite && !isRegionFavorite && keepGateways.isEmpty()) return@mapNotNull null
-			region.copy(gateways = keepGateways, isFavorite = isRegionFavorite)
-		}?.takeIf { it.isNotEmpty() }
-
-		val gateways = if (isCountryFavorite) {
-			item.gateways
-		} else {
-			item.gateways.filter { it.identity in favoriteGatewayIds }
-		}
-
-		return item.copy(gateways = gateways, regions = regions, isFavorite = isCountryFavorite)
-	}
-
-	private fun isCountryFavorite(twoLetterCountryISO: String, selectors: List<FavoriteSelector>): Boolean =
-		selectors.any { it is FavoriteSelector.Country && it.twoLetterIsoCountryCode.equals(twoLetterCountryISO, true) }
-
-	private fun isRegionFavorite(region: String, selectors: List<FavoriteSelector>): Boolean = selectors.any { it is FavoriteSelector.Region && it.region.equals(region, true) }
-
-	private fun isGatewayFavorite(identity: String, selectors: List<FavoriteSelector>): Boolean = selectors.any { it is FavoriteSelector.Gateway && it.identity == identity }
-
-	private fun favoriteGatewayIds(selectors: List<FavoriteSelector>): Set<String> = selectors.filterIsInstance<FavoriteSelector.Gateway>().map { it.identity }.toSet()
 }
