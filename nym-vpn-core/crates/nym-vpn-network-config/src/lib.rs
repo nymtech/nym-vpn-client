@@ -534,12 +534,11 @@ impl<T> PersistentRecord<T> {
     }
 
     fn is_stale(&self) -> bool {
-        self.is_older_than(MAX_FILE_AGE)
-    }
-
-    fn is_older_than(&self, max_age: Duration) -> bool {
         match self.updated_at {
-            Some(updated_at) => UtcDateTime::now() - updated_at > max_age,
+            Some(updated_at) => {
+                let diff = UtcDateTime::now() - updated_at;
+                diff > MAX_FILE_AGE
+            }
             None => true,
         }
     }

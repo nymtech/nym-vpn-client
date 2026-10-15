@@ -8,7 +8,6 @@ import {
 import DiagnosticsSuggestedDialog from './DiagnosticsSuggestedDialog';
 import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
-import { showsNetworkUpdateDialog } from './networkUpdate';
 import UpdateDialog from './UpdateDialog';
 import useExpiryReminderToast from './useExpiryReminderToast';
 import { NewBottomComponent } from './NewBottomComponent';
@@ -29,7 +28,10 @@ function Home() {
     if (devMode || compatChecked) {
       return;
     }
-    if (showsNetworkUpdateDialog(networkCompat, devMode)) {
+    if (
+      networkCompat &&
+      (networkCompat.core === false || networkCompat.tauri === false)
+    ) {
       compatChecked = true;
       setIsDialogUpdateOpen(true);
     }

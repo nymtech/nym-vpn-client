@@ -12,8 +12,8 @@ pub struct SystemConfiguration {
     pub wg_thresholds: ScoreThresholds,
     pub statistics_api: Option<Url>,
     pub min_supported_app_versions: Option<nym_vpn_api_client::NetworkCompatibility>,
-    // Absent on discovery caches written before this field existed.
-    #[serde(default = "nym_vpn_api_client::response::default_app_update_policy")]
+    // Absent on discovery caches written before these fields existed; empty means dismissible.
+    #[serde(default)]
     pub app_update_policy: String,
     #[serde(default)]
     pub app_update_policies: HashMap<String, String>,
@@ -41,7 +41,7 @@ mod tests {
     use super::SystemConfiguration;
 
     #[test]
-    fn app_update_policy_missing_from_cached_discovery_is_dismissible() {
+    fn discovery_cache_without_update_policy_still_loads() {
         let json = r#"{
             "mix_thresholds": {"high": 75, "medium": 50, "low": 25},
             "wg_thresholds": {"high": 75, "medium": 50, "low": 25},
@@ -49,6 +49,6 @@ mod tests {
             "min_supported_app_versions": null
         }"#;
         let parsed: SystemConfiguration = serde_json::from_str(json).expect("old cache shape");
-        assert_eq!(parsed.app_update_policy, "dismissible");
+        assert!(parsed.app_update_policy.is_empty());
     }
 }

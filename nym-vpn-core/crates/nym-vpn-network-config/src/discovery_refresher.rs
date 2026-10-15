@@ -14,8 +14,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 
 use crate::{Network, NetworkCache};
 
-// Only a local timer: the network is hit when the cache is stale, normally hourly.
-const CHECK_INTERVAL: Duration = Duration::from_secs(5 * 60);
+const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
 pub struct DiscoveryRefresher {
     network_cache: NetworkCache,

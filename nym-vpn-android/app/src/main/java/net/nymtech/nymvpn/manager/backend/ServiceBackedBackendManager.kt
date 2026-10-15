@@ -122,15 +122,6 @@ class ServiceBackedBackendManager @Inject constructor(
 			policy = versions?.appUpdatePolicy,
 			overrides = versions?.appUpdatePolicies,
 		)
-		Timber.tag(TAG).i(
-			"AppUpdateDecision local=%s floor=%s policy=%s overrides=%s show=%s block=%s",
-			BuildConfig.VERSION_NAME,
-			versions?.android,
-			versions?.appUpdatePolicy,
-			versions?.appUpdatePolicies,
-			decision.showDialog,
-			decision.blockConnect,
-		)
 		_state.update { it.copy(isNetworkCompatible = !decision.showDialog, appUpdateRequired = decision.blockConnect) }
 	}
 

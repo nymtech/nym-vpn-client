@@ -37,14 +37,17 @@ public struct OneClickView: View {
                     animatedDisplayMode = newMode
                 }
             }
-            .alert(appUpdateAlertTitle, isPresented: appUpdatePresented) {
+            .alert(
+                configuration.blocksConnectForAppUpdate ? "Update required" : "Update available",
+                isPresented: appUpdatePresented
+            ) {
                 Button("Update") { openUpdatePage() }
                 if !configuration.blocksConnectForAppUpdate {
                     Button("Not now", role: .cancel) { }
                 }
             } message: {
-                if let message = appUpdateAlertMessage {
-                    Text(message)
+                if !configuration.blocksConnectForAppUpdate {
+                    Text("A newer version of NymVPN is available. You can keep using this version, or update now.")
                 }
             }
 #if os(iOS)

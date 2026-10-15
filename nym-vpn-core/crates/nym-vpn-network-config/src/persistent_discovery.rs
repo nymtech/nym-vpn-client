@@ -1,39 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::path::{Path, PathBuf};
 
 use nym_common::trace_err_chain;
 
-use crate::{Error, PersistentRecord, Result, SystemConfiguration, discovery::Discovery};
+use crate::{Error, PersistentRecord, Result, discovery::Discovery};
 
 type CachedDiscovery = PersistentRecord<Box<Discovery>>;
-
-// While an update is required, refresh often so lifting the requirement reaches users quickly.
-const REQUIRED_UPDATE_MAX_AGE: Duration = Duration::from_secs(15 * 60);
-
-// The policies this build can be subject to; a requirement for another platform changes nothing here.
-#[cfg(target_os = "android")]
-const OWN_PLATFORMS: &[&str] = &["android"];
-#[cfg(target_os = "ios")]
-const OWN_PLATFORMS: &[&str] = &["ios"];
-#[cfg(target_os = "macos")]
-const OWN_PLATFORMS: &[&str] = &["macos", "tauri"];
-#[cfg(not(any(target_os = "android", target_os = "ios", target_os = "macos")))]
-const OWN_PLATFORMS: &[&str] = &["tauri"];
-
-fn update_required_for(sc: &SystemConfiguration, platforms: &[&str]) -> bool {
-    platforms.iter().any(|platform| {
-        let policy = sc
-            .app_update_policies
-            .get(*platform)
-            .unwrap_or(&sc.app_update_policy);
-        policy == "required"
-    })
-}
 
 /// Persistent discovery store that keeps track of last modification date
 #[derive(Debug)]
@@ -121,13 +95,7 @@ impl PersistentDiscovery {
 
     /// Returns true if the value held is considered to be stale and needs to be refreshed
     pub fn is_stale(&self) -> bool {
-        let update_required = self
-            .value()
-            .system_configuration
-            .as_ref()
-            .is_some_and(|sc| update_required_for(sc, OWN_PLATFORMS));
         self.cached_discovery.is_stale()
-            || (update_required && self.cached_discovery.is_older_than(REQUIRED_UPDATE_MAX_AGE))
     }
 
     async fn write(&self) -> Result<()> {
@@ -264,48 +232,5 @@ mod tests {
                 .is_err_and(|err| err.is_inconsistent_network())
         );
         assert_eq!(persistent_discovery.network_name(), "mainnet");
-    }
-
-    #[tokio::test]
-    async fn required_update_makes_the_cache_stale_after_15_minutes_not_an_hour() {
-        let twenty_minutes_ago = time::UtcDateTime::now() - time::Duration::minutes(20);
-        let with_policy = |policy: &str| {
-            let mut discovery = Discovery::default_mainnet();
-            discovery
-                .system_configuration
-                .as_mut()
-                .unwrap()
-                .app_update_policy = policy.to_owned();
-            PersistentDiscovery {
-                cache_dir: PathBuf::new(),
-                cached_discovery: CachedDiscovery {
-                    updated_at: Some(twenty_minutes_ago),
-                    value: Box::new(discovery),
-                },
-            }
-        };
-        assert!(with_policy("required").is_stale());
-        assert!(!with_policy("dismissible").is_stale());
-    }
-
-    #[test]
-    fn required_update_is_judged_per_platform() {
-        let policy = |default: &str, overrides: &[(&str, &str)]| {
-            let mut sc = Discovery::default_mainnet().system_configuration.unwrap();
-            sc.app_update_policy = default.to_owned();
-            sc.app_update_policies = overrides
-                .iter()
-                .map(|(platform, policy)| (platform.to_string(), policy.to_string()))
-                .collect();
-            sc
-        };
-        let android_only = policy("dismissible", &[("android", "required")]);
-        assert!(update_required_for(&android_only, &["android"]));
-        assert!(!update_required_for(&android_only, &["ios"]));
-        assert!(!update_required_for(&android_only, &["macos", "tauri"]));
-
-        let all_but_ios = policy("required", &[("ios", "dismissible")]);
-        assert!(!update_required_for(&all_but_ios, &["ios"]));
-        assert!(update_required_for(&all_but_ios, &["android"]));
     }
 }

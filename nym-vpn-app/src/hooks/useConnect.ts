@@ -2,10 +2,7 @@ import { useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { dispatch, useAppStore } from '../store';
 import { useGwIndependenceWarning } from '../contexts/gatewayIndependence';
-import { blocksNewConnect } from '../screens/home/networkUpdate';
 import type { TentativeGateways } from '../types/tauri';
-
-const devMode = window._APP.devMode;
 
 // Orchestrates the family/co-location-aware pre-connect flow.
 // 1. reset gateway independence to ON (every Connect press)
@@ -20,7 +17,11 @@ function useConnect() {
   const { requestConfirmation } = useGwIndependenceWarning();
 
   return useCallback(async () => {
-    if (blocksNewConnect(networkCompat, devMode)) {
+    // Dev mode never sets networkCompat, so this does not block there.
+    if (
+      networkCompat?.appUpdatePolicy === 'required' &&
+      (networkCompat.core === false || networkCompat.tauri === false)
+    ) {
       return;
     }
     await invoke('set_gateway_independence', { enabled: true });
