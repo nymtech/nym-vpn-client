@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.util.extensions
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
@@ -43,20 +42,6 @@ fun Context.launchVpnSettings(): Result<Unit> = kotlin.runCatching {
 		flags = Intent.FLAG_ACTIVITY_NEW_TASK
 	}
 	startActivity(intent)
-}
-
-@SuppressLint("DiscouragedApi")
-fun Context.getFlagImageVectorByName(name: String): Int {
-	val flagAssetName = "flag_%S".format(name).lowercase()
-	val resourceId =
-		resources.getIdentifier(flagAssetName, "drawable", packageName)
-	return if (resourceId == 0) {
-		Timber.e("Cannot find flag for countryIso: $name")
-		// use our unknown flag drawable
-		resources.getIdentifier("flag_unknown", "drawable", packageName)
-	} else {
-		resourceId
-	}
 }
 
 fun Context.resizeHeight(dp: Dp): Dp {

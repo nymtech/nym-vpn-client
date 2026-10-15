@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.server
 
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,7 +58,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -75,15 +73,15 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
-import net.nymtech.nymvpn.ui.screens.server.components.CountryItem
+import net.nymtech.nymvpn.ui.screens.server.components.CountryHeaderRow
+import net.nymtech.nymvpn.ui.screens.server.components.GatewayRow
 import net.nymtech.nymvpn.ui.screens.server.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.server.components.QuicInfoMessage
+import net.nymtech.nymvpn.ui.screens.server.components.RegionHeaderRow
 import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsModalBody
-import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
@@ -94,7 +92,6 @@ import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayType
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -159,18 +156,10 @@ fun ServerScreen(
 		}
 	}
 
-	val selectedKey = remember(selectedLocation) {
+	val selectedKey = remember(selectedLocation, appUiState.entryPointId, appUiState.exitPointId) {
 		when (selectedLocation) {
 			GatewayLocation.ENTRY -> appUiState.entryPointId
 			GatewayLocation.EXIT -> appUiState.exitPointId
-		}
-	}
-
-	val initialGateways = remember(gatewayType) {
-		when (gatewayType) {
-			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
-			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
-			GatewayType.WG -> appUiState.gateways.wgGateways
 		}
 	}
 
@@ -193,19 +182,17 @@ fun ServerScreen(
 		}
 	}
 
-	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT)
-		viewModel.updateCountryCache(gatewayType)
+	LaunchedEffect(selectedLocation, gatewayType, selectedKey) {
+		viewModel.initialize(gatewayType, selectedLocation, selectedKey)
 	}
 
 	LaunchedEffect(refreshing) {
-		if (refreshing) viewModel.onRefresh(gatewayType)
+		if (refreshing) viewModel.onRefresh()
 		refreshing = false
 	}
 
 	ServerScreenContent(
 		uiState = uiState,
-		selectedKey = selectedKey,
 		gatewayType = gatewayType,
 		canShowQuicLabel = canShowQuicLabel,
 		isRandomSelected = isRandomSelected,
@@ -222,6 +209,7 @@ fun ServerScreen(
 		},
 		onLocationSelect = { location -> selectedLocation = location },
 		onFilterSelect = { viewModel.onFilterSelected(it) },
+		onToggleExpanded = { key, expanded -> viewModel.onToggleExpanded(key, expanded) },
 		onToggleFavorite = { id, isFavorite -> viewModel.onToggleFavorite(id, isFavorite) },
 		onNavigateToCensorship = { navController.navigate(Route.Censorship) },
 		onNavigateToServerDetails = { gateway ->
@@ -234,7 +222,6 @@ fun ServerScreen(
 @Composable
 internal fun ServerScreenContent(
 	uiState: ServerUiState,
-	selectedKey: String?,
 	gatewayType: GatewayType,
 	canShowQuicLabel: Boolean,
 	isRandomSelected: Boolean,
@@ -246,6 +233,7 @@ internal fun ServerScreenContent(
 	onSelect: (String) -> Unit,
 	onLocationSelect: (GatewayLocation) -> Unit,
 	onFilterSelect: (ServerListFilter) -> Unit,
+	onToggleExpanded: (String, Boolean) -> Unit,
 	onToggleFavorite: (String, Boolean) -> Unit,
 	onNavigateToCensorship: () -> Unit,
 	onNavigateToServerDetails: (NymGateway) -> Unit,
@@ -254,23 +242,12 @@ internal fun ServerScreenContent(
 	val listState = rememberLazyListState()
 	var hasScrolled by remember { mutableStateOf(false) }
 
-	LaunchedEffect(uiState.items) {
-		if (hasScrolled || selectedKey == null || uiState.items.isEmpty()) return@LaunchedEffect
-		val index = uiState.items.indexOfFirst { item ->
-			when (item) {
-				is ItemType.CountryItem -> {
-					val countryCode = item.locale.country.lowercase()
-					countryCode == selectedKey ||
-						item.gateways.any { it.identity == selectedKey } ||
-						item.regions?.any { it.region.equals(selectedKey, true) } == true
-				}
-				is ItemType.GatewayItem -> item.gateway.identity == selectedKey
-			}
-		}
-		if (index >= 0) {
-			listState.animateScrollToItem(index + 2)
-			hasScrolled = true
-		}
+	// Rows are preceded by the tabs, search block, divider and (on the All tab) the Safest/Random cards.
+	val headerItemCount = if (uiState.filter == ServerListFilter.ALL_SERVERS) 5 else 3
+	LaunchedEffect(uiState.scrollTargetIndex) {
+		if (hasScrolled || uiState.scrollTargetIndex < 0) return@LaunchedEffect
+		listState.animateScrollToItem(uiState.scrollTargetIndex + headerItemCount)
+		hasScrolled = true
 	}
 
 	PullToRefreshBox(
@@ -414,7 +391,7 @@ internal fun ServerScreenContent(
 				}
 			}
 
-			if (uiState.items.isEmpty() && uiState.isEmpty) {
+			if (uiState.rows.isEmpty() && uiState.isEmpty) {
 				item {
 					Box(
 						modifier = Modifier
@@ -440,7 +417,7 @@ internal fun ServerScreenContent(
 				}
 			}
 
-			if (uiState.query.isNotBlank() && uiState.items.isEmpty() && !uiState.error) {
+			if (uiState.query.isNotBlank() && uiState.rows.isEmpty() && !uiState.error) {
 				item {
 					Column(
 						horizontalAlignment = Alignment.CenterHorizontally,
@@ -491,83 +468,41 @@ internal fun ServerScreenContent(
 			}
 
 			items(
-				uiState.items,
-				key = { item ->
-					when (item) {
-						is ItemType.CountryItem -> item.locale.country
-						is ItemType.GatewayItem -> item.gateway.identity
-					}
-				},
-			) { item ->
-				when (item) {
-					is ItemType.CountryItem -> {
-						CountryItem(
-							query = uiState.query,
-							countryItem = item,
-							gatewayType = gatewayType,
-							gatewayLocation = gatewayLocation,
-							filter = uiState.filter,
-							selectedKey = selectedKey,
-							favoriteGatewayIds = uiState.favoriteGatewayIds,
-							onSelectionChange = onSelect,
-							onGatewayDetails = onNavigateToServerDetails,
-							onToggleFavorite = onToggleFavorite,
-							modifier = Modifier.padding(vertical = 4.dp),
-						)
-					}
+				uiState.rows,
+				key = { it.key },
+				contentType = { it::class },
+			) { row ->
+				val rowModifier = Modifier
+					.animateItem()
+					.padding(
+						top = if (row is ServerRow.Country || (row is ServerRow.Gateway && row.standalone)) 4.dp else 0.dp,
+						bottom = if (row.roundBottomEdge) 4.dp else 0.dp,
+					)
+				when (row) {
+					is ServerRow.Country -> CountryHeaderRow(
+						row = row,
+						onSelect = onSelect,
+						onToggleExpanded = onToggleExpanded,
+						onToggleFavorite = onToggleFavorite,
+						modifier = rowModifier,
+					)
 
-					is ItemType.GatewayItem -> {
-						val gateway = item.gateway
-						val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
+					is ServerRow.Region -> RegionHeaderRow(
+						row = row,
+						onSelect = onSelect,
+						onToggleExpanded = onToggleExpanded,
+						onToggleFavorite = onToggleFavorite,
+						modifier = rowModifier,
+					)
 
-						SurfaceSelectionGroupButton(
-							items = listOf(
-								SelectionItem(
-									onClick = { onSelect(gateway.identity) },
-									leading = {
-										val scoreIcon = gateway.getScoreIcon(gatewayType)
-										if (scoreIcon != null) {
-											val (icon, description) = scoreIcon
-											Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-												Image(icon, contentDescription = description, modifier = Modifier.size(16.dp))
-											}
-										}
-									},
-									trailing = {
-										ServerDetailsTrailingContent(
-											isFavorite = item.isFavorite,
-											onToggleFavorite = { onToggleFavorite(gateway.identity, item.isFavorite) },
-											onInfoIconClick = { onNavigateToServerDetails(gateway) },
-										)
-									},
-									title = {
-										Text(
-											gateway.name,
-											style = MaterialTheme.typography.bodyLarge,
-											color = MaterialTheme.colorScheme.onPrimaryContainer,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis,
-										)
-									},
-									description = {
-										Text(
-											text = gateway.serverLocation(locale?.displayCountry),
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis,
-											style = MaterialTheme.typography.bodySmall,
-											color = MaterialTheme.colorScheme.onBackground,
-										)
-									},
-									selected = selectedKey == gateway.identity,
-								),
-							),
-							shape = RoundedCornerShape(14.dp),
-							background = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-							divider = false,
-							anchorsPadding = 0.dp,
-							modifier = Modifier.padding(vertical = 4.dp),
-						)
-					}
+					is ServerRow.Gateway -> GatewayRow(
+						row = row,
+						gatewayType = gatewayType,
+						onSelect = onSelect,
+						onGatewayDetails = onNavigateToServerDetails,
+						onToggleFavorite = onToggleFavorite,
+						modifier = rowModifier,
+					)
 				}
 			}
 		}
@@ -660,7 +595,6 @@ internal fun ServerScreenPreview() {
 		Surface {
 			ServerScreenContent(
 				uiState = ServerUiState(),
-				selectedKey = null,
 				gatewayType = GatewayType.WG,
 				canShowQuicLabel = false,
 				isRandomSelected = false,
@@ -672,6 +606,7 @@ internal fun ServerScreenPreview() {
 				onSelect = {},
 				onLocationSelect = {},
 				onFilterSelect = {},
+				onToggleExpanded = { _, _ -> },
 				onToggleFavorite = { _, _ -> },
 				onNavigateToCensorship = {},
 				onNavigateToServerDetails = {},
