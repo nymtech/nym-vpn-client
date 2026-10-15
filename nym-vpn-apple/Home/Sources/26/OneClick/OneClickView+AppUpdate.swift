@@ -26,7 +26,12 @@ extension OneClickView {
     }
 
     func openUpdatePage() {
-        try? ExternalLinkManager.shared.openExternalURL(urlString: Constants.downloadLink.rawValue)
+#if os(iOS)
+        let link = Constants.appStoreLink
+#else
+        let link = Constants.downloadLinkMacOS
+#endif
+        try? ExternalLinkManager.shared.openExternalURL(urlString: link.rawValue)
     }
 
     var connectButtonDisabled: Bool {
