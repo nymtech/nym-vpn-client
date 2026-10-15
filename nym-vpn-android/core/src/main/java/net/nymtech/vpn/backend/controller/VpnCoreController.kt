@@ -4,9 +4,11 @@ import android.content.Intent
 import android.os.UserManager
 import java.io.File
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigRepository
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
@@ -320,9 +322,10 @@ class VpnCoreController(
 			connectivityMonitor = service,
 		)
 
+		val networkStatsEnabled = appConfigProvider.isNetworkStatsEnabled()
 		val svc = NymVpnService.newService(initialConfig, env, service)
 		val sender = svc.getCommandSender()
-		syncNetworkStats(sender)
+		syncNetworkStats(sender, networkStatsEnabled)
 		commandSender = sender
 		nymVpnService = svc
 
@@ -382,12 +385,13 @@ class VpnCoreController(
 		}.onFailure { Timber.tag(TAG).w(it, "refreshCoreStateAfterInit failed") }
 	}
 
-	private suspend fun syncNetworkStats(sender: NymVpnServiceCommandSender) {
-		runCatching {
-			val enabled = appConfigProvider.isNetworkStatsEnabled()
-			sender.setNetworkStatsEnabled(enabled)
-			Timber.tag(TAG).i("NetworkStatsSynced enabled=%b", enabled)
-		}.onFailure { Timber.tag(TAG).e(it, "NetworkStatsSyncFailed") }
+	private suspend fun syncNetworkStats(sender: NymVpnServiceCommandSender, enabled: Boolean) {
+		// must land before the core is marked initialized, otherwise it isn't retried until the next core start
+		withContext(NonCancellable) {
+			runCatching { sender.setNetworkStatsEnabled(enabled) }
+				.onSuccess { Timber.tag(TAG).i("NetworkStatsSynced enabled=%b", enabled) }
+				.onFailure { Timber.tag(TAG).e(it, "NetworkStatsSyncFailed") }
+		}
 	}
 
 	private fun syncLocalTunSettings(prefs: LocalVpnPrefs) {
