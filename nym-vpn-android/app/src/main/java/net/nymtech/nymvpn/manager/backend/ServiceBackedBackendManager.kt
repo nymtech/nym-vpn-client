@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -104,30 +105,33 @@ class ServiceBackedBackendManager @Inject constructor(
 			refreshIdentityState()
 			refreshAccountSummary()
 
-			val versions = runCatching { api.getNetworkVersions() }.getOrNull()
-			val decision = appUpdateDecision(
-				local = BuildConfig.VERSION_NAME,
-				floor = versions?.android,
-				policy = versions?.appUpdatePolicy,
-				overrides = versions?.appUpdatePolicies,
-			)
-			Timber.tag(TAG).i(
-				"AppUpdateDecision local=%s floor=%s policy=%s overrides=%s show=%s block=%s",
-				BuildConfig.VERSION_NAME,
-				versions?.android,
-				versions?.appUpdatePolicy,
-				versions?.appUpdatePolicies,
-				decision.showDialog,
-				decision.blockConnect,
-			)
-			_state.update {
-				it.copy(
-					isInitialized = true,
-					isNetworkCompatible = !decision.showDialog,
-					appUpdateRequired = decision.blockConnect,
-				)
-			}
+			refreshAppUpdateDecision()
+			_state.update { it.copy(isInitialized = true) }
+
+			// Re-read when the app comes back to the foreground, so a lifted requirement does not need a restart.
+			NymVpn.AppLifecycleObserver.isInForeground.filter { it }.collect { refreshAppUpdateDecision() }
 		}
+	}
+
+	private suspend fun refreshAppUpdateDecision() {
+		val api = runCatching { serviceConnectionManager.awaitApi() }.getOrNull() ?: return
+		val versions = runCatching { api.getNetworkVersions() }.getOrNull()
+		val decision = appUpdateDecision(
+			local = BuildConfig.VERSION_NAME,
+			floor = versions?.android,
+			policy = versions?.appUpdatePolicy,
+			overrides = versions?.appUpdatePolicies,
+		)
+		Timber.tag(TAG).i(
+			"AppUpdateDecision local=%s floor=%s policy=%s overrides=%s show=%s block=%s",
+			BuildConfig.VERSION_NAME,
+			versions?.android,
+			versions?.appUpdatePolicy,
+			versions?.appUpdatePolicies,
+			decision.showDialog,
+			decision.blockConnect,
+		)
+		_state.update { it.copy(isNetworkCompatible = !decision.showDialog, appUpdateRequired = decision.blockConnect) }
 	}
 
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {

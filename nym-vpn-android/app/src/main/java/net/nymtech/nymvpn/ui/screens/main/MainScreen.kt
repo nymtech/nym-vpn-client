@@ -106,9 +106,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	var compatibilityDismissed by rememberSaveable { mutableStateOf(false) }
 	val appUpdateRequired = appUiState.managerState.appUpdateRequired
 	LaunchedEffect(appUiState.managerState.isNetworkCompatible) {
-		if (!appUiState.managerState.isNetworkCompatible && !compatibilityDismissed) {
-			showCompatibilityDialog = true
-		}
+		showCompatibilityDialog = !appUiState.managerState.isNetworkCompatible && !compatibilityDismissed
 	}
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
