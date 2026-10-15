@@ -23,6 +23,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val batteryDialogSkip = booleanPreferencesKey("BATTERY_DIALOG_SKIP")
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
+	private val statsConsentMigrated = booleanPreferencesKey("STATS_CONSENT_MIGRATED_V1")
 	private val technicalOptScreenCompleted = booleanPreferencesKey("TECHNICAL_OPT_SCREEN_COMPLETE")
 	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
@@ -86,15 +87,35 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun isBatteryDialogSkipped(): Boolean = dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
 
-	override suspend fun getStatisticsEnabled(): Boolean = dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
+	@Volatile
+	private var statsConsentMigrationDone = false
+
+	override suspend fun getStatisticsEnabled(): Boolean {
+		migrateStatsConsent()
+		return dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
+	}
+
+	// stats choices stored before the onboarding toggle fix can't be trusted as consent, ask again once
+	override suspend fun migrateStatsConsent() {
+		if (statsConsentMigrationDone) return
+		statsConsentMigrationDone = dataStoreManager.edit { prefs ->
+			if (prefs[statsConsentMigrated] == true) return@edit
+			prefs.remove(statsEnabled)
+			prefs.remove(statsDialogSkip)
+			prefs[statsConsentMigrated] = true
+			Timber.i("StatsConsentReset")
+		}
+	}
 
 	override suspend fun setStatisticsEnabled(enabled: Boolean) {
+		migrateStatsConsent()
 		dataStoreManager.saveToDataStore(statsEnabled, enabled)
 	}
 
 	override suspend fun isStatsDialogSkipped(): Boolean = dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
 
 	override suspend fun setStatsDialogSkipped(skip: Boolean) {
+		migrateStatsConsent()
 		dataStoreManager.saveToDataStore(statsDialogSkip, skip)
 	}
 

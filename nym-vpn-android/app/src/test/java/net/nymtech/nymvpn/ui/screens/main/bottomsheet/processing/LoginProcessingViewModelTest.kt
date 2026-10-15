@@ -196,6 +196,7 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override suspend fun setBatteryDialogSkipped(skip: Boolean) = Unit
 	override suspend fun isBatteryDialogSkipped(): Boolean = false
 	override suspend fun getStatisticsEnabled(): Boolean = false
+	override suspend fun migrateStatsConsent() = Unit
 	override suspend fun setStatisticsEnabled(enabled: Boolean) = Unit
 	override suspend fun isStatsDialogSkipped(): Boolean = false
 	override suspend fun setStatsDialogSkipped(skip: Boolean) = Unit
