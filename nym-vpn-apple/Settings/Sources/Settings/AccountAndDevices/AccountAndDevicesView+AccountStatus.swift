@@ -151,7 +151,7 @@ extension AccountAndDevicesView {
 
     func accountStatusResetDate(accountSummary: AccountSummary) -> some View {
         HStack {
-            Text("settings.account.resetsDailyUtc".localizedString)
+            Text("settings.account.resetsDaily".localizedString)
                 .foregroundStyle(Color.Nym.textSecondary)
                 .nymTextStyle(.bodyDefault)
             Spacer()
@@ -224,16 +224,18 @@ extension AccountAndDevicesView {
         return "\(formatted) GB"
     }
 
-    /// Daily reset is a midnight-UTC boundary, so render it in UTC rather than the
-    /// device locale. When the core could not parse `resetsOnUtc` the date is nil and
-    /// we show a neutral placeholder that implies no billing-period reset.
+    /// The daily reset boundary is midnight UTC, but we display that instant in the
+    /// device's local time zone, including the time of day, so every platform shows
+    /// the same local reset time (#6484). When the core could not parse `resetsOnUtc`
+    /// the date is nil and we show a neutral placeholder that implies no
+    /// billing-period reset.
     func resetDateText(date: Date?) -> String {
         guard let date else { return "~~" }
         let formatter = DateFormatter()
         formatter.locale = .autoupdatingCurrent
-        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.timeZone = .autoupdatingCurrent
         formatter.dateStyle = .long
-        formatter.timeStyle = .none
+        formatter.timeStyle = .short
         return formatter.string(from: date)
     }
 }
