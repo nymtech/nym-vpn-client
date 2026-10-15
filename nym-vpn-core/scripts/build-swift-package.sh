@@ -7,7 +7,7 @@
 #
 # Each --slice becomes one xcframework slice of the most recent --platform. Multiple triples within
 # a slice are merged using lipo. When more than one platform is given, Swift sources of each
-# platform are placed in their own directory and wrapped in a platform check.
+# platform are suffixed with the platform name and wrapped in a platform check.
 
 set -euo pipefail
 
@@ -114,11 +114,10 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             ios) SWIFT_OS="iOS" ;;
             macos) SWIFT_OS="macOS" ;;
         esac
-        mkdir -p "$SOURCES_DIR/$PLATFORM"
         for SOURCE in "$BINDINGS_DIR"/*.swift; do
             NAME="$(basename "$SOURCE" .swift)"
             printf "#if os(%s)\n\n%s\n\n#endif\n" "$SWIFT_OS" "$(cat "$SOURCE")" \
-                > "$SOURCES_DIR/$PLATFORM/$NAME.$PLATFORM.swift"
+                > "$SOURCES_DIR/$NAME.$PLATFORM.swift"
         done
     fi
 done
