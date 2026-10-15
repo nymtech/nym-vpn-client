@@ -63,7 +63,7 @@ else
     $(error Unknown ARCH: $(ARCH). Please use 'x86_64', 'arm64', or 'fat')
 endif
 
-.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev build-all clean
+.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev build-all binaries lib swift-package clean
 
 all: build-all
 
@@ -75,16 +75,20 @@ build-dev:
 	cargo build -p $(DAEMON_BIN) -p nym-vpnc -p nym-socks5-proxy
 	codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - target/debug/$(DAEMON_BIN)
 
-build-all: libwg $(BIN_TARGETS) swift-package
+build-all: binaries swift-package
+
+binaries: libwg $(BIN_TARGETS)
 
 libwg: $(LIBWG_OBJS)
 
 $(LIBWG_OBJS): $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
-swift-package: $(LIBWG_OBJS)
+lib: $(LIBWG_OBJS)
 	$(ALL_IDEMPOTENT_FLAGS) \
 	$(CARGO) build --package nym-vpn-lib-uniffi $(addprefix --target ,$(LIB_TRIPLETS)) $(RELEASE_FLAG)
+
+swift-package: lib
 	$(CURDIR)/scripts/build-swift-package.sh --profile $(BUILD_PROFILE) --platform macos --slice "$(LIB_TRIPLETS)"
 
 $(BIN_TARGETS): create-upload-dir
