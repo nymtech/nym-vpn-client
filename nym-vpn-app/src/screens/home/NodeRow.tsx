@@ -349,9 +349,9 @@ export function NodeRow({ type }: NodeRowProps) {
                   size="sm"
                   className="text-text-secondary"
                 />
-              ) : (
+              ) : gateway ? (
                 <ScoreIndicator score={nodeDetails.score} />
-              )}
+              ) : null}
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode && (
                   <motion.div
