@@ -38,9 +38,7 @@ impl LoggedOutState {
     ) {
         // No account: nothing for a credential fetcher to do.
         let _ = shared_state.clear_credential_fetcher().await;
-        shared_state
-            .qr_pairing_process_handle
-            .cancel_get_pairing_secret();
+        shared_state.qr_pairing_handler.cancel_get_pairing_secret();
 
         (Box::new(Self), PrivateAccountControllerState::LoggedOut)
     }
@@ -60,7 +58,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
-                        shared_state.qr_pairing_process_handle.cancel_get_pairing_secret();
+                        shared_state.qr_pairing_handler.cancel_get_pairing_secret();
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
@@ -69,7 +67,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
-                            shared_state.qr_pairing_process_handle.cancel_get_pairing_secret();
+                            shared_state.qr_pairing_handler.cancel_get_pairing_secret();
                             NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
                         }
                     },

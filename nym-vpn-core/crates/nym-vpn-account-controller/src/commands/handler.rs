@@ -1,16 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{str::FromStr, sync::Arc, time::Duration};
+use std::sync::Arc;
 
-use crate::{
-    SharedAccountState,
-    commands::ReturnSender,
-    qr_pairing::{QrPairingProcess, QrPairingProcessHandle},
-    storage::AccountStorageOp,
-};
+use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_sdk::mixnet::x25519::PublicKey;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
@@ -238,28 +232,14 @@ pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
     if let Some(ref account) = shared_state.vpn_api_account
         && account.mode().is_api()
     {
-        let qr_pairing_process = QrPairingProcess::new(
-            shared_state.vpn_api_client.clone(),
-            shared_state.tunnel_event_tx.clone(),
-            shared_state.cancel_token.child_token(),
-        );
-
-        let response = shared_state
-            .vpn_api_client
-            .pair_account(account, &qr_pairing_process.qr_public_key())
-            .await?;
-
-        let ret = QrUrl {
-            url: format!(
-                "https://nym.com/qr-pairing?pubkey={}",
-                qr_pairing_process.qr_public_key()
-            ),
-        };
-
-        shared_state.qr_pairing_process_handle = qr_pairing_process
-            .spawn_pairing_check_task(account.clone(), Duration::from_secs(response.ttl_seconds));
-
-        Ok(ret)
+        shared_state
+            .qr_pairing_handler
+            .pair_account(
+                account,
+                shared_state.tunnel_event_tx.clone(),
+                shared_state.cancel_token.child_token(),
+            )
+            .await
     } else {
         tracing::error!("Cannot pair another device when not logged-in with an API account");
         Err(AccountCommandError::NoAccountStored)
@@ -272,34 +252,14 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
 ) -> Result<QrPairingConfirmation, AccountCommandError> {
     // We can only pair a new device to the account if we're currently logged-out
     if shared_state.vpn_api_account.is_none() {
-        let qr_pairing_process = QrPairingProcess::new(
-            shared_state.vpn_api_client.clone(),
-            shared_state.tunnel_event_tx.clone(),
-            shared_state.cancel_token.child_token(),
-        );
-
-        let pin_code = String::new();
-        let token = String::new();
-        let remote_qr_pub_key = PublicKey::from_str(remote_qr_pub_key_str)
-            .map_err(|err| AccountCommandError::InvalidPublicKey(err.to_string()))?;
-
-        let response = shared_state
-            .vpn_api_client
-            .try_to_pair_to_account(
+        shared_state
+            .qr_pairing_handler
+            .scanned_key(
                 remote_qr_pub_key_str,
-                &qr_pairing_process.qr_public_key(),
-                &pin_code,
-                &token,
+                shared_state.tunnel_event_tx.clone(),
+                shared_state.cancel_token.child_token(),
             )
-            .await?;
-
-        shared_state.qr_pairing_process_handle = qr_pairing_process.spawn_get_pairing_secret_task(
-            remote_qr_pub_key,
-            token,
-            Duration::from_secs(response.ttl_seconds),
-        );
-
-        Ok(QrPairingConfirmation { pin_code })
+            .await
     } else {
         tracing::error!("Cannot pair another device when not logged-in with an API account");
         Err(AccountCommandError::ExistingAccount)
@@ -313,36 +273,10 @@ pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
     if let Some(ref account) = shared_state.vpn_api_account
         && account.mode().is_api()
     {
-        let QrPairingProcessHandle::PairingCheck { ref shared_key, .. } =
-            shared_state.qr_pairing_process_handle
-        else {
-            tracing::warn!("Pairing needs to be started first");
-            return Err(AccountCommandError::PairingNotStarted);
-        };
-        let (enc_mnemonic, nonce) = {
-            let shared_key_lock = shared_key.lock().await;
-            let Some(shared_key) = shared_key_lock.as_ref() else {
-                tracing::warn!("Cannot authorize secret sharing if there is no DH shared secret");
-                return Err(AccountCommandError::NoPairingSharedSecret);
-            };
-
-            let nonce = shared_key.random_nonce();
-            let enc_mnemonic = shared_key
-                .encrypt(account.get_mnemonic().as_bytes(), &nonce)
-                .ok_or(AccountCommandError::Internal(String::from(
-                    "encrypt mnemonic",
-                )))?;
-            (enc_mnemonic, nonce)
-        };
-
         shared_state
-            .vpn_api_client
-            .share_secret_account(account, enc_mnemonic, nonce.to_vec())
-            .await?;
-
-        shared_state.qr_pairing_process_handle = QrPairingProcessHandle::None;
-
-        Ok(())
+            .qr_pairing_handler
+            .verified_pairing_pin(account)
+            .await
     } else {
         tracing::error!("Cannot verify a pairing PIN when not logged-in with an API account");
         Err(AccountCommandError::NoAccountStored)
@@ -420,9 +354,7 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     // The device identity changed, so any installed credential fetcher is bound to a stale device.
     // Drop it; the next time we reach a state that needs one it will be rebuilt with the new device.
     shared_state.clear_credential_fetcher().await?;
-    shared_state
-        .qr_pairing_process_handle
-        .cancel_pairing_check();
+    shared_state.qr_pairing_handler.cancel_pairing_check();
 
     Ok(())
 }

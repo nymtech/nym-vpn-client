@@ -744,7 +744,7 @@ impl VpnApiClient {
         .await
         .inspect_err(|e| tracing::error!("Failed to share secret account: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::PairAccount)
+        .map_err(VpnApiClientError::SharePairingSecretAccount)
     }
 
     pub async fn get_canonical_account_identity(
