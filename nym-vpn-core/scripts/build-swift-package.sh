@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --platform)
-            PLATFORM="$2"
+            PLATFORM="$(tr '[:upper:]' '[:lower:]' <<< "$2")"
             case "$PLATFORM" in
                 ios | macos) ;;
                 *) echo "Unsupported platform: $PLATFORM" >&2; exit 1 ;;
@@ -118,7 +118,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
         for SOURCE in "$BINDINGS_DIR"/*.swift; do
             NAME="$(basename "$SOURCE" .swift)"
             printf "#if os(%s)\n\n%s\n\n#endif\n" "$SWIFT_OS" "$(cat "$SOURCE")" \
-                > "$SOURCES_DIR/$PLATFORM/$NAME-$PLATFORM.swift"
+                > "$SOURCES_DIR/$PLATFORM/$NAME.$PLATFORM.swift"
         done
     fi
 done
