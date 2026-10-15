@@ -38,17 +38,19 @@ public struct OneClickView: View {
                 }
             }
             .alert(
-                configuration.blocksConnectForAppUpdate ? "Update required" : "Update available",
+                (configuration.blocksConnectForAppUpdate ? "appUpdate.required.title" : "appUpdate.available.title")
+                    .localizedString,
                 isPresented: appUpdatePresented
             ) {
-                Button("Update") { openUpdatePage() }
+                Button("appUpdate.update".localizedString) { openUpdatePage() }
                 if !configuration.blocksConnectForAppUpdate {
-                    Button("Not now", role: .cancel) { }
+                    Button("appUpdate.notNow".localizedString, role: .cancel) { }
                 }
             } message: {
-                if !configuration.blocksConnectForAppUpdate {
-                    Text("A newer version of NymVPN is available. You can keep using this version, or update now.")
-                }
+                Text(
+                    (configuration.blocksConnectForAppUpdate ? "appUpdate.required.message" : "appUpdate.available.message")
+                        .localizedString
+                )
             }
 #if os(iOS)
             .simultaneousGesture(
