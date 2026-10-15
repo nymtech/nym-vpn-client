@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -304,9 +305,12 @@ constructor(
 
 		Timber.tag(TAG).i("AppReady")
 
-		launch { gatewayCacheService.updateExitGatewayCache() }
-		launch { gatewayCacheService.updateEntryGatewayCache() }
-		launch { gatewayCacheService.updateWgGatewayCache() }
+		launch {
+			// Only the lists the active mode needs; the TTL inside the service dedupes with the server screen.
+			vpnConfigRepository.configFlow.map { it.mode }.distinctUntilChanged().collect { mode ->
+				gatewayCacheService.refreshForMode(mode)
+			}
+		}
 
 		launch { checkSystemMessages() }
 

@@ -7,20 +7,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.FlagResources
 import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.screens.main.panel.NodeSelectionType
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 
 @Composable
 fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSelectionType = NodeSelectionType.NODE, tint: Color = MaterialTheme.colorScheme.onBackground) {
-	val context = LocalContext.current
 	val (painter, description, colorFilter) = if (LocalInspectionMode.current) {
 		Triple(
 			painterResource(R.drawable.flag_ua),
@@ -30,7 +28,7 @@ fun CountryFlag(countryCode: String?, size: Dp = iconSize, selectionType: NodeSe
 	} else {
 		countryCode?.let { code ->
 			Triple(
-				painterResource(id = context.getFlagImageVectorByName(code)),
+				painterResource(id = FlagResources.forCountry(code)),
 				stringResource(R.string.country_flag, code),
 				null,
 			)
