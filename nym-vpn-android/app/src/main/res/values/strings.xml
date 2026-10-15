@@ -439,6 +439,7 @@
 	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
 	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Show my passphrase</string>
+	<string name="passphrase_hide">Hide my passphrase</string>
 	<string name="passphrase_copy">Copy passphrase</string>
 	<string name="passphrase_save">Save to password manager</string>
 	<string name="passphrase_lose">⚠️ Lose these words = lose your account forever.</string>
