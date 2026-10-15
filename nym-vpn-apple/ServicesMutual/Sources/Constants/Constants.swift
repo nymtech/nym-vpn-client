@@ -15,6 +15,8 @@ public enum Constants: String {
     case newSupportRequest = "https://support.nym.com/hc/requests/new"
     case operatorDocs = "https://nym.com/docs"
     case downloadLink = "https://nym.com/download"
+    case downloadLinkMacOS = "https://nym.com/download/macos"
+    case appStoreLink = "https://apps.apple.com/app/id6471254143"
     case createAccounURL = "https://nym.com/account/create"
     case pricingURL = "https://nym.com/pricing"
     case anonymousStatsURL = "https://nym.com/anonymous-stats"

@@ -76,7 +76,7 @@ public struct NymButton: View {
     @Environment(\.accessibilityVoiceOverEnabled)
     private var voiceOverEnabled
     @State private var isHovered = false
-    @State private var isDisabled: Bool
+    private let isDisabled: Bool
 
     public init(
         _ label: String,
@@ -95,7 +95,7 @@ public struct NymButton: View {
         self.borderColorOverride = borderColor
         self.trailingSystemImage = trailingSystemImage
         self.action = action
-        _isDisabled = State(initialValue: isDisabled)
+        self.isDisabled = isDisabled
     }
 
     public var body: some View {

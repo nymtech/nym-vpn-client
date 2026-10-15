@@ -112,6 +112,9 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
 
+    @AppStorage(AppSettingKey.dismissedAppUpdateFloor.rawValue)
+    public var dismissedAppUpdateFloor = ""
+
     @AppStorage(AppSettingKey.quic.rawValue)
     public var isQuicEnabled = false {
         didSet { isQuicEnabledPublisher = isQuicEnabled }
@@ -268,6 +271,7 @@ public enum AppSettingKey: String {
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
+    case dismissedAppUpdateFloor
     case quic
     case stealthApi
     case lanBypass

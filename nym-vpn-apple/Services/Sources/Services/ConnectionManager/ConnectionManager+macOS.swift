@@ -1,5 +1,6 @@
 #if os(macOS)
 import Foundation
+import ConfigurationManager
 import ConnectionTypes
 import NotificationMessages
 import TunnelMixnet
@@ -24,7 +25,7 @@ extension ConnectionManager {
         if MockMode.isEnabled {
             if currentTunnelStatus == .connected || currentTunnelStatus == .connecting {
                 MockConnectionState.shared.disconnect()
-            } else {
+            } else if !ConfigurationManager.shared.blocksConnectForAppUpdate {
                 MockConnectionState.shared.connect()
             }
             return
@@ -33,6 +34,9 @@ extension ConnectionManager {
         case .connected, .connecting, .offlineReconnect, .error:
             try await grpcManager.disconnect()
         case .disconnected, .disconnecting, .reasserting, .restarting, .offline, .unknown:
+            if ConfigurationManager.shared.blocksConnectForAppUpdate {
+                return
+            }
             try await connect()
         }
     }
