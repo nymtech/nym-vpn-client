@@ -30,9 +30,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: App update decision tests
-        run: swift test --package-path nym-vpn-apple/AppUpdateChecks
-
       - name: Setup sccache
         uses: ./.github/actions/setup-sccache
 

@@ -14,7 +14,6 @@ import ConnectionTypes
 #endif
 import Logging
 import PathManager
-import AppUpdatePrompt
 
 @MainActor public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings

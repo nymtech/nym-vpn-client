@@ -1,5 +1,5 @@
 import Testing
-import AppUpdatePrompt
+@testable import ConfigurationManager
 
 struct AppUpdatePromptTests {
     @Test func dismissibleBelowFloorShowsAndAllowsConnect() {

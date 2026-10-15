@@ -1,16 +1,11 @@
 import Foundation
 
-public struct AppUpdatePrompt: Equatable {
-    public var show: Bool
-    public var blockConnect: Bool
-
-    public init(show: Bool, blockConnect: Bool) {
-        self.show = show
-        self.blockConnect = blockConnect
-    }
+struct AppUpdatePrompt: Equatable {
+    var show: Bool
+    var blockConnect: Bool
 }
 
-public func appUpdatePrompt(
+func appUpdatePrompt(
     local: String?,
     floor: String?,
     policy: String?,
