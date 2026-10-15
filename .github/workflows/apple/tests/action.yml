@@ -41,6 +41,7 @@ runs:
             "Services|Services-Package|CredentialsManagerTests/AccountTokenByEnvStorageTests|Services/TestResults-AccountTokenByEnvStorageTests.xcresult|AccountTokenByEnv"
             "Services|Services-Package|CredentialsManagerTests/DrawerSessionPolicyTests|Services/TestResults-DrawerSessionPolicyTests.xcresult|DrawerSessionPolicy"
             "Services|Services-Package|CredentialsManagerTests/DrawerCredentialImportPolicyTests|Services/TestResults-DrawerCredentialImportPolicyTests.xcresult|DrawerCredImport"
+            "Services|Services-Package|PurchasesManagerTests|Services/TestResults-PurchasesManagerTests.xcresult|PurchasesManager"
           )
 
           for suite in "${SUITES[@]}"; do

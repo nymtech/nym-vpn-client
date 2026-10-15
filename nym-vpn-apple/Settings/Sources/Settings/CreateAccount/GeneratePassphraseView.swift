@@ -111,6 +111,11 @@ public struct GeneratePassphraseView: View {
             }
         }
 #if os(iOS)
+        .task(id: didRegisterAccount) {
+            // Read once the account exists, so the verdict is about this account.
+            guard didRegisterAccount else { return }
+            await purchasesManager.refreshNymTrialEligibility()
+        }
         .autologinOverlay(state: autologinState, onRetry: { beginWebSubscriptionPurchase() })
         .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
             guard received else { return }
@@ -236,12 +241,16 @@ private extension GeneratePassphraseView {
     var subsctiptionBenefitsSection: some View {
         VStack(spacing: 16) {
 #if os(iOS)
-            if !purchasesManager.isEligibleForIntroOffer.isEmpty {
+            let freeTrialVisibility = purchasesManager.anyPlanFreeTrialVisibility
+            if freeTrialVisibility != .hidden {
+                // Kept in the layout while the Nym verdict loads, so the list does not jump when it arrives.
                 subscriptionBenefitCell(
                     imageName: nil,
                     title: "purchasePlan.7dayFreeTrial".localizedString,
                     systemImageName: "gift"
                 )
+                .opacity(freeTrialVisibility.isShown ? 1 : 0)
+                .accessibilityHidden(!freeTrialVisibility.isShown)
             }
 #endif
             subscriptionBenefitCell(imageName: "allFeaturesIncluded", title: "purchasePlan.allFeatures".localizedString)

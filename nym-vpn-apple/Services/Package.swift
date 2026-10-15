@@ -124,6 +124,7 @@ let package = Package(
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
                 "PathManager",
+                .target(name: "PurchasesManager", condition: .when(platforms: [.iOS])),
                 "Tunnels",
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
@@ -244,7 +245,8 @@ let package = Package(
             name: "PurchasesManager",
             dependencies: [
                 "AppSettings",
-                "ConfigurationManager"
+                "ConfigurationManager",
+                .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/PurchasesManager",
             swiftSettings: santaSwiftSettings
@@ -304,6 +306,11 @@ let package = Package(
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Tests/CredentialsManagerTests"
+        ),
+        .testTarget(
+            name: "PurchasesManagerTests",
+            dependencies: ["PurchasesManager"],
+            path: "Tests/PurchasesManagerTests"
         )
     ]
 )

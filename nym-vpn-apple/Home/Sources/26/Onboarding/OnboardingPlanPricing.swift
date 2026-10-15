@@ -8,6 +8,8 @@ struct OnboardingPlanPricing: Equatable {
     let monthlyPrice: String
     let savings: String?
     let freeTrialPeriod: String?
+    /// The trial line keeps its space but is not drawn while the Nym verdict loads.
+    var isFreeTrialReserved = false
 
 #if os(iOS)
 
@@ -17,6 +19,7 @@ struct OnboardingPlanPricing: Equatable {
         self.monthlyPrice = monthlyPrice
         savings = purchasesManager.yearlyPlanSavingsText
         freeTrialPeriod = purchasesManager.yearlyPlanFreeTrialPeriodText
+        isFreeTrialReserved = purchasesManager.yearlyPlanFreeTrialVisibility == .reserved
     }
 #elseif os(macOS)
     @MainActor
