@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     AccountControllerConfig, AccountControllerEventSender, deeplink::Deeplinks,
-    nyxd_client::NyxdClient, qr_pairing::QrPairingProcessHandle, storage::AccountStorageOp,
+    nyxd_client::NyxdClient, qr_pairing::QrPairingHandler, storage::AccountStorageOp,
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -71,9 +71,8 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Channel for broadcasting global `Tunnel` events
     pub(crate) tunnel_event_tx: broadcast::Sender<nym_vpn_lib_types::TunnelEvent>,
 
-    /// Handle for the QR pairing process, if one is active, in cases where the
-    /// process is invalidated and we want to cancel it.
-    pub(crate) qr_pairing_process_handle: QrPairingProcessHandle,
+    /// Handler for the QR pairing process
+    pub(crate) qr_pairing_handler: QrPairingHandler<VpnApiClient>,
 
     /// AccountController cancellation token; child tokens are handed to constructed fetchers so
     /// controller shutdown interrupts their in-flight work.
@@ -98,6 +97,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         cancel_token: CancellationToken,
     ) -> Self {
         let deeplinks = Deeplinks::default();
+        let qr_pairing_handler = QrPairingHandler::new(vpn_api_client.clone());
 
         Self {
             connectivity_handle,
@@ -115,7 +115,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             storage_op_sender,
             event_sender,
             tunnel_event_tx,
-            qr_pairing_process_handle: QrPairingProcessHandle::None,
+            qr_pairing_handler,
             cancel_token,
         }
     }

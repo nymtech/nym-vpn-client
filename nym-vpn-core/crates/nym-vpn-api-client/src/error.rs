@@ -50,6 +50,9 @@ pub enum VpnApiClientError {
     #[error("failed to get pairing secret account")]
     GetPairingSecretAccount(#[source] Box<HttpClientError>),
 
+    #[error("failed to share pairing secret account")]
+    SharePairingSecretAccount(#[source] Box<HttpClientError>),
+
     #[error("failed to get devices")]
     GetDevices(#[source] Box<HttpClientError>),
 
