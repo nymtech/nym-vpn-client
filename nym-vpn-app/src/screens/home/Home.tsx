@@ -18,6 +18,7 @@ let compatChecked = false;
 
 function Home() {
   const networkCompat = useAppStore((s) => s.networkCompat);
+  const connected = useAppStore((s) => s.state === 'connected');
   useGatewayIndependenceWatcher();
   useDeviceLocationErrorToast();
   useExpiryReminderToast();
@@ -28,6 +29,10 @@ function Home() {
     if (devMode || compatChecked) {
       return;
     }
+    // A required update waits for an active connection to end, so Disconnect stays reachable.
+    if (connected && networkCompat?.appUpdatePolicy === 'required') {
+      return;
+    }
     if (
       networkCompat &&
       (networkCompat.core === false || networkCompat.tauri === false)
@@ -35,7 +40,7 @@ function Home() {
       compatChecked = true;
       setIsDialogUpdateOpen(true);
     }
-  }, [networkCompat]);
+  }, [networkCompat, connected]);
 
   return (
     <>

@@ -8,8 +8,11 @@ extension OneClickView {
         Binding(
             get: {
                 _ = appUpdateGeneration
-                return configuration.showsAppUpdatePrompt &&
-                    (configuration.blocksConnectForAppUpdate || !configuration.appUpdatePromptDismissed)
+                guard configuration.showsAppUpdatePrompt else { return false }
+                // A required update waits for an active connection to end, so Disconnect stays reachable.
+                return configuration.blocksConnectForAppUpdate
+                    ? viewModel.connectState != .connected
+                    : !configuration.appUpdatePromptDismissed
             },
             set: { presented in
                 guard !presented else { return }
