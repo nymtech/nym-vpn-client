@@ -321,6 +321,19 @@ pub struct NymVpnSubscriptionResponse {
     pub trial_eligible: Option<bool>,
 }
 
+/// Response of `POST account/{id}/subscription/apple/intro-offer-eligibility`.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AppleIntroOfferEligibilityResponse {
+    /// Whether the account may be offered a free trial, by the same account rule as
+    /// `NymVpnSubscriptionResponse::trial_eligible`.
+    pub trial_eligible: bool,
+    /// Present only when `trial_eligible` is `false`: an ES256 JWS with
+    /// `allowIntroductoryOffer: false` for StoreKit's `introductoryOfferEligibility` purchase
+    /// option. `None` for an eligible account, which leaves the decision to Apple's own rule.
+    pub compact_jws: Option<String>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnSubscriptionsResponse {
@@ -895,6 +908,28 @@ mod tests {
         let raw = r#"{"isSubscriptionActive":false,"remainingAllowanceInGb":2.5}"#;
         let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
         assert_eq!(res.remaining_allowance_in_gb, Some(2.5));
+    }
+
+    // The bodies below are the exact shapes the VPN API's
+    // `subscription/apple/intro-offer-eligibility` route returns (see its route tests).
+
+    #[test]
+    fn apple_intro_offer_eligibility_response_eligible_account() {
+        let raw = r#"{"trialEligible":true,"compactJws":null}"#;
+        let res = serde_json::from_str::<AppleIntroOfferEligibilityResponse>(raw).unwrap();
+        assert!(res.trial_eligible);
+        assert_eq!(res.compact_jws, None);
+    }
+
+    #[test]
+    fn apple_intro_offer_eligibility_response_ineligible_account() {
+        let raw = r#"{"trialEligible":false,"compactJws":"eyJhbGciOiJFUzI1NiJ9.e30.sig"}"#;
+        let res = serde_json::from_str::<AppleIntroOfferEligibilityResponse>(raw).unwrap();
+        assert!(!res.trial_eligible);
+        assert_eq!(
+            res.compact_jws.as_deref(),
+            Some("eyJhbGciOiJFUzI1NiJ9.e30.sig")
+        );
     }
 
     #[test]

@@ -86,6 +86,9 @@ pub enum VpnApiClientError {
     #[error("failed to get active subscription")]
     GetActiveSubscriptions(#[source] Box<HttpClientError>),
 
+    #[error("failed to check Apple introductory offer eligibility")]
+    CheckAppleIntroOfferEligibility(#[source] Box<HttpClientError>),
+
     #[error("failed to get gateways")]
     GetGateways(#[source] Box<HttpClientError>),
 
@@ -190,5 +193,11 @@ impl VpnApiClientError {
         self.source()
             .and_then(|source| source.downcast_ref::<Box<HttpClientError>>())
             .map(|boxed| boxed.as_ref())
+    }
+
+    /// The request was valid, but the account was never registered with the API. See
+    /// [`NymErrorResponse::is_account_not_found`].
+    pub fn is_account_not_found(&self) -> bool {
+        crate::response::extract_error_response(self).is_some_and(|e| e.is_account_not_found())
     }
 }

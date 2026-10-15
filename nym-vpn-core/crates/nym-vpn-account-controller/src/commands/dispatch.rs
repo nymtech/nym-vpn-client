@@ -87,6 +87,9 @@ impl AccountCommand {
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::IsTrialEligible(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::CheckAppleIntroOfferEligibility(return_sender, _, _) => {
+                    return_sender.send(Err(error))
+                }
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::GetAutologinDeeplink(return_sender, _) => {
                     return_sender.send(Err(error))
@@ -133,6 +136,16 @@ pub enum CommonCommand {
     /// or when the account is not registered with the API yet (no history). False otherwise.
     IsTrialEligible(ReturnSender<bool, AccountCommandError>),
 
+    /// Asks the API for a signed Apple introductory-offer eligibility token for the given product
+    /// id and transaction id. The token is present only when the account may not be offered a
+    /// free trial; an eligible account, or one not registered with the API yet, gets `None` and
+    /// Apple's own rule decides.
+    CheckAppleIntroOfferEligibility(
+        ReturnSender<Option<String>, AccountCommandError>,
+        String,
+        String,
+    ),
+
     /// Return the deeplink URL for the specfied deeplink kind and name
     GetDeeplink(
         ReturnSender<String, AccountCommandError>,
@@ -171,8 +184,10 @@ where
     {
         self.sender
             .send(response)
-            .inspect_err(|err| {
-                tracing::error!("Failed to send response: {:#?}", err);
+            .inspect_err(|_| {
+                // Replies can carry tokens and ERROR lines reach Sentry, so the payload stays
+                // out of the log.
+                tracing::error!("Failed to send response: receiver dropped");
             })
             .ok();
     }

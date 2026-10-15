@@ -210,6 +210,22 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    /// The denying Apple introductory-offer token, or `None` when Apple's own rule should decide.
+    #[instrument(skip(self, product_id, transaction_id))]
+    pub async fn check_apple_intro_offer_eligibility(
+        &self,
+        product_id: String,
+        transaction_id: String,
+    ) -> Result<Option<String>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(
+                CommonCommand::CheckAppleIntroOfferEligibility(tx, product_id, transaction_id),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     #[instrument(skip(self))]
     pub async fn get_deeplink(
         &self,
