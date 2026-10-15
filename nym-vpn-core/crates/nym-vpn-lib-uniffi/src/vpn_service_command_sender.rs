@@ -223,6 +223,11 @@ impl NymVpnServiceCommandSender {
         Ok(())
     }
 
+    pub async fn set_network_stats_enabled(&self, enabled: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::EnableNetStats, enabled)
+            .await
+    }
+
     pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {
         self.send_and_wait(VpnServiceCommand::GetSystemMessages, ())
             .await

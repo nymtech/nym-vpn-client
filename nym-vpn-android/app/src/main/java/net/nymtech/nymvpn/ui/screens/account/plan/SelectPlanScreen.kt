@@ -72,8 +72,8 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
-	val deviceAuth = rememberDeviceAuth { action ->
-		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+	val deviceAuth = rememberDeviceAuth { action, cryptoObject ->
+		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 	}
 
 	when (val autologin = autologinState) {
