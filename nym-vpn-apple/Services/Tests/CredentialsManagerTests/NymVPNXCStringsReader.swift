@@ -7,7 +7,7 @@ enum NymVPNXCStringsReader {
             return URL(fileURLWithPath: override)
         }
         var url = URL(fileURLWithPath: "\(file)")
-        for _ in 0..<3 { url.deleteLastPathComponent() }
+        for _ in 0..<4 { url.deleteLastPathComponent() }
         return url
             .appendingPathComponent("NymVPN")
             .appendingPathComponent("Resources")

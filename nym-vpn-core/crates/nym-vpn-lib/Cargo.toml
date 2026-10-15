@@ -4,7 +4,6 @@ version.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
@@ -75,7 +74,6 @@ nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
-nym-sqlx-pool-guard.workspace = true
 nym-file-updater.workspace = true
 nym-favorites.workspace = true
 opentelemetry.workspace = true
@@ -89,7 +87,6 @@ rustls = { workspace = true, default-features = false, features = [
     "ring",
     "logging",
 ] }
-serial_test.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 semver = { workspace = true }
@@ -144,6 +141,7 @@ nix = { workspace = true, features = [
 
 # Linux-specific dependencies
 [target.'cfg(target_os = "linux")'.dependencies]
+nym-cgroup.workspace = true
 nym-dbus.workspace = true
 
 # Windows-specific dependencies
@@ -162,7 +160,6 @@ hickory-server = { workspace = true, features = ["resolver"] }
 socket2.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
-nym-cgroup.workspace = true
 nym-firewall.workspace = true
 nym-firewall-config.workspace = true
 
@@ -195,6 +192,7 @@ dispatch2.workspace = true
 
 [dev-dependencies]
 pretty_assertions.workspace = true
+serial_test.workspace = true
 socket2.workspace = true
 tempfile.workspace = true
 tracing-test.workspace = true

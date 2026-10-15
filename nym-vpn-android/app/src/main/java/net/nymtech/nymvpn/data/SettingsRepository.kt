@@ -28,6 +28,7 @@ interface SettingsRepository {
 	suspend fun isBatteryDialogSkipped(): Boolean
 
 	suspend fun getStatisticsEnabled(): Boolean
+	suspend fun migrateStatsConsent()
 	suspend fun setStatisticsEnabled(enabled: Boolean)
 
 	suspend fun isStatsDialogSkipped(): Boolean

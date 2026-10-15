@@ -7,13 +7,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Singleton
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.config.CoreAppConfigProvider
 import nym_vpn_lib_types.UserAgent
 import javax.inject.Inject
 
 @Singleton
-class AppConfigProvider @Inject constructor(@ApplicationContext private val context: Context) : CoreAppConfigProvider {
+class AppConfigProvider @Inject constructor(@ApplicationContext private val context: Context, private val settingsRepository: SettingsRepository) : CoreAppConfigProvider {
 
 	override fun getUserAgent(): UserAgent {
 		val platform = if (isAndroidTV()) "AndroidTV" else "Android"
@@ -24,6 +25,8 @@ class AppConfigProvider @Inject constructor(@ApplicationContext private val cont
 			gitCommit = BuildConfig.COMMIT_HASH,
 		)
 	}
+
+	override suspend fun isNetworkStatsEnabled(): Boolean = settingsRepository.getStatisticsEnabled()
 
 	private fun isAndroidTV(): Boolean = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 }

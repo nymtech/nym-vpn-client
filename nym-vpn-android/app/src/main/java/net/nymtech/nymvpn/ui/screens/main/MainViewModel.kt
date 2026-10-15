@@ -32,6 +32,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
 import timber.log.Timber
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class MainViewModel
@@ -209,6 +210,7 @@ constructor(
 	fun setNetworkStatsEnabled() = viewModelScope.launch {
 		Timber.tag(TAG).i("StatsEnabled")
 		settingsRepository.setStatisticsEnabled(true)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetworkStatsEnabled(true))
 	}
 
 	fun onNetworkStatsSkipped() = viewModelScope.launch {
@@ -288,7 +290,7 @@ constructor(
 					val nowSeconds = System.currentTimeMillis() / 1000L
 					_connectionSeconds.value = (nowSeconds - connectedAtSeconds).coerceAtLeast(0)
 				}
-				delay(1000)
+				delay(1000.milliseconds)
 			}
 		}
 	}

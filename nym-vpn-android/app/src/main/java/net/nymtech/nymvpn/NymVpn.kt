@@ -144,6 +144,9 @@ class NymVpn : Application() {
 		}
 
 		applicationScope.launch(ioDispatcher) {
+			runCatching { settingsRepository.migrateStatsConsent() }
+				.onFailure { t -> Timber.tag(TAG).e(t, "StatsConsentMigrationFailed") }
+
 			runCatching {
 				awaitValidatedNetworkIfAutoStarting()
 				backendManager.initialize()

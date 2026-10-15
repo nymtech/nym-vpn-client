@@ -27,3 +27,5 @@ pub use authentication::SigningRequirements;
 mod uds;
 #[cfg(all(target_os = "macos", any(not(debug_assertions), feature = "xpc")))]
 mod xpc;
+#[cfg(all(target_os = "macos", debug_assertions, not(feature = "xpc")))]
+use objc2_foundation as _;

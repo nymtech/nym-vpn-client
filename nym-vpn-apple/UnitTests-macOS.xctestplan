@@ -1,0 +1,69 @@
+{
+  "configurations" : [
+    {
+      "id" : "7A7F33EE-68BD-4A38-BB4C-8A4ADD21D544",
+      "name" : "Configuration 1",
+      "options" : {}
+    }
+  ],
+  "defaultOptions" : {},
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:ServicesMutual",
+        "identifier" : "ConnectionTypesTests",
+        "name" : "ConnectionTypesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:ServicesMutual",
+        "identifier" : "TunnelStatusTests",
+        "name" : "TunnelStatusTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Services",
+        "identifier" : "ConfigurationManagerTests",
+        "name" : "ConfigurationManagerTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Services",
+        "identifier" : "CredentialsManagerTests",
+        "name" : "CredentialsManagerTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Services",
+        "identifier" : "PurchasesManagerTests",
+        "name" : "PurchasesManagerTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:ServicesMacOS",
+        "identifier" : "AppDiscoveryServiceTests",
+        "name" : "AppDiscoveryServiceTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Settings",
+        "identifier" : "SettingsTests",
+        "name" : "SettingsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Home",
+        "identifier" : "HomeTests",
+        "name" : "HomeTests"
+      }
+    }
+  ],
+  "version" : 1
+}

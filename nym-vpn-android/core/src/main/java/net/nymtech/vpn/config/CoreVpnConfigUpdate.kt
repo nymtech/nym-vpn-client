@@ -20,6 +20,7 @@ sealed class CoreVpnConfigUpdate {
 	data class SetNetwork(val value: Tunnel.Environment) : CoreVpnConfigUpdate()
 	data class SetDebugLog(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetSentry(val value: Boolean) : CoreVpnConfigUpdate()
+	data class SetNetworkStatsEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetAdBlockingEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetStealthMode(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetNodeFamiliesNotificationsEnabled(val value: Boolean) : CoreVpnConfigUpdate()

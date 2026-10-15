@@ -134,10 +134,10 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 	val isAccountNotActive = accountState is AccountControllerState.Error &&
 		accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
 
-	val deviceAuth = rememberDeviceAuth { action ->
+	val deviceAuth = rememberDeviceAuth { action, cryptoObject ->
 		when (action) {
-			DeviceAuthAction.MANAGE_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW)
-			DeviceAuthAction.RENEW_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+			DeviceAuthAction.MANAGE_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW, cryptoObject)
+			DeviceAuthAction.RENEW_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 			DeviceAuthAction.LINK_SOCIAL -> uiState.accountLinkUrl?.let { context.openWebUrl(it) }
 			DeviceAuthAction.REVEAL_PASSPHRASE -> Unit
 		}

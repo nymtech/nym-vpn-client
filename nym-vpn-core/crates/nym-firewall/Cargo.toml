@@ -4,7 +4,6 @@ version.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
@@ -21,7 +20,6 @@ libc.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-nym-common.workspace = true
 nym-firewall-config.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
@@ -36,6 +34,7 @@ nym-cgroup.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 log.workspace = true
+nym-common.workspace = true
 wmi.workspace = true
 widestring.workspace = true
 windows = { workspace = true, features = [

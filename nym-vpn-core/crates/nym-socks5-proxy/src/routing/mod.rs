@@ -10,11 +10,7 @@ mod tests;
 pub use domain::DomainSet;
 pub use ip::GeoIpDatabase;
 
-use std::{
-    io::Cursor,
-    net::{IpAddr, SocketAddr},
-    path::Path,
-};
+use std::{io::Cursor, net::IpAddr, path::Path};
 
 use anyhow::{Context, Result};
 use async_compression::tokio::bufread::GzipDecoder;
@@ -49,22 +45,23 @@ pub fn is_excluded_domain(host: &str, domain: &DomainSet) -> bool {
     domain.is_excluded(host)
 }
 
-pub fn decide_route_for_addrs(
-    addrs: &[SocketAddr],
+pub fn decide_route_for_addr(
+    addr: IpAddr,
     tunnel_addrs: &InterfaceAddresses,
     db: &GeoIpDatabase,
 ) -> RoutingDecision {
-    if addrs.iter().any(|sa| db.is_excluded(sa.ip())) {
-        return RoutingDecision::DefaultInterface;
-    }
-    let tunnel_can_reach_any = addrs.iter().any(|sa| match sa.ip() {
-        IpAddr::V4(_) => tunnel_addrs.v4_addr.is_some(),
-        IpAddr::V6(_) => tunnel_addrs.v6_addr.is_some(),
-    });
-    if tunnel_can_reach_any {
-        RoutingDecision::VpnTunnelInterface
+    if db.is_excluded(addr) {
+        RoutingDecision::DefaultInterface
     } else {
-        RoutingDecision::Reject
+        let tunnel_can_reach = match addr {
+            IpAddr::V4(_) => tunnel_addrs.v4_addr.is_some(),
+            IpAddr::V6(_) => tunnel_addrs.v6_addr.is_some(),
+        };
+        if tunnel_can_reach {
+            RoutingDecision::VpnTunnelInterface
+        } else {
+            RoutingDecision::Reject
+        }
     }
 }
 

@@ -11,36 +11,47 @@ import Testing
 ///      (== `ReportBuilder.pathEnvVar`),
 ///   2. consume that env and surface the file into the job step summary,
 ///   3. upload the report + the xcresult bundle as an artifact,
-///   4. run the test step via the SPM scheme, scoped to the ConnectionTypes target.
+///   4. run the `UnitTests-macOS` scheme, whose test plan includes the ConnectionTypes target.
 ///
 /// The tests step was extracted out of the workflow into a local composite action
-/// (`.github/workflows/apple/tests/action.yml`), so the contract now spans two
+/// (`.github/actions/apple-tests/action.yml`), so the contract now spans two
 /// files: the workflow passes the workspace-anchored path as the action's
 /// `account-report-path` input; the action wires it to the env and does everything else
-/// (summary, upload, the xcodebuild invocations). These tests read both YAML files off
-/// disk and assert that split contract. If either drifts (env renamed/dropped, scheme
-/// swapped, upload removed, input handoff broken) — or if the `ReportBuilder` constants
-/// change without a matching CI edit — this turns red instead of silently producing no
-/// report on CI. (Plain-text scanning, matching the source-reading style of
-/// `AccountReportTests.viewButtonTitleKeys`; Foundation ships no YAML parser and the
-/// assertions don't need full structure.)
+/// (summary, upload, the xcodebuild invocation). The suites themselves are selected by
+/// `nym-vpn-apple/UnitTests-macOS.xctestplan`. These tests read the YAML files and the
+/// test plan off disk and assert that contract. If any drifts (env renamed/dropped, scheme
+/// swapped, upload removed, input handoff broken, suite dropped from the plan) — or if the
+/// `ReportBuilder` constants change without a matching CI edit — this turns red instead of
+/// silently producing no report on CI. (YAML is plain-text scanned, matching the
+/// source-reading style of `AccountReportTests.viewButtonTitleKeys`; Foundation ships no
+/// YAML parser and the assertions don't need full structure. The test plan is JSON.)
 struct WorkflowReportTests {
     private static let workflowRelativePath = ".github/workflows/ci-nym-vpn-app-macos.yml"
-    private static let actionRelativePath = ".github/workflows/apple/tests/action.yml"
+    private static let actionRelativePath = ".github/actions/apple-tests/action.yml"
     /// The composite action's input the workflow passes the report path through.
     private static let reportInputKey = "account-report-path"
-    private static let scheme = "ServicesMutual-Package"
-    private static let testTarget = "ConnectionTypesTests"
+    private static let testPlanRelativePath = "nym-vpn-apple/UnitTests-macOS.xctestplan"
+    private static let scheme = "UnitTests-macOS"
     private static let xcresultBundle = "TestResults.xcresult"
 
     /// Loads a YAML file, resolving repo root the same way `ReportBuilder` does:
     /// up 5 from this file → repo root (== `$GITHUB_WORKSPACE`).
     private func loadYAML(_ relativePath: String, file: StaticString = #filePath) throws -> String {
+        try #require(try? String(contentsOf: repoURL(relativePath, file: file), encoding: .utf8),
+                     "YAML not found at \(relativePath) — repo layout changed?")
+    }
+
+    private func repoURL(_ relativePath: String, file: StaticString) -> URL {
         var root = URL(fileURLWithPath: "\(file)")
         for _ in 0..<5 { root.deleteLastPathComponent() }
-        let url = root.appendingPathComponent(relativePath)
-        return try #require(try? String(contentsOf: url, encoding: .utf8),
-                            "YAML not found at \(url.path) — repo layout changed?")
+        return root.appendingPathComponent(relativePath)
+    }
+
+    /// The `testTargets` entries of the test plan.
+    private func loadTestPlanTargets(file: StaticString = #filePath) throws -> [[String: Any]] {
+        let data = try Data(contentsOf: repoURL(Self.testPlanRelativePath, file: file))
+        let plan = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        return try #require(plan["testTargets"] as? [[String: Any]], "test plan has no testTargets")
     }
 
     /// The value assigned to `key` in the YAML (rest of the line after `key:`).
@@ -90,38 +101,31 @@ struct WorkflowReportTests {
                 "\(Self.xcresultBundle) is not in the upload-artifact paths")
     }
 
-    /// Suites are array-driven: the action loops a `SUITES` array whose entries are
-    /// `dir|scheme|target|bundle|label`, so the live invocation is `-scheme "$scheme"`
-    /// (no literal scheme in the command). Assert the ConnectionTypes entry is present
-    /// as a `|scheme|target|` pair — disambiguates e.g. the "Settings" scheme from the
-    /// "Settings" substring that also appears in dirs/paths/labels.
-    @Test func testStepRunsConnectionTypes() throws {
+    @Test func testStepRunsTestPlanScheme() throws {
         let action = try loadYAML(Self.actionRelativePath)
-        #expect(action.contains("|\(Self.scheme)|\(Self.testTarget)|"),
-                "tests action has no suite entry for \(Self.scheme) / \(Self.testTarget)")
+        #expect(action.contains("-scheme \(Self.scheme)"),
+                "tests action does not run the \(Self.scheme) scheme")
     }
 
-    /// The Tests job runs more than ConnectionTypes: each lives in its own SwiftPM
-    /// package and only runs if its array entry is present. If a suite is dropped from
-    /// the action it would pass CI while testing nothing — this turns red instead.
-    /// `(scheme, target)` pairs must match the per-package `SUITES` entries.
+    /// A target dropped (or disabled) in the test plan would pass CI while testing
+    /// nothing — this turns red instead.
     @Test(arguments: [
-        (scheme: "Services-Package", target: "ConfigurationManagerTests"),
-        (scheme: "Settings", target: "SettingsTests"),
-        (scheme: "ServicesMacOS-Package", target: "AppDiscoveryServiceTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/AppSessionReducerTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/AccountPrefetchOrchestratorTests"),
-        (scheme: "Home", target: "HomeTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/EnvironmentChangeIAPPolicyTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingPolicyTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingFlowTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/AccountTokenByEnvStorageTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerSessionPolicyTests"),
-        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerCredentialImportPolicyTests")
+        (container: "ServicesMutual", target: "ConnectionTypesTests"),
+        (container: "ServicesMutual", target: "TunnelStatusTests"),
+        (container: "Services", target: "ConfigurationManagerTests"),
+        (container: "Services", target: "CredentialsManagerTests"),
+        (container: "ServicesMacOS", target: "AppDiscoveryServiceTests"),
+        (container: "Settings", target: "SettingsTests"),
+        (container: "Home", target: "HomeTests")
     ])
-    func testStepRunsAdditionalSuite(scheme: String, target: String) throws {
-        let action = try loadYAML(Self.actionRelativePath)
-        #expect(action.contains("|\(scheme)|\(target)|"),
-                "tests action no longer runs \(target) via the \(scheme) scheme")
+    func testPlanRunsTarget(container: String, target: String) throws {
+        let entry = try #require(
+            try loadTestPlanTargets().first {
+                let ref = $0["target"] as? [String: Any]
+                return ref?["identifier"] as? String == target
+                    && ref?["containerPath"] as? String == "container:\(container)"
+            },
+            "test plan has no \(target) target from \(container)")
+        #expect((entry["enabled"] as? Bool) != false, "\(target) is disabled in the test plan")
     }
 }

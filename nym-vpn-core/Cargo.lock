@@ -6905,7 +6905,6 @@ name = "nym-macos"
 version = "2026.14.0-beta.1"
 dependencies = [
  "nix 0.31.3",
- "tokio",
  "tracing",
 ]
 
@@ -7147,7 +7146,6 @@ dependencies = [
  "hex",
  "nym-bin-common",
  "nym-dbus",
- "nym-sdk",
  "objc2-foundation",
  "rs-release",
  "sha2 0.11.0",
@@ -7646,7 +7644,6 @@ version = "2026.14.0-beta.1"
 dependencies = [
  "futures",
  "nym-bin-common",
- "nym-sqlx-pool-guard",
  "nym-statistics-api-client",
  "nym-statistics-common",
  "nym-vpn-lib-types",
@@ -7934,7 +7931,6 @@ dependencies = [
  "nym-credentials-interface",
  "nym-ecash-time",
  "nym-offline-monitor",
- "nym-sqlx-pool-guard",
  "nym-upgrade-mode-check",
  "nym-validator-client",
  "nym-vpn-api-client",
@@ -8017,7 +8013,6 @@ dependencies = [
  "nym-socks5-proxy",
  "nym-socks5-proxy-ipc",
  "nym-split-tunnel",
- "nym-sqlx-pool-guard",
  "nym-statistics",
  "nym-statistics-api-client",
  "nym-validator-client",
@@ -8202,7 +8197,6 @@ dependencies = [
  "bip39",
  "nym-crypto",
  "nym-pemstore",
- "nym-sqlx-pool-guard",
  "nym-vpn-lib-types",
  "rand 0.10.2",
  "rand 0.8.8",
@@ -12344,7 +12338,6 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "pnet_packet",
  "regex",
  "serde",
  "serde_json",
@@ -12361,7 +12354,6 @@ dependencies = [
  "tokio-util",
  "tonic",
  "tower",
- "tun",
  "uuid",
 ]
 
