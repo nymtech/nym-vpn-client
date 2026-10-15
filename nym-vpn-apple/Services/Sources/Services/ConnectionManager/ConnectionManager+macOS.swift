@@ -1,5 +1,6 @@
 #if os(macOS)
 import Foundation
+import ConfigurationManager
 import ConnectionTypes
 import NotificationMessages
 import TunnelMixnet

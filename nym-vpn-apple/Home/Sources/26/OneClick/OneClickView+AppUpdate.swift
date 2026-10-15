@@ -42,9 +42,9 @@ extension OneClickView {
         }
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
-            true
+            return true
         case .disconnected, .stop, .connected, .noSubscription:
-            false
+            return false
         }
     }
 }
