@@ -339,12 +339,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			if (!appUpdateRequired) {
 				showCompatibilityDialog = false
 				compatibilityDismissed = true
+				viewModel.onUpdateDismissed(appUiState.managerState.appUpdateFloor)
 			}
 		},
 		onConfirmCompatibility = {
 			if (!appUpdateRequired) {
 				showCompatibilityDialog = false
 				compatibilityDismissed = true
+				viewModel.onUpdateDismissed(appUiState.managerState.appUpdateFloor)
 			}
 			context.openWebUrl(downloadUrl)
 		},

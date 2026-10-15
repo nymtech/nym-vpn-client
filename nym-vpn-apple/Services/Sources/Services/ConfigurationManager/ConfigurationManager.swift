@@ -98,8 +98,14 @@ import PathManager
 
     @Published public var isCurrentAppVersionCompatible = true
     @Published public var showsAppUpdatePrompt = false
-    // Kept here, not in the view, so a dismissed prompt stays dismissed for the whole session.
-    @Published public var appUpdatePromptDismissed = false
+    // Stored per minimum version, so a dismissed prompt stays away until the minimum version changes.
+    public var appUpdatePromptDismissed: Bool {
+        get { appSettings.dismissedAppUpdateFloor == lastCompatibleAppVersion }
+        set {
+            objectWillChange.send()
+            appSettings.dismissedAppUpdateFloor = newValue ? lastCompatibleAppVersion ?? "" : ""
+        }
+    }
     @Published public var blocksConnectForAppUpdate = false
 
     public var currentEnvString: String {

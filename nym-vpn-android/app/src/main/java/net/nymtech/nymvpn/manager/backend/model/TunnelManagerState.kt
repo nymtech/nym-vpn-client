@@ -19,5 +19,6 @@ data class TunnelManagerState(
 	val isInitialized: Boolean = false,
 	val isNetworkCompatible: Boolean = true,
 	val appUpdateRequired: Boolean = false,
+	val appUpdateFloor: String? = null,
 	val isRestarting: Boolean = false,
 )

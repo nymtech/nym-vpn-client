@@ -116,13 +116,18 @@ class ServiceBackedBackendManager @Inject constructor(
 	private suspend fun refreshAppUpdateDecision() {
 		val api = runCatching { serviceConnectionManager.awaitApi() }.getOrNull() ?: return
 		val versions = runCatching { api.getNetworkVersions() }.getOrNull()
+		val floor = versions?.android
 		val decision = appUpdateDecision(
 			local = BuildConfig.VERSION_NAME,
-			floor = versions?.android,
+			floor = floor,
 			policy = versions?.appUpdatePolicy,
 			overrides = versions?.appUpdatePolicies,
 		)
-		_state.update { it.copy(isNetworkCompatible = !decision.showDialog, appUpdateRequired = decision.blockConnect) }
+		// A prompt the user dismissed stays away until the minimum version changes.
+		val dismissed = !decision.blockConnect && floor != null && settingsRepository.getDismissedUpdateFloor() == floor
+		_state.update {
+			it.copy(isNetworkCompatible = !decision.showDialog || dismissed, appUpdateRequired = decision.blockConnect, appUpdateFloor = floor)
+		}
 	}
 
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {

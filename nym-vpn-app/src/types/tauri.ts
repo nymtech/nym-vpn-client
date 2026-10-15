@@ -90,6 +90,7 @@ export type DbKey =
   | 'network-stats-enabled'
   | 'custom-split-tunnel-apps'
   | 'expiry-reminder-shown'
+  | 'app-update-dismissed'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
@@ -268,6 +269,7 @@ export type NetworkCompat = {
   core: boolean | null;
   tauri: boolean | null;
   appUpdatePolicy: string;
+  floors: string;
 };
 
 export type NetworkEnv = 'mainnet' | 'canary' | 'sandbox';

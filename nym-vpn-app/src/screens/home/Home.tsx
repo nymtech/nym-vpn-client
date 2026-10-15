@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { useAppStore } from '../../store';
+import { kvGet, kvSet } from '../../kvStore';
 import {
   useDeviceLocationErrorToast,
   useGatewayIndependenceWatcher,
@@ -38,7 +39,15 @@ function Home() {
       (networkCompat.core === false || networkCompat.tauri === false)
     ) {
       compatChecked = true;
-      setIsDialogUpdateOpen(true);
+      // A dismissed prompt stays away until the minimum versions change.
+      kvGet<string>('app-update-dismissed').then((dismissed) => {
+        if (
+          networkCompat.appUpdatePolicy === 'required' ||
+          dismissed !== networkCompat.floors
+        ) {
+          setIsDialogUpdateOpen(true);
+        }
+      });
     }
   }, [networkCompat, connected]);
 
@@ -50,7 +59,10 @@ function Home() {
       <NetworkUpdateDialog
         isOpen={isDialogUpdateOpen}
         required={networkCompat?.appUpdatePolicy === 'required'}
-        onClose={() => setIsDialogUpdateOpen(false)}
+        onClose={() => {
+          setIsDialogUpdateOpen(false);
+          kvSet('app-update-dismissed', networkCompat?.floors);
+        }}
         appUpdate={!networkCompat?.tauri}
         daemonUpdate={!networkCompat?.core}
       />

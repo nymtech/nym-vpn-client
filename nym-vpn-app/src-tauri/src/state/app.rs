@@ -35,6 +35,7 @@ pub struct NetworkCompat {
     core: Option<bool>,
     tauri: Option<bool>,
     app_update_policy: String,
+    floors: String,
 }
 
 // wrapper needed for Debug trait implem
@@ -156,6 +157,7 @@ impl AppState {
             core_compat,
             tauri_compat,
             compat.app_update_policy,
+            format!("{}|{}", compat.core, compat.tauri),
         ));
     }
 
@@ -191,11 +193,17 @@ impl AppState {
 }
 
 impl NetworkCompat {
-    pub fn new(core: Option<bool>, tauri: Option<bool>, app_update_policy: String) -> Self {
+    pub fn new(
+        core: Option<bool>,
+        tauri: Option<bool>,
+        app_update_policy: String,
+        floors: String,
+    ) -> Self {
         NetworkCompat {
             core,
             tauri,
             app_update_policy,
+            floors,
         }
     }
 }
@@ -239,11 +247,17 @@ mod tests {
 
     #[test]
     fn network_compat_ipc_payload_is_camel_case() {
-        let value = NetworkCompat::new(Some(false), Some(true), "required".to_owned());
+        let value = NetworkCompat::new(
+            Some(false),
+            Some(true),
+            "required".to_owned(),
+            "1.0.0|2.0.0".to_owned(),
+        );
         let json = serde_json::to_value(&value).expect("network compat serializes");
         assert_eq!(json["core"], false);
         assert_eq!(json["tauri"], true);
         assert_eq!(json["appUpdatePolicy"], "required");
+        assert_eq!(json["floors"], "1.0.0|2.0.0");
         assert!(json.get("app_update_policy").is_none());
     }
 }

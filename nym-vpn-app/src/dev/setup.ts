@@ -57,6 +57,7 @@ const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
   appUpdatePolicy: 'dismissible',
+  floors: '',
 };
 const featureFlags: FeatureFlags = {
   quic: true,
