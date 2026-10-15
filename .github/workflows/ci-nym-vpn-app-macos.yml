@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/ci-nym-vpn-app-macos.yml"
+      - ".github/actions/apple-tests/**"
       - "nym-vpn-apple/**"
   workflow_dispatch:
 
@@ -89,7 +90,7 @@ jobs:
           mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "nym-vpn-apple/NymVPNLib"
 
       - name: Apple unit tests
-        uses: ./.github/workflows/apple/tests
+        uses: ./.github/actions/apple-tests
         with:
           account-report-path: ${{ github.workspace }}/account-report.md
 

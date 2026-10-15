@@ -14,7 +14,7 @@ import Testing
 ///   4. run the test step via the SPM scheme, scoped to the ConnectionTypes target.
 ///
 /// The tests step was extracted out of the workflow into a local composite action
-/// (`.github/workflows/apple/tests/action.yml`), so the contract now spans two
+/// (`.github/actions/apple-tests/action.yml`), so the contract now spans two
 /// files: the workflow passes the workspace-anchored path as the action's
 /// `account-report-path` input; the action wires it to the env and does everything else
 /// (summary, upload, the xcodebuild invocations). These tests read both YAML files off
@@ -26,7 +26,7 @@ import Testing
 /// assertions don't need full structure.)
 struct WorkflowReportTests {
     private static let workflowRelativePath = ".github/workflows/ci-nym-vpn-app-macos.yml"
-    private static let actionRelativePath = ".github/workflows/apple/tests/action.yml"
+    private static let actionRelativePath = ".github/actions/apple-tests/action.yml"
     /// The composite action's input the workflow passes the report path through.
     private static let reportInputKey = "account-report-path"
     private static let scheme = "ServicesMutual-Package"
