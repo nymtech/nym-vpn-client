@@ -314,8 +314,8 @@ nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym"
 nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
 
-nym-bridges = "0.2.1"
-nym-bridges-types = "0.2.1"
+nym-bridges = { path = "../../nym-bridges/crates/nym-bridges" }
+nym-bridges-types = { path = "../../nym-bridges/crates/nym-bridges-types" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
