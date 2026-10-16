@@ -21,7 +21,10 @@ use wiremock::{Mock, MockServer};
 
 use crate::common::credential_proxy::MockCredentialProxy;
 use nym_vpn_api_client::api_urls_to_urls;
-use tokio::{sync::watch, task::JoinHandle};
+use tokio::{
+    sync::{broadcast, watch},
+    task::JoinHandle,
+};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 pub mod account_summary;
@@ -282,6 +285,8 @@ impl TestBench {
             }
         });
 
+        let (tunnel_event_tx, _) = broadcast::channel(10);
+
         let account_controller = AccountController::new(
             nym_vpn_api_client,
             nyxd_client,
@@ -289,6 +294,7 @@ impl TestBench {
             storage,
             connectivity.clone(),
             bandwidth_command_tx,
+            tunnel_event_tx,
             shutdown_token.child_token(),
         )
         .await?;

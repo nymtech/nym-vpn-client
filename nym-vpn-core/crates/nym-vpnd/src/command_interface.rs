@@ -997,6 +997,64 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn start_pairing(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::QrUrlResponse>> {
+        let qr_url = self
+            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to start pairing: {err}")))?;
+
+        let response = proto::QrUrlResponse::from(qr_url);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn scanned_key(
+        &self,
+        request: tonic::Request<String>,
+    ) -> Result<tonic::Response<proto::QrPairingConfirmationResponse>> {
+        let pub_key = request.into_inner();
+
+        let qr_pairing_confirmation = self
+            .send_and_wait(VpnServiceCommand::ScannedKey, pub_key)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to obtain scanned key PIN: {err}"))
+            })?;
+
+        let response = proto::QrPairingConfirmationResponse::from(qr_pairing_confirmation);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn verified_pairing_pin(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to verify pairing PIN: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn cancel_pairing_process(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::CancelPairingProcess, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to cancel pairing process: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,

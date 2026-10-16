@@ -661,6 +661,7 @@ message TunnelEvent {
     AccountControllerState account_state = 4;
     DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
     ConflictDetectedEvent conflict_detected_event = 6;
+    PairingCheckResult pairing_check_result = 7;
   }
 }
 
@@ -684,6 +685,19 @@ message ConflictDetectedEvent {
     COMPETING_FIREWALL = 2;
   }
   Conflict conflict = 1;
+}
+
+// The result from the pairing process has arrived and needs to be actioned in the UI
+message PairingCheckResult {
+  oneof result {
+    google.protobuf.Empty cancelled = 1;
+    google.protobuf.Empty timed_out = 2;
+    string error = 3;
+    string pin_code = 4;
+    string mnemonic = 5;
+  }
+  // The session ID returned by the call that started the pairing process
+  uint32 session_id = 6;
 }
 
 message MixnetEvent {
@@ -776,6 +790,9 @@ message AccountCommandError {
     bool account_not_decentralised = 16;
     string zk_nym_acquisition_failure = 17;
     string deeplink_error = 18;
+    string invalid_public_key = 19;
+    bool pairing_not_started = 20;
+    bool no_pairing_shared_secret = 21;
   }
 }
 
@@ -1176,6 +1193,18 @@ message AutologinResponse {
   string pin_code = 2;
 }
 
+message QrUrlResponse {
+  string url = 1;
+  // Identifies the started pairing process in its PairingCheckResult events
+  uint32 session_id = 2;
+}
+
+message QrPairingConfirmationResponse {
+  string pin_code = 1;
+  // Identifies the started pairing process in its PairingCheckResult events
+  uint32 session_id = 2;
+}
+
 message GetDeeplinkParams {
   DeeplinkClient client = 1;
   string locale = 2;
@@ -1353,6 +1382,18 @@ service NymVpnService {
 
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
+  // Pair a device with this account using a QR encoded URL
+  rpc StartPairing(google.protobuf.Empty) returns (QrUrlResponse) {}
+
+  // Pair this device with the account using the public key value embedded in a QR URL
+  rpc ScannedKey(google.protobuf.StringValue) returns (QrPairingConfirmationResponse) {}
+
+  // Confirm that the pairing PIN matches on both devices, sharing the account with the other device
+  rpc VerifiedPairingPin(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Cancel the running pairing process, e.g. when the user closes the pairing window
+  rpc CancelPairingProcess(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}

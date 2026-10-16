@@ -127,3 +127,23 @@ pub struct LinkAccountRequestBody {
     pub kind: String,
     pub label: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PairAccountRequestBody {
+    pub pubkey: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TryToPairRequestBody {
+    pub pubkey: String,
+    pub pin_code: String,
+    pub token: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SharePairSecretBody {
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub enc_mnemonic: Vec<u8>,
+    #[serde(with = "nym_serde_helpers::base64")]
+    pub nonce: Vec<u8>,
+}

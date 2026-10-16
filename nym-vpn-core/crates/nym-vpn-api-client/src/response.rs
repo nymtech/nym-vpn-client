@@ -3,7 +3,10 @@
 
 use std::{collections::HashSet, fmt, net::IpAddr};
 
-use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
+use crate::{
+    error::VpnApiClientError, network_compatibility::NetworkCompatibility,
+    request::SharePairSecretBody,
+};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
@@ -814,6 +817,31 @@ pub struct NymWellknownDiscoveryItem {
 pub struct NymUserGeoIpLocationResponse {
     pub ip: String,
     pub location: Location,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnPairingResponse {
+    pub ttl_seconds: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnPairingFinalisedResponse {
+    pub pin_code: String,
+    pub remote_pub_key: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnPairingCheckResponse {
+    pub inner: Option<NymVpnPairingFinalisedResponse>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnGetPairingSecretResponse {
+    pub inner: Option<SharePairSecretBody>,
 }
 
 pub type RegisteredNetworksResponse = HashSet<String>;

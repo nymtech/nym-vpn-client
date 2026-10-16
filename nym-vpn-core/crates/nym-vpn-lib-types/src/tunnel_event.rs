@@ -35,6 +35,7 @@ pub enum TunnelEvent {
     AccountState(AccountControllerState),
     DiagnosticsSuggested(DiagnosticsSuggestionReason),
     ConflictDetected(ConflictDetected),
+    Pairing(PairingEvent),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -49,6 +50,9 @@ impl fmt::Display for TunnelEvent {
             }
             Self::ConflictDetected(conflict) => {
                 write!(f, "Conflict detected: {conflict}")
+            }
+            Self::Pairing(event) => {
+                write!(f, "Pairing check result for {event}")
             }
         }
     }
@@ -87,6 +91,84 @@ impl fmt::Display for ConflictDetected {
             Self::CompetingFirewall => write!(
                 f,
                 "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity"
+            ),
+        }
+    }
+}
+
+/// An out of band update from a started QR pairing process.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct PairingEvent {
+    /// The session ID returned by the call that started the pairing process
+    pub session_id: u32,
+    pub result: PairingResult,
+}
+
+impl fmt::Display for PairingEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "session {}: {}", self.session_id, self.result)
+    }
+}
+
+/// The out of band result of doing background checks on the started QR pairing process.
+#[derive(Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum PairingResult {
+    Cancelled,
+    TimedOut,
+    Error(String),
+    PinCode(String),
+    Mnemonic(String),
+}
+
+impl fmt::Debug for PairingResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cancelled => f.write_str("Cancelled"),
+            Self::TimedOut => f.write_str("TimedOut"),
+            Self::Error(err) => f.debug_tuple("Error").field(err).finish(),
+            Self::PinCode(pin_code) => f.debug_tuple("PinCode").field(pin_code).finish(),
+            Self::Mnemonic(_) => f
+                .debug_tuple("Mnemonic")
+                .field(&format_args!("<redacted>"))
+                .finish(),
+        }
+    }
+}
+
+impl fmt::Display for PairingResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cancelled => write!(f, "QR pairing process was cancelled"),
+            Self::TimedOut => write!(
+                f,
+                "Pairing did not finish in time. Restart the pairing process."
+            ),
+            Self::Error(err) => write!(f, "An error occurred while pairing: {err}"),
+            Self::PinCode(_) => write!(
+                f,
+                "Obtained the PIN code. Show it to the user and ask for confirmation that it matches the PIN code displayed on the other device."
+            ),
+            Self::Mnemonic(_) => write!(
+                f,
+                "Obtained the account mnemonic. Use it for triggering the log in flow."
             ),
         }
     }

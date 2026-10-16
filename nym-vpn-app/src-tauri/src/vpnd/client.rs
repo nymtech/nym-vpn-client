@@ -311,6 +311,9 @@ impl VpndClient {
                 debug!("conflict detected: {conflict}");
                 app.emit_conflict_detected(ConflictDetected::from_lib(conflict));
             }
+            lib::TunnelEvent::Pairing(event) => {
+                debug!("pairing event: {event}");
+            }
         }
         Ok(())
     }

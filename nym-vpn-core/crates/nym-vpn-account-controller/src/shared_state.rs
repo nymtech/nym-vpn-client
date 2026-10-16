@@ -13,12 +13,12 @@ use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-use tokio::sync::mpsc;
+use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     AccountControllerConfig, AccountControllerEventSender, deeplink::Deeplinks,
-    nyxd_client::NyxdClient, storage::AccountStorageOp,
+    nyxd_client::NyxdClient, qr_pairing::QrPairingHandler, storage::AccountStorageOp,
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -68,6 +68,12 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Channel for broadcasting global `AccountController` events
     pub(crate) event_sender: AccountControllerEventSender,
 
+    /// Channel for broadcasting global `Tunnel` events
+    pub(crate) tunnel_event_tx: broadcast::Sender<nym_vpn_lib_types::TunnelEvent>,
+
+    /// Handler for the QR pairing process
+    pub(crate) qr_pairing_handler: QrPairingHandler<VpnApiClient>,
+
     /// AccountController cancellation token; child tokens are handed to constructed fetchers so
     /// controller shutdown interrupts their in-flight work.
     pub(crate) cancel_token: CancellationToken,
@@ -87,9 +93,11 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
+        tunnel_event_tx: broadcast::Sender<nym_vpn_lib_types::TunnelEvent>,
         cancel_token: CancellationToken,
     ) -> Self {
         let deeplinks = Deeplinks::default();
+        let qr_pairing_handler = QrPairingHandler::new(vpn_api_client.clone());
 
         Self {
             connectivity_handle,
@@ -106,6 +114,8 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             current_credential_fetcher: CredentialFetcherInUse::None,
             storage_op_sender,
             event_sender,
+            tunnel_event_tx,
+            qr_pairing_handler,
             cancel_token,
         }
     }
