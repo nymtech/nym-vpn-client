@@ -90,10 +90,7 @@ impl Command {
                 println!("IPv6: {}", display_on_off(!config.disable_ipv6));
                 println!("Two-hop: {}", display_on_off(config.enable_two_hop));
                 println!("Netstack: {}", display_on_off(config.netstack));
-                println!(
-                    "Circumvention transports: {}",
-                    display_on_off(config.enable_bridges)
-                );
+                println!("Circumvention transports: {:?}", config.bridge_mode);
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
                 println!("Gateway independence: {}", config.gateway_independence);
 

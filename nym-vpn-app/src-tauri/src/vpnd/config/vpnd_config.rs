@@ -55,7 +55,7 @@ impl VpndConfig {
             enable_conflict_detection: config.enable_conflict_detection,
             disable_ipv6: config.disable_ipv6,
             vpn_mode,
-            bridges: config.enable_bridges,
+            bridges: config.bridge_mode == lib::BridgeMode::On,
             netstack: config.netstack,
             fronting_mode: config.fronting_mode.into(),
             min_gateway_vpn_performance: config.min_gateway_vpn_performance,
