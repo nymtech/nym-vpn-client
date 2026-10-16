@@ -7,8 +7,11 @@ mod display_helpers;
 mod fs;
 mod table_style;
 
+use std::io::Write;
+
 use anyhow::{Context, Result, bail};
-use clap::{ArgAction, Parser};
+use clap::{ArgAction, CommandFactory, Parser};
+use clap_complete::Shell;
 use tokio_stream::StreamExt;
 
 use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
@@ -174,16 +177,24 @@ pub enum Command {
         #[command(subcommand)]
         subcommand: commands::profile::Command,
     },
+
+    /// Generate shell completions and print them to stdout
+    Completions {
+        /// Target shell
+        #[arg(value_enum)]
+        shell: Shell,
+    },
 }
 
 impl Command {
     pub fn needs_rpc_client(&self) -> bool {
-        !matches!(self, Self::Favorites { .. })
+        !matches!(self, Self::Favorites { .. } | Self::Completions { .. })
     }
 
     pub async fn execute_no_rpc_client(self) -> Result<()> {
         match self {
             Command::Favorites { subcommand } => subcommand.execute().await,
+            Command::Completions { shell } => Self::completions(shell),
             _ => Err(anyhow::anyhow!("internal: command needs rpc client")),
         }
     }
@@ -217,7 +228,18 @@ impl Command {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
             Command::Profile { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Completions { shell } => Self::completions(shell),
         }
+    }
+
+    fn completions(shell: Shell) -> Result<()> {
+        let mut command = ProgramArgs::command();
+        let bin_name = command.get_name().to_owned();
+        let mut script = Vec::new();
+        clap_complete::generate(shell, &mut command, bin_name, &mut script);
+        std::io::stdout()
+            .write_all(&script)
+            .context("Failed to write completions")
     }
 
     async fn connect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {

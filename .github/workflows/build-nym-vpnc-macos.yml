@@ -40,7 +40,7 @@ env:
   CARGO_TERM_COLOR: always
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc
-  PKG_INSTALL_LOCATION: /usr/local/bin
+  PKG_INSTALL_LOCATION: /usr/local
   CORE_ARTIFACTS_MACOS: core_artifacts_macos
   UPLOAD_DIR_MACOS: vpnc_macos_artifacts
 
@@ -190,7 +190,7 @@ jobs:
           set -euo pipefail
 
           STAGING_DIR="$PWD/build/pkg"
-          STAGING_BIN_DIR="$STAGING_DIR/payload"
+          PAYLOAD_DIR="$STAGING_DIR/payload"
           NESTED_PKG="$STAGING_DIR/${PKG_IDENTIFIER}.pkg"
           DIST_XML="$STAGING_DIR/Distribution"
           UNSIGNED_PKG="$STAGING_DIR/nym-vpnc-${VERSION}-unsigned.pkg"
@@ -202,15 +202,23 @@ jobs:
           MARKETING_VERSION="${VERSION%%-*}"
 
           rm -rf "$STAGING_DIR" || true
-          mkdir -p "$STAGING_BIN_DIR"
+          ZSH_DIR="$PAYLOAD_DIR/share/zsh/site-functions"
+          BASH_DIR="$PAYLOAD_DIR/share/bash-completion/completions"
+          FISH_DIR="$PAYLOAD_DIR/share/fish/vendor_completions.d"
+          mkdir -p "$PAYLOAD_DIR/bin" "$ZSH_DIR" "$BASH_DIR" "$FISH_DIR"
 
           # Copy binary into payload
-          cp "$BINARY" "$STAGING_BIN_DIR/$BINARY_NAME"
-          chmod +x "$STAGING_BIN_DIR/$BINARY_NAME"
+          cp "$BINARY" "$PAYLOAD_DIR/bin/$BINARY_NAME"
+          chmod +x "$PAYLOAD_DIR/bin/$BINARY_NAME"
+
+          # Generate shell completions
+          "$BINARY" completions zsh > "$ZSH_DIR/_$BINARY_NAME"
+          "$BINARY" completions bash > "$BASH_DIR/$BINARY_NAME"
+          "$BINARY" completions fish > "$FISH_DIR/$BINARY_NAME.fish"
 
           # Build the component package
           pkgbuild \
-            --root "$STAGING_BIN_DIR" \
+            --root "$PAYLOAD_DIR" \
             --identifier "$PKG_IDENTIFIER" \
             --version "$MARKETING_VERSION" \
             --install-location "$PKG_INSTALL_LOCATION" \
