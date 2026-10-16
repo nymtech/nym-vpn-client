@@ -437,14 +437,21 @@ You can create more complex filters but you'd need to know the exact attributes 
 ## Split-tunnel development and testing on macOS
 
 [Endpoint security framework](https://developer.apple.com/documentation/EndpointSecurity) is used for monitoring processes for the purpose of automatic exclusion from VPN tunnel.
-In production, Apple requires binary to be shipped as a part of app bundle. Otherwise executable is denied access to Endpoint Security. System protection (SIP) has to be disabled for it to work outside of app bundle in development mode.
+In production, Apple requires binary to be shipped as a part of app bundle. Otherwise executable is denied access to Endpoint Security. 
 
-### Prepare the environment
+### Build & Sign NymVPND.app bundle
 
-It's recommended to use a VM. Boot VM in recovery mode and run `csrutil disable` in terminal. Then reboot as normal.
+Ensure that you have Xcode installed and signed in with your developer account. Your developer account must be eligible for `com.apple.developer.endpoint-security.client` entitlement.
 
-Once done testing and developing, don't forget to reboot in recovery mode and re-enable system protection with `csrutil enable`.
+Run the following commands to build and run `nym-vpnd`:
 
-### Build & Sign
+```sh
+make -f macOS.mk build-dev
+sudo target/debug/NymVPND.app/Contents/MacOS/nym-vpnd -v
+```
 
-The daemon has to be signed with `com.apple.developer.endpoint-security.client` entitlement. Use `make -f macOS.mk build-dev` in `nym-vpn-core` directory to build workspace and sign `nym-vpnd` with entitlements.
+Or use a shortcut:
+
+```sh
+make -f macOS.mk run -- -v
+```
