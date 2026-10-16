@@ -7,6 +7,10 @@ import UIComponents
 
 public struct WelcomeOptInsView: View {
 
+    @AppStorage(AppSettingKey.statistics.rawValue)
+    private var isStatisticsEnabled = true
+
+    // Goes through AppSettings so SentryManager sees the change without a relaunch.
     @EnvironmentObject private var appSettings: AppSettings
 
     private let onContinue: () -> Void
@@ -59,7 +63,7 @@ private extension WelcomeOptInsView {
                 title: "welcomeOptIns.stats.title".localizedString,
                 linkTitle: "welcomeOptIns.stats.link".localizedString,
                 linkURL: URL(string: Constants.anonymousStatsURL.rawValue),
-                isOn: $appSettings.isStatisticsEnabled
+                isOn: $isStatisticsEnabled
             )
             optInCard(
                 title: "welcomeOptIns.error.title".localizedString,
