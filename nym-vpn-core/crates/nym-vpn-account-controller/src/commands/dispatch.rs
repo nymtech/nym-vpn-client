@@ -49,6 +49,9 @@ pub enum AccountCommand {
     /// After confirming PIN match, the account mnemonic can be shared, encrypted
     VerifiedPairingPin(ReturnSender<(), AccountCommandError>),
 
+    /// Stop the running pairing process, e.g. when the user closes the pairing window
+    CancelPairingProcess(ReturnSender<(), AccountCommandError>),
+
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
 
@@ -86,6 +89,7 @@ impl AccountCommand {
             AccountCommand::StartPairing(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::VerifiedPairingPin(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::CancelPairingProcess(return_sender) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),

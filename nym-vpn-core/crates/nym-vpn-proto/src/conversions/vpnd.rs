@@ -976,13 +976,19 @@ impl From<nym_vpn_lib_types::Country> for proto::Country {
 
 impl From<QrUrl> for proto::QrUrlResponse {
     fn from(value: QrUrl) -> Self {
-        Self { url: value.url }
+        Self {
+            url: value.url,
+            session_id: value.session_id,
+        }
     }
 }
 
 impl From<proto::QrUrlResponse> for QrUrl {
     fn from(value: proto::QrUrlResponse) -> Self {
-        Self { url: value.url }
+        Self {
+            url: value.url,
+            session_id: value.session_id,
+        }
     }
 }
 
@@ -990,6 +996,7 @@ impl From<QrPairingConfirmation> for proto::QrPairingConfirmationResponse {
     fn from(value: QrPairingConfirmation) -> Self {
         Self {
             pin_code: value.pin_code,
+            session_id: value.session_id,
         }
     }
 }
@@ -998,6 +1005,7 @@ impl From<proto::QrPairingConfirmationResponse> for QrPairingConfirmation {
     fn from(value: proto::QrPairingConfirmationResponse) -> Self {
         Self {
             pin_code: value.pin_code,
+            session_id: value.session_id,
         }
     }
 }

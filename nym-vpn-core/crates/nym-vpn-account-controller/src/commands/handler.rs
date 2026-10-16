@@ -327,6 +327,14 @@ pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
     }
 }
 
+pub(crate) fn handle_qr_cancel_pairing_process<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
+    // Cancelling is local and always allowed, so the UI can close the pairing window at any time
+    shared_state.qr_pairing_handler.cancel_pairing_process();
+    Ok(())
+}
+
 pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {

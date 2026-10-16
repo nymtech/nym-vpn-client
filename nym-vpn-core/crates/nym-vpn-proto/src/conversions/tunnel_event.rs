@@ -4,7 +4,7 @@
 use nym_vpn_lib_types::{
     AccountControllerState, BandwidthEvent, ConflictDetected, ConnectionEvent,
     ConnectionStatisticsEvent, DiagnosticsSuggestionReason, ErrorStateReason, MixnetEvent,
-    PairingResult, SphinxPacketRates, TunnelEvent, TunnelState,
+    PairingEvent, PairingResult, SphinxPacketRates, TunnelEvent, TunnelState,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -40,7 +40,7 @@ impl TryFrom<proto::TunnelEvent> for TunnelEvent {
                 TunnelEvent::ConflictDetected(ConflictDetected::try_from(event)?)
             }
             proto::tunnel_event::Event::PairingCheckResult(res) => {
-                TunnelEvent::Pairing(PairingResult::try_from(res)?)
+                TunnelEvent::Pairing(PairingEvent::try_from(res)?)
             }
         })
     }
@@ -73,9 +73,9 @@ impl From<TunnelEvent> for proto::TunnelEvent {
                     proto::ConflictDetectedEvent::from(conflict),
                 )
             }
-            TunnelEvent::Pairing(res) => {
-                proto::tunnel_event::Event::PairingCheckResult(proto::PairingCheckResult::from(res))
-            }
+            TunnelEvent::Pairing(event) => proto::tunnel_event::Event::PairingCheckResult(
+                proto::PairingCheckResult::from(event),
+            ),
         };
         Self { event: Some(event) }
     }
@@ -115,9 +115,9 @@ impl From<ConflictDetected> for proto::ConflictDetectedEvent {
     }
 }
 
-impl From<PairingResult> for proto::PairingCheckResult {
-    fn from(value: PairingResult) -> Self {
-        let res = match value {
+impl From<PairingEvent> for proto::PairingCheckResult {
+    fn from(value: PairingEvent) -> Self {
+        let res = match value.result {
             PairingResult::Cancelled => proto::pairing_check_result::Result::Cancelled(()),
             PairingResult::TimedOut => proto::pairing_check_result::Result::TimedOut(()),
             PairingResult::Error(err) => proto::pairing_check_result::Result::Error(err),
@@ -128,11 +128,14 @@ impl From<PairingResult> for proto::PairingCheckResult {
                 proto::pairing_check_result::Result::Mnemonic(mnemonic)
             }
         };
-        Self { result: Some(res) }
+        Self {
+            result: Some(res),
+            session_id: value.session_id,
+        }
     }
 }
 
-impl TryFrom<proto::PairingCheckResult> for PairingResult {
+impl TryFrom<proto::PairingCheckResult> for PairingEvent {
     type Error = ConversionError;
 
     fn try_from(value: proto::PairingCheckResult) -> Result<Self, ConversionError> {
@@ -140,7 +143,7 @@ impl TryFrom<proto::PairingCheckResult> for PairingResult {
             .result
             .ok_or(ConversionError::NoValueSet("PairingCheckResult.result"))?;
 
-        Ok(match result {
+        let result = match result {
             proto::pairing_check_result::Result::Cancelled(_) => PairingResult::Cancelled,
             proto::pairing_check_result::Result::TimedOut(_) => PairingResult::TimedOut,
             proto::pairing_check_result::Result::Error(err) => PairingResult::Error(err),
@@ -150,6 +153,11 @@ impl TryFrom<proto::PairingCheckResult> for PairingResult {
             proto::pairing_check_result::Result::Mnemonic(mnemonic) => {
                 PairingResult::Mnemonic(mnemonic)
             }
+        };
+
+        Ok(Self {
+            session_id: value.session_id,
+            result,
         })
     }
 }
@@ -380,6 +388,38 @@ impl From<SphinxPacketRates> for proto::mixnet_event::SphinxPacketRates {
             retransmissions_queued: value.retransmissions_queued,
             reply_surbs_queued: value.reply_surbs_queued,
             additional_reply_surbs_queued: value.additional_reply_surbs_queued,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pairing_event_round_trip() {
+        let results = [
+            PairingResult::Cancelled,
+            PairingResult::TimedOut,
+            PairingResult::Error("error".to_string()),
+            PairingResult::PinCode("123456".to_string()),
+            PairingResult::Mnemonic("mnemonic".to_string()),
+        ];
+
+        for (session_id, result) in (1..).zip(results) {
+            let event = TunnelEvent::Pairing(PairingEvent {
+                session_id,
+                result: result.clone(),
+            });
+
+            let TunnelEvent::Pairing(converted) =
+                TunnelEvent::try_from(proto::TunnelEvent::from(event)).unwrap()
+            else {
+                panic!("not a pairing event");
+            };
+            assert_eq!(converted.session_id, session_id);
+            // PairingResult has no PartialEq, but Debug shows every payload
+            assert_eq!(format!("{:?}", converted.result), format!("{result:?}"));
         }
     }
 }
