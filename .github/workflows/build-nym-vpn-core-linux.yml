@@ -110,6 +110,16 @@ jobs:
         run: |
           cargo build --release
 
+      # Must run before packaging: the nym-vpnc deb assets include these files.
+      - name: Generate nym-vpnc shell completions
+        working-directory: nym-vpn-core
+        run: |
+          COMPLETIONS_DIR=target/release/completions
+          mkdir -p "$COMPLETIONS_DIR"
+          target/release/nym-vpnc completions bash > "$COMPLETIONS_DIR/nym-vpnc.bash"
+          target/release/nym-vpnc completions zsh > "$COMPLETIONS_DIR/_nym-vpnc"
+          target/release/nym-vpnc completions fish > "$COMPLETIONS_DIR/nym-vpnc.fish"
+
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.
       - name: Build nym-vpn-core debian packages

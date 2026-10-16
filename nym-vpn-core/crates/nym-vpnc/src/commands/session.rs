@@ -75,6 +75,7 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Profile { subcommand } => subcommand.execute(rpc_client).await?,
+        Command::Completions { shell } => Command::completions(shell)?,
     }
 
     Ok(false)
