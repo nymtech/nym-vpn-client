@@ -67,6 +67,8 @@ type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
 pub struct ConnectingState {
     retry_attempt: u32,
+    /// False once the bridge failed to connect; stays false for the rest of the retries.
+    use_bridges: bool,
     last_connection_state: Option<EstablishConnectionState>,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
@@ -84,6 +86,15 @@ pub struct ConnectingState {
 impl ConnectingState {
     pub async fn enter(
         retry_attempt: u32,
+        selected_gateways: Option<SelectedGateways>,
+        shared_state: &mut SharedState,
+    ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        Self::enter_with_bridges(retry_attempt, true, selected_gateways, shared_state).await
+    }
+
+    async fn enter_with_bridges(
+        retry_attempt: u32,
+        use_bridges: bool,
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
@@ -126,7 +137,8 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
             let mut bridge_endpoints = Vec::new();
-            if shared_state.tunnel_settings.bridges_enabled()
+            if use_bridges
+                && shared_state.tunnel_settings.bridges_enabled()
                 && let Some(gateways) = &selected_gateways
                 && let Some(params) = &gateways.entry_gateway().bridge_params
             {
@@ -207,6 +219,7 @@ impl ConnectingState {
             tunnel_monitor_event_receiver: monitor_event_receiver,
             gateway_provider_event_receiver,
             retry_attempt,
+            use_bridges,
             selector_fallback_state: Default::default(),
             selected_gateways,
             connection_data: initial_connection_data.clone(),
@@ -274,7 +287,13 @@ impl ConnectingState {
                 tracing::info!("Reconnecting, attempt {next_attempt}");
 
                 NextTunnelState::NewState(
-                    ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
+                    ConnectingState::enter_with_bridges(
+                        next_attempt,
+                        self.use_bridges,
+                        next_gateways,
+                        shared_state,
+                    )
+                    .await,
                 )
             }
             ReconnectDecision::Abort => {
@@ -436,9 +455,14 @@ impl ConnectingState {
             );
         };
 
+        let mut tunnel_settings = shared_state.tunnel_settings.clone();
+        if !self.use_bridges {
+            tunnel_settings.wireguard_tunnel_options.enable_bridges = false;
+        }
+
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
-            tunnel_settings: shared_state.tunnel_settings.clone(),
+            tunnel_settings,
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
@@ -485,7 +509,7 @@ impl ConnectingState {
             // Because all bridges are already added to firewall exceptions.
             let wg_entry_endpoint = if let Some(TunnelConnectionData::Wireguard(ref wg)) =
                 connection_data.tunnel
-                && !shared_state.tunnel_settings.bridges_enabled()
+                && !(self.use_bridges && shared_state.tunnel_settings.bridges_enabled())
             {
                 Some(wg.entry.endpoint)
             } else {
@@ -613,7 +637,8 @@ impl ConnectingState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
-            if shared_state.tunnel_settings.bridges_enabled()
+            if self.use_bridges
+                && shared_state.tunnel_settings.bridges_enabled()
                 && let Some(params) = &gateways.entry_gateway().bridge_params
             {
                 self.firewall_policy_params.bridge_endpoints = params.get_addrs()
@@ -809,9 +834,9 @@ impl TunnelStateHandler for ConnectingState {
                     }
                     TunnelMonitorEvent::BridgeFailed => {
                         // The bridge is unreachable from this network, so retry over plain
-                        // WireGuard. Only the running settings change, the saved ones stay.
+                        // WireGuard. Only this connecting state changes, the settings stay.
                         tracing::warn!("Bridge connection failed, falling back to plain WireGuard");
-                        shared_state.tunnel_settings.wireguard_tunnel_options.enable_bridges = false;
+                        self.use_bridges = false;
                         NextTunnelState::SameState(self)
                     }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
@@ -848,7 +873,7 @@ impl TunnelStateHandler for ConnectingState {
                         if self.tunnel_monitor_handle.is_some() {
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         } else {
-                            NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, None, shared_state).await)
+                            NextTunnelState::NewState(ConnectingState::enter_with_bridges(self.retry_attempt, self.use_bridges, None, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {
@@ -939,7 +964,7 @@ impl TunnelStateHandler for ConnectingState {
                                 } else {
                                     self.selected_gateways
                                 };
-                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
+                                NextTunnelState::NewState(ConnectingState::enter_with_bridges(self.retry_attempt, self.use_bridges || diff.quic_changed(), next_gateways, shared_state).await)
                             }
                         } else {
                              NextTunnelState::SameState(self)
