@@ -226,6 +226,7 @@ pub enum VpnServiceCommand {
         String,
     ),
     VerifiedPairingPin(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    CancelPairingProcess(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -1278,6 +1279,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::VerifiedPairingPin(tx, ()) => {
                 let _ = tx.send(self.handle_verified_pairing_pin().await);
+            }
+            VpnServiceCommand::CancelPairingProcess(tx, ()) => {
+                let _ = tx.send(self.handle_cancel_pairing_process().await);
             }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.paths.log_path.clone());
@@ -2335,6 +2339,10 @@ impl NymVpnService {
 
     async fn handle_verified_pairing_pin(&self) -> Result<(), AccountCommandError> {
         self.account_command_tx.verified_pairing_pin().await
+    }
+
+    async fn handle_cancel_pairing_process(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.cancel_pairing_process().await
     }
 
     async fn handle_delete_log_file(&self) {

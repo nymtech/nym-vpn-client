@@ -14,7 +14,7 @@ use clap::{ArgAction, CommandFactory, Parser};
 use clap_complete::Shell;
 use tokio_stream::StreamExt;
 
-use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
+use nym_vpn_lib_types::{PairingResult, TunnelEvent, TunnelState, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::table_style::TableStyle;
@@ -330,6 +330,19 @@ impl Command {
                     let json = serde_json::to_string_pretty(&new_config)
                         .context("failed to convert new config to JSON")?;
                     println!("Configuration changed:\n{json}");
+                }
+                Ok(TunnelEvent::Pairing(event)) => {
+                    let session_id = event.session_id;
+                    // The Display impl hides the secrets, but pairing from the CLI needs them
+                    match event.result {
+                        PairingResult::PinCode(pin_code) => println!(
+                            "Pairing process {session_id}: check that the other device shows PIN {pin_code}"
+                        ),
+                        PairingResult::Mnemonic(mnemonic) => println!(
+                            "Pairing process {session_id}: received the account mnemonic: {mnemonic}"
+                        ),
+                        result => println!("Pairing process {session_id}: {result}"),
+                    }
                 }
                 _ => {}
             }
