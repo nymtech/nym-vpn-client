@@ -4,13 +4,17 @@
 use std::time::Duration;
 
 use backon::Retryable;
+use futures::TryFutureExt;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
     MasterVerificationKeyResponse, PartialVerificationKeysResponse,
 };
 use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
-    reqwest::header::{DATE, HeaderMap},
+    reqwest::{
+        RequestBuilder,
+        header::{DATE, HeaderMap},
+    },
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{
@@ -47,7 +51,7 @@ use crate::{
 const RFC_3339_DATE: &[BorrowedFormatItem<'static>] =
     time::macros::format_description!("[year]-[month]-[day]");
 
-pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
+const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
@@ -192,25 +196,16 @@ impl VpnApiClient {
     async fn get_query<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
         let request = self
             .inner
             .create_get_request(path, NO_PARAMS)?
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
+            .with_authorization(authorization, remote_time);
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -218,131 +213,32 @@ impl VpnApiClient {
     async fn get_authorized<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
-        let jwt = self
-            .skew_manager
-            .current_remote_time()
+        self.execute_with_jwt_retry(|remote_time| self.get_query(path, authorization, remote_time))
             .await
-            .unwrap_or_else(|err| {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            });
-
-        let time_before = self.device_time().await;
-        match self.get_query::<T>(path, account, device, jwt).await {
-            Ok(response) => Ok(response),
-            Err(err) => {
-                let time_after = self.device_time().await;
-                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
-                    && jwt_error(&error.to_string())
-                {
-                    tracing::warn!(
-                        "Encountered possible JWT error: {error}. Retrying query with remote time"
-                    );
-                    if let RemoteTimeRetry::Retry(jwt) = self
-                        .remote_time_for_retry(headers, time_before, time_after)
-                        .await
-                    {
-                        // retry with the freshly synchronized time (remote override, or local
-                        // time when the clocks are aligned), and return the result only if it
-                        // succeeds, otherwise return the initial error
-                        let res = self.get_query(path, account, device, jwt).await;
-                        if res.is_ok() {
-                            return res;
-                        }
-                    }
-                }
-                Err(err)
-            }
-        }
-    }
-
-    #[allow(unused)]
-    async fn get_authorized_debug<T>(
-        &self,
-        path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
-    where
-        T: DeserializeOwned,
-    {
-        let request = self
-            .inner
-            .create_get_request(path, NO_PARAMS)?
-            .bearer_auth(account.jwt(None).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(None)),
-            ),
-            None => request,
-        };
-
-        let response = request.send().await?;
-        let status = response.status();
-        let headers = response.headers().clone();
-        let url = response.url().clone();
-        tracing::info!("Response status: {:#?}", status);
-
-        // TODO: support this mode in the upstream crate
-
-        let response_text = response.text().await.map(|t| t.to_owned());
-
-        match response_text {
-            Ok(response_text) => {
-                if status.is_success() {
-                    tracing::info!("Response: {:#?}", response_text);
-                    #[allow(deprecated)]
-                    let response_json = serde_json::from_str(&response_text)
-                        .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
-                    Ok(response_json)
-                } else {
-                    tracing::info!("Response: {:#?}", response_text);
-
-                    Err(HttpClientError::EndpointFailure {
-                        url: Box::new(url),
-                        status,
-                        headers: Box::new(headers),
-                        error: response_text,
-                    })
-                }
-            }
-            Err(err) => Err(HttpClientError::RequestFailure {
-                url: Box::new(url),
-                status,
-                headers: Box::new(headers),
-            }),
-        }
     }
 
     async fn get_json_with_retry<T, K, V>(
         &self,
         path: PathSegments<'_>,
         params: Params<'_, K, V>,
-    ) -> std::result::Result<T, HttpClientError>
+    ) -> Result<T, HttpClientError>
     where
         for<'a> T: Deserialize<'a>,
         K: AsRef<str> + Sync,
         V: AsRef<str> + Sync,
     {
-        let response = (|| async { self.inner.get_json(path, params).await })
-            .retry(backon::ConstantBuilder::default())
+        let get = || self.inner.get_json(path, params);
+        get.retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to get JSON: {}", err);
                 tracing::warn!("retrying after {:?}", dur);
             })
-            .await?;
-        Ok(response)
+            .await
     }
 
     async fn post_json_with_retry<B, T, K, V>(
@@ -350,31 +246,29 @@ impl VpnApiClient {
         path: PathSegments<'_>,
         params: Params<'_, K, V>,
         json_body: &B,
-    ) -> std::result::Result<T, HttpClientError>
+    ) -> Result<T, HttpClientError>
     where
         for<'a> T: Deserialize<'a>,
         B: Serialize + ?Sized + Sync,
         K: AsRef<str> + Sync,
         V: AsRef<str> + Sync,
     {
-        let response = (|| async { self.inner.post_json(path, params, json_body).await })
-            .retry(backon::ConstantBuilder::default())
+        let post = || self.inner.post_json(path, params, json_body);
+        post.retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to post JSON: {}", err);
                 tracing::warn!("retrying after {:?}", dur);
             })
-            .await?;
-        Ok(response)
+            .await
     }
 
     async fn post_query<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
@@ -382,15 +276,8 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)?
-            .bearer_auth(account.jwt(jwt).to_string());
+            .with_authorization(authorization, remote_time);
 
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -399,79 +286,31 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
     {
-        let jwt = self
-            .skew_manager
-            .current_remote_time()
-            .await
-            .unwrap_or_else(|err| {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            });
-
-        let time_before = self.device_time().await;
-        match self
-            .post_query::<T, B>(path, json_body, account, device, jwt)
-            .await
-        {
-            Ok(response) => Ok(response),
-            Err(err) => {
-                let time_after = self.device_time().await;
-                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
-                    && jwt_error(&error.to_string())
-                {
-                    tracing::warn!(
-                        "Encountered possible JWT error: {error}. Retrying query with remote time"
-                    );
-                    if let RemoteTimeRetry::Retry(jwt) = self
-                        .remote_time_for_retry(headers, time_before, time_after)
-                        .await
-                    {
-                        // retry with the freshly synchronized time (remote override, or local
-                        // time when the clocks are aligned), and return the result only if it
-                        // succeeds, otherwise return the initial error
-                        let res = self.post_query(path, json_body, account, device, jwt).await;
-                        if res.is_ok() {
-                            return res;
-                        }
-                    }
-                }
-                Err(err)
-            }
-        }
+        self.execute_with_jwt_retry(|remote_time| {
+            self.post_query(path, json_body, authorization, remote_time)
+        })
+        .await
     }
 
     async fn delete_query<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)?
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
+            .with_authorization(authorization, remote_time);
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -479,61 +318,24 @@ impl VpnApiClient {
     async fn delete_authorized<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
-        let jwt = self
-            .skew_manager
-            .current_remote_time()
-            .await
-            .unwrap_or_else(|err| {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            });
-
-        let time_before = self.device_time().await;
-        match self.delete_query::<T>(path, account, device, jwt).await {
-            Ok(response) => Ok(response),
-            Err(err) => {
-                let time_after = self.device_time().await;
-                if let HttpClientError::EndpointFailure { error, headers, .. } = &err
-                    && jwt_error(&error.to_string())
-                {
-                    tracing::warn!(
-                        "Encountered possible JWT error: {error}. Retrying query with remote time"
-                    );
-                    if let RemoteTimeRetry::Retry(jwt) = self
-                        .remote_time_for_retry(headers, time_before, time_after)
-                        .await
-                    {
-                        // retry with the freshly synchronized time (remote override, or local
-                        // time when the clocks are aligned), and return the result only if it
-                        // succeeds, otherwise return the initial error
-                        let res = self.delete_query(path, account, device, jwt).await;
-                        if res.is_ok() {
-                            return res;
-                        }
-                    }
-                }
-                Err(err)
-            }
-        }
+        self.execute_with_jwt_retry(|remote_time| {
+            self.delete_query::<T>(path, authorization, remote_time)
+        })
+        .await
     }
 
     async fn patch_query<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
@@ -541,15 +343,7 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)?
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
+            .with_authorization(authorization, remote_time);
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -558,57 +352,63 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
+    {
+        self.execute_with_jwt_retry(|remote_time| {
+            self.patch_query(path, json_body, authorization, remote_time)
+        })
+        .await
+    }
+
+    async fn execute_with_jwt_retry<T, F, Fut>(&self, mut query_fn: F) -> Result<T, HttpClientError>
+    where
+        T: DeserializeOwned,
+        F: FnMut(Option<VpnApiTime>) -> Fut,
+        Fut: Future<Output = Result<T, HttpClientError>>,
     {
         let jwt = self
             .skew_manager
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
+                tracing::debug!(error = %err, "Failed to determine cached remote time");
                 None
             });
 
         let time_before = self.device_time().await;
-        match self
-            .patch_query::<T, B>(path, json_body, account, device, jwt)
-            .await
-        {
-            Ok(response) => Ok(response),
-            Err(err) => {
+
+        query_fn(jwt)
+            .or_else(|err| async {
                 let time_after = self.device_time().await;
+
                 if let HttpClientError::EndpointFailure { error, headers, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let RemoteTimeRetry::Retry(jwt) = self
+
+                    match self
                         .remote_time_for_retry(headers, time_before, time_after)
                         .await
                     {
-                        // retry with the freshly synchronized time (remote override, or local
-                        // time when the clocks are aligned), and return the result only if it
-                        // succeeds, otherwise return the initial error
-                        let res = self
-                            .patch_query(path, json_body, account, device, jwt)
-                            .await;
-                        if res.is_ok() {
-                            return res;
+                        RemoteTimeRetry::Retry(jwt) => {
+                            // retry with the freshly synchronized time (remote override, or local
+                            // time when the clocks are aligned), and return the result only if it
+                            // succeeds, otherwise return the initial error
+                            query_fn(jwt).await.map_err(|_err| err)
                         }
+                        RemoteTimeRetry::GiveUp => Err(err),
                     }
+                } else {
+                    Err(err)
                 }
-                Err(err)
-            }
-        }
+            })
+            .await
     }
 
     // ACCOUNT
@@ -616,8 +416,7 @@ impl VpnApiClient {
     pub async fn get_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
         self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -747,8 +546,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::SUMMARY,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -770,8 +568,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
                 routes::SUMMARY,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -812,8 +609,7 @@ impl VpnApiClient {
                 routes::AUTH_METHOD,
             ],
             &request,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .inspect_err(|e| tracing::error!("Failed to link account: {e:?}"))
@@ -833,8 +629,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::CANONICAL,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .inspect_err(|e| tracing::error!("Failed to get canonical account identity: {e:?}"))
@@ -853,8 +648,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::DEVICE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -880,8 +674,7 @@ impl VpnApiClient {
                 routes::DEVICE,
             ],
             &body,
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -898,8 +691,7 @@ impl VpnApiClient {
                 routes::DEVICE,
                 routes::ACTIVE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -920,8 +712,7 @@ impl VpnApiClient {
                 routes::DEVICE,
                 &device.identity_key().to_string(),
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -948,8 +739,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
             ],
             &body,
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -977,8 +767,7 @@ impl VpnApiClient {
                 device_identity_key,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1000,8 +789,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -1038,8 +826,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
             ],
             &body,
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -1062,8 +849,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 routes::AVAILABLE,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -1087,8 +873,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 id,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -1112,8 +897,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 id,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -1134,8 +918,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::FREEPASS,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1158,8 +941,7 @@ impl VpnApiClient {
                 routes::FREEPASS,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1180,8 +962,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::SUBSCRIPTION,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1203,8 +984,7 @@ impl VpnApiClient {
                 routes::SUBSCRIPTION,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1224,8 +1004,7 @@ impl VpnApiClient {
                 routes::SUBSCRIPTION,
                 routes::ACTIVE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1257,8 +1036,7 @@ impl VpnApiClient {
                 routes::INTRO_OFFER_ELIGIBILITY,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1274,8 +1052,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::USAGE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1622,6 +1399,45 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
     }
 }
 
+#[derive(Clone, Copy, Default)]
+struct Authorization<'a> {
+    account: Option<&'a VpnAccount>,
+    device: Option<&'a Device>,
+}
+
+impl<'a> Authorization<'a> {
+    fn account(mut self, account: &'a VpnAccount) -> Self {
+        self.account = Some(account);
+        self
+    }
+
+    fn device(mut self, device: &'a Device) -> Self {
+        self.device = Some(device);
+        self
+    }
+}
+
+trait AuthorizationExt {
+    fn with_authorization(self, auth: Authorization, remote_time: Option<VpnApiTime>) -> Self;
+}
+
+impl AuthorizationExt for RequestBuilder {
+    fn with_authorization(mut self, auth: Authorization, remote_time: Option<VpnApiTime>) -> Self {
+        if let Some(account) = auth.account {
+            self = self.bearer_auth(account.jwt(remote_time).to_string());
+        }
+
+        if let Some(device) = auth.device {
+            self = self.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt(remote_time)),
+            );
+        }
+
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::{
@@ -1831,5 +1647,113 @@ mod tests {
 
         assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
         assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
+    }
+
+    fn endpoint_failure(error: &str, headers: HeaderMap) -> HttpClientError {
+        HttpClientError::EndpointFailure {
+            url: Box::new(
+                nym_http_api_client::reqwest::Url::parse("https://nymvpn.test/api/").unwrap(),
+            ),
+            status: nym_http_api_client::reqwest::StatusCode::UNAUTHORIZED,
+            headers: Box::new(headers),
+            error: error.to_owned(),
+        }
+    }
+
+    fn endpoint_failure_message(err: &HttpClientError) -> &str {
+        match err {
+            HttpClientError::EndpointFailure { error, .. } => error,
+            other => panic!("expected endpoint failure, got {other}"),
+        }
+    }
+
+    // Runs `execute_with_jwt_retry` with a query answering with `responses` in order. Returns the
+    // result along with the skew (in whole hours) of the remote time override passed to each
+    // attempt, or `None` when the attempt used local time.
+    async fn run_with_jwt_retry(
+        client: &VpnApiClient,
+        responses: Vec<Result<String, HttpClientError>>,
+    ) -> (Result<String, HttpClientError>, Vec<Option<i64>>) {
+        let mut responses = responses.into_iter();
+        let mut attempts = Vec::new();
+
+        let result = client
+            .execute_with_jwt_retry(|remote_time| {
+                attempts.push(remote_time.map(|time| time.local_time_ahead_skew().whole_hours()));
+                let response = responses.next().expect("unexpected query attempt");
+                async move { response }
+            })
+            .await;
+
+        (result, attempts)
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_succeeds_without_retry() {
+        let (client, remote_calls) = test_client(device_time());
+
+        let (result, attempts) = run_with_jwt_retry(&client, vec![Ok("ok".to_owned())]).await;
+
+        assert_eq!(result.unwrap(), "ok");
+        assert_eq!(attempts, vec![None]);
+        // Cold skew cache is filled once before the first attempt
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_does_not_retry_non_jwt_error() {
+        let (client, remote_calls) = test_client(device_time());
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let (result, attempts) = run_with_jwt_retry(
+            &client,
+            vec![Err(endpoint_failure("internal server error", headers))],
+        )
+        .await;
+
+        let err = result.unwrap_err();
+        assert_eq!(endpoint_failure_message(&err), "internal server error");
+        assert_eq!(attempts, vec![None]);
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_retries_jwt_error_with_remote_time() {
+        let (client, remote_calls) = test_client(device_time());
+        // Remote time is 2 hours behind the device time
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let (result, attempts) = run_with_jwt_retry(
+            &client,
+            vec![
+                Err(endpoint_failure("JWT expired", headers)),
+                Ok("ok".to_owned()),
+            ],
+        )
+        .await;
+
+        assert_eq!(result.unwrap(), "ok");
+        assert_eq!(attempts, vec![None, Some(2)]);
+        // Skew for the retry is derived from the Date header, not a remote time request
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_returns_initial_error_when_retry_fails() {
+        let (client, _remote_calls) = test_client(device_time());
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let (result, attempts) = run_with_jwt_retry(
+            &client,
+            vec![
+                Err(endpoint_failure("JWT expired", headers)),
+                Err(endpoint_failure("retry failed", HeaderMap::new())),
+            ],
+        )
+        .await;
+
+        let err = result.unwrap_err();
+        assert_eq!(endpoint_failure_message(&err), "JWT expired");
+        assert_eq!(attempts, vec![None, Some(2)]);
     }
 }
