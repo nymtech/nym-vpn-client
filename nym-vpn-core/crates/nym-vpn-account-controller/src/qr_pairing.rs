@@ -874,14 +874,21 @@ mod tests {
 
     /// Waits until a polling request hangs in the API
     async fn wait_for_hanging_request(api_db: &Arc<Mutex<ApiDb>>) {
-        while api_db.lock().await.hanging_requests == 0 {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-        }
+        let wait = async {
+            while api_db.lock().await.hanging_requests == 0 {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+        };
+        tokio::time::timeout(RETRY_INTERVAL * 2, wait)
+            .await
+            .expect("no polling request hung");
     }
 
     /// Checks that every process that could send on this channel has finished
     async fn assert_channel_closed(event_rx: &mut broadcast::Receiver<TunnelEvent>) {
-        let event = event_rx.recv().await;
+        let event = tokio::time::timeout(RETRY_INTERVAL * 2, event_rx.recv())
+            .await
+            .expect("channel still open");
         assert!(
             matches!(event, Err(broadcast::error::RecvError::Closed)),
             "{event:?}"
@@ -961,7 +968,7 @@ mod tests {
         assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn pairing_check_is_cancelled_by_parent_token() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
@@ -980,7 +987,7 @@ mod tests {
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn cancelled_pairing_check_cannot_be_verified() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
@@ -1042,7 +1049,7 @@ mod tests {
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn cancel_pairing_process_stops_pairing_check() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
@@ -1214,6 +1221,89 @@ mod tests {
         assert_channel_closed(&mut logged_out_event_rx).await;
     }
 
+    #[tokio::test(start_paused = true)]
+    async fn cancel_pairing_process_after_pin_is_shown() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, _logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // the PINs don't match, so the user closes the pairing window
+        logged_in_handler.cancel_pairing_process();
+
+        // the check had already finished, so there is nothing left to report
+        assert_channel_closed(&mut logged_in_event_rx).await;
+
+        // and the mnemonic can't be shared anymore
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert!(api_db.lock().await.pairing_secret_data.is_empty());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancel_pairing_process_wins_over_ready_secret() {
+        // without preferring the cancellation, the mnemonic would get through about half the time
+        for _ in 0..16 {
+            let account = new_account();
+            let api_db = Arc::new(Mutex::new(ApiDb::default()));
+            let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+                new_handler(&api_db);
+            let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+                new_handler(&api_db);
+
+            let url = logged_in_handler
+                .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+                .await
+                .unwrap();
+            let confirmation = logged_out_handler
+                .scanned_key(
+                    pub_key_from_url(&url),
+                    logged_out_event_tx,
+                    CancellationToken::new(),
+                )
+                .await
+                .unwrap();
+            let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+            assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+            logged_in_handler
+                .verified_pairing_pin(&account)
+                .await
+                .unwrap();
+
+            // the next secret query waits on the API, which already has the mnemonic
+            let db = api_db.lock().await;
+            tokio::time::sleep(RETRY_INTERVAL + Duration::from_millis(1)).await;
+
+            // the user closes the window just as the API answers
+            logged_out_handler.cancel_pairing_process();
+            drop(db);
+
+            let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
+            assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+            assert_channel_closed(&mut logged_out_event_rx).await;
+        }
+    }
+
     #[tokio::test]
     async fn verify_pin_before_pairing_started() {
         let account = new_account();
@@ -1228,7 +1318,7 @@ mod tests {
         assert!(api_db.lock().await.pairing_secret_data.is_empty());
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn verify_pin_before_qr_is_scanned() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
@@ -1292,7 +1382,7 @@ mod tests {
         assert_eq!(err, AccountCommandError::PairingNotStarted);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn verify_pin_on_logged_out_device() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
@@ -1694,7 +1784,7 @@ mod tests {
         assert_ne!(first_url.session_id, second_url.session_id);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn dropping_handler_cancels_process() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
