@@ -10,6 +10,7 @@ runs:
     - name: Tests
       shell: bash
       env:
+        HOMEBREW_NO_ANALYTICS: 1
         ACCOUNT_REPORT_PATH: ${{ inputs.account-report-path }}
         TEST_RUNNER_ACCOUNT_REPORT_PATH: ${{ inputs.account-report-path }}
       run: |

@@ -37,6 +37,7 @@ on:
         required: true
 
 env:
+  HOMEBREW_NO_ANALYTICS: 1
   CARGO_TERM_COLOR: always
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc

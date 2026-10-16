@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  HOMEBREW_NO_ANALYTICS: 1
   UI_SCRIPTS_DIR: .github/scripts/ui
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
