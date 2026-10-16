@@ -1029,6 +1029,32 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn verified_pairing_pin(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to verify pairing PIN: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn cancel_pairing_process(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::CancelPairingProcess, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to cancel pairing process: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,

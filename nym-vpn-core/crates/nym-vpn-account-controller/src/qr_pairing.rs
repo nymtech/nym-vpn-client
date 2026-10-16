@@ -1,7 +1,14 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{str::FromStr, sync::Arc, time::Duration};
+use std::{
+    str::FromStr,
+    sync::{
+        Arc,
+        atomic::{AtomicU32, Ordering},
+    },
+    time::Duration,
+};
 
 use nym_crypto::{
     Aes256GcmSiv, blake3,
@@ -19,7 +26,7 @@ use nym_vpn_api_client::{
     types::{PairingParams, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, PairingResult, QrPairingConfirmation, QrUrl, TunnelEvent,
+    AccountCommandError, PairingEvent, PairingResult, QrPairingConfirmation, QrUrl, TunnelEvent,
 };
 use rand08::{RngCore, rngs::OsRng};
 use tokio::sync::{Mutex, broadcast};
@@ -87,6 +94,7 @@ pub struct QrPairingProcess<C: PairingApiClient> {
     vpn_api_client: C,
     event_sender: broadcast::Sender<TunnelEvent>,
     cancel_token: CancellationToken,
+    session_id: u32,
 }
 
 impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
@@ -94,6 +102,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         vpn_api_client: C,
         event_sender: broadcast::Sender<TunnelEvent>,
         cancel_token: CancellationToken,
+        session_id: u32,
     ) -> Self {
         let qr_keypair = KeyPair::new(&mut OsRng);
 
@@ -102,6 +111,25 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
             vpn_api_client,
             event_sender,
             cancel_token,
+            session_id,
+        }
+    }
+
+    fn send_event(&self, result: PairingResult) {
+        let event = PairingEvent {
+            session_id: self.session_id,
+            result,
+        };
+        self.event_sender.send(TunnelEvent::Pairing(event)).ok();
+    }
+
+    /// Runs the request unless the process is cancelled first, so a slow request
+    /// can't report anything for a cancelled session
+    async fn unless_cancelled<F: Future>(&self, request: F) -> Option<F::Output> {
+        tokio::select! {
+            biased;
+            _ = self.cancel_token.cancelled() => None,
+            output = request => Some(output),
         }
     }
 
@@ -133,32 +161,37 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         tokio::spawn(async move {
             loop {
                 tokio::select! {
+                    biased;
                     _ = self.cancel_token.cancelled() => {
                         tracing::debug!("QR pairing loop cancelled");
-                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Cancelled)).ok();
+                        self.send_event(PairingResult::Cancelled);
                         break;
                     }
                     _ = interval.tick() => {
                         if initial_instant.elapsed() > ttl {
                             tracing::warn!("QR pairing loop timeout reached");
-                            self.event_sender.send(TunnelEvent::Pairing(PairingResult::TimedOut)).ok();
+                            self.send_event(PairingResult::TimedOut);
                             break;
                         }
-                        match self
-                            .vpn_api_client
-                            .check_pairing_account(&account)
+                        let Some(response) = self
+                            .unless_cancelled(self.vpn_api_client.check_pairing_account(&account))
                             .await
-                        {
+                        else {
+                            tracing::debug!("QR pairing loop cancelled");
+                            self.send_event(PairingResult::Cancelled);
+                            break;
+                        };
+                        match response {
                             Ok(response) => {
                                 if let Some(response) = response.inner {
                                     let Ok(remote_pub_key) = PublicKey::from_str(&response.remote_pub_key) else {
                                         tracing::error!("Invalid public key received in QR pairing response");
-                                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error("invalid public key received from API".to_string()))).ok();
+                                        self.send_event(PairingResult::Error("invalid public key received from API".to_string()));
                                         break;
                                     };
                                     *shared_key_setter.lock().await = Some(self.derive_shared_key(&remote_pub_key));
                                     tracing::debug!("QR code was scanned, checking PIN code");
-                                    self.event_sender.send(TunnelEvent::Pairing(PairingResult::PinCode(response.pin_code))).ok();
+                                    self.send_event(PairingResult::PinCode(response.pin_code));
                                     break;
                                 } else {
                                     tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}");
@@ -166,7 +199,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                             }
                             Err(e) => {
                                 tracing::error!("Error checking QR pairing, stopping the checks: {e:?}");
-                                self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error(e.to_string()))).ok();
+                                self.send_event(PairingResult::Error(e.to_string()));
                                 break;
                             }
                         }
@@ -196,38 +229,46 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         tokio::spawn(async move {
             loop {
                 tokio::select! {
+                    biased;
                     _ = self.cancel_token.cancelled() => {
                         tracing::debug!("QR pairing loop cancelled");
-                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Cancelled)).ok();
+                        self.send_event(PairingResult::Cancelled);
                         break;
                     }
                     _ = interval.tick() => {
                         if initial_instant.elapsed() > ttl {
                             tracing::warn!("QR pairing loop timeout reached");
-                            self.event_sender.send(TunnelEvent::Pairing(PairingResult::TimedOut)).ok();
+                            self.send_event(PairingResult::TimedOut);
                             break;
                         }
-                        match self
-                            .vpn_api_client
-                            .try_to_get_secret_account(&remote_qr_pub_key.to_string(), &pairing_params)
+                        let Some(response) = self
+                            .unless_cancelled(
+                                self.vpn_api_client
+                                    .try_to_get_secret_account(&remote_qr_pub_key.to_string(), &pairing_params),
+                            )
                             .await
-                        {
+                        else {
+                            tracing::debug!("QR pairing loop cancelled");
+                            self.send_event(PairingResult::Cancelled);
+                            break;
+                        };
+                        match response {
                             Ok(response) => {
                                 if let Some(response) = response.inner {
                                     let Some(mnemonic_bytes) = SharedSymmetricKey::validate_aead_nonce(&response.nonce)
                                         .and_then(|nonce| shared_key.decrypt(&response.enc_mnemonic, &nonce)
                                     ) else {
                                         tracing::error!("decrypt mnemonic");
-                                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error("could not decrypt mnemonic".to_string()))).ok();
+                                        self.send_event(PairingResult::Error("could not decrypt mnemonic".to_string()));
                                         break;
                                     };
                                     let Ok(mnemonic) = String::from_utf8(mnemonic_bytes) else {
                                         tracing::error!("decode mnemonic bytes");
-                                        self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error("could not decode mnemonic".to_string()))).ok();
+                                        self.send_event(PairingResult::Error("could not decode mnemonic".to_string()));
                                         break;
                                     };
                                     tracing::debug!("Received account secret mnemonic, pairing completed");
-                                    self.event_sender.send(TunnelEvent::Pairing(PairingResult::Mnemonic(mnemonic))).ok();
+                                    self.send_event(PairingResult::Mnemonic(mnemonic));
                                     break;
                                 } else {
                                     tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}");
@@ -235,7 +276,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                             }
                             Err(e) => {
                                 tracing::error!("Error getting the account secret, stopping the queries {e:?}");
-                                self.event_sender.send(TunnelEvent::Pairing(PairingResult::Error(e.to_string()))).ok();
+                                self.send_event(PairingResult::Error(e.to_string()));
                                 break;
                             }
                         }
@@ -354,14 +395,33 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         }
     }
 
+    fn new_pairing_process(
+        &self,
+        event_sender: broadcast::Sender<TunnelEvent>,
+        cancel_token: CancellationToken,
+    ) -> QrPairingProcess<C> {
+        // Unique across handlers, as the account controllers of an app can share the same
+        // event listener
+        static LAST_SESSION_ID: AtomicU32 = AtomicU32::new(0);
+        let session_id = LAST_SESSION_ID
+            .fetch_add(1, Ordering::Relaxed)
+            .wrapping_add(1);
+
+        QrPairingProcess::new(
+            self.vpn_api_client.clone(),
+            event_sender,
+            cancel_token,
+            session_id,
+        )
+    }
+
     pub(crate) async fn pair_account(
         &mut self,
         account: &Arc<VpnAccount>,
         event_sender: broadcast::Sender<TunnelEvent>,
         cancel_token: CancellationToken,
     ) -> Result<QrUrl, AccountCommandError> {
-        let qr_pairing_process =
-            QrPairingProcess::new(self.vpn_api_client.clone(), event_sender, cancel_token);
+        let qr_pairing_process = self.new_pairing_process(event_sender, cancel_token);
 
         let response = self
             .vpn_api_client
@@ -373,6 +433,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
                 "https://nym.com/qr-pairing?pubkey={}",
                 qr_pairing_process.qr_public_key()
             ),
+            session_id: qr_pairing_process.session_id,
         };
 
         self.process_handle = qr_pairing_process
@@ -387,8 +448,8 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         event_sender: broadcast::Sender<TunnelEvent>,
         cancel_token: CancellationToken,
     ) -> Result<QrPairingConfirmation, AccountCommandError> {
-        let qr_pairing_process =
-            QrPairingProcess::new(self.vpn_api_client.clone(), event_sender, cancel_token);
+        let qr_pairing_process = self.new_pairing_process(event_sender, cancel_token);
+        let session_id = qr_pairing_process.session_id;
 
         let pin_code = random_pin();
         let token = random_token();
@@ -411,7 +472,10 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
             Duration::from_secs(response.ttl_seconds),
         );
 
-        Ok(QrPairingConfirmation { pin_code })
+        Ok(QrPairingConfirmation {
+            pin_code,
+            session_id,
+        })
     }
 
     async fn verified_pairing_pin_can_fail(
@@ -464,6 +528,11 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
     pub fn cancel_get_pairing_secret(&mut self) {
         self.process_handle.cancel_get_pairing_secret();
     }
+
+    /// Cancels whichever pairing process is running, if any
+    pub fn cancel_pairing_process(&mut self) {
+        self.process_handle = QrPairingProcessHandle::None;
+    }
 }
 
 #[cfg(test)]
@@ -499,6 +568,9 @@ mod tests {
 
     #[derive(Default)]
     struct ApiDb {
+        /// Makes the polling requests hang, like a stalled network
+        hang_requests: bool,
+        hanging_requests: usize,
         account_to_pub_key: HashMap<String, String>,
         pairing_logged_in_data: HashMap<String, LoggedInData>,
         pairing_secret_data: HashMap<String, SecretData>,
@@ -543,7 +615,12 @@ mod tests {
             &self,
             account: &VpnAccount,
         ) -> Result<NymVpnPairingCheckResponse, VpnApiClientError> {
-            let db = self.api_db.lock().await;
+            let mut db = self.api_db.lock().await;
+            if db.hang_requests {
+                db.hanging_requests += 1;
+                drop(db);
+                return std::future::pending().await;
+            }
 
             let Some(data) = db
                 .account_to_pub_key
@@ -620,7 +697,12 @@ mod tests {
             remote_qr_pub_key: &str,
             pairing_params: &PairingParams,
         ) -> Result<NymVpnGetPairingSecretResponse, VpnApiClientError> {
-            let db = self.api_db.lock().await;
+            let mut db = self.api_db.lock().await;
+            if db.hang_requests {
+                db.hanging_requests += 1;
+                drop(db);
+                return std::future::pending().await;
+            }
 
             let Some(data) = db
                 .pairing_logged_in_data
@@ -717,8 +799,10 @@ mod tests {
 
         // the logged in device also receives the same PIN code that needs to be shown to the user
         // and be confirmed for match
-        let TunnelEvent::Pairing(PairingResult::PinCode(received_pin_code)) =
-            logged_in_event_rx.recv().await.unwrap()
+        let TunnelEvent::Pairing(PairingEvent {
+            result: PairingResult::PinCode(received_pin_code),
+            ..
+        }) = logged_in_event_rx.recv().await.unwrap()
         else {
             panic!("no pin code event")
         };
@@ -731,8 +815,10 @@ mod tests {
             .unwrap();
 
         // the logged out device receives the mnemonic in the form of an event
-        let TunnelEvent::Pairing(PairingResult::Mnemonic(mnemonic)) =
-            logged_out_event_rx.recv().await.unwrap()
+        let TunnelEvent::Pairing(PairingEvent {
+            result: PairingResult::Mnemonic(mnemonic),
+            ..
+        }) = logged_out_event_rx.recv().await.unwrap()
         else {
             panic!("no mnemonic received")
         };
@@ -766,9 +852,16 @@ mod tests {
         url.url.split("pubkey=").last().unwrap()
     }
 
-    async fn next_pairing_event(event_rx: &mut broadcast::Receiver<TunnelEvent>) -> PairingResult {
+    /// Waits for the next pairing event, checking that it comes from the expected session
+    async fn next_pairing_event(
+        event_rx: &mut broadcast::Receiver<TunnelEvent>,
+        session_id: u32,
+    ) -> PairingResult {
         match event_rx.recv().await.unwrap() {
-            TunnelEvent::Pairing(result) => result,
+            TunnelEvent::Pairing(event) => {
+                assert_eq!(event.session_id, session_id, "{event:?}");
+                event.result
+            }
             other => panic!("unexpected event: {other:?}"),
         }
     }
@@ -779,6 +872,22 @@ mod tests {
         }
     }
 
+    /// Waits until a polling request hangs in the API
+    async fn wait_for_hanging_request(api_db: &Arc<Mutex<ApiDb>>) {
+        while api_db.lock().await.hanging_requests == 0 {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+    }
+
+    /// Checks that every process that could send on this channel has finished
+    async fn assert_channel_closed(event_rx: &mut broadcast::Receiver<TunnelEvent>) {
+        let event = event_rx.recv().await;
+        assert!(
+            matches!(event, Err(broadcast::error::RecvError::Closed)),
+            "{event:?}"
+        );
+    }
+
     #[tokio::test(start_paused = true)]
     async fn pairing_check_times_out_when_qr_is_never_scanned() {
         let account = new_account();
@@ -787,7 +896,7 @@ mod tests {
             new_handler(&api_db);
 
         let started = Instant::now();
-        logged_in_handler
+        let url = logged_in_handler
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
@@ -796,7 +905,7 @@ mod tests {
         assert_no_event_for(&mut logged_in_event_rx, TTL).await;
 
         // the timeout is detected on the first retry tick after the TTL
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::TimedOut), "{event:?}");
         assert!(started.elapsed() > TTL);
         assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
@@ -831,7 +940,7 @@ mod tests {
             .unwrap();
 
         let started = Instant::now();
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -840,13 +949,13 @@ mod tests {
             .await
             .unwrap();
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         // the logged in device never confirms the PIN
         assert_no_event_for(&mut logged_out_event_rx, TTL - started.elapsed()).await;
 
-        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         assert!(matches!(event, PairingResult::TimedOut), "{event:?}");
         assert!(started.elapsed() > TTL);
         assert!(started.elapsed() <= TTL + RETRY_INTERVAL);
@@ -860,14 +969,14 @@ mod tests {
             new_handler(&api_db);
         let cancel_token = CancellationToken::new();
 
-        logged_in_handler
+        let url = logged_in_handler
             .pair_account(&account, logged_in_event_tx, cancel_token.child_token())
             .await
             .unwrap();
 
         cancel_token.cancel();
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
     }
 
@@ -878,14 +987,14 @@ mod tests {
         let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
             new_handler(&api_db);
 
-        logged_in_handler
+        let url = logged_in_handler
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
 
         logged_in_handler.cancel_pairing_check();
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
 
         let err = logged_in_handler
@@ -913,7 +1022,7 @@ mod tests {
         logged_in_handler.cancel_get_pairing_secret();
         assert_no_event_for(&mut logged_in_event_rx, RETRY_INTERVAL * 2).await;
 
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -921,7 +1030,7 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         // the logged out device runs a secret query, not a pairing check
@@ -929,8 +1038,180 @@ mod tests {
         assert_no_event_for(&mut logged_out_event_rx, RETRY_INTERVAL * 2).await;
 
         logged_out_handler.cancel_get_pairing_secret();
-        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+    }
+
+    #[tokio::test]
+    async fn cancel_pairing_process_stops_pairing_check() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        logged_in_handler.cancel_pairing_process();
+
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+        assert_channel_closed(&mut logged_in_event_rx).await;
+
+        let err = logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap_err();
+        assert_eq!(err, AccountCommandError::PairingNotStarted);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancel_pairing_process_stops_secret_query() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let confirmation = logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // the user closes the pairing window on the logged out device
+        logged_out_handler.cancel_pairing_process();
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+
+        // the secret shared afterwards is never picked up
+        logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap();
+        assert_channel_closed(&mut logged_out_event_rx).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancel_pairing_process_without_running_process() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        // nothing to cancel yet
+        logged_in_handler.cancel_pairing_process();
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let confirmation = logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+        logged_in_handler
+            .verified_pairing_pin(&account)
+            .await
+            .unwrap();
+        let PairingResult::Mnemonic(mnemonic) =
+            next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await
+        else {
+            panic!("no mnemonic received")
+        };
+        assert_eq!(*account.get_mnemonic(), mnemonic);
+
+        // both processes are done, so closing the pairing windows reports nothing
+        logged_in_handler.cancel_pairing_process();
+        logged_out_handler.cancel_pairing_process();
+        assert_channel_closed(&mut logged_in_event_rx).await;
+        assert_channel_closed(&mut logged_out_event_rx).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancel_pairing_process_interrupts_hanging_pairing_check() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+
+        // the API stops answering while a check is in flight
+        api_db.lock().await.hang_requests = true;
+        wait_for_hanging_request(&api_db).await;
+
+        logged_in_handler.cancel_pairing_process();
+        let event = tokio::time::timeout(
+            RETRY_INTERVAL,
+            next_pairing_event(&mut logged_in_event_rx, url.session_id),
+        )
+        .await
+        .expect("cancelling did not interrupt the hanging request");
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+        assert_channel_closed(&mut logged_in_event_rx).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn cancel_pairing_process_interrupts_hanging_secret_query() {
+        let account = new_account();
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
+
+        let url = logged_in_handler
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let confirmation = logged_out_handler
+            .scanned_key(
+                pub_key_from_url(&url),
+                logged_out_event_tx,
+                CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
+        assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
+
+        // the API stops answering while a secret query is in flight
+        api_db.lock().await.hang_requests = true;
+        wait_for_hanging_request(&api_db).await;
+
+        logged_out_handler.cancel_pairing_process();
+        let event = tokio::time::timeout(
+            RETRY_INTERVAL,
+            next_pairing_event(&mut logged_out_event_rx, confirmation.session_id),
+        )
+        .await
+        .expect("cancelling did not interrupt the hanging request");
+        assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
+        assert_channel_closed(&mut logged_out_event_rx).await;
     }
 
     #[tokio::test]
@@ -954,7 +1235,7 @@ mod tests {
         let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
             new_handler(&api_db);
 
-        logged_in_handler
+        let url = logged_in_handler
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
@@ -967,7 +1248,7 @@ mod tests {
         assert!(api_db.lock().await.pairing_secret_data.is_empty());
 
         // verifying too early aborts the pairing
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
         let err = logged_in_handler
             .verified_pairing_pin(&account)
@@ -997,7 +1278,7 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         logged_in_handler
@@ -1023,7 +1304,7 @@ mod tests {
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -1040,7 +1321,7 @@ mod tests {
         assert_eq!(err, AccountCommandError::PairingNotStarted);
 
         // and the secret query is aborted
-        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
     }
 
@@ -1092,7 +1373,7 @@ mod tests {
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -1112,13 +1393,14 @@ mod tests {
         assert!(matches!(err, AccountCommandError::Internal(_)), "{err:?}");
 
         // the first device to scan still completes the pairing
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
         logged_in_handler
             .verified_pairing_pin(&account)
             .await
             .unwrap();
-        let PairingResult::Mnemonic(mnemonic) = next_pairing_event(&mut logged_out_event_rx).await
+        let PairingResult::Mnemonic(mnemonic) =
+            next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await
         else {
             panic!("no mnemonic received")
         };
@@ -1132,7 +1414,7 @@ mod tests {
         let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
             new_handler(&api_db);
 
-        logged_in_handler
+        let url = logged_in_handler
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
@@ -1140,7 +1422,7 @@ mod tests {
         // the API forgets about the pairing process
         *api_db.lock().await = ApiDb::default();
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         let PairingResult::Error(err) = event else {
             panic!("unexpected event: {event:?}")
         };
@@ -1159,7 +1441,7 @@ mod tests {
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -1171,7 +1453,7 @@ mod tests {
         // the API forgets about the pairing process
         *api_db.lock().await = ApiDb::default();
 
-        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         let PairingResult::Error(err) = event else {
             panic!("unexpected event: {event:?}")
         };
@@ -1191,7 +1473,7 @@ mod tests {
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -1199,7 +1481,7 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         // a secret not encrypted with the DH shared key ends up on the API
@@ -1209,7 +1491,7 @@ mod tests {
             .await
             .unwrap();
 
-        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         assert!(matches!(event, PairingResult::Error(_)), "{event:?}");
     }
 
@@ -1226,7 +1508,7 @@ mod tests {
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&url),
                 logged_out_event_tx,
@@ -1234,7 +1516,7 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         MockedApiClient::new(api_db.clone())
@@ -1242,7 +1524,7 @@ mod tests {
             .await
             .unwrap();
 
-        let event = next_pairing_event(&mut logged_out_event_rx).await;
+        let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
         assert!(matches!(event, PairingResult::Error(_)), "{event:?}");
     }
 
@@ -1264,7 +1546,7 @@ mod tests {
             .await
             .unwrap();
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::Error(_)), "{event:?}");
 
         let err = logged_in_handler
@@ -1278,25 +1560,32 @@ mod tests {
     async fn restarting_pairing_cancels_previous_check() {
         let account = new_account();
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
-        let (mut logged_in_handler, first_event_tx, mut first_event_rx) = new_handler(&api_db);
-        let (second_event_tx, mut second_event_rx) = broadcast::channel(10);
+        let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
+            new_handler(&api_db);
         let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
             new_handler(&api_db);
 
+        // both processes report on the same channel, like they do in the app
         let first_url = logged_in_handler
-            .pair_account(&account, first_event_tx, CancellationToken::new())
+            .pair_account(
+                &account,
+                logged_in_event_tx.clone(),
+                CancellationToken::new(),
+            )
             .await
             .unwrap();
         let second_url = logged_in_handler
-            .pair_account(&account, second_event_tx, CancellationToken::new())
+            .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
         assert_ne!(first_url.url, second_url.url);
+        assert_ne!(first_url.session_id, second_url.session_id);
 
-        let event = next_pairing_event(&mut first_event_rx).await;
+        // the stale process reports its cancellation under its own session
+        let event = next_pairing_event(&mut logged_in_event_rx, first_url.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
 
-        logged_out_handler
+        let confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&second_url),
                 logged_out_event_tx,
@@ -1304,24 +1593,22 @@ mod tests {
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut second_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, second_url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         logged_in_handler
             .verified_pairing_pin(&account)
             .await
             .unwrap();
-        let PairingResult::Mnemonic(mnemonic) = next_pairing_event(&mut logged_out_event_rx).await
+        let PairingResult::Mnemonic(mnemonic) =
+            next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await
         else {
             panic!("no mnemonic received")
         };
         assert_eq!(*account.get_mnemonic(), mnemonic);
 
         // the first process is gone for good
-        assert!(matches!(
-            first_event_rx.recv().await,
-            Err(broadcast::error::RecvError::Closed)
-        ));
+        assert_channel_closed(&mut logged_in_event_rx).await;
     }
 
     #[tokio::test(start_paused = true)]
@@ -1330,8 +1617,8 @@ mod tests {
         let api_db = Arc::new(Mutex::new(ApiDb::default()));
         let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
             new_handler(&api_db);
-        let (mut logged_out_handler, first_event_tx, mut first_event_rx) = new_handler(&api_db);
-        let (second_event_tx, mut second_event_rx) = broadcast::channel(10);
+        let (mut logged_out_handler, logged_out_event_tx, mut logged_out_event_rx) =
+            new_handler(&api_db);
 
         let first_url = logged_in_handler
             .pair_account(
@@ -1341,15 +1628,15 @@ mod tests {
             )
             .await
             .unwrap();
-        logged_out_handler
+        let first_confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&first_url),
-                first_event_tx,
+                logged_out_event_tx.clone(),
                 CancellationToken::new(),
             )
             .await
             .unwrap();
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, first_url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
 
         // the user restarts the whole flow and scans a new QR code
@@ -1357,29 +1644,54 @@ mod tests {
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
-        logged_out_handler
+        let second_confirmation = logged_out_handler
             .scanned_key(
                 pub_key_from_url(&second_url),
-                second_event_tx,
+                logged_out_event_tx,
                 CancellationToken::new(),
             )
             .await
             .unwrap();
+        assert_ne!(
+            first_confirmation.session_id,
+            second_confirmation.session_id
+        );
 
-        let event = next_pairing_event(&mut first_event_rx).await;
+        // the stale query reports its cancellation under its own session
+        let event =
+            next_pairing_event(&mut logged_out_event_rx, first_confirmation.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, second_url.session_id).await;
         assert!(matches!(event, PairingResult::PinCode(_)), "{event:?}");
         logged_in_handler
             .verified_pairing_pin(&account)
             .await
             .unwrap();
-        let PairingResult::Mnemonic(mnemonic) = next_pairing_event(&mut second_event_rx).await
+        let PairingResult::Mnemonic(mnemonic) =
+            next_pairing_event(&mut logged_out_event_rx, second_confirmation.session_id).await
         else {
             panic!("no mnemonic received")
         };
         assert_eq!(*account.get_mnemonic(), mnemonic);
+    }
+
+    #[tokio::test]
+    async fn session_ids_are_unique_across_handlers() {
+        let api_db = Arc::new(Mutex::new(ApiDb::default()));
+        let (mut first_handler, first_event_tx, _first_event_rx) = new_handler(&api_db);
+        let (mut second_handler, second_event_tx, _second_event_rx) = new_handler(&api_db);
+
+        // two account controllers sharing one event listener must never reuse a session ID
+        let first_url = first_handler
+            .pair_account(&new_account(), first_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        let second_url = second_handler
+            .pair_account(&new_account(), second_event_tx, CancellationToken::new())
+            .await
+            .unwrap();
+        assert_ne!(first_url.session_id, second_url.session_id);
     }
 
     #[tokio::test]
@@ -1389,13 +1701,13 @@ mod tests {
         let (mut logged_in_handler, logged_in_event_tx, mut logged_in_event_rx) =
             new_handler(&api_db);
 
-        logged_in_handler
+        let url = logged_in_handler
             .pair_account(&account, logged_in_event_tx, CancellationToken::new())
             .await
             .unwrap();
         drop(logged_in_handler);
 
-        let event = next_pairing_event(&mut logged_in_event_rx).await;
+        let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingResult::Cancelled), "{event:?}");
     }
 

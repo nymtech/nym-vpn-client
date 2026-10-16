@@ -101,6 +101,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                         shared_state.set_firewall_state(false);
                         return_sender.send(Ok(()));
                     },
+                    AccountCommand::CancelPairingProcess(return_sender) => {
+                        return_sender.send(handler::handle_qr_cancel_pairing_process(shared_state));
+                    },
                     other => {
                         other.return_error(AccountCommandError::AccountDecentralised);
                     }

@@ -444,9 +444,16 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    pub async fn verified_pairing_ping(&self) -> Result<QrPairingConfirmation> {
+    pub async fn verified_pairing_pin(&self) -> Result<()> {
         Ok(self
             .send_and_wait(VpnServiceCommand::VerifiedPairingPin, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn cancel_pairing_process(&self) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::CancelPairingProcess, ())
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }

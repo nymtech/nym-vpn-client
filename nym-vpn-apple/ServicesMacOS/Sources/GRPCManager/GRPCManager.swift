@@ -97,6 +97,8 @@ private extension GRPCManager {
             break
         case .conflictDetected:
             break
+        case .pairing:
+            break
         }
     }
 

@@ -696,6 +696,8 @@ message PairingCheckResult {
     string pin_code = 4;
     string mnemonic = 5;
   }
+  // The session ID returned by the call that started the pairing process
+  uint32 session_id = 6;
 }
 
 message MixnetEvent {
@@ -1193,10 +1195,14 @@ message AutologinResponse {
 
 message QrUrlResponse {
   string url = 1;
+  // Identifies the started pairing process in its PairingCheckResult events
+  uint32 session_id = 2;
 }
 
 message QrPairingConfirmationResponse {
   string pin_code = 1;
+  // Identifies the started pairing process in its PairingCheckResult events
+  uint32 session_id = 2;
 }
 
 message GetDeeplinkParams {
@@ -1383,8 +1389,11 @@ service NymVpnService {
   // Pair this device with the account using the public key value embedded in a QR URL
   rpc ScannedKey(google.protobuf.StringValue) returns (QrPairingConfirmationResponse) {}
 
-  // Pair this device with the account using the public key value embedded in a QR URL
+  // Confirm that the pairing PIN matches on both devices, sharing the account with the other device
   rpc VerifiedPairingPin(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Cancel the running pairing process, e.g. when the user closes the pairing window
+  rpc CancelPairingProcess(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}
