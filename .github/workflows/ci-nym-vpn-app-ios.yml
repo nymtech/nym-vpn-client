@@ -9,6 +9,7 @@ on:
   workflow_dispatch:
 
 env:
+  HOMEBREW_NO_ANALYTICS: 1
   CARGO_TERM_COLOR: always
 
 jobs:
