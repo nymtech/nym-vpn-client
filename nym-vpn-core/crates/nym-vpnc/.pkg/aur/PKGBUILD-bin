@@ -20,6 +20,7 @@ sha256sums_aarch64=($TARBALL_SHA256_AARCH64)
 
 build() {
   local bin="nym-vpn-core-v${PKGVER}_linux_${CARCH}/nym-vpnc"
+  chmod +x "$bin"
   mkdir -p completions
   "$bin" completions bash > completions/nym-vpnc.bash
   "$bin" completions zsh > completions/_nym-vpnc

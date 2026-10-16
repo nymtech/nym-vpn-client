@@ -208,13 +208,14 @@ jobs:
           mkdir -p "$PAYLOAD_DIR/bin" "$ZSH_DIR" "$BASH_DIR" "$FISH_DIR"
 
           # Copy binary into payload
-          cp "$BINARY" "$PAYLOAD_DIR/bin/$BINARY_NAME"
-          chmod +x "$PAYLOAD_DIR/bin/$BINARY_NAME"
+          PAYLOAD_BINARY="$PAYLOAD_DIR/bin/$BINARY_NAME"
+          cp "$BINARY" "$PAYLOAD_BINARY"
+          chmod +x "$PAYLOAD_BINARY"
 
           # Generate shell completions
-          "$BINARY" completions zsh > "$ZSH_DIR/_$BINARY_NAME"
-          "$BINARY" completions bash > "$BASH_DIR/$BINARY_NAME"
-          "$BINARY" completions fish > "$FISH_DIR/$BINARY_NAME.fish"
+          "$PAYLOAD_BINARY" completions zsh > "$ZSH_DIR/_$BINARY_NAME"
+          "$PAYLOAD_BINARY" completions bash > "$BASH_DIR/$BINARY_NAME"
+          "$PAYLOAD_BINARY" completions fish > "$FISH_DIR/$BINARY_NAME.fish"
 
           # Build the component package
           pkgbuild \
