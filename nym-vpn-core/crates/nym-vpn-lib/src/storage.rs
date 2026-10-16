@@ -24,6 +24,9 @@ const ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
 const MNEMONIC_SE_KEY: &str = "mnemonic-key";
 
+#[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
+const DEVICE_SE_KEY: &str = "device-key";
+
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
     account_storage: nym_vpn_store::account::on_disk::OnDiskAccountStorage,
