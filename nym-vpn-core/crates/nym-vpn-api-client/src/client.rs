@@ -11,7 +11,10 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::{
 };
 use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
-    reqwest::header::{DATE, HeaderMap},
+    reqwest::{
+        RequestBuilder,
+        header::{DATE, HeaderMap},
+    },
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{
@@ -48,7 +51,7 @@ use crate::{
 const RFC_3339_DATE: &[BorrowedFormatItem<'static>] =
     time::macros::format_description!("[year]-[month]-[day]");
 
-pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
+const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
@@ -193,25 +196,16 @@ impl VpnApiClient {
     async fn get_query<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
         let request = self
             .inner
             .create_get_request(path, NO_PARAMS)?
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
+            .with_authorization(authorization, remote_time);
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -219,13 +213,12 @@ impl VpnApiClient {
     async fn get_authorized<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
-        self.execute_with_jwt_retry(|jwt| self.get_query(path, account, device, jwt))
+        self.execute_with_jwt_retry(|remote_time| self.get_query(path, authorization, remote_time))
             .await
     }
 
@@ -233,20 +226,19 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         params: Params<'_, K, V>,
-    ) -> std::result::Result<T, HttpClientError>
+    ) -> Result<T, HttpClientError>
     where
         for<'a> T: Deserialize<'a>,
         K: AsRef<str> + Sync,
         V: AsRef<str> + Sync,
     {
-        let response = (|| async { self.inner.get_json(path, params).await })
-            .retry(backon::ConstantBuilder::default())
+        let get = || self.inner.get_json(path, params);
+        get.retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to get JSON: {}", err);
                 tracing::warn!("retrying after {:?}", dur);
             })
-            .await?;
-        Ok(response)
+            .await
     }
 
     async fn post_json_with_retry<B, T, K, V>(
@@ -254,31 +246,29 @@ impl VpnApiClient {
         path: PathSegments<'_>,
         params: Params<'_, K, V>,
         json_body: &B,
-    ) -> std::result::Result<T, HttpClientError>
+    ) -> Result<T, HttpClientError>
     where
         for<'a> T: Deserialize<'a>,
         B: Serialize + ?Sized + Sync,
         K: AsRef<str> + Sync,
         V: AsRef<str> + Sync,
     {
-        let response = (|| async { self.inner.post_json(path, params, json_body).await })
-            .retry(backon::ConstantBuilder::default())
+        let post = || self.inner.post_json(path, params, json_body);
+        post.retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to post JSON: {}", err);
                 tracing::warn!("retrying after {:?}", dur);
             })
-            .await?;
-        Ok(response)
+            .await
     }
 
     async fn post_query<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
@@ -286,15 +276,8 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)?
-            .bearer_auth(account.jwt(jwt).to_string());
+            .with_authorization(authorization, remote_time);
 
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -303,39 +286,31 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
     {
-        self.execute_with_jwt_retry(|jwt| self.post_query(path, json_body, account, device, jwt))
-            .await
+        self.execute_with_jwt_retry(|remote_time| {
+            self.post_query(path, json_body, authorization, remote_time)
+        })
+        .await
     }
 
     async fn delete_query<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)?
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
+            .with_authorization(authorization, remote_time);
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -343,24 +318,24 @@ impl VpnApiClient {
     async fn delete_authorized<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnAccount,
-        device: Option<&Device>,
+        authorization: Authorization<'_>,
     ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
     {
-        self.execute_with_jwt_retry(|jwt| self.delete_query::<T>(path, account, device, jwt))
-            .await
+        self.execute_with_jwt_retry(|remote_time| {
+            self.delete_query::<T>(path, authorization, remote_time)
+        })
+        .await
     }
 
     async fn patch_query<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-        jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+        remote_time: Option<VpnApiTime>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
@@ -368,15 +343,7 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)?
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
+            .with_authorization(authorization, remote_time);
         let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
@@ -385,15 +352,16 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnAccount,
-        device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError>
+        authorization: Authorization<'_>,
+    ) -> Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
     {
-        self.execute_with_jwt_retry(|jwt| self.patch_query(path, json_body, account, device, jwt))
-            .await
+        self.execute_with_jwt_retry(|remote_time| {
+            self.patch_query(path, json_body, authorization, remote_time)
+        })
+        .await
     }
 
     async fn execute_with_jwt_retry<T, F, Fut>(&self, mut query_fn: F) -> Result<T, HttpClientError>
@@ -448,8 +416,7 @@ impl VpnApiClient {
     pub async fn get_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
         self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -579,8 +546,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::SUMMARY,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -602,8 +568,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
                 routes::SUMMARY,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -644,8 +609,7 @@ impl VpnApiClient {
                 routes::AUTH_METHOD,
             ],
             &request,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .inspect_err(|e| tracing::error!("Failed to link account: {e:?}"))
@@ -665,8 +629,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::CANONICAL,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .inspect_err(|e| tracing::error!("Failed to get canonical account identity: {e:?}"))
@@ -685,8 +648,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::DEVICE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -712,8 +674,7 @@ impl VpnApiClient {
                 routes::DEVICE,
             ],
             &body,
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -730,8 +691,7 @@ impl VpnApiClient {
                 routes::DEVICE,
                 routes::ACTIVE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -752,8 +712,7 @@ impl VpnApiClient {
                 routes::DEVICE,
                 &device.identity_key().to_string(),
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -780,8 +739,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
             ],
             &body,
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -809,8 +767,7 @@ impl VpnApiClient {
                 device_identity_key,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -832,8 +789,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -870,8 +826,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
             ],
             &body,
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -894,8 +849,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 routes::AVAILABLE,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -919,8 +873,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 id,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -944,8 +897,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 id,
             ],
-            account,
-            Some(device),
+            Authorization::default().account(account).device(device),
         )
         .await
         .map_err(Box::new)
@@ -966,8 +918,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::FREEPASS,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -990,8 +941,7 @@ impl VpnApiClient {
                 routes::FREEPASS,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1012,8 +962,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::SUBSCRIPTION,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1035,8 +984,7 @@ impl VpnApiClient {
                 routes::SUBSCRIPTION,
             ],
             &body,
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1056,8 +1004,7 @@ impl VpnApiClient {
                 routes::SUBSCRIPTION,
                 routes::ACTIVE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1073,8 +1020,7 @@ impl VpnApiClient {
                 &account.id(),
                 routes::USAGE,
             ],
-            account,
-            None,
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -1418,6 +1364,45 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
             .map_err(VpnApiClientError::GetHealth)?;
 
         Ok(res.timestamp_utc)
+    }
+}
+
+#[derive(Clone, Copy, Default)]
+struct Authorization<'a> {
+    account: Option<&'a VpnAccount>,
+    device: Option<&'a Device>,
+}
+
+impl<'a> Authorization<'a> {
+    fn account(mut self, account: &'a VpnAccount) -> Self {
+        self.account = Some(account);
+        self
+    }
+
+    fn device(mut self, device: &'a Device) -> Self {
+        self.device = Some(device);
+        self
+    }
+}
+
+trait AuthorizationExt {
+    fn with_authorization(self, auth: Authorization, remote_time: Option<VpnApiTime>) -> Self;
+}
+
+impl AuthorizationExt for RequestBuilder {
+    fn with_authorization(mut self, auth: Authorization, remote_time: Option<VpnApiTime>) -> Self {
+        if let Some(account) = auth.account {
+            self = self.bearer_auth(account.jwt(remote_time).to_string());
+        }
+
+        if let Some(device) = auth.device {
+            self = self.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt(remote_time)),
+            );
+        }
+
+        self
     }
 }
 
