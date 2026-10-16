@@ -21,17 +21,7 @@ use crate::table_style::TableStyle;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = ProgramArgs::parse();
-
-    if args.command.needs_rpc_client() {
-        let rpc_client = RpcClient::new()
-            .await
-            .context("Failed to create RPC client")?;
-
-        args.command.execute(rpc_client).await
-    } else {
-        args.command.execute_no_rpc_client().await
-    }
+    ProgramArgs::parse().command.execute().await
 }
 
 #[derive(Parser, Debug)]
@@ -187,47 +177,41 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn needs_rpc_client(&self) -> bool {
-        !matches!(self, Self::Favorites { .. } | Self::Completions { .. })
-    }
+    pub async fn execute(self) -> Result<()> {
+        let rpc_client = async {
+            RpcClient::new()
+                .await
+                .context("Failed to create RPC client")
+        };
 
-    pub async fn execute_no_rpc_client(self) -> Result<()> {
         match self {
-            Command::Favorites { subcommand } => subcommand.execute().await,
-            Command::Completions { shell } => Self::completions(shell),
-            _ => Err(anyhow::anyhow!("internal: command needs rpc client")),
-        }
-    }
-
-    pub async fn execute(self, rpc_client: RpcClient) -> Result<()> {
-        match self {
-            Command::StartSession => commands::session::execute(rpc_client).await,
+            Command::StartSession => commands::session::execute(rpc_client.await?).await,
             Command::ExitSession => Ok(()),
-            Command::Connect { wait } => Self::connect(rpc_client, wait).await,
-            Command::Reconnect => Self::reconnect(rpc_client).await,
-            Command::Disconnect { wait } => Self::disconnect(rpc_client, wait).await,
-            Command::Status { listen } => Self::status(rpc_client, listen).await,
-            Command::Info => Self::info(rpc_client).await,
-            Command::GetConfig => Self::get_config(rpc_client).await,
-            Command::Gateway(args) => args.execute(rpc_client).await,
-            Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
-            Command::AdBlock { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Dns { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Network { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Account { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Device(args) => args.execute(rpc_client).await,
-            Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Socks5 { subcommand } => subcommand.execute(rpc_client).await,
-            Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client).await,
-            Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Connect { wait } => Self::connect(rpc_client.await?, wait).await,
+            Command::Reconnect => Self::reconnect(rpc_client.await?).await,
+            Command::Disconnect { wait } => Self::disconnect(rpc_client.await?, wait).await,
+            Command::Status { listen } => Self::status(rpc_client.await?, listen).await,
+            Command::Info => Self::info(rpc_client.await?).await,
+            Command::GetConfig => Self::get_config(rpc_client.await?).await,
+            Command::Gateway(args) => args.execute(rpc_client.await?).await,
+            Command::Tunnel { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Lan { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::AdBlock { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Dns { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Network { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Account { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Device(args) => args.execute(rpc_client.await?).await,
+            Command::Sentry { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Socks5 { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::NetworkStats { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Diagnostic { subcommand } => {
-                commands::diagnostic::execute(subcommand, rpc_client).await
+                commands::diagnostic::execute(subcommand, rpc_client.await?).await
             }
             Command::Favorites { subcommand } => subcommand.execute().await,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Profile { subcommand } => subcommand.execute(rpc_client).await,
+            Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client.await?).await,
+            Command::Profile { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Completions { shell } => Self::completions(shell),
         }
     }
