@@ -5899,6 +5899,7 @@ dependencies = [
 [[package]]
 name = "nym-bridges"
 version = "0.2.3-rc.1"
+source = "git+https://github.com/nymtech/nym-bridges?branch=update-uniffi#4418e424c85f153ad56c70efe82818bf9519e556"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
@@ -5924,7 +5925,7 @@ dependencies = [
  "serde",
  "serde_json",
  "slab",
- "socket2 0.6.5",
+ "socket2 0.5.10",
  "thiserror 2.0.20",
  "tinyvec",
  "tokio",
@@ -5940,6 +5941,7 @@ dependencies = [
 [[package]]
 name = "nym-bridges-types"
 version = "0.2.3-rc.1"
+source = "git+https://github.com/nymtech/nym-bridges?branch=update-uniffi#4418e424c85f153ad56c70efe82818bf9519e556"
 dependencies = [
  "serde",
  "ts-rs",
