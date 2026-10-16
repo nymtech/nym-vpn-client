@@ -423,16 +423,12 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetAccount)
     }
 
-    async fn post_account<B>(
-        &self,
-        platform_path: &str,
-        body: &B,
-    ) -> Result<NymVpnRegisterAccountResponse>
+    async fn register_apple_account<B>(&self, body: &B) -> Result<NymVpnRegisterAccountResponse>
     where
         B: Serialize + ?Sized + Sync,
     {
         self.post_json_with_retry(
-            &[routes::PUBLIC, routes::V1, routes::ACCOUNT, platform_path],
+            &[routes::PUBLIC, routes::V1, routes::ACCOUNT, routes::APPLE],
             NO_PARAMS,
             &body,
         )
@@ -441,18 +437,18 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::PostAccount)
     }
 
-    async fn register_apple_account<B>(&self, body: &B) -> Result<NymVpnRegisterAccountResponse>
-    where
-        B: Serialize + ?Sized + Sync,
-    {
-        self.post_account(routes::APPLE, body).await
-    }
-
     async fn register_android_account<B>(&self, body: &B) -> Result<NymVpnRegisterAccountResponse>
     where
         B: Serialize + ?Sized + Sync,
     {
-        self.post_account(routes::ANDROID, body).await
+        self.post_json_with_retry(
+            &[routes::PUBLIC, routes::V1, routes::ACCOUNT, routes::ANDROID],
+            NO_PARAMS,
+            &body,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::PostAccount)
     }
 
     pub async fn register_account(
@@ -555,7 +551,7 @@ impl VpnApiClient {
 
     pub async fn get_account_summary_with_device(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only need account.id()!
         device: &Device,
     ) -> Result<NymVpnAccountSummaryWithDeviceResponse> {
         self.get_authorized(
@@ -568,7 +564,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
                 routes::SUMMARY,
             ],
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -674,7 +670,7 @@ impl VpnApiClient {
                 routes::DEVICE,
             ],
             &body,
-            Authorization::default().account(account).device(device),
+            Authorization::default().account(account),
         )
         .await
         .map_err(Box::new)
@@ -700,7 +696,7 @@ impl VpnApiClient {
 
     pub async fn get_device_by_id(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only requires account.id()!
         device: &Device,
     ) -> Result<NymVpnDevice> {
         self.get_authorized(
@@ -712,7 +708,7 @@ impl VpnApiClient {
                 routes::DEVICE,
                 &device.identity_key().to_string(),
             ],
-            Authorization::default().account(account),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -721,7 +717,7 @@ impl VpnApiClient {
 
     pub async fn update_device(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only needs account.id()!
         device: &Device,
         status: DeviceStatus,
     ) -> Result<NymVpnDevice> {
@@ -739,7 +735,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
             ],
             &body,
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -776,7 +772,7 @@ impl VpnApiClient {
 
     pub async fn get_device_zk_nyms(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only needs account.id()!
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -789,7 +785,7 @@ impl VpnApiClient {
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
             ],
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -798,7 +794,7 @@ impl VpnApiClient {
 
     pub async fn request_zk_nym(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only needs account.id()!
         device: &Device,
         withdrawal_request: String,
         ecash_pubkey: String,
@@ -826,7 +822,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
             ],
             &body,
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -835,7 +831,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nyms_available_for_download(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only needs account.id()!
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -849,7 +845,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 routes::AVAILABLE,
             ],
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -858,7 +854,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nym_by_id(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only needs account.id()!
         device: &Device,
         id: &str,
     ) -> Result<NymVpnZkNym> {
@@ -873,7 +869,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 id,
             ],
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
@@ -882,7 +878,7 @@ impl VpnApiClient {
 
     pub async fn confirm_zk_nym_download_by_id(
         &self,
-        account: &VpnAccount,
+        account: &VpnAccount, // todo: only needs account.id()!
         device: &Device,
         id: &str,
     ) -> Result<StatusOk> {
@@ -897,7 +893,7 @@ impl VpnApiClient {
                 routes::ZKNYM,
                 id,
             ],
-            Authorization::default().account(account).device(device),
+            Authorization::default().device(device),
         )
         .await
         .map_err(Box::new)
