@@ -35,7 +35,7 @@ pub enum TunnelEvent {
     AccountState(AccountControllerState),
     DiagnosticsSuggested(DiagnosticsSuggestionReason),
     ConflictDetected(ConflictDetected),
-    Pairing(PairingResult),
+    Pairing(PairingEvent),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -51,8 +51,8 @@ impl fmt::Display for TunnelEvent {
             Self::ConflictDetected(conflict) => {
                 write!(f, "Conflict detected: {conflict}")
             }
-            Self::Pairing(result) => {
-                write!(f, "Pairing check result: {result}")
+            Self::Pairing(event) => {
+                write!(f, "Pairing check result for {event}")
             }
         }
     }
@@ -93,6 +93,29 @@ impl fmt::Display for ConflictDetected {
                 "Another application's firewall rules appear to be positioned to intercept NymVPN's own network traffic, which may interfere with connectivity"
             ),
         }
+    }
+}
+
+/// An out of band update from a started QR pairing process.
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct PairingEvent {
+    /// The session ID returned by the call that started the pairing process
+    pub session_id: u32,
+    pub result: PairingResult,
+}
+
+impl fmt::Display for PairingEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "session {}: {}", self.session_id, self.result)
     }
 }
 

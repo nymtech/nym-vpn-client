@@ -81,6 +81,10 @@ pub enum Command {
         #[arg(long)]
         pub_key: String,
     },
+    /// Confirm that the pairing PIN matches on both devices, sharing this account with the other device
+    VerifiedPairingPin,
+    /// Cancel the running pairing process
+    CancelPairingProcess,
 }
 
 impl Command {
@@ -235,15 +239,28 @@ impl Command {
             }
             Command::StartPairing => {
                 let response = rpc_client.start_pairing().await?;
-                println!("Pairing process started with URL: {}", response.url);
+                println!(
+                    "Pairing process {} started with URL: {}",
+                    response.session_id, response.url
+                );
                 Ok(())
             }
             Command::ScannedKey { pub_key } => {
                 let response = rpc_client.scanned_key(pub_key).await?;
                 println!(
-                    "Pairing process needs confirmation for PIN: {}",
-                    response.pin_code
+                    "Pairing process {} needs confirmation for PIN: {}",
+                    response.session_id, response.pin_code
                 );
+                Ok(())
+            }
+            Command::VerifiedPairingPin => {
+                rpc_client.verified_pairing_pin().await?;
+                println!("Pairing PIN verified, the account is shared with the other device");
+                Ok(())
+            }
+            Command::CancelPairingProcess => {
+                rpc_client.cancel_pairing_process().await?;
+                println!("Pairing process cancelled");
                 Ok(())
             }
         }

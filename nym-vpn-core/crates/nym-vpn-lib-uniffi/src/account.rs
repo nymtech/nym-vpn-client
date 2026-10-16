@@ -285,6 +285,13 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
+    pub async fn cancel_pairing_process(&self) -> Result<(), VpnError> {
+        self.account_command_sender
+            .cancel_pairing_process()
+            .await
+            .map_err(VpnError::from)
+    }
+
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
         self.account_command_sender
             .get_account_summary()

@@ -104,6 +104,12 @@ public enum VPNErrorReason: LocalizedError {
             self = .nyxdQueryFailure(details: details)
         case let .InvalidSecret(details: details):
             self = .invalidSecret(details: details)
+        case let .InvalidPublicKey(details: details):
+            self = .accountControllerError(details: "invalid pairing public key: \(details)")
+        case .PairingNotStarted:
+            self = .accountControllerError(details: "pairing process not started")
+        case .NoPairingSharedSecret:
+            self = .accountControllerError(details: "pairing process has no shared secret yet")
         case let .InitLogs(details: details):
             self = .initLogs(details: details)
         case let .DeeplinkError(details: details):
