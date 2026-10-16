@@ -146,7 +146,7 @@ impl VPNConfig {
 
             disable_ipv6: false,
             enable_two_hop: self.enable_two_hop,
-            enable_bridges: self.enable_bridges,
+            bridge_mode: self.enable_bridges.into(),
 
             enable_ad_blocking: self.enable_ad_blocking,
             enable_conflict_detection: false,

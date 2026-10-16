@@ -83,11 +83,11 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConflictDetected, ConnectionData,
-    DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
-    EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState,
-    TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
+    ConnectionData, DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason,
+    EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -374,7 +374,7 @@ impl TunnelSettings {
 
     pub fn bridges_enabled(&self) -> bool {
         matches!(self.tunnel_type_used(), TunnelType::Wireguard)
-            && self.wireguard_tunnel_options.enable_bridges
+            && self.wireguard_tunnel_options.bridge_mode != BridgeMode::Off
     }
 
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
@@ -404,8 +404,8 @@ impl TunnelSettings {
         if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
             diff.add(TunnelSettingsDiffFields::WireguardTunnelOptions);
             // We care about just the QUIC setting changing.
-            if self.wireguard_tunnel_options.enable_bridges
-                != other.wireguard_tunnel_options.enable_bridges
+            if self.wireguard_tunnel_options.bridge_mode
+                != other.wireguard_tunnel_options.bridge_mode
             {
                 diff.add(TunnelSettingsDiffFields::QUIC);
             }
@@ -617,7 +617,7 @@ pub enum WireguardMultihopMode {
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
