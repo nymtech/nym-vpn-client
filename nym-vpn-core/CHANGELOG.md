@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add a bridge mode (auto, on, off) in place of the QUIC on/off setting (config v14). Auto connects over plain WireGuard first and alternates with the bridge on each retry. The gRPC setting still maps to on/off
+
 ## [2026.14.0] - TBD
 
 ### Added

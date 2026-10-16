@@ -67,7 +67,7 @@ public struct ConnectionConfig: Codable {
         self.allowLan = config.allowLan
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
-        self.enableBridges = config.enableBridges
+        self.enableBridges = config.bridgeMode == .on
         self.stealthMode = config.frontingMode == .always
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit

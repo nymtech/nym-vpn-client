@@ -68,7 +68,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
-            enable_bridges: value.enable_bridges,
+            bridge_mode: value.enable_bridges.into(),
             enable_ad_blocking: value.enable_ad_blocking,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,

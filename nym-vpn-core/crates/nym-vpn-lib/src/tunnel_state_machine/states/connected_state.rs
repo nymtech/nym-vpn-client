@@ -62,12 +62,12 @@ impl ConnectedState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
-                if shared_state.tunnel_settings.bridges_enabled() {
-                    // this will be `Some` if we get to the connected state with bridges enabled.
-                    wg.entry_bridge_addr.as_ref().map(|addr| addr.remote_addr)
-                } else {
-                    Some(wg.entry.endpoint)
-                }
+                // The bridge address is only set when the tunnel connected over a bridge.
+                Some(
+                    wg.entry_bridge_addr
+                        .as_ref()
+                        .map_or(wg.entry.endpoint, |addr| addr.remote_addr),
+                )
             } else {
                 None
             };
