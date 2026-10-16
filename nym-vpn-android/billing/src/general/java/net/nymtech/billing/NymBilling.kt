@@ -28,6 +28,9 @@ import kotlinx.coroutines.withContext
 import net.nymtech.billing.model.NymProductData
 import net.nymtech.billing.model.NymPurchaseInfo
 import net.nymtech.billing.model.ProductId
+import net.nymtech.billing.model.PurchaseFlowResult
+import net.nymtech.billing.model.SubscriptionOffer
+import net.nymtech.billing.model.SubscriptionOfferSelector
 import timber.log.Timber
 import kotlin.coroutines.resume
 
@@ -139,12 +142,12 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 		}
 	}
 
-	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String) {
-		Timber.tag(TAG).i("PurchaseFlowRequested productId=%s", productId)
+	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean): PurchaseFlowResult {
+		Timber.tag(TAG).i("PurchaseFlowRequested productId=%s trialEligible=%b", productId, trialEligible)
 
 		if (!billingClient.isReady) {
 			Timber.tag(TAG).w("PurchaseFlowRejected reason=not_ready productId=%s", productId)
-			return
+			return PurchaseFlowResult.Failed("Billing not ready")
 		}
 
 		val query = QueryProductDetailsParams.newBuilder()
@@ -167,21 +170,37 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 				productId,
 				result.billingResult.responseCode,
 			)
-			return
+			return PurchaseFlowResult.Started
 		}
 
 		val productDetails = result.productDetailsList?.firstOrNull()
 		if (productDetails == null) {
 			Timber.tag(TAG).w("PurchaseFlowNoProductDetails productId=%s", productId)
-			return
+			return PurchaseFlowResult.Failed("No product details for $productId")
 		}
 
-		val offer = productDetails.subscriptionOfferDetails
-			?.firstOrNull { offer -> offer.pricingPhases.pricingPhaseList.isNotEmpty() }
-			?: run {
-				Timber.tag(TAG).w("PurchaseFlowNoOffer productId=%s", productId)
-				return
+		val offers = productDetails.subscriptionOfferDetails
+			?.filter { offer -> offer.pricingPhases.pricingPhaseList.isNotEmpty() }
+			?.map { offer ->
+				SubscriptionOffer(
+					offerToken = offer.offerToken,
+					offerId = offer.offerId,
+					hasFreePhase = offer.pricingPhases.pricingPhaseList.any { it.priceAmountMicros == 0L },
+				)
 			}
+			?: emptyList()
+
+		val offer = SubscriptionOfferSelector.select(offers, trialEligible) ?: run {
+			Timber.tag(TAG).w("PurchaseFlowNoBasePlan productId=%s trialEligible=%b offers=%d", productId, trialEligible, offers.size)
+			return PurchaseFlowResult.Failed("No base plan for $productId")
+		}
+
+		Timber.tag(TAG).i(
+			"PurchaseFlowOfferSelected productId=%s trial=%b offerId=%s",
+			productId,
+			offer.isTrial,
+			offer.offerId,
+		)
 
 		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
 			.setProductDetails(productDetails)
@@ -205,6 +224,7 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 				launchResult.responseCode,
 			)
 		}
+		return PurchaseFlowResult.Started
 	}
 
 	override fun endConnection() {

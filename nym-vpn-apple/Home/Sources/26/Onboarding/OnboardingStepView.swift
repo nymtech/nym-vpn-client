@@ -40,6 +40,12 @@ struct OnboardingStepView: View {
             }
         }
         .frame(maxWidth: .infinity)
+        #if os(iOS)
+        .task {
+            guard step == .plan else { return }
+            await purchasesManager.refreshTrialEligibility()
+        }
+        #endif
     }
 }
 

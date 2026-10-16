@@ -52,6 +52,16 @@ pub struct ApplyFreepassRequestBody {
     pub code: String,
 }
 
+/// Body of `POST account/{id}/subscription/apple/intro-offer-eligibility`.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppleIntroOfferEligibilityRequestBody {
+    /// Store product id of the subscription being purchased.
+    pub product_id: String,
+    /// The customer's `appTransactionID`, or any transaction id that belongs to them.
+    pub transaction_id: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateSubscriptionInvoicesRequestBody {
     pub subscription: String,

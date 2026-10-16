@@ -50,6 +50,19 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         CommonCommand::GetAccountSummary(result_tx) => {
             result_tx.send(handle_get_account_summary(shared_state).await);
         }
+        CommonCommand::IsTrialEligible(result_tx) => {
+            result_tx.send(handle_is_trial_eligible(shared_state).await);
+        }
+        CommonCommand::CheckAppleIntroOfferEligibility(result_tx, product_id, transaction_id) => {
+            result_tx.send(
+                handle_check_apple_intro_offer_eligibility(
+                    shared_state,
+                    product_id,
+                    transaction_id,
+                )
+                .await,
+            );
+        }
         CommonCommand::GetDeeplink(result_tx, params) => {
             result_tx.send(handle_get_deeplink(shared_state, params).await)
         }
@@ -186,6 +199,76 @@ pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
     Ok(shared_state.vpn_account_summary.clone())
+}
+
+async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<bool, AccountCommandError> {
+    let account = shared_state
+        .vpn_api_account
+        .as_ref()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+
+    let eligible = shared_state
+        .vpn_api_client
+        .get_active_subscriptions(account)
+        .await
+        .map(|response| {
+            tracing::debug!("Trial eligibility (raw: {:?})", response.trial_eligible);
+            response.trial_eligible == Some(true)
+        })
+        .or_else(|err| {
+            // A brand-new account is registered only after its first purchase, so the API does
+            // not know it yet. No account means no history, which makes it eligible.
+            if err.is_account_not_found() {
+                tracing::debug!("Trial eligibility: account not registered yet");
+                Ok(true)
+            } else {
+                Err(err)
+            }
+        })?;
+
+    tracing::debug!("Trial eligible: {eligible}");
+    Ok(eligible)
+}
+
+/// The denying Apple introductory-offer token, or `None` when the account may be offered a free
+/// trial and Apple's own rule decides.
+async fn handle_check_apple_intro_offer_eligibility<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    product_id: String,
+    transaction_id: String,
+) -> Result<Option<String>, AccountCommandError> {
+    let account = shared_state
+        .vpn_api_account
+        .as_ref()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+
+    let compact_jws = shared_state
+        .vpn_api_client
+        .check_apple_intro_offer_eligibility(account, product_id, transaction_id)
+        .await
+        .map(|response| response.compact_jws)
+        .or_else(|err| {
+            // An account the API has never seen has no history, so it is eligible and gets no
+            // denying token.
+            if err.is_account_not_found() {
+                tracing::debug!("Apple intro offer eligibility: account not registered yet");
+                Ok(None)
+            } else {
+                Err(err)
+            }
+        })?;
+
+    tracing::debug!(
+        "Apple intro offer eligibility: denying token {}",
+        if compact_jws.is_some() {
+            "present"
+        } else {
+            "absent"
+        }
+    );
+    Ok(compact_jws)
 }
 
 pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(

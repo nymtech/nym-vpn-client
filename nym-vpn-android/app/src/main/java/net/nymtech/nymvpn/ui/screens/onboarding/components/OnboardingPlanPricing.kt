@@ -7,11 +7,15 @@ import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Currency
 
+/** [freeTrialDays] is set only when the account is eligible AND Play offers a yearly trial. */
 data class OnboardingPlanPricing(val monthlyEquivalentPrice: String, val savingsPercent: String?, val freeTrialDays: Int?) {
 	companion object {
-		val FALLBACK = OnboardingPlanPricing(monthlyEquivalentPrice = "$8.26", savingsPercent = "65%", freeTrialDays = 7)
+		/** No trial: without Play data eligibility can't be matched to an offer. */
+		val FALLBACK = OnboardingPlanPricing(monthlyEquivalentPrice = "$8.26", savingsPercent = "65%", freeTrialDays = null)
 
-		fun from(products: List<ProductData>): OnboardingPlanPricing? {
+		fun resolve(products: List<ProductData>, trialEligible: Boolean): OnboardingPlanPricing = from(products, trialEligible) ?: FALLBACK
+
+		fun from(products: List<ProductData>, trialEligible: Boolean): OnboardingPlanPricing? {
 			val yearly = products.firstOrNull { it.id == ProductId.Yearly.value } ?: return null
 			val yearlyMicros = yearly.priceAmountMicros ?: return null
 			val currencyCode = yearly.priceCurrencyCode ?: return null
@@ -38,7 +42,7 @@ data class OnboardingPlanPricing(val monthlyEquivalentPrice: String, val savings
 			return OnboardingPlanPricing(
 				monthlyEquivalentPrice = formatter.format(monthlyEquivalent),
 				savingsPercent = savingsPercent,
-				freeTrialDays = yearly.freeTrialDays,
+				freeTrialDays = yearly.freeTrialDays.takeIf { trialEligible },
 			)
 		}
 

@@ -315,13 +315,11 @@
 	<string name="onboarding_plan_try_suffix">, без жодних зобов’язань.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Виберіть свій \nплан підписки</string>
-	<string name="select_plan_line_0">7 днів безкоштовно</string>
 	<string name="select_plan_line_1">Всі функції включені</string>
 	<string name="select_plan_line_2">Без реклами</string>
 	<string name="select_plan_line_3">Скасування будь-коли</string>
 	<string name="select_plan_button">Виберіть мій план NymVPN</string>
 	<string name="select_plan_modal_title">Виберіть свій план. Всі функції, скасувати в будь-який час.</string>
-	<string name="select_plan_modal_free_trial">7-денний безкоштовний пробний період починається сьогодні</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Деталі сервера</string>
 	<string name="details_features_title">Функції вузла</string>

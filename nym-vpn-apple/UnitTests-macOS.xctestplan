@@ -38,6 +38,13 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Services",
+        "identifier" : "PurchasesManagerTests",
+        "name" : "PurchasesManagerTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:ServicesMacOS",
         "identifier" : "AppDiscoveryServiceTests",
         "name" : "AppDiscoveryServiceTests"

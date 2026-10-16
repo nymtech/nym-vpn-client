@@ -323,7 +323,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Payment> {
 									val args = runCatching { it.toRoute<Route.Payment>() }.getOrNull()
 									if (args != null) {
-										PaymentScreen(appState, args.productId)
+										PaymentScreen(appState, args.productId, args.trialEligible)
 									} else {
 										LaunchedEffect(Unit) {
 											Timber.e("Failed to parse Route.Payment arguments")

@@ -311,13 +311,11 @@
 	<string name="onboarding_plan_try_suffix">, कोई प्रतिबद्धता नहीं।</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">अपना \nसब्स्क्रिप्शन प्लान चुनें</string>
-	<string name="select_plan_line_0">7 दिन का मुफ़्त ट्रायल</string>
 	<string name="select_plan_line_1">सभी सुविधाएँ शामिल हैं</string>
 	<string name="select_plan_line_2">कोई विज्ञापन नहीं</string>
 	<string name="select_plan_line_3">किसी भी समय रद्द करें</string>
 	<string name="select_plan_button">अपना NymVPN प्लान चुनें</string>
 	<string name="select_plan_modal_title">अपना प्लान चुनें। सभी सुविधाओं का लाभ उठाएं, कभी भी कैन्सल करें।</string>
-	<string name="select_plan_modal_free_trial">आज से 7 दिन का मुफ़्त ट्रायल शुरू हो रहा है</string>
 	<!-- Server Details screen -->
 	<string name="details_title">सर्वर विवरण</string>
 	<string name="details_features_title">नोड सुविधाएँ</string>

@@ -330,13 +330,19 @@
 	<string name="onboarding_plan_try_suffix">, no commitment.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nsubscription plan</string>
-	<string name="select_plan_line_0">7-day free trial</string>
 	<string name="select_plan_line_1">All features included</string>
 	<string name="select_plan_line_2">No ads</string>
 	<string name="select_plan_line_3">Cancel anytime</string>
 	<string name="select_plan_button">Choose my NymVPN plan</string>
 	<string name="select_plan_modal_title">Choose your plan. All features, cancel anytime.</string>
-	<string name="select_plan_modal_free_trial">7-day free trial starts today</string>
+	<plurals name="select_plan_free_trial_days">
+		<item quantity="one">%1$d-day free trial</item>
+		<item quantity="other">%1$d-day free trial</item>
+	</plurals>
+	<plurals name="select_plan_modal_free_trial_days">
+		<item quantity="one">%1$d-day free trial starts today</item>
+		<item quantity="other">%1$d-day free trial starts today</item>
+	</plurals>
 	<!-- Server Details screen -->
 	<string name="details_title">Server details</string>
 	<string name="details_features_title">Node features</string>

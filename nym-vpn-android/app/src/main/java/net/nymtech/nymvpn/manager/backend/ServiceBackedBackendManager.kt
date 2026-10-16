@@ -47,6 +47,7 @@ import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 
 @Singleton
 class ServiceBackedBackendManager @Inject constructor(
@@ -290,6 +291,15 @@ class ServiceBackedBackendManager @Inject constructor(
 	override suspend fun getAccountMode(): StoredAccountMode? = serviceConnectionManager.withApi { it.getAccountMode() }
 
 	override suspend fun getAccountSummary(): VpnAccountSummary? = serviceConnectionManager.withApi { it.getAccountSummary() }
+
+	override suspend fun isTrialEligible(): Boolean = try {
+		serviceConnectionManager.withApi { it.isTrialEligible() }
+	} catch (e: CancellationException) {
+		throw e
+	} catch (e: Exception) {
+		Timber.tag(TAG).w(e, "isTrialEligible failed")
+		false
+	}
 
 	override suspend fun runDiagnostic(): String? = serviceConnectionManager.withApi { it.runDiagnostic() }
 
