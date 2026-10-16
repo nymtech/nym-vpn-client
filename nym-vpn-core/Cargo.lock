@@ -7172,7 +7172,7 @@ dependencies = [
 
 [[package]]
 name = "nym-secure-enclave"
-version = "2026.14.0-beta.1"
+version = "2026.15.0-beta.1"
 dependencies = [
  "async-trait",
  "futures-util",
