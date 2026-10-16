@@ -1160,6 +1160,26 @@ impl VpndClient {
         }
     }
 
+    /// Remove every app from split tunneling
+    #[instrument(skip_all)]
+    #[allow(unused_variables, unused_mut)]
+    pub async fn clear_split_tunnel_apps(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.clear_split_tunnel_apps()
+                .or_else(async |e| self.handle_rpc_error("clear_split_tunnel_apps", e).await)
+                .await
+        }
+
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            warn!("Split tunnel clearing can only be used on Windows");
+            Ok(())
+        }
+    }
+
     #[instrument(skip_all)]
     pub async fn is_split_tunnel_supported(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
