@@ -120,7 +120,7 @@ impl fmt::Display for PairingEvent {
 }
 
 /// The out of band result of doing background checks on the started QR pairing process.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
     feature = "typescript-bindings",
@@ -136,6 +136,21 @@ pub enum PairingResult {
     Error(String),
     PinCode(String),
     Mnemonic(String),
+}
+
+impl fmt::Debug for PairingResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Cancelled => f.write_str("Cancelled"),
+            Self::TimedOut => f.write_str("TimedOut"),
+            Self::Error(err) => f.debug_tuple("Error").field(err).finish(),
+            Self::PinCode(pin_code) => f.debug_tuple("PinCode").field(pin_code).finish(),
+            Self::Mnemonic(_) => f
+                .debug_tuple("Mnemonic")
+                .field(&format_args!("<redacted>"))
+                .finish(),
+        }
+    }
 }
 
 impl fmt::Display for PairingResult {
