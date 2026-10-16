@@ -12,10 +12,12 @@
     "longDescription": "NymVPN is a decentralized, mixnet hardened and privacy focused VPN.\n .\n Note: this is a client application and is intended to be used with\n the daemon service nym-vpnd.\n",
     "windows": {
       "nsis": {
-        "template": "./bundle/windows/installer.nsi",
+        "installerHooks": "./bundle/windows/hooks.nsh",
         "installMode": "perMachine",
         "installerIcon": "icons/nsis_icon.ico",
+        "uninstallerIcon": "icons/nsis_icon.ico",
         "headerImage": "icons/nsis_header.bmp",
+        "uninstallerHeaderImage": "icons/nsis_header.bmp",
         "sidebarImage": "icons/nsis_sidebar.bmp"
       },
       "signCommand": {
