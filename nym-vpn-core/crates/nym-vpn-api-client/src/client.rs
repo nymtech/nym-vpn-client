@@ -1631,4 +1631,112 @@ mod tests {
         assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
         assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
     }
+
+    fn endpoint_failure(error: &str, headers: HeaderMap) -> HttpClientError {
+        HttpClientError::EndpointFailure {
+            url: Box::new(
+                nym_http_api_client::reqwest::Url::parse("https://nymvpn.test/api/").unwrap(),
+            ),
+            status: nym_http_api_client::reqwest::StatusCode::UNAUTHORIZED,
+            headers: Box::new(headers),
+            error: error.to_owned(),
+        }
+    }
+
+    fn endpoint_failure_message(err: &HttpClientError) -> &str {
+        match err {
+            HttpClientError::EndpointFailure { error, .. } => error,
+            other => panic!("expected endpoint failure, got {other}"),
+        }
+    }
+
+    // Runs `execute_with_jwt_retry` with a query answering with `responses` in order. Returns the
+    // result along with the skew (in whole hours) of the remote time override passed to each
+    // attempt, or `None` when the attempt used local time.
+    async fn run_with_jwt_retry(
+        client: &VpnApiClient,
+        responses: Vec<Result<String, HttpClientError>>,
+    ) -> (Result<String, HttpClientError>, Vec<Option<i64>>) {
+        let mut responses = responses.into_iter();
+        let mut attempts = Vec::new();
+
+        let result = client
+            .execute_with_jwt_retry(|remote_time| {
+                attempts.push(remote_time.map(|time| time.local_time_ahead_skew().whole_hours()));
+                let response = responses.next().expect("unexpected query attempt");
+                async move { response }
+            })
+            .await;
+
+        (result, attempts)
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_succeeds_without_retry() {
+        let (client, remote_calls) = test_client(device_time());
+
+        let (result, attempts) = run_with_jwt_retry(&client, vec![Ok("ok".to_owned())]).await;
+
+        assert_eq!(result.unwrap(), "ok");
+        assert_eq!(attempts, vec![None]);
+        // Cold skew cache is filled once before the first attempt
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_does_not_retry_non_jwt_error() {
+        let (client, remote_calls) = test_client(device_time());
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let (result, attempts) = run_with_jwt_retry(
+            &client,
+            vec![Err(endpoint_failure("internal server error", headers))],
+        )
+        .await;
+
+        let err = result.unwrap_err();
+        assert_eq!(endpoint_failure_message(&err), "internal server error");
+        assert_eq!(attempts, vec![None]);
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_retries_jwt_error_with_remote_time() {
+        let (client, remote_calls) = test_client(device_time());
+        // Remote time is 2 hours behind the device time
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let (result, attempts) = run_with_jwt_retry(
+            &client,
+            vec![
+                Err(endpoint_failure("JWT expired", headers)),
+                Ok("ok".to_owned()),
+            ],
+        )
+        .await;
+
+        assert_eq!(result.unwrap(), "ok");
+        assert_eq!(attempts, vec![None, Some(2)]);
+        // Skew for the retry is derived from the Date header, not a remote time request
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn jwt_retry_returns_initial_error_when_retry_fails() {
+        let (client, _remote_calls) = test_client(device_time());
+        let headers = headers_with_date("Thu, 16 Jul 2026 10:00:00 GMT");
+
+        let (result, attempts) = run_with_jwt_retry(
+            &client,
+            vec![
+                Err(endpoint_failure("JWT expired", headers)),
+                Err(endpoint_failure("retry failed", HeaderMap::new())),
+            ],
+        )
+        .await;
+
+        let err = result.unwrap_err();
+        assert_eq!(endpoint_failure_message(&err), "JWT expired");
+        assert_eq!(attempts, vec![None, Some(2)]);
+    }
 }
