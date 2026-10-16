@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -12,6 +12,11 @@ pub struct SystemConfiguration {
     pub wg_thresholds: ScoreThresholds,
     pub statistics_api: Option<Url>,
     pub min_supported_app_versions: Option<nym_vpn_api_client::NetworkCompatibility>,
+    // Absent on discovery caches written before these fields existed; empty means dismissible.
+    #[serde(default)]
+    pub app_update_policy: String,
+    #[serde(default)]
+    pub app_update_policies: HashMap<String, String>,
 }
 
 impl fmt::Display for SystemConfiguration {
@@ -29,4 +34,21 @@ pub struct ScoreThresholds {
     pub high: u8,
     pub medium: u8,
     pub low: u8,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SystemConfiguration;
+
+    #[test]
+    fn discovery_cache_without_update_policy_still_loads() {
+        let json = r#"{
+            "mix_thresholds": {"high": 75, "medium": 50, "low": 25},
+            "wg_thresholds": {"high": 75, "medium": 50, "low": 25},
+            "statistics_api": null,
+            "min_supported_app_versions": null
+        }"#;
+        let parsed: SystemConfiguration = serde_json::from_str(json).expect("old cache shape");
+        assert!(parsed.app_update_policy.is_empty());
+    }
 }

@@ -1,7 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, fmt, net::IpAddr};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+    net::IpAddr,
+};
 
 use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
 use itertools::Itertools;
@@ -785,6 +789,11 @@ pub struct SystemConfigurationResponse {
     pub wg_thresholds: ScoreThresholdsResponse,
     pub statistics_api: Option<String>,
     pub min_supported_app_versions: Option<NetworkCompatibility>,
+    #[serde(default)]
+    pub app_update_policy: String,
+    // Per-platform overrides of `app_update_policy`, keyed by platform (android, ios, macos, tauri).
+    #[serde(default)]
+    pub app_update_policies: HashMap<String, String>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
