@@ -10,7 +10,9 @@ public struct WelcomeOptInsView: View {
     @AppStorage(AppSettingKey.statistics.rawValue)
     private var isStatisticsEnabled = true
 
-    // Goes through AppSettings so SentryManager sees the change without a relaunch.
+    @AppStorage(AppSettingKey.errorReporting.rawValue)
+    private var isErrorReportingOn = false
+
     @EnvironmentObject private var appSettings: AppSettings
 
     private let onContinue: () -> Void
@@ -32,6 +34,10 @@ public struct WelcomeOptInsView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
+        // SentryManager observes this publisher; AppStorage alone would not reach it until relaunch.
+        .onChange(of: isErrorReportingOn) {
+            appSettings.isErrorReportingOnPublisher = isErrorReportingOn
+        }
     }
 }
 
@@ -69,7 +75,7 @@ private extension WelcomeOptInsView {
                 title: "welcomeOptIns.error.title".localizedString,
                 linkTitle: "welcomeOptIns.error.link".localizedString,
                 linkURL: URL(string: Constants.sentryURL.rawValue),
-                isOn: $appSettings.isErrorReportingOn
+                isOn: $isErrorReportingOn
             )
         }
     }
