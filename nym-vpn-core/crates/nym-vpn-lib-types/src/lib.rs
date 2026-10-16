@@ -114,7 +114,8 @@ pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5Sta
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 pub use tunnel_event::{
     BandwidthEvent, ConflictDetected, ConnectionEvent, ConnectionStatisticsEvent,
-    DiagnosticsSuggestionReason, MixnetEvent, PairingResult, SphinxPacketRates, TunnelEvent,
+    DiagnosticsSuggestionReason, MixnetEvent, PairingEvent, PairingResult, SphinxPacketRates,
+    TunnelEvent,
 };
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
 pub use user_agent::UserAgent;
