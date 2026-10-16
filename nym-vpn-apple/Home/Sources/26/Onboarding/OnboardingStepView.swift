@@ -43,7 +43,7 @@ struct OnboardingStepView: View {
         #if os(iOS)
         .task {
             guard step == .plan else { return }
-            await purchasesManager.refreshNymTrialEligibility()
+            await purchasesManager.refreshTrialEligibility()
         }
         #endif
     }

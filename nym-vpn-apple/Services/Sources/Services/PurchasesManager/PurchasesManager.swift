@@ -26,10 +26,13 @@ public enum PurchaseOutcome: Equatable, Sendable {
     private var productsLoaded = false
     private var updates: Task<Void, Never>?
     private var nymTrialEligibilityGeneration = 0
+    private var introOfferEligibilityGeneration = 0
 
     @Published public var products: [Product] = []
     /// StoreKit's verdict only. Trial labels must go through `freeTrialVisibility(for:)`.
     @Published public var isEligibleForIntroOffer: [String] = []
+    /// While true, `isEligibleForIntroOffer` may be stale: the Apple ID can have used up its trial since.
+    @Published public private(set) var isRefreshingIntroOfferEligibility = false
     @Published public var isAutoRenewEnabled = false
     /// The Nym account's verdict, read when the plan screen appears. Never persisted.
     @Published public private(set) var nymTrialEligibility: NymTrialEligibility = .unknown
@@ -74,6 +77,7 @@ public enum PurchaseOutcome: Equatable, Sendable {
     public var anyPlanFreeTrialVisibility: FreeTrialLabelVisibility {
         FreeTrialLabelPolicy.visibility(
             isStoreKitEligible: !isEligibleForIntroOffer.isEmpty,
+            isStoreKitRefreshing: isRefreshingIntroOfferEligibility,
             nymEligibility: nymTrialEligibility
         )
     }
@@ -95,7 +99,7 @@ public enum PurchaseOutcome: Equatable, Sendable {
             guard !fetched.isEmpty else { return }
             products = fetched
             productsLoaded = true
-            await fetchIntroOfferEligibility()
+            await refreshIntroOfferEligibility()
         } catch {
             print(error)
             throw error
@@ -105,8 +109,17 @@ public enum PurchaseOutcome: Equatable, Sendable {
     public func freeTrialVisibility(for productId: String) -> FreeTrialLabelVisibility {
         FreeTrialLabelPolicy.visibility(
             isStoreKitEligible: isEligibleForIntroOffer.contains(productId),
+            isStoreKitRefreshing: isRefreshingIntroOfferEligibility,
             nymEligibility: nymTrialEligibility
         )
+    }
+
+    /// Call when a plan screen appears: StoreKit's verdict follows the Apple ID, which may have used up
+    /// its trial under another Nym account since the last read.
+    public func refreshTrialEligibility() async {
+        async let introOfferRefresh: Void = refreshIntroOfferEligibility()
+        await refreshNymTrialEligibility()
+        await introOfferRefresh
     }
 
     public func refreshNymTrialEligibility() async {
@@ -128,19 +141,23 @@ public enum PurchaseOutcome: Equatable, Sendable {
         let options = IntroOfferEligibilityResolver.purchaseOptions(accountToken: accountToken, decision: decision)
         let result = try await product.purchase(options: options)
 
+        let outcome: PurchaseOutcome
         switch result {
         case let .success(.verified(transaction)):
             await transaction.finish()
-            return .success
+            outcome = .success
         case .success(.unverified):
-            return .failed
+            outcome = .failed
         case .pending:
-            return .pending
+            outcome = .pending
         case .userCancelled:
             return .userCancelled
         @unknown default:
-            return .failed
+            outcome = .failed
         }
+        // Apple may have used up the trial; the outcome does not wait for the re-check.
+        Task { await refreshIntroOfferEligibility() }
+        return outcome
     }
 
     public func restorePurchases() async throws {
@@ -161,6 +178,8 @@ public enum PurchaseOutcome: Equatable, Sendable {
         productsLoaded = false
         products = []
         isEligibleForIntroOffer = []
+        introOfferEligibilityGeneration += 1
+        isRefreshingIntroOfferEligibility = false
         nymTrialEligibility = .unknown
 #if SANTA
         try? await AppStore.sync()
@@ -210,6 +229,7 @@ private extension PurchasesManager {
         Task(priority: .background) { [weak self] in
             for await _ in Transaction.updates {
                 await self?.updateAutoRenewStatus()
+                await self?.refreshIntroOfferEligibility()
             }
         }
     }
@@ -242,9 +262,12 @@ private extension PurchasesManager {
         return appTransaction.appTransactionID
     }
 
-    func fetchIntroOfferEligibility() async {
-        var eligible: [String] = []
+    func refreshIntroOfferEligibility() async {
+        introOfferEligibilityGeneration += 1
+        let generation = introOfferEligibilityGeneration
+        isRefreshingIntroOfferEligibility = true
 
+        var eligible: [String] = []
         for plan in products {
             guard let subscription = plan.subscription else { continue }
 
@@ -253,8 +276,9 @@ private extension PurchasesManager {
             }
         }
 
-        await MainActor.run {
-            self.isEligibleForIntroOffer = eligible
-        }
+        // A newer refresh replaced this one; don't overwrite its answer.
+        guard generation == introOfferEligibilityGeneration else { return }
+        isEligibleForIntroOffer = eligible
+        isRefreshingIntroOfferEligibility = false
     }
 }
