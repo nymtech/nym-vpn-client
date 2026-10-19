@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.account.plan
 
 import android.content.res.Configuration
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +51,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.TrialEligibility
+import net.nymtech.nymvpn.manager.billing.isEligible
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -91,6 +97,9 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 
 	SelectPlanScreen(
 		products = uiState.subscriptions,
+		trialEligibility = uiState.trialEligibility,
+		benefitsResolved = uiState.benefitsResolved,
+		benefitsTrialDays = uiState.benefitsTrialDays,
 		showSheet = showSheet,
 		onSelectPlanButtonClick = {
 			if (viewModel.isBillingAvailable()) {
@@ -103,7 +112,7 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 		onDismissSheet = { showSheet = false },
 		onSelectSubscription = { product ->
 			showSheet = false
-			navController.navigate(Route.Payment(product.id))
+			navController.navigate(Route.Payment(product.id, trialEligible = uiState.trialEligibility.isEligible))
 		},
 	)
 }
@@ -133,6 +142,9 @@ private fun FilledProgressBar4(modifier: Modifier = Modifier) {
 @Composable
 fun SelectPlanScreen(
 	products: List<ProductData> = emptyList(),
+	trialEligibility: TrialEligibility,
+	benefitsResolved: Boolean,
+	benefitsTrialDays: Int?,
 	showSheet: Boolean = false,
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
@@ -151,97 +163,22 @@ fun SelectPlanScreen(
 			modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
 		)
 
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+		// Shown once resolved: the block is centred, so a late trial row would shift the icon and title.
+		Box(
+			contentAlignment = Alignment.Center,
 			modifier = Modifier
 				.padding(vertical = 24.dp.scaledHeight())
 				.weight(1f),
 		) {
-			val nymColors = LocalNymColors.current
-			Box(
-				modifier = Modifier
-					.border(width = 1.dp, color = nymColors.iconBorder, shape = RoundedCornerShape(size = 8.dp))
-					.background(color = nymColors.iconBackground, shape = RoundedCornerShape(size = 8.dp))
-					.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
-				contentAlignment = Alignment.Center,
-			) {
-				Image(
-					painter = rememberVectorPainter(Icons.Rounded.Check),
-					contentDescription = null,
-					modifier = Modifier
-						.clip(CircleShape)
-						.background(MaterialTheme.colorScheme.primary)
-						.size(40.dp)
-						.padding(4.dp),
+			if (!benefitsResolved) {
+				CircularProgressIndicator(
+					modifier = Modifier.size(24.dp),
+					strokeWidth = 2.dp,
 				)
 			}
-			Text(
-				text = stringResource(R.string.select_plan_title),
-				style = MaterialTheme.typography.headlineSmall,
-				color = MaterialTheme.colorScheme.onPrimaryContainer,
-			)
-
-			Column(
-				verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
-				modifier = Modifier.padding(horizontal = 52.dp).fillMaxWidth(),
-			) {
-				Row {
-					Icon(
-						imageVector = ImageVector.vectorResource(R.drawable.ic_gift),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(16.dp),
-					)
-					Spacer(Modifier.width(8.dp))
-					Text(
-						text = stringResource(R.string.select_plan_line_0),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				}
-				Row {
-					Icon(
-						painter = rememberVectorPainter(Icons.Filled.VerifiedUser),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(16.dp),
-					)
-					Spacer(Modifier.width(8.dp))
-					Text(
-						text = stringResource(R.string.select_plan_line_1),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				}
-				Row {
-					Icon(
-						painter = rememberVectorPainter(Icons.Filled.Campaign),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(16.dp),
-					)
-					Spacer(Modifier.width(8.dp))
-					Text(
-						text = stringResource(R.string.select_plan_line_2),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				}
-				Row {
-					Icon(
-						painter = painterResource(R.drawable.ic_chat_error),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(16.dp),
-					)
-					Spacer(Modifier.width(8.dp))
-					Text(
-						text = stringResource(R.string.select_plan_line_3),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				}
+			// Fully qualified to avoid the ColumnScope overload.
+			androidx.compose.animation.AnimatedVisibility(visible = benefitsResolved, enter = fadeIn(), exit = ExitTransition.None) {
+				SelectPlanBenefits(trialDays = benefitsTrialDays)
 			}
 		}
 		Column(
@@ -268,9 +205,106 @@ fun SelectPlanScreen(
 	if (showSheet && products.isNotEmpty()) {
 		SubscriptionBottomSheet(
 			products = products,
+			trialEligibility = trialEligibility,
 			onDismiss = onDismissSheet,
 			onSelect = onSelectSubscription,
 		)
+	}
+}
+
+@Composable
+private fun SelectPlanBenefits(trialDays: Int?) {
+	Column(
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+	) {
+		val nymColors = LocalNymColors.current
+		Box(
+			modifier = Modifier
+				.border(width = 1.dp, color = nymColors.iconBorder, shape = RoundedCornerShape(size = 8.dp))
+				.background(color = nymColors.iconBackground, shape = RoundedCornerShape(size = 8.dp))
+				.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+			contentAlignment = Alignment.Center,
+		) {
+			Image(
+				painter = rememberVectorPainter(Icons.Rounded.Check),
+				contentDescription = null,
+				modifier = Modifier
+					.clip(CircleShape)
+					.background(MaterialTheme.colorScheme.primary)
+					.size(40.dp)
+					.padding(4.dp),
+			)
+		}
+		Text(
+			text = stringResource(R.string.select_plan_title),
+			style = MaterialTheme.typography.headlineSmall,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
+		)
+
+		Column(
+			verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
+			modifier = Modifier.padding(horizontal = 52.dp).fillMaxWidth(),
+		) {
+			if (trialDays != null) {
+				Row {
+					Icon(
+						imageVector = ImageVector.vectorResource(R.drawable.ic_gift),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(16.dp),
+					)
+					Spacer(Modifier.width(8.dp))
+					Text(
+						text = pluralStringResource(R.plurals.select_plan_free_trial_days, trialDays, trialDays),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				}
+			}
+			Row {
+				Icon(
+					painter = rememberVectorPainter(Icons.Filled.VerifiedUser),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(16.dp),
+				)
+				Spacer(Modifier.width(8.dp))
+				Text(
+					text = stringResource(R.string.select_plan_line_1),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+				)
+			}
+			Row {
+				Icon(
+					painter = rememberVectorPainter(Icons.Filled.Campaign),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(16.dp),
+				)
+				Spacer(Modifier.width(8.dp))
+				Text(
+					text = stringResource(R.string.select_plan_line_2),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+				)
+			}
+			Row {
+				Icon(
+					painter = painterResource(R.drawable.ic_chat_error),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.primary,
+					modifier = Modifier.size(16.dp),
+				)
+				Spacer(Modifier.width(8.dp))
+				Text(
+					text = stringResource(R.string.select_plan_line_3),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+				)
+			}
+		}
 	}
 }
 
@@ -296,6 +330,14 @@ internal fun PreviewSelectPlanScreen() {
 				override val priceCurrencyCode = null
 			},
 		)
-		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
+		SelectPlanScreen(
+			products = mockProducts,
+			trialEligibility = TrialEligibility.Resolved(eligible = true),
+			benefitsResolved = true,
+			benefitsTrialDays = 7,
+			onSelectPlanButtonClick = {},
+			onSelectSubscription = {},
+			onDismissSheet = {},
+		)
 	}
 }

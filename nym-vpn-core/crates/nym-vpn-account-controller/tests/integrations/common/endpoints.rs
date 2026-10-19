@@ -8,7 +8,7 @@ use nym_vpn_api_client::response::{
 use time::OffsetDateTime;
 use wiremock::{
     Mock, ResponseTemplate,
-    matchers::{method, path, path_regex},
+    matchers::{body_json, method, path, path_regex},
 };
 
 use crate::common::{
@@ -110,6 +110,50 @@ pub fn confirm_zk_nym_download_by_id_200(credential_proxy: MockCredentialProxy) 
             "^/public/v1/account/{ACCOUNT_REGEX}/device/{DEVICE_REGEX}/zknym/{ZK_NYM_REGEX}$",
         )))
         .respond_with(credential_proxy.confirm_zk_nym_download_by_id_200())
+}
+
+// Active subscription endpoint, used for trial eligibility. The body is passed as raw JSON on
+// purpose: the real API never sends a remaining allowance field, and serializing the Rust
+// response type would hide that.
+
+pub fn active_subscription_200_raw(body: &'static str) -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/subscription/active$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(body, "application/json"))
+}
+
+pub fn active_subscription_403(error_response: NymErrorResponse) -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/subscription/active$"
+        )))
+        .respond_with(ResponseTemplate::new(403).set_body_json(error_response))
+}
+
+// Apple introductory-offer eligibility endpoint. The 200 body is raw JSON so the test pins the
+// wire shape rather than the Rust type, and the mock also pins the request body, so a renamed or
+// missing claim fails the test.
+
+fn apple_intro_offer_eligibility() -> wiremock::MockBuilder {
+    Mock::given(method("POST")).and(path_regex(format!(
+        "^/public/v1/account/{ACCOUNT_REGEX}/subscription/apple/intro-offer-eligibility$"
+    )))
+}
+
+pub fn apple_intro_offer_eligibility_200_raw(
+    expected_request: serde_json::Value,
+    body: String,
+) -> Mock {
+    apple_intro_offer_eligibility()
+        .and(body_json(expected_request))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(body, "application/json"))
+}
+
+pub fn apple_intro_offer_eligibility_error(status: u16, error_response: NymErrorResponse) -> Mock {
+    apple_intro_offer_eligibility()
+        .respond_with(ResponseTemplate::new(status).set_body_json(error_response))
 }
 
 // Other

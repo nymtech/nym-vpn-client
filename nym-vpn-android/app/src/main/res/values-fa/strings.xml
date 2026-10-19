@@ -314,13 +314,11 @@
 	<string name="onboarding_plan_try_suffix">، بدون تعهد.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">طرح اشتراک\n خود را انتخاب کنید</string>
-	<string name="select_plan_line_0">آزمایش رایگان ۷ روزه</string>
 	<string name="select_plan_line_1">شامل همه ویژگی‌ها</string>
 	<string name="select_plan_line_2">بدون تبلیغات</string>
 	<string name="select_plan_line_3">هر زمان می‌توانید لغو کنید</string>
 	<string name="select_plan_button">بسته خرید NymVPN خود را انتخاب کنید</string>
 	<string name="select_plan_modal_title">طرح خود را انتخاب کنید. با تمام امکانات آن، می‌تونی هر زمان کنسل کنی.</string>
-	<string name="select_plan_modal_free_trial">۷-روز آزمایشی رایگان از امروز شروع می‌شود</string>
 	<!-- Server Details screen -->
 	<string name="details_title">جزئیات سرور</string>
 	<string name="details_features_title">ویژگی‌های گره</string>

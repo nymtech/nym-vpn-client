@@ -1,5 +1,6 @@
 import StoreKit
 import SwiftUI
+import Logging
 import AppSettings
 #if SANTA
 import ConfigurationManager
@@ -19,13 +20,22 @@ public enum PurchaseOutcome: Equatable, Sendable {
         static let yearly = "1_year_may_2025"
     }
 
+    private let logger = Logger(label: "PurchasesManager")
     private let productIds = [ProductId.monthly, ProductId.sixMonths, ProductId.yearly]
+    private let trialEligibilityProvider: NymTrialEligibilityProviding?
     private var productsLoaded = false
     private var updates: Task<Void, Never>?
+    private var nymTrialEligibilityGeneration = 0
+    private var introOfferEligibilityGeneration = 0
 
     @Published public var products: [Product] = []
+    /// StoreKit's verdict only. Trial labels must go through `freeTrialVisibility(for:)`.
     @Published public var isEligibleForIntroOffer: [String] = []
+    /// While true, `isEligibleForIntroOffer` may be stale: the Apple ID can have used up its trial since.
+    @Published public private(set) var isRefreshingIntroOfferEligibility = false
     @Published public var isAutoRenewEnabled = false
+    /// The Nym account's verdict, read when the plan screen appears. Never persisted.
+    @Published public private(set) var nymTrialEligibility: NymTrialEligibility = .unknown
 
     /// Yearly plan price divided by 12. Currency comes from the App Store storefront — it is what Apple
     /// charges and cannot be swapped — while number formatting follows the device locale.
@@ -45,10 +55,11 @@ public enum PurchaseOutcome: Equatable, Sendable {
         return rounded.formatted(.percent.precision(.fractionLength(0)))
     }
 
-    /// Localized free trial duration of the yearly plan, when the customer is still eligible for it.
+    /// Localized free trial duration of the yearly plan, unless its trial label is hidden.
+    /// Check `yearlyPlanFreeTrialVisibility`: while it is `.reserved` the text only keeps the layout stable.
     public var yearlyPlanFreeTrialPeriodText: String? {
         guard let yearlyProduct,
-              isEligibleForIntroOffer.contains(yearlyProduct.id),
+              freeTrialVisibility(for: yearlyProduct.id) != .hidden,
               let offer = yearlyProduct.subscription?.introductoryOffer,
               offer.price == 0
         else {
@@ -57,7 +68,24 @@ public enum PurchaseOutcome: Equatable, Sendable {
         return offer.period.formatted(yearlyProduct.subscriptionPeriodFormatStyle)
     }
 
-    public init() { setup() }
+    public var yearlyPlanFreeTrialVisibility: FreeTrialLabelVisibility {
+        guard let yearlyProduct else { return .hidden }
+        return freeTrialVisibility(for: yearlyProduct.id)
+    }
+
+    /// For copy that is not tied to one plan, such as the free trial benefit.
+    public var anyPlanFreeTrialVisibility: FreeTrialLabelVisibility {
+        FreeTrialLabelPolicy.visibility(
+            isStoreKitEligible: !isEligibleForIntroOffer.isEmpty,
+            isStoreKitRefreshing: isRefreshingIntroOfferEligibility,
+            nymEligibility: nymTrialEligibility
+        )
+    }
+
+    public init(trialEligibilityProvider: NymTrialEligibilityProviding? = nil) {
+        self.trialEligibilityProvider = trialEligibilityProvider
+        setup()
+    }
     deinit { updates?.cancel() }
 
     public func loadProducts() async throws {
@@ -71,30 +99,65 @@ public enum PurchaseOutcome: Equatable, Sendable {
             guard !fetched.isEmpty else { return }
             products = fetched
             productsLoaded = true
-            await fetchIntroOfferEligibility()
+            await refreshIntroOfferEligibility()
         } catch {
             print(error)
             throw error
         }
     }
 
+    public func freeTrialVisibility(for productId: String) -> FreeTrialLabelVisibility {
+        FreeTrialLabelPolicy.visibility(
+            isStoreKitEligible: isEligibleForIntroOffer.contains(productId),
+            isStoreKitRefreshing: isRefreshingIntroOfferEligibility,
+            nymEligibility: nymTrialEligibility
+        )
+    }
+
+    /// Call when a plan screen appears: StoreKit's verdict follows the Apple ID, which may have used up
+    /// its trial under another Nym account since the last read.
+    public func refreshTrialEligibility() async {
+        async let introOfferRefresh: Void = refreshIntroOfferEligibility()
+        await refreshNymTrialEligibility()
+        await introOfferRefresh
+    }
+
+    public func refreshNymTrialEligibility() async {
+        nymTrialEligibilityGeneration += 1
+        let generation = nymTrialEligibilityGeneration
+        nymTrialEligibility = .unknown
+
+        let isEligible = await trialEligibilityProvider?.isNymTrialEligible() ?? false
+        // A newer refresh replaced this one; don't overwrite its answer.
+        guard generation == nymTrialEligibilityGeneration else { return }
+        nymTrialEligibility = isEligible ? .eligible : .notEligible
+    }
+
     public func purchase(with product: Product, token: String) async throws -> PurchaseOutcome {
         guard let accountToken = UUID(uuidString: token) else { return .failed }
-        let result = try await product.purchase(options: [.appAccountToken(accountToken)])
+        // Asked right before the purchase and never cached: the token has no `exp`, Apple checks its age from `iat`.
+        let decision = await introOfferEligibilityDecision(for: product)
+        logger.debug("Intro offer eligibility: \(decision.logDescription)")
+        let options = IntroOfferEligibilityResolver.purchaseOptions(accountToken: accountToken, decision: decision)
+        let result = try await product.purchase(options: options)
 
+        let outcome: PurchaseOutcome
         switch result {
         case let .success(.verified(transaction)):
             await transaction.finish()
-            return .success
+            outcome = .success
         case .success(.unverified):
-            return .failed
+            outcome = .failed
         case .pending:
-            return .pending
+            outcome = .pending
         case .userCancelled:
             return .userCancelled
         @unknown default:
-            return .failed
+            outcome = .failed
         }
+        // Apple may have used up the trial; the outcome does not wait for the re-check.
+        Task { await refreshIntroOfferEligibility() }
+        return outcome
     }
 
     public func restorePurchases() async throws {
@@ -115,11 +178,15 @@ public enum PurchaseOutcome: Equatable, Sendable {
         productsLoaded = false
         products = []
         isEligibleForIntroOffer = []
+        introOfferEligibilityGeneration += 1
+        isRefreshingIntroOfferEligibility = false
+        nymTrialEligibility = .unknown
 #if SANTA
         try? await AppStore.sync()
 #endif
         try? await loadProducts()
         await updateAutoRenewStatus()
+        await refreshNymTrialEligibility()
     }
 
     public func updateAutoRenewStatus() async {
@@ -162,13 +229,45 @@ private extension PurchasesManager {
         Task(priority: .background) { [weak self] in
             for await _ in Transaction.updates {
                 await self?.updateAutoRenewStatus()
+                await self?.refreshIntroOfferEligibility()
             }
         }
     }
 
-    func fetchIntroOfferEligibility() async {
-        var eligible: [String] = []
+    /// Fail-open: any failure or timeout purchases without the option and lets Apple's own rule decide.
+    func introOfferEligibilityDecision(for product: Product) async -> IntroOfferEligibilityDecision {
+        guard let provider = trialEligibilityProvider else { return .noToken(.lookupsUnavailable) }
+        let productId = product.id
 
+        return await IntroOfferEligibilityResolver.withTimeout(
+            IntroOfferEligibilityResolver.timeout,
+            fallback: .noToken(.timedOut)
+        ) { @MainActor in
+            do {
+                return try await provider.withIntroOfferEligibilityLookups { lookups in
+                    await IntroOfferEligibilityResolver.decide(
+                        productId: productId,
+                        lookups: lookups,
+                        appTransactionID: PurchasesManager.verifiedAppTransactionID
+                    )
+                }
+            } catch {
+                return .noToken(.lookupsUnavailable)
+            }
+        }
+    }
+
+    nonisolated static func verifiedAppTransactionID() async throws -> String? {
+        guard case let .verified(appTransaction) = try await AppTransaction.shared else { return nil }
+        return appTransaction.appTransactionID
+    }
+
+    func refreshIntroOfferEligibility() async {
+        introOfferEligibilityGeneration += 1
+        let generation = introOfferEligibilityGeneration
+        isRefreshingIntroOfferEligibility = true
+
+        var eligible: [String] = []
         for plan in products {
             guard let subscription = plan.subscription else { continue }
 
@@ -177,8 +276,9 @@ private extension PurchasesManager {
             }
         }
 
-        await MainActor.run {
-            self.isEligibleForIntroOffer = eligible
-        }
+        // A newer refresh replaced this one; don't overwrite its answer.
+        guard generation == introOfferEligibilityGeneration else { return }
+        isEligibleForIntroOffer = eligible
+        isRefreshingIntroOfferEligibility = false
     }
 }

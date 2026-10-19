@@ -50,7 +50,7 @@ import nym_vpn_lib_types.AccountControllerState
 import timber.log.Timber
 
 @Composable
-fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
+fun PaymentScreen(appUiState: AppUiState, productId: String, trialEligible: Boolean, viewModel: PaymentViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val activity = context as? Activity
@@ -60,9 +60,9 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 	val accountState by viewModel.accountState.collectAsState()
 	val nextRoute by viewModel.nextRoute.collectAsState()
 
-	LaunchedEffect(activity, productId) {
+	LaunchedEffect(activity, productId, trialEligible) {
 		activity?.let {
-			viewModel.startPurchaseFlow(it, productId, userId)
+			viewModel.startPurchaseFlow(it, productId, userId, trialEligible)
 		}
 	}
 

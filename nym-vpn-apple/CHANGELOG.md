@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show an update alert on iOS and macOS when below the minimum supported version. A required update blocks new connections, including from the menu bar (https://github.com/nymtech/nym-vpn-client/pull/6453)
 
+### Changed
+
+- iOS: free trial offered only to eligible Nym accounts (https://github.com/nymtech/nym-vpn-client/pull/6701)
+
+
 ## [2026.13.0] - 2026-10-09
 
 ### Added

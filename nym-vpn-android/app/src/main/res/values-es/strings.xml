@@ -313,13 +313,11 @@
 	<string name="onboarding_plan_try_suffix">, sin compromiso.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Elige tu nivel \nde protección 🛡️</string>
-	<string name="select_plan_line_0">prueba gratuita de 7 días</string>
 	<string name="select_plan_line_1">Todas las características incluidas</string>
 	<string name="select_plan_line_2">Sin anuncios</string>
 	<string name="select_plan_line_3">Cancelar en cualquier momento</string>
 	<string name="select_plan_button">Elegir mi plan NymVPN</string>
 	<string name="select_plan_modal_title">Elija su plan NymVPN</string>
-	<string name="select_plan_modal_free_trial">Prueba gratis: 1 semana</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Detalles del servidor</string>
 	<string name="details_features_title">Características del nodo</string>

@@ -47,6 +47,9 @@ interface BackendManager {
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
 	suspend fun getAccountSummary(): VpnAccountSummary?
+
+	/** True when the backend says the account may get a free trial, or the account is not registered yet. Never cached. */
+	suspend fun isTrialEligible(): Boolean
 	suspend fun runDiagnostic(): String?
 	suspend fun getTentativeGateways(): TentativeGateways?
 	suspend fun setGatewayIndependenceEnabled(enabled: Boolean)
