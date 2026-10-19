@@ -1,0 +1,57 @@
+name: publish-nym-vpn-apple-metadata
+
+# Metadata-only: uploads the public App Store localized release notes for iOS and/or macOS via
+# `fastlane deliver` (skip_binary_upload). Does NOT upload a build — the binary still reaches
+# TestFlight via the existing app-store-connect publish step. Run on PUBLIC release, once the
+# build is on App Store Connect. Mirror of publish-nym-vpn-android-metadata.yml.
+#
+# NOTE: the App Store Connect secret names below are placeholders — map them to the repo's
+# existing App Store Connect API key secrets, and set `runs-on` to the repo's macOS runner label.
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Which app(s) to update"
+        type: choice
+        options: [ios, macos, both]
+        default: both
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        default: both
+    secrets:
+      ASC_KEY_ID:
+        required: true
+      ASC_ISSUER_ID:
+        required: true
+      ASC_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  upload-metadata:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: nym-vpn-apple
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY: ${{ secrets.ASC_KEY }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Install fastlane
+        run: brew install fastlane
+
+      - name: Upload iOS App Store release notes
+        if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
+        run: fastlane ios upload_metadata
+
+      - name: Upload macOS App Store release notes
+        if: ${{ inputs.platform == 'macos' || inputs.platform == 'both' }}
+        run: fastlane mac upload_metadata

@@ -1,0 +1,60 @@
+name: generate-store-changelog
+
+# Generates per-locale STORE release notes (Android Google Play + Apple App Store) for a
+# release and opens a PR for proofreading. Dispatch this ON the release branch you want the
+# PR opened against. workflow_dispatch-only for now (no automatic trigger).
+
+on:
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: 'GitHub milestone title (e.g. "v2026.14 - Xaubub")'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: arc-linux-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Author English store copy
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          MILESTONE: ${{ github.event.inputs.milestone }}
+        run: python scripts/store-changelog/author.py
+
+      - name: Translate + auto-fit
+        env:
+          DEEPL_AUTH_KEY: ${{ secrets.DEEPL_AUTH_KEY }}
+        run: python scripts/store-changelog/translate.py
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MILESTONE: ${{ github.event.inputs.milestone }}
+        run: |
+          set -euo pipefail
+          base="${GITHUB_REF_NAME}"
+          head="l10n/store-changelog-${base//\//-}"
+          git config user.name "nym-bot"
+          git config user.email "noreply@nymte.ch"
+          git switch -c "$head"
+          git add fastlane/metadata nym-vpn-apple/fastlane/metadata
+          git commit -m "store changelog: ${MILESTONE} (auto-generated, needs proofread)"
+          git push -f origin "$head"
+          gh pr create --base "$base" --head "$head" \
+            --title "Store changelog — ${MILESTONE} (needs proofread)" \
+            --label "needs-proofread" \
+            --body "Auto-generated store release notes (LLM-authored English + DeepL round-1). **Proofread before the beta ships.** Android files are <=500 chars; Apple release notes are uploaded on public release via \`fastlane deliver\`. English source lives in \`scripts/store-changelog/out/\` — edit and re-run \`translate.py\` to regenerate." \
+            || echo "PR already exists for $head"

@@ -1,0 +1,28 @@
+{
+  "android_char_limit": 500,
+  "version_code_source": "nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt",
+  "android_changelog_path": "fastlane/metadata/android/{android}/changelogs/{version_code}.txt",
+  "apple_release_notes_path": "nym-vpn-apple/fastlane/metadata/{apple}/release_notes.txt",
+  "source_locale": "en-US",
+  "locales": {
+    "en-US": { "deepl": null,       "android": "en-US", "apple": "en-US" },
+    "ar":    { "deepl": "AR",       "android": "ar",    "apple": "ar-SA" },
+    "bn-BD": { "deepl": "BN",       "android": "bn-BD", "apple": null, "note": "Bengali is not an App Store localization" },
+    "de-DE": { "deepl": "DE",       "android": "de-DE", "apple": "de-DE", "formality": "prefer_less" },
+    "es-ES": { "deepl": "ES",       "android": "es-ES", "apple": "es-ES" },
+    "fa":    { "deepl": "FA",       "android": "fa",    "apple": null, "note": "Persian is not an App Store localization" },
+    "fr-FR": { "deepl": "FR",       "android": "fr-FR", "apple": "fr-FR" },
+    "hi-IN": { "deepl": "HI",       "android": "hi-IN", "apple": "hi" },
+    "id":    { "deepl": "ID",       "android": "id",    "apple": "id" },
+    "it-IT": { "deepl": "IT",       "android": "it-IT", "apple": "it" },
+    "ja-JP": { "deepl": "JA",       "android": "ja-JP", "apple": "ja" },
+    "pt-BR": { "deepl": "PT-BR",    "android": "pt-BR", "apple": "pt-BR" },
+    "ru-RU": { "deepl": "RU",       "android": "ru-RU", "apple": "ru" },
+    "tr-TR": { "deepl": "TR",       "android": "tr-TR", "apple": "tr" },
+    "uk":    { "deepl": "UK",       "android": "uk",    "apple": "uk" },
+    "vi":    { "deepl": "VI",       "android": "vi",    "apple": "vi" },
+    "zh-CN": { "deepl": "ZH-HANS",  "android": "zh-CN", "apple": "zh-Hans" },
+    "zh-HK": { "deepl": "ZH-HANT",  "android": "zh-HK", "apple": null, "note": "App Store has no HK variant; zh-Hant covered by zh-TW. HK-term proofing recommended for Android." },
+    "zh-TW": { "deepl": "ZH-HANT",  "android": "zh-TW", "apple": "zh-Hant" }
+  }
+}
