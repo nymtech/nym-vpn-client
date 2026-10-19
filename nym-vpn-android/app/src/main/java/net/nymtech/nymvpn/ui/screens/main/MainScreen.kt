@@ -108,8 +108,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val appUpdateRequired = appUiState.managerState.appUpdateRequired
 	val tunnelUp = appUiState.managerState.tunnelState == Tunnel.State.Up
 	// A required update waits for an active connection to end, so Disconnect stays reachable.
-	LaunchedEffect(appUiState.managerState.isNetworkCompatible, appUpdateRequired && tunnelUp) {
-		showCompatibilityDialog = !appUiState.managerState.isNetworkCompatible && !compatibilityDismissed && !(appUpdateRequired && tunnelUp)
+	// A dismissed prompt never hides a required one.
+	LaunchedEffect(appUiState.managerState.isNetworkCompatible, appUpdateRequired, tunnelUp) {
+		showCompatibilityDialog = !appUiState.managerState.isNetworkCompatible &&
+			(appUpdateRequired || !compatibilityDismissed) &&
+			!(appUpdateRequired && tunnelUp)
 	}
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }

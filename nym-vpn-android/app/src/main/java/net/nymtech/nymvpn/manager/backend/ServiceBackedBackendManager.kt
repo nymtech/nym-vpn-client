@@ -124,7 +124,9 @@ class ServiceBackedBackendManager @Inject constructor(
 			overrides = versions?.appUpdatePolicies,
 		)
 		// A prompt the user dismissed stays away until the minimum version changes.
-		val dismissed = !decision.blockConnect && floor != null && settingsRepository.getDismissedUpdateFloor() == floor
+		val dismissed = !decision.blockConnect &&
+			floor != null &&
+			runCatching { settingsRepository.getDismissedUpdateFloor() }.getOrNull() == floor
 		_state.update {
 			it.copy(isNetworkCompatible = !decision.showDialog || dismissed, appUpdateRequired = decision.blockConnect, appUpdateFloor = floor)
 		}
