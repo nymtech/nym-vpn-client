@@ -11,11 +11,11 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AppCompatibility
 import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
-import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
@@ -62,7 +62,7 @@ interface VpnServiceApi {
 
 	suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways?
 
-	suspend fun getNetworkVersions(): NetworkCompatibility?
+	suspend fun getAppCompatibility(): AppCompatibility?
 	suspend fun getDeviceIdentity(): String?
 	suspend fun getAccountIdentity(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?

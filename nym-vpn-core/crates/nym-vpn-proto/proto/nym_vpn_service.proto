@@ -255,6 +255,8 @@ message GetSystemMessagesResponse {
 
 message GetNetworkCompatibilityResponse {
   optional NetworkCompatibility network_compatibility = 1;
+  string app_update_policy = 2;
+  map<string, string> app_update_policies = 3;
 }
 
 message GetFeatureFlagsResponse {

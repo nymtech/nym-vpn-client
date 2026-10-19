@@ -481,14 +481,11 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::GetNetworkCompatibilityResponse>> {
-        let network_compatibility = self
-            .send_and_wait(VpnServiceCommand::GetNetworkCompatibility, ())
+        let response = self
+            .send_and_wait(VpnServiceCommand::GetAppCompatibility, ())
             .await?
-            .map(proto::NetworkCompatibility::from);
-
-        let response = proto::GetNetworkCompatibilityResponse {
-            network_compatibility,
-        };
+            .map(proto::GetNetworkCompatibilityResponse::from)
+            .unwrap_or_default();
 
         Ok(tonic::Response::new(response))
     }

@@ -27,6 +27,9 @@ interface SettingsRepository {
 	suspend fun setBatteryDialogSkipped(skip: Boolean)
 	suspend fun isBatteryDialogSkipped(): Boolean
 
+	suspend fun getDismissedUpdateFloor(): String?
+	suspend fun setDismissedUpdateFloor(floor: String)
+
 	suspend fun getStatisticsEnabled(): Boolean
 	suspend fun migrateStatsConsent()
 	suspend fun setStatisticsEnabled(enabled: Boolean)

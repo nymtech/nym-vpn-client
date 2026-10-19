@@ -789,13 +789,13 @@ impl VpndClient {
     pub async fn network_compat(&self) -> Result<Option<NetworkCompatVersions>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let net_compat = vpnd
-            .get_network_compatibility()
-            .or_else(async |e| self.handle_rpc_error("get_network_compatibility", e).await)
+        let compat = vpnd
+            .get_app_compatibility()
+            .or_else(async |e| self.handle_rpc_error("get_app_compatibility", e).await)
             .await?;
 
-        debug!("network compat: {net_compat:?}");
-        Ok(net_compat.map(NetworkCompatVersions::from))
+        debug!("network compat: {compat:?}");
+        Ok(compat.network.map(NetworkCompatVersions::from))
     }
 
     /// Is sentry enabled at daemon level
