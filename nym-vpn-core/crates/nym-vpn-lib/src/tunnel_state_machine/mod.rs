@@ -1791,6 +1791,10 @@ impl Error {
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartSplitTunnelTask(_) => None?,
             #[cfg(windows)]
+            Self::SetupWintunAdapter(SetupWintunAdapterError::WaitForInterfaceAddresses(_)) => {
+                None?
+            }
+            #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -1954,5 +1958,29 @@ impl From<tunnel::transports::TransportError> for Error {
 impl From<nym_registration_client::RegistrationClientError> for Error {
     fn from(value: nym_registration_client::RegistrationClientError) -> Self {
         Self::Tunnel(Box::new(tunnel::Error::RegistrationClient(Box::new(value))))
+    }
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_state_reason_wintun_addresses_not_ready_reconnects() {
+        let error = Error::SetupWintunAdapter(SetupWintunAdapterError::WaitForInterfaceAddresses(
+            nym_windows::net::Error::NoUnicastAddress,
+        ));
+        assert_eq!(error.error_state_reason(), None);
+    }
+
+    #[test]
+    fn error_state_reason_wintun_other_setup_errors_stay_tun_device() {
+        let error = Error::SetupWintunAdapter(SetupWintunAdapterError::WaitForInterfaces(
+            std::io::Error::other("interfaces not attached"),
+        ));
+        assert_eq!(
+            error.error_state_reason(),
+            Some(ErrorStateReason::TunDevice)
+        );
     }
 }
