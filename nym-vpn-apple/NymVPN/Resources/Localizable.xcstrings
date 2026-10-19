@@ -7737,7 +7737,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not enough on-chain balance. Top up your NYM balance, then get your ticketbooks again."
+            "value" : "Not enough on-chain balance. Top up your NYM balance, then try again."
           }
         },
         "es" : {
@@ -8802,7 +8802,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No entry server is available for your selection. Pick another location, or turn on QUIC in Anti-censorship settings."
+            "value" : "No entry server is available for your selection. Pick another location, or try again in a few minutes."
           }
         },
         "es" : {
