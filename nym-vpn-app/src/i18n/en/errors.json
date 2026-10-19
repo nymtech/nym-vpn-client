@@ -18,7 +18,7 @@
     "invalid-exit-gw-id": "The exit server you chose isn't available with your current settings. Choose a different exit or entry server, then connect again.",
     "credential-wasted-entry-gw": "The entry server didn't complete your connection. Try again, or turn on QUIC in Anti-censorship settings.",
     "credential-wasted-exit-gw": "The exit server didn't complete your connection. Choose a different exit location and try again.",
-    "performant-entry-gw-unavailable": "No entry server is available for your selection. Pick another location, or turn on QUIC in Anti-censorship settings.",
+    "performant-entry-gw-unavailable": "No entry server is available for your selection. Pick another location, or try again in a few minutes.",
     "performant-exit-gw-unavailable": "No exit server is available for your selection. Pick a different location, or try again in a few minutes.",
     "max-devices-reached": "You've hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect.",
     "bandwidth-exceeded": "You've reached today's allowance. Try again later.",
