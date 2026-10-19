@@ -12,10 +12,10 @@ use nym_vpn_lib_types::SplitApp;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
-    AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
-    NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
+    AutologinResponse, AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags,
+    FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath,
+    LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport, Socks5Settings,
     Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways,
     TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -300,7 +300,7 @@ impl RpcClient {
         Ok(messages)
     }
 
-    pub async fn get_network_compatibility(&mut self) -> Result<Option<NetworkCompatibility>> {
+    pub async fn get_app_compatibility(&mut self) -> Result<AppCompatibility> {
         let response = self
             .0
             .get_network_compatibility(())
@@ -308,9 +308,7 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        Ok(response
-            .network_compatibility
-            .map(NetworkCompatibility::from))
+        Ok(AppCompatibility::from(response))
     }
 
     pub async fn get_feature_flags(&mut self) -> Result<FeatureFlags> {

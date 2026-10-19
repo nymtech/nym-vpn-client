@@ -328,6 +328,21 @@ pub struct NetworkCompatibility {
     pub macos: String,
     pub tauri: String,
     pub android: String,
+}
+
+/// Everything an app needs to decide whether to ask for, or require, an update.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct AppCompatibility {
+    pub network: Option<NetworkCompatibility>,
     pub app_update_policy: String,
     pub app_update_policies: HashMap<String, String>,
 }
@@ -339,15 +354,25 @@ impl From<nym_vpn_api_client::response::SystemConfigurationResponse> for SystemC
             wg_thresholds: ScoreThresholds::from(value.wg_thresholds),
             mix_thresholds: ScoreThresholds::from(value.mix_thresholds),
             statistics_api: value.statistics_api,
-            min_supported_app_versions: value.min_supported_app_versions.map(|versions| {
-                NetworkCompatibility::new(
-                    versions,
-                    value.app_update_policy.clone(),
-                    value.app_update_policies.clone(),
-                )
-            }),
+            min_supported_app_versions: value
+                .min_supported_app_versions
+                .map(NetworkCompatibility::from),
             app_update_policy: value.app_update_policy,
             app_update_policies: value.app_update_policies,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<&nym_vpn_network_config::SystemConfiguration> for AppCompatibility {
+    fn from(value: &nym_vpn_network_config::SystemConfiguration) -> Self {
+        Self {
+            network: value
+                .min_supported_app_versions
+                .clone()
+                .map(NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy.clone(),
+            app_update_policies: value.app_update_policies.clone(),
         }
     }
 }
@@ -359,13 +384,9 @@ impl From<nym_vpn_network_config::SystemConfiguration> for SystemConfiguration {
             wg_thresholds: ScoreThresholds::from(value.wg_thresholds),
             mix_thresholds: ScoreThresholds::from(value.mix_thresholds),
             statistics_api: value.statistics_api.map(|url| url.to_string()),
-            min_supported_app_versions: value.min_supported_app_versions.map(|versions| {
-                NetworkCompatibility::new(
-                    versions,
-                    value.app_update_policy.clone(),
-                    value.app_update_policies.clone(),
-                )
-            }),
+            min_supported_app_versions: value
+                .min_supported_app_versions
+                .map(NetworkCompatibility::from),
             app_update_policy: value.app_update_policy,
             app_update_policies: value.app_update_policies,
         }
@@ -408,20 +429,14 @@ impl From<nym_vpn_network_config::Network> for Network {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl NetworkCompatibility {
-    pub fn new(
-        value: nym_vpn_api_client::NetworkCompatibility,
-        app_update_policy: String,
-        app_update_policies: HashMap<String, String>,
-    ) -> Self {
+impl From<nym_vpn_api_client::NetworkCompatibility> for NetworkCompatibility {
+    fn from(value: nym_vpn_api_client::NetworkCompatibility) -> Self {
         Self {
             core: value.core,
             ios: value.ios,
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
-            app_update_policy,
-            app_update_policies,
         }
     }
 }
@@ -597,38 +612,5 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
             display_until: value.display_until,
             properties: value.properties.map(|v| v.into_inner()),
         }
-    }
-}
-
-#[cfg(all(test, feature = "nym-type-conversions"))]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn app_update_policy_reaches_network_compatibility() {
-        let thresholds = nym_vpn_network_config::ScoreThresholds {
-            high: 75,
-            medium: 50,
-            low: 25,
-        };
-        let versions = nym_vpn_api_client::NetworkCompatibility {
-            core: "2026.12.4".to_owned(),
-            ios: "2026.12.4".to_owned(),
-            macos: "2026.12.4".to_owned(),
-            tauri: "2026.12.4".to_owned(),
-            android: "2026.12.4".to_owned(),
-        };
-        let sc = SystemConfiguration::from(nym_vpn_network_config::SystemConfiguration {
-            mix_thresholds: thresholds.clone(),
-            wg_thresholds: thresholds,
-            statistics_api: None,
-            min_supported_app_versions: Some(versions),
-            app_update_policy: "dismissible".to_owned(),
-            app_update_policies: HashMap::from([("android".to_owned(), "required".to_owned())]),
-        });
-        assert_eq!(sc.app_update_policies["android"], "required");
-        let compat = sc.min_supported_app_versions.unwrap();
-        assert_eq!(compat.app_update_policy, "dismissible");
-        assert_eq!(compat.app_update_policies["android"], "required");
     }
 }
