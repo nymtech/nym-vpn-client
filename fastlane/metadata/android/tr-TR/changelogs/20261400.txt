@@ -1,0 +1,9 @@
+Geri alma ifadesi ve hesap artık biyometrik kimlik doğrulama veya PIN ile korunmaktadır.
+
+Daha akıcı bir sunucu listesi; daha hızlı kaydırma ve güvenilir dokunma işlemleri.
+
+Günlük ödenek sıfırlama saati artık yerel saat diliminizde gösterilmektedir.
+
+Daha hassas yönlendirme ve daha kapsamlı veri silme.
+
+Hata mesajları iyileştirildi.

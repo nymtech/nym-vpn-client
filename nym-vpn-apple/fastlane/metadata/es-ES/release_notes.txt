@@ -1,0 +1,13 @@
+Se ha solucionado un fallo que provocaba que la aplicación se colgara al iniciarse si el dispositivo estaba bloqueado durante el arranque.
+
+La hora de reinicio de la asignación diaria ahora se muestra en tu zona horaria local, incluyendo la hora del día.
+
+Errores de conexión más claros: ahora se notifican los fallos del resolutor DNS, en lugar de que se produzcan de forma silenciosa.
+
+Se te avisará cuando sea necesario actualizar una aplicación.
+
+Ahora la preferencia «network-stats» se guarda de forma coherente.
+
+Se han actualizado y mejorado los mensajes de error.
+
+Ruteo con exclusión geográfica más preciso y un borrado más completo al vaciar el almacenamiento local.

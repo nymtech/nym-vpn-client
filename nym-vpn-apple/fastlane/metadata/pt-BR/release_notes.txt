@@ -1,0 +1,13 @@
+Corrigimos uma falha que causava o travamento do aplicativo ao ser iniciado quando o dispositivo estava bloqueado durante a inicialização.
+
+A hora de atualização da cota diária agora é exibida no seu fuso horário local, incluindo a hora do dia.
+
+Erros de conexão mais claros: agora, as falhas no resolvedor de DNS são relatadas, em vez de ocorrerem silenciosamente.
+
+Você é notificado quando é necessária uma atualização do aplicativo.
+
+A preferência “network-stats” agora é salva de forma consistente.
+
+Mensagens de erro atualizadas e aprimoradas.
+
+Roteamento com exclusão geográfica mais preciso e uma limpeza mais completa ao esvaziar o armazenamento local.

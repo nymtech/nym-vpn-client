@@ -1,0 +1,9 @@
+A frase de recuperação e a conta agora estão protegidas por dados biométricos ou PIN.
+
+Lista de servidores mais fluida, com rolagem mais rápida e toques confiáveis.
+
+A hora de reinicialização da cota diária agora é exibida no seu fuso horário local.
+
+Roteamento mais preciso e uma exclusão de dados mais completa.
+
+Mensagens de erro aprimoradas.

@@ -1,0 +1,9 @@
+La frase de recuperación y la cuenta están ahora protegidas mediante datos biométricos o un PIN.
+
+Una lista de servidores más fluida, con un desplazamiento más rápido y pulsaciones fiables.
+
+La hora de reinicio de la asignación diaria ahora se muestra en tu zona horaria local.
+
+Un enrutamiento más preciso y un borrado de datos más completo.
+
+Se han mejorado los mensajes de error.

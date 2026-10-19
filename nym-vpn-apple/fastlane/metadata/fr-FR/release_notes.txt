@@ -1,0 +1,13 @@
+Correction d'un plantage au démarrage lorsque l'appareil était verrouillé au moment du démarrage.
+
+L'heure de réinitialisation de l'allocation journalière s'affiche désormais dans votre fuseau horaire local, avec l'heure de la journée.
+
+Erreurs de connexion plus claires : les défaillances du résolveur DNS sont désormais signalées, au lieu de se produire en silence.
+
+Vous recevez une notification lorsqu'une mise à jour de l'application est nécessaire.
+
+Les paramètres de « network-stats » sont désormais enregistrés de manière cohérente.
+
+Mise à jour et amélioration des messages d'erreur.
+
+Un routage par exclusion géographique plus précis et un effacement plus complet lors de la suppression du contenu du stockage local.

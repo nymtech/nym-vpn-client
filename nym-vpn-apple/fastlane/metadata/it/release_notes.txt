@@ -1,0 +1,13 @@
+È stato risolto un arresto anomalo all'avvio quando il dispositivo era bloccato durante l'avvio.
+
+L'ora di azzeramento della quota giornaliera viene ora visualizzata nel tuo fuso orario locale, compresa l'ora del giorno.
+
+Errori di connessione più chiari: gli errori del resolver DNS vengono ora segnalati, anziché verificarsi in modo silenzioso.
+
+Riceverai una notifica quando sarà necessario aggiornare un'app.
+
+L'impostazione "network-stats" viene ora salvata in modo coerente.
+
+Messaggi di errore aggiornati e migliorati.
+
+Un instradamento con esclusione geografica più preciso e una cancellazione più completa quando si svuota la memoria locale.

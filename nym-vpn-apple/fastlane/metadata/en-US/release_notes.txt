@@ -1,0 +1,13 @@
+Fixed a crash on launch when the device was locked at boot.
+
+Daily allowance reset time now shows in your local time zone, including the time of day.
+
+Clearer connection errors: DNS resolver failures are now reported instead of failing silently.
+
+You're notified when an app update is required.
+
+The network-stats preference is now saved consistently.
+
+Updated and improved error messages.
+
+More precise geo-exclusion routing, and a more complete wipe when you clear local storage.

@@ -1,0 +1,13 @@
+Telah diperbaiki masalah crash saat aplikasi dijalankan jika perangkat terkunci saat proses booting.
+
+Waktu penyegaran jatah harian kini ditampilkan dalam zona waktu lokal Anda, termasuk jam dalam sehari.
+
+Kesalahan koneksi yang lebih jelas: Kegagalan resolver DNS kini dilaporkan, bukan lagi terjadi tanpa pemberitahuan.
+
+Anda akan mendapat pemberitahuan saat aplikasi perlu diperbarui.
+
+Pengaturan "network-stats" kini disimpan secara konsisten.
+
+Pesan kesalahan telah diperbarui dan diperbaiki.
+
+Perutean pengecualian geografis yang lebih akurat, serta penghapusan data yang lebih menyeluruh saat Anda membersihkan penyimpanan lokal.

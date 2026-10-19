@@ -1,0 +1,9 @@
+La frase di recupero e l'account sono ora protetti tramite dati biometrici o PIN.
+
+Elenco dei server più fluido, con scorrimento più veloce e tocchi affidabili.
+
+L'ora di azzeramento dell'indennità giornaliera viene ora visualizzata nel tuo fuso orario locale.
+
+Un instradamento più preciso e una cancellazione dei dati più completa.
+
+Messaggi di errore migliorati.
