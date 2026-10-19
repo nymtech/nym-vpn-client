@@ -50,6 +50,7 @@ fun CustomTextField(
 	enabled: Boolean = true,
 	subtitle: @Composable (() -> Unit)? = null,
 	containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+	visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	val isFocused by interactionSource.collectIsFocusedAsState()
@@ -89,6 +90,7 @@ fun CustomTextField(
 		interactionSource = interactionSource,
 		enabled = enabled,
 		singleLine = singleLine,
+		visualTransformation = visualTransformation,
 	) {
 		OutlinedTextFieldDefaults.DecorationBox(
 			value = space + value,
@@ -121,7 +123,7 @@ fun CustomTextField(
 			),
 			enabled = enabled,
 			label = label,
-			visualTransformation = VisualTransformation.None,
+			visualTransformation = visualTransformation,
 			interactionSource = interactionSource,
 			placeholder = placeholder,
 			container = {

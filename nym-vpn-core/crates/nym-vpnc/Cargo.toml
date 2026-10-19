@@ -15,6 +15,7 @@ workspace = true
 anyhow.workspace = true
 celes.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
+clap_complete.workspace = true
 dirs.workspace = true
 serde_json.workspace = true
 shlex.workspace = true
@@ -34,6 +35,12 @@ extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
 
 This package contains the nym-vpnc binary, which is a CLI application used to interact with the nym-vpnd daemon.'''
 recommends = "nym-vpnd"
+assets = [
+    "$auto",
+    { source = "target/release/completions/nym-vpnc.bash", dest = "usr/share/bash-completion/completions/nym-vpnc", mode = "644" },
+    { source = "target/release/completions/_nym-vpnc", dest = "usr/share/zsh/vendor-completions/_nym-vpnc", mode = "644" },
+    { source = "target/release/completions/nym-vpnc.fish", dest = "usr/share/fish/vendor_completions.d/nym-vpnc.fish", mode = "644" },
+]
 revision = ""
 maintainer-scripts = "debian"
 systemd-units = { enable = false }

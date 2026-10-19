@@ -56,6 +56,7 @@ on:
       APPLE_TEAM_ID:
         required: true
 env:
+  HOMEBREW_NO_ANALYTICS: 1
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_MACOS: macos_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}

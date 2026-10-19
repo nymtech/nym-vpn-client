@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui
 
+import androidx.biometric.BiometricPrompt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +26,7 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.deviceauth.DeviceAuthGate
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.screens.main.profiles.Profile
 import net.nymtech.nymvpn.ui.screens.main.profiles.toCoreProfile
@@ -53,6 +55,7 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
+	private val deviceAuthGate: DeviceAuthGate,
 	networkService: NetworkService,
 ) : ViewModel() {
 
@@ -116,9 +119,13 @@ constructor(
 		}
 	}
 
-	fun fetchAutologin(kind: DeeplinkKind) {
+	fun fetchAutologin(kind: DeeplinkKind, cryptoObject: BiometricPrompt.CryptoObject?) {
 		autologinJob?.cancel()
 		autologinJob = viewModelScope.launch {
+			if (!deviceAuthGate.verify(cryptoObject)) {
+				_autologinState.value = AutologinState.Error(kind)
+				return@launch
+			}
 			_autologinState.value = AutologinState.Loading
 
 			val accountState = backendManager.stateFlow.value.accountState

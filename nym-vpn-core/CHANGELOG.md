@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Publish the app update policy, with optional per-platform overrides, from discovery so clients can ask for or require an update (https://github.com/nymtech/nym-vpn-client/pull/6450)
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
+- Add `nym-vpnc completions <shell>` to generate shell completions, and install bash, zsh and fish completions with the macOS, deb and AUR packages (https://github.com/nymtech/nym-vpn-client/pull/6735)
 
 ### Fixed
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto selection no longer treats US states as separate jurisdictions: "exclude my country" and the entry/exit country check now compare whole countries only
 - Fix panic in logging system initialization (https://github.com/nymtech/nym-vpn-client/pull/6674)
 - Rotate logs on iOS and Android on per session basis (https://github.com/nymtech/nym-vpn-client/pull/6679)
+- Remove SQLite WAL and shared-memory files (-wal, -shm) along with their databases when wiping local storage. (https://github.com/nymtech/nym-vpn-client/pull/6706)
 
 ### Security
 

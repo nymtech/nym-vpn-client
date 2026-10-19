@@ -92,8 +92,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
 	val deviceAuthViewModel: DeviceAuthViewModel = hiltViewModel()
-	val deviceAuth = rememberDeviceAuth(viewModel = deviceAuthViewModel) { action ->
-		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+	val deviceAuth = rememberDeviceAuth(viewModel = deviceAuthViewModel) { action, cryptoObject ->
+		if (action == DeviceAuthAction.RENEW_SUBSCRIPTION) appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 	}
 
 	var bottomSheetContent by remember { mutableStateOf<MainBottomSheetContent>(MainBottomSheetContent.Hidden) }

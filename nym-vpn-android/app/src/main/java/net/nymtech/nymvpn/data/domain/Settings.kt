@@ -25,7 +25,7 @@ data class Settings(
 	companion object {
 		const val AUTO_START_DEFAULT = false
 		const val SHORTCUTS_DEFAULT = false
-		const val DEFAULT_STATS_ENABLED = true
+		const val DEFAULT_STATS_ENABLED = false
 		const val DEFAULT_QUIC_ENABLED = false
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false

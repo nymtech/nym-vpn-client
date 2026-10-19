@@ -16,6 +16,7 @@ backon.workspace = true
 base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
+futures.workspace = true
 hex.workspace = true
 itertools.workspace = true
 nym-bridges-types = { workspace = true, features = ["serde"] }

@@ -7737,6 +7737,7 @@ dependencies = [
  "base64-url",
  "bip39",
  "bs58",
+ "futures",
  "hex",
  "itertools 0.15.0",
  "nym-bridges-types",
