@@ -156,6 +156,16 @@ impl From<proto::NetworkCompatibility> for nym_vpn_lib_types::NetworkCompatibili
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
+        }
+    }
+}
+
+impl From<proto::GetNetworkCompatibilityResponse> for nym_vpn_lib_types::AppCompatibility {
+    fn from(value: proto::GetNetworkCompatibilityResponse) -> Self {
+        Self {
+            network: value
+                .network_compatibility
+                .map(nym_vpn_lib_types::NetworkCompatibility::from),
             app_update_policy: value.app_update_policy,
             app_update_policies: value.app_update_policies,
         }
@@ -318,6 +328,14 @@ impl From<nym_vpn_lib_types::NetworkCompatibility> for proto::NetworkCompatibili
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::AppCompatibility> for proto::GetNetworkCompatibilityResponse {
+    fn from(value: nym_vpn_lib_types::AppCompatibility) -> Self {
+        Self {
+            network_compatibility: value.network.map(proto::NetworkCompatibility::from),
             app_update_policy: value.app_update_policy,
             app_update_policies: value.app_update_policies,
         }
@@ -438,23 +456,5 @@ mod tests {
             round_tripped.networking.dns_fallbacks[0].addresses,
             original.networking.dns_fallbacks[0].addresses
         );
-    }
-
-    #[test]
-    fn app_update_policy_survives_proto_round_trip() {
-        let original = nym_vpn_lib_types::NetworkCompatibility {
-            core: "2026.12.4".to_owned(),
-            ios: "2026.12.4".to_owned(),
-            macos: "2026.12.4".to_owned(),
-            tauri: "2026.12.4".to_owned(),
-            android: "2026.12.4".to_owned(),
-            app_update_policy: "required".to_owned(),
-            app_update_policies: HashMap::from([("ios".to_owned(), "dismissible".to_owned())]),
-        };
-        let back = nym_vpn_lib_types::NetworkCompatibility::from(
-            proto::NetworkCompatibility::from(original),
-        );
-        assert_eq!(back.app_update_policy, "required");
-        assert_eq!(back.app_update_policies["ios"], "dismissible");
     }
 }

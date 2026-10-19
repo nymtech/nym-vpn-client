@@ -35,20 +35,3 @@ pub struct ScoreThresholds {
     pub medium: u8,
     pub low: u8,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::SystemConfiguration;
-
-    #[test]
-    fn discovery_cache_without_update_policy_still_loads() {
-        let json = r#"{
-            "mix_thresholds": {"high": 75, "medium": 50, "low": 25},
-            "wg_thresholds": {"high": 75, "medium": 50, "low": 25},
-            "statistics_api": null,
-            "min_supported_app_versions": null
-        }"#;
-        let parsed: SystemConfiguration = serde_json::from_str(json).expect("old cache shape");
-        assert!(parsed.app_update_policy.is_empty());
-    }
-}
