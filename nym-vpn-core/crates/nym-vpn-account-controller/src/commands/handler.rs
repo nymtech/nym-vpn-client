@@ -133,6 +133,38 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
         tracing::info!("Device has been unregistered");
     }
 
+    clear_local_account_data(shared_state).await
+}
+
+pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
+    tracing::info!("DELETING ACCOUNT AND ALL ASSOCIATED DATA");
+
+    // Tunnel state is checked before sending the command here. We're in Disconnected state
+
+    let account = shared_state
+        .vpn_api_account
+        .as_ref()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+
+    let _account_response = shared_state
+        .vpn_api_client
+        .delete_account(account)
+        .await
+        .inspect_err(|err| {
+            tracing::error!("Failed to delete account: {err:?}");
+        })?;
+
+    tracing::info!("Account has been deleted");
+
+    // A deleted account can't unregister its device, so only local data is removed
+    clear_local_account_data(shared_state).await
+}
+
+async fn clear_local_account_data<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
     shared_state
         .wireguard_keys_storage
         .clear_keys()

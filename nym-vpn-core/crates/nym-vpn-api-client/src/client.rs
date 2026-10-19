@@ -423,6 +423,16 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetAccount)
     }
 
+    pub async fn delete_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
+        self.delete_authorized(
+            &[routes::PUBLIC, routes::V1, routes::ACCOUNT, &account.id()],
+            Authorization::default().account(account),
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::DeleteAccount)
+    }
+
     async fn post_account<B>(
         &self,
         platform_path: &str,

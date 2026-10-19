@@ -69,6 +69,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
+                    AccountCommand::DeleteAccount(return_sender) => return_no_account(return_sender),
                     AccountCommand::LinkAccount(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::RotateKeys(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),

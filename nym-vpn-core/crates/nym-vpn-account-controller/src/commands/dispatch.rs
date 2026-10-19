@@ -31,6 +31,9 @@ pub enum AccountCommand {
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
+    /// Delete the account on the VPN API, then delete the stored account and every associated data
+    DeleteAccount(ReturnSender<(), AccountCommandError>),
+
     /// Link another account with the currently logged-on API account
     LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
@@ -66,6 +69,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::DeleteAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),

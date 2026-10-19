@@ -343,6 +343,13 @@ impl NymVpnServiceCommandSender {
         Ok(())
     }
 
+    pub async fn delete_account(&self) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::DeleteAccount, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        Ok(())
+    }
+
     pub async fn rotate_keys(&self) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::RotateKeys, ())
             .await?

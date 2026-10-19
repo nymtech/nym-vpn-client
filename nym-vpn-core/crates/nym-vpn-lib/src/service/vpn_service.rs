@@ -163,6 +163,7 @@ pub enum VpnServiceCommand {
     DecentralisedObtainTicketbooks(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    DeleteAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     RotateKeys(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetAccountIdentity(
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
@@ -1200,6 +1201,9 @@ impl NymVpnService {
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let _ = tx.send(self.handle_forget_account().await);
             }
+            VpnServiceCommand::DeleteAccount(tx, ()) => {
+                let _ = tx.send(self.handle_delete_account().await);
+            }
             VpnServiceCommand::RotateKeys(tx, ()) => {
                 let _ = tx.send(self.handle_rotate_keys().await);
             }
@@ -2055,6 +2059,30 @@ impl NymVpnService {
             .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
         self.account_command_tx.forget_account().await
+    }
+
+    async fn handle_delete_account(&mut self) -> Result<(), AccountCommandError> {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+            return Err(AccountCommandError::internal(
+                "Unable to delete account while connected",
+            ));
+        }
+
+        let data_dir = self.paths.network_data_dir.clone();
+        tracing::info!(
+            "DELETING ACCOUNT AND REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
+            data_dir.display()
+        );
+
+        self.account_command_tx.delete_account().await?;
+
+        let _ = self
+            .stats_control_commands_sender
+            .reset_seed(None)
+            .await
+            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
+
+        Ok(())
     }
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
