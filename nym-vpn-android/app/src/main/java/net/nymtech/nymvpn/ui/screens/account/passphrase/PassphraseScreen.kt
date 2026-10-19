@@ -38,6 +38,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -64,7 +66,7 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 	SecureScreen()
 
 	val passphrase by viewModel.passphrase.collectAsState()
-	var showSheet by remember { mutableStateOf(false) }
+	val showSheet = passphrase.isNotEmpty()
 
 	var showInfoModal by remember { mutableStateOf(false) }
 
@@ -88,7 +90,9 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 		onBackButtonVisibilityChange(showSheet)
 	}
 
-	val deviceAuth = rememberDeviceAuth { showSheet = true }
+	LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.lock() }
+
+	val deviceAuth = rememberDeviceAuth { _, cryptoObject -> viewModel.reveal(cryptoObject) }
 
 	PassphraseScreen(
 		passphrase = passphrase,

@@ -21,7 +21,7 @@
     "performant-entry-gw-unavailable": "No entry server is available for your selection. Pick another location, or try again in a few minutes.",
     "performant-exit-gw-unavailable": "No exit server is available for your selection. Pick a different location, or try again in a few minutes.",
     "max-devices-reached": "You've hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect.",
-    "bandwidth-exceeded": "You've reached today's allowance. Try again later.",
+    "bandwidth-exceeded": "You've reached today's allowance. It resets daily; see Account Status for the time.",
     "subscription-expired": "You don't have an active subscription. Get or renew a plan, then refresh your account and reconnect.",
     "ipv6-unavailable": "IPv6 is turned off on this system, but NymVPN is set to use it. Turn off IPv6 in NymVPN settings, then connect again.",
     "tun-device": "Couldn't set up the VPN network interface. Reconnect. If it persists, restart the app or your device, or contact support.",
@@ -37,7 +37,7 @@
   "account": {
     "internal": "Something went wrong with your account. Try again. If it persists, contact support.",
     "max-devices-reached": "You've hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect.",
-    "bandwidth-exceeded": "You've reached today's allowance. Try again later.",
+    "bandwidth-exceeded": "You've reached today's allowance. It resets daily; see Account Status for the time.",
     "invalid-recovery-phrase": "That recovery passphrase isn't valid. Check the 24 words and try again.",
     "no-account-stored": "No account on this device. Add your passphrase to log in again.",
     "no-device-stored": "This device's key is missing. Log out and log in again to set this device up.",

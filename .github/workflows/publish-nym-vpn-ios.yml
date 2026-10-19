@@ -25,6 +25,7 @@ on:
       APP_STORE_CONNECT_API_PRIVATE_KEY:
         required: true
 env:
+  HOMEBREW_NO_ANALYTICS: 1
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
 

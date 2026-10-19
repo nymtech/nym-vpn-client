@@ -5,10 +5,12 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/ci-nym-vpn-app-macos.yml"
+      - ".github/actions/apple-tests/**"
       - "nym-vpn-apple/**"
   workflow_dispatch:
 
 env:
+  HOMEBREW_NO_ANALYTICS: 1
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
@@ -89,7 +91,7 @@ jobs:
           mv "nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib" "nym-vpn-apple/NymVPNLib"
 
       - name: Apple unit tests
-        uses: ./.github/workflows/apple/tests
+        uses: ./.github/actions/apple-tests
         with:
           account-report-path: ${{ github.workspace }}/account-report.md
 

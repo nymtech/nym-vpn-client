@@ -25,7 +25,6 @@ const DEFAULT_STALE_REQUESTS_MAX_AGE: Duration = Duration::from_secs(60 * 60 * 2
 #[derive(Clone)]
 pub(crate) struct PendingCredentialRequestsStorage {
     database_path: PathBuf,
-
     storage_manager: SqliteZkNymRequestsStorageManager,
 }
 
@@ -83,10 +82,6 @@ impl PendingCredentialRequestsStorage {
         tracing::debug!("Closing pending credential requests storage");
         self.storage_manager.close().await;
 
-        // Calling close on the storage should be enough to ensure that all files
-        // are closed but just to be sure we wait a bit
-        tokio::time::sleep(Duration::from_secs(1)).await;
-
         // Then we remove the database file
         tracing::debug!("Removing pending credential requests storage file");
         tokio::fs::remove_file(&self.database_path)
@@ -94,7 +89,27 @@ impl PendingCredentialRequestsStorage {
             .map_err(PendingCredentialRequestsStorageError::RemoveStorage)?;
         tracing::info!("Removed file: {}", self.database_path.display());
 
-        Ok(())
+        let mut first_err = None;
+
+        for suffix in ["-wal", "-shm"] {
+            let mut path = self.database_path.clone().into_os_string();
+            path.push(suffix);
+            let path = PathBuf::from(path);
+
+            match tokio::fs::remove_file(&path).await {
+                Ok(()) => tracing::info!("Removed file: {}", path.display()),
+                Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+                Err(err) => {
+                    tracing::error!("Failed to remove file {}: {err}", path.display());
+                    first_err.get_or_insert(err);
+                }
+            }
+        }
+
+        match first_err {
+            Some(err) => Err(PendingCredentialRequestsStorageError::RemoveStorage(err)),
+            None => Ok(()),
+        }
     }
 
     pub(crate) async fn get_pending_requests(

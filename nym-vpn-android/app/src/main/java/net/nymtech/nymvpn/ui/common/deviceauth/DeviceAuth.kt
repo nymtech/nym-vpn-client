@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.common.deviceauth
 
 import androidx.annotation.StringRes
+import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,11 +21,12 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.findActivity
 import timber.log.Timber
 
-enum class DeviceAuthAction(@StringRes val authTitle: Int, @StringRes val authSubtitle: Int, @StringRes val setupBody: Int) {
-	REVEAL_PASSPHRASE(R.string.passphrase_title, R.string.passphrase_description, R.string.screen_lock_setup_passphrase_body),
-	MANAGE_SUBSCRIPTION(R.string.account_info_manage_button, R.string.account_info_manage_auth_subtitle, R.string.screen_lock_setup_body),
-	RENEW_SUBSCRIPTION(R.string.account_info_renew_auth_title, R.string.account_info_manage_auth_subtitle, R.string.screen_lock_setup_body),
-	LINK_SOCIAL(R.string.account_info_add_social_action, R.string.account_info_link_auth_subtitle, R.string.screen_lock_setup_body),
+// keyBound actions release account secrets
+enum class DeviceAuthAction(@StringRes val authTitle: Int, @StringRes val authSubtitle: Int, @StringRes val setupBody: Int, val keyBound: Boolean) {
+	REVEAL_PASSPHRASE(R.string.passphrase_title, R.string.passphrase_description, R.string.screen_lock_setup_passphrase_body, keyBound = true),
+	MANAGE_SUBSCRIPTION(R.string.account_info_manage_button, R.string.account_info_manage_auth_subtitle, R.string.screen_lock_setup_body, keyBound = true),
+	RENEW_SUBSCRIPTION(R.string.account_info_renew_auth_title, R.string.account_info_manage_auth_subtitle, R.string.screen_lock_setup_body, keyBound = true),
+	LINK_SOCIAL(R.string.account_info_add_social_action, R.string.account_info_link_auth_subtitle, R.string.screen_lock_setup_body, keyBound = false),
 }
 
 fun interface DeviceAuth {
@@ -32,7 +34,7 @@ fun interface DeviceAuth {
 }
 
 @Composable
-fun rememberDeviceAuth(viewModel: DeviceAuthViewModel = hiltViewModel(), onAuthenticated: (DeviceAuthAction) -> Unit): DeviceAuth {
+fun rememberDeviceAuth(viewModel: DeviceAuthViewModel = hiltViewModel(), onAuthenticated: (DeviceAuthAction, BiometricPrompt.CryptoObject?) -> Unit): DeviceAuth {
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 	val currentOnAuthenticated by rememberUpdatedState(onAuthenticated)
@@ -61,8 +63,8 @@ fun rememberDeviceAuth(viewModel: DeviceAuthViewModel = hiltViewModel(), onAuthe
 		inProgress = true
 		scope.launch {
 			try {
-				when (viewModel.authenticate(activity, context.getString(action.authTitle), context.getString(action.authSubtitle))) {
-					DeviceAuthResult.Success -> currentOnAuthenticated(action)
+				when (val result = viewModel.authenticate(activity, context.getString(action.authTitle), context.getString(action.authSubtitle), action.keyBound)) {
+					is DeviceAuthResult.Success -> currentOnAuthenticated(action, result.cryptoObject)
 					DeviceAuthResult.NotSetUp -> showSetup(action)
 					DeviceAuthResult.Cancelled -> Unit
 					is DeviceAuthResult.Unavailable, is DeviceAuthResult.Error ->

@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.server
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,11 +42,13 @@ class ServerViewModel @Inject constructor(
 	private val gatewayRepository: GatewayRepository,
 	private val favoritesManager: FavoritesManager,
 	private val backendManager: BackendManager,
+	private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-server-vm"
 		private const val RECENT_LIMIT = 20
+		private const val KEY_EXPANDED = "expanded_rows"
 	}
 
 	private val _uiState = MutableStateFlow(ServerUiState())
@@ -60,6 +63,11 @@ class ServerViewModel @Inject constructor(
 	private var userSelectedFilter = false
 	private var isInitialLoad = true
 	private var tunnelMode = Tunnel.Mode.FIVE_HOP_MIXNET
+	private var items: List<ItemType> = emptyList()
+	private var selectedKey: String? = null
+
+	private val expandedOverrides: MutableMap<String, Boolean> =
+		savedStateHandle.get<HashMap<String, Boolean>>(KEY_EXPANDED)?.toMutableMap() ?: mutableMapOf()
 
 	init {
 		viewModelScope.launch {
@@ -92,9 +100,10 @@ class ServerViewModel @Inject constructor(
 		isQuicOnlyGatewaysFilterRequired = isQuicToggleEnabled && isFastVpn && !isExitScreen
 	}
 
-	fun initializeGateways(initialGateways: List<NymGateway>, isExitScreen: Boolean = false) {
+	fun initializeGateways(initialGateways: List<NymGateway>, isExitScreen: Boolean = false, selectedKey: String? = null) {
 		viewModelScope.launch {
 			allGateways = initialGateways
+			this@ServerViewModel.selectedKey = selectedKey
 			recentGateways = emptyList()
 			this@ServerViewModel.isExitScreen = isExitScreen
 			userSelectedFilter = false
@@ -111,8 +120,15 @@ class ServerViewModel @Inject constructor(
 
 	fun onFilterSelected(filter: ServerListFilter) {
 		userSelectedFilter = true
-		_uiState.update { it.copy(query = "", filter = filter, items = emptyList(), isEmpty = true, isLoading = filter == ServerListFilter.RECENT) }
+		items = emptyList()
+		_uiState.update { it.copy(query = "", filter = filter, rows = emptyList(), isEmpty = true, isLoading = filter == ServerListFilter.RECENT) }
 		if (filter == ServerListFilter.RECENT) refreshRecents() else updateFilteredData()
+	}
+
+	fun onToggleExpanded(row: ServerRow.Expandable) {
+		expandedOverrides[row.expandStateKey] = !row.isExpanded
+		savedStateHandle[KEY_EXPANDED] = HashMap(expandedOverrides)
+		_uiState.update { it.withRows(items) }
 	}
 
 	fun onToggleFavorite(id: String, isFavorite: Boolean) = viewModelScope.launch {
@@ -183,16 +199,13 @@ class ServerViewModel @Inject constructor(
 		val selectors = currentFavoriteSelectors()
 		val resultItems = mutableListOf<ItemType>()
 
-		// 1) Eligible pool
 		val eligibleGateways = allGateways.asSequence()
 			.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
 
-		// 2) Group by country
 		val allCountryGroups = eligibleGateways
 			.filter { it.twoLetterCountryISO != null }
 			.groupBy { it.toLocale() }
 
-		// 3) Country items, filtered by query
 		val countryItems = allCountryGroups
 			.filter { (locale, countryGateways) ->
 				locale != null &&
@@ -213,7 +226,6 @@ class ServerViewModel @Inject constructor(
 
 		resultItems.addAll(countryItems)
 
-		// 4) Direct gateway matches appended when query is active
 		if (query.isNotBlank()) {
 			val gatewayItems = eligibleGateways
 				.filter {
@@ -230,12 +242,11 @@ class ServerViewModel @Inject constructor(
 
 		_uiState.update {
 			it.copy(
-				items = resultItems,
 				countryCount = eligibleGateways.mapNotNull { g -> g.twoLetterCountryISO }.distinct().count(),
 				nodeCount = eligibleGateways.count(),
 				isEmpty = eligibleGateways.none(),
 				favoriteGatewayIds = favoriteGatewayIds(selectors),
-			)
+			).withRows(resultItems)
 		}
 	}
 
@@ -301,12 +312,11 @@ class ServerViewModel @Inject constructor(
 
 		_uiState.update {
 			it.copy(
-				items = resultItems,
 				countryCount = allFavoriteItems.size,
 				nodeCount = allNodeIds.size,
 				isEmpty = allFavoriteItems.isEmpty(),
 				favoriteGatewayIds = favoriteGatewayIds,
-			)
+			).withRows(resultItems)
 		}
 	}
 
@@ -322,18 +332,33 @@ class ServerViewModel @Inject constructor(
 				gateway.twoLetterCountryISO?.let { toDisplayCountry(it).lowercase().contains(lowercaseQuery) } == true
 		}
 
-		val items = filtered.map { ItemType.GatewayItem(it, isGatewayFavorite(it.identity, selectors)) }
+		val recentItems = filtered.map { ItemType.GatewayItem(it, isGatewayFavorite(it.identity, selectors)) }
 
 		_uiState.update {
 			it.copy(
-				items = items,
 				countryCount = recentGateways.mapNotNull { g -> g.twoLetterCountryISO }.distinct().size,
 				nodeCount = recentGateways.size,
 				isEmpty = recentGateways.isEmpty(),
 				isLoading = false,
 				favoriteGatewayIds = favoriteGatewayIds(selectors),
-			)
+			).withRows(recentItems)
 		}
+	}
+
+	private fun ServerUiState.withRows(items: List<ItemType>): ServerUiState {
+		this@ServerViewModel.items = items
+		val location = if (isExitScreen) GatewayLocation.EXIT else GatewayLocation.ENTRY
+		return copy(
+			rows = buildServerRows(
+				items = items,
+				includeAutoOptions = filter == ServerListFilter.ALL_SERVERS,
+				query = query,
+				selectedKey = selectedKey,
+				favoriteGatewayIds = favoriteGatewayIds,
+				expandStatePrefix = "${location}_$filter",
+				expandedOverrides = expandedOverrides,
+			),
+		)
 	}
 
 	suspend fun onSelected(id: String, gatewayLocation: GatewayLocation) {

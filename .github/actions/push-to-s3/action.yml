@@ -43,6 +43,7 @@ runs:
       shell: bash
       env:
         AWSCLI_VERSION: ${{ inputs.awscli_version }}
+        HOMEBREW_NO_ANALYTICS: 1
         # OpenPGP fingerprint of the AWS CLI team signing key. This is the trust
         # anchor: we fetch the key by this exact fingerprint and verify the
         # installer's detached signature before executing it, so neither a changed

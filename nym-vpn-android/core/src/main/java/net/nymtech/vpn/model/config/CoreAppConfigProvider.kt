@@ -4,4 +4,5 @@ import nym_vpn_lib_types.UserAgent
 
 interface CoreAppConfigProvider {
 	fun getUserAgent(): UserAgent
+	suspend fun isNetworkStatsEnabled(): Boolean
 }

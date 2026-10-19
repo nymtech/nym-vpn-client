@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Keystore-bound auth with PIN fallback for passphrase and subscription (https://github.com/nymtech/nym-vpn-client/pull/6727)
+- Mask passphrase input with temporary reveal (https://github.com/nymtech/nym-vpn-client/pull/6727)
+- Sync network stats preference to core, off by default (https://github.com/nymtech/nym-vpn-client/pull/6727)
+- Flatten server list into per-row lazy items (https://github.com/nymtech/nym-vpn-client/pull/6736)
+- Move row building and expand state to ViewModel (https://github.com/nymtech/nym-vpn-client/pull/6736)
+
+### Fixed
+- Fix unclickable nodes in large countries (https://github.com/nymtech/nym-vpn-client/pull/6736)
+
 ## [2026.13.0] - 2026-10-09
 
 ### Added

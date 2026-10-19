@@ -1,13 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    collections::HashMap,
-    net::{IpAddr, SocketAddr},
-};
+use std::{collections::HashMap, net::IpAddr};
 
 use super::{
-    RoutingDecision, decide_route_for_addrs, decompress_gz,
+    RoutingDecision, decide_route_for_addr, decompress_gz,
     domain::DomainSet,
     ip::{
         CountryGeoData, CountryIpSet, GeoIpDatabase, embedded_geoip_gz, parse_ipv4_cidrs,
@@ -19,10 +16,8 @@ use ipnet::{Ipv4Net, Ipv6Net};
 use iprange::IpRange;
 use nym_socks5_proxy_ipc::InterfaceAddresses;
 
-/// Helper: wrap a single IP address as a one-element SocketAddr slice for decide_route_for_addrs.
-fn sa(ip: &str) -> Vec<SocketAddr> {
-    let ip: IpAddr = ip.parse().unwrap();
-    vec![SocketAddr::new(ip, 80)]
+fn ip_addr(ip: &str) -> IpAddr {
+    ip.parse().unwrap()
 }
 
 fn make_v4_set(cidrs: &[&str]) -> IpRange<Ipv4Net> {
@@ -225,7 +220,7 @@ fn decide_route_no_tunnel() {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
-        decide_route_for_addrs(&sa("1.0.1.1"), &InterfaceAddresses::default(), &db),
+        decide_route_for_addr(ip_addr("1.0.1.1"), &InterfaceAddresses::default(), &db),
         RoutingDecision::Reject,
     );
 }
@@ -244,7 +239,7 @@ fn decide_route_no_tunnel_excluded_still_direct() {
         excluded_countries: countries,
     };
     assert_eq!(
-        decide_route_for_addrs(&sa("1.0.1.1"), &InterfaceAddresses::default(), &db),
+        decide_route_for_addr(ip_addr("1.0.1.1"), &InterfaceAddresses::default(), &db),
         RoutingDecision::DefaultInterface,
     );
 }
@@ -268,13 +263,13 @@ fn decide_route_excluded_country() {
 
     // Chinese IP → bypass tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("1.0.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("1.0.1.1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
 
     // Non-Chinese IP → use tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("8.8.8.8"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("8.8.8.8"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -286,7 +281,7 @@ fn decide_route_no_tunnel_ipv6() {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
-        decide_route_for_addrs(&sa("2001:db8::1"), &InterfaceAddresses::default(), &db),
+        decide_route_for_addr(ip_addr("2001:db8::1"), &InterfaceAddresses::default(), &db),
         RoutingDecision::Reject,
     );
 }
@@ -304,12 +299,12 @@ fn decide_route_ipv6_no_v6_tunnel() {
         v6_addr: None,
     };
     assert_eq!(
-        decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("2606:4700::1"), &tunnel_addrs, &db),
         RoutingDecision::Reject,
     );
     // IPv4 destinations can still use the tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("1.1.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("1.1.1.1"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -334,21 +329,21 @@ fn decide_route_excluded_country_ipv6() {
 
     // Chinese IPv6 → bypass tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("2001:250::1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("2001:250::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     assert_eq!(
-        decide_route_for_addrs(&sa("240e::1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("240e::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
 
     // Non-Chinese IPv6 → use tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("2606:4700::1"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
     assert_eq!(
-        decide_route_for_addrs(&sa("2001:4860:4860::8888"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("2001:4860:4860::8888"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -373,22 +368,22 @@ fn decide_route_dual_stack_tunnel() {
 
     // CN IPv4 → default interface.
     assert_eq!(
-        decide_route_for_addrs(&sa("1.0.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("1.0.1.1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // CN IPv6 → default interface.
     assert_eq!(
-        decide_route_for_addrs(&sa("2001:250::1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("2001:250::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // Non-CN IPv4 → tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("8.8.8.8"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("8.8.8.8"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
     // Non-CN IPv6 → tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("2606:4700::1"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -423,17 +418,17 @@ fn decide_route_multiple_excluded_countries() {
 
     // Chinese IP → bypass tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("1.0.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("1.0.1.1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // Russian IP → bypass tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("5.255.255.77"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("5.255.255.77"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // Neither CN nor RU → use tunnel.
     assert_eq!(
-        decide_route_for_addrs(&sa("8.8.8.8"), &tunnel_addrs, &db),
+        decide_route_for_addr(ip_addr("8.8.8.8"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }

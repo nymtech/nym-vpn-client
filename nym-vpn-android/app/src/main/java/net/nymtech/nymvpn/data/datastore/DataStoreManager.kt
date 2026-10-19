@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.data.datastore
 
 import android.content.Context
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -38,6 +39,16 @@ class DataStoreManager(private val context: Context, private val ioDispatcher: C
 			} catch (e: IOException) {
 				Timber.e(e)
 			}
+		}
+	}
+
+	suspend fun edit(transform: (MutablePreferences) -> Unit): Boolean = withContext(ioDispatcher) {
+		try {
+			context.dataStore.edit { transform(it) }
+			true
+		} catch (e: IOException) {
+			Timber.e(e)
+			false
 		}
 	}
 

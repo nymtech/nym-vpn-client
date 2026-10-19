@@ -81,7 +81,7 @@ class ShortcutActivity : FragmentActivity() {
 				subtitle = shortcutSubtitle(action),
 			)
 			when (result) {
-				DeviceAuthResult.Success -> {
+				is DeviceAuthResult.Success -> {
 					applicationScope.launch {
 						performAction(action)
 					}
