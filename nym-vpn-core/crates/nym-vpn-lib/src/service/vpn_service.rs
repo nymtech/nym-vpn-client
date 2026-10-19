@@ -1248,7 +1248,7 @@ impl NymVpnService {
                 let _ = tx.send(self.handle_subscription_payment().await);
             }
             VpnServiceCommand::IsTrialEligible(tx, ()) => {
-                let _ = tx.send(self.handle_is_trial_eligible().await);
+                self.handle_is_trial_eligible(tx);
             }
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
@@ -2197,8 +2197,17 @@ impl NymVpnService {
         self.account_command_tx.refresh_account_state(true).await
     }
 
-    async fn handle_is_trial_eligible(&self) -> Result<bool, AccountCommandError> {
-        self.account_command_tx.is_trial_eligible().await
+    fn handle_is_trial_eligible(
+        &self,
+        completion_tx: oneshot::Sender<Result<bool, AccountCommandError>>,
+    ) {
+        let account_command_tx = self.account_command_tx.clone();
+
+        tokio::spawn(async move {
+            completion_tx
+                .send(account_command_tx.is_trial_eligible().await)
+                .ok();
+        });
     }
 
     async fn handle_get_deeplink(
