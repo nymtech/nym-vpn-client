@@ -16,8 +16,9 @@ func appUpdatePrompt(
         return AppUpdatePrompt(show: false, blockConnect: false)
     }
     // "2026.13.0-beta.1" is older than "2026.13.0"; `.numeric` alone ranks it newer.
-    let localParts = local.split(separator: "-", maxSplits: 1)
-    let floorParts = floor.split(separator: "-", maxSplits: 1)
+    // Build metadata ("+2") never counts in precedence.
+    let localParts = local.split(separator: "+").first?.split(separator: "-", maxSplits: 1) ?? []
+    let floorParts = floor.split(separator: "+").first?.split(separator: "-", maxSplits: 1) ?? []
     guard let localBase = localParts.first, let floorBase = floorParts.first else {
         return AppUpdatePrompt(show: false, blockConnect: false)
     }

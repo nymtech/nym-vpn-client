@@ -16,6 +16,7 @@ struct AppUpdatePromptTests {
         #expect(appUpdatePrompt(local: "2026.12.4", floor: "2026.12.4", policy: "required") == none)
         #expect(appUpdatePrompt(local: nil, floor: "2026.12.4", policy: "required") == none)
         #expect(appUpdatePrompt(local: "2026.10.0", floor: "", policy: "required") == none)
+        #expect(appUpdatePrompt(local: "2026.13.0", floor: "2026.13.0+2", policy: "required") == none)
     }
 
     @Test func aPlatformPolicyBeatsTheDefaultAndAPrereleaseIsBelowTheFloor() {
