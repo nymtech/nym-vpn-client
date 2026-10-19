@@ -12,13 +12,13 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AppCompatibility
 import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.DiagnosticRunParams
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.ListGatewaysOptions
-import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.RegisterAccountRequest
 import nym_vpn_lib_types.StoreAccountRequest
@@ -100,7 +100,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		)
 	}
 
-	override suspend fun getNetworkVersions(): NetworkCompatibility? = core.tryWithCoreSender { it.getNetworkCompatibility() }
+	override suspend fun getAppCompatibility(): AppCompatibility? = core.tryWithCoreSender { it.getAppCompatibility() }
 
 	override suspend fun getDeviceIdentity(): String? = core.tryWithCoreSender { it.getDeviceIdentity() }
 

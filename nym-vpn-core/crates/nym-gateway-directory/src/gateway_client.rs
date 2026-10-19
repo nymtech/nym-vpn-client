@@ -122,13 +122,13 @@ pub struct ResolvedConfig {
 impl ResolvedConfig {
     pub async fn from_config(config: &Config) -> Result<Self> {
         let nyxd_url = config.nyxd_url().clone();
-        let nyxd_socket_addrs = url_to_socket_addr(&nyxd_url, Some((1, 1))).await?;
 
-        let nym_api_resolver_overrides =
-            ResolverOverrides::from_api_urls(&config.nym_api_urls).await?;
-
-        let nym_vpn_api_resolver_overrides =
-            ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls).await?;
+        // Each lookup can wait out a DNS timeout, so run them together rather than back to back.
+        let (nyxd_socket_addrs, nym_api_resolver_overrides, nym_vpn_api_resolver_overrides) = tokio::try_join!(
+            url_to_socket_addr(&nyxd_url, Some((1, 1))),
+            ResolverOverrides::from_api_urls(&config.nym_api_urls),
+            ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls),
+        )?;
 
         Ok(ResolvedConfig {
             nyxd_url,
@@ -615,6 +615,27 @@ mod test {
     fn mainnet_gateway_client() -> GatewayClient {
         let config = new_mainnet();
         GatewayClient::new(config, user_agent()).unwrap()
+    }
+
+    #[tokio::test]
+    async fn resolved_config_from_config_resolves_all_urls() {
+        let api_url = |url: &str| ApiUrl {
+            url: url.to_string(),
+            front_hosts: None,
+        };
+        let config = Config::new(
+            "https://127.0.0.1:443".parse().unwrap(),
+            vec![api_url("https://localhost/api/")],
+            vec![api_url("https://localhost:8443/api/")],
+            None,
+        )
+        .unwrap();
+
+        let resolved = ResolvedConfig::from_config(&config).await.unwrap();
+
+        assert_eq!(resolved.nyxd_socket_addrs.len(), 1);
+        assert!(!resolved.nym_api_resolver_overrides.is_empty());
+        assert!(!resolved.nym_vpn_api_resolver_overrides.is_empty());
     }
 
     #[tokio::test]

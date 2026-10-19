@@ -286,6 +286,8 @@ pub struct SystemConfiguration {
     pub wg_thresholds: ScoreThresholds,
     pub statistics_api: Option<String>,
     pub min_supported_app_versions: Option<NetworkCompatibility>,
+    pub app_update_policy: String,
+    pub app_update_policies: HashMap<String, String>,
 }
 
 #[derive(Clone, Debug)]
@@ -328,6 +330,23 @@ pub struct NetworkCompatibility {
     pub android: String,
 }
 
+/// Everything an app needs to decide whether to ask for, or require, an update.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct AppCompatibility {
+    pub network: Option<NetworkCompatibility>,
+    pub app_update_policy: String,
+    pub app_update_policies: HashMap<String, String>,
+}
+
 #[cfg(feature = "nym-type-conversions")]
 impl From<nym_vpn_api_client::response::SystemConfigurationResponse> for SystemConfiguration {
     fn from(value: nym_vpn_api_client::response::SystemConfigurationResponse) -> Self {
@@ -338,6 +357,22 @@ impl From<nym_vpn_api_client::response::SystemConfigurationResponse> for SystemC
             min_supported_app_versions: value
                 .min_supported_app_versions
                 .map(NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<&nym_vpn_network_config::SystemConfiguration> for AppCompatibility {
+    fn from(value: &nym_vpn_network_config::SystemConfiguration) -> Self {
+        Self {
+            network: value
+                .min_supported_app_versions
+                .clone()
+                .map(NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy.clone(),
+            app_update_policies: value.app_update_policies.clone(),
         }
     }
 }
@@ -352,6 +387,8 @@ impl From<nym_vpn_network_config::SystemConfiguration> for SystemConfiguration {
             min_supported_app_versions: value
                 .min_supported_app_versions
                 .map(NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
         }
     }
 }

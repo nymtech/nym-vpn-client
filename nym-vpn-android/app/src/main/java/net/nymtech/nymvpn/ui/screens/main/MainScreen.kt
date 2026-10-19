@@ -72,6 +72,7 @@ import net.nymtech.nymvpn.util.extensions.launchScreenLockSetup
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scoreFor
 import net.nymtech.nymvpn.util.extensions.toConnectMode
+import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
@@ -102,6 +103,17 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
+	// Survives leaving and re-entering Home, so a dismissed prompt does not come back until the next app start.
+	var compatibilityDismissed by rememberSaveable { mutableStateOf(false) }
+	val appUpdateRequired = appUiState.managerState.appUpdateRequired
+	val tunnelUp = appUiState.managerState.tunnelState == Tunnel.State.Up
+	// A required update waits for an active connection to end, so Disconnect stays reachable.
+	// A dismissed prompt never hides a required one.
+	LaunchedEffect(appUiState.managerState.isNetworkCompatible, appUpdateRequired, tunnelUp) {
+		showCompatibilityDialog = !appUiState.managerState.isNetworkCompatible &&
+			(appUpdateRequired || !compatibilityDismissed) &&
+			!(appUpdateRequired && tunnelUp)
+	}
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	var showNodeFamiliesDialog by remember { mutableStateOf(false) }
@@ -326,11 +338,22 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onCancelAutologin = appViewModel::cancelAutologin,
 		onDismissAutologin = appViewModel::dismissAutologin,
 		onDismissInfo = { showInfoDialog = false },
-		onDismissCompatibility = { showCompatibilityDialog = false },
+		onDismissCompatibility = {
+			if (!appUpdateRequired) {
+				showCompatibilityDialog = false
+				compatibilityDismissed = true
+				viewModel.onUpdateDismissed(appUiState.managerState.appUpdateFloor)
+			}
+		},
 		onConfirmCompatibility = {
-			showCompatibilityDialog = false
+			if (!appUpdateRequired) {
+				showCompatibilityDialog = false
+				compatibilityDismissed = true
+				viewModel.onUpdateDismissed(appUiState.managerState.appUpdateFloor)
+			}
 			context.openWebUrl(downloadUrl)
 		},
+		allowCompatibilityDismiss = !appUpdateRequired,
 		onClickBatterySettings = {
 			val packageName = "package:${context.packageName}".toUri()
 			batteryOptResultState.launch(

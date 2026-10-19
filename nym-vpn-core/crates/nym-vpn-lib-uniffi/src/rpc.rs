@@ -11,9 +11,9 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
-    FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
-    MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, EntryPoint,
+    ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams,
+    HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings, Socks5Status, SplitApp,
     SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode, SystemMessage,
     TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -183,9 +183,8 @@ impl RpcClient {
         Ok(system_messages.into_iter().collect())
     }
 
-    pub async fn get_network_compatibility(&self) -> Result<Option<NetworkCompatibility>> {
-        let network_compatibility = self.inner.clone().get_network_compatibility().await?;
-        Ok(network_compatibility)
+    pub async fn get_app_compatibility(&self) -> Result<AppCompatibility> {
+        Ok(self.inner.clone().get_app_compatibility().await?)
     }
 
     pub async fn get_feature_flags(&self) -> Result<FeatureFlags> {

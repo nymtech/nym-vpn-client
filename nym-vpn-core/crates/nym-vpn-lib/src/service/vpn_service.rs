@@ -50,10 +50,10 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcess;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
-    DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport, DiagnosticRunParams,
-    EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
-    ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    AccountBalanceResponse, AccountCommandError, AccountControllerState, AppCompatibility,
+    AutologinResponse, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport,
+    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
     ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
     StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
@@ -122,7 +122,7 @@ pub enum VpnServiceCommand {
     SetGatewayIndependenceNotifications(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
-    GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
+    GetAppCompatibility(oneshot::Sender<Option<AppCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     GetDefaultDns(oneshot::Sender<Vec<IpAddr>>, ()),
     ListGateways(
@@ -1143,8 +1143,8 @@ impl NymVpnService {
                 let result = self.handle_get_system_messages().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetNetworkCompatibility(tx, ()) => {
-                let result = self.handle_get_network_compatibility().await;
+            VpnServiceCommand::GetAppCompatibility(tx, ()) => {
+                let result = self.handle_get_app_compatibility().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetFeatureFlags(tx, ()) => {
@@ -1578,13 +1578,12 @@ impl NymVpnService {
             .collect()
     }
 
-    async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
+    async fn handle_get_app_compatibility(&self) -> Option<AppCompatibility> {
         self.network_tx
             .borrow()
             .system_configuration
             .as_ref()
-            .and_then(|sc| sc.min_supported_app_versions.clone())
-            .map(NetworkCompatibility::from)
+            .map(AppCompatibility::from)
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {

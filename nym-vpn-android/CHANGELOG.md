@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Show the app update prompt on Android. A dismissible prompt can be closed; a required one cannot and blocks new tunnels (https://github.com/nymtech/nym-vpn-client/pull/6451)
+
 ### Changed
 - Keystore-bound auth with PIN fallback for passphrase and subscription (https://github.com/nymtech/nym-vpn-client/pull/6727)
 - Mask passphrase input with temporary reveal (https://github.com/nymtech/nym-vpn-client/pull/6727)

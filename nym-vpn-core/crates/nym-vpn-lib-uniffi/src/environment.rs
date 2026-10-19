@@ -4,7 +4,7 @@
 use std::{path::PathBuf, sync::Arc};
 
 use nym_vpn_lib_types::{
-    FeatureFlags, Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage, UserAgent,
+    AppCompatibility, FeatureFlags, Network, ParsedAccountLinks, SystemMessage, UserAgent,
 };
 use nym_vpn_network_config::NetworkCache;
 
@@ -91,12 +91,11 @@ impl NymEnvironment {
             .map(|feature_flags| Arc::new(FeatureFlags::from(feature_flags)))
     }
 
-    pub fn network_compatibility(&self) -> Option<NetworkCompatibility> {
+    pub fn app_compatibility(&self) -> Option<AppCompatibility> {
         self.network
             .system_configuration
             .as_ref()
-            .and_then(|sc| sc.min_supported_app_versions.clone())
-            .map(NetworkCompatibility::from)
+            .map(AppCompatibility::from)
     }
 
     pub fn account_links(

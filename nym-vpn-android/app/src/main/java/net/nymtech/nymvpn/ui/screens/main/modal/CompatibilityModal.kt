@@ -15,17 +15,18 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit) {
+fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit, allowDismiss: Boolean = true) {
 	Modal(
 		show = showCompatibilityDialog,
 		onDismiss = onDismiss,
 		title = {
 			Text(
-				text = stringResource(R.string.update_required),
+				text = stringResource(if (allowDismiss) R.string.app_update_available_title else R.string.update_required),
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				style = CustomTypography.labelHuge,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -33,7 +34,7 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 		},
 		text = {
 			Text(
-				stringResource(R.string.app_update_required),
+				stringResource(if (allowDismiss) R.string.app_update_available_body else R.string.app_update_required),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -49,6 +50,23 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),
 			)
+		},
+		dismissButton = {
+			if (allowDismiss) {
+				TransparentButton(
+					onClick = onDismiss,
+					content = {
+						Text(
+							stringResource(R.string.app_update_not_now),
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(40.dp.scaledHeight()),
+				)
+			}
 		},
 	)
 }

@@ -8,6 +8,7 @@ import { DownloadAppUrl } from '../../constants';
 export type Props = {
   isOpen: boolean;
   onClose: () => void;
+  required?: boolean;
   // either app update is required
   appUpdate: boolean;
   // either daemon update is required
@@ -17,6 +18,7 @@ export type Props = {
 function NetworkUpdateDialog({
   isOpen,
   onClose,
+  required = false,
   appUpdate,
   daemonUpdate,
 }: Props) {
@@ -24,17 +26,16 @@ function NetworkUpdateDialog({
   const os = type();
 
   const handleClose = () => {
-    if (os === 'linux') {
-      openUrl(`${DownloadAppUrl}/linux`);
+    if (os === 'linux' || os === 'windows' || os === 'macos') {
+      openUrl(`${DownloadAppUrl}/${os}`);
     }
-    if (os === 'windows') {
-      openUrl(`${DownloadAppUrl}/windows`);
+    if (!required) {
+      onClose();
     }
-    onClose();
   };
 
   const description = () => {
-    if (os === 'linux') {
+    if (os === 'linux' || os === 'macos' || os === 'windows') {
       if (appUpdate && daemonUpdate) {
         return t('update-dialog.description-1-other');
       }
@@ -45,16 +46,12 @@ function NetworkUpdateDialog({
         return t('update-dialog.description-1-daemon');
       }
     }
-
-    if (os === 'windows') {
-      return t('update-dialog.description-1-app');
-    }
   };
 
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={required ? () => undefined : onClose}
       className="flex flex-col items-center gap-6"
       data-testid="update-dialog"
     >
@@ -69,14 +66,18 @@ function NetworkUpdateDialog({
           className="text-text-primary text-xl"
           data-testid="update-dialog-title"
         >
-          {t('update-dialog.title')}
+          {t(
+            required ? 'update-dialog.title' : 'update-dialog.title-available',
+          )}
         </DialogTitle>
       </div>
       <p
         className="text-text-secondary"
         data-testid="update-dialog-description"
       >
-        {description()} {t('update-dialog.description-2')}
+        {required
+          ? `${description() ?? ''} ${t('update-dialog.description-2')}`.trim()
+          : t('update-dialog.description-available')}
       </p>
       <Button
         variant="primary"
@@ -86,6 +87,15 @@ function NetworkUpdateDialog({
       >
         {t('update-dialog.button-update')}
       </Button>
+      {!required && (
+        <Button
+          variant="outlined"
+          onClick={onClose}
+          data-testid="update-dialog-dismiss"
+        >
+          {t('update-dialog.button-not-now')}
+        </Button>
+      )}
     </Dialog>
   );
 }

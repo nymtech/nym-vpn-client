@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Expose free trial eligibility (`trialEligible` from the active subscription endpoint) to mobile clients through the account controller (https://github.com/nymtech/nym-vpn-client/pull/6701)
 - Expose the Apple introductory-offer eligibility token (`subscription/apple/intro-offer-eligibility`) to the iOS client through the account controller, for StoreKit's `introductoryOfferEligibility` purchase option (https://github.com/nymtech/nym-vpn-client/pull/6701)
+- Publish the app update policy, with optional per-platform overrides, from discovery so clients can ask for or require an update (https://github.com/nymtech/nym-vpn-client/pull/6450)
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)
 - Add `nym-vpnc completions <shell>` to generate shell completions, and install bash, zsh and fish completions with the macOS, deb and AUR packages (https://github.com/nymtech/nym-vpn-client/pull/6735)
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix panic in logging system initialization (https://github.com/nymtech/nym-vpn-client/pull/6674)
 - Rotate logs on iOS and Android on per session basis (https://github.com/nymtech/nym-vpn-client/pull/6679)
 - Remove SQLite WAL and shared-memory files (-wal, -shm) along with their databases when wiping local storage. (https://github.com/nymtech/nym-vpn-client/pull/6706)
+- Resolve the nyxd, nym-api and VPN API hostnames concurrently when connecting, so a blocked encrypted DNS no longer adds its timeout once per lookup
 
 ### Security
 

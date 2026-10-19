@@ -160,6 +160,18 @@ impl From<proto::NetworkCompatibility> for nym_vpn_lib_types::NetworkCompatibili
     }
 }
 
+impl From<proto::GetNetworkCompatibilityResponse> for nym_vpn_lib_types::AppCompatibility {
+    fn from(value: proto::GetNetworkCompatibilityResponse) -> Self {
+        Self {
+            network: value
+                .network_compatibility
+                .map(nym_vpn_lib_types::NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
+        }
+    }
+}
+
 impl From<proto::GetFeatureFlagsResponse> for nym_vpn_lib_types::FeatureFlags {
     fn from(feature_flags: proto::GetFeatureFlagsResponse) -> Self {
         let mut data = HashMap::default();
@@ -316,6 +328,16 @@ impl From<nym_vpn_lib_types::NetworkCompatibility> for proto::NetworkCompatibili
             macos: value.macos,
             tauri: value.tauri,
             android: value.android,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::AppCompatibility> for proto::GetNetworkCompatibilityResponse {
+    fn from(value: nym_vpn_lib_types::AppCompatibility) -> Self {
+        Self {
+            network_compatibility: value.network.map(proto::NetworkCompatibility::from),
+            app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
         }
     }
 }
