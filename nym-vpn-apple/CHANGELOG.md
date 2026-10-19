@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - iOS: free trial offered only to eligible Nym accounts (https://github.com/nymtech/nym-vpn-client/pull/6701)
+- Update and improve error-message copy (https://github.com/nymtech/nym-vpn-client/pull/6750)
+
+### Fixed
+
+- Show the daily allowance reset time, including time of day, in the local time zone (https://github.com/nymtech/nym-vpn-client/pull/6497)
+- Persist the network-stats preference consistently, including on iOS (https://github.com/nymtech/nym-vpn-client/pull/6469)
 
 ## [2026.13.0] - 2026-10-09
 

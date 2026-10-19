@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show the update dialog on Linux, macOS and Windows when the app or daemon is below the minimum supported version. A required update cannot be dismissed and blocks new connections (https://github.com/nymtech/nym-vpn-client/pull/6452)
 - Log panics to the app log file, flushing queued log lines when the main thread panics (https://github.com/nymtech/nym-vpn-client/pull/6673)
 
+### Changed
+
+- Reword the daily-allowance limit error to point to Account Status (https://github.com/nymtech/nym-vpn-client/pull/6497)
+- Update and improve error-message copy (https://github.com/nymtech/nym-vpn-client/pull/6748)
+
 ## [2026.13.0] - 2026-10-09
 
 ### Added

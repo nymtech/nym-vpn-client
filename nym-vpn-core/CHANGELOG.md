@@ -17,12 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Enter error state on failure to configure local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/6629)
+- Enter error state on failure to configure local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/6629, https://github.com/nymtech/nym-vpn-client/pull/6638)
 - Auto selection no longer treats US states as separate jurisdictions: "exclude my country" and the entry/exit country check now compare whole countries only
 - Fix panic in logging system initialization (https://github.com/nymtech/nym-vpn-client/pull/6674)
 - Rotate logs on iOS and Android on per session basis (https://github.com/nymtech/nym-vpn-client/pull/6679)
 - Remove SQLite WAL and shared-memory files (-wal, -shm) along with their databases when wiping local storage. (https://github.com/nymtech/nym-vpn-client/pull/6706)
 - Resolve the nyxd, nym-api and VPN API hostnames concurrently when connecting, so a blocked encrypted DNS no longer adds its timeout once per lookup
+- Fix F-Droid reproducible builds by omitting the Sentry DSN and sccache wrapper from the F-Droid build (https://github.com/nymtech/nym-vpn-client/pull/6692)
 
 ### Security
 
