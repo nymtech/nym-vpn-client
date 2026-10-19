@@ -91,7 +91,7 @@ extension MixnetConfig {
             frontingMode: isStealthApiEnabled ? .always : .onRetry,
             customDns: customDns,
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
-            networkStats: nil,
+            networkStats: NetworkStatisticsConfig(enabled: isStatisticsEnabled, allowDisconnected: false),
             gatewaySelectionAlgorithmConfig: gatewaySelectionAlgorithmConfig.sdkValue,
             gatewayIndependence: GatewayIndependence(
                 enableNotifications: isServerFamilyRemindersEnabled,

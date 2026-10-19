@@ -38,11 +38,20 @@ build() {
   # 2. aws-lc-sys v0.38: build issues related to optimizations (fixed in newer versions)
   # see: https://github.com/aws/aws-lc-rs/pull/1064
   CFLAGS+=" -ffat-lto-objects -O0" cargo build --release --locked -p nym-vpnc --verbose
+
+  mkdir -p target/completions
+  target/release/nym-vpnc completions bash > target/completions/nym-vpnc.bash
+  target/release/nym-vpnc completions zsh > target/completions/_nym-vpnc
+  target/release/nym-vpnc completions fish > target/completions/nym-vpnc.fish
   popd
 
   popd # _srcdir
 }
 
 package() {
-  install -Dm755 "$_srcdir/nym-vpn-core/target/release/nym-vpnc" "$pkgdir/usr/bin/nym-vpnc"
+  local target="$_srcdir/nym-vpn-core/target"
+  install -Dm755 "$target/release/nym-vpnc" "$pkgdir/usr/bin/nym-vpnc"
+  install -Dm644 "$target/completions/nym-vpnc.bash" "$pkgdir/usr/share/bash-completion/completions/nym-vpnc"
+  install -Dm644 "$target/completions/_nym-vpnc" "$pkgdir/usr/share/zsh/site-functions/_nym-vpnc"
+  install -Dm644 "$target/completions/nym-vpnc.fish" "$pkgdir/usr/share/fish/vendor_completions.d/nym-vpnc.fish"
 }

@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.server
 
 import android.content.res.Configuration
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,7 +30,6 @@ import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -45,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -75,7 +78,9 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
-import net.nymtech.nymvpn.ui.screens.server.components.CountryItem
+import net.nymtech.nymvpn.ui.screens.server.components.CountryHeaderRow
+import net.nymtech.nymvpn.ui.screens.server.components.GatewayRow
+import net.nymtech.nymvpn.ui.screens.server.components.RegionHeaderRow
 import net.nymtech.nymvpn.ui.screens.server.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.server.components.QuicInfoMessage
 import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsModalBody
@@ -96,7 +101,6 @@ import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerScreen(
 	gatewayLocation: GatewayLocation,
@@ -194,7 +198,7 @@ fun ServerScreen(
 	}
 
 	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT)
+		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT, selectedKey)
 		viewModel.updateCountryCache(gatewayType)
 	}
 
@@ -223,6 +227,7 @@ fun ServerScreen(
 		onLocationSelect = { location -> selectedLocation = location },
 		onFilterSelect = { viewModel.onFilterSelected(it) },
 		onToggleFavorite = { id, isFavorite -> viewModel.onToggleFavorite(id, isFavorite) },
+		onToggleExpanded = { viewModel.onToggleExpanded(it) },
 		onNavigateToCensorship = { navController.navigate(Route.Censorship) },
 		onNavigateToServerDetails = { gateway ->
 			navController.goFromRoot(Route.ServerDetails(gateway.identity, selectedLocation.name))
@@ -230,7 +235,6 @@ fun ServerScreen(
 	)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ServerScreenContent(
 	uiState: ServerUiState,
@@ -247,6 +251,7 @@ internal fun ServerScreenContent(
 	onLocationSelect: (GatewayLocation) -> Unit,
 	onFilterSelect: (ServerListFilter) -> Unit,
 	onToggleFavorite: (String, Boolean) -> Unit,
+	onToggleExpanded: (ServerRow.Expandable) -> Unit,
 	onNavigateToCensorship: () -> Unit,
 	onNavigateToServerDetails: (NymGateway) -> Unit,
 ) {
@@ -254,23 +259,19 @@ internal fun ServerScreenContent(
 	val listState = rememberLazyListState()
 	var hasScrolled by remember { mutableStateOf(false) }
 
-	LaunchedEffect(uiState.items) {
-		if (hasScrolled || selectedKey == null || uiState.items.isEmpty()) return@LaunchedEffect
-		val index = uiState.items.indexOfFirst { item ->
-			when (item) {
-				is ItemType.CountryItem -> {
-					val countryCode = item.locale.country.lowercase()
-					countryCode == selectedKey ||
-						item.gateways.any { it.identity == selectedKey } ||
-						item.regions?.any { it.region.equals(selectedKey, true) } == true
-				}
-				is ItemType.GatewayItem -> item.gateway.identity == selectedKey
-			}
-		}
-		if (index >= 0) {
-			listState.animateScrollToItem(index + 2)
-			hasScrolled = true
-		}
+	val scrollTargetKey = remember(uiState.rows, selectedKey) {
+		uiState.rows.firstOrNull { it.represents(selectedKey) }?.key
+	}
+
+	LaunchedEffect(scrollTargetKey) {
+		if (hasScrolled || scrollTargetKey == null) return@LaunchedEffect
+		val index = HEADER_ITEM_COUNT + uiState.rows.indexOfFirst { it.key == scrollTargetKey }
+		hasScrolled = true
+		val viewportHeight = snapshotFlow { listState.layoutInfo.viewportSize.height }.first { it > 0 }
+		listState.scrollToItem(index)
+		val target = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == scrollTargetKey } ?: return@LaunchedEffect
+		val desiredOffset = (viewportHeight * SELECTED_ITEM_VIEWPORT_FRACTION).toInt()
+		listState.scrollBy((target.offset - desiredOffset).toFloat())
 	}
 
 	PullToRefreshBox(
@@ -313,8 +314,6 @@ internal fun ServerScreenContent(
 						onValueChange = onQueryChange,
 						modifier = Modifier
 							.fillMaxWidth()
-							// scaledHeight shrinks below the content height on short screens (e.g. 48dp -> ~33dp
-							// on a 1080x1920 xxhdpi device), clipping the text — keep the M3 48dp minimum
 							.height(48.dp.scaledHeight().coerceAtLeast(48.dp))
 							.background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp)),
 						placeholder = {
@@ -356,65 +355,66 @@ internal fun ServerScreenContent(
 			item {
 				VerticalDivider(Modifier.height(12.dp))
 			}
-			if (uiState.filter == ServerListFilter.ALL_SERVERS) {
-				item {
-					val items = buildList {
-						add(
-							SelectionItem(
-								onClick = { onSelect("Auto") },
-								leading = {
-									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-										Icon(
-											imageVector = ImageVector.vectorResource(R.drawable.ic_safest),
-											contentDescription = null,
-											modifier = Modifier.size(iconSize),
-										)
-									}
-								},
-								title = { Text(stringResource(R.string.gateway_safest), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-								selected = isSafestSelected,
-							),
-						)
-					}
-					SurfaceSelectionGroupButton(
-						items = items,
-						shape = RoundedCornerShape(14.dp),
-						background = MaterialTheme.colorScheme.primaryContainer,
-						anchorsPadding = 0.dp,
+			items(uiState.rows, key = { it.key }, contentType = { it::class }) { row ->
+				val rowModifier = Modifier.animateItem()
+				when (row) {
+					ServerRow.Safest -> AutoOptionRow(
+						icon = R.drawable.ic_safest,
+						title = R.string.gateway_safest,
+						selected = isSafestSelected,
+						onClick = { onSelect("Auto") },
+						modifier = rowModifier.padding(bottom = 8.dp),
 					)
-					Spacer(modifier = Modifier.height(8.dp))
-				}
-				item {
-					val items = buildList {
-						add(
-							SelectionItem(
-								onClick = { onSelect("Random") },
-								leading = {
-									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-										Icon(
-											imageVector = ImageVector.vectorResource(R.drawable.ic_random),
-											contentDescription = null,
-											modifier = Modifier.size(iconSize),
-										)
-									}
-								},
-								title = { Text(stringResource(R.string.gateway_random), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-								selected = isRandomSelected,
-							),
-						)
-					}
 
-					SurfaceSelectionGroupButton(
-						items = items,
-						shape = RoundedCornerShape(14.dp),
-						background = MaterialTheme.colorScheme.primaryContainer,
-						anchorsPadding = 0.dp,
+					ServerRow.Random -> AutoOptionRow(
+						icon = R.drawable.ic_random,
+						title = R.string.gateway_random,
+						selected = isRandomSelected,
+						onClick = { onSelect("Random") },
+						modifier = rowModifier.padding(bottom = 4.dp),
 					)
-					Spacer(modifier = Modifier.height(4.dp))
+
+					is ServerRow.CountryHeader -> CountryHeaderRow(
+						row = row,
+						isSelected = row.represents(selectedKey),
+						onSelectionChange = onSelect,
+						onToggleExpanded = onToggleExpanded,
+						onToggleFavorite = onToggleFavorite,
+						modifier = rowModifier,
+					)
+
+					is ServerRow.RegionHeader -> RegionHeaderRow(
+						row = row,
+						isSelected = row.represents(selectedKey),
+						onSelectionChange = onSelect,
+						onToggleExpanded = onToggleExpanded,
+						onToggleFavorite = onToggleFavorite,
+						modifier = rowModifier,
+					)
+
+					is ServerRow.Gateway -> GatewayRow(
+						row = row,
+						gatewayType = gatewayType,
+						isSelected = row.represents(selectedKey),
+						onSelectionChange = onSelect,
+						onGatewayDetails = onNavigateToServerDetails,
+						onToggleFavorite = onToggleFavorite,
+						modifier = rowModifier,
+					)
+
+					is ServerRow.SearchResult -> SearchResultRow(
+						row = row,
+						gatewayType = gatewayType,
+						isSelected = row.represents(selectedKey),
+						onSelect = onSelect,
+						onToggleFavorite = onToggleFavorite,
+						onNavigateToServerDetails = onNavigateToServerDetails,
+						modifier = rowModifier,
+					)
 				}
 			}
 
-			if (uiState.items.isEmpty() && uiState.isEmpty) {
+			if (!uiState.hasLocations && uiState.isEmpty) {
 				item {
 					Box(
 						modifier = Modifier
@@ -440,7 +440,7 @@ internal fun ServerScreenContent(
 				}
 			}
 
-			if (uiState.query.isNotBlank() && uiState.items.isEmpty() && !uiState.error) {
+			if (uiState.query.isNotBlank() && !uiState.hasLocations && !uiState.error) {
 				item {
 					Column(
 						horizontalAlignment = Alignment.CenterHorizontally,
@@ -489,89 +489,100 @@ internal fun ServerScreenContent(
 					}
 				}
 			}
-
-			items(
-				uiState.items,
-				key = { item ->
-					when (item) {
-						is ItemType.CountryItem -> item.locale.country
-						is ItemType.GatewayItem -> item.gateway.identity
-					}
-				},
-			) { item ->
-				when (item) {
-					is ItemType.CountryItem -> {
-						CountryItem(
-							query = uiState.query,
-							countryItem = item,
-							gatewayType = gatewayType,
-							gatewayLocation = gatewayLocation,
-							filter = uiState.filter,
-							selectedKey = selectedKey,
-							favoriteGatewayIds = uiState.favoriteGatewayIds,
-							onSelectionChange = onSelect,
-							onGatewayDetails = onNavigateToServerDetails,
-							onToggleFavorite = onToggleFavorite,
-							modifier = Modifier.padding(vertical = 4.dp),
-						)
-					}
-
-					is ItemType.GatewayItem -> {
-						val gateway = item.gateway
-						val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
-
-						SurfaceSelectionGroupButton(
-							items = listOf(
-								SelectionItem(
-									onClick = { onSelect(gateway.identity) },
-									leading = {
-										val scoreIcon = gateway.getScoreIcon(gatewayType)
-										if (scoreIcon != null) {
-											val (icon, description) = scoreIcon
-											Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-												Image(icon, contentDescription = description, modifier = Modifier.size(16.dp))
-											}
-										}
-									},
-									trailing = {
-										ServerDetailsTrailingContent(
-											isFavorite = item.isFavorite,
-											onToggleFavorite = { onToggleFavorite(gateway.identity, item.isFavorite) },
-											onInfoIconClick = { onNavigateToServerDetails(gateway) },
-										)
-									},
-									title = {
-										Text(
-											gateway.name,
-											style = MaterialTheme.typography.bodyLarge,
-											color = MaterialTheme.colorScheme.onPrimaryContainer,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis,
-										)
-									},
-									description = {
-										Text(
-											text = gateway.serverLocation(locale?.displayCountry),
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis,
-											style = MaterialTheme.typography.bodySmall,
-											color = MaterialTheme.colorScheme.onBackground,
-										)
-									},
-									selected = selectedKey == gateway.identity,
-								),
-							),
-							shape = RoundedCornerShape(14.dp),
-							background = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-							divider = false,
-							anchorsPadding = 0.dp,
-							modifier = Modifier.padding(vertical = 4.dp),
-						)
-					}
-				}
-			}
 		}
 	}
+}
+
+private const val SELECTED_ITEM_VIEWPORT_FRACTION = 1f / 3
+
+private const val HEADER_ITEM_COUNT = 3
+
+@Composable
+private fun SearchResultRow(
+	row: ServerRow.SearchResult,
+	gatewayType: GatewayType,
+	isSelected: Boolean,
+	onSelect: (String) -> Unit,
+	onToggleFavorite: (String, Boolean) -> Unit,
+	onNavigateToServerDetails: (NymGateway) -> Unit,
+	modifier: Modifier = Modifier,
+) {
+	val gateway = row.gateway
+	val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
+
+	SurfaceSelectionGroupButton(
+		items = listOf(
+			SelectionItem(
+				onClick = { onSelect(gateway.identity) },
+				leading = {
+					val scoreIcon = gateway.getScoreIcon(gatewayType)
+					if (scoreIcon != null) {
+						val (icon, description) = scoreIcon
+						Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+							Image(icon, contentDescription = description, modifier = Modifier.size(16.dp))
+						}
+					}
+				},
+				trailing = {
+					ServerDetailsTrailingContent(
+						isFavorite = row.isFavorite,
+						onToggleFavorite = { onToggleFavorite(gateway.identity, row.isFavorite) },
+						onInfoIconClick = { onNavigateToServerDetails(gateway) },
+					)
+				},
+				title = {
+					Text(
+						gateway.name,
+						style = MaterialTheme.typography.bodyLarge,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+					)
+				},
+				description = {
+					Text(
+						text = gateway.serverLocation(locale?.displayCountry),
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onBackground,
+					)
+				},
+				selected = isSelected,
+			),
+		),
+		shape = RoundedCornerShape(14.dp),
+		background = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+		divider = false,
+		anchorsPadding = 0.dp,
+		modifier = modifier.padding(vertical = 4.dp),
+	)
+}
+
+@Composable
+private fun AutoOptionRow(@DrawableRes icon: Int, @StringRes title: Int, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+	SurfaceSelectionGroupButton(
+		items = listOf(
+			SelectionItem(
+				onClick = onClick,
+				leading = {
+					Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+						Icon(
+							imageVector = ImageVector.vectorResource(icon),
+							contentDescription = null,
+							modifier = Modifier.size(iconSize),
+						)
+					}
+				},
+				title = { Text(stringResource(title), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
+				selected = selected,
+			),
+		),
+		shape = RoundedCornerShape(14.dp),
+		background = MaterialTheme.colorScheme.primaryContainer,
+		anchorsPadding = 0.dp,
+		modifier = modifier,
+	)
 }
 
 @Composable
@@ -673,6 +684,7 @@ internal fun ServerScreenPreview() {
 				onLocationSelect = {},
 				onFilterSelect = {},
 				onToggleFavorite = { _, _ -> },
+				onToggleExpanded = {},
 				onNavigateToCensorship = {},
 				onNavigateToServerDetails = {},
 			)

@@ -8,10 +8,12 @@ import UIComponents
 public struct WelcomeOptInsView: View {
 
     @AppStorage(AppSettingKey.statistics.rawValue)
-    private var isStatisticsEnabled: Bool = true
+    private var isStatisticsEnabled = true
 
     @AppStorage(AppSettingKey.errorReporting.rawValue)
-    private var isErrorReportingOn: Bool = false
+    private var isErrorReportingOn = false
+
+    @EnvironmentObject private var appSettings: AppSettings
 
     private let onContinue: () -> Void
 
@@ -32,6 +34,10 @@ public struct WelcomeOptInsView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
+        // SentryManager observes this publisher; AppStorage alone would not reach it until relaunch.
+        .onChange(of: isErrorReportingOn) {
+            appSettings.isErrorReportingOnPublisher = isErrorReportingOn
+        }
     }
 }
 
@@ -124,6 +130,7 @@ private extension WelcomeOptInsView {
 #if DEBUG
 #Preview {
     WelcomeOptInsView(onContinue: {})
+        .environmentObject(AppSettings.shared)
         .background(Color.Nym.surface)
 }
 #endif

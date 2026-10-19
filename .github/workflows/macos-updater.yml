@@ -16,6 +16,9 @@ on:
       WEB_REPO_TOKEN_FOR_APPCAST:
         required: true
 
+env:
+  HOMEBREW_NO_ANALYTICS: 1
+
 jobs:
   macos-updater:
     runs-on: custom-macos-15
