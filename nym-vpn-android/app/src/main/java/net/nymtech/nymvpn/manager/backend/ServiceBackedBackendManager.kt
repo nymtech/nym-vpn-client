@@ -9,13 +9,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import net.nymtech.vpn.model.VpnServiceEvent
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -43,6 +46,7 @@ import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.TunnelType
 import nym_vpn_lib_types.VpnAccountSummary
+import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -101,16 +105,40 @@ class ServiceBackedBackendManager @Inject constructor(
 			refreshIdentityState()
 			refreshAccountSummary()
 
-			_state.update {
-				it.copy(
-					isInitialized = true,
-					isNetworkCompatible = true,
-				)
-			}
+			refreshAppUpdateDecision()
+			_state.update { it.copy(isInitialized = true) }
+
+			// Re-read when the app comes back to the foreground, so a lifted requirement does not need a restart.
+			NymVpn.AppLifecycleObserver.isInForeground.filter { it }.collect { refreshAppUpdateDecision() }
+		}
+	}
+
+	private suspend fun refreshAppUpdateDecision() {
+		val api = runCatching { serviceConnectionManager.awaitApi() }.getOrNull() ?: return
+		val versions = runCatching { api.getNetworkVersions() }.getOrNull()
+		val floor = versions?.android
+		val decision = appUpdateDecision(
+			local = BuildConfig.VERSION_NAME,
+			floor = floor,
+			policy = versions?.appUpdatePolicy,
+			overrides = versions?.appUpdatePolicies,
+		)
+		// A prompt the user dismissed stays away until the minimum version changes.
+		val dismissed = !decision.blockConnect &&
+			floor != null &&
+			runCatching { settingsRepository.getDismissedUpdateFloor() }.getOrNull() == floor
+		_state.update {
+			it.copy(isNetworkCompatible = !decision.showDialog || dismissed, appUpdateRequired = decision.blockConnect, appUpdateFloor = floor)
 		}
 	}
 
 	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {
+		val ready = _state.value.takeIf { it.isInitialized } ?: _state.first { it.isInitialized }
+		if (ready.appUpdateRequired) {
+			notifyAppUpdateRequired()
+			return
+		}
+
 		val restrictedApps = getRestrictedAppsPackages()
 		val initReq = buildInitRequest()
 
@@ -306,6 +334,14 @@ class ServiceBackedBackendManager @Inject constructor(
 		}.onFailure { Timber.tag(TAG).w(it, "setGatewayIndependenceEnabled failed") }
 	}
 
+	private fun notifyAppUpdateRequired() {
+		if (NymVpn.AppLifecycleObserver.isInForeground.value) return
+		notificationService.showNotification(
+			title = context.getString(R.string.update_required),
+			description = context.getString(R.string.app_update_required),
+		)
+	}
+
 	private fun notifyVpnPermissionRequired() {
 		val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value
 		if (!isAppInForeground) {
@@ -348,4 +384,20 @@ class ServiceBackedBackendManager @Inject constructor(
 			)
 		}
 	}
+}
+
+internal data class AppUpdateDecision(val showDialog: Boolean, val blockConnect: Boolean)
+
+internal fun appUpdateDecision(local: String?, floor: String?, policy: String?, overrides: Map<String, String>? = null): AppUpdateDecision {
+	val localVersion = local?.let { Semver.coerce(it) }
+	val floorVersion = floor?.let { Semver.coerce(it) }
+	if (localVersion == null || floorVersion == null) {
+		return AppUpdateDecision(showDialog = false, blockConnect = false)
+	}
+	if (!localVersion.isLowerThan(floorVersion)) {
+		return AppUpdateDecision(showDialog = false, blockConnect = false)
+	}
+	// This platform's own policy wins over the default.
+	val required = (overrides?.get("android") ?: policy) == "required"
+	return AppUpdateDecision(showDialog = true, blockConnect = required)
 }
