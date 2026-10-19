@@ -169,10 +169,10 @@
 	<string name="error_set_routing">Couldn\'t set up network routing. Reconnect. If it persists, close other VPN apps or contact support.</string>
 	<string name="error_tun_device">Couldn\'t set up the VPN network interface. Reconnect. If it persists, restart the app or your device, or contact support.</string>
 	<string name="error_tunnel_provider">Couldn\'t start the VPN on this device. Reconnect, and allow the VPN connection if prompted. If it persists, contact support.</string>
-	<string name="error_active_plan">You don\'t have an active plan. Tap Get started to begin anonymous browsing.</string>
+	<string name="error_active_plan">You don\'t have an active subscription. Get or renew a plan, then refresh your account and reconnect.</string>
 	<string name="error_bandwidth_entry">The entry server didn\'t complete your connection. Try again, or turn on QUIC in Anti-censorship settings.</string>
 	<string name="error_bandwidth_exit">The exit server didn\'t complete your connection. Choose a different exit location and try again.</string>
-	<string name="error_gateway_unavailable_entry">No entry server is available for your selection. Pick another location, or turn on QUIC in Anti-censorship settings.</string>
+	<string name="error_gateway_unavailable_entry">No entry server is available for your selection. Pick another location, or try again in a few minutes.</string>
 	<string name="error_gateway_unavailable_exit">No exit server is available for your selection. Pick a different location, or try again in a few minutes.</string>
 	<string name="error_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
 	<string name="error_invalid_exit_gateway_identity">The exit server you chose isn\'t available with your current settings. Choose a different exit or entry server, then connect again.</string>

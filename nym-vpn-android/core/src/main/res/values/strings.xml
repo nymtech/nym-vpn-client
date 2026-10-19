@@ -23,7 +23,7 @@
 	<string name="error_reason_ipv6_unavailable">IPv6 is turned off on this system, but NymVPN is set to use it. Turn off IPv6 in NymVPN settings, then connect again.</string>
 
 	<string name="error_reason_same_entry_and_exit_gateway">Entry and exit can\'t be the same server. Pick a different entry or exit, then connect again.</string>
-	<string name="error_reason_performant_entry_gateway_unavailable">No entry server is available for your selection. Pick another location, or turn on QUIC in Anti-censorship settings.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">No entry server is available for your selection. Pick another location, or try again in a few minutes.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">No exit server is available for your selection. Pick a different location, or try again in a few minutes.</string>
 
 	<string name="error_reason_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
