@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sync network stats preference to core, off by default (https://github.com/nymtech/nym-vpn-client/pull/6727)
 - Flatten server list into per-row lazy items (https://github.com/nymtech/nym-vpn-client/pull/6736)
 - Move row building and expand state to ViewModel (https://github.com/nymtech/nym-vpn-client/pull/6736)
+- Free trial is offered only when the backend reports the account as trial eligible: the Play offer is selected explicitly (trial offer vs. regular offer) and the trial label is hidden whenever the regular offer will be launched
+- Onboarding plan page and plan screens share one trial eligibility check (no stored account = eligible, otherwise the backend answer) and show a trial only when Play also offers one; the trial length comes from Play instead of a hardcoded 7 days, and the onboarding fallback pricing no longer claims a trial
+- Purchase flow launches the base plan (never an intro-discount offer) when no trial applies, and reports an error instead of hanging when no base plan is available
+- Trial labels and plan pricing no longer shift the layout when eligibility or Play pricing resolve
 
 ### Fixed
 - Fix unclickable nodes in large countries (https://github.com/nymtech/nym-vpn-client/pull/6736)

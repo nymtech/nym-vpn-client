@@ -315,7 +315,27 @@ pub enum NymVpnSubscriptionKind {
 pub struct NymVpnSubscriptionResponse {
     pub is_subscription_active: bool,
     pub subscription: Option<NymVpnSubscription>,
-    pub remaining_allowance_in_gb: f64,
+    /// The API declares this field as optional and spells it `remainingAllowanceInGB`;
+    /// Populated conditionally.
+    #[serde(default, alias = "remainingAllowanceInGB")]
+    pub remaining_allowance_in_gb: Option<f64>,
+    /// Whether the account may be offered a free trial. Only `Some(true)` means a trial can be
+    /// offered; `Some(false)` and `None` (older API versions) both mean no trial.
+    #[serde(default)]
+    pub trial_eligible: Option<bool>,
+}
+
+/// Response of `POST account/{id}/subscription/apple/intro-offer-eligibility`.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AppleIntroOfferEligibilityResponse {
+    /// Whether the account may be offered a free trial, by the same account rule as
+    /// `NymVpnSubscriptionResponse::trial_eligible`.
+    pub trial_eligible: bool,
+    /// Present only when `trial_eligible` is `false`: an ES256 JWS with
+    /// `allowIntroductoryOffer: false` for StoreKit's `introductoryOfferEligibility` purchase
+    /// option. `None` for an eligible account, which leaves the decision to Apple's own rule.
+    pub compact_jws: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -671,6 +691,16 @@ pub struct NymErrorResponse {
     pub status: String,
 }
 
+impl NymErrorResponse {
+    /// The request was valid, but the account was never registered with the API. Distinct from
+    /// "Account is not active", which is a banned or deleted account.
+    // TODO: match on `code_reference_id` once the API assigns one to this error; the message
+    // string is not a stable contract.
+    pub fn is_account_not_found(&self) -> bool {
+        self.status == "access_denied" && self.message == "Account not found"
+    }
+}
+
 impl fmt::Display for NymErrorResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let fields = [
@@ -836,6 +866,93 @@ mod tests {
         let raw_response = r#"{"id":"dj2e1yzc9jj9s8n","status":"upgrade_mode","ticketbook_type":"v1-mixnet-entry","last_updated_utc":"2025-11-13 15:40:31.166Z","created_on_utc":"2025-11-13 15:40:30.921Z","valid_until_utc":"2025-11-13 23:00:00.000Z","valid_from_utc":"2025-11-13 15:40:30.916Z","issued_bandwidth_in_gb":25,"upgrade_mode":{"upgrade_mode_attestation":{"attester_public_key":"6sfL7xcCzmcsxA1uXtnExcpA7KWypCcsUbs7SzUADxng","authorised_jwt_issuers":["Ddfd2WDCWbW28hmrrGV24GxQxBuGmg1Ra41k3TGn3B4Z"],"signature":"3UR5cL9XzDCFVHt9WVmJ4KemcftbfpCa63TBa9wd6w5dW4uq7u4BwS5UsBfwMB49StH5wDCbSpN1borZbfMnitxn","starting_time":"2025-11-10T09:15:18.967542Z","type":"upgrade_mode"},"upgrade_mode_jwt":"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsImp3ayI6IkRkZmQyV0RDV2JXMjhobXJyR1YyNEd4UXhCdUdtZzFSYTQxazNUR24zQjRaIn0.eyJpYXQiOjE3NjMwNDc5NzYsImV4cCI6MTc2MzA1MTU3NiwibmJmIjoxNzYzMDQ3OTc2LCJpc3MiOiJueW0tY3JlZGVudGlhbC1wcm94eSIsIm5vbmNlIjoiR2ZtYzJYY2c2NUdkc0JaOWJ3RFg2OGxONmNfR2V5NUwiLCJ0eXBlIjoidXBncmFkZV9tb2RlIiwic3RhcnRpbmdfdGltZSI6IjIwMjUtMTEtMTBUMDk6MTU6MTguOTY3NTQyWiIsImF0dGVzdGVyX3B1YmxpY19rZXkiOiI2c2ZMN3hjQ3ptY3N4QTF1WHRuRXhjcEE3S1d5cENjc1ViczdTelVBRHhuZyIsImF1dGhvcmlzZWRfand0X2lzc3VlcnMiOlsiRGRmZDJXRENXYlcyOGhtcnJHVjI0R3hReEJ1R21nMVJhNDFrM1RHbjNCNFoiXSwic2lnbmF0dXJlIjoiM1VSNWNMOVh6RENGVkh0OVdWbUo0S2VtY2Z0YmZwQ2E2M1RCYTl3ZDZ3NWRXNHVxN3U0QndTNVVzQmZ3TUI0OVN0SDV3RENiU3BOMWJvclpiZk1uaXR4biJ9.u66O2q-xoEMtyr-6OBEKL8BEdhoo6xLo6dHkVxDmzB3I6CZ1pFIwzgZUKNA5DT_O6bFzcLv8DyLmOuzdAe-lDw"}}"#;
         let res = serde_json::from_str::<NymVpnZkNym>(raw_response);
         assert!(res.is_ok());
+    }
+
+    // The bodies below are the exact shapes the VPN API's `subscription/active` route returns
+    // (see its route tests). It never sends a remaining allowance field.
+
+    #[test]
+    fn nym_vpn_subscription_response_fresh_account() {
+        let raw = r#"{"isSubscriptionActive":false,"trialEligible":true}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert!(!res.is_subscription_active);
+        assert_eq!(res.subscription, None);
+        assert_eq!(res.remaining_allowance_in_gb, None);
+        assert_eq!(res.trial_eligible, Some(true));
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_account_with_history() {
+        let raw = r#"{"isSubscriptionActive":false,"trialEligible":false}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert!(!res.is_subscription_active);
+        assert_eq!(res.trial_eligible, Some(false));
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_active_subscription() {
+        let raw = r#"{"isSubscriptionActive":true,"subscription":{"id":"sub_1","kind":"one_year","status":"complete","isRecurring":true,"isTrialing":true,"is_freepass_period":false,"valid_from_utc":"2026-10-01 00:00:00.000Z","valid_until_utc":"2027-10-01 00:00:00.000Z","created_on_utc":"2026-10-01 00:00:00.000Z","last_updated_utc":"2026-10-01 00:00:00.000Z"},"trialEligible":false}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert!(res.is_subscription_active);
+        let subscription = res.subscription.unwrap();
+        assert_eq!(subscription.id, "sub_1");
+        assert_eq!(subscription.kind, NymVpnSubscriptionKind::OneYear);
+        assert!(subscription.is_recurring);
+        assert_eq!(res.trial_eligible, Some(false));
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_older_api_without_trial_eligible() {
+        let raw = r#"{"isSubscriptionActive":false}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert_eq!(res.trial_eligible, None);
+    }
+
+    #[test]
+    fn nym_vpn_subscription_response_remaining_allowance_accepts_both_spellings() {
+        let raw = r#"{"isSubscriptionActive":false,"remainingAllowanceInGB":2.5}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert_eq!(res.remaining_allowance_in_gb, Some(2.5));
+
+        let raw = r#"{"isSubscriptionActive":false,"remainingAllowanceInGb":2.5}"#;
+        let res = serde_json::from_str::<NymVpnSubscriptionResponse>(raw).unwrap();
+        assert_eq!(res.remaining_allowance_in_gb, Some(2.5));
+    }
+
+    // The bodies below are the exact shapes the VPN API's
+    // `subscription/apple/intro-offer-eligibility` route returns (see its route tests).
+
+    #[test]
+    fn apple_intro_offer_eligibility_response_eligible_account() {
+        let raw = r#"{"trialEligible":true,"compactJws":null}"#;
+        let res = serde_json::from_str::<AppleIntroOfferEligibilityResponse>(raw).unwrap();
+        assert!(res.trial_eligible);
+        assert_eq!(res.compact_jws, None);
+    }
+
+    #[test]
+    fn apple_intro_offer_eligibility_response_ineligible_account() {
+        let raw = r#"{"trialEligible":false,"compactJws":"eyJhbGciOiJFUzI1NiJ9.e30.sig"}"#;
+        let res = serde_json::from_str::<AppleIntroOfferEligibilityResponse>(raw).unwrap();
+        assert!(!res.trial_eligible);
+        assert_eq!(
+            res.compact_jws.as_deref(),
+            Some("eyJhbGciOiJFUzI1NiJ9.e30.sig")
+        );
+    }
+
+    #[test]
+    fn nym_error_response_account_not_found() {
+        let parse = |raw: &str| serde_json::from_str::<NymErrorResponse>(raw).unwrap();
+
+        assert!(
+            parse(r#"{"status":"access_denied","message":"Account not found"}"#)
+                .is_account_not_found()
+        );
+        assert!(
+            !parse(r#"{"status":"access_denied","message":"Account is not active"}"#)
+                .is_account_not_found()
+        );
     }
 
     #[test]

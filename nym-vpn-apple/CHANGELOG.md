@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- iOS: free trial offered only to eligible Nym accounts (https://github.com/nymtech/nym-vpn-client/pull/6701)
+
 ## [2026.13.0] - 2026-10-09
 
 ### Added

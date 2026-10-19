@@ -311,13 +311,11 @@
 	<string name="onboarding_plan_try_suffix">, herhangi bir taahhüt yok.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">\nabonelik planınızı seçin</string>
-	<string name="select_plan_line_0">7 günlük ücretsiz deneme</string>
 	<string name="select_plan_line_1">Tüm özellikler dahil</string>
 	<string name="select_plan_line_2">Reklam içermez</string>
 	<string name="select_plan_line_3">İstediğiniz zaman iptal edin</string>
 	<string name="select_plan_button">NymVPN planımı seç</string>
 	<string name="select_plan_modal_title">Planınızı seçin. Tüm özellikler dahil, istediğiniz zaman iptal edebilirsiniz.</string>
-	<string name="select_plan_modal_free_trial">7 günlük ücretsiz deneme bugün başlıyor</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Sunucu detayları</string>
 	<string name="details_features_title">Node özellikleri</string>
