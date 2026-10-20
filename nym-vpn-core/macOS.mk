@@ -75,9 +75,7 @@ all: build-all
 build-dev:
 	cargo build --workspace
 
-	@for bin in $(DAEMON_COPY_TARGETS); do \
-		cp "$(CURDIR)/target/debug/$$bin" "$(DAEMON_SRC_BUNDLE)/$$bin"; \
-	done
+	$(foreach bin,$(DAEMON_COPY_TARGETS),cp "$(CURDIR)/target/debug/$(bin)" "$(DAEMON_SRC_BUNDLE)/$(bin)"$(newline))
 
 	@set -o pipefail; \
 	xcodebuild -project "$(CURDIR)/../nym-vpn-apple/NymVPN.xcodeproj" \
@@ -163,3 +161,10 @@ endif
 	rm -rf $(LIB_CRATE_DIR)/NymVPNLib
 	rm -rf $(LIB_CRATE_DIR)/generated
 	rm -rf $(UPLOAD_DIR_MAC)
+
+
+# Helper to provide a newline character for the foreach loop
+define newline
+
+
+endef
