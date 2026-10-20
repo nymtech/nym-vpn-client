@@ -4,9 +4,6 @@
 ; of its `!define`s (e.g. `ARCH`). Anything depending on those must live
 ; inside the NSIS_HOOK_* macros, which are expanded later.
 
-${StrTok}
-${UnStrTok}
-
 !define APPDIR "nym-vpn-app"
 
 !define MUI_HEADERIMAGE_RIGHT
@@ -19,17 +16,6 @@ Var VpndVersionMinor
 ; must be prefixed with `un.`. Cherry on top of the cake, any function
 ; called from a `un.` func, must be `un.` too (:
 
-Function GetVpndSemVer
-  ${StrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
-  ${StrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
-FunctionEnd
-
-; un. version of above, plain dup
-Function un.GetVpndSemVer
-  ${UnStrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
-  ${UnStrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
-FunctionEnd
-
 ; Here we use macros to avoid code dup
 ; From install section, it can be called as `GetVpndVersionFull`
 ; From uninstall section, it can be called as `un.GetVpndVersionFull`
@@ -40,7 +26,8 @@ FunctionEnd
     Pop $1
     StrCpy $VpndVersion "$1" "" 9
     DetailPrint "vpnd version: $VpndVersion"
-    Call ${un}GetVpndSemVer
+    ${WordFind} "$VpndVersion" "." "+1" $VpndVersionMajor
+    ${WordFind} "$VpndVersion" "." "+2" $VpndVersionMinor
     DetailPrint "vpnd semver major: $VpndVersionMajor"
     DetailPrint "vpnd semver minor: $VpndVersionMinor"
   FunctionEnd
