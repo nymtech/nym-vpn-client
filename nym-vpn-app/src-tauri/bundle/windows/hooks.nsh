@@ -8,6 +8,7 @@
 
 !define MUI_HEADERIMAGE_RIGHT
 
+Var VpndDir
 Var VpndVersion
 Var VpndVersionMajor
 Var VpndVersionMinor
@@ -21,7 +22,7 @@ Var VpndVersionMinor
 ; From uninstall section, it can be called as `un.GetVpndVersionFull`
 !macro VPND_GET_VERSION_FULL un
   Function ${un}GetVpndVersionFull
-    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
+    nsExec::ExecToStack '"$VpndDir\nym-vpnd.exe" -V'
     Pop $0
     Pop $1
     StrCpy $VpndVersion "$1" "" 9
@@ -43,10 +44,10 @@ Var VpndVersionMinor
       ${If} $VpndVersionMajor == 1
       ${AndIf} $VpndVersionMinor < 14
         DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
-        ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall' $9
+        ExecWait '"$VpndDir\nym-vpnd.exe" --uninstall' $9
       ${Else}
         DetailPrint "Waiting 30 seconds for the vpnd service to stop and uninstall"
-        ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service' $9
+        ExecWait '"$VpndDir\nym-vpnd.exe" uninstall-service' $9
       ${EndIf}
     ${If} $9 <> 0
       ; if vpnd fails to uninstall all we can do is to notify the user
@@ -130,13 +131,21 @@ Var VpndVersionMinor
 !macroend
 
 !macro NSIS_HOOK_PREINSTALL
-  ; The template checks for a running app only after this hook. Check it before
-  ; removing the service, so that cancelling it leaves the existing install intact.
-  !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
+  ; The existing install may live elsewhere: the directory page can move
+  ; $INSTDIR, and the template records the new location only after this hook.
+  ReadRegStr $VpndDir SHCTX "${MANUPRODUCTKEY}" ""
+  ${If} $VpndDir == ""
+    StrCpy $VpndDir $INSTDIR
+  ${EndIf}
+
+  ; The template checks for a running app only after this hook, and only in
+  ; $INSTDIR. Check the existing install before removing its service, so that
+  ; cancelling leaves it intact.
+  !insertmacro CheckIfAppIsRunning "$VpndDir\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; Stop and remove the service of an existing install before overwriting
   ; its files (update, reinstall, or up/downgrade without uninstalling)
-  ${If} ${FileExists} "$INSTDIR\nym-vpnd.exe"
+  ${If} ${FileExists} "$VpndDir\nym-vpnd.exe"
     Call VpndUninstall
   ${EndIf}
 !macroend
@@ -191,6 +200,7 @@ Var VpndVersionMinor
   !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; Must run before the template's non-recursive `RMDir "$INSTDIR"`
+  StrCpy $VpndDir $INSTDIR
   Call un.VpndUninstall
   !insertmacro VPND_FILES VPND_FILE_DELETE
 !macroend
