@@ -35,9 +35,10 @@ impl NymEnvironment {
         network_name: &str,
         user_agent: UserAgent,
     ) -> Result<Self, VpnError> {
-        let mut network_cache = NetworkCache::new(cache_dir, network_name, Some(user_agent.into()))
-            .await
-            .map_err(VpnError::internal)?;
+        let mut network_cache =
+            NetworkCache::new(cache_dir, network_name, Some(user_agent.into()), None)
+                .await
+                .map_err(VpnError::internal)?;
 
         let network = if let Ok(network) = network_cache.network() {
             network
