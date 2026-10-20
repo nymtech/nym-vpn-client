@@ -107,9 +107,9 @@ FunctionEnd
 ; and taskbar and start menu pins are separate .lnk files this never sees, so
 ; `-l` keeps reaching the binary from places the installer cannot reach.
 ;
-; Outside WiX migration, an update skips shortcut creation altogether (see
-; $UpdateMode), so stale arguments are never overwritten by the normal path and
-; have to be cleared explicitly.
+; An update skips shortcut creation altogether (see $UpdateMode), so stale
+; arguments are never overwritten by the normal path and have to be cleared
+; explicitly.
 ;
 ; `utils.nsh` has no equivalent: its SetShortcutTarget sets only the target
 ; path (IShellLink::SetPath) and leaves the arguments alone.
