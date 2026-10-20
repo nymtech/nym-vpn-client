@@ -341,6 +341,14 @@ make -C nym-vpn-core -f Android.mk
   specified directory if it isn't mounted already. This will only have an effect on older systems
   where cgroup v1 is used for split tunneling.
 
+- `NYM_VPN_API_URL_OVERRIDE` - Override VPN API server, used during development only (compile time only)
+
+- `SENTRY_DSN` - Sentry DSN used by desktop targets, used in release builds (compile time only)
+
+- `VPNLIB_SENTRY_DSN` - Sentry DSN used by mobile targets, used in release builds (compile time only)
+
+- `CI_TESTING` - Used when building on CI, typically used to workaround some issues in tests (compile time only)
+
 ## Log file locations
 
 | OS | Current log | Previous log |
