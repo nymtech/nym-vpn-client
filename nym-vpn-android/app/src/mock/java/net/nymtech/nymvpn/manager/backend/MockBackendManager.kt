@@ -311,6 +311,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 	override suspend fun getAccountMode(): StoredAccountMode = StoredAccountMode.PRIVY
 
 	override suspend fun getAccountSummary(): VpnAccountSummary = mockAccountSummary
+	override suspend fun isTrialEligible(): Boolean = true
 
 	override suspend fun runDiagnostic(): String? = null
 }

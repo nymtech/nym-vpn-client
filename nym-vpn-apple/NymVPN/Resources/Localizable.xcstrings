@@ -2257,6 +2257,72 @@
         }
       }
     },
+    "appUpdate.available.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A newer version of NymVPN is available. You can keep using this version, or update now."
+          }
+        }
+      }
+    },
+    "appUpdate.available.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available"
+          }
+        }
+      }
+    },
+    "appUpdate.notNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        }
+      }
+    },
+    "appUpdate.required.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your app is no longer supported. Please update to the latest version to continue using NymVPN."
+          }
+        }
+      }
+    },
+    "appUpdate.required.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update required"
+          }
+        }
+      }
+    },
+    "appUpdate.update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
     "arcProgress.anonymousModeProtection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6661,7 +6727,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account does not exist on chain."
+            "value" : "This self-custody account isn't on chain. Send NYM to this account's address so it exists on chain, then try again."
           }
         },
         "es" : {
@@ -6863,7 +6929,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account not registered. Please try again."
+            "value" : "Couldn't verify this account. Check your connection and your passphrase, then try again."
           }
         },
         "es" : {
@@ -6975,7 +7041,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VPN API timeout"
+            "value" : "This is taking longer than expected. Check your connection and try again."
           }
         },
         "es" : {
@@ -7064,7 +7130,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Daily allowance reached. It resets daily, see Account Status for the time. Contact Support if this seems wrong."
+            "value" : "You've reached today's allowance. Try again later."
           }
         }
       }
@@ -7075,7 +7141,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Couldn't establish the connection after several attempts. Please try again."
+            "value" : "Couldn't connect after several tries. Try another location, or turn on QUIC in Anti-censorship settings."
           }
         }
       }
@@ -7097,7 +7163,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Credentials download failed"
+            "value" : "Couldn't get your connection credentials. Try again shortly. If it persists, restart the app or contact support."
           }
         }
       }
@@ -7120,7 +7186,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entry server is not responding or responding badly to a bandwidth increase."
+            "value" : "The entry server didn't complete your connection. Try again, or turn on QUIC in Anti-censorship settings."
           }
         },
         "es" : {
@@ -7221,7 +7287,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exit server is not responding or responding badly to a bandwidth increase."
+            "value" : "The exit server didn't complete your connection. Choose a different exit location and try again."
           }
         },
         "es" : {
@@ -7322,7 +7388,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device logged out."
+            "value" : "This device was logged out. Log in again to reconnect."
           }
         },
         "es" : {
@@ -7423,7 +7489,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure DNS"
+            "value" : "Couldn't apply DNS settings. Reconnect. If it persists, run diagnostics in Settings or contact support."
           }
         },
         "es" : {
@@ -7512,7 +7578,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account already exists"
+            "value" : "An account already exists here. Log out first, then add a different account."
           }
         }
       }
@@ -7535,7 +7601,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure firewall"
+            "value" : "Couldn't set up NymVPN's firewall rules. Reconnect. If it persists, close other VPN/firewall apps or contact support."
           }
         },
         "es" : {
@@ -7636,7 +7702,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The account is not active."
+            "value" : "Your account isn't active. Open Account and refresh, or contact support."
           }
         },
         "es" : {
@@ -7737,7 +7803,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Insufficient funds."
+            "value" : "Not enough on-chain balance. Top up your NYM balance, then try again."
           }
         },
         "es" : {
@@ -7838,7 +7904,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Internal unknown tunnel failure"
+            "value" : "Something went wrong. Try again. If it persists, contact support and include your logs."
           }
         },
         "es" : {
@@ -7939,7 +8005,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invalid country for entry server. Choose another and reconnect."
+            "value" : "No entry servers are available in that location. Choose a different location, then connect again."
           }
         },
         "es" : {
@@ -8040,7 +8106,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entry server is offline. Choose another and reconnect."
+            "value" : "The entry server you chose isn't available. Choose a different entry server, then connect again."
           }
         },
         "es" : {
@@ -8141,7 +8207,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invalid country for exit server. Choose another and reconnect."
+            "value" : "No exit servers are available in that location. Choose a different location, then connect again."
           }
         },
         "es" : {
@@ -8242,7 +8308,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exit server is offline. Choose another and reconnect."
+            "value" : "The exit server you chose isn't available with your current settings. Choose a different exit or entry server, then connect again."
           }
         },
         "es" : {
@@ -8331,7 +8397,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "IPv6 is unavailable"
+            "value" : "IPv6 is turned off on this system, but NymVPN is set to use it. Turn off IPv6 in NymVPN settings, then connect again."
           }
         }
       }
@@ -8354,7 +8420,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account device limit exceeded. Please remove a device from your account before connecting."
+            "value" : "You've hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect."
           }
         },
         "es" : {
@@ -8443,7 +8509,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Split tunneling: Please allow Full Disk Access in System Settings."
+            "value" : "Split tunneling needs Full Disk Access. Allow it in System Settings, then toggle split tunneling off and on."
           }
         }
       }
@@ -8465,7 +8531,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "No gateway pair meets the current independence criteria. Relax the criteria in settings to find a usable pair."
+            "value" : "These entry and exit servers aren't fully independent. Choose different servers, or connect anyway."
           }
         }
       }
@@ -8488,7 +8554,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No account stored. Please add a passphrase."
+            "value" : "No account on this device. Add your passphrase to log in again."
           }
         },
         "es" : {
@@ -8577,7 +8643,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No credentials available"
+            "value" : "No connection credentials available. Restart NymVPN and try again. If it persists, contact support."
           }
         }
       }
@@ -8600,7 +8666,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device not registered. Please try again."
+            "value" : "This device's key is missing. Log out and log in again to set this device up."
           }
         },
         "es" : {
@@ -8701,7 +8767,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Offline"
+            "value" : "You're offline. Check your connection and try again."
           }
         },
         "es" : {
@@ -8802,7 +8868,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can't reach entry server. Try another!"
+            "value" : "No entry server is available for your selection. Pick another location, or try again in a few minutes."
           }
         },
         "es" : {
@@ -8903,7 +8969,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Can't reach exit server. Try another!"
+            "value" : "No exit server is available for your selection. Pick a different location, or try again in a few minutes."
           }
         },
         "es" : {
@@ -9015,7 +9081,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure routing"
+            "value" : "Couldn't set up network routing. Reconnect. If it persists, close other VPN apps or contact support."
           }
         },
         "es" : {
@@ -9116,7 +9182,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "For privacy, NymVPN won't use the same server for entry and exit. Reconnect or choose different locations."
+            "value" : "Entry and exit can't be the same server. Pick a different entry or exit, then connect again."
           }
         },
         "es" : {
@@ -9216,7 +9282,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Generic Split Tunnel error. Please try again."
+            "value" : "Couldn't set up split tunneling. Turn off split tunneling and reconnect. If it persists, contact support."
           }
         }
       }
@@ -9239,7 +9305,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "value" : "You don't have an active subscription. Get or renew a plan, then refresh your account and reconnect."
           }
         },
         "es" : {
@@ -9340,7 +9406,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure tunnel device"
+            "value" : "Couldn't set up the VPN network interface. Reconnect. If it persists, restart the app or your device, or contact support."
           }
         },
         "es" : {
@@ -9441,7 +9507,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure packet tunnel provider"
+            "value" : "Couldn't start the VPN on this device. Reconnect, and allow the VPN connection if prompted. If it persists, contact support."
           }
         },
         "es" : {
@@ -9643,7 +9709,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unknown tunnel state. Please try again."
+            "value" : "NymVPN is in an unexpected state. Reconnect. If it persists, contact support."
           }
         },
         "es" : {

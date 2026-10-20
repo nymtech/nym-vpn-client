@@ -9,7 +9,7 @@ import PurchasesManager
 // MARK: - Views -
 extension GeneratePassphraseView {
     func subscriptionTitle(for plan: Product) -> String {
-        if purchasesManager.isEligibleForIntroOffer.contains(plan.id),
+        if purchasesManager.freeTrialVisibility(for: plan.id).isShown,
            let subscription = plan.subscription,
            let offer = subscription.introductoryOffer {
             let periodDescription = offer.period.localizedDescription

@@ -142,7 +142,8 @@ private extension OnboardingStep {
                     + newLine
             }
             if let freeTrialPeriod = pricing.freeTrialPeriod {
-                subtitle += bold("onboarding26.plan.freeTrial", argument: freeTrialPeriod) + newLine
+                let color: Color? = pricing.isFreeTrialReserved ? .clear : nil
+                subtitle += bold("onboarding26.plan.freeTrial", argument: freeTrialPeriod, color: color) + newLine
             }
             subtitle += bold("onboarding26.plan.startingAt", color: Color.Nym.textPrimary)
                 + bold("onboarding26.plan.price", argument: pricing.monthlyPrice, color: Color.Nym.primary)

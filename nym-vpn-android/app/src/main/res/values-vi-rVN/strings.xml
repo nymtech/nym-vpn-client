@@ -309,13 +309,11 @@
 	<string name="onboarding_plan_try_suffix">, không cần cam kết.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Chọn gói đăng ký \ncủa bạn</string>
-	<string name="select_plan_line_0">7 ngày dùng thử miễn phí</string>
 	<string name="select_plan_line_1">Đầy đủ tất cả các tính năng</string>
 	<string name="select_plan_line_2">Không quảng cáo</string>
 	<string name="select_plan_line_3">Hủy bất kỳ lúc nào</string>
 	<string name="select_plan_button">Chọn gói NymVPN</string>
 	<string name="select_plan_modal_title">Chọn gói dịch vụ của bạn. Đầy đủ tính năng, hủy bất cứ lúc nào.</string>
-	<string name="select_plan_modal_free_trial">7 ngày dùng thử miễn phí ngay hôm nay</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Thông tin máy chủ</string>
 	<string name="details_features_title">Tính năng node</string>

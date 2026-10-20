@@ -3,42 +3,46 @@ package net.nymtech.nymvpn.ui.screens.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.nymtech.billing.model.BillingCode
-import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.manager.billing.TrialEligibility
+import net.nymtech.nymvpn.manager.billing.TrialEligibilityRepository
+import net.nymtech.nymvpn.manager.billing.awaitProducts
 import net.nymtech.nymvpn.ui.screens.onboarding.components.OnboardingPlanPricing
-import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class OnboardingViewModel
 @Inject
-constructor(private val settingsRepository: SettingsRepository, private val billingManager: BillingManager) : ViewModel() {
+constructor(
+	private val settingsRepository: SettingsRepository,
+	private val billingManager: BillingManager,
+	private val trialEligibilityRepository: TrialEligibilityRepository,
+) : ViewModel() {
 
-	val isBillingAvailable: Boolean = billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
+	companion object {
+		private val PRODUCTS_TIMEOUT = 5.seconds
+	}
 
-	val planPricing: StateFlow<OnboardingPlanPricing?> = billingManager.products
-		.map { OnboardingPlanPricing.from(it) }
-		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+	private val _planPricing = MutableStateFlow<OnboardingPlanPricing?>(null)
+
+	/** Null until Play pricing and eligibility resolve (both time out), then set once. */
+	val planPricing: StateFlow<OnboardingPlanPricing?> = _planPricing.asStateFlow()
 
 	init {
-		if (isBillingAvailable) {
-			billingManager.initialize()
-			viewModelScope.launch {
-				billingManager.uiState
-					.map { it.billingInfo?.responseCode }
-					.filter { it == BillingCode.OK }
-					.first()
-				billingManager.fetchSubscriptions()
-			}
+		trialEligibilityRepository.refresh(viewModelScope)
+		viewModelScope.launch {
+			val products = async { billingManager.awaitProducts(PRODUCTS_TIMEOUT) }
+			val eligibility = trialEligibilityRepository.state.filterIsInstance<TrialEligibility.Resolved>().first()
+			_planPricing.value = OnboardingPlanPricing.resolve(products.await(), eligibility.eligible)
 		}
 	}
 

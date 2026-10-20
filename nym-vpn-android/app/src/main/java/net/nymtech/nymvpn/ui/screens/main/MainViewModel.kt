@@ -203,6 +203,10 @@ constructor(
 			.onFailure { Timber.tag(TAG).e(it, "DisconnectFailed") }
 	}
 
+	fun onUpdateDismissed(floor: String?) = viewModelScope.launch {
+		floor?.let { settingsRepository.setDismissedUpdateFloor(it) }
+	}
+
 	fun onBatteryOptSkipped() = viewModelScope.launch {
 		settingsRepository.setBatteryDialogSkipped(true)
 	}

@@ -50,10 +50,10 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcess;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
-    DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport, DiagnosticRunParams,
-    EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
-    ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    AccountBalanceResponse, AccountCommandError, AccountControllerState, AppCompatibility,
+    AutologinResponse, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport,
+    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
     ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
     StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
@@ -122,7 +122,7 @@ pub enum VpnServiceCommand {
     SetGatewayIndependenceNotifications(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
-    GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
+    GetAppCompatibility(oneshot::Sender<Option<AppCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     GetDefaultDns(oneshot::Sender<Vec<IpAddr>>, ()),
     ListGateways(
@@ -210,6 +210,7 @@ pub enum VpnServiceCommand {
         (),
     ),
     HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    IsTrialEligible(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
         GetDeeplinkParams,
@@ -1143,8 +1144,8 @@ impl NymVpnService {
                 let result = self.handle_get_system_messages().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetNetworkCompatibility(tx, ()) => {
-                let result = self.handle_get_network_compatibility().await;
+            VpnServiceCommand::GetAppCompatibility(tx, ()) => {
+                let result = self.handle_get_app_compatibility().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetFeatureFlags(tx, ()) => {
@@ -1249,6 +1250,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::HandleSubscriptionPayment(tx, ()) => {
                 let _ = tx.send(self.handle_subscription_payment().await);
+            }
+            VpnServiceCommand::IsTrialEligible(tx, ()) => {
+                self.handle_is_trial_eligible(tx);
             }
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
@@ -1578,13 +1582,12 @@ impl NymVpnService {
             .collect()
     }
 
-    async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
+    async fn handle_get_app_compatibility(&self) -> Option<AppCompatibility> {
         self.network_tx
             .borrow()
             .system_configuration
             .as_ref()
-            .and_then(|sc| sc.min_supported_app_versions.clone())
-            .map(NetworkCompatibility::from)
+            .map(AppCompatibility::from)
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
@@ -2219,6 +2222,19 @@ impl NymVpnService {
             return Err(AccountCommandError::NoAccountStored);
         }
         self.account_command_tx.refresh_account_state(true).await
+    }
+
+    fn handle_is_trial_eligible(
+        &self,
+        completion_tx: oneshot::Sender<Result<bool, AccountCommandError>>,
+    ) {
+        let account_command_tx = self.account_command_tx.clone();
+
+        tokio::spawn(async move {
+            completion_tx
+                .send(account_command_tx.is_trial_eligible().await)
+                .ok();
+        });
     }
 
     async fn handle_get_deeplink(

@@ -310,13 +310,11 @@
 	<string name="onboarding_plan_try_suffix">, tanpa kewajiban.</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Pilih \npaket langganan Anda</string>
-	<string name="select_plan_line_0">Uji coba gratis selama 7 hari</string>
 	<string name="select_plan_line_1">Semua fitur sudah termasuk</string>
 	<string name="select_plan_line_2">Tanpa iklan</string>
 	<string name="select_plan_line_3">Batalkan kapan saja</string>
 	<string name="select_plan_button">Pilih paket NymVPN saya</string>
 	<string name="select_plan_modal_title">Pilih paket Anda. Semua fitur tersedia, dapat dibatalkan kapan saja.</string>
-	<string name="select_plan_modal_free_trial">Uji coba gratis selama 7 hari dimulai hari ini</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Rincian server</string>
 	<string name="details_features_title">Fitur node</string>

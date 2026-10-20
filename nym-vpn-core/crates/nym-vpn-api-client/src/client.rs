@@ -27,19 +27,19 @@ use crate::{
     error::{Result, VpnApiClientError},
     fronted_http_client,
     request::{
-        AccountKind, ApplyFreepassRequestBody, CreateAndroidAccountRequestBody,
-        CreateAppleAccountRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
-        LinkAccountRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
-        UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        AccountKind, AppleIntroOfferEligibilityRequestBody, ApplyFreepassRequestBody,
+        CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody, CreateSubscriptionKind,
+        CreateSubscriptionRequestBody, LinkAccountRequestBody, RegisterDeviceRequestBody,
+        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse,
-        NymUserGeoIpLocationResponse, NymVpnAccountResponse, NymVpnAccountSummaryResponse,
-        NymVpnAccountSummaryWithDeviceResponse, NymVpnCanonicalAccountIdentityResponse,
-        NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
-        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
-        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
-        NymWellknownDiscoveryItem, StatusOk,
+        AppleIntroOfferEligibilityResponse, NymDirectoryGatewayCountriesResponse,
+        NymDirectoryGatewaysResponse, NymUserGeoIpLocationResponse, NymVpnAccountResponse,
+        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse,
+        NymVpnCanonicalAccountIdentityResponse, NymVpnDevice, NymVpnDevicesResponse,
+        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
+        NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     skew_manager::{RemoteTimeProvider, SkewManager},
@@ -1019,6 +1019,38 @@ impl VpnApiClient {
         .await
         .map_err(Box::new)
         .map_err(VpnApiClientError::GetActiveSubscriptions)
+    }
+
+    /// Asks the API for the account's Apple introductory-offer eligibility. `compact_jws` is a
+    /// denying token, present only when the account may not be offered a free trial; the API
+    /// never signs a granting one.
+    pub async fn check_apple_intro_offer_eligibility(
+        &self,
+        account: &VpnAccount,
+        product_id: String,
+        transaction_id: String,
+    ) -> Result<AppleIntroOfferEligibilityResponse> {
+        let body = AppleIntroOfferEligibilityRequestBody {
+            product_id,
+            transaction_id,
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::SUBSCRIPTION,
+                routes::APPLE,
+                routes::INTRO_OFFER_ELIGIBILITY,
+            ],
+            &body,
+            Authorization::default().account(account),
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::CheckAppleIntroOfferEligibility)
     }
 
     pub async fn get_usage(&self, account: &VpnAccount) -> Result<NymVpnUsagesResponse> {

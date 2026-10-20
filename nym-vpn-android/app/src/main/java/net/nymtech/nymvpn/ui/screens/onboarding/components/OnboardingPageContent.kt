@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.onboarding.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,12 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -163,15 +166,26 @@ private fun PlanPage(pricing: OnboardingPlanPricing?, modifier: Modifier = Modif
 		}
 		Spacer(modifier = Modifier.height(16.dp))
 		OnboardingTitle(stringResource(R.string.onboarding_plan_title))
-		OnboardingDescription(planSubtitle(pricing))
+		// An invisible longest variant reserves the footprint, so the vertically centred page never shifts.
+		Box(contentAlignment = Alignment.TopCenter) {
+			OnboardingDescription(planSubtitle(PLAN_SUBTITLE_FOOTPRINT), modifier = Modifier.alpha(0f).clearAndSetSemantics {})
+			val alpha by animateFloatAsState(targetValue = if (pricing != null) 1f else 0f, label = "plan-subtitle-alpha")
+			OnboardingDescription(
+				planSubtitle(pricing ?: PLAN_SUBTITLE_FOOTPRINT),
+				modifier = Modifier
+					.alpha(alpha)
+					.then(if (pricing == null) Modifier.clearAndSetSemantics {} else Modifier),
+			)
+		}
 	}
 }
 
+private val PLAN_SUBTITLE_FOOTPRINT = OnboardingPlanPricing.FALLBACK.copy(freeTrialDays = 7)
+
 @Composable
-private fun planSubtitle(pricing: OnboardingPlanPricing?): AnnotatedString {
+private fun planSubtitle(p: OnboardingPlanPricing): AnnotatedString {
 	val baseColor = MaterialTheme.colorScheme.onPrimaryContainer
 	val highlightColor = MaterialTheme.colorScheme.primary
-	val p = pricing ?: OnboardingPlanPricing.FALLBACK
 
 	return buildAnnotatedString {
 		fun base(text: String) = withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = baseColor)) { append(text) }
@@ -212,9 +226,10 @@ private fun OnboardingTitle(text: String) {
 }
 
 @Composable
-private fun OnboardingDescription(text: AnnotatedString) {
+private fun OnboardingDescription(text: AnnotatedString, modifier: Modifier = Modifier) {
 	Text(
 		text = text,
+		modifier = modifier,
 		minLines = 3,
 		style = MaterialTheme.typography.titleSmall,
 		color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f),

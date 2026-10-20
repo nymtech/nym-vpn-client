@@ -272,6 +272,33 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
+    /// Whether the signed-in account may be offered a free trial. Only `true` means a trial can
+    /// be offered; callers treat any error as not eligible.
+    pub async fn is_trial_eligible(&self) -> Result<bool, VpnError> {
+        self.account_command_sender
+            .is_trial_eligible()
+            .await
+            .map_err(VpnError::from)
+    }
+
+    /// The signed Apple introductory-offer eligibility token for the signed-in account, asked
+    /// right before `product.purchase` with the store product id and the customer's
+    /// `appTransactionID`. A token is returned only when the account may not be offered a free
+    /// trial; pass it as StoreKit's `introductoryOfferEligibility(compactJWS:)` purchase option.
+    /// When it is `None`, or this call fails, purchase without the option and let Apple's own
+    /// rule decide. Call it only when `is_trial_eligible` did not return `true`, so an eligible
+    /// user's `appTransactionID` is never sent.
+    pub async fn check_apple_intro_offer_eligibility(
+        &self,
+        product_id: String,
+        transaction_id: String,
+    ) -> Result<Option<String>, VpnError> {
+        self.account_command_sender
+            .check_apple_intro_offer_eligibility(product_id, transaction_id)
+            .await
+            .map_err(VpnError::from)
+    }
+
     /// Import the account mnemonic
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
         let account =

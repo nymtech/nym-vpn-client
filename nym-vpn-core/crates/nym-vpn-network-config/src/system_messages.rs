@@ -212,6 +212,8 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
             },
             statistics_api,
             min_supported_app_versions,
+            app_update_policy: value.app_update_policy,
+            app_update_policies: value.app_update_policies,
         }
     }
 }

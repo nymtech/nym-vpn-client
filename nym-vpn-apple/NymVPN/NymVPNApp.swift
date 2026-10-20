@@ -69,7 +69,7 @@ struct NymVPNApp: App {
     @ObservedObject private var externalLinkManager = ExternalLinkManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
-    @ObservedObject private var purchasesManager = PurchasesManager()
+    @ObservedObject private var purchasesManager = PurchasesManager(trialEligibilityProvider: CredentialsManager.shared)
     @State private var deeplinkManager = DeeplinkManager(credentialsManager: CredentialsManager.shared)
 
     @State private var appFeatureViewModel = AppFeatureViewModel(

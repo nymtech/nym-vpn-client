@@ -10,9 +10,9 @@ use nym_vpn_lib::service::{
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
-    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams,
-    ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility, ParsedAccountLinks, Profile,
+    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse,
+    DiagnosticRunParams, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
+    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
     RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
     VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -233,8 +233,8 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn get_network_compatibility(&self) -> Result<Option<NetworkCompatibility>> {
-        self.send_and_wait(VpnServiceCommand::GetNetworkCompatibility, ())
+    pub async fn get_app_compatibility(&self) -> Result<Option<AppCompatibility>> {
+        self.send_and_wait(VpnServiceCommand::GetAppCompatibility, ())
             .await
     }
 
@@ -418,6 +418,15 @@ impl NymVpnServiceCommandSender {
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?;
         Ok(())
+    }
+
+    /// Whether the signed-in account may be offered a free trial. Only `true` means a trial can
+    /// be offered; callers treat any error as not eligible.
+    pub async fn is_trial_eligible(&self) -> Result<bool> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::IsTrialEligible, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {

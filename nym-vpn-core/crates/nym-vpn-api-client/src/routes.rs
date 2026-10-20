@@ -16,6 +16,7 @@ pub(crate) const ZKNYM: &str = "zknym";
 pub(crate) const AVAILABLE: &str = "available";
 pub(crate) const FREEPASS: &str = "freepass";
 pub(crate) const SUBSCRIPTION: &str = "subscription";
+pub(crate) const INTRO_OFFER_ELIGIBILITY: &str = "intro-offer-eligibility";
 pub(crate) const USAGE: &str = "usage";
 pub(crate) const DIRECTORY: &str = "directory";
 pub(crate) const GATEWAYS: &str = "gateways";

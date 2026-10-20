@@ -33,6 +33,7 @@ fun MainModals(
 	onDismissInfo: () -> Unit,
 	onDismissCompatibility: () -> Unit,
 	onConfirmCompatibility: () -> Unit,
+	allowCompatibilityDismiss: Boolean,
 	onClickBatterySettings: () -> Unit,
 	onDismissBattery: () -> Unit,
 	onConfirmStats: () -> Unit,
@@ -69,6 +70,7 @@ fun MainModals(
 		showCompatibilityDialog = showCompatibilityDialog,
 		onDismiss = onDismissCompatibility,
 		onConfirmClick = onConfirmCompatibility,
+		allowDismiss = allowCompatibilityDismiss,
 	)
 
 	val batteryOptTitle = stringResource(R.string.battery_opt_settings_text)

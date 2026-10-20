@@ -9,30 +9,49 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
-import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.manager.billing.TrialEligibility
+import net.nymtech.nymvpn.manager.billing.TrialEligibilityRepository
+import net.nymtech.nymvpn.manager.billing.awaitProducts
+import net.nymtech.nymvpn.manager.billing.isPlayBillingSupported
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
-class SelectPlanViewModel @Inject constructor(private val backendManager: BackendManager, private val billingManager: BillingManager) : ViewModel() {
+class SelectPlanViewModel @Inject constructor(private val billingManager: BillingManager, private val trialEligibilityRepository: TrialEligibilityRepository) : ViewModel() {
+
+	companion object {
+		private val PRODUCTS_TIMEOUT = 5.seconds
+	}
 
 	private val _uiState = MutableStateFlow(SelectPlanUiState())
 	val uiState: StateFlow<SelectPlanUiState> = _uiState.asStateFlow()
 
 	init {
 		viewModelScope.launch {
-			billingManager.initialize()
+			trialEligibilityRepository.state.collect { eligibility ->
+				_uiState.update {
+					it.copy(
+						trialEligibility = eligibility,
+						lastResolvedTrialEligible = (eligibility as? TrialEligibility.Resolved)?.eligible ?: it.lastResolvedTrialEligible,
+					)
+				}
+			}
+		}
+		trialEligibilityRepository.refresh(viewModelScope)
+		viewModelScope.launch {
+			val products = billingManager.awaitProducts(PRODUCTS_TIMEOUT)
+			_uiState.update { it.copy(subscriptions = products, productsResolved = true) }
 			billingManager.products.collectLatest { productList ->
 				_uiState.update { it.copy(subscriptions = productList) }
 			}
 		}
 	}
 
-	fun isBillingAvailable(): Boolean = billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
+	fun isBillingAvailable(): Boolean = billingManager.isReady() && billingManager.isPlayBillingSupported()
 
 	fun fetchSubscriptions() {
+		trialEligibilityRepository.refresh(viewModelScope)
 		billingManager.fetchSubscriptions()
 	}
 }
