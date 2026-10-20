@@ -74,7 +74,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip(self, pub_key))]
     pub async fn scanned_key(
         &self,
         pub_key: String,

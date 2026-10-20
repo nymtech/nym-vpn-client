@@ -95,8 +95,14 @@ impl NymAccountController {
 
         let (tunnel_event_tx, mut tunnel_event_rx) = broadcast::channel(10);
         let event_handler = tokio::spawn(async move {
-            while let Ok(event) = tunnel_event_rx.recv().await {
-                event_listener.on_event(event);
+            loop {
+                match tunnel_event_rx.recv().await {
+                    Ok(event) => event_listener.on_event(event),
+                    Err(broadcast::error::RecvError::Lagged(skipped)) => {
+                        tracing::warn!("Skipped {skipped} events");
+                    }
+                    Err(broadcast::error::RecvError::Closed) => break,
+                }
             }
         });
 

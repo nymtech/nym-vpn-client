@@ -690,21 +690,22 @@ impl VpnApiClient {
             token: token.to_string(),
         };
 
-        self.post_json_with_retry(
-            &[
-                routes::PUBLIC,
-                routes::V1,
-                routes::PAIRING,
-                remote_qr_pub_key,
-                routes::PAIR,
-            ],
-            NO_PARAMS,
-            &request,
-        )
-        .await
-        .inspect_err(|e| tracing::error!("Failed trying to pair to account: {e:?}"))
-        .map_err(Box::new)
-        .map_err(VpnApiClientError::TryToPairToAccount)
+        self.inner
+            .post_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::PAIRING,
+                    remote_qr_pub_key,
+                    routes::PAIR,
+                ],
+                NO_PARAMS,
+                &request,
+            )
+            .await
+            .inspect_err(|e| tracing::error!("Failed trying to pair to account: {e:?}"))
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::TryToPairToAccount)
     }
 
     pub async fn try_to_get_secret_account(

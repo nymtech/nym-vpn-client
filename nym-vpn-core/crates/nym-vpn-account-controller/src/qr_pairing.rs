@@ -197,6 +197,9 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
                                     tracing::debug!("QR pairing not yet completed, retrying in {RETRY_INTERVAL:?}");
                                 }
                             }
+                            Err(VpnApiClientError::CheckPairingAccount(e)) if e.is_timeout() => {
+                                tracing::debug!("Timeout on checking the pairing");
+                            }
                             Err(e) => {
                                 tracing::error!("Error checking QR pairing, stopping the checks: {e:?}");
                                 self.send_event(PairingResult::Error(e.to_string()));
