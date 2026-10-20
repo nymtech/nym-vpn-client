@@ -144,12 +144,6 @@ FunctionEnd
 !macroend
 
 !macro NSIS_HOOK_PREINSTALL
-  ; Stop and remove the service of an existing install before overwriting
-  ; its files (update, reinstall, or up/downgrade without uninstalling)
-  ${If} ${FileExists} "$INSTDIR\nym-vpnd.exe"
-    Call VpndUninstall
-  ${EndIf}
-
   !if "${ARCH}" == "arm64"
     !define VCREDISTARCH "Arm64"
     !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.arm64.exe"
@@ -206,6 +200,16 @@ FunctionEnd
 
   !undef VCREDISTARCH
   !undef VCREDISTURL
+
+  ; The template checks for a running app only after this hook. Check it before
+  ; removing the service, so that cancelling it leaves the existing install intact.
+  !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
+
+  ; Stop and remove the service of an existing install before overwriting
+  ; its files (update, reinstall, or up/downgrade without uninstalling)
+  ${If} ${FileExists} "$INSTDIR\nym-vpnd.exe"
+    Call VpndUninstall
+  ${EndIf}
 !macroend
 
 !macro NSIS_HOOK_POSTINSTALL
@@ -229,8 +233,10 @@ FunctionEnd
   ${If} $3 <> 0
     DetailPrint "'nym-vpnd.exe install-service' failed: $3"
     MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "An error occurred while installing NymVPN service [$3]" /SD IDABORT IDRETRY vpnd-install
+      ; The template has already registered the uninstaller, which needs
+      ; nym-vpnd.exe to remove a partially installed service, so keep the
+      ; daemon files and only remove the app so it can't run without them
       Delete "$INSTDIR\${MAINBINARYNAME}.exe"
-      !insertmacro VPND_FILES VPND_FILE_DELETE
       Abort
   ${EndIf}
 
@@ -252,6 +258,9 @@ FunctionEnd
 !macroend
 
 !macro NSIS_HOOK_PREUNINSTALL
+  ; As on install, the template checks for a running app only after this hook
+  !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
+
   ; Must run before the template's non-recursive `RMDir "$INSTDIR"`
   Call un.VpndUninstall
   !insertmacro VPND_FILES VPND_FILE_DELETE
