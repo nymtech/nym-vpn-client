@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove SQLite WAL and shared-memory files (-wal, -shm) along with their databases when wiping local storage. (https://github.com/nymtech/nym-vpn-client/pull/6706)
 - Resolve the nyxd, nym-api and VPN API hostnames concurrently when connecting, so a blocked encrypted DNS no longer adds its timeout once per lookup
 - Fix F-Droid reproducible builds by omitting the Sentry DSN and sccache wrapper from the F-Droid build (https://github.com/nymtech/nym-vpn-client/pull/6692)
+- Blacklist the exit gateway and strike the entry gateway when registering with the exit through the entry fails, so retries no longer re-select the failing exit. The connection attempts exceeded message no longer suggests turning on QUIC
 
 ### Security
 
