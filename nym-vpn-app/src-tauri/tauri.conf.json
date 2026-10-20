@@ -23,6 +23,7 @@
         "uninstallerHeaderImage": "icons/nsis_header.bmp",
         "sidebarImage": "icons/nsis_sidebar.bmp"
       },
+      "bundleVCRuntime": true,
       "signCommand": {
         "cmd": "C:/Program Files/Git/bin/bash.EXE",
         "args": ["scripts/sign.sh", "%1"]

@@ -11,7 +11,6 @@ ${UnStrTok}
 
 !define MUI_HEADERIMAGE_RIGHT
 
-Var ForceVCRedistMode
 Var VpndVersion
 Var VpndVersionMajor
 Var VpndVersionMinor
@@ -144,63 +143,6 @@ FunctionEnd
 !macroend
 
 !macro NSIS_HOOK_PREINSTALL
-  !if "${ARCH}" == "arm64"
-    !define VCREDISTARCH "Arm64"
-    !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.arm64.exe"
-  !else
-    !define VCREDISTARCH "X64"
-    !define VCREDISTURL "https://aka.ms/vs/17/release/vc_redist.x64.exe"
-  !endif
-
-  ; Force (re)download and (re)install of the VC++ Redistributable, even if
-  ; already present. Intended for testing the VC++ Redistributable install in isolation.
-  StrCpy $ForceVCRedistMode 0
-  ClearErrors
-  ${GetOptions} $CMDLINE "/FORCEVCREDIST" $4
-  ${IfNot} ${Errors}
-    StrCpy $ForceVCRedistMode 1
-  ${EndIf}
-
-  ; This registry key is written by the redistributable installer for both x64 and
-  ; Arm64, and is intentionally not subject to WOW64 registry redirection, so a
-  ; 32-bit installer process can read it directly regardless of host architecture.
-  ;
-  ; Note: this check also runs when updating, since a user upgrading from a
-  ; pre-VC-redist version of the app can still be missing the runtime.
-  ReadRegDWORD $4 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\${VCREDISTARCH}" "Installed"
-  ${If} $4 <> 1
-  ${OrIf} $ForceVCRedistMode = 1
-    ; $PLUGINSDIR is a private, installer-only temp directory (created on the
-    ; first plugin call below, deleted automatically when the installer exits),
-    ; unlike the predictable, shared $TEMP path.
-    DetailPrint "Downloading Visual C++ Redistributable (${VCREDISTARCH})"
-    NSISdl::download "${VCREDISTURL}" "$PLUGINSDIR\vc_redist.exe"
-    Pop $5
-    ${If} $5 != "success"
-      DetailPrint "vc_redist.exe download failed: $5"
-      Abort "Failed to download the Visual C++ Redistributable [$5]"
-    ${EndIf}
-    DetailPrint "Visual C++ Redistributable downloaded successfully"
-
-    DetailPrint "Installing Visual C++ Redistributable (${VCREDISTARCH})"
-    ExecWait '"$PLUGINSDIR\vc_redist.exe" /install /quiet /norestart' $5
-    Delete "$PLUGINSDIR\vc_redist.exe"
-    ${If} $5 = 0
-      DetailPrint "Visual C++ Redistributable installed successfully"
-    ${ElseIf} $5 = 3010 ; ERROR_SUCCESS_REBOOT_REQUIRED
-      DetailPrint "Visual C++ Redistributable installed successfully, a reboot is required"
-      SetRebootFlag true
-    ${ElseIf} $5 = 1638 ; ERROR_PRODUCT_VERSION: a matching/newer version is already installed
-      DetailPrint "Visual C++ Redistributable is already installed"
-    ${Else}
-      DetailPrint "vc_redist.exe install failed: $5"
-      Abort "Failed to install the Visual C++ Redistributable [$5]"
-    ${EndIf}
-  ${EndIf}
-
-  !undef VCREDISTARCH
-  !undef VCREDISTURL
-
   ; The template checks for a running app only after this hook. Check it before
   ; removing the service, so that cancelling it leaves the existing install intact.
   !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
