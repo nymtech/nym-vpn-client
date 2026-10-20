@@ -32,7 +32,7 @@
     "needs-device-location": "Automatic routing isn't available right now. Try again later or choose your own servers.",
     "credential-fetching-failed": "Couldn't get your connection credentials. Try again shortly. If it persists, restart the app or contact support.",
     "no-credential-available": "No connection credentials available. Restart NymVPN and try again. If it persists, contact support.",
-    "connection-attempts-exceeded": "Couldn't connect after several tries. Try another location, or turn on QUIC in Anti-censorship settings."
+    "connection-attempts-exceeded": "Couldn't connect after several tries. Try another location, or try again in a few minutes."
   },
   "account": {
     "internal": "Something went wrong with your account. Try again. If it persists, contact support.",

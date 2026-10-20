@@ -583,10 +583,20 @@ impl TunnelMonitor {
             }
         }
 
-        let registration_result = registration_result.inspect_err(|_| {
-            self.send_event(TunnelMonitorEvent::RegistrationFailed {
-                gateway_id: selected_gateways.entry_gateway().identity(),
-            })
+        let registration_result = registration_result.inspect_err(|err| {
+            let entry_gateway_id = selected_gateways.entry_gateway().identity();
+            // The entry forwards the exit registration, so either hop may be at fault: blacklist
+            // the exit and strike the entry, as for a failed connection.
+            if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
+                self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                    entry_gateway_id,
+                    exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                })
+            } else {
+                self.send_event(TunnelMonitorEvent::RegistrationFailed {
+                    gateway_id: entry_gateway_id,
+                })
+            }
         })?;
 
         // Send event upon successful gateway registration
