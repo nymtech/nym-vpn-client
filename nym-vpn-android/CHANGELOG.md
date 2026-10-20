@@ -21,9 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Onboarding plan page and plan screens share one trial eligibility check (no stored account = eligible, otherwise the backend answer) and show a trial only when Play also offers one; the trial length comes from Play instead of a hardcoded 7 days, and the onboarding fallback pricing no longer claims a trial
 - Purchase flow launches the base plan (never an intro-discount offer) when no trial applies, and reports an error instead of hanging when no base plan is available
 - Trial labels and plan pricing no longer shift the layout when eligibility or Play pricing resolve
+- Update and improve error-message copy (https://github.com/nymtech/nym-vpn-client/pull/6749)
 
 ### Fixed
 - Fix unclickable nodes in large countries (https://github.com/nymtech/nym-vpn-client/pull/6736)
+- Show the daily allowance reset time in the local time zone (https://github.com/nymtech/nym-vpn-client/pull/6497)
+- Persist onboarding data-sharing consent through AppSettings so the welcome sheet and Settings stay in sync (https://github.com/nymtech/nym-vpn-client/pull/6469)
+- Correct the welcome-sheet consent toggles for error reports and usage analytics to match Settings (https://github.com/nymtech/nym-vpn-client/pull/6470)
 
 ## [2026.13.0] - 2026-10-09
 

@@ -1,0 +1,13 @@
+Cihazın önyükleme sırasında kilitli olması durumunda, başlatma sırasında meydana gelen çökme sorunu giderildi.
+
+Günlük kotanın sıfırlanma saati artık yerel saat diliminizde, günün saati de dahil olmak üzere gösterilmektedir.
+
+Bağlantı hatalarının daha net bir şekilde gösterilmesi: DNS çözümleyicisindeki hatalar artık sessizce geçiştirilmek yerine bildiriliyor.
+
+Bir uygulamanın güncellenmesi gerektiğinde size bildirim gönderilir.
+
+"network-stats" tercihi artık tutarlı bir şekilde kaydediliyor.
+
+Hata mesajları güncellendi ve iyileştirildi.
+
+Daha hassas coğrafi kısıtlamalı yönlendirme ve yerel depolama alanını temizlediğinizde daha kapsamlı bir silme işlemi.

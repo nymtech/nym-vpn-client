@@ -1,0 +1,9 @@
+La phrase de récupération et le compte sont désormais protégés par une authentification biométrique ou un code PIN.
+
+Une liste de serveurs plus fluide, avec un défilement plus rapide et des clics plus fiables.
+
+L'heure de réinitialisation de l'allocation journalière s'affiche désormais dans votre fuseau horaire local.
+
+Un acheminement plus précis et un effacement des données plus complet.
+
+Amélioration des messages d'erreur.

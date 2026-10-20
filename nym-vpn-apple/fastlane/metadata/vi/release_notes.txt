@@ -1,0 +1,13 @@
+Đã khắc phục lỗi ứng dụng bị treo khi khởi động trong trường hợp thiết bị bị khóa ngay từ khi khởi động.
+
+Thời gian thiết lập lại hạn mức hàng ngày hiện được hiển thị theo múi giờ địa phương của bạn, bao gồm cả giờ trong ngày.
+
+Các lỗi kết nối được hiển thị rõ ràng hơn: Các sự cố liên quan đến bộ giải quyết DNS giờ đây sẽ được báo cáo thay vì xảy ra mà không có thông báo nào.
+
+Bạn sẽ nhận được thông báo khi ứng dụng cần cập nhật.
+
+Tùy chọn “network-stats” hiện đã được lưu lại một cách nhất quán.
+
+Cập nhật và cải thiện các thông báo lỗi.
+
+Tính năng định tuyến loại trừ theo vị trí chính xác hơn, và quá trình xóa dữ liệu triệt để hơn khi bạn xóa bộ nhớ cục bộ.

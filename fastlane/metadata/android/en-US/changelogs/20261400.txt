@@ -1,0 +1,9 @@
+Recovery phrase and account now protected by biometric or PIN.
+
+Smoother server list with faster scrolling and reliable taps.
+
+Daily allowance reset time now shows in your local time zone.
+
+More precise routing and a more complete data wipe.
+
+Improved error messages.

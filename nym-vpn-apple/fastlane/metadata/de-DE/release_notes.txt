@@ -1,0 +1,13 @@
+Ein Absturz beim Start wurde behoben, der auftrat, wenn das Gerät beim Hochfahren gesperrt war.
+
+Die Zeit für die Zurücksetzung des Tageskontingents wird nun in deiner lokalen Zeitzone angezeigt, einschließlich der Uhrzeit.
+
+Deutlichere Verbindungsfehler: Fehler beim DNS-Resolver werden nun gemeldet, anstatt stillschweigend zu scheitern.
+
+Du wirst benachrichtigt, wenn ein App-Update erforderlich ist.
+
+Die Einstellung „Netzwerkstatistiken“ wird jetzt immer gespeichert.
+
+Aktualisierte und verbesserte Fehlermeldungen.
+
+Präzisere Routenführung mit geografischen Ausschlüssen und eine gründlichere Löschung, wenn du den lokalen Speicher leerst.

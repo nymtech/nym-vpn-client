@@ -1,0 +1,9 @@
+Die Wiederherstellungsphrase und das Konto sind jetzt durch biometrische Daten oder eine PIN geschützt.
+
+Eine flüssigere Serverliste mit schnellerem Scrollen und zuverlässigen Antippvorgängen.
+
+Die Zeit für die Zurücksetzung des Tageskontingents wird jetzt in deiner lokalen Zeitzone angezeigt.
+
+Präzisere Weiterleitung und eine gründlichere Datenlöschung.
+
+Verbesserte Fehlermeldungen.
