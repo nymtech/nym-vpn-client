@@ -79,7 +79,8 @@ build-dev:
 		cp "$(CURDIR)/target/debug/$$bin" "$(DAEMON_SRC_BUNDLE)/$$bin"; \
 	done
 
-	@xcodebuild -project "$(CURDIR)/../nym-vpn-apple/NymVPN.xcodeproj" \
+	@set -o pipefail; \
+	xcodebuild -project "$(CURDIR)/../nym-vpn-apple/NymVPN.xcodeproj" \
 		-scheme NymVPND \
 		-configuration Debug \
 		-sdk macosx \
