@@ -161,16 +161,16 @@ fn new_mainnet() -> Config {
         .first()
         .expect("rust sdk mainnet default incorrectly configured")
         .nyxd_url();
-    let default_api_urls = mainnet_network_defaults
-        .nym_api_urls
-        .as_ref()
-        .expect("rust sdk mainnet default incorrectly configured")
-        .clone();
-    let default_nym_vpn_api_urls = mainnet_network_defaults
-        .nym_vpn_api_urls
-        .as_ref()
-        .expect("rust sdk mainnet default incorrectly configured")
-        .clone();
+    let default_api_urls = mainnet_network_defaults.nym_api_urls();
+    assert!(
+        !default_api_urls.is_empty(),
+        "rust sdk mainnet default incorrectly configured"
+    );
+    let default_nym_vpn_api_urls = mainnet_network_defaults.nym_vpn_api_urls();
+    assert!(
+        !default_nym_vpn_api_urls.is_empty(),
+        "rust sdk mainnet default incorrectly configured"
+    );
     Config::new(
         default_nyxd_url,
         default_api_urls,
