@@ -19,6 +19,7 @@ use objc2_security::{
     kSecAttrTokenIDSecureEnclave, kSecClass, kSecClassKey,
     kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM, kSecMatchLimit,
     kSecMatchLimitOne, kSecPrivateKeyAttrs, kSecReturnRef, kSecUseAuthenticationContext,
+    kSecUseDataProtectionKeychain,
 };
 
 use super::auth::{AuthError, LAErrorDomain};
@@ -103,6 +104,7 @@ pub fn get_sec_key(tag: &[u8], auth_context: &LAContext) -> SecResult<CFRetained
             (kSecReturnRef, CFBoolean::new(true)),
             (kSecMatchLimit, kSecMatchLimitOne),
             (kSecUseAuthenticationContext, as_cf_type(auth_context)),
+            (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
         ])
     };
 
@@ -130,6 +132,7 @@ pub fn delete_sec_key(tag: &[u8]) -> SecResult<()> {
             (kSecClass, kSecClassKey),
             (kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom),
             (kSecAttrApplicationTag, &tag),
+            (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
         ])
     };
 
@@ -179,6 +182,7 @@ pub fn create_sec_key(
             (kSecAttrTokenID, kSecAttrTokenIDSecureEnclave),
             (kSecPrivateKeyAttrs, private_attrs.as_opaque()),
             (kSecUseAuthenticationContext, as_cf_type(auth_context)),
+            (kSecUseDataProtectionKeychain, CFBoolean::new(true)),
         ])
     };
 
