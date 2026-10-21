@@ -807,15 +807,13 @@ impl TunnelStateHandler for ConnectingState {
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
-                    TunnelMonitorEvent::RegistrationFailed { entry_gateway_id, exit_gateway_id } => {
-                        // The exit is registered through the entry, so either may be at fault;
-                        // blacklist both to avoid re-selecting the same failing gateway.
-                        for gateway_id in [entry_gateway_id, exit_gateway_id] {
-                            shared_state.gateway_provider.add_blacklisted_gateway(
-                                gateway_id,
-                                BlacklistReason::RegistrationFailed,
-                            ).await;
-                        }
+                    TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
+                        // Registration failed at this gateway; blacklist it to avoid
+                        // re-selecting the same failing gateway.
+                        shared_state.gateway_provider.add_blacklisted_gateway(
+                            gateway_id,
+                            BlacklistReason::RegistrationFailed,
+                        ).await;
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }

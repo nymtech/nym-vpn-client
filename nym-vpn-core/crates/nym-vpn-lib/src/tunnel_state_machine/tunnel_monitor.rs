@@ -191,10 +191,8 @@ pub enum TunnelMonitorEvent {
 
     /// Registration with gateways failed
     RegistrationFailed {
-        /// Entry gateway used during the failed registration.
-        entry_gateway_id: NodeIdentity,
-        /// Exit gateway used during the failed registration.
-        exit_gateway_id: NodeIdentity,
+        /// The gateway that failed registration
+        gateway_id: NodeIdentity,
     },
 
     /// Finished gateway registration
@@ -585,10 +583,14 @@ impl TunnelMonitor {
             }
         }
 
-        let registration_result = registration_result.inspect_err(|_| {
+        let registration_result = registration_result.inspect_err(|err| {
+            let gateway = if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
+                selected_gateways.exit_gateway()
+            } else {
+                selected_gateways.entry_gateway()
+            };
             self.send_event(TunnelMonitorEvent::RegistrationFailed {
-                entry_gateway_id: selected_gateways.entry_gateway().identity(),
-                exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                gateway_id: gateway.identity(),
             })
         })?;
 
