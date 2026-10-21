@@ -21,7 +21,21 @@ tracing.workspace = true
 uniffi.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+block2.workspace = true
 libc.workspace = true
+objc2.workspace = true
+objc2-foundation = { workspace = true, default-features = false, features = [
+    "std",
+    "NSError",
+    "NSString",
+] }
+objc2-local-authentication = { workspace = true, default-features = false, features = [
+    "std",
+    "block2",
+    "LAContext",
+    "LAError",
+    "objc2-security",
+] }
 tokio-util = { workspace = true, features = ["rt"] }
 objc2-core-foundation = { workspace = true, default-features = false, features = [
     "std",

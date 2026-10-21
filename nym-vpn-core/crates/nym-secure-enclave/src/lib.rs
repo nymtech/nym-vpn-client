@@ -35,6 +35,9 @@ pub enum SecureEnclaveError {
     #[error("User cancelled")]
     UserCancelled,
 
+    #[error("Secure enclave is locked")]
+    Locked,
+
     #[error("Other error: {0}")]
     Other(String),
 }
@@ -63,6 +66,14 @@ pub trait SecureEnclaveProvider {
 
     /// Get object standing in-place of key that can be used to perform encryption or decryption.
     async fn get_key(&self, alias: &str) -> Result<Self::Key>;
+
+    /// Authenticate the user once, so that keys requiring user presence can be used without
+    /// prompting until [`Self::lock`] is called. `reason` is shown to the user.
+    async fn unlock(&self, reason: &str) -> Result<()>;
+
+    /// Revoke the authentication obtained with [`Self::unlock`]. Keys requiring user presence
+    /// prompt the user on every use again.
+    async fn lock(&self) -> Result<()>;
 }
 
 #[cfg(target_os = "android")]
