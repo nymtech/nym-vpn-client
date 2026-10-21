@@ -1,36 +1,35 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
 #[cfg(unix)]
 use std::{fs::Permissions, os::unix::fs::PermissionsExt};
+use std::{
+    io::ErrorKind as IoErrorKind,
+    path::{Path, PathBuf},
+};
 
+use nym_vpn_lib_types::StorableAccount;
 use tokio::{
     fs::{File, OpenOptions},
     io::{AsyncReadExt, AsyncWriteExt},
 };
+use zeroize::Zeroizing;
 
-use nym_vpn_lib_types::StorableAccount;
-
-use super::{AccountInformationStorage, StoredAccount};
-use crate::ciphers::StoreCipher;
+use super::{AccountInformationStorage, DEFAULT_NAME, StoredAccount};
+use crate::ciphers::{StoreCipher, StoreCipherError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
     #[error("mnemonic already stored")]
     MnemonicAlreadyStored { path: PathBuf },
 
-    #[error("failed to create file")]
-    FileCreateError {
+    #[error("failed to {ctx}: {path}")]
+    Io {
+        ctx: &'static str,
         path: PathBuf,
+        #[source]
         source: std::io::Error,
     },
-
-    #[error("failed to open file")]
-    FileOpenError(#[source] std::io::Error),
-
-    #[error("failed to read mnemonic from file")]
-    ReadError(#[source] std::io::Error),
 
     #[error("failed to serialize mnemonic")]
     Serialize(#[source] serde_json::Error),
@@ -38,18 +37,14 @@ pub enum OnDiskMnemonicStorageError {
     #[error("failed to deserialize mnemonic")]
     Deserialize(#[source] serde_json::Error),
 
-    #[error("failed to write mnemonic to file")]
-    WriteError(#[source] std::io::Error),
-
-    #[error("failed to remove mnemonic file")]
-    RemoveError(#[source] std::io::Error),
+    #[error("failed to encrypt data")]
+    Encrypt(#[source] StoreCipherError),
 
     #[error("failed to encrypt data")]
-    Encrypt(#[source] crate::ciphers::StoreCipherError),
-
-    #[error("failed to encrypt data")]
-    Decrypt(#[source] crate::ciphers::StoreCipherError),
+    Decrypt(#[source] StoreCipherError),
 }
+
+pub type Result<T, E = OnDiskMnemonicStorageError> = std::result::Result<T, E>;
 
 pub struct OnDiskAccountStorage {
     path: PathBuf,
@@ -63,136 +58,164 @@ impl OnDiskAccountStorage {
             cipher: Box::new(cipher),
         }
     }
+
+    async fn check_mnemonic_exists(&self) -> Result<()> {
+        tokio::fs::try_exists(&self.path)
+            .await
+            .map_err(|err| self.io_error("check if file exists", err))
+            .and_then(|mnemonic_exists| {
+                if mnemonic_exists {
+                    Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored {
+                        path: self.path.clone(),
+                    })
+                } else {
+                    Ok(())
+                }
+            })
+    }
+
+    async fn create_parent_dirs(&self) -> Result<()> {
+        tracing::trace!("Creating parent directories for: {}", self.path.display());
+
+        let Some(parent) = self.path.parent() else {
+            return Ok(());
+        };
+
+        tracing::trace!("Creating parent directory: {}", parent.display());
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|err| OnDiskMnemonicStorageError::Io {
+                ctx: "create directory",
+                path: parent.to_path_buf(),
+                source: err,
+            })?;
+
+        #[cfg(unix)]
+        {
+            let permissions = Permissions::from_mode(0o700);
+            tokio::fs::set_permissions(parent, permissions)
+                .await
+                .map_err(|err| OnDiskMnemonicStorageError::Io {
+                    ctx: "set parent dir permissions",
+                    path: parent.to_path_buf(),
+                    source: err,
+                })?;
+        }
+
+        Ok(())
+    }
+
+    async fn write_to_file(&self, ciphertext: &[u8]) -> Result<()> {
+        let mut file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&self.path)
+            .await
+            .map_err(|err| {
+                if err.kind() == IoErrorKind::AlreadyExists {
+                    OnDiskMnemonicStorageError::MnemonicAlreadyStored {
+                        path: self.path.clone(),
+                    }
+                } else {
+                    self.io_error("create file", err)
+                }
+            })?;
+
+        #[cfg(unix)]
+        file.set_permissions(Permissions::from_mode(0o600))
+            .await
+            .map_err(|err| self.io_error("set file permissions", err))?;
+
+        file.write_all(&ciphertext)
+            .await
+            .map_err(|err| self.io_error("write file", err))
+    }
+
+    fn io_error(
+        &self,
+        operation: &'static str,
+        source: std::io::Error,
+    ) -> OnDiskMnemonicStorageError {
+        OnDiskMnemonicStorageError::Io {
+            ctx: operation,
+            path: self.path.clone(),
+            source,
+        }
+    }
 }
 
 #[async_trait::async_trait]
 impl AccountInformationStorage for OnDiskAccountStorage {
     type StorageError = OnDiskMnemonicStorageError;
 
-    async fn store_account(
-        &self,
-        account: StorableAccount,
-    ) -> Result<(), OnDiskMnemonicStorageError> {
-        let name = "default".to_string();
-        let nonce = 0;
-        let stored_account = StoredAccount {
-            name,
-            mnemonic: account.mnemonic,
-            mode: account.mode,
-            nonce,
-        };
-
+    async fn store_account(&self, account: StorableAccount) -> Result<()> {
         tracing::info!("Storing mnemonic to: {}", self.path.display());
 
-        // Error if the file already exists
-        if self.path.exists() {
-            return Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored {
-                path: self.path.clone(),
-            });
-        }
+        self.check_mnemonic_exists().await?;
+        self.create_parent_dirs().await?;
 
-        // Create parent directories
-        tracing::trace!("Creating parent directories for: {}", self.path.display());
-        if let Some(parent) = self.path.parent() {
-            tracing::trace!("Creating parent directory: {}", parent.display());
-            tokio::fs::create_dir_all(parent).await.map_err(|err| {
-                OnDiskMnemonicStorageError::FileCreateError {
-                    path: parent.to_path_buf(),
-                    source: err,
-                }
-            })?;
+        let ciphertext = {
+            let nonce = 0;
+            let stored_account = StoredAccount {
+                name: DEFAULT_NAME.to_owned(),
+                mnemonic: account.mnemonic,
+                mode: account.mode,
+                nonce,
+            };
 
-            #[cfg(unix)]
-            {
-                let permissions = Permissions::from_mode(0o600);
-                tokio::fs::set_permissions(parent, permissions)
-                    .await
-                    .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
-                        path: parent.to_path_buf(),
-                        source,
-                    })?;
-            }
+            let plaintext = serde_json::to_vec(&stored_account)
+                .map(Zeroizing::new)
+                .map_err(OnDiskMnemonicStorageError::Serialize)?;
+            drop(stored_account);
 
-            // TODO: same for windows
-        }
-
-        // Another layer of defense, only create the file if it doesn't already exist
-        let mut file = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(&self.path)
-            .await
-            .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
-                path: self.path.clone(),
-                source: err,
-            })?;
-
-        let plaintext =
-            serde_json::to_vec(&stored_account).map_err(OnDiskMnemonicStorageError::Serialize)?;
-
-        let ciphertext = self
-            .cipher
-            .encrypt(&plaintext)
-            .await
-            .map_err(OnDiskMnemonicStorageError::Encrypt)?;
-
-        file.write_all(&ciphertext)
-            .await
-            .map_err(OnDiskMnemonicStorageError::WriteError)?;
-
-        #[cfg(unix)]
-        {
-            let permissions = Permissions::from_mode(0o600);
-            tokio::fs::set_permissions(self.path.clone(), permissions)
+            self.cipher
+                .encrypt(&plaintext)
                 .await
-                .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
-                    path: self.path.clone(),
-                    source,
-                })?;
-        }
-
-        // TODO: same for windows
-
-        Ok(())
-    }
-
-    async fn load_account(&self) -> Result<Option<StorableAccount>, OnDiskMnemonicStorageError> {
-        tracing::debug!("Opening: {}", self.path.display());
-
-        // Make sure that the file has permissions set to 600 (rw------)
-        #[cfg(unix)]
-        {
-            let permissions = Permissions::from_mode(0o600);
-            if let Err(e) = tokio::fs::set_permissions(&self.path, permissions).await
-                && e.kind() != std::io::ErrorKind::NotFound
-            {
-                return Err(OnDiskMnemonicStorageError::FileOpenError(e));
-            }
-        }
-        // We still that checks, for non-unix at least
-        let mut file = match File::open(&self.path).await {
-            Ok(f) => f,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-            Err(e) => return Err(OnDiskMnemonicStorageError::FileOpenError(e)),
+                .map_err(OnDiskMnemonicStorageError::Encrypt)?
         };
 
-        let mut buf = Vec::new();
-        file.read_to_end(&mut buf)
-            .await
-            .map_err(OnDiskMnemonicStorageError::ReadError)?;
-
-        serde_json::from_slice(&buf)
-            .map_err(OnDiskMnemonicStorageError::Deserialize)
-            .map(|s: StoredAccount| Some(s.into()))
+        self.write_to_file(&ciphertext).await
     }
 
-    async fn remove_account(&self) -> Result<(), OnDiskMnemonicStorageError> {
+    async fn load_account(&self) -> Result<Option<StorableAccount>> {
+        tracing::debug!("Opening: {}", self.path.display());
+
+        match File::open(&self.path).await {
+            Ok(mut file) => {
+                let mut buf = Vec::new();
+                file.read_to_end(&mut buf)
+                    .await
+                    .map_err(|err| self.io_error("read file", err))?;
+
+                let plaintext = self
+                    .cipher
+                    .decrypt(&buf)
+                    .await
+                    .map(Zeroizing::new)
+                    .map_err(OnDiskMnemonicStorageError::Decrypt)?;
+
+                serde_json::from_slice::<StoredAccount>(&plaintext)
+                    .map_err(OnDiskMnemonicStorageError::Deserialize)
+                    .map(StorableAccount::from)
+                    .map(Some)
+            }
+            Err(err) => {
+                if err.kind() == IoErrorKind::NotFound {
+                    Ok(None)
+                } else {
+                    Err(self.io_error("open file", err))
+                }
+            }
+        }
+    }
+
+    async fn remove_account(&self) -> Result<()> {
         if !self.path.exists() {
             return Ok(());
         }
         tokio::fs::remove_file(&self.path)
             .await
-            .map_err(OnDiskMnemonicStorageError::RemoveError)
+            .map_err(|err| self.io_error("remove file", err))
     }
 }
 
@@ -256,16 +279,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn load_fails_if_no_mnemonic_stored() {
+    async fn load_fails_if_bogus_empty_file_exist() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
         let account_storage = OnDiskAccountStorage::new(path.clone(), NoopStoreCipher::default());
         let _ = File::create(&path).await.unwrap();
         let result = account_storage.load_account().await;
-        assert!(matches!(
-            result,
-            Err(OnDiskMnemonicStorageError::ReadError(_))
-        ));
+        assert!(result.is_err());
     }
 
     #[tokio::test]

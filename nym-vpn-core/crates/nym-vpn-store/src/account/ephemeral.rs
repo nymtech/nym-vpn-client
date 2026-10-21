@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{AccountInformationStorage, StoredAccount};
 use nym_vpn_lib_types::StorableAccount;
 use tokio::sync::Mutex;
+
+use super::{AccountInformationStorage, DEFAULT_NAME, StoredAccount};
 
 #[derive(Default)]
 pub struct InMemoryAccountStorage {
@@ -27,10 +28,9 @@ impl AccountInformationStorage for InMemoryAccountStorage {
         &self,
         account: StorableAccount,
     ) -> Result<(), InMemoryAccountStorageError> {
-        let name = "default".to_string();
         let nonce = 0;
         let stored_account = StoredAccount {
-            name,
+            name: DEFAULT_NAME.to_owned(),
             mnemonic: account.mnemonic,
             mode: account.mode,
             nonce,

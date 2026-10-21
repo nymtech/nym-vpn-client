@@ -13,14 +13,23 @@ pub enum StoreCipherError {
     #[error("authentication failed")]
     AuthenticationFailed,
 
+    #[error("access denied until device is unlocked")]
+    AccessDeniedUntilDeviceUnlocked,
+
+    #[error("key store is locked")]
+    Locked,
+
+    #[error("User cancelled")]
+    UserCancelled,
+
     #[error("key store error")]
-    KeyStore(Arc<dyn std::error::Error + Send + Sync>),
+    KeyStore(#[source] Arc<dyn std::error::Error + Send + Sync>),
 
     #[error("deserialize error")]
-    Deserialize(serde_json::Error),
+    Deserialize(#[source] serde_json::Error),
 
     #[error("serialization error")]
-    Serialize(serde_json::Error),
+    Serialize(#[source] serde_json::Error),
 }
 
 pub type Result<T, E = StoreCipherError> = std::result::Result<T, E>;

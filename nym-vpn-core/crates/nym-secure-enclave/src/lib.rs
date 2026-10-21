@@ -23,7 +23,7 @@ pub enum SecureEnclaveError {
     #[error("Authentication failed")]
     AuthenticationFailed,
 
-    #[error("Access denied until device is unlocked")]
+    #[error("access denied until device is unlocked")]
     AccessDeniedUntilDeviceUnlocked,
 
     #[error("Key is not found")]

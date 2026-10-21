@@ -9,6 +9,8 @@ pub mod on_disk;
 
 use nym_vpn_lib_types::{Mnemonic, StorableAccount, StoredAccountMode};
 
+pub(self) const DEFAULT_NAME: &str = "default";
+
 #[async_trait::async_trait]
 pub trait AccountInformationStorage {
     type StorageError: Error + Send + Sync + 'static;
