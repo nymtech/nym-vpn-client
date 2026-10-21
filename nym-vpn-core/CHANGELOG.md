@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.14.0] - 2026-10-21
+
 ### Added
 
 - Expose free trial eligibility (`trialEligible` from the active subscription endpoint) to mobile clients through the account controller (https://github.com/nymtech/nym-vpn-client/pull/6701)
