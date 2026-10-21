@@ -27,7 +27,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 /**
- * Asks the user to confirm their presence in order to unlock a keystore operation.
+ * Asks the user to confirm their presence in order to unlock a keystore operation or key.
  */
 @Singleton
 class UserPresencePrompt @Inject constructor(@ApplicationContext private val context: Context, private val activityTracker: ForegroundActivityTracker, @MainImmediateDispatcher private val mainDispatcher: CoroutineDispatcher) {
@@ -41,7 +41,21 @@ class UserPresencePrompt @Inject constructor(@ApplicationContext private val con
 	 * @return the unlocked cipher.
 	 * @throws SecureEnclaveException when the user could not be authenticated.
 	 */
-	fun unlock(cipher: Cipher): Cipher = runBlocking {
+	fun unlock(cipher: Cipher): Cipher = requestAuthentication(BiometricPrompt.CryptoObject(cipher), subtitle = null).cryptoObject?.cipher
+		?: throw SecureEnclaveException.AuthenticationFailed()
+
+	/**
+	 * Blocks the calling thread until the user authenticates, which opens the authentication window
+	 * of time-window keys. Must not be called on the main thread.
+	 *
+	 * @param reason shown to the user, defaults to a generic message.
+	 * @throws SecureEnclaveException when the user could not be authenticated.
+	 */
+	fun authenticate(reason: String? = null) {
+		requestAuthentication(cryptoObject = null, subtitle = reason)
+	}
+
+	private fun requestAuthentication(cryptoObject: BiometricPrompt.CryptoObject?, subtitle: String?): BiometricPrompt.AuthenticationResult = runBlocking {
 		mutex.withLock {
 			withContext(mainDispatcher) {
 				if (context.getSystemService(KeyguardManager::class.java)?.isDeviceLocked == true) {
@@ -58,22 +72,19 @@ class UserPresencePrompt @Inject constructor(@ApplicationContext private val con
 					Timber.tag(TAG).w("UnlockUnavailable code=%d", status)
 					throw SecureEnclaveException.AuthenticationFailed()
 				}
-				showPrompt(activity, cipher)
+				showPrompt(activity, cryptoObject, subtitle)
 			}
 		}
 	}
 
-	private suspend fun showPrompt(activity: FragmentActivity, cipher: Cipher): Cipher = suspendCancellableCoroutine { cont ->
+	private suspend fun showPrompt(activity: FragmentActivity, cryptoObject: BiometricPrompt.CryptoObject?, subtitle: String?): BiometricPrompt.AuthenticationResult = suspendCancellableCoroutine { cont ->
 		val prompt = BiometricPrompt(
 			activity,
 			ContextCompat.getMainExecutor(activity),
 			object : BiometricPrompt.AuthenticationCallback() {
 				override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
 					Timber.tag(TAG).i("UnlockSucceeded")
-					val unlocked = result.cryptoObject?.cipher
-					if (cont.isActive) {
-						if (unlocked != null) cont.resume(unlocked) else cont.resumeWithException(SecureEnclaveException.AuthenticationFailed())
-					}
+					if (cont.isActive) cont.resume(result)
 				}
 
 				override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -103,11 +114,11 @@ class UserPresencePrompt @Inject constructor(@ApplicationContext private val con
 
 		val info = BiometricPrompt.PromptInfo.Builder()
 			.setTitle(activity.getString(R.string.secure_enclave_auth_title))
-			.setSubtitle(activity.getString(R.string.secure_enclave_auth_subtitle))
+			.setSubtitle(subtitle ?: activity.getString(R.string.secure_enclave_auth_subtitle))
 			.setAllowedAuthenticators(AUTHENTICATORS)
 			.apply { if (!ALLOWS_DEVICE_CREDENTIAL) setNegativeButtonText(activity.getString(R.string.cancel)) }
 			.build()
-		prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))
+		if (cryptoObject != null) prompt.authenticate(info, cryptoObject) else prompt.authenticate(info)
 	}
 
 	companion object {
