@@ -82,19 +82,6 @@ pub async fn remove_files_for_account(
         }
     }
 
-    // Warn if there are any files left in the data directory
-    let mut dir_stream = ReadDirStream::new(
-        tokio::fs::read_dir(data_dir)
-            .await
-            .map_err(Error::internal)?,
-    );
-
-    while let Some(entry_result) = dir_stream.next().await {
-        if let Ok(entry) = entry_result {
-            tracing::info!("File left in data directory: {}", entry.path().display());
-        }
-    }
-
     Ok(())
 }
 
