@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Hide overlay windows on sensitive screens (https://github.com/nymtech/nym-vpn-client/pull/6780)
+
 ## [2026.14.0] - TBD
 
 ### Added
