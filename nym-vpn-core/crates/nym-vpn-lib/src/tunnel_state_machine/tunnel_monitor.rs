@@ -583,9 +583,14 @@ impl TunnelMonitor {
             }
         }
 
-        let registration_result = registration_result.inspect_err(|_| {
+        let registration_result = registration_result.inspect_err(|err| {
+            let gateway = if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
+                selected_gateways.exit_gateway()
+            } else {
+                selected_gateways.entry_gateway()
+            };
             self.send_event(TunnelMonitorEvent::RegistrationFailed {
-                gateway_id: selected_gateways.entry_gateway().identity(),
+                gateway_id: gateway.identity(),
             })
         })?;
 
