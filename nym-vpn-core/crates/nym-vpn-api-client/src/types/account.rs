@@ -310,7 +310,7 @@ mod tests {
 
     #[test]
     fn derive_wallets() {
-        for word_count in [12, 24] {
+        for word_count in [bip39::WordCount::Words12, bip39::WordCount::Words24] {
             let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
             VpnAccount::derive_from_wallet(wallet, VpnAccountMode::Api).unwrap();
         }

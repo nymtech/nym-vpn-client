@@ -538,7 +538,7 @@ impl LazySocks5 {
 
         // Configure network environment if provided
         if let Some(ref network_details) = self.config.network_details {
-            builder = builder.network_details(network_details.clone().into());
+            builder = builder.network_details(network_details.clone());
             debug!(
                 "Using network environment: {}",
                 network_details.network_name
