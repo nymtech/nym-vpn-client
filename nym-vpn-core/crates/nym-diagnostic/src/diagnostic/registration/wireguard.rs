@@ -48,9 +48,10 @@ impl WireguardDiagnostic {
         udp_socket.connect(wireguard_config.endpoint).await?;
 
         // Wireguard tunnel set up
+        // boringtun wants x25519-dalek 2. The key is ephemeral and dropped with the tunnel.
         let wg_tunnel = Tunn::new(
-            gateway_keypair.private_key().inner().clone(), // Yes this is cloning a private key. It is ephemeral and dropped at the end of the run anyway
-            wireguard_config.public_key.inner(),
+            boringtun::x25519::StaticSecret::from(gateway_keypair.private_key().to_bytes()),
+            boringtun::x25519::PublicKey::from(*wireguard_config.public_key.as_bytes()),
             wireguard_config.psk.map(Into::into),
             None,
             0,
