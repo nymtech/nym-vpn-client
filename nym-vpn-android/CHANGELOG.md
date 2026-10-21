@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.14.0] - 2026-10-21
+
 ### Added
 
 - Show the app update prompt on Android. A dismissible prompt can be closed; a required one cannot and blocks new tunnels (https://github.com/nymtech/nym-vpn-client/pull/6451)
