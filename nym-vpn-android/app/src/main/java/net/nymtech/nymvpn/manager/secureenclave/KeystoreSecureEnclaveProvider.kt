@@ -8,6 +8,7 @@ import android.security.keystore.KeyInfo
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.security.keystore.StrongBoxUnavailableException
+import android.security.keystore.UserNotAuthenticatedException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import nym_secure_enclave.AndroidSecureEnclaveKey
 import nym_secure_enclave.AndroidSecureEnclaveProvider
@@ -25,7 +26,11 @@ import javax.inject.Singleton
  * Manages hardware-backed AES-GCM keys in the Android keystore.
  */
 @Singleton
-class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext private val context: Context, private val userPresencePrompt: UserPresencePrompt) : AndroidSecureEnclaveProvider {
+class KeystoreSecureEnclaveProvider @Inject constructor(
+	@ApplicationContext private val context: Context,
+	private val userPresencePrompt: UserPresencePrompt,
+	private val session: SecureEnclaveSession,
+) : AndroidSecureEnclaveProvider {
 
 	private val keyStore: KeyStore by lazy { KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) } }
 
@@ -43,7 +48,8 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 			generateKey(alias, userPresence, strongBox = false)
 		}
 		Timber.tag(TAG).i("KeyCreated userPresence=%s", userPresence)
-		KeystoreSecureEnclaveKey(secretKey(alias), userPresence, userPresencePrompt)
+		val secretKey = secretKey(alias)
+		KeystoreSecureEnclaveKey(secretKey, userPresence(secretKey), userPresencePrompt, session)
 	}
 
 	override fun deleteKey(alias: String) = secureEnclaveCall {
@@ -60,21 +66,39 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 			keyStore.deleteEntry(alias)
 			throw SecureEnclaveException.KeyNotFound()
 		}
-		KeystoreSecureEnclaveKey(secretKey, requiresUserPresence(secretKey), userPresencePrompt)
+		KeystoreSecureEnclaveKey(secretKey, userPresence(secretKey), userPresencePrompt, session)
+	}
+
+	override fun unlock(reason: String) = secureEnclaveCall {
+		session.unlock { userPresencePrompt.authenticate(reason) }
+		Timber.tag(TAG).i("SessionUnlocked")
+	}
+
+	override fun lock() = secureEnclaveCall {
+		session.lock()
+		Timber.tag(TAG).i("SessionLocked")
 	}
 
 	private fun secretKey(alias: String): SecretKey = keyStore.getKey(alias, null) as? SecretKey ?: throw SecureEnclaveException.KeyNotFound()
 
-	private fun requiresUserPresence(secretKey: SecretKey): Boolean {
-		val keyInfo = SecretKeyFactory.getInstance(secretKey.algorithm, ANDROID_KEYSTORE).getKeySpec(secretKey, KeyInfo::class.java) as KeyInfo
-		return keyInfo.isUserAuthenticationRequired
+	private fun userPresence(secretKey: SecretKey): UserPresence = keyInfo(secretKey).run {
+		when {
+			!isUserAuthenticationRequired -> UserPresence.NONE
+			userAuthenticationValidityDurationSeconds > 0 -> UserPresence.TIME_WINDOW
+			else -> UserPresence.PER_USE
+		}
 	}
+
+	private fun keyInfo(secretKey: SecretKey): KeyInfo = SecretKeyFactory.getInstance(secretKey.algorithm, ANDROID_KEYSTORE).getKeySpec(secretKey, KeyInfo::class.java) as KeyInfo
 
 	private fun isInvalidated(secretKey: SecretKey): Boolean = try {
 		Cipher.getInstance(KeystoreSecureEnclaveKey.TRANSFORMATION).init(Cipher.ENCRYPT_MODE, secretKey)
 		false
 	} catch (_: KeyPermanentlyInvalidatedException) {
 		true
+	} catch (_: UserNotAuthenticatedException) {
+		// Time-window key outside of its authentication window.
+		false
 	}
 
 	private fun hasStrongBox(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
@@ -89,8 +113,11 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 				if (userPresence) {
 					setUserAuthenticationRequired(true)
 					setInvalidatedByBiometricEnrollment(false)
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && UserPresencePrompt.ALLOWS_DEVICE_CREDENTIAL) {
-						setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+						setUserAuthenticationParameters(UNLOCK_WINDOW_SECONDS, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
+					} else {
+						@Suppress("DEPRECATION")
+						setUserAuthenticationValidityDurationSeconds(UNLOCK_WINDOW_SECONDS)
 					}
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) setUnlockedDeviceRequired(true)
 				}
@@ -108,5 +135,8 @@ class KeystoreSecureEnclaveProvider @Inject constructor(@ApplicationContext priv
 		const val TAG = "secure-enclave"
 		const val ANDROID_KEYSTORE = "AndroidKeyStore"
 		const val KEY_SIZE_BITS = 256
+
+		/** How long a key can be used after the user authenticated. */
+		const val UNLOCK_WINDOW_SECONDS = 300
 	}
 }

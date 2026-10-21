@@ -3,29 +3,66 @@
 
 use std::ptr::NonNull;
 
+use objc2_local_authentication::LAContext;
+
 use objc2_core_foundation::{
     CFBoolean, CFData, CFDictionary, CFError, CFIndex, CFNumber, CFRetained, CFString, CFType,
-    kCFAllocatorNull,
+    kCFAllocatorNull, kCFErrorDomainOSStatus,
 };
+use objc2_local_authentication::LAError;
 use objc2_security::{
     SecAccessControl, SecAccessControlCreateFlags, SecCopyErrorMessageString, SecItemCopyMatching,
-    SecItemDelete, SecKey, SecKeyAlgorithm, errSecSuccess, kSecAttrAccessControl,
-    kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-    kSecAttrApplicationTag, kSecAttrIsPermanent, kSecAttrKeySizeInBits, kSecAttrKeyType,
-    kSecAttrKeyTypeECSECPrimeRandom, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave, kSecClass,
-    kSecClassKey, kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM,
-    kSecMatchLimit, kSecMatchLimitOne, kSecPrivateKeyAttrs, kSecReturnRef,
+    SecItemDelete, SecKey, SecKeyAlgorithm, errSecInteractionNotAllowed, errSecSuccess,
+    kSecAttrAccessControl, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+    kSecAttrAccessibleWhenUnlockedThisDeviceOnly, kSecAttrApplicationTag, kSecAttrIsPermanent,
+    kSecAttrKeySizeInBits, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrTokenID,
+    kSecAttrTokenIDSecureEnclave, kSecClass, kSecClassKey,
+    kSecKeyAlgorithmECIESEncryptionStandardVariableIVX963SHA256AESGCM, kSecMatchLimit,
+    kSecMatchLimitOne, kSecPrivateKeyAttrs, kSecReturnRef, kSecUseAuthenticationContext,
 };
+
+use super::auth::{AuthError, LAErrorDomain};
 
 const KEY_SIZE: i32 = 256;
 
-pub(super) type OsStatus = i32;
+pub type OsStatus = i32;
 
 #[derive(Debug)]
-pub(super) enum SecError {
+pub enum SecError {
     Os(OsStatus),
     Cf(CFRetained<CFError>),
+    Auth(AuthError),
     Internal(&'static str),
+}
+
+impl SecError {
+    /// Returns the `OSStatus` code, including the one wrapped in `CFError`.
+    pub fn os_status(&self) -> Option<OsStatus> {
+        match self {
+            Self::Os(status) => Some(*status),
+            Self::Cf(err) => {
+                let domain = err.domain()?;
+                let os_status_domain = unsafe { kCFErrorDomainOSStatus }?;
+                (*domain == *os_status_domain).then(|| err.code() as OsStatus)
+            }
+            Self::Auth(_) | Self::Internal(_) => None,
+        }
+    }
+
+    /// Whether the operation required user interaction, which was not allowed.
+    pub fn is_interaction_not_allowed(&self) -> bool {
+        let is_la_not_interactive = || match self {
+            Self::Cf(err) => {
+                let is_la_error = err.domain().is_some_and(|domain| {
+                    domain.to_string() == unsafe { LAErrorDomain }.to_string()
+                });
+                is_la_error && LAError(err.code()) == LAError::NotInteractive
+            }
+            _ => false,
+        };
+
+        self.os_status() == Some(errSecInteractionNotAllowed) || is_la_not_interactive()
+    }
 }
 
 impl From<OsStatus> for SecError {
@@ -46,21 +83,26 @@ impl std::fmt::Display for SecError {
                 }
             }
             Self::Cf(err) => f.write_str(&err.to_string()),
+            Self::Auth(err) => err.fmt(f),
             Self::Internal(msg) => f.write_str(msg),
         }
     }
 }
 
-pub(super) type SecResult<T, E = SecError> = std::result::Result<T, E>;
+pub type SecResult<T, E = SecError> = std::result::Result<T, E>;
 
-pub(super) fn get_sec_key(tag: &[u8]) -> SecResult<CFRetained<SecKey>> {
+/// Find the key with the given tag. The returned key uses `auth_context` to satisfy the access
+/// control of the key.
+pub fn get_sec_key(tag: &[u8], auth_context: &LAContext) -> SecResult<CFRetained<SecKey>> {
+    let tag = CFData::from_bytes(tag);
     let query = unsafe {
         dict(&[
             (kSecClass, kSecClassKey),
             (kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom),
-            (kSecAttrApplicationTag, &CFData::from_bytes(tag)),
+            (kSecAttrApplicationTag, &tag),
             (kSecReturnRef, CFBoolean::new(true)),
             (kSecMatchLimit, kSecMatchLimitOne),
+            (kSecUseAuthenticationContext, as_cf_type(auth_context)),
         ])
     };
 
@@ -80,7 +122,7 @@ pub(super) fn get_sec_key(tag: &[u8]) -> SecResult<CFRetained<SecKey>> {
     Ok(key_ref)
 }
 
-pub(super) fn delete_sec_key(tag: &[u8]) -> SecResult<()> {
+pub fn delete_sec_key(tag: &[u8]) -> SecResult<()> {
     let tag = CFData::from_bytes(tag);
 
     let query = unsafe {
@@ -95,7 +137,11 @@ pub(super) fn delete_sec_key(tag: &[u8]) -> SecResult<()> {
     wrap_os_status(status)
 }
 
-pub(super) fn create_sec_key(tag: &[u8], user_presence: bool) -> SecResult<CFRetained<SecKey>> {
+pub fn create_sec_key(
+    tag: &[u8],
+    user_presence: bool,
+    auth_context: &LAContext,
+) -> SecResult<CFRetained<SecKey>> {
     let mut flags = SecAccessControlCreateFlags::PrivateKeyUsage;
     if user_presence {
         flags |= SecAccessControlCreateFlags::UserPresence;
@@ -132,6 +178,7 @@ pub(super) fn create_sec_key(tag: &[u8], user_presence: bool) -> SecResult<CFRet
             (kSecAttrKeySizeInBits, &key_size),
             (kSecAttrTokenID, kSecAttrTokenIDSecureEnclave),
             (kSecPrivateKeyAttrs, private_attrs.as_opaque()),
+            (kSecUseAuthenticationContext, as_cf_type(auth_context)),
         ])
     };
 
@@ -144,7 +191,7 @@ pub(super) fn create_sec_key(tag: &[u8], user_presence: bool) -> SecResult<CFRet
     ))
 }
 
-pub(super) fn decrypt_data(private_key: &SecKey, cipher_text: &[u8]) -> SecResult<Vec<u8>> {
+pub fn decrypt_data(private_key: &SecKey, cipher_text: &[u8]) -> SecResult<Vec<u8>> {
     let cipher_text = unsafe {
         CFData::with_bytes_no_copy(
             None,
@@ -170,7 +217,7 @@ pub(super) fn decrypt_data(private_key: &SecKey, cipher_text: &[u8]) -> SecResul
     Ok(plain_text)
 }
 
-pub(super) fn encrypt_data(private_key: &SecKey, plain_text: &[u8]) -> SecResult<Vec<u8>> {
+pub fn encrypt_data(private_key: &SecKey, plain_text: &[u8]) -> SecResult<Vec<u8>> {
     let public_key = unsafe { private_key.public_key() }
         .ok_or(SecError::Internal("failed to obtain public key"))?;
 
@@ -214,6 +261,11 @@ fn wrap_os_status(status: OsStatus) -> SecResult<()> {
     } else {
         Err(SecError::from(status))
     }
+}
+
+/// `LAContext` is an Objective-C object, which is also a valid CoreFoundation object.
+unsafe fn as_cf_type(object: &LAContext) -> &CFType {
+    unsafe { &*(object as *const LAContext).cast::<CFType>() }
 }
 
 fn dict(pairs: &[(&CFString, &CFType)]) -> CFRetained<CFDictionary<CFString, CFType>> {

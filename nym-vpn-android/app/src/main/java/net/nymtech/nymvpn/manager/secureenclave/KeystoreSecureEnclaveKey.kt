@@ -10,11 +10,30 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
+ * How the keystore requires the user to be present before a key can be used.
+ */
+enum class UserPresence {
+	/** The key can be used without the user. */
+	NONE,
+
+	/** Every operation must be authorized by the user, even when unlocked. Keys created before lock/unlock support. */
+	PER_USE,
+
+	/** The key can be used for a while after the user authenticated. See [SecureEnclaveSession]. */
+	TIME_WINDOW,
+}
+
+/**
  * Stands in place of an AES-GCM key held by the Android keystore. The key material never leaves the keystore.
  *
  * Ciphertext layout: 12 byte IV followed by the GCM output (ciphertext and tag).
  */
-class KeystoreSecureEnclaveKey(private val secretKey: SecretKey, private val requiresUserPresence: Boolean, private val userPresencePrompt: UserPresencePrompt) : AndroidSecureEnclaveKey {
+class KeystoreSecureEnclaveKey(
+	private val secretKey: SecretKey,
+	private val userPresence: UserPresence,
+	private val userPresencePrompt: UserPresencePrompt,
+	private val session: SecureEnclaveSession,
+) : AndroidSecureEnclaveKey {
 
 	override fun encrypt(bytes: ByteArray): ByteArray = try {
 		secureEnclaveCall {
@@ -33,15 +52,38 @@ class KeystoreSecureEnclaveKey(private val secretKey: SecretKey, private val req
 		cipher.doFinal(bytes, IV_SIZE, bytes.size - IV_SIZE)
 	}
 
-	private inline fun unlock(init: Cipher.() -> Unit): Cipher {
-		val cipher = Cipher.getInstance(TRANSFORMATION)
+	private inline fun unlock(init: Cipher.() -> Unit): Cipher = when (userPresence) {
+		UserPresence.NONE -> newCipher().initKey(init)
+		UserPresence.PER_USE -> {
+			requireUnlocked()
+			userPresencePrompt.unlock(newCipher().initKey(init))
+		}
+		UserPresence.TIME_WINDOW -> {
+			requireUnlocked()
+			val cipher = newCipher()
+			try {
+				cipher.initKey(init)
+			} catch (_: UserNotAuthenticatedException) {
+				Timber.tag(TAG).d("AuthenticationWindowExpired")
+				userPresencePrompt.authenticate()
+				cipher.initKey(init)
+			}
+		}
+	}
+
+	private fun newCipher(): Cipher = Cipher.getInstance(TRANSFORMATION)
+
+	private fun requireUnlocked() {
+		if (!session.isUnlocked) throw SecureEnclaveException.Locked()
+	}
+
+	private inline fun Cipher.initKey(init: Cipher.() -> Unit): Cipher = apply {
 		try {
-			cipher.init()
+			init()
 		} catch (e: KeyPermanentlyInvalidatedException) {
 			Timber.tag(TAG).w(e, "KeyInvalidated")
 			throw SecureEnclaveException.KeyNotFound()
 		}
-		return if (requiresUserPresence) userPresencePrompt.unlock(cipher) else cipher
 	}
 
 	companion object {

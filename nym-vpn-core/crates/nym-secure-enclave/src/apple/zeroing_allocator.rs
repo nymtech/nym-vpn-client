@@ -6,7 +6,7 @@ use std::ffi::c_void;
 use objc2_core_foundation::{CFAllocator, CFAllocatorContext, CFIndex, CFOptionFlags, CFRetained};
 
 /// Creates a CoreFoundation allocator that wipes memory before freeing it.
-pub(super) fn create_zeroing_allocator() -> Option<CFRetained<CFAllocator>> {
+pub fn create_zeroing_allocator() -> Option<CFRetained<CFAllocator>> {
     let mut context = CFAllocatorContext {
         version: 0,
         info: std::ptr::null_mut(),

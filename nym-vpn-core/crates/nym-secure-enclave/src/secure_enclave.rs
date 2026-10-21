@@ -53,6 +53,18 @@ impl SecureEnclave {
         self.inner.get_key(alias).await
     }
 
+    /// Authenticate the user once, so that keys requiring user presence can be used without
+    /// prompting until [`Self::lock`] is called.
+    #[tracing::instrument(skip(self))]
+    pub async fn unlock(&self, reason: &str) -> Result<()> {
+        self.inner.unlock(reason).await
+    }
+
+    /// Revoke the authentication obtained with [`Self::unlock`].
+    pub async fn lock(&self) -> Result<()> {
+        self.inner.lock().await
+    }
+
     #[tracing::instrument(skip(self))]
     pub async fn get_or_create_key(
         &self,

@@ -7,41 +7,6 @@ use crate::SecureEnclaveError;
 
 use super::{Result, SecureEnclaveKey, SecureEnclaveProvider};
 
-/*
-
-#[uniffi::export(with_foreign)]
-pub trait AndroidSecureEnclaveKey: Send + Sync {
-    // Pass the memory location pointer and length over FFI
-    fn encrypt_raw(&self, ptr_address: u64, len: u32) -> Result<Vec<u8>>;
-    fn decrypt_raw(&self, ptr_address: u64, len: u32) -> Result<Vec<u8>>;
-}
-
-import java.nio.ByteBuffer
-
-class MyAndroidKey : AndroidSecureEnclaveKey {
-    override fun encryptRaw(ptrAddress: Long, len: Int): ByteArray {
-        // Create a direct byte buffer targeting the raw native address without copying
-        val byteBuffer = UniFfiDirectBuffer(ptrAddress, len)
-        val bytes = ByteArray(len)
-        byteBuffer.get(bytes)
-
-        // Execute enclave logic...
-        return encryptWithSecureEnclave(bytes)
-    }
-
-    override fun decryptRaw(ptrAddress: Long, len: Int): ByteArray { ... }
-}
-
-// Helper block to map direct memory address to a readable ByteBuffer
-fun UniFfiDirectBuffer(address: Long, capacity: Int): ByteBuffer {
-    val clazz = Class.forName("java.nio.DirectByteBuffer")
-    val constructor = clazz.getDeclaredConstructor(Long::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-    constructor.isAccessible = true
-    return constructor.newInstance(address, capacity) as ByteBuffer
-}
-
- */
-
 // Traits that must be implemented in Android app
 #[uniffi::export(with_foreign)]
 pub trait AndroidSecureEnclaveKey: Send + Sync {
@@ -67,6 +32,13 @@ pub trait AndroidSecureEnclaveProvider: Send + Sync {
 
     /// Get object standing in-place of key that can be used to perform encryption or decryption.
     fn get_key(&self, alias: String) -> Result<Arc<dyn AndroidSecureEnclaveKey>>;
+
+    /// Authenticate the user once, so that keys requiring user presence can be used without
+    /// prompting until `lock()` is called. `reason` is shown to the user.
+    fn unlock(&self, reason: String) -> Result<()>;
+
+    /// Revoke the authentication obtained with `unlock()`.
+    fn lock(&self) -> Result<()>;
 }
 
 pub struct AndroidKeyStoreProvider {
@@ -111,6 +83,21 @@ impl SecureEnclaveProvider for AndroidKeyStoreProvider {
         })
         .await
         .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
+    }
+
+    async fn unlock(&self, reason: &str) -> Result<()> {
+        let inner = self.inner.clone();
+        let reason = reason.to_owned();
+        tokio::task::spawn_blocking(move || inner.unlock(reason))
+            .await
+            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
+    }
+
+    async fn lock(&self) -> Result<()> {
+        let inner = self.inner.clone();
+        tokio::task::spawn_blocking(move || inner.lock())
+            .await
+            .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 }
 
