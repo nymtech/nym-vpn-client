@@ -44,6 +44,7 @@ mod network_stats;
 mod paths;
 mod privy;
 mod profile;
+mod qr_pairing;
 mod rpc_requests;
 mod service;
 mod socks5;
@@ -98,6 +99,7 @@ pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use paths::LogPath;
 pub use privy::PrivyDerivationMessage;
 pub use profile::{Profile, ProfileOptions};
+pub use qr_pairing::{QrPairingConfirmation, QrUrl};
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, ListGatewaysOptions, StoreAccountRequest,
 };
@@ -112,7 +114,8 @@ pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5Sta
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 pub use tunnel_event::{
     BandwidthEvent, ConflictDetected, ConnectionEvent, ConnectionStatisticsEvent,
-    DiagnosticsSuggestionReason, MixnetEvent, SphinxPacketRates, TunnelEvent,
+    DiagnosticsSuggestionReason, MixnetEvent, PairingEvent, PairingResult, SphinxPacketRates,
+    TunnelEvent,
 };
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
 pub use user_agent::UserAgent;
