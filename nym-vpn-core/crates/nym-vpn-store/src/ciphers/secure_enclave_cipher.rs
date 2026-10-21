@@ -58,6 +58,11 @@ impl From<SecureEnclaveError> for StoreCipherError {
     fn from(value: SecureEnclaveError) -> Self {
         match value {
             SecureEnclaveError::AuthenticationFailed => StoreCipherError::AuthenticationFailed,
+            SecureEnclaveError::AccessDeniedUntilDeviceUnlocked => {
+                StoreCipherError::AccessDeniedUntilDeviceUnlocked
+            }
+            SecureEnclaveError::UserCancelled => StoreCipherError::UserCancelled,
+            SecureEnclaveError::Locked => StoreCipherError::Locked,
             err => StoreCipherError::KeyStore(Arc::new(err)),
         }
     }
