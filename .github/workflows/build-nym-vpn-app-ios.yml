@@ -69,7 +69,7 @@ env:
 jobs:
   build-nym-vpn-app-ios:
     if: github.actor != 'dependabot[bot]'
-    runs-on: custom-macos-15
+    runs-on: TimApple
     timeout-minutes: 45
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
@@ -219,7 +219,9 @@ jobs:
       - name: Add Homebrew Ruby to PATH (used by codemagic-cli-tools)
         run: |
           # Ruby is installed by fastlane
-          echo "$(brew --prefix ruby)/bin" >> $GITHUB_PATH
+          RUBY_BIN="$(brew --prefix ruby)/bin"
+          echo "$RUBY_BIN" >> "$GITHUB_PATH"
+          "$RUBY_BIN/gem" install xcodeproj --conservative --no-document
 
       - name: Apply orchestrated version (apple)
         uses: ./.github/actions/apply-version
