@@ -30,6 +30,7 @@ impl SecureEnclaveCipher {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     async fn get_key(&self) -> Result<&PlatformSecureEnclaveKey> {
         self.cached_key
             .get_or_try_init(|| async {
