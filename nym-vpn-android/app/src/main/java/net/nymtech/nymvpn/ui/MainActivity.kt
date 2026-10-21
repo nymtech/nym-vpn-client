@@ -50,6 +50,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.screens.account.delete.DeleteScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
@@ -341,6 +342,8 @@ class MainActivity : AppCompatActivity() {
 								}
 
 								composable<Route.Account> { AccountInfoScreen(appViewModel, appState) }
+
+								composable<Route.DeleteAccount> { DeleteScreen() }
 
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(

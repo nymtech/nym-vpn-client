@@ -208,6 +208,11 @@ fun NavBar(
 				onBack = { navController.safePopBackStack() },
 			)
 
+			route.startsWith(Route.DeleteAccount::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.delete_account_title,
+				onBack = { navController.safePopBackStack() },
+			)
+
 			route.startsWith(Route.MixnetTuning::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.settings_mixnet_tuning_title,
 				onBack = { navController.safePopBackStack() },

@@ -77,6 +77,9 @@ sealed class Route {
 	data object Account : Route()
 
 	@Serializable
+	data object DeleteAccount : Route()
+
+	@Serializable
 	data class ServerDetails(val id: String, val location: String) : Route()
 
 	@Serializable
