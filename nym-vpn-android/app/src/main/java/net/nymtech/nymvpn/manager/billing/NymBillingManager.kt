@@ -69,7 +69,7 @@ class NymBillingManager @Inject constructor(
 		.onFailure { Timber.tag(TAG).e(it, "BillingHasActiveSubscriptionFailed") }
 		.getOrDefault(false)
 
-	override suspend fun hasRenewingSubscription(): Boolean = runCatching { billing.hasRenewingSubscription() }
+	override suspend fun hasRenewingSubscription(): Boolean? = runCatching { billing.hasRenewingSubscription() }
 		.onFailure { Timber.tag(TAG).e(it, "BillingHasRenewingSubscriptionFailed") }
-		.getOrDefault(false)
+		.getOrNull()
 }

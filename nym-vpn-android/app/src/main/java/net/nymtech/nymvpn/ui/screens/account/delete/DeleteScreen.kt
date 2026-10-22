@@ -88,13 +88,16 @@ fun DeleteScreen(viewModel: DeleteViewModel = hiltViewModel()) {
 
 	if (uiState.isLoading) return
 
+	val onOpenPlayClick: () -> Unit = { context.openWebUrl(Constants.URL_PLAY_SUBSCRIPTIONS + context.packageName) }
+
 	when (uiState.step) {
 		DeleteStep.PLAY_STOP -> PlayStopContent(
-			onOpenPlayClick = { context.openWebUrl(Constants.URL_PLAY_SUBSCRIPTIONS + context.packageName) },
+			onOpenPlayClick = onOpenPlayClick,
 			onKeepClick = { navController.safePopBackStack() },
 		)
 		DeleteStep.EXPLAINER, DeleteStep.DELETED -> DeleteScreen(
 			uiState = uiState,
+			onOpenPlayClick = onOpenPlayClick,
 			onDeleteClick = { deviceAuth.request(DeviceAuthAction.DELETE_ACCOUNT) },
 			onKeepClick = { navController.safePopBackStack() },
 		)
@@ -102,7 +105,7 @@ fun DeleteScreen(viewModel: DeleteViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun DeleteScreen(uiState: DeleteUiState, onDeleteClick: () -> Unit, onKeepClick: () -> Unit) {
+fun DeleteScreen(uiState: DeleteUiState, onOpenPlayClick: () -> Unit, onDeleteClick: () -> Unit, onKeepClick: () -> Unit) {
 	Column(
 		horizontalAlignment = Alignment.Start,
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
@@ -112,6 +115,27 @@ fun DeleteScreen(uiState: DeleteUiState, onDeleteClick: () -> Unit, onKeepClick:
 			.padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight())
 			.navigationBarsPadding(),
 	) {
+		if (uiState.isPlayStatusUnknown) {
+			Column {
+				WarningCard(
+					title = stringResource(R.string.delete_account_play_title),
+					text = stringResource(R.string.delete_account_play_descr_1),
+				)
+				TransparentButton(
+					onClick = onOpenPlayClick,
+					content = {
+						Text(
+							stringResource(R.string.delete_account_play_button),
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(48.dp.scaledHeight()),
+				)
+			}
+		}
 		uiState.timeLeftUntil?.let { date ->
 			WarningCard(
 				title = stringResource(R.string.delete_account_time_title),
@@ -199,7 +223,8 @@ private fun keptItem(@StringRes headline: Int, @StringRes description: Int): Ann
 internal fun PreviewDeleteScreen() {
 	NymVPNTheme(Theme.default()) {
 		DeleteScreen(
-			uiState = DeleteUiState(isLoading = false, showPlayRecords = true, timeLeftUntil = "14 February 2027"),
+			uiState = DeleteUiState(isLoading = false, showPlayRecords = true, isPlayStatusUnknown = true, timeLeftUntil = "14 February 2027"),
+			onOpenPlayClick = {},
 			onDeleteClick = {},
 			onKeepClick = {},
 		)

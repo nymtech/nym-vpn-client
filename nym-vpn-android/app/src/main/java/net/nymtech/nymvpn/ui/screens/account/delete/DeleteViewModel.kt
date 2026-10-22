@@ -44,9 +44,12 @@ class DeleteViewModel @Inject constructor(private val backendManager: BackendMan
 		subscriptionCheckJob = viewModelScope.launch {
 			val isPlayBilling = billingManager.isPlayBillingSupported()
 			val (isPlayRenewing, timeLeftUntil) = try {
-				if (isPlayBilling) awaitBillingReady()
-				val isPlayRenewing = isPlayBilling && billingManager.hasRenewingSubscription()
-				val isPlayCancelled = isPlayBilling && !isPlayRenewing && billingManager.hasActiveSubscription()
+				val isPlayRenewing = when {
+					!isPlayBilling -> false
+					awaitBillingReady() -> billingManager.hasRenewingSubscription()
+					else -> null
+				}
+				val isPlayCancelled = isPlayBilling && isPlayRenewing == false && billingManager.hasActiveSubscription()
 				val subscription = backendManager.accountSummaryFlow.value
 					?.takeIf { it.isSubscriptionActive() }
 					?.toSubscriptionUiState()
@@ -55,16 +58,17 @@ class DeleteViewModel @Inject constructor(private val backendManager: BackendMan
 				throw e
 			} catch (e: Exception) {
 				Timber.tag(TAG).w(e, "SubscriptionCheckFailed")
-				false to null
+				(if (isPlayBilling) null else false) to null
 			}
 
-			Timber.tag(TAG).i("SubscriptionChecked playRenewing=%b timeLeft=%b", isPlayRenewing, timeLeftUntil != null)
+			Timber.tag(TAG).i("SubscriptionChecked playRenewing=%s timeLeft=%b", isPlayRenewing, timeLeftUntil != null)
 			_uiState.update {
 				if (it.isDeleting || it.step == DeleteStep.DELETED) return@update it
 				it.copy(
 					isLoading = false,
-					step = if (isPlayRenewing) DeleteStep.PLAY_STOP else DeleteStep.EXPLAINER,
+					step = if (isPlayRenewing == true) DeleteStep.PLAY_STOP else DeleteStep.EXPLAINER,
 					showPlayRecords = isPlayBilling,
+					isPlayStatusUnknown = isPlayRenewing == null,
 					timeLeftUntil = timeLeftUntil,
 				)
 			}
@@ -111,12 +115,13 @@ class DeleteViewModel @Inject constructor(private val backendManager: BackendMan
 		}
 	}
 
-	private suspend fun awaitBillingReady() {
+	private suspend fun awaitBillingReady(): Boolean {
 		billingManager.initialize()
 		val ready = withTimeoutOrNull(BILLING_READY_TIMEOUT_MS.milliseconds) {
 			billingManager.uiState.first { billingManager.isReady() }
-		}
-		if (ready == null) Timber.tag(TAG).w("BillingNotReady")
+		} != null
+		if (!ready) Timber.tag(TAG).w("BillingNotReady")
+		return ready
 	}
 
 	private suspend fun stopTunnel() {

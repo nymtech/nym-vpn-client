@@ -234,12 +234,12 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 
 	override fun isReady(): Boolean = billingClient.isReady
 
-	override suspend fun hasActiveSubscription(): Boolean = queryActiveSubscriptions("HasActiveSubscriptionNonOk").isNotEmpty()
+	override suspend fun hasActiveSubscription(): Boolean = queryActiveSubscriptions("HasActiveSubscriptionNonOk")?.isNotEmpty() ?: false
 
-	override suspend fun hasRenewingSubscription(): Boolean = queryActiveSubscriptions("HasRenewingSubscriptionNonOk").any { it.isAutoRenewing }
+	override suspend fun hasRenewingSubscription(): Boolean? = queryActiveSubscriptions("HasRenewingSubscriptionNonOk")?.any { it.isAutoRenewing }
 
-	private suspend fun queryActiveSubscriptions(nonOkEvent: String): List<Purchase> {
-		if (!billingClient.isReady) return emptyList()
+	private suspend fun queryActiveSubscriptions(nonOkEvent: String): List<Purchase>? {
+		if (!billingClient.isReady) return null
 
 		return suspendCancellableCoroutine { c ->
 			val params = QueryPurchasesParams.newBuilder()
@@ -258,7 +258,7 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 					}
 				} else {
 					Timber.tag(TAG).w("%s code=%d", nonOkEvent, result.responseCode)
-					emptyList()
+					null
 				}
 
 				if (c.isActive) c.resume(active)

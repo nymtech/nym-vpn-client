@@ -10,6 +10,7 @@ data class DeleteUiState(
 	val isLoading: Boolean = true,
 	val step: DeleteStep = DeleteStep.EXPLAINER,
 	val showPlayRecords: Boolean = false,
+	val isPlayStatusUnknown: Boolean = false,
 	val timeLeftUntil: String? = null,
 	val showConfirm: Boolean = false,
 	val isDeleting: Boolean = false,
