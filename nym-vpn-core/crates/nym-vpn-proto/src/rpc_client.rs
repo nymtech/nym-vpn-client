@@ -275,6 +275,19 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn unlock_keychain(&mut self, reason: String) -> Result<()> {
+        self.0
+            .unlock_keychain(proto::UnlockKeychainRequest { reason })
+            .await
+            .map_err(Error::Rpc)?;
+        Ok(())
+    }
+
+    pub async fn lock_keychain(&mut self) -> Result<()> {
+        self.0.lock_keychain(()).await.map_err(Error::Rpc)?;
+        Ok(())
+    }
+
     pub async fn set_fronting_mode(&mut self, fronting_mode: FrontingMode) -> Result<()> {
         self.0
             .set_fronting_mode(proto::FrontingModeRequest {

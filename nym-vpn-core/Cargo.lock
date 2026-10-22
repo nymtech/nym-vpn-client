@@ -281,18 +281,6 @@ dependencies = [
 
 [[package]]
 name = "argon2"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c3610892ee6e0cbce8ae2700349fcf8f98adb0dbfbee85aec3c9179d29cc072"
-dependencies = [
- "base64ct",
- "blake2 0.10.6",
- "cpufeatures 0.2.17",
- "password-hash 0.5.0",
-]
-
-[[package]]
-name = "argon2"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "134c52ddac6d63c576bef8168db10c83c49c26444ecbc68060fef078925a901c"
@@ -300,7 +288,7 @@ dependencies = [
  "base64ct",
  "blake2 0.11.0",
  "cpufeatures 0.3.1",
- "password-hash 0.6.1",
+ "password-hash",
 ]
 
 [[package]]
@@ -7634,14 +7622,13 @@ dependencies = [
 
 [[package]]
 name = "nym-store-cipher"
-version = "1.22.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.19-fuqing#c539b295e537011630795b4dc6fba3216325f5d1"
+version = "1.22.2"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.20-glasgow#66c900faed6a62467359c4b5fa33821ae6a70349"
 dependencies = [
- "aes-gcm 0.10.3",
- "argon2 0.5.3",
- "generic-array 0.14.7",
- "getrandom 0.2.17",
- "rand 0.8.8",
+ "aes-gcm 0.11.1",
+ "argon2",
+ "hybrid-array",
+ "rand 0.10.2",
  "serde",
  "thiserror 2.0.20",
  "zeroize",
@@ -8805,21 +8792,11 @@ dependencies = [
 
 [[package]]
 name = "password-hash"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "346f04948ba92c43e8469c1ee6736c7563d71012b17d40745260fe106aac2166"
-dependencies = [
- "base64ct",
- "rand_core 0.6.4",
- "subtle 2.6.1",
-]
-
-[[package]]
-name = "password-hash"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aab41826031698d6ffcd9cff78ef56ef998e39dc7e5067cdfebe373842d4723b"
 dependencies = [
+ "getrandom 0.4.3",
  "phc",
 ]
 
@@ -9007,6 +8984,7 @@ checksum = "44dc769b75f93afdddd8c7fa12d685292ddeff1e66f7f0f3a234cf1818afe892"
 dependencies = [
  "base64ct",
  "ctutils",
+ "getrandom 0.4.3",
 ]
 
 [[package]]
@@ -11581,7 +11559,7 @@ version = "0.7.0-rc.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9a32fae177b74a22aa9c5b01bf7e68b33545be32d9e381e248058d2adc15ce3"
 dependencies = [
- "argon2 0.6.0",
+ "argon2",
  "bcrypt-pbkdf",
  "ctutils",
  "ed25519-dalek",

@@ -17,12 +17,12 @@ pub struct SecureEnclaveCipherOptions {
 
 pub struct SecureEnclaveCipher {
     cached_key: OnceCell<PlatformSecureEnclaveKey>,
-    secure_enclave: SecureEnclave,
+    secure_enclave: Arc<SecureEnclave>,
     options: SecureEnclaveCipherOptions,
 }
 
 impl SecureEnclaveCipher {
-    pub fn new(secure_enclave: SecureEnclave, options: SecureEnclaveCipherOptions) -> Self {
+    pub fn new(secure_enclave: Arc<SecureEnclave>, options: SecureEnclaveCipherOptions) -> Self {
         Self {
             cached_key: OnceCell::new(),
             secure_enclave,

@@ -298,6 +298,7 @@ nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vp
 nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-store-cipher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }

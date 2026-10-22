@@ -1224,6 +1224,11 @@ message GetRecentGatewaysParams {
   TunnelType tunnel_type = 1;
 }
 
+message UnlockKeychainRequest {
+  // Shown to the user in the authentication prompt
+  string reason = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1412,6 +1417,12 @@ service NymVpnService {
 
   // Get the most probable gateway pair that is going to be used with the set tunnel settings
   rpc GetTentativeGateways(google.protobuf.Empty) returns (TentativeGateways) {}
+
+  // Keychain (macOS)
+  // Authenticate the user once, so that keys requiring user presence can be used without prompting
+  rpc UnlockKeychain(UnlockKeychainRequest) returns (google.protobuf.Empty) {}
+  // Revoke the authentication obtained with UnlockKeychain
+  rpc LockKeychain(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Split-tunnel (all platforms)
   rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

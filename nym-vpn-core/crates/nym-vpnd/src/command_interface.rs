@@ -1222,6 +1222,36 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(tentative_gateways.into()))
     }
 
+    async fn unlock_keychain(
+        &self,
+        _request: tonic::Request<proto::UnlockKeychainRequest>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let reason = _request.into_inner().reason;
+            self.send_and_wait(VpnServiceCommand::UnlockKeychain, reason)
+                .await?
+                .map_err(secure_enclave_error_status)?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::unimplemented("Unsupported platform"))
+    }
+
+    async fn lock_keychain(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            self.send_and_wait(VpnServiceCommand::LockKeychain, ())
+                .await?
+                .map_err(secure_enclave_error_status)?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::unimplemented("Unsupported platform"))
+    }
+
     async fn is_split_tunnel_supported(
         &self,
         _request: tonic::Request<()>,
@@ -1478,5 +1508,21 @@ fn default_socket_path() -> std::path::PathBuf {
     #[cfg(windows)]
     {
         std::path::PathBuf::from(r"\\.\pipe\nym-vpn")
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn secure_enclave_error_status(err: nym_vpn_lib::SecureEnclaveError) -> tonic::Status {
+    use nym_vpn_lib::SecureEnclaveError;
+
+    match err {
+        SecureEnclaveError::AuthenticationFailed => tonic::Status::unauthenticated(err.to_string()),
+        SecureEnclaveError::UserCancelled => tonic::Status::cancelled(err.to_string()),
+        SecureEnclaveError::Locked | SecureEnclaveError::AccessDeniedUntilDeviceUnlocked => {
+            tonic::Status::failed_precondition(err.to_string())
+        }
+        SecureEnclaveError::KeyNotFound => tonic::Status::not_found(err.to_string()),
+        SecureEnclaveError::KeyAlreadyExists => tonic::Status::already_exists(err.to_string()),
+        SecureEnclaveError::Other(_) => tonic::Status::internal(err.to_string()),
     }
 }
