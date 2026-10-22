@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Restore residential icon on exit servers list (https://github.com/nymtech/nym-vpn-client/pull/6793)
 
-## [2026.14.0] - TBD
+## [2026.14.0] - 2026-10-22
 
 ### Added
 
