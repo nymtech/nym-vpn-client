@@ -691,6 +691,7 @@
 	<string name="delete_account_kept_6_headline">Tokens held on-chain stay there.</string>
 	<string name="delete_account_kept_6_descr">Deleting your NymVPN account doesn\'t touch a blockchain. If this passphrase also holds NYM or other tokens, keep a copy of it.</string>
 	<string name="delete_account_keep_button">Keep my account</string>
+	<string name="delete_account_auth_subtitle">You confirm once more before anything is deleted.</string>
 	<string name="delete_account_play_title">Cancel your Google Play subscription first</string>
 	<string name="delete_account_play_descr_1">Deleting your account doesn\'t cancel it, and after you delete you can\'t log in to cancel it here. Google keeps charging you until you cancel it in Google Play.</string>
 	<string name="delete_account_play_descr_2">Once it\'s cancelled, come back to delete your account.</string>
@@ -705,5 +706,5 @@
 	<string name="delete_account_error_title">Couldn\'t delete your account</string>
 	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
 	<string name="delete_account_time_title">You lose the time you have left</string>
-	<string name="delete_account_time_descr">Your NymVPN access runs until 1%s and doesn\'t renew. Deleting your account ends it today.</string>
+	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
 </resources>

@@ -80,6 +80,9 @@ sealed class Route {
 	data object DeleteAccount : Route()
 
 	@Serializable
+	data object DeletedAccount : Route()
+
+	@Serializable
 	data class ServerDetails(val id: String, val location: String) : Route()
 
 	@Serializable

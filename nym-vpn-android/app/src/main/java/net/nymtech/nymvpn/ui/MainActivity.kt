@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -51,6 +50,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.account.delete.DeleteScreen
+import net.nymtech.nymvpn.ui.screens.account.delete.DeletedScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
@@ -93,6 +93,7 @@ import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -163,7 +164,7 @@ class MainActivity : AppCompatActivity() {
 
 			LaunchedEffect(systemMessage, navBackStackEntry) {
 				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
-					delay(2000)
+					delay(2000.milliseconds)
 					systemMessage?.let {
 						SnackbarController.showMessage(
 							StringValue.DynamicString(it.message),
@@ -188,12 +189,11 @@ class MainActivity : AppCompatActivity() {
 			}
 
 			CompositionLocalProvider(LocalNavController provides navController) {
-				SnackbarControllerProvider { host, content ->
+				SnackbarControllerProvider { _, _ ->
 					NymVPNTheme(theme = appState.settings.theme ?: Theme.default()) {
 						Scaffold(
 							contentWindowInsets = WindowInsets(0.dp),
 							modifier = Modifier.semantics {
-								@OptIn(ExperimentalComposeUiApi::class)
 								testTagsAsResourceId = true
 							},
 							topBar = {
@@ -344,6 +344,8 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Account> { AccountInfoScreen(appViewModel, appState) }
 
 								composable<Route.DeleteAccount> { DeleteScreen() }
+
+								composable<Route.DeletedAccount> { DeletedScreen() }
 
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(

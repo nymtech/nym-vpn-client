@@ -84,7 +84,8 @@ fun NavBar(
 				route.startsWith(Route.Onboarding::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||
-				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
+				route.startsWith(Route.Payment::class.qualifiedName!!) ||
+				route.startsWith(Route.DeletedAccount::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Main::class.qualifiedName!!) -> NavBarState.Main(
 				selectedProfile = selectedProfile,

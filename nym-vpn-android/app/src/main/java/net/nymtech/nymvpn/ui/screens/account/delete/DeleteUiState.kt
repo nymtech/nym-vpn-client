@@ -1,3 +1,17 @@
 package net.nymtech.nymvpn.ui.screens.account.delete
 
-data class DeleteUiState(val isLoading: Boolean = false)
+enum class DeleteStep {
+	EXPLAINER,
+	PLAY_STOP,
+	DELETED,
+}
+
+data class DeleteUiState(
+	val isLoading: Boolean = true,
+	val step: DeleteStep = DeleteStep.EXPLAINER,
+	val showPlayRecords: Boolean = false,
+	val timeLeftUntil: String? = null,
+	val showConfirm: Boolean = false,
+	val isDeleting: Boolean = false,
+	val showError: Boolean = false,
+)

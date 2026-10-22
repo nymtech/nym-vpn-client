@@ -249,6 +249,10 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		_state.update { it.copy(isMnemonicStored = false) }
 	}
 
+	override suspend fun deleteAccount() {
+		_state.update { it.copy(isMnemonicStored = false) }
+	}
+
 	override suspend fun getAccountLinks(): ParsedAccountLinks = mockAccountLinks
 
 	override suspend fun getSystemMessages(): List<SystemMessage> {
