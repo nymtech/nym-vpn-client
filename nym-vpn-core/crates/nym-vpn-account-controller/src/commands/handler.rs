@@ -148,15 +148,17 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let _account_response = shared_state
-        .vpn_api_client
-        .delete_account(account)
-        .await
-        .inspect_err(|err| {
+    match shared_state.vpn_api_client.delete_account(account).await {
+        Ok(_account_response) => tracing::info!("Account has been deleted"),
+        // An account that was never registered only exists on this device
+        Err(err) if err.is_account_not_found() => {
+            tracing::info!("Account is not registered with the API, nothing to delete there");
+        }
+        Err(err) => {
             tracing::error!("Failed to delete account: {err:?}");
-        })?;
-
-    tracing::info!("Account has been deleted");
+            return Err(err.into());
+        }
+    }
 
     // A deleted account can't unregister its device, so only local data is removed
     clear_local_account_data(shared_state).await
