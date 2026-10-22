@@ -191,6 +191,8 @@ jobs:
           echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
 
       - name: Install python3
+        env:
+          HOMEBREW_NO_INSTALL_UPGRADE: 1
         run: |
           brew install python
           python3 --version
@@ -219,7 +221,9 @@ jobs:
       - name: Add Homebrew Ruby to PATH (used by codemagic-cli-tools)
         run: |
           # Ruby is installed by fastlane
-          echo "$(brew --prefix ruby)/bin" >> $GITHUB_PATH
+          RUBY_BIN="$(brew --prefix ruby)/bin"
+          echo "$RUBY_BIN" >> "$GITHUB_PATH"
+          "$RUBY_BIN/gem" install xcodeproj --conservative --no-document
 
       - name: Apply orchestrated version (apple)
         uses: ./.github/actions/apply-version

@@ -9,7 +9,7 @@ use hkdf::Hkdf;
 use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
-use rand08::{RngCore, rngs::OsRng};
+use rand::Rng;
 use sha2::{Sha256, Sha512};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
@@ -26,7 +26,7 @@ impl Deeplink {
     const TTL_SECS: u64 = 300;
 
     pub fn new(params: &CreateDeeplinkParams) -> Self {
-        let mut rng = OsRng;
+        let mut rng = rand::rng();
         let id = rng.next_u64();
         let kind = params.kind;
         let keypair = KeyPair::new(&mut rng);
@@ -267,7 +267,7 @@ impl PinCode {
     fn new(length: usize) -> Result<Self, DeeplinkError> {
         let mut random = vec![0u8; length];
 
-        OsRng.fill_bytes(&mut random);
+        rand::rng().fill_bytes(&mut random);
 
         let encoded = bs58::encode(random).into_string();
 
@@ -288,8 +288,8 @@ impl PinCode {
         let mut salt = [0u8; Self::SALT_LEN];
         let mut iv = [0u8; Self::IV_LEN];
 
-        OsRng.fill_bytes(&mut salt);
-        OsRng.fill_bytes(&mut iv);
+        rand::rng().fill_bytes(&mut salt);
+        rand::rng().fill_bytes(&mut iv);
 
         let key = self.get_key(&self.code, &salt);
         let cipher = Aes256Gcm::new_from_slice(&key)

@@ -549,7 +549,7 @@ impl TunnelMonitor {
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
             ))
-            .network_env(nym_network.into())
+            .network_env(nym_network)
             .cancel_token(self.shutdown_token.child_token());
 
         #[cfg(unix)]
@@ -583,9 +583,14 @@ impl TunnelMonitor {
             }
         }
 
-        let registration_result = registration_result.inspect_err(|_| {
+        let registration_result = registration_result.inspect_err(|err| {
+            let gateway = if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
+                selected_gateways.exit_gateway()
+            } else {
+                selected_gateways.entry_gateway()
+            };
             self.send_event(TunnelMonitorEvent::RegistrationFailed {
-                gateway_id: selected_gateways.entry_gateway().identity(),
+                gateway_id: gateway.identity(),
             })
         })?;
 

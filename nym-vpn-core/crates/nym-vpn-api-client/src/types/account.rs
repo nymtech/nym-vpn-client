@@ -90,7 +90,7 @@ impl VpnAccount {
     }
 
     pub fn generate_new() -> Result<(Self, bip39::Mnemonic), Error> {
-        let mnemonic = bip39::Mnemonic::generate(24).unwrap();
+        let mnemonic = bip39::Mnemonic::generate(bip39::WordCount::Words24).unwrap();
         let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic.clone())?;
         let account = Self::derive_from_wallet(wallet, VpnAccountMode::Api)?;
         Ok((account, mnemonic))
@@ -310,7 +310,7 @@ mod tests {
 
     #[test]
     fn derive_wallets() {
-        for word_count in [12, 24] {
+        for word_count in [bip39::WordCount::Words12, bip39::WordCount::Words24] {
             let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
             VpnAccount::derive_from_wallet(wallet, VpnAccountMode::Api).unwrap();
         }

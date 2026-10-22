@@ -38,8 +38,11 @@ TARGET_AARCH64_DIR := $(CURDIR)/target/aarch64-apple-darwin/$(BUILD_PROFILE)
 TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
 
 BIN_TARGETS := nym-vpnd nym-socks5-proxy nym-vpnc nym-setup nym-diagnostic
-DAEMON_BIN := nym-vpnd
-DAEMON_ENTITLEMENTS := $(CURDIR)/../nym-vpn-apple/NymVPND/NymVPND.entitlements
+DAEMON_COPY_TARGETS := nym-vpnd nym-socks5-proxy nym-setup nym-diagnostic
+DAEMON_SRC_BUNDLE := $(CURDIR)/../nym-vpn-apple/NymVPND
+
+RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+$(eval $(RUN_ARGS):;@:)
 
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
@@ -68,12 +71,26 @@ endif
 all: build-all
 
 # Build workspace and codesign nym-vpnd for development.
-# This is required to develop split-tunnel which requires:
-# 1. Binary signed with "com.apple.developer.endpoint-security.client" entitlement.
-# 2. Disabled SIP.
+# Produces app bundle at: target/debug/NymVPND.app
 build-dev:
-	cargo build -p $(DAEMON_BIN) -p nym-vpnc -p nym-socks5-proxy
-	codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - target/debug/$(DAEMON_BIN)
+	cargo build --workspace
+
+	$(foreach bin,$(DAEMON_COPY_TARGETS),cp "$(CURDIR)/target/debug/$(bin)" "$(DAEMON_SRC_BUNDLE)/$(bin)"$(newline))
+
+	@set -o pipefail; \
+	xcodebuild -project "$(CURDIR)/../nym-vpn-apple/NymVPN.xcodeproj" \
+		-scheme NymVPND \
+		-configuration Debug \
+		-sdk macosx \
+		-destination "platform=macOS,arch=$(shell uname -m)" \
+		-disableAutomaticPackageResolution \
+		CONFIGURATION_BUILD_DIR="$(CURDIR)/target/debug" \
+		build | xcbeautify --disable-logging
+
+# Build workspace and run codesigned nym-vpnd
+# Usage: make -f macOS.mk run -- -v
+run: build-dev
+	sudo "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
 
 build-all: libwg $(BIN_TARGETS) swift-package
 
@@ -144,3 +161,10 @@ endif
 	rm -rf $(LIB_CRATE_DIR)/NymVPNLib
 	rm -rf $(LIB_CRATE_DIR)/generated
 	rm -rf $(UPLOAD_DIR_MAC)
+
+
+# Helper to provide a newline character for the foreach loop
+define newline
+
+
+endef

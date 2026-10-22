@@ -542,7 +542,7 @@ impl InnerProcessStates {
 
     fn handle_exit(&mut self, pid: pid_t) {
         if self.processes.remove(&pid).is_none() {
-            tracing::error!("exit syscall for unknown pid {pid}");
+            tracing::warn!("exit syscall for unknown pid {pid}");
         }
     }
 }
