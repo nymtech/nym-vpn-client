@@ -24,11 +24,8 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
-class DeleteViewModel @Inject constructor(
-	private val backendManager: BackendManager,
-	private val billingManager: BillingManager,
-	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+class DeleteViewModel @Inject constructor(private val backendManager: BackendManager, private val billingManager: BillingManager, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) :
+	ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-delete-account-vm"
