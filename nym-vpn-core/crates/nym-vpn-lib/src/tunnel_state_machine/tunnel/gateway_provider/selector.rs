@@ -555,7 +555,7 @@ pub async fn select_gateways(
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::{assert_matches, sync::Arc};
 
     use nym_gateway_directory::{
         Asn, AsnKind, BlacklistReason, BlacklistedGateways, Location, Performance, ScoreValue,
@@ -617,10 +617,10 @@ mod tests {
         )
         .await;
 
-        assert!(matches!(
+        assert_matches!(
             result,
             Err(GatewayProviderError::SameEntryAndExitGateway { .. })
-        ));
+        );
     }
 
     #[tokio::test]
@@ -663,10 +663,10 @@ mod tests {
         )
         .await;
 
-        assert!(matches!(
+        assert_matches!(
             result,
             Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
-        ));
+        );
     }
 
     #[tokio::test]

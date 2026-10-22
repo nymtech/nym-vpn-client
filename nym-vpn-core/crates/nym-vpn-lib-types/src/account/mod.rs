@@ -735,6 +735,7 @@ mod tests {
         },
         types::VpnAccountMode,
     };
+    use std::assert_matches;
     use tracing_test::traced_test;
 
     use super::*;
@@ -943,7 +944,7 @@ mod tests {
         let sub = parsed
             .subscription
             .expect("pending subscription must be kept");
-        assert!(matches!(sub.status, NymVpnSubscriptionStatus::Pending));
+        assert_matches!(sub.status, NymVpnSubscriptionStatus::Pending);
     }
 }
 

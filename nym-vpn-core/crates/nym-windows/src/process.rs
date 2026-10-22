@@ -221,7 +221,7 @@ impl ProcessCertVerifier {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::{assert_matches, path::PathBuf};
 
     use tokio::net::windows::named_pipe::{ClientOptions, ServerOptions};
 
@@ -246,10 +246,10 @@ mod tests {
         // needed for some reason on windows, otherwise the test blocks
         drop(server);
 
-        assert!(matches!(
+        assert_matches!(
             result.unwrap_err(),
             Error::Verification(verifysign::Error::Unsigned)
-        ))
+        )
     }
 }
 
