@@ -241,9 +241,10 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 
 	override suspend fun storeMnemonic(mnemonic: String) {
 		_state.update { it.copy(isMnemonicStored = true) }
+		_accountSummaryFlow.value = mockAccountSummary
 	}
 
-	override suspend fun isMnemonicStored(): Boolean = true
+	override suspend fun isMnemonicStored(): Boolean = _state.value.isMnemonicStored
 
 	override suspend fun removeMnemonic() {
 		_state.update { it.copy(isMnemonicStored = false) }
@@ -251,6 +252,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 
 	override suspend fun deleteAccount() {
 		_state.update { it.copy(isMnemonicStored = false) }
+		_accountSummaryFlow.value = null
 	}
 
 	override suspend fun getAccountLinks(): ParsedAccountLinks = mockAccountLinks
@@ -284,6 +286,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 
 	override suspend fun createAccount() {
 		_state.update { it.copy(isMnemonicStored = true) }
+		_accountSummaryFlow.value = mockAccountSummary
 	}
 
 	override suspend fun registerAccount(purchaseToken: String?): String = "mock-registration-id"
@@ -314,7 +317,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 
 	override suspend fun getAccountMode(): StoredAccountMode = StoredAccountMode.PRIVY
 
-	override suspend fun getAccountSummary(): VpnAccountSummary = mockAccountSummary
+	override suspend fun getAccountSummary(): VpnAccountSummary? = _accountSummaryFlow.value
 	override suspend fun isTrialEligible(): Boolean = true
 
 	override suspend fun runDiagnostic(): String? = null
