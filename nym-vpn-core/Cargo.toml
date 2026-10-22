@@ -303,6 +303,7 @@ nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vp
 nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 nym-serde-helpers = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
+nym-store-cipher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.21-hanoi" }

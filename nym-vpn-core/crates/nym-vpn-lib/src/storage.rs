@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::path::Path;
+#[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+use std::sync::Arc;
 
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
 use nym_secure_enclave::SecureEnclave;
@@ -37,7 +39,7 @@ impl VpnClientOnDiskStorage {
     pub fn new(
         base_data_directory: impl AsRef<Path>,
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-        secure_enclave: SecureEnclave,
+        secure_enclave: Arc<SecureEnclave>,
     ) -> Self {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
         let key_store = nym_vpn_store::keys::device::OnDiskKeys::new(device_key_paths);

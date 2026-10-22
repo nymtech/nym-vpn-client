@@ -250,6 +250,16 @@ pub enum VpnServiceCommand {
         DiagnosticRegisterParams,
     ),
     GetTentativeGateways(oneshot::Sender<TentativeGateways>, ()),
+    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    UnlockKeychain(
+        oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
+        String,
+    ),
+    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    LockKeychain(
+        oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
+        (),
+    ),
     GetRecentGateways(
         oneshot::Sender<Result<RecentGateways, ListGatewaysError>>,
         TunnelType,
@@ -420,6 +430,10 @@ pub struct NymVpnService {
 
     #[cfg(target_os = "linux")]
     split_tunnel_pid_manager: nym_split_tunnel::PidManager,
+
+    // Secure enclave shared with storage
+    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    secure_enclave: Arc<nym_secure_enclave::SecureEnclave>,
 }
 
 impl NymVpnService {
@@ -498,15 +512,15 @@ impl NymVpnService {
             .map_err(Error::PathsSetup)?;
 
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-        let secure_enclave = nym_secure_enclave::SecureEnclave::new(
+        let secure_enclave = Arc::new(nym_secure_enclave::SecureEnclave::new(
             #[cfg(target_os = "android")]
             parameters.secure_enclave_provider,
-        );
+        ));
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(
             paths.network_data_dir.clone(),
             #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-            secure_enclave,
+            secure_enclave.clone(),
         );
 
         let state_machine_shutdown_token = CancellationToken::new();
@@ -845,6 +859,8 @@ impl NymVpnService {
             recents_manager,
             #[cfg(target_os = "linux")]
             split_tunnel_pid_manager,
+            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            secure_enclave,
         })
     }
 
@@ -1353,6 +1369,14 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetTentativeGateways(tx, _) => {
                 let _ = tx.send(self.handle_get_tentative_gateways().await);
+            }
+            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            VpnServiceCommand::UnlockKeychain(tx, reason) => {
+                self.handle_unlock_keychain(reason, tx);
+            }
+            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            VpnServiceCommand::LockKeychain(tx, ()) => {
+                let _ = tx.send(self.secure_enclave.lock().await);
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::IsSplitTunnelSupported(tx, ()) => {
@@ -2470,6 +2494,22 @@ impl NymVpnService {
         &mut self,
     ) -> Result<NetworkStatisticsIdentity, StatisticsControllerError> {
         self.stats_control_commands_sender.get_seed().await
+    }
+
+    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    fn handle_unlock_keychain(
+        &self,
+        reason: String,
+        completion_tx: oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
+    ) {
+        let secure_enclave = self.secure_enclave.clone();
+
+        // Spawned because the user may take a while to respond to the authentication prompt.
+        tokio::spawn(async move {
+            completion_tx
+                .send(secure_enclave.unlock(&reason).await)
+                .ok();
+        });
     }
 
     fn handle_run_diagnostic(

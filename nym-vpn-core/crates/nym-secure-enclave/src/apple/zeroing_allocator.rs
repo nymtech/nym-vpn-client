@@ -6,7 +6,7 @@ use std::ffi::c_void;
 use objc2_core_foundation::{CFAllocator, CFAllocatorContext, CFIndex, CFOptionFlags, CFRetained};
 
 /// Creates a CoreFoundation allocator that wipes memory before freeing it.
-#[tracing::instrument(skip_all)]
+// #[tracing::instrument(skip_all)]
 pub fn create_zeroing_allocator() -> Option<CFRetained<CFAllocator>> {
     let mut context = CFAllocatorContext {
         version: 0,
@@ -22,7 +22,7 @@ pub fn create_zeroing_allocator() -> Option<CFRetained<CFAllocator>> {
     unsafe { CFAllocator::new(None, &mut context) }
 }
 
-#[tracing::instrument(skip_all)]
+// #[tracing::instrument(skip_all)]
 unsafe extern "C-unwind" fn zeroing_allocate(
     size: CFIndex,
     _hint: CFOptionFlags,
@@ -32,7 +32,7 @@ unsafe extern "C-unwind" fn zeroing_allocate(
     unsafe { libc::malloc(size as usize) }
 }
 
-#[tracing::instrument(skip_all)]
+// #[tracing::instrument(skip_all)]
 unsafe extern "C-unwind" fn zeroing_reallocate(
     ptr: *mut c_void,
     new_size: CFIndex,
@@ -56,7 +56,7 @@ unsafe extern "C-unwind" fn zeroing_reallocate(
     new_ptr
 }
 
-#[tracing::instrument(skip_all)]
+// #[tracing::instrument(skip_all)]
 unsafe extern "C-unwind" fn zeroing_deallocate(ptr: *mut c_void, _info: *mut c_void) {
     let size = unsafe { libc::malloc_size(ptr) };
     unsafe { libc::memset_s(ptr, size, 0, size) };

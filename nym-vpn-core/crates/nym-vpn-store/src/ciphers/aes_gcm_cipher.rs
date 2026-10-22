@@ -25,7 +25,7 @@ impl Credentials {
     pub fn new(passphrase: Vec<u8>) -> Self {
         Self {
             passphrase,
-            salt: KdfInfo::random_salt().expect("failed to generate salt"),
+            salt: KdfInfo::random_salt(),
         }
     }
 }
