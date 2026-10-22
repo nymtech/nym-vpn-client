@@ -54,7 +54,7 @@ LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build clippy uniffi libwg strip clean
+.PHONY: build clippy uniffi libwg strip clean prune-dep-cdylibs
 
 all: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so build uniffi strip $(LICENSES_FILE)
 
@@ -65,6 +65,22 @@ build: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_
 		echo "Sentry DSN is set!" ; \
 	fi
 	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	$(MAKE) -f Android.mk prune-dep-cdylibs
+
+# cargo ndk copies every `.so` cargo emits, including the hashed cdylibs that
+# dependencies such as boringtun, nym-bridges and nym-bridges-types declare
+# (e.g. libboringtun-90e121147d2f7746.so, a 16-hex-digit cargo metadata hash).
+# The hash embeds the target triple, so each ABI ends up with a differently
+# named file, which F-Droid's "APK has different libs in different ABI" lint
+# rejects. Nothing loads them:
+# libnym_vpn_lib_uniffi.so links those crates statically and its DT_NEEDED is
+# only libwg.so plus system libs. Drop them (and any stale copies from
+# earlier builds) so the ABI directories ship an identical set of libraries.
+prune-dep-cdylibs:
+	for dir in $(ARM64_V8_BUILD_DIR) $(ARMEABI_V7_BUILD_DIR) $(X86_64_BUILD_DIR); do \
+		[ -d "$$dir" ] || continue ; \
+		find "$$dir" -maxdepth 1 -type f -name 'lib*-????????????????.so' -print -delete ; \
+	done
 
 clippy:
 	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
