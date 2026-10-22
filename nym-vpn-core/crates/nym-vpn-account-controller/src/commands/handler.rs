@@ -161,7 +161,17 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
     }
 
     // A deleted account can't unregister its device, so only local data is removed
-    clear_local_account_data(shared_state).await
+    clear_local_account_data(shared_state)
+        .await
+        .or_else(|err| {
+            // Once the stored account is cleared, only leftover files remain: the deletion itself succeeded
+            if shared_state.vpn_api_account.is_none() {
+                tracing::warn!("Account deleted, but local cleanup is incomplete: {err}");
+                Ok(())
+            } else {
+                Err(err)
+            }
+        })
 }
 
 async fn clear_local_account_data<C: ConnectivityMonitor>(
