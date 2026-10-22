@@ -85,6 +85,7 @@ import net.nymtech.nymvpn.ui.screens.server.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.server.components.QuicInfoMessage
 import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.screens.server.components.ServerDetailsTrailingContent
+import net.nymtech.nymvpn.ui.screens.server.components.showStreamDisplay
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -395,6 +396,7 @@ internal fun ServerScreenContent(
 					is ServerRow.Gateway -> GatewayRow(
 						row = row,
 						gatewayType = gatewayType,
+						gatewayLocation = gatewayLocation,
 						isSelected = row.represents(selectedKey),
 						onSelectionChange = onSelect,
 						onGatewayDetails = onNavigateToServerDetails,
@@ -405,6 +407,7 @@ internal fun ServerScreenContent(
 					is ServerRow.SearchResult -> SearchResultRow(
 						row = row,
 						gatewayType = gatewayType,
+						gatewayLocation = gatewayLocation,
 						isSelected = row.represents(selectedKey),
 						onSelect = onSelect,
 						onToggleFavorite = onToggleFavorite,
@@ -501,6 +504,7 @@ private const val HEADER_ITEM_COUNT = 3
 private fun SearchResultRow(
 	row: ServerRow.SearchResult,
 	gatewayType: GatewayType,
+	gatewayLocation: GatewayLocation,
 	isSelected: Boolean,
 	onSelect: (String) -> Unit,
 	onToggleFavorite: (String, Boolean) -> Unit,
@@ -525,6 +529,7 @@ private fun SearchResultRow(
 				},
 				trailing = {
 					ServerDetailsTrailingContent(
+						showStreamDisplay = gateway.showStreamDisplay(gatewayLocation),
 						isFavorite = row.isFavorite,
 						onToggleFavorite = { onToggleFavorite(gateway.identity, row.isFavorite) },
 						onInfoIconClick = { onNavigateToServerDetails(gateway) },
