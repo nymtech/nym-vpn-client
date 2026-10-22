@@ -320,6 +320,7 @@ message VpnServiceConfig {
   bool allow_lan = 4;
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
+  // Superseded by bridge_mode, still set for clients that only read the bool.
   bool enable_bridges = 21;
   bool enable_ad_blocking = 27;
   bool enable_conflict_detection = 33;
@@ -335,6 +336,7 @@ message VpnServiceConfig {
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm_config = 30;
   FrontingModes fronting_mode = 31;
   GatewayIndependence gateway_independence = 32;
+  BridgeModes bridge_mode = 34;
 }
 
 message NetworkStatsConfig {
@@ -1118,6 +1120,12 @@ message NetworkStatsResetSeedRequest {
 message NetworkStatisticsIdentity {
   string seed = 1;
   string id = 2;
+}
+
+enum BridgeModes {
+  BRIDGE_MODES_OFF = 0;
+  BRIDGE_MODES_ON = 1;
+  BRIDGE_MODES_AUTO = 2;
 }
 
 enum FrontingModes {
