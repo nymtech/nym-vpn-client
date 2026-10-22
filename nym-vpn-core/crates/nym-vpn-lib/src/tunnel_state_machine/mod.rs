@@ -372,11 +372,6 @@ impl TunnelSettings {
             .collect::<Vec<_>>()
     }
 
-    pub fn bridges_enabled(&self) -> bool {
-        matches!(self.tunnel_type_used(), TunnelType::Wireguard)
-            && self.wireguard_tunnel_options.bridge_mode != BridgeMode::Off
-    }
-
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
         let mut diff = TunnelSettingsDiff::default();
 

@@ -45,7 +45,7 @@ use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
     BridgeMode, EstablishConnectionData, EstablishConnectionState, GatewayLightInfo,
-    SelectorFallbackState,
+    SelectorFallbackState, TunnelType,
 };
 
 /// Initial delay between retry attempts.
@@ -104,6 +104,12 @@ impl ConnectingState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        let use_bridges = use_bridges
+            && matches!(
+                shared_state.tunnel_settings.tunnel_type_used(),
+                TunnelType::Wireguard
+            );
+
         // Disallow networking until firewall exceptions and resolver overrides are configured
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.disallow_networking().await;
@@ -144,7 +150,6 @@ impl ConnectingState {
         let firewall_policy_params = {
             let mut bridge_endpoints = Vec::new();
             if use_bridges
-                && shared_state.tunnel_settings.bridges_enabled()
                 && let Some(gateways) = &selected_gateways
                 && let Some(params) = &gateways.entry_gateway().bridge_params
             {
@@ -292,14 +297,15 @@ impl ConnectingState {
 
                 tracing::info!("Reconnecting, attempt {next_attempt}");
 
-                let bridge_mode = shared_state
+                let use_bridges = match shared_state
                     .tunnel_settings
                     .wireguard_tunnel_options
-                    .bridge_mode;
-                let use_bridges = if bridge_mode == BridgeMode::Auto {
-                    !self.use_bridges
-                } else {
-                    self.use_bridges
+                    .bridge_mode
+                {
+                    // Alternate on each attempt; fresh gateways start on plain WireGuard.
+                    BridgeMode::Auto => !self.use_bridges && !reset_gateways,
+                    BridgeMode::On => true,
+                    BridgeMode::Off => false,
                 };
 
                 NextTunnelState::NewState(
@@ -471,18 +477,12 @@ impl ConnectingState {
             );
         };
 
-        let mut tunnel_settings = shared_state.tunnel_settings.clone();
-        tunnel_settings.wireguard_tunnel_options.bridge_mode = if self.use_bridges {
-            BridgeMode::On
-        } else {
-            BridgeMode::Off
-        };
-
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
-            tunnel_settings,
+            tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
+            use_bridges: self.use_bridges,
             user_agent: shared_state.user_agent.clone(),
             #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
@@ -527,7 +527,7 @@ impl ConnectingState {
             // Because all bridges are already added to firewall exceptions.
             let wg_entry_endpoint = if let Some(TunnelConnectionData::Wireguard(ref wg)) =
                 connection_data.tunnel
-                && !(self.use_bridges && shared_state.tunnel_settings.bridges_enabled())
+                && !self.use_bridges
             {
                 Some(wg.entry.endpoint)
             } else {
@@ -656,7 +656,6 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
             if self.use_bridges
-                && shared_state.tunnel_settings.bridges_enabled()
                 && let Some(params) = &gateways.entry_gateway().bridge_params
             {
                 self.firewall_policy_params.bridge_endpoints = params.get_addrs()
