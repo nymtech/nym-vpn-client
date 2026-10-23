@@ -42,6 +42,7 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
 	<string name="country_load_failure">Failed to load hop countries</string>
+	<string name="server_list_update_failed">Couldn\'t update the server list. Showing saved servers.</string>
 	<string name="permission_required">Permission required</string>
 	<string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>

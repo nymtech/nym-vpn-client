@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
@@ -171,14 +172,6 @@ fun ServerScreen(
 		}
 	}
 
-	val initialGateways = remember(gatewayType) {
-		when (gatewayType) {
-			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
-			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
-			GatewayType.WG -> appUiState.gateways.wgGateways
-		}
-	}
-
 	val canShowQuicLabel = remember(selectedLocation) {
 		selectedLocation == GatewayLocation.ENTRY &&
 			appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
@@ -198,13 +191,18 @@ fun ServerScreen(
 		}
 	}
 
-	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT, selectedKey)
-		viewModel.updateCountryCache(gatewayType)
+	LaunchedEffect(selectedLocation, gatewayType) {
+		viewModel.load(
+			type = gatewayType,
+			isExitScreen = selectedLocation == GatewayLocation.EXIT,
+			selectedKey = selectedKey,
+			tunnelMode = appUiState.vpnConfig.mode,
+			isQuicEnabled = appUiState.settings.quicEnabled,
+		)
 	}
 
 	LaunchedEffect(refreshing) {
-		if (refreshing) viewModel.onRefresh(gatewayType)
+		if (refreshing) viewModel.onRefresh()
 		refreshing = false
 	}
 
@@ -346,6 +344,13 @@ internal fun ServerScreenContent(
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)
+					if (uiState.error && uiState.hasLocations) {
+						Text(
+							text = stringResource(R.string.server_list_update_failed),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.error,
+						)
+					}
 					ServerFilterPills(
 						selected = uiState.filter,
 						onSelect = onFilterSelect,
@@ -492,6 +497,14 @@ internal fun ServerScreenContent(
 					}
 				}
 			}
+		}
+		if (uiState.isSyncing && !isRefreshing) {
+			LinearProgressIndicator(
+				modifier = Modifier
+					.align(Alignment.TopCenter)
+					.fillMaxWidth()
+					.height(2.dp),
+			)
 		}
 	}
 }
