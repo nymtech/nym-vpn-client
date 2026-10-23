@@ -1,69 +1,67 @@
-NymVPN: a VPN mais privada do mundo. Uma dVPN suíça segura, descentralizada e anônima sem registros. Velocidade com WireGuard, anonimato sem comparação com a Noise Generating Mixnet. Sem e-mail cadastrado. Sem anúncios.
+NymVPN: a VPN mais privada do mundo. Uma dVPN suíça segura, descentralizada e anônima, sem logs. Velocidade com WireGuard, anonimato da Noise Generating Mixnet. Sem cadastro por e-mail. Sem anúncios.
 
-🎁 TESTE GRATUITO DA VPN DE 7 DIAS E PLANOS DE US$2,39/MÊS
+<b>Teste gratuito da VPN de 7 dias e planos a partir de US$ 4/mês</b>
 
 Experimente gratuitamente por 7 dias, sem compromisso. Pague com cripto, cartão ou dinheiro: sua escolha.
 
-🛡️ PRIVACIDADE POR DESIGN
+<b>Privacidade por design</b>
 
-A maioria das VPNs depende de servidores centralizados e pede que você confie em suas promessas de "no-logs". VPNs grátis rastreiam você para vender seus dados. A arquitetura da NymVPN impossibilita registros de tráfego significativos: nenhum servidor vê quem você é E o que você faz. Nem mesmo a Nym consegue conectar sua identidade à sua atividade.
+A maioria das VPNs diz “sem logs” como política: elas podem registrar, só prometem não fazer. VPNs grátis rastreiam você para vender seus dados. A arquitetura da NymVPN impossibilita registros de tráfego significativos: nenhum servidor vê quem você é E o que você faz. Nem mesmo a Nym consegue conectar sua identidade à sua atividade.
 
-⚡ DOIS MODOS DE VPN, UM APP
+<b>Dois modos de VPN, um app</b>
 
-- Modo dVPN: 2-hop dVPN baseado em AmneziaWG (WireGuard). Streaming rápido e navegação em uma rede descentralizada.
-- Modo anônimo: uma Noise Generating Mixnet de 5 saltos, um sucessor mais privado do Tor. Mistura e mascara o seu tráfego, adicionando ruído. A VPN de consumidor mais anônima. Perfeito para cripto, e-mail e comunicações privadas como o Signal.
+• Modo dVPN: dVPN de 2 saltos baseada em AmneziaWG (WireGuard). Streaming e navegação rápidos em uma rede descentralizada.
+• Modo Mixnet: uma Noise Generating Mixnet de 5 saltos, um sucessor mais privado do Tor. Mistura e mascara o seu tráfego, adicionando ruído. A VPN de consumidor mais anônima. Perfeita para cripto, e-mail e comunicações privadas como o Signal.
 
-💰 PAGUE ANONIMAMENTE COM CRIPTO OU DINHEIRO
+<b>Pague anonimamente com cripto ou dinheiro</b>
 
-A NymVPN aceita a maior variedade de criptomoedas do mercado, além de pagamentos em dinheiro. Pague com Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM e muito mais. Credenciais zero-knowledge desvinculam seu pagamento do uso da VPN: pague anonimamente, use anonimamente.
+A NymVPN aceita mais criptomoedas do que qualquer outra VPN, além de pagamentos em dinheiro. Pague com Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM e muito mais. Credenciais zero-knowledge desvinculam seu pagamento do uso da VPN: pague anonimamente, use anonimamente.
 
-💎 POR QUE A NymVPN É DIFERENTE
+<b>Por que a NymVPN é diferente</b>
 
-- Arquitetura zero-knowledge: sua identidade é invisível até mesmo para a Nym
-- Sem registros por arquitetura: a rede não pode manter registros significativos de tráfego
-- Rede de proxy descentralizada: nenhum servidor central para comprometer
-- Jurisdição suíça: fora de 14 Eyes, leis de privacidade fortes
-- Protocolos WireGuard e mixnet
-- Sem inscrições de e-mail: criação de conta anônima
-- Código-fonte totalmente aberto, auditado por pesquisadores de segurança independentes
-- Mais de 70 países: rede global de servidores para streaming e acesso
-- Até 10 dispositivos com uma única conta anônima
+• Arquitetura zero-knowledge: sua identidade é invisível até mesmo para a Nym
+• Sem logs por arquitetura: a rede não pode manter registros significativos de tráfego
+• Rede de proxy descentralizada: nenhum servidor central para comprometer
+• Jurisdição suíça: fora dos 14 Eyes, leis de privacidade rigorosas
+• Protocolos WireGuard e mixnet
+• Sem cadastro por e-mail: criação de conta anônima
+• Código-fonte totalmente aberto, auditado por pesquisadores de segurança independentes
+• Mais de 70 países: rede global de servidores para streaming e acesso
+• Até 10 dispositivos com uma única conta anônima
 
-🔒 RECURSOS DE PRIVACIDADE E SEGURANÇA
+<b>Recursos de privacidade e segurança</b>
 
-- Kill switch: parada automática de tráfego se a VPN cair
-- Resistência à censura: evite o bloqueio de VPN com QUIC, AmneziaWG e outras técnicas
-- Criptografia em várias camadas
-- Seleção do servidor de entrada e saída
-- Split tunneling: rotear apenas os aplicativos escolhidos através da VPN
-- DNS personalizado: use qualquer servidor DNS que você confia
-- Bloqueador de anúncios e rastreadores
+• Kill switch (configurações de VPN sempre ativa): parada automática de tráfego se a VPN cair
+• Resistência à censura: evite o bloqueio de VPN com QUIC, AmneziaWG e outras técnicas
+• Criptografia onion em várias camadas
+• Seleção do servidor de entrada e saída
+• Split tunneling: roteie apenas os aplicativos escolhidos pela VPN
+• DNS personalizado: use qualquer servidor DNS em que você confie
+• Bloqueador de anúncios com tecnologia Brave
 
-🌍 O QUE VOCÊ PODE FAZER COM A NymVPN
+<b>O que você pode fazer com a NymVPN</b>
 
-- Navegue anonimamente sem deixar rastros
-- Criptografe o seu tráfego em redes Wi-Fi públicas de aeroportos, cafés e hotéis
-- Contorne a censura de Internet em regiões restritivas
-- Proteja comunicações sensíveis para jornalismo e ativismo
-- Impeça que as ISPs te vigiem para marketing direcionado
-- Bloqueie sites maliciosos, rastreadores e anúncios
+• Navegue anonimamente sem deixar rastros
+• Criptografe o seu tráfego em redes Wi-Fi públicas de aeroportos, cafés e hotéis
+• Contorne a censura de Internet em regiões restritivas
+• Proteja comunicações sensíveis para jornalismo e ativismo
+• Impeça que provedores de internet criem perfis da sua navegação para anúncios direcionados
+• Bloqueie sites maliciosos, rastreadores e anúncios
 
-🇨🇭 PRIVACIDADE SUÍÇA, POR DESIGN
+<b>Privacidade suíça, por design</b>
 
-A NymVPN opera sob a lei suíça: fora da aliança de vigilância dos 14 Eyes, com direitos de privacidade protegidos constitucionalmente e sem retenção de dados obrigatória. Com nossa arquitetura descentralizada e sem registros, seus dados estão protegidos por lei e design.
+A NymVPN opera sob a lei suíça: fora da aliança de vigilância dos 14 Eyes, com direitos de privacidade protegidos constitucionalmente e sem retenção de dados obrigatória. Com nossa arquitetura descentralizada e sem logs, seus dados estão protegidos por lei e por design.
 
-🎓 CONSTRUÍDO POR CRIPTÓGRAFOS ACADÊMICOS
+<b>Construído por criptógrafos acadêmicos</b>
 
-A NymVPN é construída pela Nym, confiada por jornalistas, ativistas e usuários preocupados com a privacidade em todo o mundo. Nossos protocolos são de código aberto e auditados por pesquisadores de segurança independentes.
+A NymVPN é desenvolvida pela Nym e conta com a confiança de jornalistas, ativistas e usuários preocupados com a privacidade em todo o mundo. Nossos protocolos são de código aberto e auditados por pesquisadores de segurança independentes.
 
-🚫 O QUE NÓS NÃO FAZEMOS
+<b>O que nós não fazemos</b>
 
-- Não pedimos o seu e-mail ou o seu nome
-- Não podemos rastrear quais sites você visita
-- Não podemos vender, compartilhar ou alugar seus dados
+• Não pedimos o seu e-mail ou o seu nome
+• Não podemos rastrear quais sites você visita
+• Não podemos vender, compartilhar ou alugar seus dados
 
-📲 COMECE
+<b>Comece agora</b>
 
-Baixe a NymVPN, crie uma conta anônima sem um e-mail nem mesmo um nome, e comece a navegar privadamente.
-
-Experimente a NymVPN hoje.
+Baixe a NymVPN, crie uma conta anônima sem e-mail nem mesmo um nome e comece a navegar com privacidade.
