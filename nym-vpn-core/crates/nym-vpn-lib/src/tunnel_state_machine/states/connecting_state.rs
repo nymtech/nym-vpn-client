@@ -799,6 +799,15 @@ impl TunnelStateHandler for ConnectingState {
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
+                    TunnelMonitorEvent::AmneziaFailed => {
+                        // The entry's AmneziaWG bridge did not connect. Retry the same gateways in
+                        // base mode on the plain WireGuard port; a second failure blacklists as usual.
+                        tracing::warn!("AmneziaWG bridge failed, retrying the entry gateway in base mode");
+                        if let Some(gateways) = self.selected_gateways.as_mut() {
+                            gateways.clear_entry_amnezia();
+                        }
+                        NextTunnelState::SameState(self)
+                    }
                     TunnelMonitorEvent::MetadataFailed { gateway_id } => {
                         shared_state.gateway_provider.add_blacklisted_gateway(
                             gateway_id,

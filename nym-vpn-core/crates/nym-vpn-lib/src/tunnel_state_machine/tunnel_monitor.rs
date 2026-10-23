@@ -236,6 +236,9 @@ pub enum TunnelMonitorEvent {
         gateway_id: NodeIdentity,
     },
 
+    /// The tunnel through the entry's AmneziaWG bridge never came up.
+    AmneziaFailed,
+
     /// Connection has failed
     ConnectionFailed {
         /// Entry gateway used during the failed attempt.
@@ -643,6 +646,7 @@ impl TunnelMonitor {
         // We have to stop querying for location before starting the tunnels, to prevent incorrect data.
         self.gateway_provider.set_active_geo_location(false).await;
 
+        let mut via_amnezia = false;
         // todo: refactor
         let (
             StartTunnelResult {
@@ -692,6 +696,7 @@ impl TunnelMonitor {
                         tracing::info!("Using AmneziaWG bridge translator at {endpoint}");
                         connection_data.entry.endpoint = endpoint;
                         connection_data.entry_amnezia = Some(amnezia);
+                        via_amnezia = true;
                     }
                     // Return bridge_close_tx back to avoid it being dropped
                     Some(bridge_close_tx)
@@ -857,6 +862,11 @@ impl TunnelMonitor {
                             ConnectionStatusEvent::IntermittentFailure { retry } => {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
+                            ConnectionStatusEvent::Failed if via_amnezia && !has_sent_up_event => {
+                                tracing::info!("AmneziaWG bridge tunnel never came up. Exiting");
+                                self.send_event(TunnelMonitorEvent::AmneziaFailed);
+                                break;
+                            }
                             ConnectionStatusEvent::Failed => {
                                 tracing::info!("Tunnel connection is down. Exiting");
                                 self.send_event(TunnelMonitorEvent::ConnectionFailed {
@@ -870,6 +880,11 @@ impl TunnelMonitor {
                 }
                 reachable = &mut metadata_endpoints_reachable => {
                     let reachable = reachable.unwrap_or((false, false));
+                    if !reachable.0 && via_amnezia {
+                        tracing::info!("Entry metadata endpoint not reachable over the AmneziaWG bridge. Exiting");
+                        self.send_event(TunnelMonitorEvent::AmneziaFailed);
+                        break;
+                    }
                     if !reachable.0 {
                         tracing::info!("Entry metadata endpoint not reachable. Exiting");
                         self.send_event(TunnelMonitorEvent::MetadataFailed {gateway_id: selected_gateways.entry_gateway().identity()});

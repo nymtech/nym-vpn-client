@@ -77,8 +77,8 @@ impl TwoHopConfig {
         };
 
         // Since we collect the exit traffic on tun, the tun's mtu must be lesser than entry mtu.
-        let exit_mtu = EXIT_MTU;
-        let entry_mtu = ENTRY_MTU;
+        let exit_mtu = exit.interface.mtu;
+        let entry_mtu = entry.interface.mtu;
 
         let tun_config = TunConfig {
             addresses: exit.interface.addresses.clone(),

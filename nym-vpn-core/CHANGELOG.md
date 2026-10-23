@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose free trial eligibility (`trialEligible` from the active subscription endpoint) to mobile clients through the account controller (https://github.com/nymtech/nym-vpn-client/pull/6701)
 - Expose the Apple introductory-offer eligibility token (`subscription/apple/intro-offer-eligibility`) to the iOS client through the account controller, for StoreKit's `introductoryOfferEligibility` purchase option (https://github.com/nymtech/nym-vpn-client/pull/6701)
 - Publish the app update policy, with optional per-platform overrides, from discovery so clients can ask for or require an update (https://github.com/nymtech/nym-vpn-client/pull/6450)
+- Retry the same entry gateway in AmneziaWG base mode when its AmneziaWG bridge does not connect, before blacklisting it
+- Prefer the AmneziaWG 3.1 bridge profile when the entry gateway advertises it, falling back to 1.0; desktop entry and exit MTUs shrink by the 3.1 transport padding
+- `AmneziaConfig` carries AmneziaWG 3.1 settings: S3/S4 padding, H3/H4 ranges, header protection key and random trailers
 - Update amneziawg-go to v3.1.20260828 (module `github.com/amnezia-vpn/amneziawg-go/v3`); same wire format with the existing AmneziaWG settings
 - Connect with full AmneziaWG through the bridge translator when bridges are off and the entry gateway advertises it, otherwise keep the current AmneziaWG base mode
 - Add `polkit-1-auth-agent` to deb package dependencies to ensure that components used for graphical password prompts are installed alongside (https://github.com/nymtech/nym-vpn-client/pull/6502)

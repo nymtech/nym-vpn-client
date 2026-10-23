@@ -92,11 +92,11 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        ENTRY_MTU
+        ENTRY_MTU - amnezia_mtu_overhead(self.connection_data.entry_amnezia.as_ref())
     }
 
     pub fn exit_mtu(&self) -> u16 {
-        EXIT_MTU
+        EXIT_MTU - amnezia_mtu_overhead(self.connection_data.entry_amnezia.as_ref())
     }
 
     pub async fn run(
@@ -719,5 +719,36 @@ impl TunnelHandle {
     #[cfg(windows)]
     pub fn exit_wintun_interface(&self) -> Option<&WintunInterface> {
         self.wintun_exit_interface.as_ref()
+    }
+}
+
+/// AmneziaWG 3.1 adds S4 bytes to every entry packet. Desktop MTUs already fill a 1500 byte path,
+/// so both tunnels shrink by S4; mobile MTUs keep 60 bytes of headroom, above the 32 byte S4 cap.
+fn amnezia_mtu_overhead(amnezia: Option<&AmneziaConfig>) -> u16 {
+    if cfg!(any(target_os = "ios", target_os = "android")) {
+        return 0;
+    }
+    amnezia.map_or(0, |config| config.transport_pkt_junk_size)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn amnezia_mtu_overhead_is_transport_padding_on_desktop() {
+        let padded = AmneziaConfig {
+            transport_pkt_junk_size: 16,
+            ..AmneziaConfig::BASE
+        };
+        let expected = if cfg!(any(target_os = "ios", target_os = "android")) {
+            0
+        } else {
+            16
+        };
+
+        assert_eq!(amnezia_mtu_overhead(Some(&padded)), expected);
+        assert_eq!(amnezia_mtu_overhead(Some(&AmneziaConfig::BASE)), 0);
+        assert_eq!(amnezia_mtu_overhead(None), 0);
     }
 }
