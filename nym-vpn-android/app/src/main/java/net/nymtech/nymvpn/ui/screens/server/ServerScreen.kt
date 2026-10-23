@@ -347,7 +347,7 @@ internal fun ServerScreenContent(
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)
-					if (uiState.error && uiState.hasLocations) {
+					if (uiState.error && !uiState.isEmpty) {
 						Text(
 							text = stringResource(R.string.server_list_update_failed),
 							style = MaterialTheme.typography.bodySmall,
@@ -451,7 +451,7 @@ internal fun ServerScreenContent(
 				}
 			}
 
-			if (uiState.query.isNotBlank() && !uiState.hasLocations && !uiState.error) {
+			if (uiState.query.isNotBlank() && !uiState.hasLocations && !(uiState.error && uiState.isEmpty)) {
 				item {
 					Column(
 						horizontalAlignment = Alignment.CenterHorizontally,
