@@ -11,12 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import nym_vpn_lib_types.GatewayType
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
@@ -41,6 +44,9 @@ class GatewayDataStoreCacheService(private val gatewayRepository: GatewayReposit
 	// In-memory on purpose: every app start fetches a fresh list.
 	private val lastUpdated = ConcurrentHashMap<GatewayType, TimeMark>()
 
+	private val generation = AtomicLong()
+	private val commitMutex = Mutex()
+
 	override suspend fun refresh(type: GatewayType, force: Boolean): Result<Unit> {
 		if (!force && isFresh(type)) return Result.success(Unit)
 		// Callers join an ongoing request; it runs in app scope so it outlives the screen that started it.
@@ -51,8 +57,11 @@ class GatewayDataStoreCacheService(private val gatewayRepository: GatewayReposit
 	}
 
 	override suspend fun clear() {
-		lastUpdated.clear()
-		gatewayRepository.clear()
+		commitMutex.withLock {
+			generation.incrementAndGet()
+			lastUpdated.clear()
+			gatewayRepository.clear()
+		}
 	}
 
 	private fun isFresh(type: GatewayType): Boolean = lastUpdated[type]?.let { it.elapsedNow() < FRESH_FOR } == true
@@ -60,17 +69,22 @@ class GatewayDataStoreCacheService(private val gatewayRepository: GatewayReposit
 	private suspend fun fetch(type: GatewayType): Result<Unit> {
 		_syncingTypes.update { it + type }
 		try {
+			val fetchGeneration = generation.get()
 			var result: Result<Unit> = Result.failure(IllegalStateException("Gateway fetch not attempted"))
 			for (attempt in 1..MAX_ATTEMPTS) {
+				if (generation.get() != fetchGeneration) break
 				if (attempt > 1) delay(RETRY_DELAY * (attempt - 1))
 				result = runCatching {
 					val gateways = withTimeout(FETCH_TIMEOUT) { backend.getGateways(type) }
 					check(gateways.isNotEmpty()) { "Empty gateway list" }
-					gatewayRepository.setGateways(type, gateways)
+					commitMutex.withLock {
+						check(generation.get() == fetchGeneration) { "Gateway cache cleared during fetch" }
+						gatewayRepository.setGateways(type, gateways)
+						lastUpdated[type] = TimeSource.Monotonic.markNow()
+					}
 				}
 				currentCoroutineContext().ensureActive()
 				if (result.isSuccess) {
-					lastUpdated[type] = TimeSource.Monotonic.markNow()
 					Timber.tag(TAG).i("GatewayCacheUpdated type=%s attempt=%d", type, attempt)
 					return result
 				}
