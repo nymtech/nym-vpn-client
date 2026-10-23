@@ -37,7 +37,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@headlessui/react": "^2.2.10",
-    "@radix-ui/react-accordion": "^1.2.21",
+    "@radix-ui/react-accordion": "^1.3.1",
     "@radix-ui/react-slider": "^1.5.0",
     "@radix-ui/react-toast": "^1.2.24",
     "@tauri-apps/api": "2.12.1",
