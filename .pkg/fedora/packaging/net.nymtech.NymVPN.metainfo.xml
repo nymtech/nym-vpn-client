@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>net.nymtech.NymVPN</id>
+  <name>NymVPN</name>
+  <summary>Decentralized, mixnet, and zero-knowledge VPN</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <developer id="net.nymtech">
+    <name>Nym Technologies SA</name>
+  </developer>
+  <description>
+    <p>NymVPN is a privacy-focused VPN with a five-hop anonymous mixnet mode and a two-hop WireGuard mode.</p>
+    <p>This Fedora package includes the graphical client, the privileged nym-vpnd daemon, the command-line client, diagnostics, and required helper programs.</p>
+    <ul>
+      <li>Hide your public IP address</li>
+      <li>Choose entry and exit locations</li>
+      <li>Use decentralized mixnet routing</li>
+      <li>Use a faster two-hop WireGuard mode</li>
+    </ul>
+  </description>
+  <url type="homepage">https://nym.com/</url>
+  <url type="bugtracker">https://github.com/nymtech/nym-vpn-client/issues</url>
+  <url type="vcs-browser">https://github.com/nymtech/nym-vpn-client</url>
+  <launchable type="desktop-id">net.nymtech.NymVPN.desktop</launchable>
+  <provides>
+    <binary>nym-vpn-app</binary>
+  </provides>
+  <releases>
+    <release version="2026.11.2" date="2026-07-13">
+      <url type="details">https://github.com/nymtech/nym-vpn-client/tree/nym-vpn-v2026.11.2</url>
+    </release>
+  </releases>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-light.png</image>
+      <caption>NymVPN home screen</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-connected-dark.png</image>
+      <caption>NymVPN connected in dark mode</caption>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+</component>
