@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,8 +22,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,8 +55,10 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.common.deviceauth.DeviceAuthAction
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberDeviceAuth
+import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
@@ -139,9 +144,11 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			DeviceAuthAction.MANAGE_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW, cryptoObject)
 			DeviceAuthAction.RENEW_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 			DeviceAuthAction.LINK_SOCIAL -> uiState.accountLinkUrl?.let { context.openWebUrl(it) }
-			DeviceAuthAction.REVEAL_PASSPHRASE -> Unit
+			DeviceAuthAction.REVEAL_PASSPHRASE, DeviceAuthAction.DELETE_ACCOUNT -> Unit
 		}
 	}
+
+	val deleteAccountGate = rememberScreenLockGate(R.string.screen_lock_setup_body)
 
 	AccountInfoScreenContent(
 		accountId = uiState.accountId,
@@ -179,6 +186,9 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		onLogoutClick = {
 			showLogoutDialog = true
 		},
+		onDeleteAccountClick = {
+			if (deleteAccountGate.isOpen()) navController.navigate(Route.DeleteAccount)
+		},
 		onSelectPlanClick = {
 			if (isAccountNotActive) appViewModel.registerAccountInBackground()
 			navController.goFromRoot(Route.SelectPlan)
@@ -201,6 +211,7 @@ fun AccountInfoScreenContent(
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
 	onLogoutClick: () -> Unit,
+	onDeleteAccountClick: () -> Unit,
 	onSelectPlanClick: () -> Unit,
 	onContactSupportClick: () -> Unit,
 	subscriptionState: SubscriptionUiState?,
@@ -297,6 +308,29 @@ fun AccountInfoScreenContent(
 				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
 				shape = RoundedCornerShape(12.dp),
 			)
+			Spacer(Modifier.height(8.dp))
+			TransparentButton(
+				onClick = onDeleteAccountClick,
+				content = {
+					Row(
+						horizontalArrangement = Arrangement.spacedBy(8.dp),
+						verticalAlignment = Alignment.CenterVertically,
+					) {
+						Text(
+							stringResource(R.string.account_info_delete_button),
+							style = MaterialTheme.typography.bodyLarge,
+							color = LocalNymColors.current.buttonErrorText,
+						)
+						Icon(
+							imageVector = Icons.Outlined.Lock,
+							contentDescription = null,
+							tint = LocalNymColors.current.buttonErrorText,
+							modifier = Modifier.size(18.dp),
+						)
+					}
+				},
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+			)
 		}
 	}
 }
@@ -343,6 +377,7 @@ internal fun PreviewAccountInfoScreen() {
 				onAccountIdClick = {},
 				onDeviceIdClick = {},
 				onLogoutClick = {},
+				onDeleteAccountClick = {},
 				onSelectPlanClick = {},
 				onContactSupportClick = {},
 				subscriptionState = SubscriptionUiState(
