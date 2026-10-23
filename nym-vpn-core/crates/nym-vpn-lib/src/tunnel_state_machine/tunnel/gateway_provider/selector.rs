@@ -10,6 +10,7 @@ use nym_gateway_directory::{
 };
 use nym_registration_client::RegistrationNymNode;
 use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
+use nym_vpn_lib_types::BridgeMode;
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::tunnel_state_machine::{
@@ -443,7 +444,8 @@ pub async fn select_gateways(
                 .await
                 .map_err(GatewayProviderError::LookupGateways)?;
 
-            let entry_gateways = if tunnel_settings.bridges_enabled() {
+            let bridge_mode = tunnel_settings.wireguard_tunnel_options.bridge_mode;
+            let entry_gateways = if bridge_mode != BridgeMode::Off {
                 GatewayList::new(
                     all_gateways.gw_type(),
                     all_gateways

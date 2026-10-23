@@ -30,6 +30,7 @@ import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FrontingMode
@@ -356,7 +357,7 @@ class VpnCoreController(
 				sender.setEntryPoint(legacy.entryPoint)
 				sender.setExitPoint(legacy.exitPoint)
 				sender.setEnableTwoHop(legacy.mode.isTwoHop())
-				sender.setEnableBridges(legacy.enableBridges)
+				sender.setEnableBridges(legacy.bridgeMode == BridgeMode.ON)
 				sender.setEnableCustomDns(legacy.customDnsEnabled)
 				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns)
 				sender.setEnableAdBlocking(legacy.adBlockingEnabled)
@@ -454,7 +455,7 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	exitPoint = exitPoint,
 	mode = if (enableTwoHop) Tunnel.Mode.TWO_HOP_MIXNET else Tunnel.Mode.FIVE_HOP_MIXNET,
 	bypassLan = localPrefs.bypassLan,
-	enableBridges = enableBridges,
+	bridgeMode = bridgeMode,
 	customDnsEnabled = enableCustomDns,
 	customDns = customDns,
 	restrictedApps = localPrefs.restrictedApps,

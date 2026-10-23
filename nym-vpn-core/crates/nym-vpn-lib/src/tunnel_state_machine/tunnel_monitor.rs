@@ -272,6 +272,7 @@ pub struct TunnelParameters {
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
+    pub use_bridges: bool,
     pub user_agent: UserAgent,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
@@ -675,7 +676,7 @@ impl TunnelMonitor {
                     )
                     .await?;
 
-                let bridge_close_tx = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+                let bridge_close_tx = if self.tunnel_parameters.use_bridges {
                     let (entry_bridge_addr, transport_fwd_handle) = self
                         .start_bridges(&selected_gateways, bridge_close_tx)
                         .await?;
@@ -1328,7 +1329,7 @@ impl TunnelMonitor {
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_tun_mtu = connected_tunnel.exit_mtu();
@@ -1401,7 +1402,7 @@ impl TunnelMonitor {
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_mtu = connected_tunnel.exit_mtu();
@@ -1506,7 +1507,7 @@ impl TunnelMonitor {
         connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
@@ -1618,7 +1619,7 @@ impl TunnelMonitor {
         connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_tun_mtu = connected_tunnel.entry_mtu();
@@ -1770,7 +1771,7 @@ impl TunnelMonitor {
     ) -> Result<StartTunnelResult> {
         let mtu = connected_tunnel.exit_mtu();
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         let mut interface_addresses = vec![IpNetwork::V4(Ipv4Network::from(
             conn_data.exit.private_ipv4,
