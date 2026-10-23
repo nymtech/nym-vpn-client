@@ -23,7 +23,7 @@ use crate::{
 /// A gateway list seeded from either a genuine on-disk cache or the builtin fallback snapshot.
 /// The two are kept distinct because only the former carries a meaningful age: the builtin
 /// snapshot is static data bundled at build time, not the result of a real fetch.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) enum SeededGateways {
     /// Loaded from an on-disk cache written by a previous run, `age` ago.
     FromDisk {
@@ -229,6 +229,7 @@ async fn write_to_path(path: &Path, raw: &[NymDirectoryGateway]) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::assert_matches;
     use strum::IntoEnumIterator;
     use tempfile::tempdir;
 
@@ -261,8 +262,9 @@ mod tests {
                 .unwrap()
                 .clone()
                 .expect("expected builtin-seeded gateways");
-            assert!(
-                matches!(seeded, SeededGateways::FromBuiltin(_)),
+            assert_matches!(
+                seeded,
+                SeededGateways::FromBuiltin(_),
                 "expected {gw_type:?} to be seeded from builtin, not an on-disk cache"
             );
             let gateways = seeded.into_gateways();
@@ -349,8 +351,9 @@ mod tests {
             .unwrap()
             .clone()
             .expect("expected the on-disk cache to be used");
-        assert!(
-            matches!(seeded, SeededGateways::FromDisk { .. }),
+        assert_matches!(
+            seeded,
+            SeededGateways::FromDisk { .. },
             "expected the persisted cache to be reported as FromDisk"
         );
         let loaded = seeded.into_gateways();

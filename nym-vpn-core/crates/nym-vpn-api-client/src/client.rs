@@ -1440,9 +1440,12 @@ impl AuthorizationExt for RequestBuilder {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering},
+    use std::{
+        assert_matches,
+        sync::{
+            Arc,
+            atomic::{AtomicUsize, Ordering},
+        },
     };
 
     use nym_http_api_client::reqwest::header::HeaderValue;
@@ -1559,7 +1562,7 @@ mod tests {
             .remote_time_for_retry(&headers, device_time(), device_time())
             .await;
 
-        assert!(matches!(retry, RemoteTimeRetry::Retry(None)));
+        assert_matches!(retry, RemoteTimeRetry::Retry(None));
         assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
     }
 
@@ -1587,7 +1590,7 @@ mod tests {
 
         // Synchronization succeeded, so the request must still be retried, now
         // with local time since the clocks are aligned
-        assert!(matches!(retry, RemoteTimeRetry::Retry(None)));
+        assert_matches!(retry, RemoteTimeRetry::Retry(None));
         assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
 
         // The stale cached skew was replaced: no override and no network request

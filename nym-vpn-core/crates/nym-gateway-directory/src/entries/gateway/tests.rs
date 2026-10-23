@@ -1,5 +1,6 @@
 use super::*;
 use crate::BlacklistReason;
+use std::assert_matches;
 
 #[test]
 fn test_matching_mixnet_score() {
@@ -339,8 +340,9 @@ fn test_pinned_entry_gateway_respects_blacklist() {
     let err = gateway_list
         .find_best_entry_point_gateway(&entry_point, &filters)
         .unwrap_err();
-    assert!(
-        matches!(err, Error::GatewayFilteredOut { .. }),
+    assert_matches!(
+        err,
+        Error::GatewayFilteredOut { .. },
         "expected GatewayFilteredOut, got {err:?}"
     );
 }
@@ -360,8 +362,9 @@ fn test_pinned_exit_gateway_respects_blacklist() {
     let err = gateway_list
         .find_best_exit_point_gateway(&exit_point, &filters)
         .unwrap_err();
-    assert!(
-        matches!(err, Error::GatewayFilteredOut { .. }),
+    assert_matches!(
+        err,
+        Error::GatewayFilteredOut { .. },
         "expected GatewayFilteredOut, got {err:?}"
     );
 }
@@ -376,8 +379,9 @@ fn test_pinned_gateway_not_in_directory_is_no_matching_gateway() {
     let err = gateway_list
         .find_best_entry_point_gateway(&entry_point, &GatewayFilters::default())
         .unwrap_err();
-    assert!(
-        matches!(err, Error::NoMatchingGateway { .. }),
+    assert_matches!(
+        err,
+        Error::NoMatchingGateway { .. },
         "expected NoMatchingGateway, got {err:?}"
     );
 }
