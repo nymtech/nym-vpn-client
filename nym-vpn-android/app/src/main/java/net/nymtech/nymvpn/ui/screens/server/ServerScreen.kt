@@ -31,6 +31,7 @@ import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
@@ -152,8 +153,11 @@ fun ServerScreen(
 		onDismiss = { showExitServerTooltip = false },
 	)
 
-	val gatewayType = remember(selectedLocation) {
-		when (appUiState.vpnConfig.mode) {
+	val tunnelMode = appUiState.vpnConfig.mode
+	val isQuicEnabled = appUiState.settings.quicEnabled
+
+	val gatewayType = remember(selectedLocation, tunnelMode) {
+		when (tunnelMode) {
 			Tunnel.Mode.FIVE_HOP_MIXNET -> {
 				when (selectedLocation) {
 					GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
@@ -171,18 +175,10 @@ fun ServerScreen(
 		}
 	}
 
-	val initialGateways = remember(gatewayType) {
-		when (gatewayType) {
-			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
-			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
-			GatewayType.WG -> appUiState.gateways.wgGateways
-		}
-	}
-
-	val canShowQuicLabel = remember(selectedLocation) {
+	val canShowQuicLabel = remember(selectedLocation, tunnelMode, isQuicEnabled) {
 		selectedLocation == GatewayLocation.ENTRY &&
-			appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
-			appUiState.settings.quicEnabled
+			tunnelMode == Tunnel.Mode.TWO_HOP_MIXNET &&
+			isQuicEnabled
 	}
 
 	val isRandomSelected = remember(selectedLocation, appUiState.vpnConfig.entryPoint, appUiState.vpnConfig.exitPoint) {
@@ -198,13 +194,18 @@ fun ServerScreen(
 		}
 	}
 
-	LaunchedEffect(selectedLocation, gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways, selectedLocation == GatewayLocation.EXIT, selectedKey)
-		viewModel.updateCountryCache(gatewayType)
+	LaunchedEffect(selectedLocation, gatewayType, tunnelMode, isQuicEnabled) {
+		viewModel.load(
+			type = gatewayType,
+			isExitScreen = selectedLocation == GatewayLocation.EXIT,
+			selectedKey = selectedKey,
+			tunnelMode = tunnelMode,
+			isQuicEnabled = isQuicEnabled,
+		)
 	}
 
 	LaunchedEffect(refreshing) {
-		if (refreshing) viewModel.onRefresh(gatewayType)
+		if (refreshing) viewModel.onRefresh()
 		refreshing = false
 	}
 
@@ -346,6 +347,13 @@ internal fun ServerScreenContent(
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)
+					if (uiState.error && !uiState.isEmpty) {
+						Text(
+							text = stringResource(R.string.server_list_update_failed),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.error,
+						)
+					}
 					ServerFilterPills(
 						selected = uiState.filter,
 						onSelect = onFilterSelect,
@@ -443,7 +451,7 @@ internal fun ServerScreenContent(
 				}
 			}
 
-			if (uiState.query.isNotBlank() && !uiState.hasLocations && !uiState.error) {
+			if (uiState.query.isNotBlank() && !uiState.hasLocations && !(uiState.error && uiState.isEmpty)) {
 				item {
 					Column(
 						horizontalAlignment = Alignment.CenterHorizontally,
@@ -492,6 +500,14 @@ internal fun ServerScreenContent(
 					}
 				}
 			}
+		}
+		if (uiState.isSyncing && !isRefreshing) {
+			LinearProgressIndicator(
+				modifier = Modifier
+					.align(Alignment.TopCenter)
+					.fillMaxWidth()
+					.height(2.dp),
+			)
 		}
 	}
 }
