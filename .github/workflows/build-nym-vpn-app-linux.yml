@@ -45,11 +45,13 @@ jobs:
             deb_arch: "amd64"
             app_image_arch: "amd64"
             bin_arch: "x64"
-          - os: "ubuntu-22.04-arm"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "arc-ubuntu-22.04"
             arch: "aarch64"
             deb_arch: "arm64"
             app_image_arch: "aarch64"
             bin_arch: "arm64"
+            target: "aarch64-unknown-linux-gnu"
     runs-on: ${{ matrix.os }}
     env:
       UPLOAD_DIR_LINUX: app_artifacts_linux_${{ matrix.arch }}
@@ -64,16 +66,29 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
-            libwebkit2gtk-4.1-dev build-essential curl wget libxdo-dev libssl-dev jq \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make unzip librsvg2-dev file \
-            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev desktop-file-utils xdg-utils
+          if [ "${{ matrix.arch }}" = "aarch64" ]; then
+            sudo dpkg --add-architecture arm64
+            sudo apt-get update
+            sudo apt-get install -y \
+              gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+              build-essential curl wget jq squashfs-tools make unzip file desktop-file-utils xdg-utils \
+              libdbus-1-dev:arm64 libmnl-dev:arm64 libnftnl-dev:arm64 \
+              libwebkit2gtk-4.1-dev:arm64 libxdo-dev:arm64 libssl-dev:arm64 \
+              libgtk-3-dev:arm64 libayatana-appindicator3-dev:arm64 librsvg2-dev:arm64 \
+              libsoup-3.0-dev:arm64 libjavascriptcoregtk-4.1-dev:arm64
+          else
+            sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+              libwebkit2gtk-4.1-dev build-essential curl wget libxdo-dev libssl-dev jq \
+              libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make unzip librsvg2-dev file \
+              libsoup-3.0-dev libjavascriptcoregtk-4.1-dev desktop-file-utils xdg-utils
+          fi
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
+          targets: ${{ matrix.target }}
 
       - name: Install cargo-license
         uses: baptiste0928/cargo-install@v3
@@ -136,32 +151,37 @@ jobs:
           path: nym-vpn-app/src/i18n
 
       - name: Build tauri app
-        working-directory: nym-vpn-app/src-tauri
+        working-directory: nym-vpn-app
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: false
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+          CXX_aarch64_unknown_linux_gnu: aarch64-linux-gnu-g++
+          PKG_CONFIG_PATH: ${{ matrix.arch == 'aarch64' && '/usr/lib/aarch64-linux-gnu/pkgconfig' || '' }}
+          PKG_CONFIG_ALLOW_CROSS: ${{ matrix.arch == 'aarch64' && '1' || '' }}
         run: |
-          npm run tauri build -- --bundles deb,appimage
-          ls -la target/release/ || true
-          ls -la target/release/bundle/* || true
+          npm run tauri build -- --target ${{ matrix.target }} --bundles deb,appimage
+          ls -la src-tauri/target/${{ matrix.target }}/release/ || true
+          ls -la src-tauri/target/${{ matrix.target }}/release/bundle/* || true
 
       - name: Repack deb package
         id: repack-deb
         env:
-          SRC_DEB: nym-vpn-app/src-tauri/target/release/bundle/deb/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.deb_arch }}.deb
+          SRC_DEB: nym-vpn-app/src-tauri/target/${{ matrix.target }}/release/bundle/deb/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.deb_arch }}.deb
           PKGVER: ${{ steps.package-version.outputs.metadata }}
         run: |
           ./.pkg/repack_deb.sh
 
       - name: Move things around to prepare for upload
         env:
-          SRC_APPIMAGE: nym-vpn-app/src-tauri/target/release/bundle/appimage/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.app_image_arch }}.AppImage
+          SRC_APPIMAGE: nym-vpn-app/src-tauri/target/${{ matrix.target }}/release/bundle/appimage/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.app_image_arch }}.AppImage
           DST_APPIMAGE: NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.app_image_arch }}.AppImage
           SRC_DEB: ${{ steps.repack-deb.outputs.package }}
-          SRC_BIN: nym-vpn-app/src-tauri/target/release/nym-vpn-app
+          SRC_BIN: nym-vpn-app/src-tauri/target/${{ matrix.target }}/release/nym-vpn-app
           DST_BIN: nym-vpn_${{ steps.package-version.outputs.metadata }}_linux_${{ matrix.bin_arch }}
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
