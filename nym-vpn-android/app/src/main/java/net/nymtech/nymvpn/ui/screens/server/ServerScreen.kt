@@ -153,8 +153,11 @@ fun ServerScreen(
 		onDismiss = { showExitServerTooltip = false },
 	)
 
-	val gatewayType = remember(selectedLocation) {
-		when (appUiState.vpnConfig.mode) {
+	val tunnelMode = appUiState.vpnConfig.mode
+	val isQuicEnabled = appUiState.settings.quicEnabled
+
+	val gatewayType = remember(selectedLocation, tunnelMode) {
+		when (tunnelMode) {
 			Tunnel.Mode.FIVE_HOP_MIXNET -> {
 				when (selectedLocation) {
 					GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
@@ -172,10 +175,10 @@ fun ServerScreen(
 		}
 	}
 
-	val canShowQuicLabel = remember(selectedLocation) {
+	val canShowQuicLabel = remember(selectedLocation, tunnelMode, isQuicEnabled) {
 		selectedLocation == GatewayLocation.ENTRY &&
-			appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
-			appUiState.settings.quicEnabled
+			tunnelMode == Tunnel.Mode.TWO_HOP_MIXNET &&
+			isQuicEnabled
 	}
 
 	val isRandomSelected = remember(selectedLocation, appUiState.vpnConfig.entryPoint, appUiState.vpnConfig.exitPoint) {
@@ -191,13 +194,13 @@ fun ServerScreen(
 		}
 	}
 
-	LaunchedEffect(selectedLocation, gatewayType) {
+	LaunchedEffect(selectedLocation, gatewayType, tunnelMode, isQuicEnabled) {
 		viewModel.load(
 			type = gatewayType,
 			isExitScreen = selectedLocation == GatewayLocation.EXIT,
 			selectedKey = selectedKey,
-			tunnelMode = appUiState.vpnConfig.mode,
-			isQuicEnabled = appUiState.settings.quicEnabled,
+			tunnelMode = tunnelMode,
+			isQuicEnabled = isQuicEnabled,
 		)
 	}
 
