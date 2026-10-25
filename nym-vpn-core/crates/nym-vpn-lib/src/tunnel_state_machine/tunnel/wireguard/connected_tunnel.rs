@@ -455,11 +455,17 @@ impl ConnectedTunnel {
                 path_monitor.start();
 
                 let mut old_resolved_peer = entry_peer_update.clone();
+                let mut old_path = None;
 
                 loop {
                     tokio::select! {
                         Some(new_path) = default_path_rx.next() => {
                             tracing::debug!("New default path: {}", new_path.description());
+
+                            // iOS republishes the path when throughput or link quality changes, which needs no rebind.
+                            let interface = new_path.available_interfaces().first().and_then(|i| i.name().ok());
+                            let path = (new_path.status(), interface);
+                            let mut rebind = old_path.replace(path.clone()) != Some(path);
 
                             // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
                             // For instance when device connects to IPv4-only server from IPv6-only network,
@@ -470,6 +476,7 @@ impl ConnectedTunnel {
                                     Ok(resolved_peer) => {
                                         // check if peer has changed
                                         if resolved_peer != old_resolved_peer {
+                                            rebind = true;
                                             old_resolved_peer = resolved_peer.clone();
                                             // Update wireguard-go configuration with re-resolved peer endpoints.
                                             if let Err(e) = entry_tunnel.update_peers(&[resolved_peer]) {
@@ -486,8 +493,10 @@ impl ConnectedTunnel {
                             }
 
                             // Rebind wireguard-go on tun device.
-                            exit_tunnel.bump_sockets();
-                            entry_tunnel.bump_sockets();
+                            if rebind {
+                                exit_tunnel.bump_sockets();
+                                entry_tunnel.bump_sockets();
+                            }
                         }
                         _ = child_shutdown_token.cancelled() => {
                             tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
