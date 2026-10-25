@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Poll gateway bandwidth every 30 seconds instead of every 5 seconds while the reported remaining bandwidth does not change, to reduce idle battery use
+
 ## [2026.14.0] - 2026-10-21
 
 ### Added

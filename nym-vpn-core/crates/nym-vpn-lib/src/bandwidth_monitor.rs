@@ -291,12 +291,16 @@ impl DepletionRate {
             new_depletion_rate,
             current_period.as_secs()
         );
+        let unchanged = self.available_bandwidth == remaining_bandwidth;
         self.available_bandwidth = remaining_bandwidth;
-        // if nothing was consumed since last time, it's possible we had a recent topup already,
-        // so take the safer approach of waiting minimal interval
         if new_depletion_rate != 0 {
             self.current_depletion_rate = new_depletion_rate;
+        } else if unchanged {
+            // idle, or a gateway counter that does not move: do not poll at the minimal interval forever
+            return Ok(Some(UPPER_BOUND_CHECK_DURATION));
         } else {
+            // the value went up, so we had a recent topup (or this is the first check):
+            // wait the minimal interval to measure the real depletion rate
             return Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK));
         }
         let Some(estimated_depletion_secs) =
@@ -1142,6 +1146,29 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+    }
+
+    #[test]
+    fn depletion_rate_idle_backs_off() {
+        let mut depletion_rate = DepletionRate::default();
+        let period = DEFAULT_BANDWIDTH_CHECK;
+        let check = |rate: &mut DepletionRate, bw| {
+            rate.update_dynamic_check_interval(period, bw)
+                .unwrap()
+                .unwrap()
+        };
+
+        // first check and a topup both measure again soon
+        assert_eq!(check(&mut depletion_rate, BW_1GB), DEFAULT_BANDWIDTH_CHECK);
+        assert_eq!(
+            check(&mut depletion_rate, 2 * BW_1GB),
+            DEFAULT_BANDWIDTH_CHECK
+        );
+        // a counter that does not move is idle
+        assert_eq!(
+            check(&mut depletion_rate, 2 * BW_1GB),
+            UPPER_BOUND_CHECK_DURATION
+        );
     }
 
     #[test]
