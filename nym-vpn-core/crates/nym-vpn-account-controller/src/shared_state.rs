@@ -259,7 +259,8 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
     pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<(), AccountCommandError> {
         match &mut self.device_state {
             DeviceState::LoggedIn {
-                account_summary, ..
+                summary: account_summary,
+                ..
             } => {
                 if let Some(account_summary) = account_summary {
                     account_summary.stale = true;
@@ -289,7 +290,8 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
     ) -> Result<(), AccountCommandError> {
         match &mut self.device_state {
             DeviceState::LoggedIn {
-                account_summary, ..
+                summary: account_summary,
+                ..
             } => {
                 account_summary.replace(new_account_summary);
 

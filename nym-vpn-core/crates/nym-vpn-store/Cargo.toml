@@ -13,6 +13,8 @@ workspace = true
 [dependencies]
 async-trait.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
+bs58.workspace = true
+base64-url.workspace = true
 futures.workspace = true
 libsqlite3-sys = { workspace = true, features = [
     "bundled-sqlcipher-vendored-openssl",
@@ -39,6 +41,7 @@ tracing.workspace = true
 zeroize.workspace = true
 
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
+nym-validator-client.workspace = true
 
 [target.'cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))'.dependencies]
 nym-secure-enclave.workspace = true

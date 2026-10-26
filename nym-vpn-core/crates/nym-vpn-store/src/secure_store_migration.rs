@@ -13,12 +13,15 @@ use tokio::fs::File;
 use tokio_util::io::SyncIoBridge;
 
 use crate::{
-    device_state::{DeviceState, DeviceStateStorage},
+    device_state::{DeviceAccount, DeviceAccountError, DeviceState, DeviceStateStorage},
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum SecureStoreMigrationError {
+    #[error("failed to instantiate device account")]
+    CreateDeviceAccount(#[from] DeviceAccountError),
+
     #[error("failed to parse legacy account")]
     ParseLegacyAccount(#[source] serde_json::Error),
 
@@ -156,9 +159,10 @@ where
         let LegacyAccount { mnemonic, mode } =
             self.read_legacy_account(plain_mnemonic_file).await?;
 
+        let account = DeviceAccount::new(mnemonic.clone(), mode)?;
         let device_state = DeviceState::LoggedIn {
-            mode,
-            account_summary,
+            account,
+            summary: account_summary,
         };
 
         self.mnemonic_storage
@@ -296,8 +300,13 @@ mod tests {
         assert_matches!(
             device_state_store.load_device_state().await,
             Ok(DeviceState::LoggedIn {
-                mode: StoredAccountMode::Decentralised,
-                account_summary: None
+                account: DeviceAccount {
+                    id: todo!("tbd"),
+                    pub_key: todo!("tbd"),
+                    mode: StoredAccountMode::Decentralised,
+                    signature_base64: todo!("tbd")
+                },
+                summary: None
             })
         )
     }
@@ -357,8 +366,8 @@ mod tests {
         assert_matches!(
             device_state_store.load_device_state().await,
             Ok(DeviceState::LoggedIn {
-                mode: StoredAccountMode::Api,
-                account_summary: Some(summary),
+                account: DeviceAccount { id: todo!(), pub_key: todo!(), mode: StoredAccountMode::Api, signature_base64: todo!() },
+                summary: Some(summary),
             }) if summary.account_addr == "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
                 && summary.traffic_used_gb == 12
                 && summary.remaining_devices == 4
