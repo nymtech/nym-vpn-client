@@ -568,7 +568,7 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
 }
 
 fn consumption_for(
-    stats: &Vec<InterfaceStats>,
+    stats: &[InterfaceStats],
     target_interface_name: &Option<String>,
 ) -> Option<u64> {
     target_interface_name
@@ -921,13 +921,11 @@ impl BandwidthMonitor {
             }
         }
 
-        if needs_top_up {
-            if let Err(e) = self.top_up_bandwidth(entry).await {
-                trace_err_chain!(e, "error topping up with more bandwidth");
-                // TODO: try to return this error in the JoinHandle instead
-                // For now let's keep the old behavior of stopping
-                self.shutdown_token.cancel();
-            }
+        if needs_top_up && let Err(e) = self.top_up_bandwidth(entry).await {
+            trace_err_chain!(e, "error topping up with more bandwidth");
+            // TODO: try to return this error in the JoinHandle instead
+            // For now let's keep the old behavior of stopping
+            self.shutdown_token.cancel();
         }
     }
 
