@@ -10,6 +10,7 @@ use nym_validator_client::{
 };
 use nym_vpn_lib_types::{StoredAccountMode, VpnAccountSummary};
 use serde::{Deserialize, Serialize};
+use zeroize::{ZeroizeOnDrop, Zeroizing};
 
 pub mod ephemeral;
 pub mod on_disk;
@@ -72,6 +73,24 @@ impl StoredAccountIdentity {
     }
 }
 
+pub const ECASH_SEED_LEN: usize = 32;
+// pub type EcashSeed = [u8; ECASH_SEED_LEN];
+
+#[derive(Clone, ZeroizeOnDrop, Serialize, Deserialize, Eq, PartialEq)]
+pub struct EcashSeed([u8; ECASH_SEED_LEN]);
+
+impl AsRef<[u8; ECASH_SEED_LEN]> for EcashSeed {
+    fn as_ref(&self) -> &[u8; ECASH_SEED_LEN] {
+        &self.0
+    }
+}
+
+impl std::fmt::Debug for EcashSeed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EcashSeed").finish_non_exhaustive()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum StoredDeviceState {
     /// Device is logged out
@@ -81,6 +100,7 @@ pub enum StoredDeviceState {
     /// Device is logged in
     LoggedIn {
         account_identity: StoredAccountIdentity,
+        ecash_seed: EcashSeed,
         summary: Option<VpnAccountSummary>,
     },
 }
