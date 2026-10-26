@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, time::Duration};
+use std::{cmp::max, net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
 
@@ -484,7 +484,8 @@ struct SystemBandwidthMonitor<N = Networks> {
     exit_interface_name: Option<String>,
     entry_aprox_bandwidth_left: u64,
     exit_aprox_bandwidth_left: u64,
-    threshold: u64,
+    target_bandwidth: u64,
+    min_threshold: u64,
 }
 
 impl SystemBandwidthMonitor {
@@ -493,7 +494,8 @@ impl SystemBandwidthMonitor {
         exit_interface_name: Option<String>,
         entry_aprox_bandwidth_left: u64,
         exit_aprox_bandwidth_left: u64,
-        threshold: u64,
+        target_bandwidth: u64,
+        min_threshold: u64,
     ) -> Self {
         Self {
             networks: Networks::new_with_refreshed_list(),
@@ -501,7 +503,8 @@ impl SystemBandwidthMonitor {
             exit_interface_name,
             entry_aprox_bandwidth_left,
             exit_aprox_bandwidth_left,
-            threshold,
+            target_bandwidth,
+            min_threshold,
         }
     }
 
@@ -523,12 +526,12 @@ impl SystemBandwidthMonitor {
 }
 
 impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
-    pub fn needs_entry_top_up(&self) -> bool {
-        self.entry_aprox_bandwidth_left <= self.threshold
+    pub fn entry_meets_target(&self) -> bool {
+        self.entry_aprox_bandwidth_left <= self.target_bandwidth
     }
 
-    pub fn needs_exit_top_up(&self) -> bool {
-        self.exit_aprox_bandwidth_left <= self.threshold
+    pub fn exit_meets_target(&self) -> bool {
+        self.exit_aprox_bandwidth_left <= self.target_bandwidth
     }
 
     pub async fn force_remote_bandwidth_query(&mut self) -> bool {
@@ -558,7 +561,9 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
             .exit_aprox_bandwidth_left
             .saturating_sub(exit_interface_usage);
 
-        self.needs_entry_top_up() || self.needs_exit_top_up()
+        // force query only if really necessary i.e. bellow ticket size
+        self.entry_aprox_bandwidth_left < self.min_threshold
+            || self.exit_aprox_bandwidth_left < self.min_threshold
     }
 }
 
@@ -843,11 +848,11 @@ impl BandwidthMonitor {
         let needs_top_up = if entry {
             self.entry_previous_error_query = false;
             system_bandwidth_monitor.update_entry_aproximation(query_result.bandwidth_bytes);
-            system_bandwidth_monitor.needs_entry_top_up()
+            system_bandwidth_monitor.entry_meets_target()
         } else {
             self.exit_previous_error_query = false;
             system_bandwidth_monitor.update_exit_aproximation(query_result.bandwidth_bytes);
-            system_bandwidth_monitor.needs_exit_top_up()
+            system_bandwidth_monitor.exit_meets_target()
         };
 
         let got_um_data = self.got_upgrade_mode_attestation().await;
@@ -981,12 +986,15 @@ impl BandwidthMonitor {
             TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
             TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
             MINIMUM_REMAINING_BANDWIDTH,
+            max(
+                TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
+                TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
+            ),
         );
         let mut system_bandwidth_check_interval =
             IntervalStream::new(tokio::time::interval(SYSTEM_BANDWIDTH_CHECK_INTERVAL));
+        let mut system_triggered_check = false;
 
-        // Skip the first, immediate tick
-        self.timeout_check_interval.next().await;
         while !self.shutdown_token.is_cancelled() {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
@@ -996,10 +1004,15 @@ impl BandwidthMonitor {
                 // local, cheap counting of consumed bytes
                 _ = system_bandwidth_check_interval.next() => {
                     if system_bandwidth_monitor.force_remote_bandwidth_query().await {
-                        tracing::debug!("Remaining bandwidth aproximation is bellow the configured threshold, forcing bandwidth checks");
-                        // we set the check interval, but we don't do the first tick, which is immediate,
-                        // so we implicitely trigger the check branch bellow
-                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(REMOTE_BANDWIDTH_CHECK_INTERVAL));
+                        // we only force a bandwidth check once. If for some reason, it doesn't work, we rely on the normal timer to retry
+                        if !system_triggered_check {
+                            tracing::debug!("Remaining bandwidth aproximation is bellow the configured threshold, forcing bandwidth checks");
+                            system_triggered_check = true;
+                            self.check_bandwidth(true, &mut system_bandwidth_monitor).await;
+                            self.check_bandwidth(false, &mut system_bandwidth_monitor).await;
+                        }
+                    } else {
+                        system_triggered_check = false;
                     }
                 }
                 // network refresh, more expensive, especially for mobile battery consumption
@@ -1062,16 +1075,20 @@ mod tests {
         fn with_networks(
             entry_interface_name: Option<String>,
             exit_interface_name: Option<String>,
-            threshold: u64,
+            target_bandwidth: u64,
             networks: N,
         ) -> Self {
             Self {
                 networks,
                 entry_interface_name,
                 exit_interface_name,
-                threshold,
+                target_bandwidth,
                 entry_aprox_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
                 exit_aprox_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
+                min_threshold: max(
+                    TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
+                    TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
+                ),
             }
         }
     }
