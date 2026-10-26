@@ -9,7 +9,7 @@ use tokio::{
 };
 use zeroize::Zeroize;
 
-use super::ciphers::{StoreCipher, StoreCipherError};
+use super::store_ciphers::{StoreCipher, StoreCipherError};
 
 /// Marker at the start of every encrypted item. Plaintext JSON, PEM, base58 and bincode never
 /// begin with these bytes, so the loader can tell the two formats apart.
@@ -228,11 +228,11 @@ mod tests {
 
     #[async_trait::async_trait]
     impl StoreCipher for XorCipher {
-        async fn encrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn encrypt(&self, data: &[u8]) -> crate::store_ciphers::Result<Vec<u8>> {
             Ok(data.iter().map(|byte| byte ^ 0x5a).collect())
         }
 
-        async fn decrypt(&self, data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn decrypt(&self, data: &[u8]) -> crate::store_ciphers::Result<Vec<u8>> {
             self.encrypt(data).await
         }
     }
@@ -241,11 +241,11 @@ mod tests {
 
     #[async_trait::async_trait]
     impl StoreCipher for FailingCipher {
-        async fn encrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn encrypt(&self, _data: &[u8]) -> crate::store_ciphers::Result<Vec<u8>> {
             Err(StoreCipherError::AuthenticationFailed)
         }
 
-        async fn decrypt(&self, _data: &[u8]) -> crate::ciphers::Result<Vec<u8>> {
+        async fn decrypt(&self, _data: &[u8]) -> crate::store_ciphers::Result<Vec<u8>> {
             Err(StoreCipherError::AuthenticationFailed)
         }
     }

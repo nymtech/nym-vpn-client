@@ -4,12 +4,13 @@
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::VpnAccountMode,
+    types::{VpnAccount, VpnAccountMode},
 };
 use nym_vpn_lib_types::{
     AccountCommandError, AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode,
     VpnAccountSummary,
 };
+use nym_vpn_store::device_state::DeviceState;
 
 use crate::{
     SharedAccountState,
@@ -27,7 +28,7 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
             result_tx.send(handle_get_stored_account(shared_state).await);
         }
         CommonCommand::GetAccountIdentity(result_tx) => {
-            result_tx.send(handle_get_account_identity(shared_state));
+            result_tx.send(handle_get_account_identity(shared_state).await);
         }
         CommonCommand::GetCanonicalAccountIdentity(result_tx) => {
             result_tx.send(handle_get_canonical_account_identity(shared_state).await);
@@ -88,13 +89,31 @@ pub(crate) async fn handle_get_stored_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::storage) // Storage error
 }
 
-pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
+pub(crate) async fn handle_get_account_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<String>, AccountCommandError> {
-    Ok(shared_state
-        .vpn_api_account
-        .as_ref()
-        .map(|account| account.id()))
+    let (tx, rx) = ReturnSender::new();
+
+    shared_state
+        .storage_op_sender
+        .send(AccountStorageOp::GetStoredAccount(tx))
+        .map_err(AccountCommandError::internal)?;
+
+    let account = rx
+        .await
+        .map_err(AccountCommandError::internal)? // Channel error
+        .map_err(AccountCommandError::storage)?; // Storage error
+
+    match account {
+        Some(account) => {
+            // FIXME
+            let vpn_account =
+                VpnAccount::new(account.mnemonic, VpnAccountMode::from(account.mode)).unwrap();
+
+            Ok(Some(vpn_account.id()))
+        }
+        None => Ok(None),
+    }
 }
 
 pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor>(
@@ -120,10 +139,10 @@ pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor
 pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<StoredAccountMode>, AccountCommandError> {
-    Ok(shared_state
-        .vpn_api_account
-        .as_ref()
-        .map(|account| account.mode().into()))
+    match shared_state.device_state {
+        DeviceState::LoggedIn { mode, .. } => Ok(Some(mode)),
+        DeviceState::LoggedOut => Ok(None),
+    }
 }
 
 async fn handle_get_usage<C: ConnectivityMonitor>(
@@ -198,7 +217,12 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
 pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
-    Ok(shared_state.vpn_account_summary.clone())
+    Ok(match &shared_state.device_state {
+        DeviceState::LoggedIn {
+            account_summary, ..
+        } => account_summary.clone(),
+        DeviceState::LoggedOut => None,
+    })
 }
 
 async fn handle_is_trial_eligible<C: ConnectivityMonitor>(

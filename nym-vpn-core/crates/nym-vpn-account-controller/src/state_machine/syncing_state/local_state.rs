@@ -14,14 +14,16 @@ use crate::{
     },
 };
 use futures::{FutureExt, future::Fuse};
+use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
+    AccountCommandError, AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary,
 };
+use nym_vpn_store::device_state::DeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -68,12 +70,16 @@ impl SyncingLocalState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
-            return LoggedOutState::enter(shared_state).await;
-        };
-        if vpn_api_account.mode().is_decentralised() {
-            return DecentralisedState::enter();
+        match &shared_state.device_state {
+            DeviceState::LoggedIn { mode, .. } if *mode == StoredAccountMode::Decentralised => {
+                return DecentralisedState::enter();
+            }
+            DeviceState::LoggedOut => {
+                return LoggedOutState::enter(shared_state).await;
+            }
+            DeviceState::LoggedIn { .. } => {}
         }
+
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
                 shared_state,
@@ -86,7 +92,7 @@ impl SyncingLocalState {
         };
 
         // Nothing to check locally without a cached summary: go fetch one from the network.
-        let Some(summary) = shared_state.vpn_account_summary.clone() else {
+        let Some(summary) = shared_state.device_state.account_summary().clone() else {
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await;
         };
 
@@ -199,13 +205,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         // (memory + disk) so a restart doesn't try to register again, without
                         // needing a full re-fetch.
                         if device_registration
-                            && let Some(mut summary) = shared_state.vpn_account_summary.clone()
+                            && let Some(mut summary) = shared_state.device_state.account_summary().clone()
                             && !summary.is_device_active
                         {
                             summary.is_device_active = true;
                             // Guarded above: we only register when a slot is free, so this is > 0.
                             summary.remaining_devices = summary.remaining_devices.saturating_sub(1);
-                            shared_state.store_summary(summary);
+                            if let Err(err) = shared_state.store_summary(summary).await {
+                                trace_err_chain!(err, "failed to store account summary");
+                            }
                         }
                         NextAccountControllerState::NewState(ReadyState::enter(shared_state).await)
                     }
