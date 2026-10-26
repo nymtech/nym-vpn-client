@@ -8,6 +8,7 @@ use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{
     DEFAULT_TICKETS_TO_SPEND, requests::BandwidthControllerRequestSender,
 };
+use nym_network_defaults::TicketTypeRepr;
 use nym_registration_common::WireguardConfiguration;
 use nym_vpn_api_client::SkewManager;
 use sysinfo::Networks;
@@ -24,19 +25,10 @@ use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClien
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
 
-const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
-const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
-const UPPER_BOUND_CHECK_DURATION: Duration =
-    Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
-const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
-// If we consider a maximum supported connection speed of 1 Gbps, then we can consume 125 MB/s, which is 125 * 5 = 625 MB in 5 seconds, which is the minimum time between checks.
-// So we set the minimum remaining bandwidth to 1000 MB > 625 MB, roughly the size of two tickets
-const MINIMUM_RAMAINING_BANDWIDTH: u64 = 1000 * 1024 * 1024; // 1000 MB, the same as two wireguard ticket size
-
-// 8 MB/s, in the worse case scenario with 30 seconds until the next check => 240 MB consumed, under the 1000 MB bandwidth minimum we have assured with the gateway
-// We consider anything above this threshold to potentially consume bandwidth too fast, so we do a check immediately
-const SYSTEM_BANDWIDTH_THRESHOLD: u64 = 8 * 1024 * 1024; // 8 MB
-const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(1); // 1 second
+const MINIMUM_REMAINING_BANDWIDTH: u64 = 2500 * 1024 * 1024; // 2500 MB, the same as five wireguard ticket size
+const REMOTE_BANDWIDTH_CHECK_INTERVAL: Duration =
+    Duration::from_secs(12 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs()); // 1 minute
+const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(5); // 5 seconds
 
 const DEFAULT_CLIENT_RETRIES: usize = 1;
 const DEFAULT_CLIENT_TIMEOUT: Duration = Duration::from_secs(5); // 5 seconds
@@ -255,83 +247,6 @@ pub enum CredentialNyxdClientError {
 pub(crate) struct AvailableBandwidth {
     pub(crate) bandwidth_bytes: i64,
     pub(crate) upgrade_mode: Option<bool>,
-}
-
-pub(crate) struct DepletionRate {
-    current_depletion_rate: u64,
-    available_bandwidth: u64,
-}
-
-impl Default for DepletionRate {
-    fn default() -> Self {
-        Self {
-            current_depletion_rate: DEFAULT_BANDWIDTH_DEPLETION_RATE,
-            available_bandwidth: 0,
-        }
-    }
-}
-
-impl DepletionRate {
-    fn update_dynamic_check_interval(
-        &mut self,
-        current_period: Duration,
-        remaining_bandwidth: u64,
-    ) -> Result<Option<Duration>, SpecificGatewayError> {
-        let Some(new_depletion_rate) = self
-            .available_bandwidth
-            .saturating_sub(remaining_bandwidth)
-            .checked_div(current_period.as_secs())
-        else {
-            return Err(SpecificGatewayError::Internal {
-                reason: "check interval shouldn't be 0".to_string(),
-            });
-        };
-        tracing::debug!(
-            "current depletion rate of {} bytes per current check period of {} seconds",
-            new_depletion_rate,
-            current_period.as_secs()
-        );
-        self.available_bandwidth = remaining_bandwidth;
-        // if nothing was consumed since last time, it's possible we had a recent topup already,
-        // so take the safer approach of waiting minimal interval
-        if new_depletion_rate != 0 {
-            self.current_depletion_rate = new_depletion_rate;
-        } else {
-            return Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK));
-        }
-        let Some(estimated_depletion_secs) =
-            remaining_bandwidth.checked_div(self.current_depletion_rate)
-        else {
-            return Err(SpecificGatewayError::Internal {
-                reason: "depletion rate shouldn't be 0".to_string(),
-            });
-        };
-        tracing::debug!(
-            "estimated to deplete current bandwidth in {} seconds = ",
-            estimated_depletion_secs
-        );
-
-        let number_of_checks_before_depletion = estimated_depletion_secs
-            .checked_div(current_period.as_secs())
-            .unwrap_or_default();
-        // try and have at least 10 checks before depletion, to be on the safe side...
-        if number_of_checks_before_depletion < 10 {
-            return Ok(None);
-        }
-        // have an above the water minimum, just in case
-        if self.available_bandwidth < MINIMUM_RAMAINING_BANDWIDTH {
-            return Ok(None);
-        }
-        if estimated_depletion_secs > UPPER_BOUND_CHECK_DURATION.as_secs() {
-            // ... but not too slow, in case bursts come in
-            Ok(Some(UPPER_BOUND_CHECK_DURATION))
-        } else if estimated_depletion_secs < LOWER_BOUND_CHECK_DURATION.as_secs() {
-            // ... and not faster then the gateway bandwidth refresh, as that won't produce any change
-            Ok(Some(LOWER_BOUND_CHECK_DURATION))
-        } else {
-            Ok(Some(Duration::from_secs(number_of_checks_before_depletion)))
-        }
-    }
 }
 
 pub(crate) enum TemporaryBandwidthClient {
@@ -565,47 +480,109 @@ impl NetworkInterfaceStats for Networks {
 // next bandwidth check tick
 struct SystemBandwidthMonitor<N = Networks> {
     networks: N,
-    interface_name: Option<String>,
+    entry_interface_name: Option<String>,
+    exit_interface_name: Option<String>,
+    entry_aprox_bandwidth_left: u64,
+    exit_aprox_bandwidth_left: u64,
     threshold: u64,
 }
 
 impl SystemBandwidthMonitor {
-    pub fn new(interface_name: Option<String>, threshold: u64) -> Self {
+    pub fn new(
+        entry_interface_name: Option<String>,
+        exit_interface_name: Option<String>,
+        entry_aprox_bandwidth_left: u64,
+        exit_aprox_bandwidth_left: u64,
+        threshold: u64,
+    ) -> Self {
         Self {
             networks: Networks::new_with_refreshed_list(),
-            interface_name,
+            entry_interface_name,
+            exit_interface_name,
+            entry_aprox_bandwidth_left,
+            exit_aprox_bandwidth_left,
             threshold,
         }
+    }
+
+    pub fn update_entry_aproximation(&mut self, latest: i64) {
+        self.entry_aprox_bandwidth_left = if latest < 0 {
+            0
+        } else {
+            latest.cast_unsigned()
+        };
+    }
+
+    pub fn update_exit_aproximation(&mut self, latest: i64) {
+        self.exit_aprox_bandwidth_left = if latest < 0 {
+            0
+        } else {
+            latest.cast_unsigned()
+        };
     }
 }
 
 impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
-    pub async fn force_bandwidth_checks(&mut self) -> bool {
-        let total_network_usage: u64 = self
-            .networks
-            .get_interface_stats()
-            .into_iter()
-            .filter_map(
-                // if interface name is specified, only consider that interface, otherwise consider all interfaces
+    pub fn needs_entry_top_up(&self) -> bool {
+        self.entry_aprox_bandwidth_left <= self.threshold
+    }
+
+    pub fn needs_exit_top_up(&self) -> bool {
+        self.exit_aprox_bandwidth_left <= self.threshold
+    }
+
+    pub async fn force_remote_bandwidth_query(&mut self) -> bool {
+        let stats = self.networks.get_interface_stats();
+        let most_used_interface_usage = stats
+            .iter()
+            .map(
+                |InterfaceStats {
+                     interface_name: _,
+                     received,
+                     transmitted,
+                 }| received + transmitted,
+            )
+            .max()
+            .unwrap_or_default();
+
+        // if interface name is specified, consider that specific interface, otherwise consider the highest used interface
+        let entry_interface_usage = consumption_for(&stats, &self.entry_interface_name)
+            .unwrap_or(most_used_interface_usage);
+        let exit_interface_usage =
+            consumption_for(&stats, &self.exit_interface_name).unwrap_or(most_used_interface_usage);
+
+        self.entry_aprox_bandwidth_left = self
+            .entry_aprox_bandwidth_left
+            .saturating_sub(entry_interface_usage);
+        self.exit_aprox_bandwidth_left = self
+            .exit_aprox_bandwidth_left
+            .saturating_sub(exit_interface_usage);
+
+        self.needs_entry_top_up() || self.needs_exit_top_up()
+    }
+}
+
+fn consumption_for(
+    stats: &Vec<InterfaceStats>,
+    target_interface_name: &Option<String>,
+) -> Option<u64> {
+    target_interface_name
+        .as_ref()
+        .and_then(|target_interface_name| {
+            stats.iter().find_map(
                 |InterfaceStats {
                      interface_name,
                      received,
                      transmitted,
-                 }| match self.interface_name.as_ref() {
-                    Some(target) => {
-                        if &interface_name == target {
-                            Some(received + transmitted)
-                        } else {
-                            None
-                        }
+                 }| {
+                    if interface_name == target_interface_name {
+                        Some(received + transmitted)
+                    } else {
+                        None
                     }
-                    None => Some(received + transmitted),
                 },
             )
-            .sum();
-        // above the configured threshold, we consider the system to be under heavy load and thus we should attempt to top up bandwidth asap
-        total_network_usage > self.threshold
-    }
+        })
 }
 
 pub(crate) struct BandwidthMonitor {
@@ -614,8 +591,6 @@ pub(crate) struct BandwidthMonitor {
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
     timeout_check_interval: IntervalStream,
-    entry_depletion_rate: DepletionRate,
-    exit_depletion_rate: DepletionRate,
     entry_previous_error_query: bool,
     exit_previous_error_query: bool,
     shutdown_token: CancellationToken,
@@ -633,7 +608,7 @@ impl BandwidthMonitor {
         shutdown_token: CancellationToken,
     ) -> Self {
         let timeout_check_interval =
-            IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
+            IntervalStream::new(tokio::time::interval(REMOTE_BANDWIDTH_CHECK_INTERVAL));
 
         BandwidthMonitor {
             bc_command_tx,
@@ -641,8 +616,6 @@ impl BandwidthMonitor {
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             timeout_check_interval,
-            entry_depletion_rate: Default::default(),
-            exit_depletion_rate: Default::default(),
             entry_previous_error_query: false,
             exit_previous_error_query: false,
             shutdown_token,
@@ -684,14 +657,6 @@ impl BandwidthMonitor {
             self.wg_entry_gateway_client.gateway_id()
         } else {
             self.wg_exit_gateway_client.gateway_id()
-        }
-    }
-
-    fn depletion_rate(&mut self, entry: bool) -> &mut DepletionRate {
-        if entry {
-            &mut self.entry_depletion_rate
-        } else {
-            &mut self.exit_depletion_rate
         }
     }
 
@@ -867,37 +832,23 @@ impl BandwidthMonitor {
     async fn handle_bandwidth_query(
         &mut self,
         entry: bool,
-        current_period: Duration,
+        system_bandwidth_monitor: &mut SystemBandwidthMonitor,
         query_result: AvailableBandwidth,
-    ) -> Option<Duration> {
-        let remaining_bandwidth = query_result.bandwidth_bytes;
+    ) {
         let gw_upgrade_mode = query_result.upgrade_mode;
         let gateway_id = self.gateway_id(entry);
 
         self.successful_checks += 1;
 
-        if entry {
+        let needs_top_up = if entry {
             self.entry_previous_error_query = false;
+            system_bandwidth_monitor.update_entry_aproximation(query_result.bandwidth_bytes);
+            system_bandwidth_monitor.needs_entry_top_up()
         } else {
             self.exit_previous_error_query = false;
-        }
-
-        let current_depletion_rate = self.depletion_rate(entry);
-
-        match current_depletion_rate
-            .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
-        {
-            Err(e) => {
-                trace_err_chain!(e, "error while updating query coefficients");
-                return None;
-            }
-            Ok(Some(new_duration)) => {
-                let secs = new_duration.as_secs();
-                tracing::debug!("Adjusting check interval to {secs} seconds");
-                return Some(new_duration);
-            }
-            Ok(None) => {}
-        }
+            system_bandwidth_monitor.update_exit_aproximation(query_result.bandwidth_bytes);
+            system_bandwidth_monitor.needs_exit_top_up()
+        };
 
         let got_um_data = self.got_upgrade_mode_attestation().await;
 
@@ -924,7 +875,7 @@ impl BandwidthMonitor {
                     );
                 }
                 self.upgrade_mode_enabled_on_last_check = true;
-                return None;
+                return;
             }
             Some(false) => {
                 if got_um_data && !self.upgrade_mode_enabled_on_last_check {
@@ -965,17 +916,21 @@ impl BandwidthMonitor {
             }
         }
 
-        if let Err(e) = self.top_up_bandwidth(entry).await {
-            trace_err_chain!(e, "error topping up with more bandwidth");
-            // TODO: try to return this error in the JoinHandle instead
-            // For now let's keep the old behavior of stopping
-            self.shutdown_token.cancel();
+        if needs_top_up {
+            if let Err(e) = self.top_up_bandwidth(entry).await {
+                trace_err_chain!(e, "error topping up with more bandwidth");
+                // TODO: try to return this error in the JoinHandle instead
+                // For now let's keep the old behavior of stopping
+                self.shutdown_token.cancel();
+            }
         }
-
-        None
     }
 
-    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
+    async fn check_bandwidth(
+        &mut self,
+        entry: bool,
+        system_bandwidth_monitor: &mut SystemBandwidthMonitor,
+    ) {
         let bw_client = if entry {
             &mut self.wg_entry_gateway_client
         } else {
@@ -988,15 +943,14 @@ impl BandwidthMonitor {
             ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
                 match ret {
                     Ok(query_res) => {
-                        return self
-                            .handle_bandwidth_query(entry, current_period, query_res)
-                            .await;
+                        self
+                            .handle_bandwidth_query(entry, system_bandwidth_monitor, query_res)
+                            .await
                     }
                     Err(err) => self.handle_bandwidth_query_error(entry, err).await,
                 }
             }
         }
-        None
     }
 
     async fn init_clients(&mut self) {
@@ -1019,9 +973,15 @@ impl BandwidthMonitor {
             return;
         }
 
+        let entry_interface_name = self.wg_entry_gateway_client.interface_name().await;
         let exit_interface_name = self.wg_exit_gateway_client.interface_name().await;
-        let mut system_bandwidth_monitor =
-            SystemBandwidthMonitor::new(exit_interface_name, SYSTEM_BANDWIDTH_THRESHOLD);
+        let mut system_bandwidth_monitor = SystemBandwidthMonitor::new(
+            entry_interface_name,
+            exit_interface_name,
+            TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
+            TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
+            MINIMUM_REMAINING_BANDWIDTH,
+        );
         let mut system_bandwidth_check_interval =
             IntervalStream::new(tokio::time::interval(SYSTEM_BANDWIDTH_CHECK_INTERVAL));
 
@@ -1033,34 +993,19 @@ impl BandwidthMonitor {
                     tracing::trace!("BandwidthMonitor: Received shutdown");
                     break;
                 }
+                // local, cheap counting of consumed bytes
                 _ = system_bandwidth_check_interval.next() => {
-                    if system_bandwidth_monitor.force_bandwidth_checks().await && self.timeout_check_interval.as_ref().period() > LOWER_BOUND_CHECK_DURATION {
-                        tracing::debug!("System bandwidth usage is above the configured threshold, forcing bandwidth checks");
-                        // we set the check interval to the lower bound, but we don't do the first tick, which is immediate,
+                    if system_bandwidth_monitor.force_remote_bandwidth_query().await {
+                        tracing::debug!("Remaining bandwidth aproximation is bellow the configured threshold, forcing bandwidth checks");
+                        // we set the check interval, but we don't do the first tick, which is immediate,
                         // so we implicitely trigger the check branch bellow
-                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(LOWER_BOUND_CHECK_DURATION));
+                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(REMOTE_BANDWIDTH_CHECK_INTERVAL));
                     }
                 }
+                // network refresh, more expensive, especially for mobile battery consumption
                 _ = self.timeout_check_interval.next() => {
-                    let current_period = self.timeout_check_interval.as_ref().period();
-                    let entry_duration = self.check_bandwidth(true, current_period).await;
-                    let exit_duration = self.check_bandwidth(false, current_period).await;
-                    if let Some(minimal_duration) = match (entry_duration, exit_duration) {
-                        (Some(d1), Some(d2)) => {
-                            if d1 < d2 {
-                                Some(d1)
-                            } else {
-                                Some(d2)
-                            }
-                        },
-                        (Some(d), None) => Some(d),
-                        (None, Some(d)) => Some(d),
-                        _ => None,
-                    } {
-                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(minimal_duration));
-                        // Skip the first, immediate tick
-                        self.timeout_check_interval.next().await;
-                    }
+                    self.check_bandwidth(true, &mut system_bandwidth_monitor).await;
+                    self.check_bandwidth(false, &mut system_bandwidth_monitor).await;
                 }
             }
         }
@@ -1114,99 +1059,21 @@ mod tests {
     }
 
     impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
-        fn with_networks(interface_name: Option<String>, threshold: u64, networks: N) -> Self {
+        fn with_networks(
+            entry_interface_name: Option<String>,
+            exit_interface_name: Option<String>,
+            threshold: u64,
+            networks: N,
+        ) -> Self {
             Self {
                 networks,
-                interface_name,
+                entry_interface_name,
+                exit_interface_name,
                 threshold,
+                entry_aprox_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
+                exit_aprox_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
             }
         }
-    }
-
-    #[test]
-    fn depletion_rate_slow() {
-        let mut depletion_rate = DepletionRate::default();
-        let mut current_period = DEFAULT_BANDWIDTH_CHECK;
-        // the first check would force the placeholder values to be replaced by the actual values
-        assert_eq!(
-            depletion_rate
-                .update_dynamic_check_interval(current_period, BW_1GB)
-                .unwrap(),
-            Some(DEFAULT_BANDWIDTH_CHECK)
-        );
-
-        // simulate 1 byte/second depletion rate
-        let consumed = current_period.as_secs();
-        current_period = depletion_rate
-            .update_dynamic_check_interval(current_period, BW_1GB - consumed)
-            .unwrap()
-            .unwrap();
-        assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
-    }
-
-    #[test]
-    fn depletion_rate_fast() {
-        let mut depletion_rate = DepletionRate::default();
-        let current_period = DEFAULT_BANDWIDTH_CHECK;
-        // the first check would force the placeholder values to be replaced by the actual values
-        assert_eq!(
-            depletion_rate
-                .update_dynamic_check_interval(current_period, BW_1GB)
-                .unwrap(),
-            Some(DEFAULT_BANDWIDTH_CHECK)
-        );
-
-        // simulate 128 MB/s depletion rate, so we would be depleted in the next 5 seconds after the function call (too fast)
-        let consumed = current_period.as_secs() * BW_128MB;
-        assert!(
-            depletion_rate
-                .update_dynamic_check_interval(current_period, BW_1GB - consumed)
-                .unwrap()
-                .is_none()
-        );
-    }
-
-    #[test]
-    fn depletion_rate_spike() {
-        let mut depletion_rate = DepletionRate::default();
-        let mut current_period = DEFAULT_BANDWIDTH_CHECK;
-        let mut current_bandwidth = 2 * BW_1GB;
-        // the first check would force the placeholder values to be replaced by the actual values
-        assert_eq!(
-            depletion_rate
-                .update_dynamic_check_interval(current_period, current_bandwidth)
-                .unwrap(),
-            Some(DEFAULT_BANDWIDTH_CHECK)
-        );
-
-        // simulate 1 KB/s depletion rate, constant
-        for _ in 0..5 {
-            current_bandwidth -= current_period.as_secs() * BW_1KB;
-            current_period = depletion_rate
-                .update_dynamic_check_interval(current_period, current_bandwidth)
-                .unwrap()
-                .unwrap();
-            assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
-        }
-
-        // spike a 1 MB/s depletion rate
-        for _ in 0..34 {
-            current_bandwidth -= current_period.as_secs() * BW_1MB;
-            current_period = depletion_rate
-                .update_dynamic_check_interval(current_period, current_bandwidth)
-                .unwrap()
-                .unwrap();
-            assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
-            assert!(current_bandwidth > 1000 * BW_1MB);
-        }
-
-        current_bandwidth -= current_period.as_secs() * BW_1MB;
-        let ret = depletion_rate
-            .update_dynamic_check_interval(current_period, current_bandwidth)
-            .unwrap();
-        // when we get bellow a convinient dynamic threshold, we start reqwesting more bandwidth (returning None)
-        assert!(current_bandwidth < 1000 * BW_1MB);
-        assert!(ret.is_none());
     }
 
     #[test]
@@ -1223,101 +1090,93 @@ mod tests {
     async fn system_bandwidth_monitor_no_interfaces_is_below_threshold() {
         let mock = MockNetworks::new();
         let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
-        assert!(!monitor.force_bandwidth_checks().await);
+            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        assert!(!monitor.force_remote_bandwidth_query().await);
     }
 
     #[tokio::test]
     async fn system_bandwidth_monitor_calls_refresh_on_each_check() {
         let mock = MockNetworks::new();
         let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
-        monitor.force_bandwidth_checks().await;
+            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        monitor.force_remote_bandwidth_query().await;
         assert_eq!(monitor.networks.refresh_count, 1);
-        monitor.force_bandwidth_checks().await;
+        monitor.force_remote_bandwidth_query().await;
         assert_eq!(monitor.networks.refresh_count, 2);
     }
 
     #[tokio::test]
     async fn system_bandwidth_monitor_below_threshold_returns_false() {
-        // 2 MB combined < 8 MB threshold
-        let mock = MockNetworks::new().with_interface("eth0", BW_1MB, BW_1MB);
+        // 256 MB combined < 2500 MB threshold
+        let mock = MockNetworks::new().with_interface("eth0", BW_128MB, BW_128MB);
         let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
-        assert!(!monitor.force_bandwidth_checks().await);
+            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        assert!(!monitor.force_remote_bandwidth_query().await);
     }
 
     #[tokio::test]
     async fn system_bandwidth_monitor_above_threshold_returns_true() {
-        // 10 MB combined > 8 MB threshold
-        let mock = MockNetworks::new().with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB);
+        // 4 GB combined > 2.5 GB threshold
+        let mock = MockNetworks::new().with_interface("eth0", 2 * BW_1GB, 5 * BW_1GB);
         let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
-        assert!(monitor.force_bandwidth_checks().await);
+            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        assert!(monitor.force_remote_bandwidth_query().await);
     }
 
     #[tokio::test]
     async fn system_bandwidth_monitor_exactly_at_threshold_returns_false() {
-        // usage must be strictly greater than threshold, not equal
+        // usage must be greater or equal to the threshold
         let mock = MockNetworks::new().with_interface(
             "eth0",
-            SYSTEM_BANDWIDTH_THRESHOLD / 2,
-            SYSTEM_BANDWIDTH_THRESHOLD / 2,
+            MINIMUM_REMAINING_BANDWIDTH / 2,
+            MINIMUM_REMAINING_BANDWIDTH / 2,
         );
         let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
-        assert!(!monitor.force_bandwidth_checks().await);
-    }
-
-    #[tokio::test]
-    async fn system_bandwidth_monitor_sums_all_interfaces_without_filter() {
-        // 3 MB per interface × 3 interfaces = 9 MB total > 8 MB threshold
-        let mock = MockNetworks::new()
-            .with_interface("eth0", 3 * BW_1MB, 0)
-            .with_interface("eth1", 3 * BW_1MB, 0)
-            .with_interface("wlan0", 3 * BW_1MB, 0);
-        let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
-        assert!(monitor.force_bandwidth_checks().await);
+            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        assert!(monitor.force_remote_bandwidth_query().await);
     }
 
     #[tokio::test]
     async fn system_bandwidth_monitor_filters_to_target_interface_below_threshold() {
-        // eth0 has 10 MB (above threshold), but we only watch wg0 which has 2 MB
+        // eth0 has 4 GB (above threshold), but we only watch wg0 and wg2 which have 4 MB
         let mock = MockNetworks::new()
-            .with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB)
-            .with_interface("wg0", BW_1MB, BW_1MB);
+            .with_interface("eth0", 2 * BW_1GB, 2 * BW_1GB)
+            .with_interface("wg0", BW_1MB, BW_1MB)
+            .with_interface("wg1", BW_1MB, BW_1MB);
         let mut monitor = SystemBandwidthMonitor::with_networks(
             Some("wg0".to_string()),
-            SYSTEM_BANDWIDTH_THRESHOLD,
+            Some("wg1".to_string()),
+            MINIMUM_REMAINING_BANDWIDTH,
             mock,
         );
-        assert!(!monitor.force_bandwidth_checks().await);
+        assert!(!monitor.force_remote_bandwidth_query().await);
     }
 
     #[tokio::test]
     async fn system_bandwidth_monitor_filters_to_target_interface_above_threshold() {
-        // eth0 has 2 MB (below threshold), but we only watch wg0 which has 10 MB
+        // eth0 has 2 MB (below threshold), but we only watch wg0 which has 4 GB
         let mock = MockNetworks::new()
             .with_interface("eth0", BW_1MB, BW_1MB)
-            .with_interface("wg0", 5 * BW_1MB, 5 * BW_1MB);
+            .with_interface("wg0", 2 * BW_1GB, 2 * BW_1GB);
         let mut monitor = SystemBandwidthMonitor::with_networks(
             Some("wg0".to_string()),
-            SYSTEM_BANDWIDTH_THRESHOLD,
+            None,
+            MINIMUM_REMAINING_BANDWIDTH,
             mock,
         );
-        assert!(monitor.force_bandwidth_checks().await);
+        assert!(monitor.force_remote_bandwidth_query().await);
     }
 
     #[tokio::test]
-    async fn system_bandwidth_monitor_nonexistent_target_interface_returns_false() {
-        // eth0 has 10 MB but we watch a non-existent interface, so total is 0
-        let mock = MockNetworks::new().with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB);
+    async fn system_bandwidth_monitor_nonexistent_target_interface_returns_true() {
+        // eth0 has 4 GB but we watch a non-existent interface, so value used is maximum
+        let mock = MockNetworks::new().with_interface("eth0", 2 * BW_1GB, 2 * BW_1GB);
         let mut monitor = SystemBandwidthMonitor::with_networks(
             Some("nonexistent".to_string()),
-            SYSTEM_BANDWIDTH_THRESHOLD,
+            Some("nonexistent2".to_string()),
+            MINIMUM_REMAINING_BANDWIDTH,
             mock,
         );
-        assert!(!monitor.force_bandwidth_checks().await);
+        assert!(monitor.force_remote_bandwidth_query().await);
     }
 }
