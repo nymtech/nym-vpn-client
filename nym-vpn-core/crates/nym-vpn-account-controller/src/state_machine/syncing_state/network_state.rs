@@ -74,9 +74,9 @@ impl SyncingNetworkState {
     ) {
         match shared_state.device_state {
             DeviceState::LoggedIn {
-                mode,
-                account_summary,
-            } if mode == StoredAccountMode::Decentralised => {
+                account,
+                summary: account_summary,
+            } if account.mode == StoredAccountMode::Decentralised => {
                 return DecentralisedState::enter();
             }
             DeviceState::LoggedOut => {

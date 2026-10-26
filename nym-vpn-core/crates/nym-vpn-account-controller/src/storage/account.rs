@@ -4,7 +4,11 @@
 use crate::{commands::ReturnSender, error::Error};
 use nym_vpn_api_client::types::{Device, VpnAccount, VpnAccountMode};
 use nym_vpn_lib_types::StorableAccount;
-use nym_vpn_store::{VpnStorage, device_state::DeviceState, mnemonic::StoredMnemonic};
+use nym_vpn_store::{
+    VpnStorage,
+    device_state::{DeviceAccount, DeviceState},
+    mnemonic::StoredMnemonic,
+};
 
 #[derive(Debug)]
 pub(crate) struct AccountStorage<S>
@@ -22,8 +26,14 @@ where
         Self { storage }
     }
 
-    // todo: remove StorableAccount?
     pub async fn store_account(&self, account: StorableAccount) -> Result<(), Error> {
+        let device_account =
+            DeviceAccount::new(account.mnemonic.clone(), account.mode).map_err(|err| {
+                Error::AccountStore {
+                    source: Box::new(err),
+                }
+            })?;
+
         self.storage
             .store_mnemonic(StoredMnemonic {
                 mnemonic: account.mnemonic,
@@ -35,8 +45,8 @@ where
 
         self.storage
             .store_device_state(DeviceState::LoggedIn {
-                mode: account.mode,
-                account_summary: None,
+                account: device_account,
+                summary: None,
             })
             .await
             .map_err(|err| Error::AccountStore {
@@ -67,13 +77,16 @@ where
 
         Ok(match device_state {
             DeviceState::LoggedIn {
-                mode,
-                account_summary: _,
+                account,
+                summary: _,
             } => self.load_mnemonic().await.and_then(|mnemonic| {
                 mnemonic
                     .map(|stored_mnemonic| {
-                        VpnAccount::new(stored_mnemonic.mnemonic, VpnAccountMode::from(mode))
-                            .map_err(Error::internal)
+                        VpnAccount::new(
+                            stored_mnemonic.mnemonic,
+                            VpnAccountMode::from(account.mode),
+                        )
+                        .map_err(Error::internal)
                     })
                     .transpose()
             })?,
@@ -176,10 +189,10 @@ where
 
         match device_state {
             DeviceState::LoggedIn {
-                mode,
-                account_summary: _,
+                account,
+                summary: _,
             } => self.load_mnemonic().await.map(|stored_mnemonic| {
-                stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, mode))
+                stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, account.mode))
             }),
             DeviceState::LoggedOut => Ok(None),
         }

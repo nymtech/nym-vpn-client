@@ -33,14 +33,22 @@ impl DeviceStateStorage for InMemoryDeviceStateStorage {
 
 #[cfg(test)]
 mod tests {
+
     use nym_vpn_lib_types::StoredAccountMode;
+
+    use crate::device_state::DeviceAccount;
 
     use super::*;
 
     fn logged_in() -> DeviceState {
         DeviceState::LoggedIn {
-            mode: StoredAccountMode::Api,
-            account_summary: None,
+            account: DeviceAccount {
+                id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
+                mode: StoredAccountMode::Api,
+                pub_key: "".to_owned(),
+                signature_base64: "".to_owned(),
+            },
+            summary: None,
         }
     }
 

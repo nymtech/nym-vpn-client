@@ -8,12 +8,15 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
-    types::{DeviceStatus, Platform, VpnAccount},
+    types::{DeviceStatus, Platform, VpnAccount, VpnAccountMode},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, RegisterAccountResponse, StorableAccount, VpnApiError,
+    AccountCommandError, RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnApiError,
 };
-use nym_vpn_store::{device_state::DeviceState, keys::wireguard::WireguardKeyStore};
+use nym_vpn_store::{
+    device_state::{DeviceAccount, DeviceState},
+    keys::wireguard::WireguardKeyStore,
+};
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
@@ -48,6 +51,8 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
 ) -> Result<(), AccountCommandError> {
+    let device_account = DeviceAccount::new(account.mnemonic.clone(), account.mode)
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
@@ -69,7 +74,10 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.vpn_api_account = Some(Arc::new(vpn_account));
+    shared_state.device_state = DeviceState::LoggedIn {
+        account: device_account,
+        summary: None,
+    };
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
@@ -81,13 +89,18 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
 ) -> Result<(), AccountCommandError> {
     let (vpn_account, mnemonic) =
         VpnAccount::generate_new().map_err(AccountCommandError::internal)?;
+    let device_account = DeviceAccount::new(
+        mnemonic.clone(),
+        StoredAccountMode::from(vpn_account.mode()),
+    )
+    .map_err(AccountCommandError::internal)?;
 
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::StoreAccount(
             tx,
-            StorableAccount::new(mnemonic, vpn_account.mode().into()),
+            StorableAccount::new(mnemonic.clone(), vpn_account.mode().into()),
         ))
         .map_err(AccountCommandError::internal)?;
     let device = rx
@@ -95,7 +108,10 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.vpn_api_account = Some(Arc::new(vpn_account));
+    shared_state.device_state = DeviceState::LoggedIn {
+        account: device_account,
+        summary: None,
+    };
     shared_state.device = Some(device);
     tracing::debug!("Account created and stored");
 
@@ -237,14 +253,18 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
 
     // We can only link the Privy account if we're currently logged-in with an API account
     if privy_vpn_account.mode().is_privy()
-        && let Some(ref current_account) = shared_state.vpn_api_account
-        && current_account.mode().is_api()
+        && let Some(ref current_account) = shared_state.device_state.account()
+        && current_account.mode == StoredAccountMode::Api
     {
         tracing::info!("Linking Privy account with API account");
 
+        let mnemonic = todo!();
+        let current_account = VpnAccount::new(mnemonic, VpnAccountMode::from(current_account.mode))
+            .map_err(AccountCommandError::internal)?;
+
         let _status_ok = shared_state
             .vpn_api_client
-            .link_account(current_account, &privy_vpn_account, "Social login")
+            .link_account(&current_account, &privy_vpn_account, "Social login")
             .await
             .inspect_err(|err| {
                 tracing::error!("Failed to link Privy account with API account: {err:?}")
@@ -284,13 +304,13 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoDeviceStored)?;
 
     let account = shared_state
-        .vpn_api_account
-        .as_ref()
+        .device_state
+        .account()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
     if let Err(e) = shared_state
         .vpn_api_client
-        .update_device(account, device, DeviceStatus::DeleteMe)
+        .update_device(&account.id, device, DeviceStatus::DeleteMe)
         .await
     {
         let nym_error = NymErrorResponse::try_from(e)?;

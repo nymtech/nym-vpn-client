@@ -172,12 +172,17 @@ mod tests {
     use nym_vpn_lib_types::StoredAccountMode;
 
     use super::*;
-    use crate::store_ciphers::noop_cipher::NoopStoreCipher;
+    use crate::{device_state::DeviceAccount, store_ciphers::noop_cipher::NoopStoreCipher};
 
     fn logged_in(mode: StoredAccountMode) -> DeviceState {
         DeviceState::LoggedIn {
-            mode,
-            account_summary: None,
+            account: DeviceAccount {
+                id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
+                mode: mode,
+                pub_key: "".to_owned(),
+                signature_base64: "".to_owned(),
+            },
+            summary: None,
         }
     }
 

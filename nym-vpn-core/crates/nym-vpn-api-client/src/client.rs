@@ -561,7 +561,7 @@ impl VpnApiClient {
 
     pub async fn get_account_summary_with_device(
         &self,
-        account: &VpnAccount, // todo: only need account.id()!
+        account_id: &str,
         device: &Device,
     ) -> Result<NymVpnAccountSummaryWithDeviceResponse> {
         self.get_authorized(
@@ -569,7 +569,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::SUMMARY,
@@ -706,7 +706,7 @@ impl VpnApiClient {
 
     pub async fn get_device_by_id(
         &self,
-        account: &VpnAccount, // todo: only requires account.id()!
+        account_id: &str,
         device: &Device,
     ) -> Result<NymVpnDevice> {
         self.get_authorized(
@@ -714,7 +714,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
             ],
@@ -727,7 +727,7 @@ impl VpnApiClient {
 
     pub async fn update_device(
         &self,
-        account: &VpnAccount, // todo: only needs account.id()!
+        account_id: &str,
         device: &Device,
         status: DeviceStatus,
     ) -> Result<NymVpnDevice> {
@@ -740,7 +740,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                &account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
             ],
@@ -782,7 +782,7 @@ impl VpnApiClient {
 
     pub async fn get_device_zk_nyms(
         &self,
-        account: &VpnAccount, // todo: only needs account.id()!
+        account_id: &str,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -790,7 +790,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
@@ -804,7 +804,7 @@ impl VpnApiClient {
 
     pub async fn request_zk_nym(
         &self,
-        account: &VpnAccount, // todo: only needs account.id()!
+        account_id: &str,
         device: &Device,
         withdrawal_request: String,
         ecash_pubkey: String,
@@ -826,7 +826,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
@@ -841,7 +841,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nyms_available_for_download(
         &self,
-        account: &VpnAccount, // todo: only needs account.id()!
+        account_id: &str,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -849,7 +849,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
@@ -864,7 +864,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nym_by_id(
         &self,
-        account: &VpnAccount, // todo: only needs account.id()!
+        account_id: &str,
         device: &Device,
         id: &str,
     ) -> Result<NymVpnZkNym> {
@@ -873,7 +873,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,
@@ -888,7 +888,7 @@ impl VpnApiClient {
 
     pub async fn confirm_zk_nym_download_by_id(
         &self,
-        account: &VpnAccount, // todo: only needs account.id()!
+        account_id: &str,
         device: &Device,
         id: &str,
     ) -> Result<StatusOk> {
@@ -897,7 +897,7 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                &account.id(),
+                account_id,
                 routes::DEVICE,
                 &device.identity_key().to_string(),
                 routes::ZKNYM,

@@ -71,7 +71,9 @@ impl SyncingLocalState {
         PrivateAccountControllerState,
     ) {
         match &shared_state.device_state {
-            DeviceState::LoggedIn { mode, .. } if *mode == StoredAccountMode::Decentralised => {
+            DeviceState::LoggedIn { account, .. }
+                if account.mode == StoredAccountMode::Decentralised =>
+            {
                 return DecentralisedState::enter();
             }
             DeviceState::LoggedOut => {
