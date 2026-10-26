@@ -5,28 +5,28 @@ use std::convert::Infallible;
 
 use tokio::sync::Mutex;
 
-use super::{DeviceState, DeviceStateStorage};
+use super::{DeviceStateStorage, StoredDeviceState};
 
 #[derive(Default)]
 pub struct InMemoryDeviceStateStorage {
-    state: Mutex<DeviceState>,
+    state: Mutex<StoredDeviceState>,
 }
 
 #[async_trait::async_trait]
 impl DeviceStateStorage for InMemoryDeviceStateStorage {
     type StorageError = Infallible;
 
-    async fn load_device_state(&self) -> Result<DeviceState, Self::StorageError> {
+    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError> {
         Ok(self.state.lock().await.clone())
     }
 
-    async fn store_device_state(&self, state: DeviceState) -> Result<(), Self::StorageError> {
+    async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
         *self.state.lock().await = state;
         Ok(())
     }
 
     async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
-        *self.state.lock().await = DeviceState::LoggedOut;
+        *self.state.lock().await = StoredDeviceState::LoggedOut;
         Ok(())
     }
 }
@@ -36,13 +36,13 @@ mod tests {
 
     use nym_vpn_lib_types::StoredAccountMode;
 
-    use crate::device_state::DeviceAccount;
+    use crate::device_state::StoredAccountIdentity;
 
     use super::*;
 
-    fn logged_in() -> DeviceState {
-        DeviceState::LoggedIn {
-            account: DeviceAccount {
+    fn logged_in() -> StoredDeviceState {
+        StoredDeviceState::LoggedIn {
+            account_identity: StoredAccountIdentity {
                 id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
                 mode: StoredAccountMode::Api,
                 pub_key: "".to_owned(),
@@ -58,7 +58,7 @@ mod tests {
 
         assert_eq!(
             storage.load_device_state().await.unwrap(),
-            DeviceState::LoggedOut
+            StoredDeviceState::LoggedOut
         );
     }
 
@@ -78,7 +78,7 @@ mod tests {
 
         assert_eq!(
             storage.load_device_state().await.unwrap(),
-            DeviceState::LoggedOut
+            StoredDeviceState::LoggedOut
         );
     }
 }

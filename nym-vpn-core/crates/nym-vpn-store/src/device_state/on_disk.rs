@@ -10,7 +10,7 @@ use std::{
 
 use tokio::{fs::OpenOptions, io::AsyncWriteExt};
 
-use super::{DeviceState, DeviceStateStorage};
+use super::{DeviceStateStorage, StoredDeviceState};
 use crate::store_ciphers::{StoreCipher, StoreCipherError};
 
 #[derive(Debug, thiserror::Error)]
@@ -124,7 +124,7 @@ impl OnDiskDeviceStateStorage {
 impl DeviceStateStorage for OnDiskDeviceStateStorage {
     type StorageError = OnDiskDeviceStateStorageError;
 
-    async fn load_device_state(&self) -> Result<DeviceState> {
+    async fn load_device_state(&self) -> Result<StoredDeviceState> {
         match tokio::fs::read(&self.path).await {
             Ok(ciphertext) => {
                 let plaintext = self
@@ -136,12 +136,12 @@ impl DeviceStateStorage for OnDiskDeviceStateStorage {
                 serde_json::from_slice(&plaintext)
                     .map_err(OnDiskDeviceStateStorageError::Deserialize)
             }
-            Err(err) if err.kind() == IoErrorKind::NotFound => Ok(DeviceState::LoggedOut),
+            Err(err) if err.kind() == IoErrorKind::NotFound => Ok(StoredDeviceState::LoggedOut),
             Err(err) => Err(self.io_error("read file", err)),
         }
     }
 
-    async fn store_device_state(&self, state: DeviceState) -> Result<()> {
+    async fn store_device_state(&self, state: StoredDeviceState) -> Result<()> {
         tracing::debug!("Storing device state to: {}", self.path.display());
 
         self.create_parent_dirs().await?;
@@ -172,11 +172,11 @@ mod tests {
     use nym_vpn_lib_types::StoredAccountMode;
 
     use super::*;
-    use crate::{device_state::DeviceAccount, store_ciphers::noop_cipher::NoopStoreCipher};
+    use crate::{device_state::StoredAccountIdentity, store_ciphers::noop_cipher::NoopStoreCipher};
 
-    fn logged_in(mode: StoredAccountMode) -> DeviceState {
-        DeviceState::LoggedIn {
-            account: DeviceAccount {
+    fn logged_in(mode: StoredAccountMode) -> StoredDeviceState {
+        StoredDeviceState::LoggedIn {
+            account_identity: StoredAccountIdentity {
                 id: "juno1cma4czt2jnydvrvz3lrc9jvcmhpjxtds95s3c6".to_owned(),
                 mode: mode,
                 pub_key: "".to_owned(),
@@ -197,7 +197,7 @@ mod tests {
 
         assert_eq!(
             storage.load_device_state().await.unwrap(),
-            DeviceState::LoggedOut
+            StoredDeviceState::LoggedOut
         );
     }
 
@@ -223,13 +223,13 @@ mod tests {
             .await
             .unwrap();
         storage
-            .store_device_state(DeviceState::LoggedOut)
+            .store_device_state(StoredDeviceState::LoggedOut)
             .await
             .unwrap();
 
         assert_eq!(
             storage.load_device_state().await.unwrap(),
-            DeviceState::LoggedOut
+            StoredDeviceState::LoggedOut
         );
         assert!(!path.with_added_extension("tmp").exists());
     }
@@ -249,7 +249,7 @@ mod tests {
         assert!(!path.exists());
         assert_eq!(
             storage.load_device_state().await.unwrap(),
-            DeviceState::LoggedOut
+            StoredDeviceState::LoggedOut
         );
     }
 

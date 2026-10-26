@@ -13,7 +13,9 @@ use tokio::fs::File;
 use tokio_util::io::SyncIoBridge;
 
 use crate::{
-    device_state::{DeviceAccount, DeviceAccountError, DeviceState, DeviceStateStorage},
+    device_state::{
+        DeviceAccountError, DeviceStateStorage, StoredAccountIdentity, StoredDeviceState,
+    },
     mnemonic::{MnemonicStorage, StoredMnemonic},
 };
 
@@ -159,9 +161,9 @@ where
         let LegacyAccount { mnemonic, mode } =
             self.read_legacy_account(plain_mnemonic_file).await?;
 
-        let account = DeviceAccount::new(mnemonic.clone(), mode)?;
-        let device_state = DeviceState::LoggedIn {
-            account,
+        let account = StoredAccountIdentity::new(mnemonic.clone(), mode)?;
+        let device_state = StoredDeviceState::LoggedIn {
+            account_identity: account,
             summary: account_summary,
         };
 
@@ -299,8 +301,8 @@ mod tests {
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
         assert_matches!(
             device_state_store.load_device_state().await,
-            Ok(DeviceState::LoggedIn {
-                account: DeviceAccount {
+            Ok(StoredDeviceState::LoggedIn {
+                account_identity: StoredAccountIdentity {
                     id: todo!("tbd"),
                     pub_key: todo!("tbd"),
                     mode: StoredAccountMode::Decentralised,
@@ -365,8 +367,8 @@ mod tests {
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
         assert_matches!(
             device_state_store.load_device_state().await,
-            Ok(DeviceState::LoggedIn {
-                account: DeviceAccount { id: todo!(), pub_key: todo!(), mode: StoredAccountMode::Api, signature_base64: todo!() },
+            Ok(StoredDeviceState::LoggedIn {
+                account_identity: StoredAccountIdentity { id: todo!(), pub_key: todo!(), mode: StoredAccountMode::Api, signature_base64: todo!() },
                 summary: Some(summary),
             }) if summary.account_addr == "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
                 && summary.traffic_used_gb == 12
@@ -415,7 +417,7 @@ mod tests {
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
         assert_matches!(
             device_state_store.load_device_state().await,
-            Ok(DeviceState::LoggedOut)
+            Ok(StoredDeviceState::LoggedOut)
         );
 
         assert_matches!(storage.should_migrate().await, Ok(false));

@@ -23,7 +23,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary,
 };
-use nym_vpn_store::device_state::DeviceState;
+use nym_vpn_store::device_state::StoredDeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -71,15 +71,16 @@ impl SyncingLocalState {
         PrivateAccountControllerState,
     ) {
         match &shared_state.device_state {
-            DeviceState::LoggedIn { account, .. }
-                if account.mode == StoredAccountMode::Decentralised =>
-            {
+            StoredDeviceState::LoggedIn {
+                account_identity: account,
+                ..
+            } if account.mode == StoredAccountMode::Decentralised => {
                 return DecentralisedState::enter();
             }
-            DeviceState::LoggedOut => {
+            StoredDeviceState::LoggedOut => {
                 return LoggedOutState::enter(shared_state).await;
             }
-            DeviceState::LoggedIn { .. } => {}
+            StoredDeviceState::LoggedIn { .. } => {}
         }
 
         let Some(device) = shared_state.device.clone() else {

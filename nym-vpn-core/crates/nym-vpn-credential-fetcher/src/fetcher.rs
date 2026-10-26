@@ -10,7 +10,7 @@ use nym_bandwidth_controller::{
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
 };
-use nym_credentials_interface::TicketType;
+use nym_credentials_interface::{KeyPairUser, TicketType};
 use nym_validator_client::nym_api::EpochId;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -41,7 +41,8 @@ enum Status {
 /// `set_credential_fetcher`, and replace/unset it when the account or device changes.
 pub struct VpnApiCredentialFetcher {
     vpn_api_client: VpnApiClient,
-    account: Arc<VpnAccount>,
+    account_id: String,
+    ecash_keypair: KeyPairUser,
     device: Device,
     pending_storage: PendingCredentialRequestsStorage,
     cached_data: CachedData,
@@ -54,12 +55,15 @@ pub struct VpnApiCredentialFetcher {
 impl VpnApiCredentialFetcher {
     /// Build a fetcher.
     ///
+    /// - `account_id`: the account the device is registered to
+    /// - `ecash_keypair`: the ecash user keypair of that account, built from the persisted seed
     /// - `data_dir`: directory in which to create this fetcher's own storage for resuming in-flight
     ///   requests.
     /// - `cancellation_token`: cancelling it interrupts any in-flight or stalled fetch
     pub async fn new(
         vpn_api_client: VpnApiClient,
-        account: Arc<VpnAccount>,
+        account_id: String,
+        ecash_keypair: KeyPairUser,
         device: Device,
         data_dir: impl AsRef<Path>,
         cancellation_token: CancellationToken,
@@ -69,7 +73,8 @@ impl VpnApiCredentialFetcher {
         let (status_tx, _) = watch::channel(Status::Running);
         Ok(VpnApiCredentialFetcher {
             vpn_api_client,
-            account,
+            account_id,
+            ecash_keypair,
             device,
             pending_storage,
             cached_data,
@@ -135,7 +140,8 @@ impl VpnApiCredentialFetcher {
 
     fn task(&self) -> CredentialRequestTask {
         CredentialRequestTask::new(
-            self.account.clone(),
+            self.account_id.clone(),
+            self.ecash_keypair.clone(),
             self.device.clone(),
             self.pending_storage.clone(),
             self.vpn_api_client.clone(),
