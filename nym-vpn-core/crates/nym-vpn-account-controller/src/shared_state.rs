@@ -9,7 +9,7 @@ use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::{device_state::DeviceState, keys::wireguard::WireguardKeysDb};
+use nym_vpn_store::{device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -41,7 +41,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 
     /// Current device state
     /// Includes metadata such as account summary when available.
-    pub(crate) device_state: DeviceState,
+    pub(crate) device_state: StoredDeviceState,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -75,7 +75,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         wireguard_keys_storage: WireguardKeysDb,
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
-        device_state: DeviceState,
+        device_state: StoredDeviceState,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
@@ -251,7 +251,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
     // Mark the summary as stale and best effort to propagate to disk
     pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<(), AccountCommandError> {
         match &mut self.device_state {
-            DeviceState::LoggedIn {
+            StoredDeviceState::LoggedIn {
                 summary: account_summary,
                 ..
             } => {
@@ -272,7 +272,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
                     Err(AccountCommandError::internal("Device is logged out"))
                 }
             }
-            DeviceState::LoggedOut => Err(AccountCommandError::internal("Device is logged out")),
+            StoredDeviceState::LoggedOut => {
+                Err(AccountCommandError::internal("Device is logged out"))
+            }
         }
     }
 
@@ -282,7 +284,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         new_account_summary: VpnAccountSummary,
     ) -> Result<(), AccountCommandError> {
         match &mut self.device_state {
-            DeviceState::LoggedIn {
+            StoredDeviceState::LoggedIn {
                 summary: account_summary,
                 ..
             } => {
@@ -299,7 +301,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
                 let res = rx.await.map_err(AccountCommandError::internal)?;
                 Ok(res.unwrap()) // FIXME
             }
-            DeviceState::LoggedOut => Err(AccountCommandError::internal("Device is logged out")),
+            StoredDeviceState::LoggedOut => {
+                Err(AccountCommandError::internal("Device is logged out"))
+            }
         }
     }
 }

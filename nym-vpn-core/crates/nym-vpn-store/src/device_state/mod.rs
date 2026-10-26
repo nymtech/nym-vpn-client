@@ -24,7 +24,7 @@ pub enum DeviceAccountError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceAccount {
+pub struct StoredAccountIdentity {
     /// Cosmos account identifier of the first derived account.
     pub id: String, // nym_validator_client::nyxd::AccountId
 
@@ -40,7 +40,7 @@ pub struct DeviceAccount {
     pub signature_base64: String,
 }
 
-impl DeviceAccount {
+impl StoredAccountIdentity {
     pub fn new(mnemonic: Mnemonic, mode: StoredAccountMode) -> Result<Self, DeviceAccountError> {
         let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic)?;
         Self::derive_from_wallet(wallet, mode)
@@ -73,19 +73,19 @@ impl DeviceAccount {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
-pub enum DeviceState {
+pub enum StoredDeviceState {
     /// Device is logged out
     #[default]
     LoggedOut,
 
     /// Device is logged in
     LoggedIn {
-        account: DeviceAccount,
+        account_identity: StoredAccountIdentity,
         summary: Option<VpnAccountSummary>,
     },
 }
 
-impl DeviceState {
+impl StoredDeviceState {
     /// Returns account summary if available
     pub fn account_summary(&self) -> &Option<VpnAccountSummary> {
         match self {
@@ -98,9 +98,12 @@ impl DeviceState {
     }
 
     /// Returns device account when logged in
-    pub fn account(&self) -> Option<&DeviceAccount> {
+    pub fn account(&self) -> Option<&StoredAccountIdentity> {
         match self {
-            Self::LoggedIn { account, .. } => Some(account),
+            Self::LoggedIn {
+                account_identity: account,
+                ..
+            } => Some(account),
             Self::LoggedOut => None,
         }
     }
@@ -111,9 +114,9 @@ pub trait DeviceStateStorage {
     type StorageError: Error + Send + Sync + 'static;
 
     /// Returns [`DeviceState::LoggedOut`] when no state is stored.
-    async fn load_device_state(&self) -> Result<DeviceState, Self::StorageError>;
+    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError>;
 
-    async fn store_device_state(&self, state: DeviceState) -> Result<(), Self::StorageError>;
+    async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError>;
 
     async fn remove_device_state(&self) -> Result<(), Self::StorageError>;
 }

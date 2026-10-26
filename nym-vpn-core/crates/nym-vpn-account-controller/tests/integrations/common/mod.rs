@@ -14,7 +14,7 @@ use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    device_state::DeviceState,
+    device_state::StoredDeviceState,
     keys::device::{DeviceKeyStore, DeviceKeys},
     mnemonic::{MnemonicStorage, StoredMnemonic, ephemeral::InMemoryMnemonicStorageError},
 };
@@ -168,13 +168,13 @@ impl MnemonicStorage for MockEphemeralStorage {
 impl nym_vpn_store::device_state::DeviceStateStorage for MockEphemeralStorage {
     type StorageError = std::convert::Infallible;
 
-    async fn load_device_state(&self) -> Result<DeviceState, Self::StorageError> {
+    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError> {
         self.device_state_storage.load_device_state().await
     }
 
     async fn store_device_state(
         &self,
-        device_state: DeviceState,
+        device_state: StoredDeviceState,
     ) -> Result<(), Self::StorageError> {
         self.device_state_storage
             .store_device_state(device_state)

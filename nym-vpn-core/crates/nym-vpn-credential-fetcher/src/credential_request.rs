@@ -13,8 +13,8 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::{
 };
 use nym_credentials::IssuedTicketBook;
 use nym_credentials_interface::{
-    Base58, BlindedSignature, PublicKeyUser, RequestInfo, TicketType, VerificationKeyAuth,
-    WithdrawalRequest,
+    Base58, BlindedSignature, KeyPairUser, PublicKeyUser, RequestInfo, TicketType,
+    VerificationKeyAuth, WithdrawalRequest,
 };
 use nym_ecash_time::EcashTime;
 use nym_upgrade_mode_check::try_decode_upgrade_mode_jwt_claims;
@@ -47,7 +47,8 @@ struct ZkNymRequestData {
 }
 
 pub(crate) struct CredentialRequestTask {
-    account: Arc<VpnAccount>,
+    account_id: String,
+    ecash_keypair: KeyPairUser,
     device: Device,
     vpn_api_client: VpnApiClient,
     pending_storage: PendingCredentialRequestsStorage,
@@ -56,14 +57,16 @@ pub(crate) struct CredentialRequestTask {
 
 impl CredentialRequestTask {
     pub(crate) fn new(
-        account: Arc<VpnAccount>,
+        account_id: String,
+        ecash_keypair: KeyPairUser,
         device: Device,
         pending_storage: PendingCredentialRequestsStorage,
         vpn_api_client: VpnApiClient,
         cached_data: CachedData,
     ) -> CredentialRequestTask {
         CredentialRequestTask {
-            account,
+            account_id,
+            ecash_keypair,
             device,
             vpn_api_client: vpn_api_client.clone(),
             pending_storage,
@@ -226,20 +229,16 @@ impl CredentialRequestTask {
     ) -> Result<ZkNymRequestData, VpnApiFetcherError> {
         tracing::debug!("Constructing zk-nym request");
 
-        let ecash_keypair = self
-            .account
-            .create_ecash_keypair()
-            .map_err(|err| VpnApiFetcherError::CreateEcashKeyPair(err.to_string()))?;
         let expiration_date = nym_ecash_time::ecash_default_expiration_date();
 
         let (withdrawal_request, request_info) = nym_credentials_interface::withdrawal_request(
-            ecash_keypair.secret_key(),
+            self.ecash_keypair.secret_key(),
             expiration_date.ecash_unix_timestamp(),
             ticketbook_type.encode(),
         )
         .map_err(VpnApiFetcherError::ConstructWithdrawalRequest)?;
 
-        let ecash_pubkey = ecash_keypair.public_key();
+        let ecash_pubkey = self.ecash_keypair.public_key();
 
         Ok(ZkNymRequestData {
             withdrawal_request,
@@ -257,7 +256,7 @@ impl CredentialRequestTask {
         tracing::debug!("Requesting zk-nym ticketbook");
         self.vpn_api_client
             .request_zk_nym(
-                &self.account,
+                &self.account_id,
                 &self.device,
                 request.withdrawal_request.to_bs58(),
                 request.ecash_pubkey.to_base58_string().to_owned(),
@@ -272,7 +271,7 @@ impl CredentialRequestTask {
     async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<StatusOk, VpnApiFetcherError> {
         tracing::info!("Confirming zk-nym downloaded");
         self.vpn_api_client
-            .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
+            .confirm_zk_nym_download_by_id(&self.account_id, &self.device, id)
             .await
             .map_err(VpnApiFetcherError::vpn_api_error(
                 "confirm_zk_nym_download_by_id",
@@ -321,7 +320,7 @@ impl CredentialRequestTask {
         let ticketbook_type = ticketbook_type.to_string();
         let all_ids = self
             .vpn_api_client
-            .get_device_zk_nyms(&self.account, &self.device)
+            .get_device_zk_nyms(&self.account_id, &self.device)
             .await
             .map_err(VpnApiFetcherError::vpn_api_error("get_device_zk_nyms"))?
             .items
@@ -357,7 +356,7 @@ impl CredentialRequestTask {
         &self,
     ) -> Result<Vec<(ZkNymId, String)>, VpnApiFetcherError> {
         self.vpn_api_client
-            .get_zk_nyms_available_for_download(&self.account, &self.device)
+            .get_zk_nyms_available_for_download(&self.account_id, &self.device)
             .await
             .map(|response| {
                 response
@@ -380,7 +379,7 @@ impl CredentialRequestTask {
 
             let poll_response = self
                 .vpn_api_client
-                .get_zk_nym_by_id(&self.account, &self.device, id)
+                .get_zk_nym_by_id(&self.account_id, &self.device, id)
                 .await
                 .map_err(VpnApiFetcherError::vpn_api_error("polling_zk_nym"))?;
 
@@ -492,11 +491,7 @@ impl CredentialRequestTask {
         request_info: &RequestInfo,
     ) -> Result<IssuedTicketBook, VpnApiFetcherError> {
         tracing::trace!("Unblinding and aggregating zk-nym shares");
-
-        let ecash_keypair = self
-            .account
-            .create_ecash_keypair()
-            .map_err(|err| VpnApiFetcherError::CreateEcashKeyPair(err.to_string()))?;
+        let ecash_keypair = self.ecash_keypair.clone();
 
         tracing::trace!("Setting up decoded keys");
         let mut decoded_keys = HashMap::new();

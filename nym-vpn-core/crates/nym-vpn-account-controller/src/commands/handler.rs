@@ -14,7 +14,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnApiError,
 };
 use nym_vpn_store::{
-    device_state::{DeviceAccount, DeviceState},
+    device_state::{StoredAccountIdentity, StoredDeviceState},
     keys::wireguard::WireguardKeyStore,
 };
 
@@ -51,7 +51,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
 ) -> Result<(), AccountCommandError> {
-    let device_account = DeviceAccount::new(account.mnemonic.clone(), account.mode)
+    let device_account = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
@@ -74,8 +74,8 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.device_state = DeviceState::LoggedIn {
-        account: device_account,
+    shared_state.device_state = StoredDeviceState::LoggedIn {
+        account_identity: device_account,
         summary: None,
     };
     shared_state.device = Some(device);
@@ -89,7 +89,7 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
 ) -> Result<(), AccountCommandError> {
     let (vpn_account, mnemonic) =
         VpnAccount::generate_new().map_err(AccountCommandError::internal)?;
-    let device_account = DeviceAccount::new(
+    let device_account = StoredAccountIdentity::new(
         mnemonic.clone(),
         StoredAccountMode::from(vpn_account.mode()),
     )
@@ -108,8 +108,8 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.device_state = DeviceState::LoggedIn {
-        account: device_account,
+    shared_state.device_state = StoredDeviceState::LoggedIn {
+        account_identity: device_account,
         summary: None,
     };
     shared_state.device = Some(device);
@@ -232,7 +232,7 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
 
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.device = None;
-    shared_state.device_state = DeviceState::LoggedOut;
+    shared_state.device_state = StoredDeviceState::LoggedOut;
     shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {

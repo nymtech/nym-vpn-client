@@ -6,7 +6,7 @@ use nym_vpn_api_client::types::{Device, VpnAccount, VpnAccountMode};
 use nym_vpn_lib_types::StorableAccount;
 use nym_vpn_store::{
     VpnStorage,
-    device_state::{DeviceAccount, DeviceState},
+    device_state::{StoredAccountIdentity, StoredDeviceState},
     mnemonic::StoredMnemonic,
 };
 
@@ -27,11 +27,9 @@ where
     }
 
     pub async fn store_account(&self, account: StorableAccount) -> Result<(), Error> {
-        let device_account =
-            DeviceAccount::new(account.mnemonic.clone(), account.mode).map_err(|err| {
-                Error::AccountStore {
-                    source: Box::new(err),
-                }
+        let device_account = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
+            .map_err(|err| Error::AccountStore {
+                source: Box::new(err),
             })?;
 
         self.storage
@@ -44,8 +42,8 @@ where
             })?;
 
         self.storage
-            .store_device_state(DeviceState::LoggedIn {
-                account: device_account,
+            .store_device_state(StoredDeviceState::LoggedIn {
+                account_identity: device_account,
                 summary: None,
             })
             .await
@@ -63,7 +61,7 @@ where
             })
     }
 
-    pub async fn load_device_state(&self) -> Result<DeviceState, Error> {
+    pub async fn load_device_state(&self) -> Result<StoredDeviceState, Error> {
         self.storage
             .load_device_state()
             .await
@@ -76,8 +74,8 @@ where
         let device_state = self.load_device_state().await?;
 
         Ok(match device_state {
-            DeviceState::LoggedIn {
-                account,
+            StoredDeviceState::LoggedIn {
+                account_identity: account,
                 summary: _,
             } => self.load_mnemonic().await.and_then(|mnemonic| {
                 mnemonic
@@ -90,7 +88,7 @@ where
                     })
                     .transpose()
             })?,
-            DeviceState::LoggedOut => None,
+            StoredDeviceState::LoggedOut => None,
         })
     }
 
@@ -145,7 +143,7 @@ where
             })
     }
 
-    pub async fn store_device_state(&self, device_state: DeviceState) -> Result<(), Error> {
+    pub async fn store_device_state(&self, device_state: StoredDeviceState) -> Result<(), Error> {
         self.storage
             .store_device_state(device_state)
             .await
@@ -188,13 +186,13 @@ where
         let device_state = self.load_device_state().await?;
 
         match device_state {
-            DeviceState::LoggedIn {
-                account,
+            StoredDeviceState::LoggedIn {
+                account_identity: account,
                 summary: _,
             } => self.load_mnemonic().await.map(|stored_mnemonic| {
                 stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, account.mode))
             }),
-            DeviceState::LoggedOut => Ok(None),
+            StoredDeviceState::LoggedOut => Ok(None),
         }
     }
 
@@ -225,5 +223,5 @@ pub(crate) enum AccountStorageOp {
     StoreAccount(ReturnSender<Device, Error>, StorableAccount),
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
-    StoreDeviceState(ReturnSender<(), Error>, DeviceState),
+    StoreDeviceState(ReturnSender<(), Error>, StoredDeviceState),
 }

@@ -15,7 +15,7 @@ use nym_vpn_store::store_ciphers::secure_enclave_cipher::{
 };
 use nym_vpn_store::{
     device_state::{
-        DeviceState, DeviceStateStorage,
+        StoredDeviceState, DeviceStateStorage,
         on_disk::{OnDiskDeviceStateStorage, OnDiskDeviceStateStorageError},
     },
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError},
@@ -141,11 +141,11 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
 impl DeviceStateStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskDeviceStateStorageError;
 
-    async fn load_device_state(&self) -> Result<DeviceState, Self::StorageError> {
+    async fn load_device_state(&self) -> Result<StoredDeviceState, Self::StorageError> {
         self.device_state_storage.load_device_state().await
     }
 
-    async fn store_device_state(&self, state: DeviceState) -> Result<(), Self::StorageError> {
+    async fn store_device_state(&self, state: StoredDeviceState) -> Result<(), Self::StorageError> {
         self.device_state_storage.store_device_state(state).await
     }
 

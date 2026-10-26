@@ -101,7 +101,7 @@ async fn account_summary_with_device_round_trips_data_unavailable() {
     );
 
     let summary: NymVpnAccountSummaryWithDeviceResponse = client
-        .get_account_summary_with_device(&account, &device)
+        .get_account_summary_with_device(&account.id(), &device)
         .await
         .expect("get_account_summary_with_device");
 

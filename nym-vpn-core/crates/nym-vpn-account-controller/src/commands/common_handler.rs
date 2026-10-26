@@ -10,7 +10,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode,
     VpnAccountSummary,
 };
-use nym_vpn_store::device_state::DeviceState;
+use nym_vpn_store::device_state::StoredDeviceState;
 
 use crate::{
     SharedAccountState,
@@ -232,11 +232,11 @@ pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
     Ok(match &shared_state.device_state {
-        DeviceState::LoggedIn {
+        StoredDeviceState::LoggedIn {
             summary: account_summary,
             ..
         } => account_summary.clone(),
-        DeviceState::LoggedOut => None,
+        StoredDeviceState::LoggedOut => None,
     })
 }
 
