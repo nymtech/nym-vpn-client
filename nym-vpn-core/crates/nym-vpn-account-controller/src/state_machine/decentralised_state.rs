@@ -81,7 +81,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                          match common_command {
                             CommonCommand::GetStoredAccount(return_sender) => return_sender.send(common_handler::handle_get_stored_account(shared_state).await),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_decentralised(return_sender),
-                            CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_account_identity(shared_state)),
+                            CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_account_identity(shared_state).await),
                             CommonCommand::GetCanonicalAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_canonical_account_identity(shared_state).await),
                             CommonCommand::GetAccountMode(return_sender) => return_sender.send(common_handler::handle_get_account_mode(shared_state)),
                             CommonCommand::GetUsage(return_sender) => return_decentralised(return_sender),

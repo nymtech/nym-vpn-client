@@ -33,7 +33,8 @@ sqlx = { workspace = true, features = [
 ] }
 thiserror.workspace = true
 time = { workspace = true, features = ["serde"] }
-tokio = { workspace = true, features = ["sync", "fs"] }
+tokio = { workspace = true, features = ["sync", "fs", "rt"] }
+tokio-util = { workspace = true, features = ["io-util"] }
 tracing.workspace = true
 zeroize.workspace = true
 
@@ -57,3 +58,4 @@ anyhow = { workspace = true }
 bip39 = { workspace = true, features = ["rand"] }
 tempfile.workspace = true
 tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread"] }
+tracing-test.workspace = true

@@ -4,21 +4,18 @@
 use nym_bandwidth_controller::{AvailableTicketbooks, requests::BandwidthControllerRequestSender};
 use nym_bandwidth_fetcher::NyxdCredentialFetcher;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{Device, VpnAccount},
-};
+use nym_vpn_api_client::{VpnApiClient, types::Device};
 use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+use nym_vpn_store::{device_state::DeviceState, keys::wireguard::WireguardKeysDb};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountControllerConfig, AccountControllerEventSender, deeplink::Deeplinks,
-    nyxd_client::NyxdClient, storage::AccountStorageOp,
+    AccountControllerConfig, AccountControllerEventSender, commands::ReturnSender,
+    deeplink::Deeplinks, nyxd_client::NyxdClient, storage::AccountStorageOp,
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -42,13 +39,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Nyxd RPC client
     pub(crate) nyxd_client: NyxdClient,
 
-    /// Stored account
-    pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
-
-    /// Account summary. The persistent copy lives in the platform storage (see
-    /// [`AccountSummaryStorage`](nym_vpn_store::account_summary::AccountSummaryStorage)); this is the
-    /// in-memory working copy, kept in sync via the storage-op channel.
-    pub(crate) vpn_account_summary: Option<VpnAccountSummary>,
+    /// Current device state
+    /// Includes metadata such as account summary when available.
+    pub(crate) device_state: DeviceState,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -82,15 +75,12 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         wireguard_keys_storage: WireguardKeysDb,
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
-        vpn_api_account: Option<VpnAccount>,
-        vpn_account_summary: Option<VpnAccountSummary>,
+        device_state: DeviceState,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
         cancel_token: CancellationToken,
     ) -> Self {
-        let deeplinks = Deeplinks::default();
-
         Self {
             connectivity_handle,
             bandwidth_control_command_tx,
@@ -98,10 +88,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             wireguard_keys_storage,
             vpn_api_client,
             nyxd_client,
-            vpn_api_account: vpn_api_account.map(Arc::new),
-            vpn_account_summary,
+            device_state,
             device,
-            deeplinks,
+            deeplinks: Deeplinks::default(),
             firewall_active: false,
             current_credential_fetcher: CredentialFetcherInUse::None,
             storage_op_sender,
@@ -260,25 +249,56 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
     }
 
     // Mark the summary as stale and best effort to propagate to disk
-    pub(crate) fn mark_summary_as_stale(&mut self) {
-        if let Some(summary) = self.vpn_account_summary.as_mut() {
-            summary.stale = true;
-            let _ = self
-                .storage_op_sender
-                .send(AccountStorageOp::StoreAccountSummary(Box::new(
-                    summary.clone(),
-                )));
+    pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<(), AccountCommandError> {
+        match &mut self.device_state {
+            DeviceState::LoggedIn {
+                account_summary, ..
+            } => {
+                if let Some(account_summary) = account_summary {
+                    account_summary.stale = true;
+
+                    let (tx, rx) = ReturnSender::new();
+                    self.storage_op_sender
+                        .send(AccountStorageOp::StoreDeviceState(
+                            tx,
+                            self.device_state.clone(),
+                        ))
+                        .map_err(AccountCommandError::internal)?;
+
+                    let res = rx.await.map_err(AccountCommandError::internal)?;
+                    Ok(res.unwrap()) // FIXME
+                } else {
+                    Err(AccountCommandError::internal("Device is logged out"))
+                }
+            }
+            DeviceState::LoggedOut => Err(AccountCommandError::internal("Device is logged out")),
         }
     }
 
     // Store the account summary in memory and best effort to propagate to disk
-    pub(crate) fn store_summary(&mut self, summary: VpnAccountSummary) {
-        let _ = self
-            .storage_op_sender
-            .send(AccountStorageOp::StoreAccountSummary(Box::new(
-                summary.clone(),
-            )));
-        self.vpn_account_summary = Some(summary);
+    pub(crate) async fn store_summary(
+        &mut self,
+        new_account_summary: VpnAccountSummary,
+    ) -> Result<(), AccountCommandError> {
+        match &mut self.device_state {
+            DeviceState::LoggedIn {
+                account_summary, ..
+            } => {
+                account_summary.replace(new_account_summary);
+
+                let (tx, rx) = ReturnSender::new();
+                self.storage_op_sender
+                    .send(AccountStorageOp::StoreDeviceState(
+                        tx,
+                        self.device_state.clone(),
+                    ))
+                    .map_err(AccountCommandError::internal)?;
+
+                let res = rx.await.map_err(AccountCommandError::internal)?;
+                Ok(res.unwrap()) // FIXME
+            }
+            DeviceState::LoggedOut => Err(AccountCommandError::internal("Device is logged out")),
+        }
     }
 }
 

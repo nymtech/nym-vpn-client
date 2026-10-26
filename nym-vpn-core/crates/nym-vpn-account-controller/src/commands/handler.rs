@@ -13,7 +13,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, RegisterAccountResponse, StorableAccount, VpnApiError,
 };
-use nym_vpn_store::keys::wireguard::WireguardKeyStore;
+use nym_vpn_store::{device_state::DeviceState, keys::wireguard::WireguardKeyStore};
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
@@ -214,16 +214,9 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
             AccountCommandError::Storage(source.to_string())
         })?; // Handling account removal error
 
-    // Removing account summary
-    shared_state
-        .storage_op_sender
-        .send(AccountStorageOp::RemoveAccountSummary)
-        .map_err(AccountCommandError::internal)?;
-
     // Once we have removed or reset all storage, we need to reset the account state
-    shared_state.vpn_api_account = None;
     shared_state.device = None;
-    shared_state.vpn_account_summary = None;
+    shared_state.device_state = DeviceState::LoggedOut;
     shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {

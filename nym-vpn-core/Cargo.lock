@@ -8141,7 +8141,9 @@ dependencies = [
  "thiserror 2.0.20",
  "time",
  "tokio",
+ "tokio-util",
  "tracing",
+ "tracing-test",
  "zeroize",
 ]
 

@@ -14,8 +14,9 @@ use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    account::{AccountInformationStorage, ephemeral::InMemoryAccountStorageError},
+    device_state::DeviceState,
     keys::device::{DeviceKeyStore, DeviceKeys},
+    mnemonic::{MnemonicStorage, StoredMnemonic, ephemeral::InMemoryMnemonicStorageError},
 };
 use wiremock::{Mock, MockServer};
 
@@ -111,8 +112,8 @@ impl ConnectivityMonitor for MockConnectivityHandle {
 #[derive(Default)]
 pub struct MockEphemeralStorage {
     key_store: nym_vpn_store::keys::device::InMemEphemeralKeys,
-    mnemonic_storage: nym_vpn_store::account::ephemeral::InMemoryAccountStorage,
-    summary_storage: nym_vpn_store::account_summary::ephemeral::InMemoryAccountSummaryStorage,
+    mnemonic_storage: nym_vpn_store::mnemonic::ephemeral::InMemoryMnemonicStorage,
+    device_state_storage: nym_vpn_store::device_state::ephemeral::InMemoryDeviceStateStorage,
 }
 
 impl nym_vpn_store::VpnStorage for MockEphemeralStorage {}
@@ -143,41 +144,45 @@ impl DeviceKeyStore for MockEphemeralStorage {
 }
 
 #[async_trait::async_trait]
-impl AccountInformationStorage for MockEphemeralStorage {
-    type StorageError = InMemoryAccountStorageError;
+impl MnemonicStorage for MockEphemeralStorage {
+    type StorageError = InMemoryMnemonicStorageError;
 
-    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError> {
-        self.mnemonic_storage.load_account().await
+    async fn load_mnemonic(&self) -> Result<Option<StoredMnemonic>, Self::StorageError> {
+        self.mnemonic_storage.load_mnemonic().await
     }
 
-    async fn store_account(&self, account: StorableAccount) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.store_account(account).await
+    async fn store_mnemonic(&self, mnemonic: StoredMnemonic) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.store_mnemonic(mnemonic).await
     }
 
-    async fn remove_account(&self) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.remove_account().await
+    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.remove_mnemonic().await
+    }
+
+    async fn is_mnemonic_stored(&self) -> Result<bool, Self::StorageError> {
+        self.mnemonic_storage.is_mnemonic_stored().await
     }
 }
 
 #[async_trait::async_trait]
-impl nym_vpn_store::account_summary::AccountSummaryStorage for MockEphemeralStorage {
+impl nym_vpn_store::device_state::DeviceStateStorage for MockEphemeralStorage {
     type StorageError = std::convert::Infallible;
 
-    async fn load_summary(
-        &self,
-    ) -> Result<Option<nym_vpn_lib_types::VpnAccountSummary>, Self::StorageError> {
-        self.summary_storage.load_summary().await
+    async fn load_device_state(&self) -> Result<DeviceState, Self::StorageError> {
+        self.device_state_storage.load_device_state().await
     }
 
-    async fn store_summary(
+    async fn store_device_state(
         &self,
-        account: nym_vpn_lib_types::VpnAccountSummary,
+        device_state: DeviceState,
     ) -> Result<(), Self::StorageError> {
-        self.summary_storage.store_summary(account).await
+        self.device_state_storage
+            .store_device_state(device_state)
+            .await
     }
 
-    async fn remove_summary(&self) -> Result<(), Self::StorageError> {
-        self.summary_storage.remove_summary().await
+    async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
+        self.device_state_storage.remove_device_state().await
     }
 }
 

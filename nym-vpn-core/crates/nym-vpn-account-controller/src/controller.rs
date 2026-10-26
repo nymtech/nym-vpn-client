@@ -89,25 +89,11 @@ where
         let account_storage = AccountStorage::from(storage);
 
         // Load remaining state that may fail
-        let vpn_api_account = account_storage.load_vpn_account().await?;
+        let device_state = account_storage.load_device_state().await?;
+        // todo: log out on failure to load device state?
+
         let device_keys = account_storage.load_device_keys().await?;
         let wireguard_keys_storage = WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
-
-        // Load the cached account summary (if any) so it is available before the first network
-        // sync completes. A read failure is non-critical - treat it as no cache.
-        let cached_account_summary = if vpn_api_account.is_some() {
-            account_storage
-                .load_account_summary()
-                .await
-                .unwrap_or_else(|err| {
-                    tracing::warn!("Failed to load cached account summary: {err}");
-                    None
-                })
-        } else {
-            // If we don't have an account stored, make sure we don't have a summary either
-            let _ = account_storage.remove_account_summary().await;
-            None
-        };
 
         // Shared_state
         let mut shared_state = SharedAccountState::new(
@@ -117,8 +103,7 @@ where
             wireguard_keys_storage,
             nym_vpn_api_client,
             nyxd_client,
-            vpn_api_account,
-            cached_account_summary,
+            device_state,
             device_keys,
             storage_op_sender,
             event_channel,
@@ -173,13 +158,6 @@ where
     }
 
     fn print_info(&self) {
-        let account_id = self
-            .shared_state
-            .vpn_api_account
-            .as_ref()
-            .map(|account| account.id())
-            .unwrap_or_else(|| "(unset)".to_string());
-
         let device_id = self
             .shared_state
             .device
@@ -188,7 +166,7 @@ where
             .unwrap_or_else(|| "(unset)".to_string());
 
         // keep account and device identifiers off info
-        tracing::trace!("Account id: {account_id}");
+        tracing::trace!("Device state: {:?}", self.shared_state.device_state);
         tracing::trace!("Device id: {device_id}");
     }
 

@@ -7,32 +7,39 @@ use std::sync::Arc;
 
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
 use nym_secure_enclave::SecureEnclave;
-use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
-use nym_vpn_store::ciphers::noop_cipher::NoopStoreCipher;
+use nym_vpn_store::store_ciphers::noop_cipher::NoopStoreCipher;
 #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-use nym_vpn_store::ciphers::secure_enclave_cipher::{
+use nym_vpn_store::store_ciphers::secure_enclave_cipher::{
     SecureEnclaveCipher, SecureEnclaveCipherOptions,
 };
 use nym_vpn_store::{
-    account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
-    account_summary::{AccountSummaryStorage, on_disk::OnDiskAccountSummaryStorageError},
-    keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
+    device_state::{
+        DeviceState, DeviceStateStorage,
+        on_disk::{OnDiskDeviceStateStorage, OnDiskDeviceStateStorageError},
+    },
+    keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError},
+    mnemonic::{
+        MnemonicStorage, StoredMnemonic,
+        on_disk::{OnDiskMnemonicStorage, OnDiskMnemonicStorageError},
+    },
 };
 
-const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
-const ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
+const MNEMONIC_FILE_NAME: &str = "mnemonic.bin";
+const DEVICE_STATE_FILE_NAME: &str = "device_state.bin";
 
+/// Key used for mnemonic encryption (checked user presence)
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
 const MNEMONIC_SE_KEY: &str = "mnemonic-key";
 
+/// Key used for encryption of all other files (unattended)
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
 const DEVICE_SE_KEY: &str = "device-key";
 
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
-    account_storage: nym_vpn_store::account::on_disk::OnDiskAccountStorage,
-    summary_storage: nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorage,
+    mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
+    device_state_storage: nym_vpn_store::device_state::on_disk::OnDiskDeviceStateStorage,
 }
 
 impl VpnClientOnDiskStorage {
@@ -42,37 +49,42 @@ impl VpnClientOnDiskStorage {
         secure_enclave: Arc<SecureEnclave>,
     ) -> Self {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
-        let key_store = nym_vpn_store::keys::device::OnDiskKeys::new(device_key_paths);
+        let key_store = OnDiskKeys::new(device_key_paths);
 
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
 
         #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
         let mnemonic_storage_cipher = SecureEnclaveCipher::new(
-            secure_enclave,
+            secure_enclave.clone(),
             SecureEnclaveCipherOptions {
                 key_alias: MNEMONIC_SE_KEY.to_owned(),
                 user_presence: true,
             },
         );
-
         #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
         let mnemonic_storage_cipher = NoopStoreCipher::default();
+        let mnemonic_storage =
+            OnDiskMnemonicStorage::new(mnemonic_storage_path, mnemonic_storage_cipher);
 
-        let mnemonic_storage = nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(
-            mnemonic_storage_path,
-            mnemonic_storage_cipher,
+        #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]
+        let device_state_storage_cipher = NoopStoreCipher::default();
+        #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+        let device_state_storage_cipher = SecureEnclaveCipher::new(
+            secure_enclave,
+            SecureEnclaveCipherOptions {
+                key_alias: DEVICE_SE_KEY.to_owned(),
+                user_presence: false,
+            },
         );
 
-        let summary_storage_path = base_data_directory.as_ref().join(ACCOUNT_SUMMARY_FILE_NAME);
-        let summary_storage =
-            nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorage::new(
-                summary_storage_path,
-            );
+        let device_state_storage_path = base_data_directory.as_ref().join(DEVICE_STATE_FILE_NAME);
+        let device_state_storage =
+            OnDiskDeviceStateStorage::new(device_state_storage_path, device_state_storage_cipher);
 
         VpnClientOnDiskStorage {
             key_store,
-            account_storage: mnemonic_storage,
-            summary_storage,
+            mnemonic_storage,
+            device_state_storage,
         }
     }
 }
@@ -105,35 +117,39 @@ impl DeviceKeyStore for VpnClientOnDiskStorage {
 }
 
 #[async_trait::async_trait]
-impl AccountInformationStorage for VpnClientOnDiskStorage {
+impl MnemonicStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskMnemonicStorageError;
 
-    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError> {
-        self.account_storage.load_account().await
+    async fn load_mnemonic(&self) -> Result<Option<StoredMnemonic>, Self::StorageError> {
+        self.mnemonic_storage.load_mnemonic().await
     }
 
-    async fn store_account(&self, account: StorableAccount) -> Result<(), Self::StorageError> {
-        self.account_storage.store_account(account).await
+    async fn store_mnemonic(&self, mnemonic: StoredMnemonic) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.store_mnemonic(mnemonic).await
     }
 
-    async fn remove_account(&self) -> Result<(), Self::StorageError> {
-        self.account_storage.remove_account().await
+    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.remove_mnemonic().await
+    }
+
+    async fn is_mnemonic_stored(&self) -> Result<bool, Self::StorageError> {
+        self.mnemonic_storage.is_mnemonic_stored().await
     }
 }
 
 #[async_trait::async_trait]
-impl AccountSummaryStorage for VpnClientOnDiskStorage {
-    type StorageError = OnDiskAccountSummaryStorageError;
+impl DeviceStateStorage for VpnClientOnDiskStorage {
+    type StorageError = OnDiskDeviceStateStorageError;
 
-    async fn load_summary(&self) -> Result<Option<VpnAccountSummary>, Self::StorageError> {
-        self.summary_storage.load_summary().await
+    async fn load_device_state(&self) -> Result<DeviceState, Self::StorageError> {
+        self.device_state_storage.load_device_state().await
     }
 
-    async fn store_summary(&self, account: VpnAccountSummary) -> Result<(), Self::StorageError> {
-        self.summary_storage.store_summary(account).await
+    async fn store_device_state(&self, state: DeviceState) -> Result<(), Self::StorageError> {
+        self.device_state_storage.store_device_state(state).await
     }
 
-    async fn remove_summary(&self) -> Result<(), Self::StorageError> {
-        self.summary_storage.remove_summary().await
+    async fn remove_device_state(&self) -> Result<(), Self::StorageError> {
+        self.device_state_storage.remove_device_state().await
     }
 }

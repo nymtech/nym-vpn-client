@@ -13,6 +13,7 @@ use crate::{
     },
 };
 use futures::{FutureExt, future::Fuse};
+use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -21,8 +22,9 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
+    AccountCommandError, AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary,
 };
+use nym_vpn_store::device_state::DeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -70,12 +72,19 @@ impl SyncingNetworkState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
-            return LoggedOutState::enter(shared_state).await;
-        };
-        if vpn_api_account.mode().is_decentralised() {
-            return DecentralisedState::enter();
+        match shared_state.device_state {
+            DeviceState::LoggedIn {
+                mode,
+                account_summary,
+            } if mode == StoredAccountMode::Decentralised => {
+                return DecentralisedState::enter();
+            }
+            DeviceState::LoggedOut => {
+                return LoggedOutState::enter(shared_state).await;
+            }
+            DeviceState::LoggedIn { .. } => {}
         }
+
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
                 shared_state,
@@ -90,7 +99,7 @@ impl SyncingNetworkState {
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
         // Use the provided sync mode unless there is no cache
-        let sync_mode = if shared_state.vpn_account_summary.is_none() {
+        let sync_mode = if shared_state.device_state.account_summary().is_none() {
             SyncMode::Mandatory
         } else {
             sync_mode
@@ -200,7 +209,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                     Ok(Ok(Some(response))) => {
                         // The summary is stored (and propagated to disk) even if the subsequent
                         // local checks eventually fail.
-                        shared_state.store_summary(response);
+                        if let Err(err) = shared_state.store_summary(response).await {
+                            trace_err_chain!(err, "failed to store account summary");
+                        }
                         NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state).await)
 
                     }
