@@ -63,6 +63,7 @@ const featureFlags: FeatureFlags = {
   quic: true,
   domainFronting: true,
   zknymCredential: true,
+  bridgeTransports: true,
 };
 
 /**

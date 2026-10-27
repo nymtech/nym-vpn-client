@@ -182,6 +182,7 @@
       "label": "Enhanced connection (QUIC)",
       "warning": "Changes will apply after reconnect",
       "content": "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).",
+      "bridges": "Tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.",
       "link": "Learn more",
       "error": "Failed to enable QUIC"
     },

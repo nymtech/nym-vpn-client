@@ -41,6 +41,16 @@ pub struct MixnetData {
 pub struct BridgeAddress {
     pub listen_addr: String,
     pub remote_addr: String,
+    pub transport: Option<BridgeTransport>,
+}
+
+#[derive(Serialize, Clone, Copy, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum BridgeTransport {
+    Quic,
+    Tls,
+    Ssh,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -193,6 +203,17 @@ impl From<lib::BridgeAddress> for BridgeAddress {
         BridgeAddress {
             listen_addr: addr.listen_addr.to_string(),
             remote_addr: addr.remote_addr.to_string(),
+            transport: addr.transport.map(BridgeTransport::from),
+        }
+    }
+}
+
+impl From<lib::BridgeTransport> for BridgeTransport {
+    fn from(transport: lib::BridgeTransport) -> Self {
+        match transport {
+            lib::BridgeTransport::Quic => BridgeTransport::Quic,
+            lib::BridgeTransport::Tls => BridgeTransport::Tls,
+            lib::BridgeTransport::Ssh => BridgeTransport::Ssh,
         }
     }
 }

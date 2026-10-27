@@ -24,6 +24,7 @@ import {
   isGateway,
   isRegion,
   isSafestAuto,
+  isWireguardData,
 } from '../../types';
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
@@ -135,13 +136,18 @@ export function NodeRow({ type }: NodeRowProps) {
     type === 'entry' &&
     (isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel));
 
+  const bridgeTransport =
+    type === 'entry' && tunnel && isWireguardData(tunnel.data)
+      ? tunnel.data.entryBridgeAddr?.transport
+      : null;
+
   const gwFlags = useCallback(
     (gw: Gateway | null) => ({
-      showQuic: Boolean(quicTag && gw?.quic),
+      showQuic: Boolean(quicTag && (bridgeTransport || gw?.quic)),
       showStreamOptimized: type === 'exit' && gw?.asn?.type === 'residential',
       score: gw?.type === 'wg' ? gw?.wgScore : gw?.mxScore,
     }),
-    [quicTag, type],
+    [quicTag, bridgeTransport, type],
   );
 
   const getLocationInfo = useCallback(
@@ -396,7 +402,7 @@ export function NodeRow({ type }: NodeRowProps) {
             <div className="flex flex-row items-center justify-center gap-3">
               {nodeDetails.showQuic && (
                 <div>
-                  <QuicTag />
+                  <QuicTag label={bridgeTransport?.toUpperCase()} />
                 </div>
               )}
               {nodeDetails.showStreamOptimized && (

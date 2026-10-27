@@ -30,7 +30,13 @@ export type AsnType = 'other' | 'residential';
 
 export type BackgroundCoverTrafficRate = { value: number; multiplier: string };
 
-export type BridgeAddress = { listenAddr: string; remoteAddr: string };
+export type BridgeAddress = {
+  listenAddr: string;
+  remoteAddr: string;
+  transport: BridgeTransport | null;
+};
+
+export type BridgeTransport = 'quic' | 'tls' | 'ssh';
 
 export type Cli = {
   /**
@@ -153,6 +159,7 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
+  bridgeTransports: boolean;
 };
 
 export type FrontingMode = 'off' | 'onRetry' | 'always';
