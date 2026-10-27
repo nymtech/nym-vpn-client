@@ -82,6 +82,11 @@ function AntiCensorship() {
             <p className="text-text-secondary text-sm whitespace-pre-line">
               {t('anti-censorship.quic.content')}
             </p>
+            {backendFlags.bridgeTransports && (
+              <p className="text-text-secondary text-sm">
+                {t('anti-censorship.quic.bridges')}
+              </p>
+            )}
             <Link
               className="mt-2 w-fit text-sm"
               text={t('anti-censorship.quic.link')}
