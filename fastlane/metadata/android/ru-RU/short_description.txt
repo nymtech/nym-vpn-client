@@ -1,1 +1,1 @@
-Швейцарский dVPN с WireGuard, Mixnet, децентрализованный прокси, без e-mail.
+Швейцарский dVPN: WireGuard, Mixnet, децентрализованный прокси, без e-mail.
