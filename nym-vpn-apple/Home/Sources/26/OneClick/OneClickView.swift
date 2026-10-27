@@ -82,6 +82,16 @@ private extension OneClickView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
+            if let bridgeTransport = viewModel.bridgeTransport {
+                HStack {
+                    Text("oneClick.bridge.label".localizedString)
+                    Spacer()
+                    Text(verbatim: bridgeTransport)
+                }
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .padding(.top, NymSpacing.medium)
+            }
             connectDivider
             connectButton
         }

@@ -2,12 +2,14 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import Constants
+import FeatureFlagsManager
 import UIComponents
 import Theme
 
 public struct CensorshipView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
+    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
 
     public var body: some View {
@@ -83,7 +85,10 @@ private extension CensorshipView {
 
     func quicMultilineText() -> AttributedString? {
         let first = "censorship.quic.subtitle1".localizedString
-        let second = "censorship.quic.subtitle2".localizedString
+        var second = "censorship.quic.subtitle2".localizedString
+        if featureFlagsManager.isBridgeTransportsEnabled {
+            second += "\n\n" + "censorship.quic.fallback".localizedString
+        }
         let link = Constants.quicURL.rawValue
         let linkText = "censorship.quic.link".localizedString
         let markdown = """
