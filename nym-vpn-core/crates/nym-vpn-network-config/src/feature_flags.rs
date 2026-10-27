@@ -62,6 +62,11 @@ impl FeatureFlags {
     pub fn privy_enabled(&self) -> Option<bool> {
         self.get_group_flag("privy", "enabled")
     }
+
+    /// If bridges may fall back from QUIC to TLS and SSH, if set
+    pub fn bridge_transports_enabled(&self) -> Option<bool> {
+        self.get_group_flag("bridge_transports", "enabled")
+    }
 }
 
 impl From<HashMap<String, FlagValue>> for FeatureFlags {
