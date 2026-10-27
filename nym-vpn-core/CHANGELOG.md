@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Use local bandwidth counting as primary and only refresh on network calls (https://github.com/nymtech/nym-vpn-client/pull/6803)
+
 ## [2026.14.0] - TBD
 
 ### Added
