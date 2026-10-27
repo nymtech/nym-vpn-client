@@ -6348,9 +6348,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bridges-types"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0136a0ddee1f6901cb76afa99559a2636bfe89259a770f991d786014b90a2727"
+version = "0.2.3-rc.1"
+source = "git+https://github.com/nymtech/nym-bridges?rev=7de98e117475dca61d0d5628a8274f67a25c14df#7de98e117475dca61d0d5628a8274f67a25c14df"
 dependencies = [
  "serde",
  "uniffi",

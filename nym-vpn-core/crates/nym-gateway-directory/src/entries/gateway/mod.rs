@@ -320,7 +320,7 @@ impl Gateway {
     pub fn get_bridge_params(&self) -> Option<BridgeParameters> {
         if let Some(all_params) = &self.bridge_params {
             all_params
-                .transports
+                .advertised()
                 .iter()
                 .find(|t| matches!(t, BridgeParameters::QuicPlain(_)))
                 .cloned()
