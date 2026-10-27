@@ -1,0 +1,113 @@
+# Open a release PR on https://github.com/flathub/net.nymtech.NymVPN
+#
+# The Flathub manifest pins the Linux release binary and the metainfo.xml at a
+# commit on develop. That commit only exists once the `tauri: post release vX`
+# PR (opened by tauri-post-release.yml) is merged, so this runs on that merge.
+
+name: publish-flathub-nym-vpn-app
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "App version whose post-release PR is already merged, eg. 2026.13.0"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FLATHUB_REPO: flathub/net.nymtech.NymVPN
+
+jobs:
+  flathub-pr:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       startsWith(github.event.pull_request.head.ref, 'tauri_postrel_'))
+    runs-on: arc-linux-latest
+    steps:
+      - name: Resolve version, tag and metainfo commit
+        id: rel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          INPUT_VERSION: ${{ inputs.version }}
+          PR_VERSION: ${{ github.event.pull_request.head.ref }}
+          PR_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$INPUT_VERSION" ]]; then
+            version="$INPUT_VERSION"
+            sha=$(gh pr list --state merged --head "tauri_postrel_${version}" --json mergeCommit --jq '.[0].mergeCommit.oid')
+            [[ -n "$sha" ]] || { echo "::error:: no merged post-release PR for ${version}"; exit 1; }
+          else
+            version="${PR_VERSION#tauri_postrel_}"
+            sha="$PR_SHA"
+          fi
+          [[ "$version" != *-* ]] || { echo "::error:: ${version} is not a release version"; exit 1; }
+          tag="nym-vpn-v${version}"
+          bin="nym-vpn_${version}_linux_x64"
+          bin_sha=$(gh release download "$tag" --pattern checksums.txt -O - | awk -v f="$bin" '$2==f{print $1}')
+          [[ -n "$bin_sha" ]] || { echo "::error:: ${bin} missing from ${tag} checksums.txt"; exit 1; }
+          meta_url="https://raw.githubusercontent.com/${GH_REPO}/${sha}/nym-vpn-app/.pkg/flatpak/net.nymtech.NymVPN.metainfo.xml"
+          meta_sha=$(curl -fsSL "$meta_url" | sha256sum | cut -d' ' -f1)
+          {
+            echo "version=${version}"
+            echo "bin_url=https://github.com/${GH_REPO}/releases/download/${tag}/${bin}"
+            echo "bin_sha=${bin_sha}"
+            echo "meta_url=${meta_url}"
+            echo "meta_sha=${meta_sha}"
+          } | tee -a "$GITHUB_OUTPUT"
+
+      - name: Checkout Flathub repo
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: ${{ env.FLATHUB_REPO }}
+          token: ${{ secrets.MACHINE_USER_PAT }}
+          fetch-depth: 1
+
+      - name: Update manifest
+        env:
+          BIN_URL: ${{ steps.rel.outputs.bin_url }}
+          BIN_SHA: ${{ steps.rel.outputs.bin_sha }}
+          META_URL: ${{ steps.rel.outputs.meta_url }}
+          META_SHA: ${{ steps.rel.outputs.meta_sha }}
+        run: |
+          set -euo pipefail
+          # each pinned source is a `url:` line directly followed by its `sha256:` line
+          sed -i -E \
+            -e "\|/releases/download/.*_linux_x64\$|{s|url: .*|url: ${BIN_URL}|;n;s|sha256: .*|sha256: ${BIN_SHA}|;}" \
+            -e "\|/net\.nymtech\.NymVPN\.metainfo\.xml\$|{s|url: .*|url: ${META_URL}|;n;s|sha256: .*|sha256: ${META_SHA}|;}" \
+            net.nymtech.NymVPN.yml
+          grep -q "sha256: ${BIN_SHA}" net.nymtech.NymVPN.yml
+          grep -q "sha256: ${META_SHA}" net.nymtech.NymVPN.yml
+          git diff
+
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.MACHINE_USER_PAT }}
+          GH_REPO: ${{ env.FLATHUB_REPO }}
+          USER: ${{ secrets.MACHINE_USER_NAME }}
+          GIT_BRANCH: release_${{ steps.rel.outputs.version }}
+          TITLE: Release v${{ steps.rel.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "::notice:: manifest already up to date, nothing to do"
+            exit 0
+          fi
+          git config user.name "$USER"
+          git config user.email "${USER}@users.noreply.github.com"
+          git switch -C "$GIT_BRANCH"
+          git commit -am "$TITLE"
+          git push --force origin "$GIT_BRANCH"
+          if [[ "$(gh pr list --head "$GIT_BRANCH" --json number --jq 'length')" == "0" ]]; then
+            gh pr create --title "$TITLE" --body "" --base master --head "$GIT_BRANCH" --reviewer agentpietrucha
+          else
+            echo "PR already exists for branch ${GIT_BRANCH}, skipping"
+          fi
