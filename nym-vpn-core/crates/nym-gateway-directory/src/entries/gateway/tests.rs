@@ -159,6 +159,28 @@ fn test_matching_quic_enabled() {
                     id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
                 },
             )],
+            transports_v2: vec![],
+        }))
+        .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::QuicEnabled));
+
+    // Newer bridges list every transport in `transports_v2`.
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .bridge_params(Some(BridgeInformation {
+            version: String::from("1"),
+            transports: vec![],
+            transports_v2: vec![BridgeParameters::QuicPlain(
+                nym_vpn_api_client::response::QuicClientOptions {
+                    addresses: vec!["1.2.3.4:5".parse().unwrap()],
+                    host: None,
+                    id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
+                },
+            )],
         }))
         .build();
 
@@ -172,6 +194,7 @@ fn test_matching_quic_enabled() {
         .bridge_params(Some(BridgeInformation {
             version: String::from("1"),
             transports: vec![],
+            transports_v2: vec![],
         }))
         .build();
 
