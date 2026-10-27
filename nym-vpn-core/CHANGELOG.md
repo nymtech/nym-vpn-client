@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ### Added
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
+
+### Changed
+
+- Use local bandwidth counting as primary and only refresh on network calls (https://github.com/nymtech/nym-vpn-client/pull/6803)
+
 
 ## [2026.14.0] - 2026-10-22
 
