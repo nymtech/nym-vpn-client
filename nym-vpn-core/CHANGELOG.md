@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `bridge_transports.enabled` feature flag (`FeatureFlags::bridge_transports_enabled`, uniffi `is_bridge_transports_enabled`) for letting bridges fall back from QUIC to TLS and SSH
+- `BridgeAddress` in the connection data carries the bridge transport in use (`transport`: QUIC, TLS or SSH), optional so older daemons and unknown transports read as unset
 
 ## [2026.14.0] - TBD
 
