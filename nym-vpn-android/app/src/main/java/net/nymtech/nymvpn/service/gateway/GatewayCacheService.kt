@@ -1,9 +1,12 @@
 package net.nymtech.nymvpn.service.gateway
 
+import kotlinx.coroutines.flow.StateFlow
+import nym_vpn_lib_types.GatewayType
+
 interface GatewayCacheService {
-	suspend fun updateExitGatewayCache(): Result<Unit>
+	val syncingTypes: StateFlow<Set<GatewayType>>
 
-	suspend fun updateEntryGatewayCache(): Result<Unit>
+	suspend fun refresh(type: GatewayType, force: Boolean = false): Result<Unit>
 
-	suspend fun updateWgGatewayCache(): Result<Unit>
+	suspend fun clear()
 }

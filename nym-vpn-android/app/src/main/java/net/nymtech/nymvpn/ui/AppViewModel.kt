@@ -41,6 +41,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
+import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
@@ -216,6 +217,8 @@ constructor(
 		if (tunnelState == Tunnel.State.Down) {
 			Timber.tag(TAG).i("EnvironmentChangeApplied env=%s", environment)
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetwork(environment))
+			runCatching { gatewayCacheService.clear() }
+				.onFailure { Timber.tag(TAG).e(it, "GatewayCacheClearFailed") }
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
 			Timber.tag(TAG).w("EnvironmentChangeRejected reason=tunnel_not_down state=%s", tunnelState)
@@ -311,9 +314,7 @@ constructor(
 
 		Timber.tag(TAG).i("AppReady")
 
-		launch { gatewayCacheService.updateExitGatewayCache() }
-		launch { gatewayCacheService.updateEntryGatewayCache() }
-		launch { gatewayCacheService.updateWgGatewayCache() }
+		GatewayType.entries.forEach { type -> launch { gatewayCacheService.refresh(type) } }
 
 		launch { checkSystemMessages() }
 

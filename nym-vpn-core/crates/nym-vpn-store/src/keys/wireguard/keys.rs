@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use nym_crypto::asymmetric::x25519;
-use rand08::{CryptoRng, RngCore};
+use rand::CryptoRng;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use time::OffsetDateTime;
@@ -44,7 +44,7 @@ impl TryFrom<RawWireguardKeys> for WireguardKeys {
 impl WireguardKeys {
     pub fn generate_new<R>(rng: &mut R) -> Self
     where
-        R: RngCore + CryptoRng,
+        R: CryptoRng,
     {
         WireguardKeys {
             entry_keypair: Arc::new(x25519::KeyPair::new(rng)),

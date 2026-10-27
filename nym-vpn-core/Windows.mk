@@ -128,7 +128,7 @@ winfw: create_target_dir create_version_header
 	}
 
 # Setup environment and build winfw
-	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM)
+	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM) /p:ForceImportAfterCppTargets="$(CURDIR)/../nym-vpn-windows/winfw/release-dynamic-crt.props"
 
 # Copy winfw dll and lib to distribution directory where nym-vpn-core looks for import lib
 	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)"

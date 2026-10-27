@@ -7141,7 +7141,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Couldn't connect after several tries. Try another location, or turn on QUIC in Anti-censorship settings."
+            "value" : "Couldn't connect after several tries. Try another location, or try again in a few minutes."
           }
         }
       }

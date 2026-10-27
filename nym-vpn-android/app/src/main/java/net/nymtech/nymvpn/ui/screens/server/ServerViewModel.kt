@@ -4,13 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
-import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.favorites.FavoritesManager
@@ -36,7 +38,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ServerViewModel @Inject constructor(
-	private val settingsRepository: SettingsRepository,
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val gatewayRepository: GatewayRepository,
@@ -54,7 +55,8 @@ class ServerViewModel @Inject constructor(
 	private val _uiState = MutableStateFlow(ServerUiState())
 	val uiState = _uiState.asStateFlow()
 
-	private var gatewayType: GatewayType? = null
+	private val gatewayType = MutableStateFlow<GatewayType?>(null)
+	private var refreshJob: Job? = null
 	private var allGateways: List<NymGateway> = emptyList()
 	private var recentGateways: List<NymGateway> = emptyList()
 	private var favorites = FavoriteSelectors(entry = emptyList(), exit = emptyList())
@@ -71,19 +73,16 @@ class ServerViewModel @Inject constructor(
 
 	init {
 		viewModelScope.launch {
-			updateQuicState()
-			tunnelMode = vpnConfigRepository.getConfig().mode
-
-			combine(gatewayRepository.gatewayFlow, favoritesManager.favoritesFlow) { gateways, selectors ->
-				gateways to selectors
-			}.collect { (gateways, selectors) ->
-				favorites = selectors
-				val type = gatewayType ?: return@collect
-				allGateways = when (type) {
-					GatewayType.MIXNET_ENTRY -> gateways.entryGateways
-					GatewayType.MIXNET_EXIT -> gateways.exitGateways
-					GatewayType.WG -> gateways.wgGateways
+			combine(gatewayType.filterNotNull(), gatewayRepository.gatewayFlow, favoritesManager.favoritesFlow) { type, gateways, selectors ->
+				Triple(type, gateways, selectors)
+			}.collect { (type, gateways, selectors) ->
+				val typeGateways = gateways.forType(type)
+				if (typeGateways === allGateways && selectors == favorites) {
+					isInitialLoad = false
+					return@collect
 				}
+				favorites = selectors
+				allGateways = typeGateways
 				if (isInitialLoad && !userSelectedFilter) {
 					_uiState.update { it.copy(filter = defaultFilterFor(isExitScreen)) }
 				}
@@ -91,26 +90,32 @@ class ServerViewModel @Inject constructor(
 				updateFilteredData()
 			}
 		}
-	}
-
-	private suspend fun updateQuicState() {
-		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
-		val isFastVpn = vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET
-
-		isQuicOnlyGatewaysFilterRequired = isQuicToggleEnabled && isFastVpn && !isExitScreen
-	}
-
-	fun initializeGateways(initialGateways: List<NymGateway>, isExitScreen: Boolean = false, selectedKey: String? = null) {
 		viewModelScope.launch {
-			allGateways = initialGateways
-			this@ServerViewModel.selectedKey = selectedKey
-			recentGateways = emptyList()
-			this@ServerViewModel.isExitScreen = isExitScreen
-			userSelectedFilter = false
-			updateQuicState()
-			_uiState.update { it.copy(query = "", filter = defaultFilterFor(isExitScreen), isLoading = false) }
-			updateFilteredData()
+			combine(gatewayType.filterNotNull(), gatewayCacheService.syncingTypes) { type, syncing -> type in syncing }
+				.collect { isSyncing -> _uiState.update { it.copy(isSyncing = isSyncing) } }
 		}
+	}
+
+	fun load(type: GatewayType, isExitScreen: Boolean, selectedKey: String?, tunnelMode: Tunnel.Mode, isQuicEnabled: Boolean) {
+		this.selectedKey = selectedKey
+		this.isExitScreen = isExitScreen
+		this.tunnelMode = tunnelMode
+		isQuicOnlyGatewaysFilterRequired = isQuicEnabled && tunnelMode == Tunnel.Mode.TWO_HOP_MIXNET && !isExitScreen
+		recentGateways = emptyList()
+		userSelectedFilter = false
+		favorites = favoritesManager.favoritesFlow.value
+		allGateways = gatewayRepository.gatewayFlow.value.forType(type)
+		_uiState.update {
+			it.copy(
+				query = "",
+				filter = defaultFilterFor(isExitScreen),
+				isLoading = false,
+				isSyncing = type in gatewayCacheService.syncingTypes.value,
+			)
+		}
+		updateFilteredData()
+		gatewayType.value = type
+		refresh(type, force = false)
 	}
 
 	fun onQueryChange(query: String) {
@@ -143,25 +148,27 @@ class ServerViewModel @Inject constructor(
 		}.onFailure { t -> Timber.tag(TAG).e(t, "ToggleFavoriteFailed") }
 	}
 
-	fun updateCountryCache(type: GatewayType) = viewModelScope.launch {
-		gatewayType = type
-		_uiState.update { it.copy(error = false) }
+	fun onRefresh() {
+		val type = gatewayType.value ?: return
+		refresh(type, force = true)
+		if (_uiState.value.filter == ServerListFilter.RECENT) refreshRecents()
+	}
 
-		runCatching {
-			when (type) {
-				GatewayType.MIXNET_ENTRY -> gatewayCacheService.updateEntryGatewayCache()
-				GatewayType.MIXNET_EXIT -> gatewayCacheService.updateExitGatewayCache()
-				GatewayType.WG -> gatewayCacheService.updateWgGatewayCache()
-			}.getOrThrow()
-		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "GatewayCacheRefreshFailed type=%s", type)
-			_uiState.update { state -> state.copy(error = true) }
+	private fun refresh(type: GatewayType, force: Boolean) {
+		refreshJob?.cancel()
+		refreshJob = viewModelScope.launch {
+			_uiState.update { it.copy(error = false) }
+			gatewayCacheService.refresh(type, force).onFailure { t ->
+				Timber.tag(TAG).e(t, "GatewayCacheRefreshFailed type=%s", type)
+				_uiState.update { it.copy(error = true) }
+			}
 		}
 	}
 
-	fun onRefresh(type: GatewayType) {
-		updateCountryCache(type)
-		if (_uiState.value.filter == ServerListFilter.RECENT) refreshRecents()
+	private fun Gateways.forType(type: GatewayType): List<NymGateway> = when (type) {
+		GatewayType.MIXNET_ENTRY -> entryGateways
+		GatewayType.MIXNET_EXIT -> exitGateways
+		GatewayType.WG -> wgGateways
 	}
 
 	private fun refreshRecents() = viewModelScope.launch {

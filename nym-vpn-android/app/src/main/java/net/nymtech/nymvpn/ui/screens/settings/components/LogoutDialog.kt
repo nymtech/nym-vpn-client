@@ -38,6 +38,7 @@ import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseSavedConfirmation
+import net.nymtech.nymvpn.ui.common.security.SecureOverlayProtection
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -62,6 +63,7 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 			)
 		},
 		text = {
+			SecureOverlayProtection()
 			Column(
 				verticalArrangement = Arrangement.spacedBy(16.dp),
 				horizontalAlignment = Alignment.CenterHorizontally,

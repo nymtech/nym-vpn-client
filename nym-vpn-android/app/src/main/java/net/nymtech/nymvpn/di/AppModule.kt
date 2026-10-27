@@ -38,7 +38,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): GatewayCacheService = GatewayDataStoreCacheService(gatewayRepository, backendManager)
+	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository, @ApplicationScope appScope: CoroutineScope): GatewayCacheService =
+		GatewayDataStoreCacheService(gatewayRepository, backendManager, appScope)
 
 	@Singleton
 	@Provides

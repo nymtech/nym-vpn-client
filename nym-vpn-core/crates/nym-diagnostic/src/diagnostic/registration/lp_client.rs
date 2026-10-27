@@ -125,7 +125,7 @@ async fn setup_registration(
         .ok_or(anyhow::anyhow!("Gateway requested not found"))?
         .clone();
 
-    let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rand08::rngs::OsRng));
+    let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rng()));
     let local_dh_keypair = Arc::new(x25519::DHKeyPair::new(
         &mut StdRng::try_from_rng(&mut SysRng).context("Failed to seed RNG from OS")?,
     ));

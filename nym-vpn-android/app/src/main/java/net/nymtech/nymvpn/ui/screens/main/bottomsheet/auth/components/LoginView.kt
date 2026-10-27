@@ -28,12 +28,15 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
+import net.nymtech.nymvpn.ui.common.security.SecureOverlayProtection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier) {
+	SecureOverlayProtection()
+
 	Column(
 		modifier = modifier
 			.background(MaterialTheme.colorScheme.surface)
