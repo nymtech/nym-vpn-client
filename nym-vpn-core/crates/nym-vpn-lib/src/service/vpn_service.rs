@@ -455,7 +455,7 @@ impl NymVpnService {
             .network()
             .map_err(|_| Error::NetworkEnvNotInitialized)?;
 
-        let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
             nym_http_api_client::HickoryDnsResolver::shared();
         dns_resolver.set_fallback_addrs(
             network_env
@@ -2576,7 +2576,7 @@ fn update_active_network(network_tx: &watch::Sender<Box<Network>>, new_network: 
         .map(|(host, addrs)| (host, addrs.into_iter().collect()))
         .collect();
 
-    let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+    let dns_resolver: nym_http_api_client::HickoryDnsResolver =
         nym_http_api_client::HickoryDnsResolver::shared();
     dns_resolver.set_fallback_addrs(addrs);
 

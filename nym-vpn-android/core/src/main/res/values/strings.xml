@@ -42,7 +42,7 @@
 	<string name="error_reason_max_devices_reached">You\'ve hit your device limit. Remove a device on nym.com or log out elsewhere, then reconnect.</string>
 	<string name="error_reason_device_logged_out">This device was logged out. Log in again to reconnect.</string>
 	<string name="error_reason_needs_device_location">Automatic routing is unavailable; device location could not be determined.</string>
-	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or turn on QUIC in Anti-censorship settings.</string>
+	<string name="error_reason_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
 
 	<string name="error_reason_internal">Something went wrong. Try again. If it persists, contact support and include your logs.</string>
 

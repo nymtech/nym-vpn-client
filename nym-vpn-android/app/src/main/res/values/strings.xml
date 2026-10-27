@@ -42,6 +42,7 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
 	<string name="country_load_failure">Failed to load hop countries</string>
+	<string name="server_list_update_failed">Couldn\'t update the server list. Showing saved servers.</string>
 	<string name="permission_required">Permission required</string>
 	<string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
@@ -180,7 +181,7 @@
 	<string name="error_invalid_entry_gateway_identity">The entry server you chose isn\'t available. Choose a different entry server, then connect again.</string>
 	<string name="error_invalid_exit_gateway_identity">The exit server you chose isn\'t available with your current settings. Choose a different exit or entry server, then connect again.</string>
 	<string name="error_needs_device_location">Automatic routing isn\'t available right now. Try again later or choose your own servers.</string>
-	<string name="error_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or turn on QUIC in Anti-censorship settings.</string>
+	<string name="error_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>

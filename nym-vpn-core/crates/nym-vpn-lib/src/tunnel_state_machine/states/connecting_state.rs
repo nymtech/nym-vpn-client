@@ -380,7 +380,7 @@ impl ConnectingState {
         // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
         // client based on `nym-http-api-client::Client` that not modified to be independent will
         // use these overrides automatically.
-        let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
             nym_http_api_client::HickoryDnsResolver::shared();
         dns_resolver.set_static_preresolve(resolved_gateway_config.addr_map());
 
@@ -808,7 +808,7 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
-                        // Registration with the entry gateway failed; blacklist it to avoid
+                        // Registration failed at this gateway; blacklist it to avoid
                         // re-selecting the same failing gateway.
                         shared_state.gateway_provider.add_blacklisted_gateway(
                             gateway_id,
