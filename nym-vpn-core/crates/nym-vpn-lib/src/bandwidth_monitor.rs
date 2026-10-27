@@ -921,11 +921,24 @@ impl BandwidthMonitor {
             }
         }
 
-        if needs_top_up && let Err(e) = self.top_up_bandwidth(entry).await {
-            trace_err_chain!(e, "error topping up with more bandwidth");
-            // TODO: try to return this error in the JoinHandle instead
-            // For now let's keep the old behavior of stopping
-            self.shutdown_token.cancel();
+        if needs_top_up {
+            match self.top_up_bandwidth(entry).await {
+                Ok(available_bandwidth) => {
+                    if entry {
+                        system_bandwidth_monitor
+                            .update_entry_aproximation(available_bandwidth.bandwidth_bytes);
+                    } else {
+                        system_bandwidth_monitor
+                            .update_exit_aproximation(available_bandwidth.bandwidth_bytes);
+                    }
+                }
+                Err(e) => {
+                    trace_err_chain!(e, "error topping up with more bandwidth");
+                    // TODO: try to return this error in the JoinHandle instead
+                    // For now let's keep the old behavior of stopping
+                    self.shutdown_token.cancel();
+                }
+            }
         }
     }
 
