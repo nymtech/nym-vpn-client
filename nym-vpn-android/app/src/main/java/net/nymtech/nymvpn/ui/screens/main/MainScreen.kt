@@ -78,6 +78,7 @@ import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.TunnelConnectionData
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, loginProcessing: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -479,6 +480,8 @@ private fun MainScreenContent(
 				vpnMode = appUiState.vpnConfig.mode,
 				establishConnectionState = appUiState.managerState.establishConnectionState,
 				connectionTime = connectionTime,
+				bridgeTransport = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)?.v1?.entryBridgeAddr?.transport
+					.takeIf { connectionState == ConnectionState.Connected },
 			)
 		}
 
