@@ -26,9 +26,9 @@ use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
 
 const MINIMUM_REMAINING_BANDWIDTH: u64 = 2500 * 1024 * 1024; // 2500 MB, the same as five wireguard ticket size
+const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(15); // 15 seconds
 const REMOTE_BANDWIDTH_CHECK_INTERVAL: Duration =
     Duration::from_secs(12 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs()); // 1 minute
-const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(5); // 5 seconds
 
 const DEFAULT_CLIENT_RETRIES: usize = 1;
 const DEFAULT_CLIENT_TIMEOUT: Duration = Duration::from_secs(5); // 5 seconds
