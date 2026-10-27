@@ -87,8 +87,7 @@ use crate::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
             gateway_provider::GatewayProvider,
-            mixnet,
-            transports::{self, TransportError},
+            mixnet, transports,
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 connected_tunnel::ConnectedTunnel,
@@ -273,6 +272,8 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub use_bridges: bool,
+    /// Fall back from QUIC to TLS and SSH bridges.
+    pub bridge_fallback: bool,
     pub user_agent: UserAgent,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
@@ -1253,18 +1254,21 @@ impl TunnelMonitor {
         selected_gateways: &SelectedGateways,
         bridge_close_tx: mpsc::UnboundedSender<()>,
     ) -> Result<(BridgeAddress, JoinHandle<()>)> {
-        let entry_bridge_params = selected_gateways
+        let (quic, fallback) = selected_gateways
             .entry_gateway()
-            .get_bridge_params()
-            .ok_or(TransportError::config_err(
-                "attempted to open transport connection without bridge params",
-            ))?;
+            .bridge_candidates(self.tunnel_parameters.bridge_fallback);
+        let ipv4_only = |params: Vec<_>| -> Vec<_> {
+            params
+                .into_iter()
+                .map(transports::filter_bridge_params_ipv4_only)
+                .collect()
+        };
+        let (quic, fallback) = (ipv4_only(quic), ipv4_only(fallback));
 
-        let transport_name = entry_bridge_params.transport_name();
         // Attempt transport Connection. If successful a listening UDP connection is created
         // and the bind address of that UDP listener is provided to the entry wireguard tunnel
         // as the endpoint address.
-        tracing::info!("Establishing DVPN {transport_name} tunnel",);
+        tracing::info!("Establishing DVPN bridge tunnel");
 
         #[cfg(target_os = "linux")]
         let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
@@ -1274,28 +1278,48 @@ impl TunnelMonitor {
         let on_bridge_socket_open = move |fd| {
             #[cfg(target_os = "android")]
             {
-                tracing::debug!("Bypass {transport_name}  socket");
+                tracing::debug!("Bypass bridge socket");
                 tun_provider.bypass(fd);
             }
 
             #[cfg(target_os = "linux")]
             {
-                tracing::debug!("Bypass {transport_name}  socket");
+                tracing::debug!("Bypass bridge socket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(fd) };
                 if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
-                    tracing::error!("Could not set fwmark for {transport_name} socket fd: {err}");
+                    tracing::error!("Could not set fwmark for bridge socket fd: {err}");
                 }
             }
         };
-        let entry_bridge_params = transports::filter_bridge_params_ipv4_only(entry_bridge_params);
-        let bridge_conn = transports::BridgeConn::try_connect(
-            entry_bridge_params,
+        // QUIC first: TLS and SSH run over TCP and are slower, so they are raced only once QUIC fails.
+        let quic_timeout = if fallback.is_empty() {
+            transports::BRIDGE_CONNECT_TIMEOUT
+        } else {
+            transports::QUIC_FALLBACK_TIMEOUT
+        };
+        let bridge_conn = match transports::BridgeConn::try_connect_parallel(
+            quic,
             self.shutdown_token.child_token(),
             #[cfg(any(target_os = "linux", target_os = "android"))]
-            on_bridge_socket_open,
-            Some(transports::BRIDGE_CONNECT_TIMEOUT),
+            &on_bridge_socket_open,
+            Some(quic_timeout),
         )
-        .await?;
+        .await
+        {
+            Ok(conn) => conn,
+            Err(err) if fallback.is_empty() => return Err(err.into()),
+            Err(err) => {
+                tracing::warn!("QUIC bridge failed, trying TLS and SSH: {err}");
+                transports::BridgeConn::try_connect_parallel(
+                    fallback,
+                    self.shutdown_token.child_token(),
+                    #[cfg(any(target_os = "linux", target_os = "android"))]
+                    &on_bridge_socket_open,
+                    Some(transports::BRIDGE_CONNECT_TIMEOUT),
+                )
+                .await?
+            }
+        };
 
         tracing::info!(
             "{} transport connected",

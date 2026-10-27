@@ -29,7 +29,7 @@ use nym_firewall::{
     AllowedClients, AllowedDns, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_vpn_lib_types::TunnelConnectionData;
+use nym_vpn_lib_types::{BridgeTransport, TunnelConnectionData};
 
 use super::ErrorState;
 
@@ -60,17 +60,23 @@ impl ConnectedState {
         shared_state.clear_android_blocking_tun();
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let wg_entry_endpoint =
-            if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
-                // The bridge address is only set when the tunnel connected over a bridge.
-                Some(
-                    wg.entry_bridge_addr
-                        .as_ref()
-                        .map_or(wg.entry.endpoint, |addr| addr.remote_addr),
-                )
-            } else {
-                None
-            };
+        let wg_entry_endpoint = if let TunnelConnectionData::Wireguard(ref wg) =
+            connection_data.tunnel
+        {
+            // The bridge address is only set when the tunnel connected over a bridge.
+            Some(wg.entry_bridge_addr.as_ref().map_or(
+                Endpoint::from_socket_address(wg.entry.endpoint, TransportProtocol::Udp),
+                |addr| {
+                    let protocol = match addr.transport {
+                        Some(BridgeTransport::Tls | BridgeTransport::Ssh) => TransportProtocol::Tcp,
+                        Some(BridgeTransport::Quic) | None => TransportProtocol::Udp,
+                    };
+                    Endpoint::from_socket_address(addr.remote_addr, protocol)
+                },
+            ))
+        } else {
+            None
+        };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
@@ -456,7 +462,7 @@ struct ConnectedPolicyParameters {
     allow_lan: bool,
 
     /// WireGuard entry endpoint
-    wg_entry_endpoint: Option<SocketAddr>,
+    wg_entry_endpoint: Option<Endpoint>,
 
     /// Entry gateway websocket endpoints
     ws_entry_endpoints: Vec<SocketAddr>,
@@ -495,10 +501,10 @@ impl ConnectedPolicyParameters {
             .collect::<Vec<_>>();
 
         // Allow WireGuard / Quic entry endpoint
-        if let Some(addr) = self.wg_entry_endpoint {
-            if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
+        if let Some(endpoint) = self.wg_entry_endpoint {
+            if endpoint.address.is_ipv4() || (self.enable_ipv6 && endpoint.address.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
-                    Endpoint::from_socket_address(addr, TransportProtocol::Udp),
+                    endpoint,
                     #[cfg(target_os = "linux")]
                     // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
                     AllowedClients::All,
