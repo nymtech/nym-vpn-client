@@ -19,7 +19,10 @@ use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::Gateway;
 
-use crate::tunnel_state_machine::tunnel::SelectedGateways;
+use crate::tunnel_state_machine::tunnel::{
+    SelectedGateways,
+    wireguard::two_hop_config::{EXIT_MTU, WG_TUNNEL_OVERHEAD},
+};
 use nym_common::trace_err_chain;
 use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
@@ -482,8 +485,8 @@ struct SystemBandwidthMonitor<N = Networks> {
     networks: N,
     entry_interface_name: Option<String>,
     exit_interface_name: Option<String>,
-    entry_aprox_bandwidth_left: u64,
-    exit_aprox_bandwidth_left: u64,
+    entry_approx_bandwidth_left: u64,
+    exit_approx_bandwidth_left: u64,
     target_bandwidth: u64,
     min_threshold: u64,
 }
@@ -492,8 +495,8 @@ impl SystemBandwidthMonitor {
     pub fn new(
         entry_interface_name: Option<String>,
         exit_interface_name: Option<String>,
-        entry_aprox_bandwidth_left: u64,
-        exit_aprox_bandwidth_left: u64,
+        entry_approx_bandwidth_left: u64,
+        exit_approx_bandwidth_left: u64,
         target_bandwidth: u64,
         min_threshold: u64,
     ) -> Self {
@@ -501,23 +504,23 @@ impl SystemBandwidthMonitor {
             networks: Networks::new_with_refreshed_list(),
             entry_interface_name,
             exit_interface_name,
-            entry_aprox_bandwidth_left,
-            exit_aprox_bandwidth_left,
+            entry_approx_bandwidth_left,
+            exit_approx_bandwidth_left,
             target_bandwidth,
             min_threshold,
         }
     }
 
-    pub fn update_entry_aproximation(&mut self, latest: i64) {
-        self.entry_aprox_bandwidth_left = if latest < 0 {
+    pub fn update_entry_approximation(&mut self, latest: i64) {
+        self.entry_approx_bandwidth_left = if latest < 0 {
             0
         } else {
             latest.cast_unsigned()
         };
     }
 
-    pub fn update_exit_aproximation(&mut self, latest: i64) {
-        self.exit_aprox_bandwidth_left = if latest < 0 {
+    pub fn update_exit_approximation(&mut self, latest: i64) {
+        self.exit_approx_bandwidth_left = if latest < 0 {
             0
         } else {
             latest.cast_unsigned()
@@ -527,11 +530,11 @@ impl SystemBandwidthMonitor {
 
 impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
     pub fn entry_meets_target(&self) -> bool {
-        self.entry_aprox_bandwidth_left <= self.target_bandwidth
+        self.entry_approx_bandwidth_left <= self.target_bandwidth
     }
 
     pub fn exit_meets_target(&self) -> bool {
-        self.exit_aprox_bandwidth_left <= self.target_bandwidth
+        self.exit_approx_bandwidth_left <= self.target_bandwidth
     }
 
     pub async fn force_remote_bandwidth_query(&mut self) -> bool {
@@ -549,21 +552,24 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
             .unwrap_or_default();
 
         // if interface name is specified, consider that specific interface, otherwise consider the highest used interface
-        let entry_interface_usage = consumption_for(&stats, &self.entry_interface_name)
-            .unwrap_or(most_used_interface_usage);
         let exit_interface_usage =
             consumption_for(&stats, &self.exit_interface_name).unwrap_or(most_used_interface_usage);
+        let packet_count = exit_interface_usage / EXIT_MTU as u64;
+        let entry_interface_usage_fallback =
+            exit_interface_usage + packet_count * WG_TUNNEL_OVERHEAD as u64;
+        let entry_interface_usage = consumption_for(&stats, &self.entry_interface_name)
+            .unwrap_or(entry_interface_usage_fallback);
 
-        self.entry_aprox_bandwidth_left = self
-            .entry_aprox_bandwidth_left
+        self.entry_approx_bandwidth_left = self
+            .entry_approx_bandwidth_left
             .saturating_sub(entry_interface_usage);
-        self.exit_aprox_bandwidth_left = self
-            .exit_aprox_bandwidth_left
+        self.exit_approx_bandwidth_left = self
+            .exit_approx_bandwidth_left
             .saturating_sub(exit_interface_usage);
 
         // force query only if really necessary i.e. bellow ticket size
-        self.entry_aprox_bandwidth_left < self.min_threshold
-            || self.exit_aprox_bandwidth_left < self.min_threshold
+        self.entry_approx_bandwidth_left < self.min_threshold
+            || self.exit_approx_bandwidth_left < self.min_threshold
     }
 }
 
@@ -847,11 +853,11 @@ impl BandwidthMonitor {
 
         let needs_top_up = if entry {
             self.entry_previous_error_query = false;
-            system_bandwidth_monitor.update_entry_aproximation(query_result.bandwidth_bytes);
+            system_bandwidth_monitor.update_entry_approximation(query_result.bandwidth_bytes);
             system_bandwidth_monitor.entry_meets_target()
         } else {
             self.exit_previous_error_query = false;
-            system_bandwidth_monitor.update_exit_aproximation(query_result.bandwidth_bytes);
+            system_bandwidth_monitor.update_exit_approximation(query_result.bandwidth_bytes);
             system_bandwidth_monitor.exit_meets_target()
         };
 
@@ -926,10 +932,10 @@ impl BandwidthMonitor {
                 Ok(available_bandwidth) => {
                     if entry {
                         system_bandwidth_monitor
-                            .update_entry_aproximation(available_bandwidth.bandwidth_bytes);
+                            .update_entry_approximation(available_bandwidth.bandwidth_bytes);
                     } else {
                         system_bandwidth_monitor
-                            .update_exit_aproximation(available_bandwidth.bandwidth_bytes);
+                            .update_exit_approximation(available_bandwidth.bandwidth_bytes);
                     }
                 }
                 Err(e) => {
@@ -1017,7 +1023,7 @@ impl BandwidthMonitor {
                     if system_bandwidth_monitor.force_remote_bandwidth_query().await {
                         // we only force a bandwidth check once. If for some reason, it doesn't work, we rely on the normal timer to retry
                         if !system_triggered_check {
-                            tracing::debug!("Remaining bandwidth aproximation is bellow the configured threshold, forcing bandwidth checks");
+                            tracing::debug!("Remaining bandwidth approximation is bellow the configured threshold, forcing bandwidth checks");
                             system_triggered_check = true;
                             self.check_bandwidth(true, &mut system_bandwidth_monitor).await;
                             self.check_bandwidth(false, &mut system_bandwidth_monitor).await;
@@ -1094,8 +1100,8 @@ mod tests {
                 entry_interface_name,
                 exit_interface_name,
                 target_bandwidth,
-                entry_aprox_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
-                exit_aprox_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
+                entry_approx_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
+                exit_approx_bandwidth_left: 6 * TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
                 min_threshold: max(
                     TicketTypeRepr::WIREGUARD_ENTRY_TICKET_SIZE,
                     TicketTypeRepr::WIREGUARD_EXIT_TICKET_SIZE,
