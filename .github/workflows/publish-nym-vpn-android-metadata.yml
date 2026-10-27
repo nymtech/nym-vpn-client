@@ -13,12 +13,20 @@ on:
           - alpha
           - beta
           - production
+      skip_changelogs:
+        description: "Skip changelog upload"
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       track:
         description: "Play Store track whose release notes/changelog to target"
         type: string
         default: "alpha"
+      skip_changelogs:
+        description: "Skip changelog upload"
+        type: boolean
+        default: false
     secrets:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
@@ -74,8 +82,9 @@ jobs:
           FASTLANE_OPT_OUT_USAGE: "YES"
           TRACK: ${{ inputs.track }}
           VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+          SKIP_CHANGELOGS: ${{ inputs.skip_changelogs }}
         run: |
-          echo "🚀 Updating Google Play Store metadata... (track=$TRACK, version_code=$VERSION_CODE)"
+          echo "🚀 Updating Google Play Store metadata... (track=$TRACK, version_code=$VERSION_CODE, skip_changelogs=$SKIP_CHANGELOGS)"
 
           bundle exec fastlane supply \
             --track "$TRACK" \
@@ -85,4 +94,4 @@ jobs:
             --skip_upload_metadata false \
             --skip_upload_images false \
             --skip_upload_screenshots false \
-            --skip_upload_changelogs false
+            --skip_upload_changelogs "$SKIP_CHANGELOGS"
