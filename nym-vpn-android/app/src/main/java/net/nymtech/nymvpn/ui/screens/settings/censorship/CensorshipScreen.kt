@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.AmneziaSection
@@ -31,16 +33,24 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hiltViewModel()) {
+	val bridgeTransportsEnabled by viewModel.bridgeTransportsEnabled.collectAsStateWithLifecycle()
 	CensorshipScreen(
 		quicEnabled = appUiState.settings.quicEnabled,
 		onQuicEnable = { enabled -> viewModel.onQUICEnabled(enabled) },
+		bridgeTransportsEnabled = bridgeTransportsEnabled,
 		stealthModeEnabled = appUiState.vpnConfig.stealthMode,
 		onStealthModeEnable = { enabled -> viewModel.onStealthModeEnabled(enabled) },
 	)
 }
 
 @Composable
-fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> Unit, stealthModeEnabled: Boolean = false, onStealthModeEnable: (Boolean) -> Unit = {}) {
+fun CensorshipScreen(
+	quicEnabled: Boolean,
+	onQuicEnable: (enabled: Boolean) -> Unit,
+	bridgeTransportsEnabled: Boolean = false,
+	stealthModeEnabled: Boolean = false,
+	onStealthModeEnable: (Boolean) -> Unit = {},
+) {
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -62,6 +72,7 @@ fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> U
 		QuicSection(
 			quicEnabled,
 			onQuicEnable,
+			showBridgeFallback = bridgeTransportsEnabled,
 			shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp),
 			modifier = Modifier
 				.fillMaxWidth()
