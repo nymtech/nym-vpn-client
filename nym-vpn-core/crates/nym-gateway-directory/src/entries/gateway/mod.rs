@@ -328,6 +328,30 @@ impl Gateway {
             None
         }
     }
+
+    /// QUIC bridges, and the TLS and SSH bridges to fall back to when allowed. Other advertised
+    /// types (e.g. AmneziaWG, used with bridges off) are never bridges.
+    pub fn bridge_candidates(
+        &self,
+        allow_fallback: bool,
+    ) -> (Vec<BridgeParameters>, Vec<BridgeParameters>) {
+        let (mut quic, mut fallback) = (Vec::new(), Vec::new());
+        for t in self
+            .bridge_params
+            .iter()
+            .flat_map(|p| p.usable_transports())
+        {
+            match t {
+                BridgeParameters::QuicPlain(_) => quic.push(t.clone()),
+                BridgeParameters::TlsPlain(_) | BridgeParameters::SshPlain(_) => {
+                    if allow_fallback {
+                        fallback.push(t.clone());
+                    }
+                }
+            }
+        }
+        (quic, fallback)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
