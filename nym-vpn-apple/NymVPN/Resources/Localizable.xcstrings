@@ -3544,6 +3544,17 @@
         }
       }
     },
+    "censorship.quic.fallback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower."
+          }
+        }
+      }
+    },
     "censorship.quic.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20368,6 +20379,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Welcome to NymVPN"
+          }
+        }
+      }
+    },
+    "oneClick.bridge.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bridge"
           }
         }
       }
