@@ -35,7 +35,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) -> Unit, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
+fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) -> Unit, showBridgeFallback: Boolean = false, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
@@ -73,6 +73,16 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 					.padding(top = 16.dp),
 				textAlign = TextAlign.Justify,
 			)
+			if (showBridgeFallback) {
+				Text(
+					text = stringResource(R.string.censorship_quic_bridge_fallback),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 16.dp),
+				)
+			}
 			Row(
 				horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.Start),
 				modifier = Modifier
