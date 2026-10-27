@@ -86,9 +86,14 @@ jobs:
         run: |
           echo "🚀 Updating Google Play Store metadata... (track=$TRACK, version_code=$VERSION_CODE, skip_changelogs=$SKIP_CHANGELOGS)"
 
+          version_code_args=()
+          if [ "$SKIP_CHANGELOGS" != "true" ]; then
+            version_code_args=(--version_code "$VERSION_CODE")
+          fi
+
           bundle exec fastlane supply \
             --track "$TRACK" \
-            --version_code "$VERSION_CODE" \
+            "${version_code_args[@]}" \
             --skip_upload_aab true \
             --skip_upload_apk true \
             --skip_upload_metadata false \
