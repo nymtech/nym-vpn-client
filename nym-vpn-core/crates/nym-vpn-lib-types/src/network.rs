@@ -213,6 +213,13 @@ impl FeatureFlags {
         self.get_group_flag("privy", "enabled")
     }
 
+    /// If bridges may fall back from QUIC to TLS and SSH, if set
+    #[uniffi::method]
+    pub fn is_bridge_transports_enabled(&self) -> Option<bool> {
+        // todo: harmonize with nym-vpn-network-config/src/feature_flags.rs
+        self.get_group_flag("bridge_transports", "enabled")
+    }
+
     fn get_group_flag(&self, group_name: &str, flag_name: &str) -> Option<bool> {
         if let Some(FlagValue::Group(group)) = self.flags.get(group_name)
             && let Some(value) = group.get(flag_name)
