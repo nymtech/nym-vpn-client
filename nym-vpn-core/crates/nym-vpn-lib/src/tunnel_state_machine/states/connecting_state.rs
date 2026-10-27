@@ -40,6 +40,8 @@ use nym_firewall::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
     TransportProtocol,
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_gateway_directory::Gateway;
 use nym_gateway_directory::{BlacklistReason, ResolvedConfig};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
@@ -70,6 +72,8 @@ pub struct ConnectingState {
     retry_attempt: u32,
     /// Whether this attempt connects over a bridge; `Auto` alternates it on each reconnect.
     use_bridges: bool,
+    /// Whether a bridge attempt falls back from QUIC to TLS and SSH, per the network flag.
+    bridge_fallback: bool,
     last_connection_state: Option<EstablishConnectionState>,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
@@ -109,6 +113,12 @@ impl ConnectingState {
                 shared_state.tunnel_settings.tunnel_type_used(),
                 TunnelType::Wireguard
             );
+        let bridge_fallback = shared_state
+            .nym_config
+            .network_rx
+            .borrow()
+            .bridge_transports_enabled()
+            .unwrap_or(false);
 
         if selected_gateways.is_none() {
             let tunnel_settings = shared_state.tunnel_settings.clone();
@@ -156,11 +166,8 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
             let mut bridge_endpoints = Vec::new();
-            if use_bridges
-                && let Some(gateways) = &selected_gateways
-                && let Some(params) = &gateways.entry_gateway().bridge_params
-            {
-                bridge_endpoints = params.get_addrs();
+            if use_bridges && let Some(gateways) = &selected_gateways {
+                bridge_endpoints = bridge_endpoints_for(gateways.entry_gateway(), bridge_fallback);
             }
 
             #[cfg(target_os = "macos")]
@@ -238,6 +245,7 @@ impl ConnectingState {
             gateway_provider_event_receiver,
             retry_attempt,
             use_bridges,
+            bridge_fallback,
             selector_fallback_state: Default::default(),
             selected_gateways,
             connection_data: initial_connection_data.clone(),
@@ -490,6 +498,7 @@ impl ConnectingState {
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             use_bridges: self.use_bridges,
+            bridge_fallback: self.bridge_fallback,
             user_agent: shared_state.user_agent.clone(),
             #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
@@ -662,10 +671,9 @@ impl ConnectingState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
-            if self.use_bridges
-                && let Some(params) = &gateways.entry_gateway().bridge_params
-            {
-                self.firewall_policy_params.bridge_endpoints = params.get_addrs()
+            if self.use_bridges {
+                self.firewall_policy_params.bridge_endpoints =
+                    bridge_endpoints_for(gateways.entry_gateway(), self.bridge_fallback);
             }
 
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry_gateway().endpoints();
@@ -1031,7 +1039,7 @@ struct ConnectingPolicyParameters {
     wg_entry_endpoint: Option<SocketAddr>,
 
     /// Bridge endpoints
-    bridge_endpoints: Vec<SocketAddr>,
+    bridge_endpoints: Vec<Endpoint>,
 
     /// Entry gateway websocket endpoints
     ws_entry_endpoints: Vec<SocketAddr>,
@@ -1051,6 +1059,27 @@ struct ConnectingPolicyParameters {
     /// Split tunnel redirect interface
     #[cfg(target_os = "macos")]
     redirect_interface: Option<String>,
+}
+
+/// Firewall endpoints for the bridges an attempt may try: QUIC over UDP, TLS and SSH over TCP.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn bridge_endpoints_for(gateway: &Gateway, allow_fallback: bool) -> Vec<Endpoint> {
+    use crate::tunnel_state_machine::tunnel::transports::ClientConfig;
+
+    let (quic, fallback) = gateway.bridge_candidates(allow_fallback);
+    quic.iter()
+        .chain(&fallback)
+        .flat_map(|params| {
+            let protocol = match params {
+                ClientConfig::QuicPlain(_) => TransportProtocol::Udp,
+                ClientConfig::TlsPlain(_) | ClientConfig::SshPlain(_) => TransportProtocol::Tcp,
+            };
+            params
+                .addresses()
+                .iter()
+                .map(move |addr| Endpoint::from_socket_address(*addr, protocol))
+        })
+        .collect()
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1098,10 +1127,10 @@ impl ConnectingPolicyParameters {
         // Allow endpoints from bridge connections to the entry gateway.
         self.bridge_endpoints
             .iter()
-            .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
-            .for_each(|addr| {
+            .filter(|ep| ep.address.is_ipv4() || (self.enable_ipv6 && ep.address.is_ipv6()))
+            .for_each(|ep| {
                 let allow_bridge_endpoint = AllowedEndpoint::new(
-                    Endpoint::from_socket_address(*addr, TransportProtocol::Udp),
+                    *ep,
                     #[cfg(target_os = "linux")]
                     // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
                     AllowedClients::All,
@@ -1282,7 +1311,10 @@ mod test {
                 IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
                 51822,
             )),
-            bridge_endpoints: vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(5, 6, 7, 8)), 4443)],
+            bridge_endpoints: vec![Endpoint::from_socket_address(
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(5, 6, 7, 8)), 4443),
+                TransportProtocol::Udp,
+            )],
             ws_entry_endpoints: vec![SocketAddr::new(
                 IpAddr::V4(Ipv4Addr::new(9, 10, 11, 12)),
                 9000,
@@ -1301,5 +1333,42 @@ mod test {
                 "Linux connecting peer endpoints must use AllowedClients::All so nftables mangle sets fwmark"
             );
         }
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[test]
+    fn bridge_endpoints_for_allow_tls_over_tcp_only_with_fallback() {
+        use nym_vpn_api_client::response::{
+            BridgeInformation, BridgeParameters, QuicClientOptions, TlsClientOptions,
+        };
+
+        let pin = String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
+        let quic_addr: SocketAddr = "1.2.3.4:4443".parse().unwrap();
+        let tls_addr: SocketAddr = "1.2.3.4:443".parse().unwrap();
+        let transports = vec![
+            BridgeParameters::QuicPlain(QuicClientOptions {
+                addresses: vec![quic_addr],
+                host: None,
+                id_pubkey: pin.clone(),
+            }),
+            BridgeParameters::TlsPlain(TlsClientOptions {
+                addresses: vec![tls_addr],
+                host: None,
+                id_pubkey: pin.clone(),
+            }),
+        ];
+        let gateway = Gateway::builder()
+            .identity(pin.parse().unwrap())
+            .bridge_params(Some(BridgeInformation {
+                version: String::from("1"),
+                transports: Vec::new(),
+                transports_v2: transports,
+            }))
+            .build();
+
+        let quic = Endpoint::from_socket_address(quic_addr, TransportProtocol::Udp);
+        let tls = Endpoint::from_socket_address(tls_addr, TransportProtocol::Tcp);
+        assert_eq!(bridge_endpoints_for(&gateway, false), vec![quic]);
+        assert_eq!(bridge_endpoints_for(&gateway, true), vec![quic, tls]);
     }
 }
