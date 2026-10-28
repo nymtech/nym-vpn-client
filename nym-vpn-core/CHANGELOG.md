@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
 
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
+- Add a `SetBridgeMode` gRPC call and `vpnc tunnel set --bridge-mode` to choose the bridge mode (auto, on or off). `SetEnableBridges` still maps true and false to on and off
 
 ### Changed
 
