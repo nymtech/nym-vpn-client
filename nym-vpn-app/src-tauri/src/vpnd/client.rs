@@ -162,15 +162,10 @@ impl VpndClient {
         }
     }
 
-    async fn handle_rpc_error<T>(
-        &self,
-        func: &str,
-        e: nym_vpn_rpc::Error,
-    ) -> Result<T, VpndError> {
+    async fn handle_rpc_error<T>(&self, func: &str, e: nym_vpn_rpc::Error) -> Result<T, VpndError> {
         if matches!(
             e,
-            nym_vpn_rpc::Error::Rpc(_)
-                | nym_vpn_rpc::Error::Transport(_)
+            nym_vpn_rpc::Error::Rpc(_) | nym_vpn_rpc::Error::Transport(_)
         ) {
             self.drop_rpc_client().await;
         }
