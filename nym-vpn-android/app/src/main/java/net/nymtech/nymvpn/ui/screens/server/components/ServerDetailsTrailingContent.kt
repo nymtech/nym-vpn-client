@@ -14,7 +14,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -23,7 +26,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-internal fun ServerDetailsTrailingContent(isFavorite: Boolean, onToggleFavorite: () -> Unit, onInfoIconClick: () -> Unit) {
+internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, isFavorite: Boolean, onToggleFavorite: () -> Unit, onInfoIconClick: () -> Unit) {
 	Box(
 		modifier = Modifier.fillMaxHeight(),
 		contentAlignment = Alignment.CenterEnd,
@@ -36,6 +39,14 @@ internal fun ServerDetailsTrailingContent(isFavorite: Boolean, onToggleFavorite:
 				.heightIn(min = 42.dp.scaledHeight())
 				.align(Alignment.CenterEnd),
 		) {
+			if (showStreamDisplay) {
+				Icon(
+					imageVector = ImageVector.vectorResource(R.drawable.smart_display),
+					contentDescription = stringResource(R.string.stream_display),
+					modifier = Modifier.size(iconSize.scaledHeight()),
+					tint = Color.Unspecified,
+				)
+			}
 			FavoriteIcon(
 				isFavorite = isFavorite,
 				onToggleFavorite = onToggleFavorite,

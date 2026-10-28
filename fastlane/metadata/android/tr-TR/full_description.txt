@@ -1,68 +1,68 @@
-NymVPN ile tamamen gizli kalın. Kayıt tutmayan, güvenli, merkeziyetsiz ve anonim bir İsviçre dVPN’i. WireGuard hızı, Gürültü Üreten Mixnet anonimliği. E-posta ile kayıt gerekmez. Reklam içermez.
+NymVPN: dünyanın en gizli VPN’i. Kayıt tutmayan, güvenli, merkeziyetsiz ve anonim bir İsviçre dVPN’i. WireGuard hızı, Noise Generating Mixnet anonimliği. E-posta ile kayıt gerekmez. Reklam içermez.
 
-🎁 7 GÜNLÜK ÜCRETSİZ VPN DENEMESİ & AYLIK 2,39 $’DAN BAŞLAYAN PLANLAR
+<b>7 günlük ücretsiz VPN denemesi & aylık 4 $’dan başlayan planlar</b>
 
 7 gün boyunca ücretsiz deneyin, taahhüt yok. Kripto, kart veya nakit ile ödeme yapın: seçim sizin.
 
-🛡 TASARIMDAN GELEN GİZLİLİK
+<b>Tasarımdan gelen gizlilik</b>
 
-Çoğu VPN “kayıt tutmuyoruz” der; yani teknik olarak kayıt tutabilirler, ancak bunu yapmayacaklarını söylerler. Ücretsiz VPN’ler verilerinizi satmak için sizi takip eder. NymVPN’nin mimarisi, anlamlı trafik günlüklerinin tutulmasını imkânsız hale getirir: hiçbir tek sunucu hem sizin kim olduğunu HEM de ne yaptığınızı göremez. Hatta Nym bile kimliğiniz ile yaptıklarınızı ilişkilendiremez.
+Çoğu VPN “kayıt tutmuyoruz” der; yani teknik olarak kayıt tutabilirler, ancak bunu yapmayacaklarını söylerler. Ücretsiz VPN’ler verilerinizi satmak için sizi takip eder. NymVPN’in mimarisi, anlamlı trafik günlüklerinin tutulmasını imkânsız hale getirir: hiçbir tek sunucu hem kim olduğunuzu HEM de ne yaptığınızı göremez. Hatta Nym bile kimliğiniz ile yaptıklarınızı ilişkilendiremez.
 
-⚡ iki VPN MODU, BiR UYGULAMA
+<b>İki VPN modu, bir uygulama</b>
 
-• dVPN Modu: AmneziaWG (WireGuard) tabanlı 2 atlamalı (2-hop) dVPN. Merkeziyetsiz bir ağda hızlı yayın ve gezinme.
+• dVPN modu: AmneziaWG (WireGuard) tabanlı 2 atlamalı (2-hop) dVPN. Merkeziyetsiz bir ağda hızlı yayın ve gezinme.
 
-• Anonim Mod: 5 atlamalı (5-hop), Noise Üreten Mixnet, Tor’un daha gelişmiş bir versiyonu. Trafiği başkalarınınkiyle karıştırır, gürültü ve sahte trafik ekler. En anonim tüketici VPN’i. Kripto işlemleri, e-posta ve Signal gibi gizli mesajlaşma uygulamaları için idealdir.
+• Mixnet modu: 5 atlamalı (5-hop) Noise Generating Mixnet, Tor’un daha gizli bir halefi. Trafiği başkalarınınkiyle karıştırır, gürültü ve sahte trafik ekler. En anonim tüketici VPN’i. Kripto işlemleri, e-posta ve Signal gibi gizli mesajlaşma uygulamaları için idealdir.
 
-💰 KRİPTO VEYA NAKİT İLE ANONİM ÖDEME YAPIN
+<b>Kripto veya nakit ile anonim ödeme yapın</b>
 
-NymVPN, diğer VPN’lerden daha fazla kripto para birimini ve nakit ödemeyi kabul eder. Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM ve daha fazlasıyla ödeme yapabilirsiniz. Sıfır bilgi kimlik bilgileri, ödemenizi VPN kullanımınızdan ayırır: anonim ödeme yapın, anonim kullanın.
+NymVPN, diğer VPN’lerden daha fazla kripto para birimini ve nakit ödemeyi kabul eder. Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM ve daha fazlasıyla ödeme yapabilirsiniz. Zero-knowledge kimlik bilgileri, ödemenizi VPN kullanımınızdan ayırır: anonim ödeme yapın, anonim kullanın.
 
-💎 NYMVPN’İ FARKLI KILAN NEDİR?
+<b>NymVPN neden farklı?</b>
 
-• Sıfır bilgi mimarisi: kimliğiniz Nym’e bile görünmez
+• Zero-knowledge mimarisi: kimliğiniz Nym’e bile görünmez
 • Mimari gereği kayıt tutulmaz: ağ anlamlı trafik günlükleri saklayamaz
-• Merkeziyetsiz vekil sunucu ağı: ele geçirilebilecek merkezi bir sunucu yok
-• İsviçre yargı yetkisi: 14 Göz dışında, güçlü gizlilik yasaları
+• Merkeziyetsiz proxy ağı: ele geçirilebilecek merkezi bir sunucu yok
+• İsviçre yargı yetkisi: 14 Eyes dışında, güçlü gizlilik yasaları
 • WireGuard ve mixnet protokolleri
 • E-posta kaydı gerekmez: anonim hesap oluşturma
-• Tamamen açık kaynaklıdır ve bağımsız güvenlik araştırmacıları tarafından denetlenmiştir
+• Tamamen açık kaynak, bağımsız araştırmacılarca denetlendi
 • 70+ ülke: yayın ve erişim için küresel sunucu ağı
 • Tek hesapla 10 cihaza kadar kullanım
 
-🔒 GİZLİLİK & GÜVENLİK ÖZELLİKLERİ
+<b>Gizlilik & güvenlik özellikleri</b>
 
-• Yerleşik kill switch: VPN bağlantısı kesilirse internet trafiğini otomatik olarak durdurur
-• Sansüre dayanıklılık: QUIC, AmneziaWG ve diğer tekniklerle VPN engellemelerini önler
+• Kill switch (her zaman açık VPN): VPN bağlantısı kesilirse internet trafiğini otomatik olarak durdurur
+• Sansüre dayanıklılık: QUIC, AmneziaWG ve diğer tekniklerle VPN engellemelerini aşar
 • Çok katmanlı onion şifreleme
 • Giriş ve çıkış sunucusu seçimi
-• Bölünmüş tünelleme: yalnızca seçtiğiniz uygulamaların trafiğini VPN üzerinden yönlendirme
-• Özel DNS: güvendiğiniz herhangi bir DNS sunucusunu kullanımı
-- Reklam ve izleyici engelleyici
+• Split tunneling: yalnızca seçtiğiniz uygulamaların trafiğini VPN üzerinden yönlendirin
+• Özel DNS: güvendiğiniz herhangi bir DNS sunucusunu kullanın
+• Brave teknolojisiyle reklam engelleyici
 
-🌍 NYMVPN İLE YAPABİLECEKLERİNİZ
+<b>NymVPN ile yapabilecekleriniz</b>
 
 • İz bırakmadan anonim şekilde internette gezinin
 • Havalimanı, kafe ve otel gibi halka açık Wi-Fi ağlarında trafiğinizi şifreleyin
 • Kısıtlayıcı bölgelerde internet sansürünü aşın
-• Gazetecilik ve aktivizm gibi hassas iletişimlerinizi koruyun
-• İnternet servis sağlayıcılarının gezinme alışkanlıklarınızı reklam hedeflemesi için profillemesini engelleyin
-• Kötü amaçlı siteleri, izleyicileri ve reklamları engelleyin
+• Gazetecilik, aktivizm ve araştırma gibi hassas iletişimlerinizi koruyun
+• İSS’lerin gezinmenizi reklam için profillemesini engelleyin
+• Kötü amaçlı siteleri, izleyicileri ve reklamları DNS düzeyinde engelleyin
 
-🇨🇭 TASARIMDAN GELEN İSVİÇRE GİZLİLİĞİ
+<b>Tasarımdan gelen İsviçre gizliliği</b>
 
-NymVPN, İsviçre yasalarına göre faaliyet gösterir: 14 Göz gözetim ittifakının dışındadır, anayasayla korunan gizlilik haklarına sahiptir ve zorunlu veri saklama yükümlülüğü yoktur. Merkeziyetsiz, kayıt tutmayan mimarimiz sayesinde verileriniz hem yasal olarak hem de tasarım gereği korunur.
+NymVPN, İsviçre yasalarına göre faaliyet gösterir: 14 Eyes gözetim ittifakının dışındadır, anayasayla korunan gizlilik haklarına sahiptir ve zorunlu veri saklama yükümlülüğü yoktur. Merkeziyetsiz, kayıt tutmayan mimarimiz sayesinde verileriniz hem yasal olarak hem de tasarım gereği korunur.
 
-🎓 AKADEMİK KRİPTOGRAFLAR TARAFINDAN GELİŞTİRİLDİ
+<b>Akademik kriptograflar tarafından geliştirildi</b>
 
 NymVPN, Nym tarafından geliştirilmiştir ve dünya genelinde gazeteciler, aktivistler ve gizliliğine önem veren kullanıcılar tarafından güvenle kullanılmaktadır. Protokollerimiz açık kaynaklıdır ve bağımsız güvenlik araştırmacıları tarafından denetlenmektedir.
 
-🚫 NE YAPMAYIZ
+<b>Ne yapmayız</b>
 
 • E-posta adresinizi veya adınızı istemeyiz
 • Hangi siteleri ziyaret ettiğinizi takip edemeyiz
 • Verilerinizi satamayız, paylaşamayız veya kiralayamayız
 
-📲 HEMEN BAŞLAYIN
+<b>Hemen başlayın</b>
 
 NymVPN’i indirin, e-posta veya isim bile gerektirmeden anonim bir hesap oluşturun ve gizli şekilde gezinmeye başlayın.
