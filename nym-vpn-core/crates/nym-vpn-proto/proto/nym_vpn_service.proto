@@ -1144,6 +1144,10 @@ message FrontingModeRequest {
   FrontingModes mode = 1;
 }
 
+message BridgeModeRequest {
+  BridgeModes mode = 1;
+}
+
 message PrivyDerivationMessage {
   string message = 1;
 }
@@ -1239,7 +1243,9 @@ service NymVpnService {
   rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
   rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  // SetEnableBridges maps true to on and false to off. Use SetBridgeMode to select auto.
   rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetBridgeMode(BridgeModeRequest) returns (google.protobuf.Empty) {}
   rpc SetEnableAdBlocking(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableConflictDetection(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

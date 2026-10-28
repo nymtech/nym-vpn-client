@@ -173,6 +173,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_bridge_mode(
+        &self,
+        request: tonic::Request<proto::BridgeModeRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let bridge_mode = proto::BridgeModes::try_from(request.into_inner().mode)
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid bridge mode: {e}")))?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode.into())
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set bridge mode: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_enable_ad_blocking(
         &self,
         request: tonic::Request<bool>,
