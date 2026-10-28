@@ -8,7 +8,7 @@ on:
       - "nym-vpn-app/src-tauri/**"
       - "nym-vpn-app/package.json"
       - "nym-vpn-app/package-lock.json"
-      - "nym-vpn-core/crates/nym-vpn-proto/**"
+      - "nym-vpn-core/crates/nym-vpn-rpc/**"
   workflow_dispatch:
 
 env:
@@ -37,7 +37,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
-            protobuf-compiler libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev \
+            libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make unzip \
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
 
@@ -73,11 +73,6 @@ jobs:
       - name: Install dependencies
         working-directory: nym-vpn-app
         run: npm ci
-
-      - name: Install protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup MSBuild.exe
         if: contains(matrix.os, 'windows')

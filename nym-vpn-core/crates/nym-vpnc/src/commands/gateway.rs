@@ -8,7 +8,7 @@ use nym_vpn_lib_types::{
     EntryPoint, ExitPoint, GatewayFilter, GetRecentGatewaysParams, ListGatewaysOptions,
     LookupGatewayFilters, NodeIdentity, Recipient,
 };
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 use crate::{
     boolean_option::BooleanOption, display_helpers::display_on_off, table_style::TableStyle,

@@ -43,11 +43,6 @@ jobs:
           components: rustfmt, clippy
           targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Go
         uses: actions/setup-go@v7.0.0
         with:

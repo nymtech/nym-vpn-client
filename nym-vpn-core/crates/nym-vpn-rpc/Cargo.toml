@@ -1,0 +1,30 @@
+[package]
+name = "nym-vpn-rpc"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+bytes.workspace = true
+hyper.workspace = true
+minicbor = { workspace = true, features = ["std"] }
+nym-ipc.workspace = true
+nym-vpn-lib-types = { workspace = true, features = ["cbor"] }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio-stream.workspace = true
+tonic.workspace = true
+tower = { workspace = true, features = ["util"] }
+
+[dev-dependencies]
+minicbor = { workspace = true, features = ["derive", "half", "std"] }
+
+[build-dependencies]
+tonic-build.workspace = true

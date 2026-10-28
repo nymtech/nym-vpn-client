@@ -69,7 +69,6 @@ Look for release tag `nym-vpn-app-v*`, download
 - Rust
 - Nodejs, latest LTS version recommended
 - npm
-- protobuf
 
 Some system libraries are required depending on the host platform.
 Follow the instructions for your specific OS [here](https://tauri.app/start/prerequisites/)
@@ -95,13 +94,6 @@ Alternatively, to run tauri through `cargo`, install `tauri-cli` globally:
 cargo install tauri-cli@^2.3.0
 cargo tauri help
 ```
-
-#### Protobuf
-
-Install `protobuf` from your system package manager or download it
-from the repository releases
-https://github.com/protocolbuffers/protobuf/releases and make sure
-`protoc` is in your `PATH`
 
 ## Run dev
 

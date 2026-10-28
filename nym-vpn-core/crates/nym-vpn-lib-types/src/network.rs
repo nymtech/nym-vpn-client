@@ -19,11 +19,17 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NymNetworkDetails {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub network_name: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub chain_details: ChainDetails,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub endpoints: Vec<ValidatorDetails>,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub contracts: NymContracts,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub networking: NymNetworkingSpecifics,
 }
 
@@ -37,9 +43,13 @@ pub struct NymNetworkDetails {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NymNetworkingSpecifics {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub nym_api_urls: Vec<ApiUrl>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub nym_vpn_api_urls: Vec<ApiUrl>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub dns_fallbacks: Vec<DnsFallback>,
     // pub internal_nameservers: std::any::Any,
     // pub covert channels: std::any::Any,
@@ -55,8 +65,11 @@ pub struct NymNetworkingSpecifics {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct DnsFallback {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub url: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub addresses: Vec<String>,
 }
 
@@ -70,9 +83,13 @@ pub struct DnsFallback {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ChainDetails {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub bech32_account_prefix: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub mix_denom: DenomDetailsOwned,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub stake_denom: DenomDetailsOwned,
 }
 
@@ -86,9 +103,13 @@ pub struct ChainDetails {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct DenomDetailsOwned {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub base: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub display: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub display_exponent: u32,
 }
 
@@ -102,9 +123,13 @@ pub struct DenomDetailsOwned {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ValidatorDetails {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub nyxd_url: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub websocket_url: Option<String>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub api_url: Option<String>,
 }
 
@@ -118,13 +143,21 @@ pub struct ValidatorDetails {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NymContracts {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub mixnet_contract_address: Option<String>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub vesting_contract_address: Option<String>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub performance_contract_address: Option<String>,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub ecash_contract_address: Option<String>,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub group_contract_address: Option<String>,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub multisig_contract_address: Option<String>,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub coconut_dkg_contract_address: Option<String>,
 }
 
@@ -138,8 +171,11 @@ pub struct NymContracts {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ApiUrl {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub url: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub front_hosts: Option<Vec<String>>,
 }
 
@@ -153,7 +189,9 @@ pub struct ApiUrl {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NymVpnNetwork {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub nym_vpn_api_urls: Vec<ApiUrl>,
 }
 
@@ -167,11 +205,18 @@ pub struct NymVpnNetwork {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Network {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub nym_network: NymNetworkDetails,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub nyxd_url: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub nym_vpn_network: NymVpnNetwork,
+    #[cfg_attr(feature = "cbor", n(3))]
+    #[cfg_attr(feature = "cbor", cbor(with = "crate::cbor::option_arc", has_nil))]
     pub feature_flags: Option<Arc<FeatureFlags>>,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub system_configuration: Option<SystemConfiguration>,
 }
 
@@ -185,7 +230,9 @@ pub struct Network {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct FeatureFlags {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub flags: HashMap<String, FlagValue>,
 }
 
@@ -234,9 +281,12 @@ impl FeatureFlags {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum FlagValue {
-    Value(String),
-    Group(HashMap<String, String>),
+    #[cfg_attr(feature = "cbor", n(0))]
+    Value(#[cfg_attr(feature = "cbor", n(0))] String),
+    #[cfg_attr(feature = "cbor", n(1))]
+    Group(#[cfg_attr(feature = "cbor", n(0))] HashMap<String, String>),
 }
 
 #[derive(Clone, Debug)]
@@ -249,9 +299,13 @@ pub enum FlagValue {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ParsedAccountLinks {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub sign_up: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub sign_in: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub account: Option<String>,
 }
 
@@ -265,9 +319,13 @@ pub struct ParsedAccountLinks {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ScoreThresholds {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub high: u8,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub medium: u8,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub low: u8,
 }
 
@@ -281,12 +339,19 @@ pub struct ScoreThresholds {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct SystemConfiguration {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub mix_thresholds: ScoreThresholds,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub wg_thresholds: ScoreThresholds,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub statistics_api: Option<String>,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub min_supported_app_versions: Option<NetworkCompatibility>,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub app_update_policy: String,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub app_update_policies: HashMap<String, String>,
 }
 
@@ -300,15 +365,29 @@ pub struct SystemConfiguration {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct SystemMessage {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub name: String,
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    #[cfg_attr(feature = "cbor", n(1))]
+    #[cfg_attr(
+        feature = "cbor",
+        cbor(with = "crate::cbor::option_offset_date_time", has_nil)
+    )]
     pub display_from: Option<OffsetDateTime>,
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    #[cfg_attr(feature = "cbor", n(2))]
+    #[cfg_attr(
+        feature = "cbor",
+        cbor(with = "crate::cbor::option_offset_date_time", has_nil)
+    )]
     pub display_until: Option<OffsetDateTime>,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub message: String,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub properties: Option<HashMap<String, String>>,
 }
 
@@ -322,11 +401,17 @@ pub struct SystemMessage {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NetworkCompatibility {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub core: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub ios: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub macos: String,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub tauri: String,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub android: String,
 }
 
@@ -341,9 +426,13 @@ pub struct NetworkCompatibility {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct AppCompatibility {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub network: Option<NetworkCompatibility>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub app_update_policy: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub app_update_policies: HashMap<String, String>,
 }
 

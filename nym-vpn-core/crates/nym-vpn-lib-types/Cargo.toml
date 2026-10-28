@@ -30,6 +30,7 @@ uniffi-bindings = ["dep:uniffi", "ipnetwork", "nym-bridges-types/uniffi-bindings
 typescript-bindings = ["dep:ts-rs", "serde", "nym-bridges-types/typescript-bindings"]
 serde = ["dep:serde", "nym-bridges-types/serde"]
 clap = ["dep:clap"]
+cbor = ["dep:minicbor", "dep:serde_json", "serde"]
 
 [dependencies]
 bip39 = { workspace = true }
@@ -43,6 +44,8 @@ thiserror.workspace = true
 ts-rs = { workspace = true, optional = true }
 zeroize.workspace = true
 ipnetwork = { workspace = true, optional = true }
+minicbor = { workspace = true, features = ["derive", "std"], optional = true }
+serde_json = { workspace = true, optional = true }
 uniffi = { workspace = true, optional = true }
 clap = { workspace = true, features = ["derive"], optional = true }
 

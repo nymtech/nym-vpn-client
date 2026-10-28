@@ -21,9 +21,13 @@ use crate::ExitPoint;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct EnableSocks5Request {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub socks5_settings: Socks5Settings,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub http_rpc_settings: HttpRpcSettings,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub exit_point: ExitPoint,
 }
 
@@ -38,7 +42,9 @@ pub struct EnableSocks5Request {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Socks5Settings {
+    #[cfg_attr(feature = "cbor", n(0))]
     /// SOCKS5 listen address, e.g., 127.0.0.1:1080
     #[cfg_attr(feature = "typescript-bindings", ts(as = "Option<String>"))]
     pub listen_address: Option<SocketAddr>,
@@ -55,7 +61,9 @@ pub struct Socks5Settings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct HttpRpcSettings {
+    #[cfg_attr(feature = "cbor", n(0))]
     /// HTTP RPC listen address, e.g., 127.0.0.1:8545
     #[cfg_attr(feature = "typescript-bindings", ts(as = "Option<String>"))]
     pub listen_address: Option<SocketAddr>,
@@ -72,14 +80,20 @@ pub struct HttpRpcSettings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum Socks5State {
     /// Service is disabled
+    #[cfg_attr(feature = "cbor", n(0))]
     Disabled,
     /// Enabled but no active connections (mixnet client not running)
+    #[cfg_attr(feature = "cbor", n(1))]
     Idle,
     /// Active connections, mixnet client is running
+    #[cfg_attr(feature = "cbor", n(2))]
     Connected,
     /// Error state
+    #[cfg_attr(feature = "cbor", n(3))]
     Error,
 }
 
@@ -106,15 +120,21 @@ impl std::fmt::Display for Socks5State {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Socks5Status {
+    #[cfg_attr(feature = "cbor", n(0))]
     /// Current state of the SOCKS5 service
     pub state: Socks5State,
+    #[cfg_attr(feature = "cbor", n(1))]
     /// SOCKS5 settings
     pub socks5_settings: Socks5Settings,
+    #[cfg_attr(feature = "cbor", n(2))]
     /// HTTP RPC settings
     pub http_rpc_settings: HttpRpcSettings,
+    #[cfg_attr(feature = "cbor", n(3))]
     /// Error message (if in error state)
     pub error_message: Option<String>,
+    #[cfg_attr(feature = "cbor", n(4))]
     /// Number of active connections
     pub active_connections: u32,
 }

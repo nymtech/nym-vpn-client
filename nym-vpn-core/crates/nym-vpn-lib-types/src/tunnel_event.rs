@@ -28,13 +28,20 @@ use super::tunnel_state::TunnelState;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum TunnelEvent {
-    NewState(TunnelState),
-    MixnetState(MixnetEvent),
-    ConfigChanged(Box<VpnServiceConfig>),
-    AccountState(AccountControllerState),
-    DiagnosticsSuggested(DiagnosticsSuggestionReason),
-    ConflictDetected(ConflictDetected),
+    #[cfg_attr(feature = "cbor", n(0))]
+    NewState(#[cfg_attr(feature = "cbor", n(0))] TunnelState),
+    #[cfg_attr(feature = "cbor", n(1))]
+    MixnetState(#[cfg_attr(feature = "cbor", n(0))] MixnetEvent),
+    #[cfg_attr(feature = "cbor", n(2))]
+    ConfigChanged(#[cfg_attr(feature = "cbor", n(0))] Box<VpnServiceConfig>),
+    #[cfg_attr(feature = "cbor", n(3))]
+    AccountState(#[cfg_attr(feature = "cbor", n(0))] AccountControllerState),
+    #[cfg_attr(feature = "cbor", n(4))]
+    DiagnosticsSuggested(#[cfg_attr(feature = "cbor", n(0))] DiagnosticsSuggestionReason),
+    #[cfg_attr(feature = "cbor", n(5))]
+    ConflictDetected(#[cfg_attr(feature = "cbor", n(0))] ConflictDetected),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -67,9 +74,14 @@ impl fmt::Display for TunnelEvent {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum ConflictDetected {
+    #[cfg_attr(feature = "cbor", n(0))]
     InterceptedDns,
+    #[cfg_attr(feature = "cbor", n(1))]
     CompetingVpn,
+    #[cfg_attr(feature = "cbor", n(2))]
     CompetingFirewall,
 }
 
@@ -102,14 +114,20 @@ impl fmt::Display for ConflictDetected {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum DiagnosticsSuggestionReason {
     /// Stuck retrying to connect without ever reaching `Connected`.
-    RepeatedConnectionRetries { attempts: u32 },
+    #[cfg_attr(feature = "cbor", n(0))]
+    RepeatedConnectionRetries {
+        #[cfg_attr(feature = "cbor", n(0))]
+        attempts: u32,
+    },
 
     /// Landed in an error state whose cause is ambiguous or network/reachability shaped,
     /// as opposed to account/billing/permission states that already carry their own
     /// obvious remediation.
-    AmbiguousError(ErrorStateReason),
+    #[cfg_attr(feature = "cbor", n(1))]
+    AmbiguousError(#[cfg_attr(feature = "cbor", n(0))] ErrorStateReason),
 }
 
 impl fmt::Display for DiagnosticsSuggestionReason {
@@ -133,10 +151,14 @@ impl fmt::Display for DiagnosticsSuggestionReason {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum MixnetEvent {
-    Bandwidth(BandwidthEvent),
-    Connection(ConnectionEvent),
-    ConnectionStatistics(ConnectionStatisticsEvent),
+    #[cfg_attr(feature = "cbor", n(0))]
+    Bandwidth(#[cfg_attr(feature = "cbor", n(0))] BandwidthEvent),
+    #[cfg_attr(feature = "cbor", n(1))]
+    Connection(#[cfg_attr(feature = "cbor", n(0))] ConnectionEvent),
+    #[cfg_attr(feature = "cbor", n(2))]
+    ConnectionStatistics(#[cfg_attr(feature = "cbor", n(0))] ConnectionStatisticsEvent),
 }
 
 impl fmt::Display for MixnetEvent {
@@ -159,9 +181,12 @@ impl fmt::Display for MixnetEvent {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum BandwidthEvent {
+    #[cfg_attr(feature = "cbor", n(0))]
     NoBandwidth,
-    RemainingBandwidth(i64),
+    #[cfg_attr(feature = "cbor", n(1))]
+    RemainingBandwidth(#[cfg_attr(feature = "cbor", n(0))] i64),
 }
 
 impl fmt::Display for BandwidthEvent {
@@ -189,13 +214,22 @@ impl fmt::Display for BandwidthEvent {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum ConnectionEvent {
+    #[cfg_attr(feature = "cbor", n(0))]
     EntryGatewayDown,
+    #[cfg_attr(feature = "cbor", n(1))]
     ExitGatewayDownIpv4,
+    #[cfg_attr(feature = "cbor", n(2))]
     ExitGatewayDownIpv6,
+    #[cfg_attr(feature = "cbor", n(3))]
     ExitGatewayRoutingErrorIpv4,
+    #[cfg_attr(feature = "cbor", n(4))]
     ExitGatewayRoutingErrorIpv6,
+    #[cfg_attr(feature = "cbor", n(5))]
     ConnectedIpv4,
+    #[cfg_attr(feature = "cbor", n(6))]
     ConnectedIpv6,
 }
 
@@ -235,7 +269,9 @@ impl fmt::Display for ConnectionEvent {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ConnectionStatisticsEvent {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub rates: SphinxPacketRates,
 }
 
@@ -255,27 +291,46 @@ impl fmt::Display for ConnectionStatisticsEvent {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct SphinxPacketRates {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub real_packets_sent: f64,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub real_packets_sent_size: f64,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub cover_packets_sent: f64,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub cover_packets_sent_size: f64,
 
+    #[cfg_attr(feature = "cbor", n(4))]
     pub real_packets_received: f64,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub real_packets_received_size: f64,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub cover_packets_received: f64,
+    #[cfg_attr(feature = "cbor", n(7))]
     pub cover_packets_received_size: f64,
 
+    #[cfg_attr(feature = "cbor", n(8))]
     pub total_acks_received: f64,
+    #[cfg_attr(feature = "cbor", n(9))]
     pub total_acks_received_size: f64,
+    #[cfg_attr(feature = "cbor", n(10))]
     pub real_acks_received: f64,
+    #[cfg_attr(feature = "cbor", n(11))]
     pub real_acks_received_size: f64,
+    #[cfg_attr(feature = "cbor", n(12))]
     pub cover_acks_received: f64,
+    #[cfg_attr(feature = "cbor", n(13))]
     pub cover_acks_received_size: f64,
 
+    #[cfg_attr(feature = "cbor", n(14))]
     pub real_packets_queued: f64,
+    #[cfg_attr(feature = "cbor", n(15))]
     pub retransmissions_queued: f64,
+    #[cfg_attr(feature = "cbor", n(16))]
     pub reply_surbs_queued: f64,
+    #[cfg_attr(feature = "cbor", n(17))]
     pub additional_reply_surbs_queued: f64,
 }
 

@@ -245,26 +245,36 @@ impl From<nym_gateway_directory::Recipient> for Recipient {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum EntryPoint {
     // An explicit entry gateway identity.
+    #[cfg_attr(feature = "cbor", n(0))]
     Gateway {
         #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        #[cfg_attr(feature = "cbor", n(0))]
         identity: NodeIdentity,
     },
     // Select a random entry gateway in a specific country.
+    #[cfg_attr(feature = "cbor", n(1))]
     Country {
+        #[cfg_attr(feature = "cbor", n(0))]
         two_letter_iso_country_code: String,
     },
     // Select a random entry gateway in a specific region/state.
+    #[cfg_attr(feature = "cbor", n(2))]
     Region {
+        #[cfg_attr(feature = "cbor", n(0))]
         region: String,
     },
     // Select an entry gateway at random.
+    #[cfg_attr(feature = "cbor", n(3))]
     Random,
 
     // Automatically select an entry point as close as possible to user
     // The user's own country could be excluded or not.
+    #[cfg_attr(feature = "cbor", n(4))]
     Auto {
+        #[cfg_attr(feature = "cbor", n(0))]
         exclude_user_country: bool,
     },
 }
@@ -303,39 +313,52 @@ impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
+    #[cfg_attr(feature = "cbor", n(0))]
     Address {
+        #[cfg_attr(feature = "cbor", n(0))]
         #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
         address: Box<Recipient>,
     },
 
     // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
     // embedded on a gateway.
+    #[cfg_attr(feature = "cbor", n(1))]
     Gateway {
+        #[cfg_attr(feature = "cbor", n(0))]
         #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
         identity: NodeIdentity,
     },
 
     // Select a random entry gateway in a specific country.
+    #[cfg_attr(feature = "cbor", n(2))]
     Country {
+        #[cfg_attr(feature = "cbor", n(0))]
         two_letter_iso_country_code: String,
     },
 
     // Select a random entry gateway in a specific region/state.
+    #[cfg_attr(feature = "cbor", n(3))]
     Region {
+        #[cfg_attr(feature = "cbor", n(0))]
         region: String,
     },
 
     // Select an exit gateway at random.
+    #[cfg_attr(feature = "cbor", n(4))]
     Random,
 
     // Automatically select an exit point as close as possible to the selected entry point.
     // The entry point's country could be excluded or not
     // The user's own country could be excluded or not
+    #[cfg_attr(feature = "cbor", n(5))]
     Auto {
+        #[cfg_attr(feature = "cbor", n(0))]
         exclude_entry_point_country: bool,
+        #[cfg_attr(feature = "cbor", n(1))]
         exclude_user_country: bool,
     },
 }
@@ -371,18 +394,25 @@ impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum FavoriteSelector {
     // A favorite gateway identity.
+    #[cfg_attr(feature = "cbor", n(0))]
     Gateway {
         #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        #[cfg_attr(feature = "cbor", n(0))]
         identity: NodeIdentity,
     },
     // A favorite country.
+    #[cfg_attr(feature = "cbor", n(1))]
     Country {
+        #[cfg_attr(feature = "cbor", n(0))]
         two_letter_iso_country_code: String,
     },
     // A favorite region.
+    #[cfg_attr(feature = "cbor", n(2))]
     Region {
+        #[cfg_attr(feature = "cbor", n(0))]
         region: String,
     },
 }
@@ -397,8 +427,11 @@ pub enum FavoriteSelector {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct FavoriteSelectors {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry: Vec<FavoriteSelector>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit: Vec<FavoriteSelector>,
 }
 
@@ -419,9 +452,14 @@ impl std::fmt::Display for FavoriteSelectors {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum GatewayType {
+    #[cfg_attr(feature = "cbor", n(0))]
     MixnetEntry,
+    #[cfg_attr(feature = "cbor", n(1))]
     MixnetExit,
+    #[cfg_attr(feature = "cbor", n(2))]
     Wg,
 }
 
@@ -446,13 +484,21 @@ impl From<GatewayType> for nym_gateway_directory::GatewayType {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum GatewayFilter {
-    MinScore(Score),
-    Country(String),
-    Region(String),
+    #[cfg_attr(feature = "cbor", n(0))]
+    MinScore(#[cfg_attr(feature = "cbor", n(0))] Score),
+    #[cfg_attr(feature = "cbor", n(1))]
+    Country(#[cfg_attr(feature = "cbor", n(0))] String),
+    #[cfg_attr(feature = "cbor", n(2))]
+    Region(#[cfg_attr(feature = "cbor", n(0))] String),
+    #[cfg_attr(feature = "cbor", n(3))]
     Residential,
+    #[cfg_attr(feature = "cbor", n(4))]
     QuicEnabled,
+    #[cfg_attr(feature = "cbor", n(5))]
     Exit,
+    #[cfg_attr(feature = "cbor", n(6))]
     Vpn,
 }
 
@@ -477,8 +523,11 @@ impl From<GatewayFilter> for nym_gateway_directory::GatewayFilter {
 
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LookupGatewayFilters {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub gw_type: GatewayType,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub filters: Vec<GatewayFilter>,
 }
 
@@ -519,20 +568,35 @@ impl From<LookupGatewayFilters> for nym_gateway_directory::LookupGatewayFilters 
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Gateway {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub identity_key: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub name: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub description: Option<String>,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub location: Option<Location>,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub last_probe: Option<Probe>,
     // todo: remove since it's unused?
+    #[cfg_attr(feature = "cbor", n(5))]
     pub mixnet_performance: Option<u8>,
+    #[cfg_attr(feature = "cbor", n(6))]
+    #[cfg_attr(feature = "cbor", cbor(with = "crate::cbor::option_json", has_nil))]
     pub bridge_params: Option<BridgeInformation>,
+    #[cfg_attr(feature = "cbor", n(7))]
     pub performance: Option<Performance>,
+    #[cfg_attr(feature = "cbor", n(8))]
     pub exit_ipv4s: Vec<Ipv4Addr>,
+    #[cfg_attr(feature = "cbor", n(9))]
     pub exit_ipv6s: Vec<Ipv6Addr>,
+    #[cfg_attr(feature = "cbor", n(10))]
     pub build_version: Option<String>,
+    #[cfg_attr(feature = "cbor", n(11))]
     pub lewes_protocol_details: Option<LewesProtocolDetails>,
+    #[cfg_attr(feature = "cbor", n(12))]
     pub node_family_name: Option<String>,
 }
 
@@ -546,12 +610,18 @@ pub struct Gateway {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum TentativeGateways {
+    #[cfg_attr(feature = "cbor", n(0))]
     Selected {
+        #[cfg_attr(feature = "cbor", n(0))]
         entry: Box<Gateway>,
+        #[cfg_attr(feature = "cbor", n(1))]
         exit: Box<Gateway>,
     },
+    #[cfg_attr(feature = "cbor", n(1))]
     NeedsRelaxedIndependenceCriteria,
+    #[cfg_attr(feature = "cbor", n(2))]
     NoGatewaysAvailable,
 }
 
@@ -565,7 +635,9 @@ pub enum TentativeGateways {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct GetRecentGatewaysParams {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub tunnel_type: TunnelType,
 }
 
@@ -579,8 +651,11 @@ pub struct GetRecentGatewaysParams {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct RecentGateways {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry: Vec<Gateway>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit: Vec<Gateway>,
 }
 
@@ -600,11 +675,17 @@ pub use nym_bridges_types::{
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Performance {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub last_updated_utc: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub score: Score,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub mixnet_score: Score,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub load: Score,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub uptime_percentage_last_24_hours: f32,
 }
 
@@ -631,8 +712,12 @@ impl From<nym_gateway_directory::Performance> for Performance {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum AsnKind {
+    #[cfg_attr(feature = "cbor", n(0))]
     Residential,
+    #[cfg_attr(feature = "cbor", n(1))]
     Other,
 }
 
@@ -646,9 +731,13 @@ pub enum AsnKind {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Asn {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub asn: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub name: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub kind: AsnKind,
 }
 
@@ -662,12 +751,19 @@ pub struct Asn {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Location {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub two_letter_iso_country_code: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub latitude: f64,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub longitude: f64,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub city: String,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub region: String,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub asn: Option<Asn>,
 }
 
@@ -687,8 +783,11 @@ impl fmt::Display for Location {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Probe {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub last_updated_utc: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub outcome: ProbeOutcome,
 }
 
@@ -708,10 +807,16 @@ impl fmt::Display for Probe {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum Score {
+    #[cfg_attr(feature = "cbor", n(0))]
     High,
+    #[cfg_attr(feature = "cbor", n(1))]
     Medium,
+    #[cfg_attr(feature = "cbor", n(2))]
     Low,
+    #[cfg_attr(feature = "cbor", n(3))]
     Offline,
 }
 
@@ -737,10 +842,15 @@ impl From<nym_gateway_directory::ScoreValue> for Score {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ProbeOutcome {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub as_entry: Entry,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub as_exit: Option<Exit>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub socks5: Option<Socks5>,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub lp: Option<Lp>,
 }
 
@@ -754,8 +864,11 @@ pub struct ProbeOutcome {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Entry {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub can_connect: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub can_route: bool,
 }
 
@@ -769,9 +882,13 @@ pub struct Entry {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Socks5 {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub can_proxy_https: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub score: Option<Score>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub errors: Option<Vec<String>>,
 }
 
@@ -785,10 +902,15 @@ pub struct Socks5 {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Lp {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub can_connect: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub can_handshake: bool,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub can_register: bool,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub error: Option<String>,
 }
 
@@ -802,8 +924,11 @@ pub struct Lp {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LewesProtocolDetails {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub content: LewesProtocolDetailsData,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub signature: String,
 }
 
@@ -817,11 +942,17 @@ pub struct LewesProtocolDetails {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LewesProtocolDetailsData {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub enabled: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub control_port: u16,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub data_port: u16,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub x25519: String,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub kem_keys: HashMap<String, HashMap<String, String>>,
 }
 
@@ -835,11 +966,17 @@ pub struct LewesProtocolDetailsData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Exit {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub can_connect: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub can_route_ip_v4: bool,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub can_route_ip_external_v4: bool,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub can_route_ip_v6: bool,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub can_route_ip_external_v6: bool,
 }
 
@@ -853,7 +990,9 @@ pub struct Exit {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Country {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub iso_code: String,
 }
 

@@ -8,7 +8,7 @@ use crate::{
 };
 use futures::{FutureExt, select, select_biased};
 use nym_vpn_lib_types::{AccountControllerState, TunnelState, TunnelType};
-use nym_vpn_proto::rpc_client::RpcClient as NymDaemonClient;
+use nym_vpn_rpc::RpcClient as NymDaemonClient;
 use std::{
     collections::{BTreeMap, HashMap},
     future::Future,

@@ -11,7 +11,7 @@ use crate::{
 };
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use test_macro::test_function_nym;
 use test_rpc::{NymServiceClient, nym_daemon::ObservedAccountState};
 

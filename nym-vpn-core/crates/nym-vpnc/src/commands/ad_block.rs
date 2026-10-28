@@ -4,7 +4,7 @@
 use anyhow::Result;
 use clap::builder::ValueParserFactory;
 
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 use crate::boolean_option::BooleanOption;
 

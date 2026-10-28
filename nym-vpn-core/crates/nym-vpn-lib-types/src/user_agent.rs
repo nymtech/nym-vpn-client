@@ -16,19 +16,24 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
+    #[cfg_attr(feature = "cbor", n(0))]
     pub application: String,
 
     // The version
+    #[cfg_attr(feature = "cbor", n(1))]
     pub version: String,
 
     // The platform triple
     // Example: x86_64-unknown-linux-gnu
+    #[cfg_attr(feature = "cbor", n(2))]
     pub platform: String,
 
     // The git commit hash
+    #[cfg_attr(feature = "cbor", n(3))]
     pub git_commit: String,
 }
 

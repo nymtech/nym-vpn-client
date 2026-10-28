@@ -5,7 +5,7 @@ use anyhow::Result;
 use tabled::Table;
 
 use nym_vpn_lib_types::{NymVpnDevice, NymVpnDeviceStatus};
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 use crate::table_style::TableStyle;
 

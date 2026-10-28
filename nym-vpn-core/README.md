@@ -72,18 +72,11 @@ After installing Rust, install the following Rust targets and dependencies to en
     sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev
     ```
 
-2. Install the latest protobuf-compiler from https://github.com/protocolbuffers/protobuf/releases
-3. Install Go from https://go.dev/dl/
+2. Install Go from https://go.dev/dl/
 
 ### macOS
 
-1. Install Protobuf
-
-    ```sh
-    brew install protobuf
-    ```
-
-2. Install Golang
+1. Install Golang
 
     ```sh
     brew install go
@@ -118,23 +111,7 @@ After installing Rust, install the following Rust targets and dependencies to en
     winget install -e --id=GnuWin32.Make
     ```
 
-4. Install the Protocol Buffers compiler (**protoc**)
-    - Download `protoc-<version>-win64.zip`
-    - Unzip to `C:\Program Files\protoc`.
-    - Add to environment:
-
-        ```bat
-        setx PROTOC "C:\Program Files\protoc\bin\protoc.exe" /M
-        setx PATH "%PATH%;C:\Program Files\protoc\bin" /M
-        ```
-
-    - Verify that `protoc` is available in the path:
-
-        ```cmd
-        protoc --version
-        ```
-
-5. Install Libclang for x86 or x64 via winget:
+4. Install Libclang for x86 or x64 via winget:
 
     ```
     winget install -e --id=LLVM.LLVM
@@ -144,7 +121,7 @@ After installing Rust, install the following Rust targets and dependencies to en
 
     Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
 
-6. Install msys2 and mingw packages
+5. Install msys2 and mingw packages
     - Download [msys2](https://www.msys2.org/#installation) and install it in the default location that it offers during installation (i.e: `C:\msys64`).
     - Type in msys2 in the taskbar search then open "msys2 mingw64" if you run x64 Windows or "msys2 clangarm64" if you run arm64 Windows.
     - In the appeared msys2 console, type in the following commands to update installed components and install clang for x64 and arm64:
@@ -155,7 +132,7 @@ After installing Rust, install the following Rust targets and dependencies to en
         pacman -S mingw-w64-clang-aarch64-clang
         pacman -S mingw-w64-clang-aarch64-headers mingw-w64-clang-aarch64-crt-git
         ```
-7. Install `cargo-get`:
+6. Install `cargo-get`:
 
     ```sh
     cargo install cargo-get

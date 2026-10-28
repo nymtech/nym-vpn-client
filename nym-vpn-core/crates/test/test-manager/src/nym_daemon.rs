@@ -8,7 +8,7 @@ use std::{future::Future, io, time::Duration};
 use anyhow::Context;
 use futures::{StreamExt, channel::mpsc, future::BoxFuture};
 use hyper_util::rt::TokioIo;
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use test_rpc::transport::{
     ConnectionHandle, GrpcForwarder, forward_framed_bidirectional, length_delimited_framed_halves,
     synchronize_framed_session,

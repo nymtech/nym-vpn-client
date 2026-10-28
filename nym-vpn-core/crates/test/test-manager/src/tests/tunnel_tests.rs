@@ -12,7 +12,7 @@ use crate::tests::{
 use anyhow::{Context, bail, ensure};
 use helpers_nym::disconnect_after_in_tunnel_dns;
 use nym_vpn_lib_types::{ExitPoint, GatewayType, ListGatewaysOptions};
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use std::{
     net::{IpAddr, SocketAddr},
     time::Duration,

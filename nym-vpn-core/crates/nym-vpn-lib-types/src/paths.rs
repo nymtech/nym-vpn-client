@@ -18,8 +18,11 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LogPath {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub dir: PathBuf,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub filename: String,
 }
 

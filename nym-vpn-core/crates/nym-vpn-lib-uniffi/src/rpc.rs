@@ -1,12 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Uniffi interface for RPC client from `nym-vpn-proto`.
+//! Uniffi interface for RPC client from `nym-vpn-rpc`.
 
 use std::{net::IpAddr, sync::Arc};
 
 use futures::StreamExt;
-use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
+use nym_vpn_rpc::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;

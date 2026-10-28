@@ -16,21 +16,22 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status, transport::Server};
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
-    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
+    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticRegisterParams, DiagnosticReport,
+    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, FrontingMode,
+    Gateway, GetDeeplinkParams, GetRecentGatewaysParams, ListGatewaysOptions, LogPath,
+    LookupGatewayFilters, MixnetTrafficConfig, NetworkStatisticsIdentity, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways,
+    RegistrationReport, Socks5Status, SplitApp, SplitTunnelExcludedProcessList,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
-
-use nym_vpn_proto::proto::{
-    self, MixnetTrafficConfig,
-    nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
-};
+use nym_vpn_rpc::{NymVpnService, NymVpnServiceServer};
 
 use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
-pub type Result<T> = std::result::Result<T, tonic::Status>;
+pub type Result<T> = std::result::Result<T, Status>;
 
 #[cfg(windows)]
 // The Nym serial number of the SSL certificate we use to sign release builds
@@ -72,244 +73,141 @@ impl CommandInterface {
 
         self.vpn_command_tx
             .send(command(tx, opts))
-            .map_err(|_| tonic::Status::internal("Command channel is closed"))?;
+            .map_err(|_| Status::internal("Command channel is closed"))?;
 
         rx.await
-            .map_err(|_| tonic::Status::internal("Response channel is closed"))
+            .map_err(|_| Status::internal("Response channel is closed"))
     }
 }
 
 #[tonic::async_trait]
 impl NymVpnService for CommandInterface {
-    async fn info(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::InfoResponse>> {
+    async fn info(&self, _request: Request<()>) -> Result<Response<VpnServiceInfo>> {
         let info = self.send_and_wait(VpnServiceCommand::Info, ()).await?;
-        let response = proto::InfoResponse::from(info);
 
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(info))
     }
 
-    async fn get_config(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetConfigResponse>> {
+    async fn get_config(&self, _request: Request<()>) -> Result<Response<VpnServiceConfig>> {
         let config = self.send_and_wait(VpnServiceCommand::GetConfig, ()).await?;
 
-        let response = proto::GetConfigResponse {
-            config: Some(proto::VpnServiceConfig::from(config)),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(config))
     }
 
-    async fn set_entry_point(
-        &self,
-        request: tonic::Request<proto::EntryNode>,
-    ) -> Result<tonic::Response<()>> {
-        let entry_point = EntryPoint::try_from(request.into_inner())
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid entry point: {e}")))?;
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetEntryPoint, entry_point)
+    async fn set_entry_point(&self, request: Request<EntryPoint>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetEntryPoint, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set VPN entry point: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set VPN entry point: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_exit_point(
-        &self,
-        request: tonic::Request<proto::ExitNode>,
-    ) -> Result<tonic::Response<()>> {
-        let exit_point = ExitPoint::try_from(request.into_inner())
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid exit point: {e}")))?;
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetExitPoint, exit_point)
+    async fn set_exit_point(&self, request: Request<ExitPoint>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetExitPoint, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set VPN exit point: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set VPN exit point: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_disable_ipv6(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
-        let disable_ipv6 = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
+    async fn set_disable_ipv6(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetDisableIPv6, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set IPv6 config: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set IPv6 config: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_enable_two_hop(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enable_two_hop = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetEnableTwoHop, enable_two_hop)
+    async fn set_enable_two_hop(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetEnableTwoHop, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set two-hop config: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set two-hop config: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_bridge_mode(
-        &self,
-        request: tonic::Request<proto::BridgeModeRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let bridge_mode = proto::BridgeModes::try_from(request.into_inner().mode)
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid bridge mode: {e}")))?;
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode.into())
+    async fn set_bridge_mode(&self, request: Request<BridgeMode>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetBridgeMode, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set bridge mode: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set bridge mode: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_enable_ad_blocking(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enable_ad_blocking = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
+    async fn set_enable_ad_blocking(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetEnableAdBlocking, request.into_inner())
             .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
-            })?;
+            .map_err(|e| Status::internal(format!("Failed to set ad-blocking config: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_enable_conflict_detection(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enable_conflict_detection = request.into_inner();
+    async fn set_enable_conflict_detection(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(
+            VpnServiceCommand::SetEnableConflictDetection,
+            request.into_inner(),
+        )
+        .await
+        .map_err(|e| Status::internal(format!("Failed to set conflict-detection config: {e}")))?;
 
-        let _ = self
-            .send_and_wait(
-                VpnServiceCommand::SetEnableConflictDetection,
-                enable_conflict_detection,
-            )
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set conflict-detection config: {e}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_fronting_mode(
-        &self,
-        request: tonic::Request<proto::FrontingModeRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let fronting_mode_request = request.into_inner();
-        let fronting_mode = proto::FrontingModes::try_from(fronting_mode_request.mode)
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid fronting mode: {e}")))?;
-
-        let fronting_mode = fronting_mode.into();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
+    async fn set_fronting_mode(&self, request: Request<FrontingMode>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetFrontingMode, request.into_inner())
             .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set fronting mode config: {e}"))
-            })?;
+            .map_err(|e| Status::internal(format!("Failed to set fronting mode config: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
-        let netstack = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetNetstack, netstack)
+    async fn set_netstack(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetNetstack, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set netstack config: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set netstack config: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_allow_lan(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
-        let allow_lan = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetAllowLan, allow_lan)
+    async fn set_allow_lan(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetAllowLan, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set allow lan: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set allow lan: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_residential_exit(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let residential_exit = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetResidentialExit, residential_exit)
+    async fn set_residential_exit(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetResidentialExit, request.into_inner())
             .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set residential exit only: {e}"))
-            })?;
+            .map_err(|e| Status::internal(format!("Failed to set residential exit only: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_enable_custom_dns(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enable_custom_dns = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetEnableCustomDns, enable_custom_dns)
+    async fn set_enable_custom_dns(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetEnableCustomDns, request.into_inner())
             .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set enable custom DNS: {e}"))
-            })?;
+            .map_err(|e| Status::internal(format!("Failed to set enable custom DNS: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn set_custom_dns(
-        &self,
-        request: tonic::Request<proto::IpAddrList>,
-    ) -> Result<tonic::Response<()>> {
-        let custom_dns: Vec<IpAddr> = request
-            .into_inner()
-            .try_into()
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
+    async fn set_custom_dns(&self, request: Request<Vec<IpAddr>>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetCustomDns, request.into_inner())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set custom DNS: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
     async fn set_mixnet_traffic_config(
         &self,
         request: Request<MixnetTrafficConfig>,
-    ) -> std::result::Result<Response<()>, Status> {
-        let mixnet_traffic_config: nym_vpn_lib_types::MixnetTrafficConfig =
-            request.into_inner().into();
-
+    ) -> Result<Response<()>> {
         self.send_and_wait(
             VpnServiceCommand::SetMixnetTrafficConfig,
-            mixnet_traffic_config,
+            request.into_inner(),
         )
         .await
         .map_err(|e| Status::internal(format!("[set_mixnet_traffic_config] transport error: {e}")))?
@@ -322,37 +220,33 @@ impl NymVpnService for CommandInterface {
         Ok(Response::new(()))
     }
 
-    async fn set_enable_geo_location(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> std::result::Result<Response<()>, Status> {
-        let enable_geo_location = request.into_inner();
-
-        self.send_and_wait(VpnServiceCommand::SetEnableGeoLocation, enable_geo_location)
-            .await
-            .map_err(|e| {
-                Status::internal(format!(
-                    "[set_enable gateway_selection_algorithm] transport error: {e}"
-                ))
-            })?
-            .map_err(|err| {
-                Status::invalid_argument(format!(
-                    "[set_enable gateway_selection_algorithm] validation failed: {err}"
-                ))
-            })?;
+    async fn set_enable_geo_location(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(
+            VpnServiceCommand::SetEnableGeoLocation,
+            request.into_inner(),
+        )
+        .await
+        .map_err(|e| {
+            Status::internal(format!(
+                "[set_enable gateway_selection_algorithm] transport error: {e}"
+            ))
+        })?
+        .map_err(|err| {
+            Status::invalid_argument(format!(
+                "[set_enable gateway_selection_algorithm] validation failed: {err}"
+            ))
+        })?;
 
         Ok(Response::new(()))
     }
 
     async fn set_enable_gateway_independence(
         &self,
-        request: tonic::Request<bool>,
-    ) -> std::result::Result<Response<()>, Status> {
-        let enable_gateway_independence = request.into_inner();
-
+        request: Request<bool>,
+    ) -> Result<Response<()>> {
         self.send_and_wait(
             VpnServiceCommand::SetEnableGatewayIndependence,
-            enable_gateway_independence,
+            request.into_inner(),
         )
         .await
         .map_err(|e| {
@@ -366,13 +260,11 @@ impl NymVpnService for CommandInterface {
 
     async fn set_gateway_independence_notifications(
         &self,
-        request: tonic::Request<bool>,
+        request: Request<bool>,
     ) -> Result<Response<()>> {
-        let enable_notifications = request.into_inner();
-
         self.send_and_wait(
             VpnServiceCommand::SetGatewayIndependenceNotifications,
-            enable_notifications,
+            request.into_inner(),
         )
         .await
         .map_err(|e| {
@@ -384,867 +276,657 @@ impl NymVpnService for CommandInterface {
         Ok(Response::new(()))
     }
 
-    async fn set_geo_exclusion_enabled(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enabled = request.into_inner();
-        self.send_and_wait(VpnServiceCommand::SetGeoExclusionEnabled, enabled)
-            .await?;
-        Ok(tonic::Response::new(()))
+    async fn set_geo_exclusion_enabled(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(
+            VpnServiceCommand::SetGeoExclusionEnabled,
+            request.into_inner(),
+        )
+        .await?;
+
+        Ok(Response::new(()))
     }
 
-    async fn set_geo_exclusion_listen_port(
-        &self,
-        request: tonic::Request<proto::GeoExclusionListenPortRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let port = request.into_inner().listen_port;
-        if port == 0 || port > u16::MAX as u32 {
-            return Err(tonic::Status::invalid_argument(format!(
-                "listen_port must be a valid non-zero port number (got {port})"
-            )));
+    async fn set_geo_exclusion_listen_port(&self, request: Request<u16>) -> Result<Response<()>> {
+        let port = request.into_inner();
+        if port == 0 {
+            return Err(Status::invalid_argument(
+                "listen_port must be a valid non-zero port number (got 0)",
+            ));
         }
-        self.send_and_wait(VpnServiceCommand::SetGeoExclusionListenPort, port as u16)
+
+        self.send_and_wait(VpnServiceCommand::SetGeoExclusionListenPort, port)
             .await?
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-        Ok(tonic::Response::new(()))
+            .map_err(|err| Status::invalid_argument(err.to_string()))?;
+
+        Ok(Response::new(()))
     }
 
     async fn set_geo_exclusion_excluded_countries(
         &self,
-        request: tonic::Request<proto::StringList>,
-    ) -> Result<tonic::Response<()>> {
-        let countries = request.into_inner().values;
-
+        request: Request<Vec<String>>,
+    ) -> Result<Response<()>> {
         self.send_and_wait(
             VpnServiceCommand::SetGeoExclusionExcludedCountries,
-            countries,
+            request.into_inner(),
         )
         .await?
-        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-        Ok(tonic::Response::new(()))
+        .map_err(|err| Status::invalid_argument(err.to_string()))?;
+
+        Ok(Response::new(()))
     }
 
     async fn get_recent_gateways(
         &self,
-        request: tonic::Request<proto::GetRecentGatewaysParams>,
-    ) -> Result<tonic::Response<proto::RecentGateways>> {
-        let tunnel_type =
-            nym_vpn_lib_types::GetRecentGatewaysParams::try_from(request.into_inner())
-                .map_err(|e| {
-                    tonic::Status::invalid_argument(format!("Invalid recent gateway params: {e}"))
-                })?
-                .tunnel_type;
-        let response = self
-            .send_and_wait(VpnServiceCommand::GetRecentGateways, tunnel_type)
+        request: Request<GetRecentGatewaysParams>,
+    ) -> Result<Response<RecentGateways>> {
+        let recent_gateways = self
+            .send_and_wait(
+                VpnServiceCommand::GetRecentGateways,
+                request.into_inner().tunnel_type,
+            )
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get recent gateways: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get recent gateways: {err}")))?;
 
-        Ok(tonic::Response::new(response.into()))
+        Ok(Response::new(recent_gateways))
     }
 
-    async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
-        let network = request.into_inner();
-        let status = self
-            .send_and_wait(VpnServiceCommand::SetNetwork, network)
-            .await?;
+    async fn set_network(&self, request: Request<String>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetNetwork, request.into_inner())
+            .await?
+            .map_err(|e| match e {
+                SetNetworkError::NetworkNotFound(network_name) => {
+                    Status::not_found(format!("Network not found: {network_name}"))
+                }
+                e => Status::internal(e.to_string()),
+            })?;
 
-        status.map_err(|e| match e {
-            SetNetworkError::NetworkNotFound(network_name) => {
-                tonic::Status::not_found(format!("Network not found: {network_name}"))
-            }
-            e => tonic::Status::internal(e.to_string()),
-        })?;
-
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
     async fn get_system_messages(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetSystemMessagesResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<Vec<SystemMessage>>> {
         let messages = self
             .send_and_wait(VpnServiceCommand::GetSystemMessages, ())
             .await?;
 
-        let messages = messages
-            .into_iter()
-            .map(proto::SystemMessage::from)
-            .collect::<Vec<_>>();
-        let response = proto::GetSystemMessagesResponse { messages };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(messages))
     }
 
-    async fn get_network_compatibility(
+    async fn get_app_compatibility(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetNetworkCompatibilityResponse>> {
-        let response = self
+        _request: Request<()>,
+    ) -> Result<Response<Option<AppCompatibility>>> {
+        let compatibility = self
             .send_and_wait(VpnServiceCommand::GetAppCompatibility, ())
-            .await?
-            .map(proto::GetNetworkCompatibilityResponse::from)
-            .unwrap_or_default();
+            .await?;
 
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(compatibility))
     }
 
-    async fn get_feature_flags(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetFeatureFlagsResponse>> {
+    async fn get_feature_flags(&self, _request: Request<()>) -> Result<Response<FeatureFlags>> {
         let feature_flags = self
             .send_and_wait(VpnServiceCommand::GetFeatureFlags, ())
             .await?
-            .ok_or(tonic::Status::not_found("Feature flags not found"))?;
+            .ok_or(Status::not_found("Feature flags not found"))?;
 
-        Ok(tonic::Response::new(feature_flags.into()))
+        Ok(Response::new(feature_flags))
     }
 
-    async fn get_default_dns(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::IpAddrList>> {
+    async fn get_default_dns(&self, _request: Request<()>) -> Result<Response<Vec<IpAddr>>> {
         let dns_ips = self
             .send_and_wait(VpnServiceCommand::GetDefaultDns, ())
             .await?;
-        let ipaddr_list = proto::IpAddrList::from(dns_ips);
-        Ok(tonic::Response::new(ipaddr_list))
+
+        Ok(Response::new(dns_ips))
     }
 
-    async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<bool>> {
+    async fn connect_tunnel(&self, _request: Request<()>) -> Result<Response<bool>> {
         let accepted = self
             .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Secured)
             .await?;
 
-        Ok(tonic::Response::new(accepted))
+        Ok(Response::new(accepted))
     }
 
-    async fn reconnect_tunnel(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn reconnect_tunnel(&self, _request: Request<()>) -> Result<Response<bool>> {
         let accepted = self.send_and_wait(VpnServiceCommand::Reconnect, ()).await?;
 
-        Ok(tonic::Response::new(accepted))
+        Ok(Response::new(accepted))
     }
 
-    async fn disconnect_tunnel(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn disconnect_tunnel(&self, _request: Request<()>) -> Result<Response<bool>> {
         let accepted = self
             .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Unsecured)
             .await?;
 
-        Ok(tonic::Response::new(accepted))
+        Ok(Response::new(accepted))
     }
 
-    async fn get_tunnel_state(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::TunnelState>> {
+    async fn get_tunnel_state(&self, _request: Request<()>) -> Result<Response<TunnelState>> {
         let tunnel_state = self
             .send_and_wait(VpnServiceCommand::GetTunnelState, ())
-            .await
-            .map(proto::TunnelState::from)?;
+            .await?;
 
-        Ok(tonic::Response::new(tunnel_state))
+        Ok(Response::new(tunnel_state))
     }
 
-    type ListenToEventsStream = BoxStream<'static, Result<proto::TunnelEvent>>;
+    type ListenToEventsStream = BoxStream<'static, Result<TunnelEvent>>;
+
     async fn listen_to_events(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<Self::ListenToEventsStream>> {
+        _request: Request<()>,
+    ) -> Result<Response<Self::ListenToEventsStream>> {
         let rx = self.tunnel_event_rx.resubscribe();
-        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|event| {
-            event
-                .map(proto::TunnelEvent::from)
-                .map_err(|_| tonic::Status::internal("Failed to receive tunnel event"))
-        });
-        Ok(tonic::Response::new(
-            Box::pin(stream) as Self::ListenToEventsStream
-        ))
+        let stream = tokio_stream::wrappers::BroadcastStream::new(rx)
+            .map(|event| event.map_err(|_| Status::internal("Failed to receive tunnel event")));
+
+        Ok(Response::new(Box::pin(stream) as Self::ListenToEventsStream))
     }
 
     async fn list_gateways(
         &self,
-        request: tonic::Request<proto::ListGatewaysRequest>,
-    ) -> Result<tonic::Response<proto::ListGatewaysResponse>> {
-        let options = ListGatewaysOptions::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
+        request: Request<ListGatewaysOptions>,
+    ) -> Result<Response<Vec<Gateway>>> {
         let gateways = self
-            .send_and_wait(VpnServiceCommand::ListGateways, options)
+            .send_and_wait(VpnServiceCommand::ListGateways, request.into_inner())
             .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to list gateways: {err}")))?;
+            .map_err(|err| Status::internal(format!("Failed to list gateways: {err}")))?;
 
-        let response = proto::ListGatewaysResponse {
-            gateways: gateways
-                .into_iter()
-                .map(proto::GatewayResponse::from)
-                .collect(),
-        };
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(gateways))
     }
 
     async fn list_filtered_gateways(
         &self,
-        request: tonic::Request<proto::LookupGatewayFilters>,
-    ) -> Result<tonic::Response<proto::ListGatewaysResponse>> {
-        let filters = LookupGatewayFilters::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
+        request: Request<LookupGatewayFilters>,
+    ) -> Result<Response<Vec<Gateway>>> {
         let gateways = self
-            .send_and_wait(VpnServiceCommand::ListFilteredGateways, filters)
+            .send_and_wait(
+                VpnServiceCommand::ListFilteredGateways,
+                request.into_inner(),
+            )
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to list filtered gateways: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to list filtered gateways: {err}")))?;
 
-        let response = proto::ListGatewaysResponse {
-            gateways: gateways
-                .into_iter()
-                .map(proto::GatewayResponse::from)
-                .collect(),
-        };
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(gateways))
     }
 
     async fn store_account(
         &self,
-        request: tonic::Request<proto::StoreAccountRequest>,
-    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let store_request = nym_vpn_lib_types::StoreAccountRequest::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
+        request: Request<StoreAccountRequest>,
+    ) -> Result<Response<AccountCommandResponse>> {
         let result = self
-            .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
+            .send_and_wait(VpnServiceCommand::StoreAccount, request.into_inner())
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(AccountCommandResponse {
+            error: result.err(),
+        }))
     }
 
     async fn account_balance(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AccountBalanceResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<AccountBalanceResponse>> {
         let response = self
             .send_and_wait(VpnServiceCommand::DecentralisedBalance, ())
             .await?;
 
-        let response = proto::AccountBalanceResponse::from(response);
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(response))
     }
 
     async fn decentralised_obtain_ticketbooks(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<AccountCommandResponse>> {
         let result = self
             .send_and_wait(VpnServiceCommand::DecentralisedObtainTicketbooks, ())
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(AccountCommandResponse {
+            error: result.err(),
+        }))
     }
 
-    async fn is_account_stored(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn is_account_stored(&self, _request: Request<()>) -> Result<Response<bool>> {
         let is_stored = self
             .send_and_wait(VpnServiceCommand::IsAccountStored, ())
             .await?;
 
-        Ok(tonic::Response::new(is_stored))
+        Ok(Response::new(is_stored))
     }
 
     async fn get_account_mode(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<Option<StoredAccountMode>>> {
         let mode = self
             .send_and_wait(VpnServiceCommand::GetAccountMode, ())
             .await?;
 
-        Ok(tonic::Response::new(mode.into()))
+        Ok(Response::new(mode))
     }
 
     async fn forget_account(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<AccountCommandResponse>> {
         let result = self
             .send_and_wait(VpnServiceCommand::ForgetAccount, ())
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(AccountCommandResponse {
+            error: result.err(),
+        }))
     }
 
-    async fn rotate_keys(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+    async fn rotate_keys(&self, _request: Request<()>) -> Result<Response<AccountCommandResponse>> {
         let result = self
             .send_and_wait(VpnServiceCommand::RotateKeys, ())
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(AccountCommandResponse {
+            error: result.err(),
+        }))
     }
 
     async fn get_account_identity(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountIdentityResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<Option<String>>> {
         let account_identity = self
             .send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get account identity: {err:?}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get account identity: {err:?}")))?;
 
-        Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
-            account_identity,
-        }))
+        Ok(Response::new(account_identity))
     }
 
     async fn get_canonical_account_identity(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountIdentityResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<Option<String>>> {
         let account_identity = self
             .send_and_wait(VpnServiceCommand::GetCanonicalAccountIdentity, ())
             .await?
             .map_err(|err| {
-                tonic::Status::internal(format!(
-                    "Failed to get canonical account identity: {err:?}"
-                ))
+                Status::internal(format!("Failed to get canonical account identity: {err:?}"))
             })?;
 
-        Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
-            account_identity,
-        }))
+        Ok(Response::new(account_identity))
     }
 
     async fn get_account_links(
         &self,
-        request: tonic::Request<proto::GetAccountLinksRequest>,
-    ) -> Result<tonic::Response<proto::AccountManagement>> {
-        let locale = request.into_inner().locale;
-
+        request: Request<String>,
+    ) -> Result<Response<ParsedAccountLinks>> {
         let account_links = self
-            .send_and_wait(VpnServiceCommand::GetAccountLinks, locale)
+            .send_and_wait(VpnServiceCommand::GetAccountLinks, request.into_inner())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get account links: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get account links: {err}")))?;
 
-        Ok(tonic::Response::new(proto::AccountManagement::from(
-            account_links,
-        )))
+        Ok(Response::new(account_links))
     }
 
     async fn get_account_state(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AccountControllerState>> {
+        _request: Request<()>,
+    ) -> Result<Response<AccountControllerState>> {
         let account_controller_state = self
             .send_and_wait(VpnServiceCommand::GetAccountState, ())
-            .await
-            .map(proto::AccountControllerState::from)?;
-
-        Ok(tonic::Response::new(account_controller_state))
-    }
-
-    async fn refresh_account_state(
-        &self,
-        request: tonic::Request<proto::RefreshAccountStateRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let force = request.into_inner().force;
-        self.send_and_wait(VpnServiceCommand::RefreshAccountState, force)
             .await?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(account_controller_state))
     }
 
-    async fn get_account_usage(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountUsageResponse>> {
+    async fn refresh_account_state(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::RefreshAccountState, request.into_inner())
+            .await?;
+
+        Ok(Response::new(()))
+    }
+
+    async fn get_account_usage(&self, _request: Request<()>) -> Result<Response<Vec<NymVpnUsage>>> {
         let account_usage = self
             .send_and_wait(VpnServiceCommand::GetAccountUsage, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get account usage: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get account usage: {err}")))?;
 
-        Ok(tonic::Response::new(proto::GetAccountUsageResponse {
-            account_usages: Some(proto::get_account_usage_response::AccountUsages::from(
-                account_usage,
-            )),
-        }))
+        Ok(Response::new(account_usage))
     }
 
     async fn reset_device_identity(
         &self,
-        request: tonic::Request<proto::ResetDeviceIdentityRequest>,
-    ) -> Result<tonic::Response<()>> {
+        request: Request<Option<Vec<u8>>>,
+    ) -> Result<Response<()>> {
         let seed: Option<[u8; 32]> = request
             .into_inner()
-            .seed
             .map(|seed| {
                 seed.as_slice()
                     .try_into()
-                    .map_err(|_| tonic::Status::invalid_argument("Seed must be 32 bytes long"))
+                    .map_err(|_| Status::invalid_argument("Seed must be 32 bytes long"))
             })
             .transpose()?;
 
         self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to reset device identity: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to reset device identity: {err}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn get_device_identity(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetDeviceIdentityResponse>> {
+    async fn get_device_identity(&self, _request: Request<()>) -> Result<Response<Option<String>>> {
         let device_identity = self
             .send_and_wait(VpnServiceCommand::GetDeviceIdentity, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get device identity: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get device identity: {err}")))?;
 
-        Ok(tonic::Response::new(proto::GetDeviceIdentityResponse {
-            device_identity,
-        }))
+        Ok(Response::new(device_identity))
     }
 
-    async fn get_devices(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetDevicesResponse>> {
+    async fn get_devices(&self, _request: Request<()>) -> Result<Response<Vec<NymVpnDevice>>> {
         let devices = self
             .send_and_wait(VpnServiceCommand::GetDevices, ())
             .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to get devices: {err}")))?;
+            .map_err(|err| Status::internal(format!("Failed to get devices: {err}")))?;
 
-        Ok(tonic::Response::new(proto::GetDevicesResponse {
-            devices: Some(proto::get_devices_response::Devices::from(devices)),
-        }))
+        Ok(Response::new(devices))
     }
 
     async fn get_active_devices(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetDevicesResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<Vec<NymVpnDevice>>> {
         let devices = self
             .send_and_wait(VpnServiceCommand::GetActiveDevices, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get active devices: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get active devices: {err}")))?;
 
-        Ok(tonic::Response::new(proto::GetDevicesResponse {
-            devices: Some(proto::get_devices_response::Devices::from(devices)),
-        }))
+        Ok(Response::new(devices))
     }
 
     async fn get_available_tickets(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AvailableTickets>> {
+        _request: Request<()>,
+    ) -> Result<Response<AvailableTickets>> {
         let available_ticketbooks = self
             .send_and_wait(VpnServiceCommand::GetAvailableTickets, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get available tickets: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get available tickets: {err}")))?;
 
-        let available_tickets = nym_vpn_lib_types::AvailableTickets::from(available_ticketbooks);
-        let response = proto::AvailableTickets::from(available_tickets);
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(AvailableTickets::from(available_ticketbooks)))
     }
 
-    async fn restock_ticketbooks(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
+    async fn restock_ticketbooks(&self, _request: Request<()>) -> Result<Response<()>> {
         self.send_and_wait(VpnServiceCommand::RestockTicketbooks, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to restock ticketbooks: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to restock ticketbooks: {err}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
     async fn get_account_summary(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::VpnAccountSummaryResponse>> {
+        _request: Request<()>,
+    ) -> Result<Response<Option<VpnAccountSummary>>> {
         let account_summary = self
             .send_and_wait(VpnServiceCommand::GetAccountSummary, ())
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get account summary: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get account summary: {err}")))?;
 
-        let response = proto::VpnAccountSummaryResponse {
-            account_summary: account_summary.map(proto::VpnAccountSummary::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(account_summary))
     }
 
-    async fn handle_subscription_payment(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
+    async fn handle_subscription_payment(&self, _request: Request<()>) -> Result<Response<()>> {
         self.send_and_wait(VpnServiceCommand::HandleSubscriptionPayment, ())
             .await?
             .map_err(|err| {
-                tonic::Status::internal(format!("Failed to handle subscription payment: {err}"))
+                Status::internal(format!("Failed to handle subscription payment: {err}"))
             })?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn get_deeplink(
-        &self,
-        request: tonic::Request<proto::GetDeeplinkParams>,
-    ) -> Result<tonic::Response<String>> {
-        let req = request.into_inner();
-
-        let params: GetDeeplinkParams = req.try_into().map_err(|err| {
-            tonic::Status::invalid_argument(format!("Invalid get deeplink request: {err}"))
-        })?;
-
+    async fn get_deeplink(&self, request: Request<GetDeeplinkParams>) -> Result<Response<String>> {
         let url = self
-            .send_and_wait(VpnServiceCommand::GetDeeplink, params)
+            .send_and_wait(VpnServiceCommand::GetDeeplink, request.into_inner())
             .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to get deeplink: {err}")))?;
+            .map_err(|err| Status::internal(format!("Failed to get deeplink: {err}")))?;
 
-        Ok(tonic::Response::new(url.to_string()))
+        Ok(Response::new(url.to_string()))
     }
 
     async fn get_autologin_deeplink(
         &self,
-        request: tonic::Request<proto::GetDeeplinkParams>,
-    ) -> Result<tonic::Response<proto::AutologinResponse>> {
-        let req = request.into_inner();
-
-        let params: GetDeeplinkParams = req.try_into().map_err(|err| {
-            tonic::Status::invalid_argument(format!(
-                "Invalid get autologin deeplink request: {err}"
-            ))
-        })?;
-
-        let url = self
-            .send_and_wait(VpnServiceCommand::GetAutologinDeeplink, params)
+        request: Request<GetDeeplinkParams>,
+    ) -> Result<Response<AutologinResponse>> {
+        let autologin = self
+            .send_and_wait(
+                VpnServiceCommand::GetAutologinDeeplink,
+                request.into_inner(),
+            )
             .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get autologin deeplink: {err}"))
-            })?;
+            .map_err(|err| Status::internal(format!("Failed to get autologin deeplink: {err}")))?;
 
-        Ok(tonic::Response::new(url.into()))
+        Ok(Response::new(autologin))
     }
 
     async fn deeplink_store_account(
         &self,
-        request: tonic::Request<String>,
-    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let deeplink_callback_url = request.into_inner();
-
+        request: Request<String>,
+    ) -> Result<Response<AccountCommandResponse>> {
         let result = self
             .send_and_wait(
                 VpnServiceCommand::DeeplinkStoreAccount,
-                deeplink_callback_url,
+                request.into_inner(),
             )
             .await?;
 
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(Response::new(AccountCommandResponse {
+            error: result.err(),
+        }))
     }
 
-    async fn get_log_path(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetLogPathResponse>> {
+    async fn get_log_path(&self, _request: Request<()>) -> Result<Response<Option<LogPath>>> {
         let log_path = self
             .send_and_wait(VpnServiceCommand::GetLogPath, ())
-            .await?
-            .map(proto::LogPath::try_from)
-            .transpose()
-            .map_err(|err| tonic::Status::internal(format!("Failed to get log path: {err}")))?;
+            .await?;
 
-        Ok(tonic::Response::new(proto::GetLogPathResponse { log_path }))
+        Ok(Response::new(log_path))
     }
 
-    async fn delete_log_file(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+    async fn delete_log_file(&self, _request: Request<()>) -> Result<Response<()>> {
         self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
             .await?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn is_sentry_enabled(&self, _: tonic::Request<()>) -> Result<tonic::Response<bool>> {
-        let result = self
+    async fn is_sentry_enabled(&self, _request: Request<()>) -> Result<Response<bool>> {
+        let enabled = self
             .send_and_wait(VpnServiceCommand::IsSentryEnabled, ())
             .await?;
-        Ok(tonic::Response::new(result))
+
+        Ok(Response::new(enabled))
     }
 
-    async fn enable_sentry(&self, _: tonic::Request<()>) -> Result<tonic::Response<()>> {
+    async fn enable_sentry(&self, _request: Request<()>) -> Result<Response<()>> {
         self.send_and_wait(VpnServiceCommand::ToggleSentry, true)
             .await?
             .map_err(|err| {
                 tracing::error!("Failed to enable sentry monitoring: {err}");
-                tonic::Status::internal("failed to enable sentry")
+                Status::internal("failed to enable sentry")
             })?;
-        Ok(tonic::Response::new(()))
+
+        Ok(Response::new(()))
     }
 
-    async fn disable_sentry(&self, _: tonic::Request<()>) -> Result<tonic::Response<()>> {
+    async fn disable_sentry(&self, _request: Request<()>) -> Result<Response<()>> {
         self.send_and_wait(VpnServiceCommand::ToggleSentry, false)
             .await?
             .map_err(|err| {
                 tracing::error!("Failed to disable sentry monitoring: {err}");
-                tonic::Status::internal("failed to disable sentry")
+                Status::internal("failed to disable sentry")
             })?;
-        Ok(tonic::Response::new(()))
+
+        Ok(Response::new(()))
     }
 
-    async fn network_stats_set_enabled(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enabled = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::EnableNetStats, enabled)
+    async fn network_stats_set_enabled(&self, request: Request<bool>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::EnableNetStats, request.into_inner())
             .await
             .map_err(|e| {
-                tonic::Status::internal(format!("Failed to enable/disable network statistics: {e}"))
+                Status::internal(format!("Failed to enable/disable network statistics: {e}"))
             })?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
     async fn network_stats_allow_disconnected(
         &self,
-        request: tonic::Request<bool>,
-    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-        let allow_disconnected = request.into_inner();
+        request: Request<bool>,
+    ) -> Result<Response<()>> {
+        self.send_and_wait(
+            VpnServiceCommand::AllowDisconnectedNetStats,
+            request.into_inner(),
+        )
+        .await
+        .map_err(|e| {
+            Status::internal(format!(
+                "Failed to set network statistics allow_disconnected: {e}"
+            ))
+        })?;
 
-        let _ = self
-            .send_and_wait(
-                VpnServiceCommand::AllowDisconnectedNetStats,
-                allow_disconnected,
-            )
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!(
-                    "Failed to set network statistics allow_disconnected: {e}"
-                ))
-            })?;
-
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
     async fn network_stats_reset_seed(
         &self,
-        request: tonic::Request<proto::NetworkStatsResetSeedRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let seed = request.into_inner().seed;
-
+        request: Request<Option<String>>,
+    ) -> Result<Response<()>> {
         let _ = self
-            .send_and_wait(VpnServiceCommand::ResetNetStatsSeed, seed)
+            .send_and_wait(VpnServiceCommand::ResetNetStatsSeed, request.into_inner())
             .await
             .map_err(|e| {
-                tonic::Status::internal(format!("Failed to reset network statistics seed: {e}"))
+                Status::internal(format!("Failed to reset network statistics seed: {e}"))
             })?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
     async fn network_stats_get_seed(
         &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::NetworkStatisticsIdentity>> {
+        _request: Request<()>,
+    ) -> Result<Response<NetworkStatisticsIdentity>> {
         let identity = self
             .send_and_wait(VpnServiceCommand::GetNetStatsSeed, ())
             .await?
             .map_err(|e| {
-                tonic::Status::internal(format!("Failed to get network statistics identity: {e}"))
+                Status::internal(format!("Failed to get network statistics identity: {e}"))
             })?;
 
-        Ok(tonic::Response::new(identity.into()))
+        Ok(Response::new(identity))
     }
 
-    async fn enable_socks5(
-        &self,
-        request: tonic::Request<proto::EnableSocks5Request>,
-    ) -> Result<tonic::Response<()>> {
-        let req = request.into_inner();
-
-        let enable_socks5_request: EnableSocks5Request = req.try_into().map_err(|e| {
-            tonic::Status::invalid_argument(format!("Invalid Enable SOCKS5 Request: {e}"))
-        })?;
-
-        self.send_and_wait(VpnServiceCommand::EnableSocks5, enable_socks5_request)
+    async fn enable_socks5(&self, request: Request<EnableSocks5Request>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::EnableSocks5, request.into_inner())
             .await?
             .map_err(|err| {
                 tracing::error!("Failed to enable SOCKS5 proxy: {err}");
                 match err {
-                    Socks5Error::GatewayNotSupported => tonic::Status::failed_precondition(
+                    Socks5Error::GatewayNotSupported => Status::failed_precondition(
                         "Gateway does not support SOCKS5 network requester",
                     ),
-                    Socks5Error::InvalidConfig(msg) => tonic::Status::failed_precondition(msg),
+                    Socks5Error::InvalidConfig(msg) => Status::failed_precondition(msg),
                     Socks5Error::LazySocks5Error(_) => {
-                        tonic::Status::internal(format!("Failed to enable SOCKS5 proxy: {err}"))
+                        Status::internal(format!("Failed to enable SOCKS5 proxy: {err}"))
                     }
                 }
             })?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn disable_socks5(&self, _: tonic::Request<()>) -> Result<tonic::Response<()>> {
+    async fn disable_socks5(&self, _request: Request<()>) -> Result<Response<()>> {
         self.send_and_wait(VpnServiceCommand::DisableSocks5, ())
             .await?
             .map_err(|err| {
                 tracing::error!("Failed to disable SOCKS5 proxy: {err}");
-                tonic::Status::internal(format!("Failed to disable SOCKS5 proxy: {err}"))
+                Status::internal(format!("Failed to disable SOCKS5 proxy: {err}"))
             })?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 
-    async fn get_socks5_status(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::Socks5Status>> {
+    async fn get_socks5_status(&self, _request: Request<()>) -> Result<Response<Socks5Status>> {
         let status = self
             .send_and_wait(VpnServiceCommand::GetSocks5Status, ())
             .await?
             .map_err(|err| {
                 tracing::debug!("Failed to get SOCKS5 status: {err}");
-                tonic::Status::internal(format!("Failed to get SOCKS5 status: {err}"))
+                Status::internal(format!("Failed to get SOCKS5 status: {err}"))
             })?;
 
-        // Convert from lib type to proto type using From trait
-        let proto_status = proto::Socks5Status::from(status);
-
-        Ok(tonic::Response::new(proto_status))
+        Ok(Response::new(status))
     }
 
     async fn get_privy_derivation_message(
         &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::PrivyDerivationMessage>> {
-        Ok(tonic::Response::new(proto::PrivyDerivationMessage {
+        _request: Request<()>,
+    ) -> Result<Response<PrivyDerivationMessage>> {
+        Ok(Response::new(PrivyDerivationMessage {
             message: nym_vpn_lib::privy::message_to_sign(),
         }))
     }
 
     async fn run_diagnostic(
         &self,
-        request: tonic::Request<proto::DiagnosticRunParams>,
-    ) -> Result<tonic::Response<proto::DiagnosticReport>> {
-        let req = request.into_inner();
+        request: Request<DiagnosticRunParams>,
+    ) -> Result<Response<DiagnosticReport>> {
         let report = self
-            .send_and_wait(VpnServiceCommand::RunDiagnostic, req.into())
+            .send_and_wait(VpnServiceCommand::RunDiagnostic, request.into_inner())
             .await?;
 
-        let proto_report = report.try_into().map_err(|e| {
-            tonic::Status::internal(format!("Failed to run diagnostic report: {e}"))
-        })?;
-
-        Ok(tonic::Response::new(proto_report))
+        Ok(Response::new(report))
     }
 
     async fn register_diagnostic(
         &self,
-        request: tonic::Request<proto::DiagnosticRegisterParams>,
-    ) -> Result<tonic::Response<proto::RegistrationReport>> {
-        let req = request.into_inner();
-        let register_params = req.try_into().map_err(|e| {
-            tonic::Status::invalid_argument(format!("Invalid Register diagnostic argument: {e}"))
-        })?;
+        request: Request<DiagnosticRegisterParams>,
+    ) -> Result<Response<RegistrationReport>> {
         let report = self
-            .send_and_wait(VpnServiceCommand::RegisterDiagnostic, register_params)
+            .send_and_wait(VpnServiceCommand::RegisterDiagnostic, request.into_inner())
             .await?;
 
-        let proto_report = report.try_into().map_err(|e| {
-            tonic::Status::internal(format!("Failed to run diagnostic report: {e}"))
-        })?;
-
-        Ok(tonic::Response::new(proto_report))
+        Ok(Response::new(report))
     }
 
     async fn get_tentative_gateways(
         &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::TentativeGateways>> {
+        _request: Request<()>,
+    ) -> Result<Response<TentativeGateways>> {
         let tentative_gateways = self
             .send_and_wait(VpnServiceCommand::GetTentativeGateways, ())
             .await?;
 
-        Ok(tonic::Response::new(tentative_gateways.into()))
+        Ok(Response::new(tentative_gateways))
     }
 
-    async fn is_split_tunnel_supported(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn is_split_tunnel_supported(&self, _request: Request<()>) -> Result<Response<bool>> {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         {
             let is_available = self
-                .send_and_wait(
-                    VpnServiceCommand::IsSplitTunnelSupported,
-                    _request.into_inner(),
-                )
+                .send_and_wait(VpnServiceCommand::IsSplitTunnelSupported, ())
                 .await?;
-            Ok(tonic::Response::new(is_available))
+            Ok(Response::new(is_available))
         }
 
         #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn set_enable_split_tunnel(
-        &self,
-        _request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
+    async fn set_enable_split_tunnel(&self, _request: Request<bool>) -> Result<Response<()>> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             self.send_and_wait(
@@ -1252,153 +934,129 @@ impl NymVpnService for CommandInterface {
                 _request.into_inner(),
             )
             .await?;
-            Ok(tonic::Response::new(()))
+            Ok(Response::new(()))
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn add_split_tunnel_app(
-        &self,
-        _request: tonic::Request<proto::SplitApp>,
-    ) -> Result<tonic::Response<()>> {
+    async fn add_split_tunnel_app(&self, _request: Request<SplitApp>) -> Result<Response<()>> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
-            let app = SplitApp::from(_request.into_inner());
-            self.send_and_wait(VpnServiceCommand::AddSplitTunnelApp, app)
+            self.send_and_wait(VpnServiceCommand::AddSplitTunnelApp, _request.into_inner())
                 .await?;
-            Ok(tonic::Response::new(()))
+            Ok(Response::new(()))
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn remove_split_tunnel_app(
-        &self,
-        _request: tonic::Request<proto::SplitApp>,
-    ) -> Result<tonic::Response<()>> {
+    async fn remove_split_tunnel_app(&self, _request: Request<SplitApp>) -> Result<Response<()>> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
-            let app = SplitApp::from(_request.into_inner());
-            self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelApp, app)
-                .await?;
-            Ok(tonic::Response::new(()))
+            self.send_and_wait(
+                VpnServiceCommand::RemoveSplitTunnelApp,
+                _request.into_inner(),
+            )
+            .await?;
+            Ok(Response::new(()))
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn clear_split_tunnel_apps(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
+    async fn clear_split_tunnel_apps(&self, _request: Request<()>) -> Result<Response<()>> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             self.send_and_wait(VpnServiceCommand::ClearSplitTunnelApps, ())
                 .await?;
-            Ok(tonic::Response::new(()))
+            Ok(Response::new(()))
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
     async fn get_split_tunnel_excluded_processes(
         &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::SplitTunnelExcludedProcessList>> {
+        _request: Request<()>,
+    ) -> Result<Response<SplitTunnelExcludedProcessList>> {
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         {
-            let res = self
+            let processes = self
                 .send_and_wait(VpnServiceCommand::GetSplitTunnelExcludedProcesses, ())
-                .await
-                .map(proto::SplitTunnelExcludedProcessList::from)?;
-            Ok(tonic::Response::new(res))
+                .await?;
+            Ok(Response::new(processes))
         }
 
         #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn need_full_disk_permissions(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn need_full_disk_permissions(&self, _request: Request<()>) -> Result<Response<bool>> {
         #[cfg(target_os = "macos")]
         {
             let need_fda = self
                 .send_and_wait(VpnServiceCommand::NeedFullDiskPermissions, ())
                 .await?;
-            Ok(tonic::Response::new(need_fda))
+            Ok(Response::new(need_fda))
         }
 
         #[cfg(not(target_os = "macos"))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn add_split_tunnel_process(
-        &self,
-        _request: tonic::Request<i32>,
-    ) -> Result<tonic::Response<()>> {
+    async fn add_split_tunnel_process(&self, _request: Request<i32>) -> Result<Response<()>> {
         #[cfg(target_os = "linux")]
         {
-            let pid = _request.into_inner();
-            self.send_and_wait(VpnServiceCommand::AddSplitTunnelProcess, pid)
-                .await?;
-            Ok(tonic::Response::new(()))
+            self.send_and_wait(
+                VpnServiceCommand::AddSplitTunnelProcess,
+                _request.into_inner(),
+            )
+            .await?;
+            Ok(Response::new(()))
         }
 
         #[cfg(not(target_os = "linux"))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn remove_split_tunnel_process(
-        &self,
-        _request: tonic::Request<i32>,
-    ) -> Result<tonic::Response<()>> {
+    async fn remove_split_tunnel_process(&self, _request: Request<i32>) -> Result<Response<()>> {
         #[cfg(target_os = "linux")]
         {
-            let pid = _request.into_inner();
-            self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelProcess, pid)
-                .await?;
-            Ok(tonic::Response::new(()))
+            self.send_and_wait(
+                VpnServiceCommand::RemoveSplitTunnelProcess,
+                _request.into_inner(),
+            )
+            .await?;
+            Ok(Response::new(()))
         }
 
         #[cfg(not(target_os = "linux"))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn clear_split_tunnel_processes(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
+    async fn clear_split_tunnel_processes(&self, _request: Request<()>) -> Result<Response<()>> {
         #[cfg(target_os = "linux")]
         {
             self.send_and_wait(VpnServiceCommand::ClearSplitTunnelProcesses, ())
                 .await?;
-            Ok(tonic::Response::new(()))
+            Ok(Response::new(()))
         }
 
         #[cfg(not(target_os = "linux"))]
-        Err(tonic::Status::internal("Unsupported platform"))
+        Err(Status::internal("Unsupported platform"))
     }
 
-    async fn set_profile(
-        &self,
-        request: tonic::Request<proto::ProfileOptions>,
-    ) -> Result<tonic::Response<()>> {
-        let profile_options = ProfileOptions::try_from(request.into_inner())
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid profile: {e}")))?;
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetProfile, profile_options.profile)
+    async fn set_profile(&self, request: Request<ProfileOptions>) -> Result<Response<()>> {
+        self.send_and_wait(VpnServiceCommand::SetProfile, request.into_inner().profile)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set profile: {e}")))?;
+            .map_err(|e| Status::internal(format!("Failed to set profile: {e}")))?;
 
-        Ok(tonic::Response::new(()))
+        Ok(Response::new(()))
     }
 }
 
@@ -1478,5 +1136,128 @@ fn default_socket_path() -> std::path::PathBuf {
     #[cfg(windows)]
     {
         std::path::PathBuf::from(r"\\.\pipe\nym-vpn")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State};
+    use nym_vpn_rpc::NymVpnServiceClient;
+    use tokio_stream::wrappers::TcpListenerStream;
+
+    use super::*;
+
+    fn enable_request() -> EnableSocks5Request {
+        EnableSocks5Request {
+            socks5_settings: Socks5Settings {
+                listen_address: Some("127.0.0.1:1080".parse().unwrap()),
+            },
+            http_rpc_settings: HttpRpcSettings {
+                listen_address: None,
+            },
+            exit_point: ExitPoint::Country {
+                two_letter_iso_country_code: "CH".to_owned(),
+            },
+        }
+    }
+
+    async fn handle_commands(mut command_rx: UnboundedReceiver<VpnServiceCommand>) {
+        let mut socks5_status = None;
+        while let Some(command) = command_rx.recv().await {
+            match command {
+                VpnServiceCommand::EnableSocks5(tx, request) => {
+                    socks5_status = Some(Socks5Status {
+                        state: Socks5State::Idle,
+                        socks5_settings: request.socks5_settings,
+                        http_rpc_settings: request.http_rpc_settings,
+                        error_message: None,
+                        active_connections: 0,
+                    });
+                    let _ = tx.send(Ok(()));
+                }
+                VpnServiceCommand::GetSocks5Status(tx, ()) => {
+                    let _ = tx.send(
+                        socks5_status
+                            .clone()
+                            .ok_or(Socks5Error::InvalidConfig("disabled".to_owned())),
+                    );
+                }
+                VpnServiceCommand::GetTunnelState(tx, ()) => {
+                    let _ = tx.send(TunnelState::Disconnected);
+                }
+                VpnServiceCommand::SetAllowLan(tx, _) => {
+                    let _ = tx.send(());
+                }
+                _ => panic!("unexpected command"),
+            }
+        }
+    }
+
+    async fn start_server() -> (
+        NymVpnServiceClient<tonic::transport::Channel>,
+        broadcast::Sender<TunnelEvent>,
+    ) {
+        let (command_tx, command_rx) = mpsc::unbounded_channel();
+        let (event_tx, event_rx) = broadcast::channel(4);
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(handle_commands(command_rx));
+        tokio::spawn(
+            Server::builder()
+                .add_service(NymVpnServiceServer::new(CommandInterface::new(
+                    command_tx, event_rx,
+                )))
+                .serve_with_incoming(TcpListenerStream::new(listener)),
+        );
+
+        let client = NymVpnServiceClient::connect(format!("http://{addr}"))
+            .await
+            .unwrap();
+        (client, event_tx)
+    }
+
+    #[tokio::test]
+    async fn unary_calls_round_trip_domain_types() {
+        let (mut client, _event_tx) = start_server().await;
+
+        client.set_allow_lan(true).await.unwrap();
+        assert_eq!(
+            client.get_tunnel_state(()).await.unwrap().into_inner(),
+            TunnelState::Disconnected
+        );
+
+        let request = enable_request();
+        client.enable_socks5(request.clone()).await.unwrap();
+        let status = client.get_socks5_status(()).await.unwrap().into_inner();
+        assert_eq!(status.state, Socks5State::Idle);
+        assert_eq!(status.socks5_settings, request.socks5_settings);
+    }
+
+    #[tokio::test]
+    async fn daemon_errors_map_to_status_codes() {
+        let (mut client, _event_tx) = start_server().await;
+
+        let error = client.get_socks5_status(()).await.unwrap_err();
+        assert_eq!(error.code(), tonic::Code::Internal);
+
+        let error = client.set_geo_exclusion_listen_port(0).await.unwrap_err();
+        assert_eq!(error.code(), tonic::Code::InvalidArgument);
+    }
+
+    #[tokio::test]
+    async fn tunnel_events_are_streamed() {
+        let (mut client, event_tx) = start_server().await;
+
+        let mut events = client.listen_to_events(()).await.unwrap().into_inner();
+        event_tx
+            .send(TunnelEvent::NewState(TunnelState::Disconnected))
+            .unwrap();
+
+        let event = events.next().await.unwrap().unwrap();
+        assert!(matches!(
+            event,
+            TunnelEvent::NewState(TunnelState::Disconnected)
+        ));
     }
 }

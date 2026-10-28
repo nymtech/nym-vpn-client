@@ -13,18 +13,34 @@ use crate::{GatewayType, UserAgent};
 
 #[derive(Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ListGatewaysOptions {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub gw_type: GatewayType,
     #[allow(unused)]
+    #[cfg_attr(feature = "cbor", n(1))]
     pub user_agent: Option<UserAgent>,
 }
 
 #[derive(zeroize::Zeroize)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum StoreAccountRequest {
-    Vpn { mnemonic: String },
-    Privy { mnemonic: String },
-    Decentralised { mnemonic: String },
+    #[cfg_attr(feature = "cbor", n(0))]
+    Vpn {
+        #[cfg_attr(feature = "cbor", n(0))]
+        mnemonic: String,
+    },
+    #[cfg_attr(feature = "cbor", n(1))]
+    Privy {
+        #[cfg_attr(feature = "cbor", n(0))]
+        mnemonic: String,
+    },
+    #[cfg_attr(feature = "cbor", n(2))]
+    Decentralised {
+        #[cfg_attr(feature = "cbor", n(0))]
+        mnemonic: String,
+    },
 }
 
 impl StoreAccountRequest {
@@ -63,7 +79,9 @@ impl TryFrom<StoreAccountRequest> for StorableAccount {
 
 #[derive(Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct AccountCommandResponse {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub error: Option<crate::AccountCommandError>,
 }
 
@@ -77,8 +95,11 @@ pub struct AccountCommandResponse {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Coin {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub amount: u128,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub denom: String,
 }
 
@@ -107,6 +128,8 @@ impl From<nym_validator_client::nyxd::Coin> for Coin {
 // todo: figure out how to pass Result over uniffi
 #[derive(Debug)]
 //#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct AccountBalanceResponse {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub result: Result<Vec<Coin>, crate::AccountCommandError>,
 }
