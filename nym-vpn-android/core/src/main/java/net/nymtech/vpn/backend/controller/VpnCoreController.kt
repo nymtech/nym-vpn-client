@@ -357,7 +357,7 @@ class VpnCoreController(
 				sender.setEntryPoint(legacy.entryPoint)
 				sender.setExitPoint(legacy.exitPoint)
 				sender.setEnableTwoHop(legacy.mode.isTwoHop())
-				sender.setEnableBridges(legacy.bridgeMode == BridgeMode.ON)
+				sender.setBridgeMode(legacy.bridgeMode)
 				sender.setEnableCustomDns(legacy.customDnsEnabled)
 				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns)
 				sender.setEnableAdBlocking(legacy.adBlockingEnabled)
@@ -421,7 +421,7 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
 			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
 			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
-			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setEnableBridges(update.value) }
+			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setBridgeMode(if (update.value) BridgeMode.ON else BridgeMode.OFF) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetAdBlockingEnabled -> requireCoreSender { it.setEnableAdBlocking(update.value) }

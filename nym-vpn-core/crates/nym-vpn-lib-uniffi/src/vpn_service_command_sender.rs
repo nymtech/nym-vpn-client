@@ -142,12 +142,9 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
-        self.send_and_wait(
-            VpnServiceCommand::SetBridgeMode,
-            BridgeMode::from(enable_bridges),
-        )
-        .await
+    pub async fn set_bridge_mode(&self, bridge_mode: BridgeMode) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode)
+            .await
     }
 
     pub async fn set_enable_ad_blocking(&self, enable_ad_blocking: bool) -> Result<()> {

@@ -37,7 +37,7 @@ extension PacketTunnelProvider {
             return nil
 
         case let .setEnableBridges(enabled):
-            await runCommand { try await self.commandSender?.setEnableBridges(enableBridges: enabled) }
+            await runCommand { try await self.commandSender?.setBridgeMode(bridgeMode: enabled ? .on : .off) }
             return nil
 
         case let .setEntryPoint(entry):
