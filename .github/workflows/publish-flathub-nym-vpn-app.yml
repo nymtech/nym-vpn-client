@@ -1,14 +1,15 @@
 # Open a release PR on https://github.com/flathub/net.nymtech.NymVPN
 #
 # The Flathub manifest pins the Linux release binary and the metainfo.xml at a
-# commit on develop. That commit only exists once the `tauri: post release vX`
-# PR (opened by tauri-post-release.yml) is merged, so this runs on that merge.
+# commit on develop. The `tauri: post release vX` PR (opened by
+# tauri-post-release.yml) is what updates the metainfo on develop, so this runs
+# on the push that changes it, ie. when that PR is merged.
 
 name: publish-flathub-nym-vpn-app
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches: [develop]
+    paths: [nym-vpn-app/.pkg/flatpak/net.nymtech.NymVPN.metainfo.xml]
   workflow_dispatch:
     inputs:
       version:
@@ -25,10 +26,6 @@ env:
 
 jobs:
   flathub-pr:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.merged == true &&
-       startsWith(github.event.pull_request.head.ref, 'tauri_postrel_'))
     runs-on: arc-linux-latest
     steps:
       - name: Resolve version, tag and metainfo commit
@@ -37,25 +34,29 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           INPUT_VERSION: ${{ inputs.version }}
-          PR_VERSION: ${{ github.event.pull_request.head.ref }}
-          PR_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PUSH_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [[ -n "$INPUT_VERSION" ]]; then
-            version="$INPUT_VERSION"
+          version="$INPUT_VERSION"
+          if [[ -n "$version" ]]; then
             sha=$(gh pr list --state merged --head "tauri_postrel_${version}" --json mergeCommit --jq '.[0].mergeCommit.oid')
             [[ -n "$sha" ]] || { echo "::error:: no merged post-release PR for ${version}"; exit 1; }
           else
-            version="${PR_VERSION#tauri_postrel_}"
-            sha="$PR_SHA"
+            sha="$PUSH_SHA"
+          fi
+          meta_url="https://raw.githubusercontent.com/${GH_REPO}/${sha}/nym-vpn-app/.pkg/flatpak/net.nymtech.NymVPN.metainfo.xml"
+          curl -fsS --proto '=https' -o metainfo.xml "$meta_url"
+          meta_sha=$(sha256sum metainfo.xml | cut -d' ' -f1)
+          if [[ -z "$version" ]]; then
+            # update_metainfo.sh inserts the newest release first
+            version=$(sed -nE 's/.*<release version="([^"]+)".*/\1/p' metainfo.xml | head -1)
+            [[ -n "$version" ]] || { echo "::error:: no release found in metainfo at ${sha}"; exit 1; }
           fi
           [[ "$version" != *-* ]] || { echo "::error:: ${version} is not a release version"; exit 1; }
           tag="nym-vpn-v${version}"
           bin="nym-vpn_${version}_linux_x64"
           bin_sha=$(gh release download "$tag" --pattern checksums.txt -O - | awk -v f="$bin" '$2==f{print $1}')
           [[ -n "$bin_sha" ]] || { echo "::error:: ${bin} missing from ${tag} checksums.txt"; exit 1; }
-          meta_url="https://raw.githubusercontent.com/${GH_REPO}/${sha}/nym-vpn-app/.pkg/flatpak/net.nymtech.NymVPN.metainfo.xml"
-          meta_sha=$(curl -fsSL "$meta_url" | sha256sum | cut -d' ' -f1)
           {
             echo "version=${version}"
             echo "bin_url=https://github.com/${GH_REPO}/releases/download/${tag}/${bin}"
