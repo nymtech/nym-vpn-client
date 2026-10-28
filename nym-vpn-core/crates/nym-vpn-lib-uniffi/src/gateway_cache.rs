@@ -35,7 +35,7 @@ impl RecentGatewayCache for &NymGatewayCache {
 impl NymGatewayCache {
     // Keep this method async because spawn needs runtime!
     #[uniffi::constructor]
-    pub async fn new(
+    pub async fn spawn(
         user_agent: UserAgent,
         environment: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
