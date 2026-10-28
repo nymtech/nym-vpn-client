@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Use local bandwidth counting as primary and only refresh on network calls (https://github.com/nymtech/nym-vpn-client/pull/6803)
+- Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
 
 
 ## [2026.14.0] - 2026-10-22
