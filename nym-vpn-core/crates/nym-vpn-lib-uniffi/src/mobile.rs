@@ -12,13 +12,13 @@ use std::{
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
-use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
 #[cfg(not(target_os = "android"))]
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, FrontingMode, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, MixnetTrafficConfig, NetworkStatisticsConfig, Profile,
-    SplitTunnelSettings, VpnServiceConfig,
+    BridgeMode, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
+    NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
 };
+use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
 
 #[cfg(target_os = "android")]
 pub use crate::android_connectivity_monitor::AndroidConnectivityMonitor;
@@ -103,7 +103,7 @@ pub struct VPNConfig {
     #[cfg(not(target_os = "android"))]
     pub enable_two_hop: bool,
     #[cfg(not(target_os = "android"))]
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
     #[cfg(not(target_os = "android"))]
     pub residential_exit: bool,
     #[cfg(not(target_os = "android"))]
@@ -146,7 +146,7 @@ impl VPNConfig {
 
             disable_ipv6: false,
             enable_two_hop: self.enable_two_hop,
-            bridge_mode: self.enable_bridges.into(),
+            bridge_mode: self.bridge_mode,
 
             enable_ad_blocking: self.enable_ad_blocking,
             enable_conflict_detection: false,

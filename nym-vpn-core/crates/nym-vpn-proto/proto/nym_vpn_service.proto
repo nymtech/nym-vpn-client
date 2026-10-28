@@ -315,13 +315,12 @@ message GatewayIndependence {
 }
 
 message VpnServiceConfig {
+  reserved 21; // formerly enable_bridges, replaced by bridge_mode
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
   bool allow_lan = 4;
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
-  // Superseded by bridge_mode, still set for clients that only read the bool.
-  bool enable_bridges = 21;
   bool enable_ad_blocking = 27;
   bool enable_conflict_detection = 33;
   bool residential_exit = 15;

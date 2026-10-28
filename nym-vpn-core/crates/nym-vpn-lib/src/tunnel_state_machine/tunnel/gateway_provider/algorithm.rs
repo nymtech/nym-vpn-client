@@ -17,6 +17,8 @@ use crate::tunnel_state_machine::{
 #[derive(Clone)]
 pub struct SelectAndSend {
     pub tunnel_settings: TunnelSettings,
+    /// Whether the entry gateway must support bridges; owned by the connecting state.
+    pub use_bridges: bool,
     pub selection_tx: SelectionResultSender,
 }
 
@@ -38,6 +40,7 @@ async fn continuous_select<C: GatewayCache>(
             gateway_cache.clone(),
             blacklisted_gateways,
             &select_and_send.tunnel_settings,
+            select_and_send.use_bridges,
             gateway_provider_event_sender.clone(),
             device_location.clone(),
             wg_keys_db,
@@ -134,6 +137,7 @@ mod tests {
         tunnel_settings_tx
             .send(SelectAndSend {
                 tunnel_settings: default_tunnel_settings(),
+                use_bridges: false,
                 selection_tx,
             })
             .await
@@ -167,6 +171,7 @@ mod tests {
         let handle = tokio::spawn(algo.run(
             SelectAndSend {
                 tunnel_settings: default_tunnel_settings(),
+                use_bridges: false,
                 selection_tx,
             },
             None,

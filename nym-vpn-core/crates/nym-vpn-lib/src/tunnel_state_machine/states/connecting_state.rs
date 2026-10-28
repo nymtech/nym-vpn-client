@@ -110,6 +110,15 @@ impl ConnectingState {
                 TunnelType::Wireguard
             );
 
+        if selected_gateways.is_none()
+            && let Err(err) = shared_state
+                .gateway_provider
+                .set_use_bridges(use_bridges)
+                .await
+        {
+            tracing::error!("Could not update gateway provider with bridge use: {err:?}");
+        }
+
         // Disallow networking until firewall exceptions and resolver overrides are configured
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.disallow_networking().await;
@@ -289,24 +298,24 @@ impl ConnectingState {
 
         match reconnect_decision(next_attempt) {
             ReconnectDecision::Retry { reset_gateways } => {
-                let next_gateways = if reset_gateways {
+                let use_bridges = match shared_state
+                    .tunnel_settings
+                    .wireguard_tunnel_options
+                    .bridge_mode
+                {
+                    BridgeMode::Auto => !self.use_bridges,
+                    BridgeMode::On => true,
+                    BridgeMode::Off => false,
+                };
+
+                // Kept gateways may not support bridges, so switching to them reselects.
+                let next_gateways = if reset_gateways || (use_bridges && !self.use_bridges) {
                     None
                 } else {
                     self.selected_gateways
                 };
 
                 tracing::info!("Reconnecting, attempt {next_attempt}");
-
-                let use_bridges = match shared_state
-                    .tunnel_settings
-                    .wireguard_tunnel_options
-                    .bridge_mode
-                {
-                    // Alternate on each attempt; fresh gateways start on plain WireGuard.
-                    BridgeMode::Auto => !self.use_bridges && !reset_gateways,
-                    BridgeMode::On => true,
-                    BridgeMode::Off => false,
-                };
 
                 NextTunnelState::NewState(
                     ConnectingState::enter_with_bridges(

@@ -136,6 +136,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
             .run(
                 SelectAndSend {
                     tunnel_settings,
+                    use_bridges: false,
                     selection_tx,
                 },
                 latest_location,
@@ -198,6 +199,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
     async fn inner_set_tunnel_settings(
         tunnel_settings_tx: &mpsc::Sender<SelectAndSend>,
         tunnel_settings: TunnelSettings,
+        use_bridges: bool,
     ) -> Result<
         Peekable<ReceiverStream<Result<SelectedGateways, GatewayProviderError>>>,
         crate::tunnel_state_machine::Error,
@@ -207,6 +209,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         tunnel_settings_tx
             .send(SelectAndSend {
                 tunnel_settings,
+                use_bridges,
                 selection_tx,
             })
             .await
@@ -285,7 +288,23 @@ impl<C: GatewayCache> GatewayProvider<C> {
         );
         *latest_tunnel_settings = tunnel_settings.clone();
         *selected_gateways_stream =
-            Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings).await?;
+            Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings, false)
+                .await?;
+        Ok(())
+    }
+
+    /// Reselect gateways for the next connection attempt; bridges need QUIC-capable entries.
+    pub async fn set_use_bridges(
+        &self,
+        use_bridges: bool,
+    ) -> Result<(), crate::tunnel_state_machine::Error> {
+        let latest_tunnel_settings = self.latest_tunnel_settings.lock().await.clone();
+        *self.selected_gateways_stream.lock().await = Self::inner_set_tunnel_settings(
+            &self.tunnel_settings_tx,
+            latest_tunnel_settings,
+            use_bridges,
+        )
+        .await?;
         Ok(())
     }
 

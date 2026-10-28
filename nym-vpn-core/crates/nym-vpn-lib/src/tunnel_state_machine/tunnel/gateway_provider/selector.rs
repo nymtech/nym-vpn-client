@@ -10,7 +10,6 @@ use nym_gateway_directory::{
 };
 use nym_registration_client::RegistrationNymNode;
 use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
-use nym_vpn_lib_types::BridgeMode;
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::tunnel_state_machine::{
@@ -413,6 +412,7 @@ pub async fn select_gateways(
     gateway_cache: impl GatewayCache,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
+    use_bridges: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<Location>,
     wg_keys_db: &WireguardKeysDb,
@@ -444,8 +444,7 @@ pub async fn select_gateways(
                 .await
                 .map_err(GatewayProviderError::LookupGateways)?;
 
-            let bridge_mode = tunnel_settings.wireguard_tunnel_options.bridge_mode;
-            let entry_gateways = if bridge_mode != BridgeMode::Off {
+            let entry_gateways = if use_bridges {
                 GatewayList::new(
                     all_gateways.gw_type(),
                     all_gateways
@@ -613,6 +612,7 @@ mod tests {
             gateway_cache,
             &BlacklistedGateways::new(),
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -659,6 +659,7 @@ mod tests {
             gateway_cache,
             &BlacklistedGateways::new(),
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -704,6 +705,7 @@ mod tests {
             gateway_cache,
             &BlacklistedGateways::new(),
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -744,6 +746,7 @@ mod tests {
             MockGatewayCache::new(gateways.clone()),
             &blacklisted_gateways,
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -759,6 +762,7 @@ mod tests {
             MockGatewayCache::new(gateways),
             &blacklisted_gateways,
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),

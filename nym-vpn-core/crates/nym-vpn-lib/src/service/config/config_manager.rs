@@ -151,8 +151,7 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
-        let bridge_mode = nym_vpn_lib_types::BridgeMode::from(enable_bridges);
+    pub async fn set_bridge_mode(&mut self, bridge_mode: nym_vpn_lib_types::BridgeMode) {
         if self.config.bridge_mode != bridge_mode {
             self.config.bridge_mode = bridge_mode;
             self.save_config_and_send_event().await;

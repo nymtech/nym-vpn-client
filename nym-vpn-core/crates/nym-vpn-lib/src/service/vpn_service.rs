@@ -109,7 +109,7 @@ pub enum VpnServiceCommand {
     SetEnableTwoHop(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
-    SetEnableBridges(oneshot::Sender<()>, bool),
+    SetBridgeMode(oneshot::Sender<()>, nym_vpn_lib_types::BridgeMode),
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetEnableConflictDetection(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
@@ -1097,8 +1097,8 @@ impl NymVpnService {
                 self.handle_set_allow_lan(allow_lan).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
-                self.handle_set_enable_bridges(enable_bridges).await;
+            VpnServiceCommand::SetBridgeMode(tx, bridge_mode) => {
+                self.handle_set_bridge_mode(bridge_mode).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
@@ -1437,8 +1437,8 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
-        self.config_manager.set_enable_bridges(enable_bridges).await;
+    async fn handle_set_bridge_mode(&mut self, bridge_mode: nym_vpn_lib_types::BridgeMode) {
+        self.config_manager.set_bridge_mode(bridge_mode).await;
         self.update_tunnel_settings_with_throttle();
     }
 
