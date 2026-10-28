@@ -17,11 +17,11 @@ RELEASE_FLAG := --release
 TARGET_DIR := release
 endif
 
-# When RUST_TRIPLET is not specified, build all iOS targets (device and simulator)
+# When RUST_TRIPLET is not specified, build arm64 device and simulator targets
 # into a single xcframework. Otherwise build only the given target.
 ifeq ($(RUST_TRIPLET),)
-RUST_TRIPLETS := aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
-SWIFT_SLICES := --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim x86_64-apple-ios"
+RUST_TRIPLETS := aarch64-apple-ios aarch64-apple-ios-sim
+SWIFT_SLICES := --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim"
 else
 RUST_TRIPLETS := $(RUST_TRIPLET)
 SWIFT_SLICES := --slice "$(RUST_TRIPLET)"
