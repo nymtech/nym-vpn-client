@@ -21,10 +21,6 @@ tokio-util = { workspace = true, features = ["codec", "rt"] }
 thiserror.workspace = true
 tracing.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
-nym-bridges-types = { workspace = true, features = [
-    "uniffi-bindings",
-    "serde",
-] }
 nym-gateway-directory.workspace = true
 nym-http-api-client.workspace = true
 nym-offline-monitor.workspace = true

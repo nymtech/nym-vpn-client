@@ -146,15 +146,6 @@ pub fn default_vpn_service_config() -> VpnServiceConfig {
     VpnServiceConfig::default()
 }
 
-#[cfg(feature = "uniffi-bindings")]
-pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
-#[cfg(feature = "uniffi-bindings")]
-uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
-    remote,
-    try_lift: |val| Ok(Box::new(val)),
-    lower: |val| *val
-});
-
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[cfg_attr(
     feature = "uniffi-bindings",
