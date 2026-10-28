@@ -254,7 +254,7 @@ make -C nym-vpn-core -f iOS.mk
 Build for aarch64 device only:
 
 ```sh
-make -C nym-vpn-core -f iOS.mk RUST_TRIPLETS=aarch64-apple-ios
+make -C nym-vpn-core -f iOS.mk RUST_TRIPLET=aarch64-apple-ios
 ```
 
 ### Android
