@@ -93,7 +93,7 @@ jobs:
         env:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          make -C nym-vpn-core -f iOS.mk RELEASE="true"
+          make -C nym-vpn-core -f iOS.mk RELEASE="true" RUST_TRIPLET="aarch64-apple-ios"
 
       - name: Move assets for upload
         run: |
