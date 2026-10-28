@@ -67,7 +67,7 @@ fun QuicSection(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Un
 			BridgeModeOption(R.string.censorship_bridge_off_title, R.string.censorship_bridge_off_description, bridgeMode == BridgeMode.OFF) { onBridgeModeSelected(BridgeMode.OFF) }
 			BridgeModeOption(R.string.censorship_bridge_auto_title, R.string.censorship_bridge_auto_description, bridgeMode == BridgeMode.AUTO) { onBridgeModeSelected(BridgeMode.AUTO) }
 			BridgeModeOption(R.string.censorship_bridge_on_title, R.string.censorship_bridge_on_description, bridgeMode == BridgeMode.ON) { onBridgeModeSelected(BridgeMode.ON) }
-			if (showBridgeFallback && bridgeMode == BridgeMode.ON) {
+			if (showBridgeFallback && bridgeMode != BridgeMode.OFF) {
 				Text(
 					text = stringResource(R.string.censorship_quic_bridge_fallback),
 					style = MaterialTheme.typography.bodyMedium,
