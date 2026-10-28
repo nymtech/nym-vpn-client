@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.geoexclusion.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 
@@ -32,7 +35,7 @@ private val WarningCardShape = RoundedCornerShape(
 )
 
 @Composable
-fun WarningCard(text: String) {
+fun WarningCard(text: String, title: String? = null) {
 	val warningColor = LocalNymColors.current.warning
 	Card(
 		shape = WarningCardShape,
@@ -61,11 +64,21 @@ fun WarningCard(text: String) {
 				modifier = Modifier.size(24.dp),
 			)
 			Spacer(Modifier.width(10.dp))
-			Text(
-				text = text,
-				color = warningColor,
-				style = MaterialTheme.typography.bodyMedium,
-			)
+			Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+				title?.let {
+					Text(
+						text = it,
+						color = warningColor,
+						style = MaterialTheme.typography.bodyMedium,
+						fontWeight = FontWeight.Bold,
+					)
+				}
+				Text(
+					text = text,
+					color = warningColor,
+					style = MaterialTheme.typography.bodyMedium,
+				)
+			}
 		}
 	}
 }
