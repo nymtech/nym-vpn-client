@@ -16,9 +16,7 @@ anyhow.workspace = true
 async-stream.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
-base64.workspace = true
 bincode.workspace = true
-bs58.workspace = true
 bytes.workspace = true
 futures.workspace = true
 geo.workspace = true
@@ -37,7 +35,6 @@ http-body-util = { workspace = true }
 ipnetwork.workspace = true
 itertools.workspace = true
 log-panics.workspace = true
-lazy_static.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
@@ -124,8 +121,6 @@ tracing-opentelemetry.workspace = true
 tun = { workspace = true, features = ["async"] }
 url.workspace = true
 urlencoding.workspace = true
-webpki-roots.workspace = true
-x509-parser = { workspace = true, features = ["verify"] }
 
 nym-bridges = {workspace = true, features = ["serde"] }
 

@@ -7726,7 +7726,6 @@ dependencies = [
  "nym-network-defaults",
  "nym-offline-monitor",
  "nym-sdk",
- "nym-upgrade-mode-check",
  "nym-validator-client",
  "nym-vpn-api-client",
  "nym-vpn-credential-fetcher",
@@ -7735,7 +7734,6 @@ dependencies = [
  "nym-vpn-store",
  "pbkdf2",
  "rand 0.10.2",
- "serde",
  "serde_json",
  "sha2 0.11.0",
  "strum",
@@ -7769,7 +7767,6 @@ dependencies = [
  "nym-config",
  "nym-contracts-common",
  "nym-credential-proxy-requests",
- "nym-credentials",
  "nym-crypto",
  "nym-http-api-client",
  "nym-network-defaults",
@@ -7796,12 +7793,10 @@ dependencies = [
  "async-trait",
  "bincode",
  "nym-bandwidth-controller",
- "nym-common 2026.15.0-beta.1",
  "nym-credential-proxy-requests",
  "nym-credentials",
  "nym-credentials-interface",
  "nym-ecash-time",
- "nym-offline-monitor",
  "nym-upgrade-mode-check",
  "nym-validator-client",
  "nym-vpn-api-client",
@@ -7827,9 +7822,7 @@ dependencies = [
  "async-compression",
  "async-stream",
  "async-trait",
- "base64 0.23.1",
  "bincode",
- "bs58",
  "bytes",
  "debounced",
  "dispatch2",
@@ -7844,7 +7837,6 @@ dependencies = [
  "hyper-util",
  "ipnetwork",
  "itertools 0.15.0",
- "lazy_static",
  "libc",
  "log-panics",
  "nix 0.31.3",
@@ -7932,10 +7924,8 @@ dependencies = [
  "url",
  "urlencoding",
  "vergen-gitcl",
- "webpki-roots 1.0.9",
  "windows 0.62.2",
  "winreg 0.56.0",
- "x509-parser",
 ]
 
 [[package]]
@@ -7984,7 +7974,6 @@ dependencies = [
  "log",
  "ndk-context",
  "nym-bandwidth-controller",
- "nym-bridges-types",
  "nym-common 2026.15.0-beta.1",
  "nym-diagnostic",
  "nym-favorites",
@@ -9850,7 +9839,7 @@ dependencies = [
  "pin-project-lite",
  "rustls 0.21.12",
  "rustls-native-certs 0.6.3",
- "rustls-pemfile 1.0.4",
+ "rustls-pemfile",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -10239,7 +10228,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9aace74cb666635c918e9c12bc0d348266037aa8eb599b5cba565709a8dff00"
 dependencies = [
  "openssl-probe 0.1.6",
- "rustls-pemfile 1.0.4",
+ "rustls-pemfile",
  "schannel",
  "security-framework 2.11.1",
 ]
@@ -10263,15 +10252,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c74cae0a4cf6ccbbf5f359f08efdf8ee7e1dc532573bf0db71968cb56b1448c"
 dependencies = [
  "base64 0.21.7",
-]
-
-[[package]]
-name = "rustls-pemfile"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dce314e5fee3f39953d46bb63bb8a46d40c2f8fb7cc5a3b6cab2bde9721d6e50"
-dependencies = [
- "rustls-pki-types",
 ]
 
 [[package]]
@@ -11816,7 +11796,7 @@ dependencies = [
  "tarpc-plugins",
  "thiserror 1.0.69",
  "tokio",
- "tokio-serde 0.8.0",
+ "tokio-serde",
  "tokio-util",
  "tracing",
  "tracing-opentelemetry 0.17.4",
@@ -11965,7 +11945,6 @@ dependencies = [
  "async-tempfile",
  "async-trait",
  "bip39",
- "bytes",
  "clap",
  "colored 3.1.1",
  "data-encoding-macro",
@@ -11987,15 +11966,12 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "socket2 0.6.5",
  "ssh2",
- "tarpc",
  "test-rpc",
  "test_macro",
  "thiserror 2.0.20",
  "time",
  "tokio",
- "tokio-serde 0.9.0",
  "tokio-serial",
  "tokio-util",
  "tonic",
@@ -12007,7 +11983,6 @@ dependencies = [
 name = "test-rpc"
 version = "2026.15.0-beta.1"
 dependencies = [
- "async-trait",
  "bytes",
  "colored 3.1.1",
  "futures",
@@ -12016,14 +11991,12 @@ dependencies = [
  "hyper-rustls 0.27.9",
  "hyper-util",
  "log",
- "rustls-pemfile 2.2.0",
  "serde",
  "serde_json",
  "tarpc",
  "thiserror 2.0.20",
  "tokio",
  "tokio-rustls 0.26.4",
- "tokio-serde 0.9.0",
  "tokio-util",
  "webpki-roots 1.0.9",
 ]
@@ -12043,15 +12016,12 @@ dependencies = [
  "nym-vpn-proto",
  "rand 0.10.2",
  "rs-release",
- "serde",
- "serde_json",
  "socket2 0.6.5",
  "surge-ping",
  "tarpc",
  "test-rpc",
  "thiserror 2.0.20",
  "tokio",
- "tokio-serde 0.9.0",
  "tokio-serial",
  "tokio-util",
 ]
@@ -12265,18 +12235,6 @@ name = "tokio-serde"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "911a61637386b789af998ee23f50aa30d5fd7edcec8d6d3dedae5e5815205466"
-dependencies = [
- "bytes",
- "futures-core",
- "futures-sink",
- "pin-project",
-]
-
-[[package]]
-name = "tokio-serde"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "caf600e7036b17782571dd44fa0a5cea3c82f60db5137f774a325a76a0d6852b"
 dependencies = [
  "bytes",
  "futures-core",
