@@ -245,8 +245,16 @@ cargo build --release --target aarch64-pc-windows-msvc
 
 ### iOS (macOS host)
 
+Build for aarch64 device and simulator targets:
+
 ```sh
 make -C nym-vpn-core -f iOS.mk
+```
+
+Build for aarch64 device only:
+
+```sh
+make -C nym-vpn-core -f iOS.mk RUST_TRIPLETS=aarch64-apple-ios
 ```
 
 ### Android
