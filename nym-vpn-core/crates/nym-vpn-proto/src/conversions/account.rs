@@ -77,6 +77,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::NoPairingSharedSecret(_) => {
                 Self::NoPairingSharedSecret
             }
+            proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
+                Self::PairingDerivingSharedSecret(err)
+            }
         })
     }
 }
@@ -178,6 +181,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::NoPairingSharedSecret => proto::AccountCommandError {
                 error_detail: Some(
                     proto::account_command_error::ErrorDetail::NoPairingSharedSecret(true),
+                ),
+            },
+            AccountCommandError::PairingDerivingSharedSecret(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err),
                 ),
             },
             AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {

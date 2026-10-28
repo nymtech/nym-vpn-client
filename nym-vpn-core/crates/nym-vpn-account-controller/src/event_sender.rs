@@ -12,6 +12,7 @@ pub struct AccountControllerEventReceiver {
     inner: broadcast::Receiver<AccountControllerEvent>,
 }
 
+#[derive(Clone)]
 pub struct AccountControllerEventSender {
     inner: broadcast::Sender<AccountControllerEvent>,
 }
