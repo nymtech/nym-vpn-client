@@ -17,7 +17,10 @@ use tokio::{
 };
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
+use nym_vpn_account_controller::{
+    AccountCommandSender, AccountControllerChannels, AccountControllerClients,
+    AccountStateReceiver, NyxdClient,
+};
 use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
@@ -107,13 +110,11 @@ impl NymAccountController {
         });
 
         let account_controller = nym_vpn_account_controller::AccountController::new(
-            nym_vpn_api_client,
-            nyxd_client,
+            AccountControllerClients::new(nym_vpn_api_client, nyxd_client),
             account_controller_config,
             storage,
             connectivity_handle,
-            bandwidth_command_sender.clone(),
-            event_tx,
+            AccountControllerChannels::new(bandwidth_command_sender.clone(), event_tx),
             shutdown_token.child_token(),
         )
         .await

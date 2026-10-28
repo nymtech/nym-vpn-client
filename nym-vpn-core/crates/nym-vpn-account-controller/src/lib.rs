@@ -23,7 +23,7 @@ pub(crate) use shared_state::SharedAccountState;
 
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;
-pub use controller::AccountController;
+pub use controller::{AccountController, AccountControllerChannels, AccountControllerClients};
 pub use deeplink::{CreateDeeplinkParams, Deeplink, DeeplinkError, DeeplinkMnemonic, Deeplinks};
 pub use error::Error;
 pub use event_sender::AccountControllerEventSender;

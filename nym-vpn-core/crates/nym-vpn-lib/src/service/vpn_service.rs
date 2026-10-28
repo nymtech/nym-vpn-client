@@ -37,8 +37,8 @@ use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    NyxdClient,
+    AccountCommandSender, AccountController, AccountControllerChannels, AccountControllerClients,
+    AccountControllerConfig, AccountStateReceiver, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -563,13 +563,11 @@ impl NymVpnService {
         let nyxd_client = NyxdClient::new(&network_env);
 
         let account_controller = AccountController::new(
-            nym_vpn_api_client.clone(),
-            nyxd_client,
+            AccountControllerClients::new(nym_vpn_api_client.clone(), nyxd_client),
             account_controller_config,
             storage,
             connectivity_handle.clone(),
-            bandwidth_command_tx.clone(),
-            event_tx.clone(),
+            AccountControllerChannels::new(bandwidth_command_tx.clone(), event_tx.clone()),
             services_shutdown_token.child_token(),
         )
         .await
