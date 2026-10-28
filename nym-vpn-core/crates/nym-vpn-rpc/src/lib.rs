@@ -3,15 +3,10 @@
 
 pub mod client;
 pub mod codec;
+mod macros;
+pub mod service;
 
 pub type Empty = ();
 
-pub mod service {
-    include!(concat!(env!("OUT_DIR"), "/nym_vpn.NymVpnService.rs"));
-}
-
 pub use client::{Error, Result, RpcClient, get_rpc_socket_path};
-pub use service::{
-    nym_vpn_service_client::NymVpnServiceClient,
-    nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
-};
+pub use service::{NymVpnService, NymVpnServiceClient, NymVpnServiceServer};

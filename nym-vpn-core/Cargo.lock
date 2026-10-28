@@ -8088,11 +8088,11 @@ dependencies = [
  "minicbor",
  "nym-ipc",
  "nym-vpn-lib-types",
+ "pastey",
  "serde_json",
  "thiserror 2.0.20",
  "tokio-stream",
  "tonic",
- "tonic-build",
  "tower",
 ]
 
@@ -12409,18 +12409,6 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
-]
-
-[[package]]
-name = "tonic-build"
-version = "0.14.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c68f61875ac5293cf72e6c8cf0158086428c82c37229e98c840878f1706b0322"
-dependencies = [
- "prettyplease 0.2.37",
- "proc-macro2",
- "quote",
- "syn 2.0.119",
 ]
 
 [[package]]

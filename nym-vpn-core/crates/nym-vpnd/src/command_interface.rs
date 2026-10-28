@@ -80,7 +80,6 @@ impl CommandInterface {
     }
 }
 
-#[tonic::async_trait]
 impl NymVpnService for CommandInterface {
     async fn info(&self, _request: Request<()>) -> Result<Response<VpnServiceInfo>> {
         let info = self.send_and_wait(VpnServiceCommand::Info, ()).await?;
