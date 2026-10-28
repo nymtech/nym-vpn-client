@@ -78,13 +78,7 @@ private extension CensorshipView {
             ),
             customContent: {
                 VStack(alignment: .leading, spacing: 12) {
-                    Picker("", selection: modeBinding) {
-                        ForEach(BridgeModeSetting.allCases, id: \.self) {
-                            Text($0.title)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
+                    BridgeModeSelector(selection: modeBinding)
                     if let text = quicMultilineText() {
                         Text(text)
                             .nymTextStyle(.bodySmall)
@@ -102,7 +96,7 @@ private extension CensorshipView {
     func quicMultilineText() -> AttributedString? {
         let first = "censorship.bridge.\(appSettings.bridgeMode.rawValue)".localizedString
         var second = "censorship.bridge.reconnect".localizedString
-        if featureFlagsManager.isBridgeTransportsEnabled && appSettings.bridgeMode == .on {
+        if featureFlagsManager.isBridgeTransportsEnabled && appSettings.bridgeMode != .off {
             second += "\n\n" + "censorship.quic.fallback".localizedString
         }
         let link = Constants.quicURL.rawValue
@@ -175,6 +169,31 @@ private extension BridgeModeSetting {
         case .on:
             "general.on".localizedString
         }
+    }
+}
+
+private struct BridgeModeSelector: View {
+    @Binding var selection: BridgeModeSetting
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(BridgeModeSetting.allCases, id: \.self) { mode in
+                let isSelected = mode == selection
+                Button {
+                    selection = mode
+                } label: {
+                    Text(mode.title)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(isSelected ? Color.Nym.primaryText : Color.Nym.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                        .background(isSelected ? Color.Nym.primary : Color.clear, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(4)
+        .background(Color.Nym.surfaceAlt, in: Capsule())
     }
 }
 

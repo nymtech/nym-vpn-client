@@ -87,6 +87,7 @@ private extension OneClickView {
                     Text("oneClick.bridge.label".localizedString)
                     Spacer()
                     Text(verbatim: bridgeTransport)
+                        .foregroundStyle(Color.Nym.primary)
                 }
                 .nymTextStyle(.bodySmall)
                 .foregroundStyle(Color.Nym.textSecondary)
