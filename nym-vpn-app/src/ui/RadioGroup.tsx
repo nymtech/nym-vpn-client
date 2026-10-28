@@ -26,6 +26,8 @@ export type RadioGroupOption<K extends Key> = {
 export type RadioGroupProps<K extends Key> = {
   options: RadioGroupOption<K>[];
   defaultValue?: K;
+  // when set, the selection follows this value instead of the internal state
+  value?: K;
   onChange: (value: K) => void;
   rootLabel?: string;
   // either or not to show checked/unchecked circular icons
@@ -37,6 +39,7 @@ export type RadioGroupProps<K extends Key> = {
 function RadioGroup<K extends Key>({
   options,
   defaultValue,
+  value,
   onChange,
   rootLabel,
   radioIcons = true,
@@ -81,7 +84,7 @@ function RadioGroup<K extends Key>({
       data-test-disabled={disabled ? 'true' : 'false'}
     >
       <HuRadioGroup
-        value={selected}
+        value={value ?? selected}
         onChange={handleChange}
         disabled={disabled}
         data-testid={`${testId}-container`}

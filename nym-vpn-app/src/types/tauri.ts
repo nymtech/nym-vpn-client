@@ -36,6 +36,8 @@ export type BridgeAddress = {
   transport: BridgeTransport | null;
 };
 
+export type BridgeMode = 'off' | 'on' | 'auto';
+
 export type BridgeTransport = 'quic' | 'tls' | 'ssh';
 
 export type Cli = {
@@ -213,7 +215,7 @@ export type JsEnv = {
   defaultVpnMode: 'mixnet' | 'wg';
   defaultSentry: boolean;
   defaultNetstats: boolean;
-  defaultQuic: boolean;
+  defaultBridgeMode: BridgeMode;
   startupError: StartupError | null;
 };
 
@@ -605,7 +607,7 @@ export type VpndConfig = {
   enableConflictDetection: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
-  bridges: boolean;
+  bridgeMode: BridgeMode;
   netstack: boolean;
   frontingMode: FrontingMode;
   minGatewayVpnPerformance: number | null;

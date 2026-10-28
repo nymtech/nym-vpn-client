@@ -399,6 +399,36 @@ impl From<SplitApp> for lib::SplitApp {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum BridgeMode {
+    #[default]
+    Off,
+    On,
+    Auto,
+}
+
+impl From<lib::BridgeMode> for BridgeMode {
+    fn from(mode: lib::BridgeMode) -> Self {
+        match mode {
+            lib::BridgeMode::Off => BridgeMode::Off,
+            lib::BridgeMode::On => BridgeMode::On,
+            lib::BridgeMode::Auto => BridgeMode::Auto,
+        }
+    }
+}
+
+impl From<BridgeMode> for lib::BridgeMode {
+    fn from(mode: BridgeMode) -> Self {
+        match mode {
+            BridgeMode::Off => lib::BridgeMode::Off,
+            BridgeMode::On => lib::BridgeMode::On,
+            BridgeMode::Auto => lib::BridgeMode::Auto,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]

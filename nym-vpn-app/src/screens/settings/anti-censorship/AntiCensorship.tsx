@@ -1,38 +1,67 @@
+import { useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
+import {
+  CardSwitch,
+  Link,
+  PageAnim,
+  RadioGroup,
+  RadioGroupOption,
+  SettingsMenuCardBig,
+} from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
 import { useToast } from '../../../hooks';
+import { BridgeMode } from '../../../types';
 
 function AntiCensorship() {
-  const { quic, backendFlags, state, frontingMode } = useMainState();
+  const { bridgeMode, backendFlags, state, frontingMode } = useMainState();
   const { add } = useToast();
 
   const { t } = useTranslation('settings');
 
-  const onQuicChange = async () => {
-    const isChecked = !quic;
+  const bridgeOptions = useMemo<RadioGroupOption<BridgeMode>[]>(
+    () => [
+      {
+        key: 'off',
+        label: t('anti-censorship.bridge-mode.options.off.label'),
+        desc: t('anti-censorship.bridge-mode.options.off.desc'),
+        descWrap: true,
+      },
+      {
+        key: 'auto',
+        label: t('anti-censorship.bridge-mode.options.auto.label'),
+        desc: t('anti-censorship.bridge-mode.options.auto.desc'),
+        descWrap: true,
+      },
+      {
+        key: 'on',
+        label: t('anti-censorship.bridge-mode.options.on.label'),
+        desc: t('anti-censorship.bridge-mode.options.on.desc'),
+        descWrap: true,
+      },
+    ],
+    [t],
+  );
+
+  const onBridgeModeChange = async (mode: BridgeMode) => {
     try {
-      await invoke('set_quic', { enabled: isChecked });
-      dispatch({ type: 'set-quic', enabled: isChecked });
+      await invoke('set_bridge_mode', { mode });
+      dispatch({ type: 'set-bridge-mode', mode });
     } catch (err: unknown) {
-      console.error('Failed to set QUIC', err);
+      console.error('Failed to set bridge mode', err);
       add({
-        id: `quic-switch-${isChecked}`,
-        title: t('anti-censorship.quic.error'),
+        id: `bridge-mode-${mode}`,
+        title: t('anti-censorship.bridge-mode.error'),
         type: 'error',
       });
+      return;
     }
 
     if (state == 'connected' || state == 'connecting') {
       add({
-        id: `quic-switch-${isChecked}`,
-        title: t(
-          isChecked
-            ? 'anti-censorship.snackbar-switch-on'
-            : 'anti-censorship.snackbar-switch-off',
-        ),
+        id: `bridge-mode-${mode}`,
+        title: t('anti-censorship.bridge-mode.snackbar'),
         type: 'info',
       });
     }
@@ -69,27 +98,33 @@ function AntiCensorship() {
       {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
-            <CardSwitch
-              header={t('anti-censorship.quic.label')}
-              subheader={t('anti-censorship.quic.warning')}
-              subheaderColor="king-nacho"
-              checked={quic}
-              onClick={onQuicChange}
-            />
+            <div className="flex w-full min-w-0 flex-col gap-1 px-5 pt-4">
+              <p className="text-text-primary truncate text-base select-none">
+                {t('anti-censorship.bridge-mode.label')}
+              </p>
+              <p className="text-status-warning text-sm select-none">
+                {t('anti-censorship.bridge-mode.warning')}
+              </p>
+            </div>
           }
         >
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <p className="text-text-secondary text-sm whitespace-pre-line">
-              {t('anti-censorship.quic.content')}
+              {t(
+                backendFlags.bridgeTransports
+                  ? 'anti-censorship.bridge-mode.content-transports'
+                  : 'anti-censorship.bridge-mode.content',
+              )}
             </p>
-            {backendFlags.bridgeTransports && (
-              <p className="text-text-secondary text-sm">
-                {t('anti-censorship.quic.bridges')}
-              </p>
-            )}
+            <RadioGroup
+              value={bridgeMode}
+              options={bridgeOptions}
+              onChange={onBridgeModeChange}
+              data-testid="bridge-mode-radio-group"
+            />
             <Link
-              className="mt-2 w-fit text-sm"
-              text={t('anti-censorship.quic.link')}
+              className="w-fit text-sm"
+              text={t('anti-censorship.bridge-mode.link')}
               url={QuicUrl}
               color="primary"
             />
