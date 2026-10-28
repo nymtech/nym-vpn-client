@@ -156,14 +156,6 @@ proc-macro2 = "1.0"
 prost = "0.14.4"
 prost-types = "0.14.4"
 pretty_assertions = "1.4.1"
-quinn = { version = "0.11", default-features = false, features = [
-    "ring",
-    "rustls",
-    "runtime-tokio",
-] }
-quinn-proto = { version = "0.11.18", default-features = false, features = [
-    "rustls",
-] }
 quote = "1.0"
 rand = "0.10.2"
 rand08 = { package = "rand", version = "=0.8.8" }
