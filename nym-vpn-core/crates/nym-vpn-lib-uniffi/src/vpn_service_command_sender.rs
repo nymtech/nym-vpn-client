@@ -10,7 +10,7 @@ use nym_vpn_lib::service::{
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse,
+    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     DiagnosticRunParams, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
     RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
@@ -142,8 +142,8 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
+    pub async fn set_bridge_mode(&self, bridge_mode: BridgeMode) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode)
             .await
     }
 

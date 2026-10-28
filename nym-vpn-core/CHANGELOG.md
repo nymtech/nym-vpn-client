@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a bridge mode (auto, on, off) in place of the QUIC on/off setting (config v14). Auto connects over plain WireGuard first and alternates with the bridge on each retry. The gRPC setting still maps to on/off
+- Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
+
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
 
 ### Changed
@@ -17,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [2026.14.0] - 2026-10-22
+
 
 ### Added
 

@@ -57,6 +57,9 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.gateway_selection_algorithm_config",
             ))?;
+        let bridge_mode = proto::BridgeModes::try_from(value.bridge_mode)
+            .map_err(|e| ConversionError::Decode("bridge_mode", e))?
+            .into();
         let fronting_mode = proto::FrontingModes::try_from(value.fronting_mode)
             .map_err(|e| ConversionError::Decode("fronting_mode", e))?
             .into();
@@ -73,7 +76,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
-            enable_bridges: value.enable_bridges,
+            bridge_mode,
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode,
@@ -114,7 +117,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
-            enable_bridges: value.enable_bridges,
+            bridge_mode: proto::BridgeModes::from(value.bridge_mode).into(),
             enable_ad_blocking: value.enable_ad_blocking,
             enable_conflict_detection: value.enable_conflict_detection,
             fronting_mode: proto::FrontingModes::from(value.fronting_mode).into(),
@@ -177,6 +180,26 @@ impl From<nym_vpn_lib_types::MixnetTrafficConfig> for proto::MixnetTrafficConfig
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::BridgeMode> for proto::BridgeModes {
+    fn from(value: nym_vpn_lib_types::BridgeMode) -> Self {
+        match value {
+            nym_vpn_lib_types::BridgeMode::Off => proto::BridgeModes::Off,
+            nym_vpn_lib_types::BridgeMode::On => proto::BridgeModes::On,
+            nym_vpn_lib_types::BridgeMode::Auto => proto::BridgeModes::Auto,
+        }
+    }
+}
+
+impl From<proto::BridgeModes> for nym_vpn_lib_types::BridgeMode {
+    fn from(val: proto::BridgeModes) -> Self {
+        match val {
+            proto::BridgeModes::Off => nym_vpn_lib_types::BridgeMode::Off,
+            proto::BridgeModes::On => nym_vpn_lib_types::BridgeMode::On,
+            proto::BridgeModes::Auto => nym_vpn_lib_types::BridgeMode::Auto,
         }
     }
 }

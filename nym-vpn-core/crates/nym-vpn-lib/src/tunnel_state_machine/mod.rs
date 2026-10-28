@@ -83,11 +83,11 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConflictDetected, ConnectionData,
-    DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
-    EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState,
-    TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
+    ConnectionData, DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason,
+    EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -372,11 +372,6 @@ impl TunnelSettings {
             .collect::<Vec<_>>()
     }
 
-    pub fn bridges_enabled(&self) -> bool {
-        matches!(self.tunnel_type_used(), TunnelType::Wireguard)
-            && self.wireguard_tunnel_options.enable_bridges
-    }
-
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
         let mut diff = TunnelSettingsDiff::default();
 
@@ -404,8 +399,8 @@ impl TunnelSettings {
         if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
             diff.add(TunnelSettingsDiffFields::WireguardTunnelOptions);
             // We care about just the QUIC setting changing.
-            if self.wireguard_tunnel_options.enable_bridges
-                != other.wireguard_tunnel_options.enable_bridges
+            if self.wireguard_tunnel_options.bridge_mode
+                != other.wireguard_tunnel_options.bridge_mode
             {
                 diff.add(TunnelSettingsDiffFields::QUIC);
             }
@@ -617,7 +612,7 @@ pub enum WireguardMultihopMode {
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
@@ -1061,11 +1056,11 @@ impl SharedState {
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 
-    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings) {
+    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings, use_bridges: bool) {
         self.tunnel_settings = tunnel_settings.clone();
         if let Err(err) = self
             .gateway_provider
-            .set_tunnel_settings(tunnel_settings)
+            .set_tunnel_settings(tunnel_settings, use_bridges)
             .await
         {
             tracing::error!("Could not update gateway provider with new tunnel settings: {err:?}");

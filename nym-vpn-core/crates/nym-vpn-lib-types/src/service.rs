@@ -42,7 +42,7 @@ pub struct VpnServiceConfig {
     pub allow_lan: bool,
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
     pub enable_ad_blocking: bool,
     pub enable_conflict_detection: bool,
     pub fronting_mode: FrontingMode,
@@ -121,7 +121,7 @@ impl Default for VpnServiceConfig {
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: true,
-            enable_bridges: false,
+            bridge_mode: BridgeMode::default(),
             enable_ad_blocking: false,
             enable_conflict_detection: true,
             fronting_mode: FrontingMode::default(),
@@ -413,6 +413,33 @@ impl ContinuousTrafficSendingRate {
             Self::Ms30 => "0.7 Mbps",
         }
         .to_owned()
+    }
+}
+
+/// How the WireGuard tunnel uses bridges (QUIC).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum BridgeMode {
+    /// Plain WireGuard first, then bridges when an attempt fails.
+    Auto,
+    /// Bridges only.
+    On,
+    /// Plain WireGuard only.
+    #[default]
+    Off,
+}
+
+impl From<bool> for BridgeMode {
+    fn from(enable_bridges: bool) -> Self {
+        if enable_bridges { Self::On } else { Self::Off }
     }
 }
 

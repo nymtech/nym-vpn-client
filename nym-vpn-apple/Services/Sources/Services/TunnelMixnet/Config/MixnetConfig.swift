@@ -85,7 +85,7 @@ extension MixnetConfig {
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
-            enableBridges: isQuicEnabled,
+            bridgeMode: isQuicEnabled ? .on : .off,
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,

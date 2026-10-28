@@ -151,9 +151,9 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
-        if self.config.enable_bridges != enable_bridges {
-            self.config.enable_bridges = enable_bridges;
+    pub async fn set_bridge_mode(&mut self, bridge_mode: nym_vpn_lib_types::BridgeMode) {
+        if self.config.bridge_mode != bridge_mode {
+            self.config.bridge_mode = bridge_mode;
             self.save_config_and_send_event().await;
         }
     }
@@ -578,7 +578,7 @@ impl VpnServiceConfigManager {
                 },
                 #[cfg(any(target_os = "android", target_os = "ios"))]
                 multihop_mode: WireguardMultihopMode::Netstack,
-                enable_bridges: self.config.enable_bridges,
+                bridge_mode: self.config.bridge_mode,
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
