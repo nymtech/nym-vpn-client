@@ -1056,11 +1056,11 @@ impl SharedState {
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 
-    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings) {
+    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings, use_bridges: bool) {
         self.tunnel_settings = tunnel_settings.clone();
         if let Err(err) = self
             .gateway_provider
-            .set_tunnel_settings(tunnel_settings)
+            .set_tunnel_settings(tunnel_settings, use_bridges)
             .await
         {
             tracing::error!("Could not update gateway provider with new tunnel settings: {err:?}");

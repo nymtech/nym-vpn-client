@@ -110,13 +110,11 @@ impl ConnectingState {
                 TunnelType::Wireguard
             );
 
-        if selected_gateways.is_none()
-            && let Err(err) = shared_state
-                .gateway_provider
-                .set_use_bridges(use_bridges)
-                .await
-        {
-            tracing::error!("Could not update gateway provider with bridge use: {err:?}");
+        if selected_gateways.is_none() {
+            let tunnel_settings = shared_state.tunnel_settings.clone();
+            shared_state
+                .set_tunnel_settings(tunnel_settings, use_bridges)
+                .await;
         }
 
         // Disallow networking until firewall exceptions and resolver overrides are configured
@@ -903,7 +901,9 @@ impl TunnelStateHandler for ConnectingState {
                         if diff.is_empty() {
                             return NextTunnelState::SameState(self);
                         }
-                        shared_state.set_tunnel_settings(tunnel_settings).await;
+                        shared_state
+                            .set_tunnel_settings(tunnel_settings, self.use_bridges)
+                            .await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         let mut new_firewall_policy = self.firewall_policy_params.clone();

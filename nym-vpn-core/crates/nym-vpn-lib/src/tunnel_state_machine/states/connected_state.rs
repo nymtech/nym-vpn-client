@@ -335,7 +335,7 @@ impl TunnelStateHandler for ConnectedState {
                         if diff.is_empty() {
                             return NextTunnelState::SameState(self);
                         }
-                        shared_state.set_tunnel_settings(tunnel_settings).await;
+                        shared_state.set_tunnel_settings(tunnel_settings, false).await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         let mut new_firewall_policy = self.firewall_policy_params.clone();

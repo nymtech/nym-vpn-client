@@ -300,7 +300,7 @@ async fn set_and_stream() {
         shutdown_token.child_token(),
     );
     gw_provider
-        .set_tunnel_settings(default_tunnel_settings())
+        .set_tunnel_settings(default_tunnel_settings(), false)
         .await
         .unwrap();
     // check we have "infinite" stream
@@ -345,7 +345,7 @@ async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
     // Reset the stream (as set_gateway_independence does on every connect press)
     // and immediately query, before the freshly computed selection is ready.
     gw_provider
-        .set_tunnel_settings(tunnel_settings)
+        .set_tunnel_settings(tunnel_settings, false)
         .await
         .unwrap();
     let tentative = gw_provider.tentative_gateways().await;
