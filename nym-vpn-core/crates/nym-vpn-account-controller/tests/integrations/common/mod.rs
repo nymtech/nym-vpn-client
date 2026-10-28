@@ -7,8 +7,8 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    NyxdClient,
+    AccountCommandSender, AccountController, AccountControllerChannels, AccountControllerClients,
+    AccountControllerConfig, AccountStateReceiver, NyxdClient,
 };
 use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
@@ -288,13 +288,11 @@ impl TestBench {
         let (tunnel_event_tx, _) = broadcast::channel(10);
 
         let account_controller = AccountController::new(
-            nym_vpn_api_client,
-            nyxd_client,
+            AccountControllerClients::new(nym_vpn_api_client, nyxd_client),
             account_controller_config,
             storage,
             connectivity.clone(),
-            bandwidth_command_tx,
-            tunnel_event_tx,
+            AccountControllerChannels::new(bandwidth_command_tx, tunnel_event_tx),
             shutdown_token.child_token(),
         )
         .await?;
