@@ -12,6 +12,7 @@ enum class ServerListFilter {
 
 data class ServerUiState(
 	val error: Boolean = false,
+	val isSyncing: Boolean = false,
 	val query: String = "",
 	val rows: List<ServerRow> = emptyList(),
 	val filter: ServerListFilter = ServerListFilter.ALL_SERVERS,

@@ -35,7 +35,17 @@ class DataModule {
 
 	@Singleton
 	@Provides
-	fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository = DataStoreGatewayRepository(dataStoreManager)
+	fun provideGatewayRepository(
+		@ApplicationContext context: Context,
+		dataStoreManager: DataStoreManager,
+		@ApplicationScope appScope: CoroutineScope,
+		@IoDispatcher ioDispatcher: CoroutineDispatcher,
+	): GatewayRepository = DataStoreGatewayRepository(
+		context = context,
+		legacyDataStoreManager = dataStoreManager,
+		appScope = appScope,
+		ioDispatcher = ioDispatcher,
+	)
 
 	@Singleton
 	@Provides

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.server.ServerRow
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.FavoriteIcon
@@ -39,6 +40,7 @@ import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -192,6 +194,7 @@ private fun CountryDropDown(
 internal fun GatewayRow(
 	row: ServerRow.Gateway,
 	gatewayType: GatewayType,
+	gatewayLocation: GatewayLocation,
 	isSelected: Boolean,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
@@ -219,6 +222,7 @@ internal fun GatewayRow(
 				},
 				trailing = {
 					ServerDetailsTrailingContent(
+						showStreamDisplay = gateway.showStreamDisplay(gatewayLocation),
 						isFavorite = isFavorite,
 						onToggleFavorite = { onToggleFavorite(gateway.identity, isFavorite) },
 						onInfoIconClick = { onGatewayDetails(gateway) },
@@ -252,3 +256,5 @@ internal fun GatewayRow(
 		modifier = modifier.padding(bottom = if (row.isLastInGroup) GroupSpacing else 0.dp),
 	)
 }
+
+internal fun NymGateway.showStreamDisplay(gatewayLocation: GatewayLocation): Boolean = gatewayLocation == GatewayLocation.EXIT && asnKind == AsnKind.RESIDENTIAL
