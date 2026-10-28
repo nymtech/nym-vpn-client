@@ -19,7 +19,7 @@ use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
-    types::{Device, VpnAccount},
+    types::{Device, VpnAccount, VpnAccountMode},
 };
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary,
@@ -72,17 +72,12 @@ impl SyncingNetworkState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        match shared_state.device_state {
-            StoredDeviceState::LoggedIn {
-                account_identity: account,
-                summary: account_summary,
-            } if account.mode == StoredAccountMode::Decentralised => {
-                return DecentralisedState::enter();
-            }
-            StoredDeviceState::LoggedOut => {
-                return LoggedOutState::enter(shared_state).await;
-            }
-            StoredDeviceState::LoggedIn { .. } => {}
+        let Some(account_identity) = shared_state.device_state.account() else {
+            return LoggedOutState::enter(shared_state).await;
+        };
+
+        if account_identity.mode == StoredAccountMode::Decentralised {
+            return DecentralisedState::enter();
         }
 
         let Some(device) = shared_state.device.clone() else {
@@ -110,16 +105,21 @@ impl SyncingNetworkState {
         let sync_cancel_token = CancellationToken::new();
 
         // This handle does not need to be awaited since event channel and cancellation token are sufficient.
-        let _syncing_state_handle =
-            tokio::spawn(sync_cancel_token.child_token().run_until_cancelled_owned(
-                SyncingNetworkState::sync_network(
+        let account_id = account_identity.id.clone();
+        let account_mode = account_identity.mode;
+        let child_token = sync_cancel_token.child_token().clone();
+        let _syncing_state_handle = tokio::spawn(async move {
+            child_token
+                .run_until_cancelled_owned(SyncingNetworkState::sync_network(
                     result_tx,
                     vpn_api_client,
-                    vpn_api_account,
+                    &account_id,
+                    account_mode,
                     device,
                     sync_mode,
-                ),
-            ));
+                ))
+                .await
+        });
 
         (
             Box::new(Self {
@@ -133,11 +133,12 @@ impl SyncingNetworkState {
     async fn sync_network(
         result_tx: oneshot::Sender<SyncResult>,
         vpn_api_client: VpnApiClient,
-        vpn_api_account: Arc<VpnAccount>,
+        account_id: &str,
+        account_mode: StoredAccountMode,
         device: Device,
         sync_mode: SyncMode,
     ) {
-        let fetch = Self::fetch_summary(&vpn_api_client, &vpn_api_account, &device);
+        let fetch = Self::fetch_summary(&vpn_api_client, account_id, account_mode, &device);
 
         let sync_result = match sync_mode {
             SyncMode::Optimistic => {
@@ -164,21 +165,20 @@ impl SyncingNetworkState {
 
     async fn fetch_summary(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnAccount,
+        account_id: &str,
+        account_mode: StoredAccountMode,
         device: &Device,
     ) -> Result<VpnAccountSummary, SyncError> {
         let summary = vpn_api_client
-            .get_account_summary_with_device(&vpn_api_account.id(), device)
+            .get_account_summary_with_device(account_id, device)
             .await?;
 
         tracing::debug!("{summary:#?}");
 
-        let summary =
-            VpnAccountSummary::from_parts(&summary, vpn_api_account.mode()).map_err(|err| {
-                SyncError::ApiResponseError {
-                    details: format!("Failed to create account summary from API response: {err}"),
-                }
-            })?;
+        let summary = VpnAccountSummary::from_parts(&summary, VpnAccountMode::from(account_mode))
+            .map_err(|err| SyncError::ApiResponseError {
+            details: format!("Failed to create account summary from API response: {err}"),
+        })?;
 
         Ok(summary)
     }

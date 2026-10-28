@@ -52,10 +52,13 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
 ) -> Result<(), AccountCommandError> {
-    let device_account = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
+    let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+    let ecash_keypair = vpn_account
+        .create_ecash_keypair()
+        .map_err(|err| AccountCommandError::CreateEcashKeyPair(err.to_string()))?;
 
     // if the account is decentralised, it must exist on the chain
     if vpn_account.mode().is_decentralised() {
@@ -76,7 +79,8 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::storage)?; // Storage error
 
     shared_state.device_state = StoredDeviceState::LoggedIn {
-        account_identity: device_account,
+        account_identity,
+        ecash_keypair,
         summary: None,
     };
     shared_state.device = Some(device);
@@ -90,7 +94,10 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
 ) -> Result<(), AccountCommandError> {
     let (vpn_account, mnemonic) =
         VpnAccount::generate_new().map_err(AccountCommandError::internal)?;
-    let device_account = StoredAccountIdentity::new(
+    let ecash_keypair = vpn_account
+        .create_ecash_keypair()
+        .map_err(AccountCommandError::internal)?;
+    let account_identity = StoredAccountIdentity::new(
         mnemonic.clone(),
         StoredAccountMode::from(vpn_account.mode()),
     )
@@ -110,7 +117,8 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::storage)?; // Storage error
 
     shared_state.device_state = StoredDeviceState::LoggedIn {
-        account_identity: device_account,
+        account_identity,
+        ecash_keypair,
         summary: None,
     };
     shared_state.device = Some(device);

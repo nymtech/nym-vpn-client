@@ -34,6 +34,7 @@ impl DeviceStateStorage for InMemoryDeviceStateStorage {
 #[cfg(test)]
 mod tests {
 
+    use nym_credentials_interface::KeyPairUser;
     use nym_vpn_lib_types::StoredAccountMode;
 
     use crate::device_state::StoredAccountIdentity;
@@ -49,6 +50,7 @@ mod tests {
                 signature_base64: "".to_owned(),
             },
             summary: None,
+            ecash_keypair: KeyPairUser::new(),
         }
     }
 

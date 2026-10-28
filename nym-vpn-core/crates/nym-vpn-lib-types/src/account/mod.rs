@@ -128,6 +128,9 @@ pub enum AccountCommandError {
     #[error("shared secret could not be derived for pairing process: {0}")]
     PairingDerivingSharedSecret(String),
 
+    #[error("failed to create ecash keypair: {0}")]
+    CreateEcashKeyPair(String),
+
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
 }

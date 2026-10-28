@@ -7,6 +7,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use nym_vpn_api_client::types::{VpnAccount, VpnAccountMode};
 use nym_vpn_lib_types::{Mnemonic, StoredAccountMode, VpnAccountSummary};
 use serde::Deserialize;
 use tokio::fs::File;
@@ -23,6 +24,12 @@ use crate::{
 pub enum SecureStoreMigrationError {
     #[error("failed to instantiate device account")]
     CreateDeviceAccount(#[from] DeviceAccountError),
+
+    #[error("failed to load vpn account")]
+    LoadVpnAccount(#[source] Box<dyn Error + Send + Sync>),
+
+    #[error("failed to create ecash keypair")]
+    CreateEcashKeyPair(#[source] Box<dyn Error + Send + Sync>),
 
     #[error("failed to parse legacy account")]
     ParseLegacyAccount(#[source] serde_json::Error),
@@ -161,9 +168,20 @@ where
         let LegacyAccount { mnemonic, mode } =
             self.read_legacy_account(plain_mnemonic_file).await?;
 
-        let account = StoredAccountIdentity::new(mnemonic.clone(), mode)?;
+        let account_identity = StoredAccountIdentity::new(mnemonic.clone(), mode)?;
+        let vpn_account = VpnAccount::new(
+            mnemonic.clone(),
+            VpnAccountMode::from(account_identity.mode),
+        )
+        .map_err(|err| SecureStoreMigrationError::LoadVpnAccount(Box::new(err)))?;
+
+        let ecash_keypair = vpn_account
+            .create_ecash_keypair()
+            .map_err(|err| SecureStoreMigrationError::CreateEcashKeyPair(Box::new(err)))?;
+
         let device_state = StoredDeviceState::LoggedIn {
-            account_identity: account,
+            account_identity,
+            ecash_keypair,
             summary: account_summary,
         };
 
