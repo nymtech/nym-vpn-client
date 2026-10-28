@@ -93,6 +93,16 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter(shared_state).await);
                         }
                     },
+                    AccountCommand::DeleteAccount(return_sender) => {
+                        let res = handler::handle_delete_account(shared_state).await;
+                        let error = res.is_err();
+                        return_sender.send(res);
+                        if error {
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
+                        } else {
+                            return NextAccountControllerState::NewState(LoggedOutState::enter(shared_state).await);
+                        }
+                    },
                     AccountCommand::LinkAccount(return_sender, privy_account) => {
                         let res = handler::handle_link_account(shared_state, privy_account).await;
                         return_sender.send(res);

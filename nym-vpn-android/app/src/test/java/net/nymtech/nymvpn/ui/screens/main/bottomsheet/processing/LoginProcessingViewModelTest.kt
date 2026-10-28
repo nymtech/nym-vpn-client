@@ -155,6 +155,7 @@ private class FakeBackendManager(initialAccountState: AccountControllerState = A
 	override suspend fun storeMnemonic(mnemonic: String) = unsupported()
 	override suspend fun isMnemonicStored(): Boolean = false
 	override suspend fun removeMnemonic() = unsupported()
+	override suspend fun deleteAccount() = unsupported()
 	override suspend fun getAccountLinks(): ParsedAccountLinks? = null
 	override suspend fun getSystemMessages(): List<SystemMessage> = emptyList()
 	override suspend fun getGateways(gatewayType: GatewayType): List<NymGateway> = emptyList()

@@ -31,5 +31,7 @@ object Constants {
 	const val URL_GATEWAYS_LOCATION = "https://support.nymvpn.com/hc/en-us/articles/26448676449297" +
 		"-How-is-server-location-determined-by-NymVPN"
 
+	const val URL_PLAY_SUBSCRIPTIONS = "https://play.google.com/store/account/subscriptions?package="
+
 	val countryCodesForRegionSupport = listOf("us", "ca", "au", "mx", "br", "in", "cn")
 }

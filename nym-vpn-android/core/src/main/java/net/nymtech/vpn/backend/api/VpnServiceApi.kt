@@ -47,6 +47,7 @@ interface VpnServiceApi {
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun removeMnemonic()
+	suspend fun deleteAccount()
 
 	suspend fun getStoredMnemonic(): String
 
