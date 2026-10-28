@@ -52,7 +52,7 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AppCompatibility,
     AutologinResponse, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport,
-    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    DiagnosticRunParams, EnableSocks5Request, EntryPoint, Event, ExitPoint, FeatureFlags, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
     ParsedAccountLinks, Profile, QrPairingConfirmation, QrUrl, RecentGateways, RegistrationReport,
@@ -324,8 +324,8 @@ pub struct NymVpnService {
     // Send commands to Bandwidth controller
     bandwidth_command_tx: BandwidthControllerRequestSender,
 
-    // Broadcast channel for sending tunnel events to the outside world
-    tunnel_event_tx: broadcast::Sender<TunnelEvent>,
+    // Broadcast channel for sending events to the outside world
+    event_tx: broadcast::Sender<Event>,
 
     // Target state
     target_state: TargetState,
@@ -418,7 +418,7 @@ pub struct NymVpnService {
 impl NymVpnService {
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
-        tunnel_event_tx: broadcast::Sender<TunnelEvent>,
+        event_tx: broadcast::Sender<Event>,
         log_file_remover_handle: Option<LogFileRemoverHandle>,
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
@@ -427,7 +427,7 @@ impl NymVpnService {
         tokio::spawn(async move {
             let Ok(service) = Box::pin(NymVpnService::new(
                 vpn_command_rx,
-                tunnel_event_tx,
+                event_tx,
                 log_file_remover_handle,
                 parameters,
                 shutdown_token,
@@ -454,7 +454,7 @@ impl NymVpnService {
 
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
-        tunnel_event_tx: broadcast::Sender<TunnelEvent>,
+        event_tx: broadcast::Sender<Event>,
         log_file_remover_handle: Option<LogFileRemoverHandle>,
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
@@ -570,7 +570,7 @@ impl NymVpnService {
             storage,
             connectivity_handle.clone(),
             bandwidth_command_tx.clone(),
-            tunnel_event_tx.clone(),
+            event_tx.clone(),
             services_shutdown_token.child_token(),
         )
         .await
@@ -584,14 +584,10 @@ impl NymVpnService {
 
         let config_manager = match parameters.service_storage_type {
             ServiceConfigStorageType::Persistent => {
-                VpnServiceConfigManager::new(&paths.config_dir, Some(tunnel_event_tx.clone()))
-                    .await?
+                VpnServiceConfigManager::new(&paths.config_dir, Some(event_tx.clone())).await?
             }
             ServiceConfigStorageType::Ephemeral(initial_config) => {
-                VpnServiceConfigManager::new_ephermeral(
-                    initial_config,
-                    Some(tunnel_event_tx.clone()),
-                )
+                VpnServiceConfigManager::new_ephermeral(initial_config, Some(event_tx.clone()))
             }
         };
 
@@ -783,7 +779,7 @@ impl NymVpnService {
             network_tx,
             user_agent: parameters.user_agent,
             vpn_command_rx,
-            tunnel_event_tx,
+            event_tx,
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
@@ -986,15 +982,17 @@ impl NymVpnService {
             self.tunnel_state = new_state.clone();
             self.socks5_service.tunnel_state_changed(new_state.clone());
         }
-        if self.tunnel_event_tx.send(event).is_err() {
+        if self.event_tx.send(Event::Tunnel(Box::new(event))).is_err() {
             tracing::error!("Failed to send tunnel event");
         }
     }
 
     fn handle_account_state_change(&mut self, account_state: AccountControllerState) {
         if self
-            .tunnel_event_tx
-            .send(TunnelEvent::AccountState(account_state))
+            .event_tx
+            .send(Event::Tunnel(Box::new(TunnelEvent::AccountState(
+                account_state,
+            ))))
             .is_err()
         {
             tracing::error!("Failed to send tunnel event");

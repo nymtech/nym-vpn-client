@@ -3,7 +3,7 @@
 
 use crate::{
     environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor,
-    vpn_service::TunnelStatusListener,
+    vpn_service::StatusListener,
 };
 
 use std::{path::PathBuf, sync::Arc, time::Duration};
@@ -50,7 +50,7 @@ impl NymAccountController {
         user_agent: UserAgent,
         network_env: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
-        event_listener: Arc<dyn TunnelStatusListener>,
+        event_listener: Arc<dyn StatusListener>,
     ) -> Result<Self, VpnError> {
         // Storage setup
         let storage_path = data_dir.join(network_env.network_name());
@@ -93,10 +93,10 @@ impl NymAccountController {
 
         let connectivity_handle = offline_monitor.inner();
 
-        let (tunnel_event_tx, mut tunnel_event_rx) = broadcast::channel(10);
+        let (event_tx, mut event_rx) = broadcast::channel(10);
         let event_handler = tokio::spawn(async move {
             loop {
-                match tunnel_event_rx.recv().await {
+                match event_rx.recv().await {
                     Ok(event) => event_listener.on_event(event),
                     Err(broadcast::error::RecvError::Lagged(skipped)) => {
                         tracing::warn!("Skipped {skipped} events");
@@ -113,7 +113,7 @@ impl NymAccountController {
             storage,
             connectivity_handle,
             bandwidth_command_sender.clone(),
-            tunnel_event_tx,
+            event_tx,
             shutdown_token.child_token(),
         )
         .await

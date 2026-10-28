@@ -4,7 +4,7 @@
 use std::{sync::Arc, time::Duration};
 
 use nym_vpn_lib::{paths::Paths, service::ServiceConfigStorageType};
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{Event, TunnelEvent, TunnelState};
 use nym_vpn_network_config::NetworkCache;
 use tokio::{
     sync::{Mutex, broadcast, mpsc},
@@ -28,8 +28,8 @@ struct State {
 }
 
 #[uniffi::export(with_foreign)]
-pub trait TunnelStatusListener: Send + Sync {
-    fn on_event(&self, event: TunnelEvent);
+pub trait StatusListener: Send + Sync {
+    fn on_event(&self, event: Event);
 }
 
 #[derive(uniffi::Object)]
@@ -44,7 +44,7 @@ impl NymVpnService {
     pub async fn new_service(
         config: VPNConfig,
         environment: Arc<NymEnvironment>,
-        event_listener: Arc<dyn TunnelStatusListener>,
+        event_listener: Arc<dyn StatusListener>,
     ) -> Result<Self, VpnError> {
         // Uniffi async adapter runs on single-threaded runtime
         // Create vpn service on multi-threaded runtime to ensure that it has enough resources
@@ -125,7 +125,9 @@ impl NymVpnService {
                 let (tunnel_state_tx, tunnel_state_rx) = tokio::sync::watch::channel(None);
                 let event_handler = tokio::spawn(async move {
                     while let Ok(event) = tunnel_event_rx.recv().await {
-                        if let TunnelEvent::NewState(tunnel_state) = &event {
+                        if let Event::Tunnel(tunnel_event) = &event
+                            && let TunnelEvent::NewState(tunnel_state) = tunnel_event.as_ref()
+                        {
                             let _ = tunnel_state_tx.send_replace(Some(tunnel_state.clone()));
                         }
                         event_listener.on_event(event);

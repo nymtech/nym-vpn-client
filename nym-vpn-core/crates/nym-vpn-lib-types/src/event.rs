@@ -28,6 +28,30 @@ use super::tunnel_state::TunnelState;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum Event {
+    Tunnel(Box<TunnelEvent>),
+    Pairing(PairingResult),
+}
+
+impl fmt::Display for Event {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Event::Tunnel(tunnel_event) => tunnel_event.fmt(f),
+            Event::Pairing(pairing_result) => pairing_result.fmt(f),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelEvent {
     NewState(TunnelState),
     MixnetState(MixnetEvent),
@@ -35,7 +59,6 @@ pub enum TunnelEvent {
     AccountState(AccountControllerState),
     DiagnosticsSuggested(DiagnosticsSuggestionReason),
     ConflictDetected(ConflictDetected),
-    Pairing(PairingEvent),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -51,12 +74,18 @@ impl fmt::Display for TunnelEvent {
             Self::ConflictDetected(conflict) => {
                 write!(f, "Conflict detected: {conflict}")
             }
-            Self::Pairing(event) => {
-                write!(f, "Pairing check result for {event}")
-            }
         }
     }
 }
+
+#[cfg(feature = "uniffi-bindings")]
+pub type BoxedTunnelEvent = Box<TunnelEvent>;
+#[cfg(feature = "uniffi-bindings")]
+uniffi::custom_type!(BoxedTunnelEvent, TunnelEvent, {
+    remote,
+    try_lift: |val| Ok(Box::new(val)),
+    lower: |val| *val
+});
 
 /// A conflicting application was found on the system that may interfere with
 /// NymVPN's own network filtering. Does not change `TunnelState` - the
@@ -107,15 +136,15 @@ impl fmt::Display for ConflictDetected {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct PairingEvent {
+pub struct PairingResult {
     /// The session ID returned by the call that started the pairing process
     pub session_id: u32,
-    pub result: PairingResult,
+    pub event: PairingEvent,
 }
 
-impl fmt::Display for PairingEvent {
+impl fmt::Display for PairingResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "session {}: {}", self.session_id, self.result)
+        write!(f, "session {}: {}", self.session_id, self.event)
     }
 }
 
@@ -130,7 +159,7 @@ impl fmt::Display for PairingEvent {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub enum PairingResult {
+pub enum PairingEvent {
     Cancelled,
     TimedOut,
     Error(String),
@@ -138,7 +167,7 @@ pub enum PairingResult {
     Mnemonic(String),
 }
 
-impl fmt::Debug for PairingResult {
+impl fmt::Debug for PairingEvent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Cancelled => f.write_str("Cancelled"),
@@ -153,7 +182,7 @@ impl fmt::Debug for PairingResult {
     }
 }
 
-impl fmt::Display for PairingResult {
+impl fmt::Display for PairingEvent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Cancelled => write!(f, "QR pairing process was cancelled"),

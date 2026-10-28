@@ -36,6 +36,7 @@ mod account;
 mod connection_data;
 mod device;
 mod diagnostic;
+mod event;
 mod gateway;
 mod gateway_independence;
 mod gateway_selection_algorithm;
@@ -49,7 +50,6 @@ mod rpc_requests;
 mod service;
 mod socks5;
 mod split_tunnel;
-mod tunnel_event;
 mod tunnel_state;
 #[cfg(feature = "uniffi-bindings")]
 mod uniffi_std_types;
@@ -78,6 +78,11 @@ pub use diagnostic::{
     ApiTimeSkew, CompleteDnsReport, DiagnosticEndpointResponse, DiagnosticRegisterParams,
     DiagnosticReport, DiagnosticResult, DiagnosticRunParams, DnsResolution, GatewayReport,
     HttpReport, HybridTransportReport, PingReport, RegistrationMode, RegistrationReport,
+};
+pub use event::{
+    BandwidthEvent, ConflictDetected, ConnectionEvent, ConnectionStatisticsEvent,
+    DiagnosticsSuggestionReason, Event, MixnetEvent, PairingEvent, PairingResult,
+    SphinxPacketRates, TunnelEvent,
 };
 pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
@@ -113,11 +118,6 @@ pub use service::{
 };
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
-pub use tunnel_event::{
-    BandwidthEvent, ConflictDetected, ConnectionEvent, ConnectionStatisticsEvent,
-    DiagnosticsSuggestionReason, MixnetEvent, PairingEvent, PairingResult, SphinxPacketRates,
-    TunnelEvent,
-};
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
 pub use user_agent::UserAgent;
 

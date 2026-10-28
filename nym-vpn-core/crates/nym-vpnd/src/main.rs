@@ -219,10 +219,10 @@ async fn spawn_vpn_service(
     };
 
     let command_shutdown_token = CancellationToken::new();
-    let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
+    let (event_tx, event_rx) = broadcast::channel(10);
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         parameters.disable_client_verification,
-        tunnel_event_rx,
+        event_rx,
         command_shutdown_token.child_token(),
     )
     .await
@@ -230,7 +230,7 @@ async fn spawn_vpn_service(
 
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
-        tunnel_event_tx,
+        event_tx,
         log_file_remover_handle,
         vpn_service_params,
         shutdown_token.child_token(),

@@ -656,6 +656,13 @@ message TunnelState {
   }
 }
 
+message Event {
+  oneof event {
+    TunnelEvent tunnel_event = 1;
+    PairingCheckResult pairing_check_result = 2;
+  }
+}
+
 message TunnelEvent {
   oneof event {
     TunnelState tunnel_state = 1;
@@ -664,7 +671,6 @@ message TunnelEvent {
     AccountControllerState account_state = 4;
     DiagnosticsSuggestedEvent diagnostics_suggested_event = 5;
     ConflictDetectedEvent conflict_detected_event = 6;
-    PairingCheckResult pairing_check_result = 7;
   }
 }
 
@@ -692,7 +698,7 @@ message ConflictDetectedEvent {
 
 // The result from the pairing process has arrived and needs to be actioned in the UI
 message PairingCheckResult {
-  oneof result {
+  oneof event {
     google.protobuf.Empty cancelled = 1;
     google.protobuf.Empty timed_out = 2;
     string error = 3;
@@ -796,6 +802,7 @@ message AccountCommandError {
     string invalid_public_key = 19;
     bool pairing_not_started = 20;
     bool no_pairing_shared_secret = 21;
+    string pairing_deriving_shared_secret = 22;
   }
 }
 
@@ -1310,7 +1317,7 @@ service NymVpnService {
   rpc GetTunnelState(google.protobuf.Empty) returns (TunnelState) {}
 
   /// Listen for daemon events.
-  rpc ListenToEvents(google.protobuf.Empty) returns (stream TunnelEvent) {}
+  rpc ListenToEvents(google.protobuf.Empty) returns (stream Event) {}
 
   // List the available gateways for the selected mode
   rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse) {}
