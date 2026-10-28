@@ -26,6 +26,9 @@ pub enum VpnApiClientError {
     #[error("failed to get account")]
     GetAccount(#[source] Box<HttpClientError>),
 
+    #[error("failed to delete account")]
+    DeleteAccount(#[source] Box<HttpClientError>),
+
     #[error("failed to get account summary")]
     GetAccountSummary(#[source] Box<HttpClientError>),
 

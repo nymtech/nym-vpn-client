@@ -64,6 +64,10 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		core.requireCoreSender { it.forgetAccount() }
 	}
 
+	override suspend fun deleteAccount() {
+		core.requireCoreSender { it.deleteAccount() }
+	}
+
 	override suspend fun getStoredMnemonic(): String = core.requireCoreSender { it.getStoredMnemonic() }
 
 	override suspend fun createAccount() {

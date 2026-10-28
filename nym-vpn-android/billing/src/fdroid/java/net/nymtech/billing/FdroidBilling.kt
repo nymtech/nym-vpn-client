@@ -38,4 +38,6 @@ class FdroidBilling : Billing {
 	}
 
 	override suspend fun hasActiveSubscription() = false
+
+	override suspend fun hasRenewingSubscription() = false
 }

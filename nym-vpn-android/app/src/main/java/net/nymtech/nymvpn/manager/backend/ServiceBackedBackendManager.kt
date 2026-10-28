@@ -238,6 +238,11 @@ class ServiceBackedBackendManager @Inject constructor(
 		refreshIdentityState()
 	}
 
+	override suspend fun deleteAccount() {
+		serviceConnectionManager.withApi { it.deleteAccount() }
+		refreshIdentityState()
+	}
+
 	override suspend fun isMnemonicStored(): Boolean = serviceConnectionManager.withApi { it.isMnemonicStored() }
 
 	override suspend fun getAccountLinks() = serviceConnectionManager.withApi { it.getAccountLinks(Locale.getDefault().language.lowercase()) }

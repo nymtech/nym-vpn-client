@@ -84,7 +84,8 @@ fun NavBar(
 				route.startsWith(Route.Onboarding::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||
-				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
+				route.startsWith(Route.Payment::class.qualifiedName!!) ||
+				route.startsWith(Route.DeletedAccount::class.qualifiedName!!) -> NavBarState.Empty
 
 			route.startsWith(Route.Main::class.qualifiedName!!) -> NavBarState.Main(
 				selectedProfile = selectedProfile,
@@ -205,6 +206,11 @@ fun NavBar(
 
 			route.startsWith(Route.Account::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.account_title,
+				onBack = { navController.safePopBackStack() },
+			)
+
+			route.startsWith(Route.DeleteAccount::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.delete_account_title,
 				onBack = { navController.safePopBackStack() },
 			)
 
