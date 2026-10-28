@@ -209,7 +209,7 @@ tracing-oslog = "0.3.0"
 tracing-subscriber = "0.3"
 tracing-test = "0.2.6"
 triggered = "0.1.3"
-uniffi = { version = "=0.31.1", features = ["cli"] }
+uniffi = { version = "0.32.2", features = ["cli"] }
 url = "2.5"
 vergen-gitcl = { version = "10.0.3", default-features = false }
 verifysign = "0.2.5"
@@ -301,8 +301,8 @@ nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym"
 nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 
-nym-bridges = "0.2.1"
-nym-bridges-types = "0.2.1"
+nym-bridges = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
+nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
