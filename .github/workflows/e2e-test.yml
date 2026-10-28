@@ -65,6 +65,7 @@ jobs:
       release_tag: ${{ steps.pick.outputs.release_tag }}
       binary_source: ${{ steps.pick.outputs.binary_source }}
       checkout_ref: ${{ steps.pick.outputs.checkout_ref }}
+      skip: ${{ steps.pick.outputs.skip }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7.0.1
@@ -109,6 +110,11 @@ jobs:
             TAG="$INPUT_RELEASE_TAG"
           elif [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE_CRON" = "$CRON_WEEKDAY_LATEST_BETA" ]; then
             TAG="$("${{ env.E2E_SCRIPTS_DIR }}/release-core.sh" latest-beta)"
+            if [ -z "$TAG" ]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "schedule: no beta newer than the latest stable release, skipping"
+              exit 0
+            fi
             echo "schedule: latest beta is ${TAG}"
           elif [ "$EVENT_NAME" = "schedule" ]; then
             echo "schedule: nightly zigbuild HEAD"
@@ -141,6 +147,7 @@ jobs:
   build:
     name: Build test binaries
     needs: resolve
+    if: needs.resolve.outputs.skip != 'true'
     runs-on: arc-linux-latest
     permissions:
       contents: read
@@ -551,7 +558,7 @@ jobs:
   notify-zulip:
     name: Zulip E2E status
     needs: [resolve, build, e2e-test]
-    if: always()
+    if: always() && needs.resolve.outputs.skip != 'true'
     runs-on: arc-linux-latest
     permissions:
       contents: read

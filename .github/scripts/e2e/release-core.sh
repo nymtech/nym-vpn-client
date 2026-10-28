@@ -44,12 +44,15 @@ archive_name() {
 }
 
 pick_beta() {
+  # Only betas newer than the latest stable release; an older beta is superseded.
   jq -r --arg re "$BETA_TAG_RE" '
-    [
+    ([.[] | select(.isPrerelease == false) | .publishedAt] | max // "") as $stable
+    | [
       .[]
       | select(
           (.tagName | type == "string")
           and (.tagName | test($re))
+          and (.publishedAt > $stable)
         )
     ]
     | sort_by(.publishedAt)
@@ -60,11 +63,7 @@ pick_beta() {
 
 latest_beta() {
   local tag
-  tag="$(gh release list --limit 200 --json tagName,publishedAt | pick_beta)"
-  [[ -n "$tag" ]] || {
-    echo "error: no published nym-vpn-v*-beta.* release found" >&2
-    exit 1
-  }
+  tag="$(gh release list --limit 200 --json tagName,publishedAt,isPrerelease | pick_beta)"
   echo "$tag"
 }
 
