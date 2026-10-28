@@ -12,7 +12,7 @@ use std::io::Write;
 use anyhow::{Context, Result, bail};
 use clap::{ArgAction, CommandFactory, Parser};
 use clap_complete::Shell;
-use tokio_stream::StreamExt;
+use tokio_stream::{Stream, StreamExt};
 
 use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
@@ -53,7 +53,11 @@ pub enum Command {
     },
 
     /// Reconnect the tunnel to any matching gateway
-    Reconnect,
+    Reconnect {
+        /// Blocks until the connection is re-established or failed
+        #[arg(short, long)]
+        wait: bool,
+    },
 
     /// Disconnect the tunnel
     Disconnect {
@@ -188,7 +192,7 @@ impl Command {
             Command::StartSession => commands::session::execute(rpc_client.await?).await,
             Command::ExitSession => Ok(()),
             Command::Connect { wait } => Self::connect(rpc_client.await?, wait).await,
-            Command::Reconnect => Self::reconnect(rpc_client.await?).await,
+            Command::Reconnect { wait } => Self::reconnect(rpc_client.await?, wait).await,
             Command::Disconnect { wait } => Self::disconnect(rpc_client.await?, wait).await,
             Command::Status { listen } => Self::status(rpc_client.await?, listen).await,
             Command::Info => Self::info(rpc_client.await?).await,
@@ -227,32 +231,73 @@ impl Command {
     }
 
     async fn connect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
-        rpc_client.connect_tunnel().await?;
-
-        if wait {
-            println!("Waiting until connected or failed");
-            Self::wait_until_connected(rpc_client).await
+        let stream = if wait {
+            Some(rpc_client.listen_to_events().await?)
         } else {
-            Ok(())
+            None
+        };
+
+        let accepted = rpc_client.connect_tunnel().await?;
+
+        match stream {
+            Some(stream) => {
+                let current_state = if accepted {
+                    None
+                } else {
+                    Some(rpc_client.get_tunnel_state().await?)
+                };
+
+                if let Some(state) = &current_state {
+                    println!("{state}");
+                }
+
+                if matches!(current_state, Some(TunnelState::Connected { .. })) {
+                    Ok(())
+                } else {
+                    println!("Waiting until connected or failed");
+                    Self::wait_until_connected(stream).await
+                }
+            }
+            None => Ok(()),
         }
     }
 
-    async fn reconnect(mut rpc_client: RpcClient) -> Result<()> {
-        let _accepted = rpc_client.reconnect_tunnel().await?;
-        Ok(())
+    async fn reconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
+        let stream = if wait {
+            Some(rpc_client.listen_to_events().await?)
+        } else {
+            None
+        };
+
+        if !rpc_client.reconnect_tunnel().await? {
+            bail!("Reconnect was rejected because the tunnel is not set to connect");
+        }
+
+        match stream {
+            Some(stream) => {
+                println!("{}", rpc_client.get_tunnel_state().await?);
+                println!("Waiting until reconnected or failed");
+                Self::wait_until_connected(stream).await
+            }
+            None => Ok(()),
+        }
     }
 
-    async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
-        let mut stream = rpc_client.listen_to_events().await?;
-        while let Some(new_state) = stream.next().await {
-            let TunnelEvent::NewState(new_state) = new_state? else {
+    async fn wait_until_connected(
+        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+    ) -> Result<()> {
+        loop {
+            let Some(event) = stream.next().await else {
+                bail!("Event stream ended before the tunnel connected");
+            };
+            let TunnelEvent::NewState(new_state) = event? else {
                 continue;
             };
             println!("{new_state}");
 
             match new_state {
                 TunnelState::Connected { .. } => {
-                    break;
+                    break Ok(());
                 }
                 TunnelState::Offline { reconnect } => {
                     if reconnect {
@@ -267,47 +312,53 @@ impl Command {
                 _ => {}
             }
         }
-        Ok(())
     }
 
     async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
-        if wait {
-            let mut stream = rpc_client.clone().listen_to_events().await?;
+        let stream = if wait {
+            Some(rpc_client.listen_to_events().await?)
+        } else {
+            None
+        };
 
-            println!("Waiting until disconnected");
+        rpc_client.disconnect_tunnel().await?;
 
-            let current_state = rpc_client.get_tunnel_state().await?;
-            println!("{current_state}");
-
-            rpc_client.disconnect_tunnel().await?;
-
-            if matches!(
-                current_state,
-                TunnelState::Disconnected | TunnelState::Offline { .. }
-            ) {
-                return Ok(());
-            }
-
-            while let Some(new_state) = stream.next().await {
-                let TunnelEvent::NewState(new_state) = new_state? else {
-                    continue;
-                };
-
-                println!("{new_state}");
+        match stream {
+            Some(stream) => {
+                let current_state = rpc_client.get_tunnel_state().await?;
+                println!("{current_state}");
 
                 if matches!(
-                    new_state,
+                    current_state,
                     TunnelState::Disconnected | TunnelState::Offline { .. }
                 ) {
-                    return Ok(());
-                } else if let TunnelState::Error(reason) = new_state {
-                    bail!("Tunnel entered error state: {reason:?}")
+                    Ok(())
+                } else {
+                    println!("Waiting until disconnected");
+                    Self::wait_until_disconnected(stream).await
                 }
             }
-            Ok(())
-        } else {
-            rpc_client.disconnect_tunnel().await?;
-            Ok(())
+            None => Ok(()),
+        }
+    }
+
+    async fn wait_until_disconnected(
+        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+    ) -> Result<()> {
+        loop {
+            let Some(event) = stream.next().await else {
+                bail!("Event stream ended before the tunnel disconnected");
+            };
+            let TunnelEvent::NewState(new_state) = event? else {
+                continue;
+            };
+            println!("{new_state}");
+
+            match new_state {
+                TunnelState::Disconnected | TunnelState::Offline { .. } => break Ok(()),
+                TunnelState::Error(reason) => bail!("Tunnel entered error state: {reason:?}"),
+                _ => {}
+            }
         }
     }
 
