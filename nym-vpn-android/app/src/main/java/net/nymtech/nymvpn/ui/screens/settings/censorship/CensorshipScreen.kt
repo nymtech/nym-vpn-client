@@ -30,13 +30,14 @@ import net.nymtech.nymvpn.ui.screens.settings.censorship.components.StealthApiSe
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import nym_vpn_lib_types.BridgeMode
 
 @Composable
 fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hiltViewModel()) {
 	val bridgeTransportsEnabled by viewModel.bridgeTransportsEnabled.collectAsStateWithLifecycle()
 	CensorshipScreen(
-		quicEnabled = appUiState.settings.quicEnabled,
-		onQuicEnable = { enabled -> viewModel.onQUICEnabled(enabled) },
+		bridgeMode = appUiState.settings.bridgeMode,
+		onBridgeModeSelected = { mode -> viewModel.onBridgeModeSelected(mode) },
 		bridgeTransportsEnabled = bridgeTransportsEnabled,
 		stealthModeEnabled = appUiState.vpnConfig.stealthMode,
 		onStealthModeEnable = { enabled -> viewModel.onStealthModeEnabled(enabled) },
@@ -45,8 +46,8 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 
 @Composable
 fun CensorshipScreen(
-	quicEnabled: Boolean,
-	onQuicEnable: (enabled: Boolean) -> Unit,
+	bridgeMode: BridgeMode,
+	onBridgeModeSelected: (BridgeMode) -> Unit,
 	bridgeTransportsEnabled: Boolean = false,
 	stealthModeEnabled: Boolean = false,
 	onStealthModeEnable: (Boolean) -> Unit = {},
@@ -70,8 +71,8 @@ fun CensorshipScreen(
 				.padding(top = 16.dp),
 		)
 		QuicSection(
-			quicEnabled,
-			onQuicEnable,
+			bridgeMode,
+			onBridgeModeSelected,
 			showBridgeFallback = bridgeTransportsEnabled,
 			shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp),
 			modifier = Modifier
@@ -96,6 +97,6 @@ fun CensorshipScreen(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewCensorshipScreen() {
 	NymVPNTheme(Theme.default()) {
-		CensorshipScreen(quicEnabled = true, onQuicEnable = {})
+		CensorshipScreen(bridgeMode = BridgeMode.AUTO, onBridgeModeSelected = {})
 	}
 }
