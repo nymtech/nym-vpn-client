@@ -73,7 +73,7 @@ where
         storage: S,
         connectivity_handle: C,
         bandwidth_control_command_tx: BandwidthControllerRequestSender,
-        tunnel_event_tx: broadcast::Sender<nym_vpn_lib_types::TunnelEvent>,
+        event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -87,6 +87,18 @@ where
         // Channels to communicate with the account controller
         let event_channel = AccountControllerEventSender::new();
         let command_channel = mpsc::unbounded_channel();
+
+        let mut account_controller_event_rx = event_channel.subscribe();
+        tokio::spawn(async move {
+            while let Ok(event) = account_controller_event_rx.recv().await {
+                match event {
+                    AccountControllerEvent::NewState(_) => {}
+                    AccountControllerEvent::Pairing(pairing_result) => {
+                        let _ = event_tx.send(nym_vpn_lib_types::Event::Pairing(pairing_result));
+                    }
+                }
+            }
+        });
 
         // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
@@ -125,7 +137,6 @@ where
             device_keys,
             storage_op_sender,
             event_channel,
-            tunnel_event_tx,
             cancel_token.clone(),
         );
 

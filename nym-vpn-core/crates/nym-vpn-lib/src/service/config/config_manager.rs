@@ -37,25 +37,25 @@ pub struct VpnServiceConfigManager {
 
     // Used to send `ConfigChanged` events when the config is updated.
     // It's only optional to simplify testing.
-    tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
+    event_tx: Option<broadcast::Sender<nym_vpn_lib_types::Event>>,
 }
 
 impl VpnServiceConfigManager {
     /// Returns ephemeral config manager that does not persist the config on disk.
     pub fn new_ephermeral(
         initial_config: Box<nym_vpn_lib_types::VpnServiceConfig>,
-        tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
+        event_tx: Option<broadcast::Sender<nym_vpn_lib_types::Event>>,
     ) -> Self {
         Self {
             json_config_path: None,
             config: initial_config,
-            tunnel_event_tx,
+            event_tx,
         }
     }
 
     pub async fn new(
         network_config_dir: &Path,
-        tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
+        event_tx: Option<broadcast::Sender<nym_vpn_lib_types::Event>>,
     ) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
@@ -75,7 +75,7 @@ impl VpnServiceConfigManager {
         let config_manager = Self {
             json_config_path: Some(json_config_path),
             config: Box::new(config),
-            tunnel_event_tx,
+            event_tx,
         };
 
         // If we didn't read the latest version then write the config straight back to file
@@ -393,10 +393,10 @@ impl VpnServiceConfigManager {
         let _ = self.write_to_file().await;
 
         // Notify all clients that the config has changed
-        if let Some(tx) = self.tunnel_event_tx.as_ref() {
-            match tx.send(nym_vpn_lib_types::TunnelEvent::ConfigChanged(
-                self.config.clone(),
-            )) {
+        if let Some(tx) = self.event_tx.as_ref() {
+            match tx.send(nym_vpn_lib_types::Event::Tunnel(Box::new(
+                nym_vpn_lib_types::TunnelEvent::ConfigChanged(self.config.clone()),
+            ))) {
                 Ok(recv_count) => {
                     tracing::info!("Sent config changed event to {recv_count} receivers");
                 }

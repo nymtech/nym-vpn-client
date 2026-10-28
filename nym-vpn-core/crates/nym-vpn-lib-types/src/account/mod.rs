@@ -122,6 +122,9 @@ pub enum AccountCommandError {
     #[error("pairing process hasn't produced a shared secret yet")]
     NoPairingSharedSecret,
 
+    #[error("shared secret could not be derived for pairing process: {0}")]
+    PairingDerivingSharedSecret(String),
+
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
 }

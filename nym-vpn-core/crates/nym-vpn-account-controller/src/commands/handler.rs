@@ -236,7 +236,7 @@ pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
             .qr_pairing_handler
             .pair_account(
                 account,
-                shared_state.tunnel_event_tx.clone(),
+                shared_state.event_sender.clone(),
                 shared_state.cancel_token.child_token(),
             )
             .await
@@ -256,7 +256,7 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
             .qr_pairing_handler
             .scanned_key(
                 remote_qr_pub_key_str,
-                shared_state.tunnel_event_tx.clone(),
+                shared_state.event_sender.clone(),
                 shared_state.cancel_token.child_token(),
             )
             .await

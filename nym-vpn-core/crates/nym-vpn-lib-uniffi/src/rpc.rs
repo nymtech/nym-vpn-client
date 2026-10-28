@@ -12,11 +12,11 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, EntryPoint,
-    ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams,
+    Event, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams,
     HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings, Socks5Status, SplitApp,
     SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Clone, uniffi::Object)]
@@ -212,7 +212,7 @@ impl RpcClient {
 
     pub async fn listen_to_events(
         &self,
-        observer: Arc<dyn TunnelEventObserver>,
+        observer: Arc<dyn EventObserver>,
     ) -> Result<StreamObserver> {
         let cancel_token = CancellationToken::new();
         let child_token = cancel_token.child_token();
@@ -226,7 +226,7 @@ impl RpcClient {
                     .flatten()
                 {
                     Some(Ok(evt)) => {
-                        observer.on_tunnel_event(evt);
+                        observer.on_event(evt);
                     }
                     Some(Err(err)) => {
                         tracing::error!("Error receiving next event: {err}");
@@ -596,7 +596,7 @@ impl Drop for StreamObserver {
 }
 
 #[uniffi::export(with_foreign)]
-pub trait TunnelEventObserver: Send + Sync {
-    fn on_tunnel_event(&self, event: TunnelEvent);
+pub trait EventObserver: Send + Sync {
+    fn on_event(&self, event: Event);
     fn on_close(&self);
 }

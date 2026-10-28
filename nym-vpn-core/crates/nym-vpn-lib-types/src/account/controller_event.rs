@@ -3,17 +3,21 @@
 
 use std::fmt;
 
+use crate::PairingResult;
+
 use super::controller_state::AccountControllerState;
 
 #[derive(Debug, Clone)]
 pub enum AccountControllerEvent {
     NewState(AccountControllerState),
+    Pairing(PairingResult),
 }
 
 impl fmt::Display for AccountControllerEvent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NewState(new_state) => new_state.fmt(f),
+            Self::Pairing(res) => res.fmt(f),
         }
     }
 }
