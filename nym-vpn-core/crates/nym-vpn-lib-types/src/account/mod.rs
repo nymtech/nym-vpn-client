@@ -113,6 +113,9 @@ pub enum AccountCommandError {
     #[error("invalid secret: {0}")]
     InvalidSecret(String),
 
+    #[error("failed to create ecash keypair: {0}")]
+    CreateEcashKeyPair(String),
+
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
 }

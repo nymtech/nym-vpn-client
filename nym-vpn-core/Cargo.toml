@@ -269,42 +269,42 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow", default-features = false }
-# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-store-cipher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq" , default-features = false }
+# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-store-cipher = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "am/add-keypair-user-eq"  }
 
 nym-bridges = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
 nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }

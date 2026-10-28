@@ -9,7 +9,10 @@ use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::{device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb};
+use nym_vpn_store::{
+    device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb,
+    secure_store_migration::SecureStoreMigrationError::StoreDeviceState,
+};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -124,14 +127,22 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             return Ok(());
         }
 
-        let (Some(account), Some(device)) = (self.vpn_api_account.clone(), self.device.clone())
-        else {
+        let Some(account) = self.vpn_api_account.clone() else {
+            return Err(AccountCommandError::NoAccountStored);
+        };
+
+        let Some(device) = self.device.clone() else {
+            return Err(AccountCommandError::NoDeviceStored);
+        };
+
+        let StoredDeviceState::LoggedIn { ecash_keypair, .. } = &self.device_state else {
             return Err(AccountCommandError::NoAccountStored);
         };
 
         let fetcher = match VpnApiCredentialFetcher::new(
             self.vpn_api_client.clone(),
             account,
+            ecash_keypair.clone(),
             device,
             self.config.data_dir.clone(),
             self.cancel_token.child_token(),

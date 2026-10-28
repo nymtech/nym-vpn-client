@@ -182,6 +182,7 @@ mod tests {
                 pub_key: "".to_owned(),
                 signature_base64: "".to_owned(),
             },
+            ecash_keypair: KeyPairUser::new(),
             summary: None,
         }
     }

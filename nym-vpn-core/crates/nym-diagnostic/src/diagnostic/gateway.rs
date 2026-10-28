@@ -225,7 +225,8 @@ impl GatewayDiagnostic {
                 .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
         );
 
-        let dh_keypair = x25519::DHKeyPair::new(&mut rand::rng());
+        let dh_keypair = x25519::DHKeyPair::new(&mut rand::rng())
+            .map_err(|err| anyhow::format_err!("failed to generate key pair: {err:?}"))?;
         let mut lp_client = LpGatewayClient::<TcpStream>::new_with_default_config(
             Arc::new(dh_keypair),
             gateway_lp_peer.clone(),

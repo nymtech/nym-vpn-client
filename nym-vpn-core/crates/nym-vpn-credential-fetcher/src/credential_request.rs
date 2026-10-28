@@ -3,7 +3,6 @@
 
 use std::{
     collections::HashMap,
-    sync::Arc,
     time::{Duration, Instant},
 };
 
@@ -21,7 +20,7 @@ use nym_upgrade_mode_check::try_decode_upgrade_mode_jwt_claims;
 use nym_vpn_api_client::{
     VpnApiClient,
     response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
-    types::{Device, VpnAccount},
+    types::Device,
 };
 use time::{Date, OffsetDateTime};
 use tracing::{info, warn};

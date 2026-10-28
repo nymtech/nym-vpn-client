@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::Path, sync::Arc};
+use std::path::Path;
 
 use async_trait::async_trait;
 use nym_bandwidth_controller::{
@@ -12,10 +12,7 @@ use nym_credentials::{
 };
 use nym_credentials_interface::{KeyPairUser, TicketType};
 use nym_validator_client::nym_api::EpochId;
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{Device, VpnAccount},
-};
+use nym_vpn_api_client::{VpnApiClient, types::Device};
 use time::Date;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;

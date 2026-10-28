@@ -4,13 +4,14 @@
 use std::error::Error;
 
 use bip39::Mnemonic;
+use nym_credentials_interface::KeyPairUser;
 use nym_validator_client::{
     DirectSecp256k1HdWallet,
     signing::{direct_wallet::DirectSecp256k1HdWalletError, signer::OfflineSigner},
 };
 use nym_vpn_lib_types::{StoredAccountMode, VpnAccountSummary};
 use serde::{Deserialize, Serialize};
-use zeroize::{ZeroizeOnDrop, Zeroizing};
+use zeroize::ZeroizeOnDrop;
 
 pub mod ephemeral;
 pub mod on_disk;
@@ -27,7 +28,7 @@ pub enum DeviceAccountError {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StoredAccountIdentity {
     /// Cosmos account identifier of the first derived account.
-    pub id: String, // nym_validator_client::nyxd::AccountId
+    pub id: String, // nym_validator_client::nyxd::AccountId,
 
     /// Base58-encoded public (secp256k1) key of the first derived account.
     pub pub_key: String,
@@ -100,7 +101,7 @@ pub enum StoredDeviceState {
     /// Device is logged in
     LoggedIn {
         account_identity: StoredAccountIdentity,
-        ecash_seed: EcashSeed,
+        ecash_keypair: KeyPairUser,
         summary: Option<VpnAccountSummary>,
     },
 }
