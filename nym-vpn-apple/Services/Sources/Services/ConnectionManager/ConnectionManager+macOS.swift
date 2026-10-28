@@ -112,7 +112,7 @@ extension ConnectionManager {
         appSettings.isLanBypassEnabled = daemonConfig.allowLan
         appSettings.isIPv6TrafficEnabled = !daemonConfig.disableIpv6
         appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
-        appSettings.isQuicEnabled = daemonConfig.enableBridges
+        appSettings.bridgeMode = daemonConfig.bridgeMode
         appSettings.isStealthApiEnabled = daemonConfig.stealthMode
         appSettings.customDns = daemonConfig.dns ?? []
         appSettings.isCustomDnsEnabled = !(daemonConfig.dns?.isEmpty ?? true)

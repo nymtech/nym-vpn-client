@@ -20,7 +20,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
-    public let isQuicEnabled: Bool
+    public let bridgeMode: BridgeModeSetting
     public let isStealthApiEnabled: Bool
     public let isAdBlockingEnabled: Bool
     public let isErrorReportingEnabled: Bool
@@ -44,7 +44,7 @@ public struct MixnetConfig: Codable, Equatable {
         mixnetTuning: MixnetTuningConfig,
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
-        isQuicEnabled: Bool,
+        bridgeMode: BridgeModeSetting,
         isStealthApiEnabled: Bool,
         isLanBypassEnabled: Bool,
         isAdBlockingEnabled: Bool,
@@ -62,7 +62,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.mixnetTuning = mixnetTuning
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
-        self.isQuicEnabled = isQuicEnabled
+        self.bridgeMode = bridgeMode
         self.isStealthApiEnabled = isStealthApiEnabled
         self.isLanBypassEnabled = isLanBypassEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
@@ -85,7 +85,7 @@ extension MixnetConfig {
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
-            bridgeMode: isQuicEnabled ? .on : .off,
+            bridgeMode: bridgeMode.bridgeMode,
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,
@@ -118,6 +118,15 @@ extension MixnetConfig {
     public static func from(jsonString: String) -> MixnetConfig? {
         let decoder = JSONDecoder()
         guard let jsonData = jsonString.data(using: .utf8) else { return nil }
+        // Stored before the bridge mode existed: carry the old QUIC flag over so the tunnel can still start.
+        if var json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+           json["bridgeMode"] == nil,
+           let legacyQuic = json["isQuicEnabled"] as? Bool {
+            json["bridgeMode"] = (legacyQuic ? BridgeModeSetting.on : BridgeModeSetting.off).rawValue
+            if let migrated = try? JSONSerialization.data(withJSONObject: json) {
+                return try? decoder.decode(MixnetConfig.self, from: migrated)
+            }
+        }
         return try? decoder.decode(MixnetConfig.self, from: jsonData)
     }
 }

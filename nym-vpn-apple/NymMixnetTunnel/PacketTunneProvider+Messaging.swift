@@ -36,8 +36,8 @@ extension PacketTunnelProvider {
             await runCommand { try await self.commandSender?.setEnableAdBlocking(enableAdBlocking: enabled) }
             return nil
 
-        case let .setEnableBridges(enabled):
-            await runCommand { try await self.commandSender?.setBridgeMode(bridgeMode: enabled ? .on : .off) }
+        case let .setBridgeMode(mode):
+            await runCommand { try await self.commandSender?.setBridgeMode(bridgeMode: mode.bridgeMode) }
             return nil
 
         case let .setEntryPoint(entry):

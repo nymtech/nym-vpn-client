@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
+import ConnectionTypes
 import Constants
 import FeatureFlagsManager
 import UIComponents
@@ -61,32 +62,47 @@ private extension CensorshipView {
             .padding(.bottom, 12)
     }
 
-    // MARK: - QUIC -
+    // MARK: - Bridge mode -
     func quicSection() -> some View {
-        let quicBinding = Binding<Bool>(
-            get: { appSettings.isQuicEnabled },
-            set: { _ in
-                connectionManager.setBridges(!appSettings.isQuicEnabled)
-            }
+        let modeBinding = Binding<BridgeModeSetting>(
+            get: { appSettings.bridgeMode },
+            set: { connectionManager.setBridgeMode($0) }
         )
 
-        return SettingsListItem(
+        return SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: quicBinding
-                ),
+                accessory: .empty,
                 title: "censorship.quic.title".localizedString,
-                multilineText: quicMultilineText(),
                 position: .init(isFirst: true, isLast: true),
                 action: {}
-            )
+            ),
+            customContent: {
+                VStack(alignment: .leading, spacing: 12) {
+                    Picker("", selection: modeBinding) {
+                        ForEach(BridgeModeSetting.allCases, id: \.self) {
+                            Text($0.title)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    if let text = quicMultilineText() {
+                        Text(text)
+                            .nymTextStyle(.bodySmall)
+                            .foregroundStyle(Color.Nym.textSecondary)
+                            .tint(Color.Nym.textSecondary)
+                    }
+                }
+                .padding(.horizontal, NymSpacing.large)
+                .padding(.bottom, 18)
+            },
+            combineAccessibilityChildren: false
         )
     }
 
     func quicMultilineText() -> AttributedString? {
-        let first = "censorship.quic.subtitle1".localizedString
-        var second = "censorship.quic.subtitle2".localizedString
-        if featureFlagsManager.isBridgeTransportsEnabled {
+        let first = "censorship.bridge.\(appSettings.bridgeMode.rawValue)".localizedString
+        var second = "censorship.bridge.reconnect".localizedString
+        if featureFlagsManager.isBridgeTransportsEnabled && appSettings.bridgeMode == .on {
             second += "\n\n" + "censorship.quic.fallback".localizedString
         }
         let link = Constants.quicURL.rawValue
@@ -146,6 +162,19 @@ private extension CensorshipView {
             text[range].foregroundColor = Color.Nym.textPrimary
         }
         return text
+    }
+}
+
+private extension BridgeModeSetting {
+    var title: String {
+        switch self {
+        case .off:
+            "general.off".localizedString
+        case .auto:
+            "censorship.bridge.auto.label".localizedString
+        case .on:
+            "general.on".localizedString
+        }
     }
 }
 

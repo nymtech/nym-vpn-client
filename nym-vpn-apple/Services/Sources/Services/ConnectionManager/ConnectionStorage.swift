@@ -84,7 +84,7 @@ extension ConnectionStorage {
             allowLan: false,
             disableIpv6: false,
             enableTwoHop: true,
-            enableBridges: false,
+            bridgeMode: .off,
             enableAdBlocking: false,
             netstack: false,
             residentialExit: false,
