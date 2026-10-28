@@ -60,26 +60,59 @@ where
     cancel_token: CancellationToken,
 }
 
+pub struct AccountControllerClients {
+    nym_vpn_api_client: VpnApiClient,
+    nyxd_client: NyxdClient,
+}
+
+impl AccountControllerClients {
+    pub fn new(nym_vpn_api_client: VpnApiClient, nyxd_client: NyxdClient) -> Self {
+        Self {
+            nym_vpn_api_client,
+            nyxd_client,
+        }
+    }
+}
+
+pub struct AccountControllerChannels {
+    bandwidth_control_command_tx: BandwidthControllerRequestSender,
+    event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+}
+
+impl AccountControllerChannels {
+    pub fn new(
+        bandwidth_control_command_tx: BandwidthControllerRequestSender,
+        event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+    ) -> Self {
+        Self {
+            bandwidth_control_command_tx,
+            event_tx,
+        }
+    }
+}
+
 impl<C, S> AccountController<C, S>
 where
     S: VpnStorage + Send + Sync + 'static,
     C: ConnectivityMonitor,
 {
-    #[allow(clippy::too_many_arguments)]
     pub async fn new(
-        nym_vpn_api_client: VpnApiClient,
-        nyxd_client: NyxdClient,
+        clients: AccountControllerClients,
         config: AccountControllerConfig,
         storage: S,
         connectivity_handle: C,
-        bandwidth_control_command_tx: BandwidthControllerRequestSender,
-        event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+        channels: AccountControllerChannels,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
             "Initializing account controller: data_dir: {}",
             config.data_dir.display(),
         );
+
+        let AccountControllerChannels {
+            bandwidth_control_command_tx,
+            event_tx,
+        } = channels;
 
         // Channels for the account storage
         let (storage_op_sender, storage_op_receiver) = mpsc::unbounded_channel();
@@ -130,8 +163,8 @@ where
             bandwidth_control_command_tx,
             config,
             wireguard_keys_storage,
-            nym_vpn_api_client,
-            nyxd_client,
+            clients.nym_vpn_api_client,
+            clients.nyxd_client,
             vpn_api_account,
             cached_account_summary,
             device_keys,
