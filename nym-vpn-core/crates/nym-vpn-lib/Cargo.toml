@@ -78,8 +78,6 @@ nym-file-updater.workspace = true
 nym-favorites.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
-quinn.workspace = true
-quinn-proto.workspace = true
 rand.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls", "stream"] }
 rustls = { workspace = true, default-features = false, features = [
