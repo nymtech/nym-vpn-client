@@ -47,7 +47,7 @@ build-universal: mac-binaries
 	$(MAKE) -C $(CORE_DIR) -f macOS.mk lib RELEASE=$(RELEASE) ARCH=$(ARCH)
 	$(MAKE) -C $(CORE_DIR) -f iOS.mk build RELEASE=$(RELEASE)
 	$(CORE_DIR)/scripts/build-swift-package.sh --profile $(BUILD_PROFILE) \
-		--platform ios --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim x86_64-apple-ios" \
+		--platform ios --slice "aarch64-apple-ios" --slice "aarch64-apple-ios-sim" \
 		--platform macos --slice "$(MACOS_TRIPLETS)"
 	rm -rf "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
 	cp -R "$(NYM_VPN_LIB_SRC)" "$(NYM_VPN_LIB_UNIVERSAL_DEST)"
