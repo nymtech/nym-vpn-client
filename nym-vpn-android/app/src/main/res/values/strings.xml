@@ -668,6 +668,9 @@
 	<string name="profiles_description">Profiles are connection templates you can use to connect quickly with the best type of server configuration for you.</string>
 	<string name="profiles_learn_more_text">Learn more about profiles here</string>
 	<string name="profiles_learn_more_link">https://nym.com/features/profiles</string>
+	<string name="node_location_excluding_country">Excluding your country</string>
+	<string name="node_location_including_country">Including your country</string>
+	<string name="node_location_random">Global Nym network</string>
 	<!-- Delete Account -->
 	<string name="delete_account_title">Delete your account</string>
 	<string name="delete_account_headline">This closes your NymVPN account. You can\'t undo it.</string>
