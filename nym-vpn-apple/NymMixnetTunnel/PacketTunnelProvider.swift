@@ -66,9 +66,11 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             await tunnelActor.clearError()
         }
         await vpnService?.shutdownAndWait()
+        logger.info("Stop tunnel: core service shut down")
         await tunnelActor.setTunnelProvider(nil)
         vpnService = nil
         commandSender = nil
+        logger.info("Stop tunnel: done")
     }
 }
 
