@@ -108,8 +108,12 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: "invalid pairing public key: \(details)")
         case .PairingNotStarted:
             self = .accountControllerError(details: "pairing process not started")
+        case .PairingSessionIdMismatch:
+            self = .accountControllerError(details: "pairing operation for a different session")
         case .NoPairingSharedSecret:
             self = .accountControllerError(details: "pairing process has no shared secret yet")
+        case let .PairingDerivingSharedSecret(details: details):
+            self = .accountControllerError(details: "failed to derive pairing shared secret: \(details)")
         case let .InitLogs(details: details):
             self = .initLogs(details: details)
         case let .DeeplinkError(details: details):

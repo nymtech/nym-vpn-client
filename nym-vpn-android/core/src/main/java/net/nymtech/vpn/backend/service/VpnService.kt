@@ -34,9 +34,9 @@ import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.notifications.StopVpnReceiver
 import nym_vpn_lib.AndroidConnectivityMonitor
 import nym_vpn_lib.AndroidTunProvider
+import nym_vpn_lib.StatusListener
 import nym_vpn_lib.TunnelNetworkSettings
-import nym_vpn_lib.TunnelStatusListener
-import nym_vpn_lib_types.TunnelEvent
+import nym_vpn_lib_types.Event
 import timber.log.Timber
 
 /**
@@ -45,7 +45,7 @@ import timber.log.Timber
 class VpnService :
 	LifecycleVpnService(),
 	AndroidTunProvider,
-	TunnelStatusListener,
+	StatusListener,
 	AndroidConnectivityMonitor {
 
 	companion object {
@@ -225,8 +225,8 @@ class VpnService :
 
 	override fun configureTunnel(config: TunnelNetworkSettings): Int = tun.configureTunnel(config)
 
-	override fun onEvent(event: TunnelEvent) {
-		core.onTunnelEvent(event)
+	override fun onEvent(event: Event) {
+		core.onEvent(event)
 	}
 
 	override fun addConnectivityObserver(observer: nym_vpn_lib.ConnectivityObserver) {

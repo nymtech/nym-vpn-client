@@ -1,18 +1,18 @@
 import NymVPNLib
 import Combine
 
-final class RPCTunnelObserver: ObservableObject, TunnelEventObserver, @unchecked Sendable {
-    let stream: AsyncStream<TunnelEvent>
-    let cont: AsyncStream<TunnelEvent>.Continuation
+final class RPCEventObserver: ObservableObject, EventObserver, @unchecked Sendable {
+    let stream: AsyncStream<Event>
+    let cont: AsyncStream<Event>.Continuation
 
     init() {
-        let (stream, continuation) = AsyncStream<TunnelEvent>.makeStream()
+        let (stream, continuation) = AsyncStream<Event>.makeStream()
 
         self.stream = stream
         self.cont = continuation
     }
 
-    func onTunnelEvent(event: TunnelEvent) {
+    func onEvent(event: Event) {
         cont.yield(event)
     }
 
