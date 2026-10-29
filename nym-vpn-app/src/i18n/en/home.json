@@ -15,6 +15,7 @@
   "first-hop": "Entry",
   "nym-entry-server": "Entry server",
   "nym-exit-server": "Exit server",
+  "connected-directly": "Connected directly",
   "connection-time": "Connection time",
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",

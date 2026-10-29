@@ -80,6 +80,7 @@ export function NodeRow({ type }: NodeRowProps) {
     wg,
     mxEntry,
     mxExit,
+    bridgeMode,
   } = useAppStore(
     useShallow((s) => ({
       state: s.state,
@@ -93,6 +94,7 @@ export function NodeRow({ type }: NodeRowProps) {
       wg: s.wg,
       mxEntry: s.mxEntry,
       mxExit: s.mxExit,
+      bridgeMode: s.bridgeMode,
     })),
   );
 
@@ -140,6 +142,14 @@ export function NodeRow({ type }: NodeRowProps) {
     type === 'entry' && tunnel && isWireguardData(tunnel.data)
       ? tunnel.data.entryBridgeAddr?.transport
       : null;
+
+  const connectedDirectly =
+    type === 'entry' &&
+    state === 'connected' &&
+    bridgeMode === 'auto' &&
+    tunnel &&
+    isWireguardData(tunnel.data) &&
+    !tunnel.data.entryBridgeAddr;
 
   const gwFlags = useCallback(
     (gw: Gateway | null) => ({
@@ -400,6 +410,11 @@ export function NodeRow({ type }: NodeRowProps) {
               )}
             </div>
             <div className="flex flex-row items-center justify-center gap-3">
+              {connectedDirectly && (
+                <p className="text-text-secondary text-xs select-none">
+                  {t('connected-directly')}
+                </p>
+              )}
               {nodeDetails.showQuic && (
                 <div>
                   <QuicTag label={bridgeTransport?.toUpperCase()} />

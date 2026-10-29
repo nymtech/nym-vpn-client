@@ -182,7 +182,7 @@
       "label": "Enhanced connection",
       "warning": "Changes will apply after reconnect",
       "content": "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).",
-      "content-transports": "Improves connections on restricted networks by wrapping WireGuard in a bridge. Tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.",
+      "content-transports": "Improves connections on restricted networks by wrapping WireGuard in a bridge. When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.",
       "options": {
         "off": {
           "label": "Off",
