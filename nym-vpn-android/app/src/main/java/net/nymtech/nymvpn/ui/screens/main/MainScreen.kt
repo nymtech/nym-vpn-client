@@ -482,6 +482,7 @@ private fun MainScreenContent(
 				connectionTime = connectionTime,
 				bridgeTransport = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)?.v1?.entryBridgeAddr?.transport
 					.takeIf { connectionState == ConnectionState.Connected },
+				bridgeMode = appUiState.settings.bridgeMode,
 			)
 		}
 
