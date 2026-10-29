@@ -36,12 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
@@ -140,8 +138,7 @@ private val bridgeModes = listOf(BridgeMode.OFF, BridgeMode.AUTO, BridgeMode.ON)
 
 @Composable
 private fun BridgeModeSelector(bridgeMode: BridgeMode, onBridgeModeSelected: (BridgeMode) -> Unit, modifier: Modifier = Modifier) {
-	val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-	val index = bridgeModes.indexOf(bridgeMode).let { if (isRtl) bridgeModes.lastIndex - it else it }
+	val index = bridgeModes.indexOf(bridgeMode)
 	BoxWithConstraints(
 		modifier = modifier
 			.fillMaxWidth()
