@@ -139,7 +139,7 @@
 //!
 //! ```swift
 //! // Define event handler
-//! class TunnelEventHandler: NSObject, TunnelStatusListener {
+//! class TunnelEventHandler: NSObject, StatusListener {
 //!     init() {}
 //!
 //!     func onEvent(event: TunnelEvent) {
@@ -152,7 +152,7 @@
 //! }
 //!
 //! let environment = try! await NymEnvironment("/path/to/config/dir", "mainnet");
-//! let tunnelEventHandler = TunnelStatusListener()
+//! let tunnelEventHandler = StatusListener()
 //!
 //! // Create VPN service and retain it throughout the application lifecycle
 //! let vpnService = NymVpnService.newService(

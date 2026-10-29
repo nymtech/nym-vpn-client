@@ -32,6 +32,7 @@ import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
 import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.Event
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.MixnetEvent
@@ -214,7 +215,14 @@ class VpnCoreController(
 		}
 	}
 
-	fun onTunnelEvent(event: TunnelEvent) {
+	fun onEvent(event: Event) {
+		when (event) {
+			is Event.Tunnel -> onTunnelEvent(event.v1)
+			is Event.Pairing -> events.tryEmit(Log("Event pairing"))
+		}
+	}
+
+	private fun onTunnelEvent(event: TunnelEvent) {
 		when (event) {
 			is TunnelEvent.NewState -> handleTunnelState(event)
 			is TunnelEvent.MixnetState -> handleMixnetEvent(event)
@@ -227,7 +235,6 @@ class VpnCoreController(
 			}
 			is TunnelEvent.DiagnosticsSuggested -> events.tryEmit(Log("TunnelEvent diagnostics_suggested"))
 			is TunnelEvent.ConflictDetected -> events.tryEmit(Log("TunnelEvent conflict_detected: ${event.v1}"))
-			is TunnelEvent.Pairing -> events.tryEmit(Log("TunnelEvent pairing"))
 		}
 	}
 
