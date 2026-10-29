@@ -349,15 +349,14 @@ export function NodeRow({ type }: NodeRowProps) {
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
-              {placeholderProfile ? (
+              {placeholderProfile && (
                 <ProfileIcon
                   profile={placeholderProfile}
                   size="sm"
                   className="text-text-secondary"
                 />
-              ) : (
-                <ScoreIndicator score={nodeDetails.score} />
               )}
+              {gateway && <ScoreIndicator score={nodeDetails.score} />}
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode && (
                   <motion.div

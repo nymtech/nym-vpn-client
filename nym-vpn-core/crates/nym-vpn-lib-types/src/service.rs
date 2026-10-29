@@ -427,6 +427,7 @@ impl ContinuousTrafficSendingRate {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum BridgeMode {
     /// Plain WireGuard first, then bridges when an attempt fails.
     Auto,

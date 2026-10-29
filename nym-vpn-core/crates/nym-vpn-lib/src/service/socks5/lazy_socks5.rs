@@ -5,7 +5,7 @@ use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::{GatewayCacheHandle, ScoreValue};
 use nym_network_defaults::v2::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
-use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
+use nym_vpn_lib_types::{TunnelConnectionData, TunnelState, TunnelType};
 use rand::seq::IndexedRandom;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
@@ -16,7 +16,7 @@ use std::{
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
     net::{TcpListener, TcpStream},
-    sync::{Mutex, RwLock},
+    sync::{Mutex, RwLock, watch},
     time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
@@ -73,7 +73,7 @@ pub struct LazySocks5 {
     /// Configuration
     config: LazySocks5Config,
     /// Shared tunnel state
-    tunnel_state_shared: Arc<RwLock<TunnelState>>,
+    tunnel_state: watch::Receiver<TunnelState>,
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
     /// Active connection counter
@@ -94,7 +94,7 @@ impl LazySocks5 {
     /// Create a new lazy SOCKS5 wrapper
     pub fn new(
         config: LazySocks5Config,
-        tunnel_state_shared: Arc<RwLock<TunnelState>>,
+        tunnel_state: watch::Receiver<TunnelState>,
         cancel_token: CancellationToken,
     ) -> Result<Self, LazySocks5Error> {
         info!(
@@ -105,7 +105,7 @@ impl LazySocks5 {
 
         Ok(Self {
             config,
-            tunnel_state_shared,
+            tunnel_state,
             cancel_token,
             active_connections: Arc::new(RwLock::new(0)),
             last_connection_closed: Arc::new(RwLock::new(None)),
@@ -172,7 +172,7 @@ impl LazySocks5 {
                             // 2. If the tunnel is wireguard and connected -> create new tunnel
                             // 3. If the tunnel is disconnected or error'd -> create new tunnel
                             // 4. If the tunnel is connecting, disconnecting or offline -> reject connection
-                            let tunnel_state = self.tunnel_state_shared.read().await.clone();
+                            let tunnel_state = self.tunnel_state.borrow().clone();
                             let use_existing_tunnel =  match &tunnel_state {
                                 TunnelState::Connected { connection_data } => {
                                     match &connection_data.tunnel {
@@ -717,7 +717,7 @@ impl LazySocks5 {
         // Build the mixnet client with shared credentials but different identity
         // When dVPN is connected (WireGuard mode), use VPN's entry gateway for firewall compatibility.
         // The entry gateway is fixed, but we can route to any Network Requester (exit) for privacy.
-        let tunnel_state = self.tunnel_state_shared.read().await.clone();
+        let tunnel_state = self.tunnel_state.borrow().clone();
 
         // Always use VPN's entry gateway if VPN is connected (for firewall compatibility)
         // The Network Requester (exit) is independent and can be any available Network Requester
@@ -750,7 +750,7 @@ impl LazySocks5 {
                             let is_wireguard_mode = matches!(
                                 tunnel_state,
                                 TunnelState::Connected { ref connection_data }
-                                if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                                if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
                             );
 
                             if is_wireguard_mode {
@@ -968,27 +968,24 @@ impl LazySocks5 {
 
     /// Monitor tunnel state and manage mixnet backend lifecycle
     async fn monitor_tunnel_state(&self) {
+        let mut tunnel_state = self.tunnel_state.clone();
         let mut last_vpn_state: Option<TunnelState> = None;
-        let mut interval = tokio::time::interval(Duration::from_secs(2));
-        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
         loop {
-            interval.tick().await;
-
-            let current_state = self.tunnel_state_shared.read().await.clone();
+            let current_state = tunnel_state.borrow_and_update().clone();
 
             // Check if dVPN is currently available (Mixnet mode)
             let dvpn_available = matches!(
                 current_state,
                 TunnelState::Connected { ref connection_data }
-                if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
+                if connection_data.tunnel.tunnel_type() == TunnelType::Mixnet
             );
 
             // Check if VPN is connected in WireGuard mode
             let vpn_connected_wireguard = matches!(
                 current_state,
                 TunnelState::Connected { ref connection_data }
-                if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
             );
 
             // React to state transitions
@@ -998,7 +995,7 @@ impl LazySocks5 {
                     matches!(
                         s,
                         TunnelState::Connected { connection_data }
-                        if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
+                        if connection_data.tunnel.tunnel_type() == TunnelType::Mixnet
                     )
                 })
                 .unwrap_or(false);
@@ -1009,7 +1006,7 @@ impl LazySocks5 {
                     matches!(
                         s,
                         TunnelState::Connected { connection_data }
-                        if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                        if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
                     )
                 })
                 .unwrap_or(false);
@@ -1042,9 +1039,13 @@ impl LazySocks5 {
 
             last_vpn_state = Some(current_state);
 
-            // Check for cancellation
-            if self.cancel_token.is_cancelled() {
-                break;
+            tokio::select! {
+                _ = self.cancel_token.cancelled() => break,
+                result = tunnel_state.changed() => {
+                    if result.is_err() {
+                        break;
+                    }
+                }
             }
         }
     }
@@ -1069,11 +1070,11 @@ impl LazySocks5 {
             // Only rotate if mixnet is running and dVPN (WireGuard) is connected
             let should_rotate = {
                 let is_running = self.is_mixnet_running().await;
-                let tunnel_state = self.tunnel_state_shared.read().await.clone();
+                let tunnel_state = self.tunnel_state.borrow().clone();
                 let dvpn_wireguard_active = matches!(
                     tunnel_state,
                     TunnelState::Connected { ref connection_data }
-                    if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                    if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
                 );
 
                 if !is_running || !dvpn_wireguard_active {
@@ -1341,7 +1342,7 @@ mod tests {
     #[tokio::test]
     async fn test_lazy_socks5_creation() {
         let config = create_test_config();
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config.clone(), tunnel_state, cancel_token);
@@ -1353,7 +1354,7 @@ mod tests {
         let mut config = create_test_config();
         config.network_requester_rotation_interval = Some(Duration::from_secs(25 * 60));
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1409,7 +1410,7 @@ mod tests {
     #[tokio::test]
     async fn test_mixnet_client_initially_none() {
         let config = create_test_config();
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1424,7 +1425,7 @@ mod tests {
     #[tokio::test]
     async fn test_active_connections_starts_at_zero() {
         let config = create_test_config();
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1436,7 +1437,7 @@ mod tests {
     #[tokio::test]
     async fn test_is_mixnet_running_initially_false() {
         let config = create_test_config();
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1448,7 +1449,7 @@ mod tests {
     #[tokio::test]
     async fn test_rotation_skipped_with_active_connections() {
         let config = create_test_config();
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1496,7 +1497,7 @@ mod tests {
         );
 
         // All should be creatable (no firewall restrictions)
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         assert!(
@@ -1522,7 +1523,7 @@ mod tests {
         config.network_requester_address = Some("initial.nr@gateway".to_string());
         config.network_requester_rotation_interval = Some(Duration::from_secs(1));
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1541,7 +1542,7 @@ mod tests {
         let rotation_interval = Duration::from_millis(100); // 100ms for testing
         config.network_requester_rotation_interval = Some(rotation_interval);
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1569,7 +1570,7 @@ mod tests {
     async fn test_concurrent_connection_safety() {
         // Test that rotation check is thread-safe with concurrent connection updates
         let config = create_test_config();
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = Arc::new(LazySocks5::new(config, tunnel_state, cancel_token).unwrap());
@@ -1615,7 +1616,7 @@ mod tests {
         config.network_requester_address = None; // Request random
         config.gateway_cache_handle = None; // But no cache handle provided
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
@@ -1648,7 +1649,7 @@ mod tests {
         config.gateway_cache_handle = None; // ❌ Missing required dependency
 
         // This should create successfully (validation happens at runtime)
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
         assert!(LazySocks5::new(config, tunnel_state, cancel_token).is_ok());
 
@@ -1658,7 +1659,7 @@ mod tests {
         config.network_requester_rotation_interval = None;
         config.gateway_cache_handle = None; // ✅ Not needed for fixed mode
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
         assert!(
             LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
@@ -1671,7 +1672,7 @@ mod tests {
         // Test very short interval (edge case)
         let mut config = create_test_config();
         config.network_requester_rotation_interval = Some(Duration::from_millis(1));
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
         assert!(
             LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
@@ -1681,7 +1682,7 @@ mod tests {
         // Test very long interval (edge case)
         let mut config = create_test_config();
         config.network_requester_rotation_interval = Some(Duration::from_secs(86400)); // 24h
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
         let cancel_token = CancellationToken::new();
         assert!(
             LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
