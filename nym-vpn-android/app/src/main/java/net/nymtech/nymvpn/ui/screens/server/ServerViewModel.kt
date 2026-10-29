@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -375,7 +374,7 @@ class ServerViewModel @Inject constructor(
 		Timber.tag(TAG).i("GatewaySelectionRequested location=%s", gatewayLocation)
 
 		runCatching {
-			val config = vpnConfigRepository.configFlow.first()
+			val config = vpnConfigRepository.getConfig()
 			when (gatewayLocation) {
 				GatewayLocation.ENTRY -> {
 					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEntryPoint(id.asEntryPoint().alignedWith(config.exitPoint)))
