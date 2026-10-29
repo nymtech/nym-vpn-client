@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
+- `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
+
+### Fixed
+
+- Fix `nym-vpnc connect --wait` waiting forever when the tunnel is already connected (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- Fix `nym-vpnc` `--wait` options missing fast tunnel state changes and reporting success when the daemon's event stream ends (https://github.com/nymtech/nym-vpn-client/pull/6849)
 
 
 ## [2026.14.0] - 2026-10-22
