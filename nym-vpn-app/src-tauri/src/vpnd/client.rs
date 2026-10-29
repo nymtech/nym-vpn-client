@@ -403,8 +403,13 @@ impl VpndClient {
     pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.set_enable_bridges(enabled)
-            .or_else(async |e| self.handle_rpc_error("set_enable_bridges", e).await)
+        let mode = if enabled {
+            lib::BridgeMode::On
+        } else {
+            lib::BridgeMode::Off
+        };
+        vpnd.set_bridge_mode(mode)
+            .or_else(async |e| self.handle_rpc_error("set_bridge_mode", e).await)
             .await
     }
 

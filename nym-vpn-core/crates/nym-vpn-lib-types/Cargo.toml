@@ -29,6 +29,7 @@ nym-type-conversions = [
 uniffi-bindings = ["dep:uniffi", "ipnetwork", "nym-bridges-types/uniffi-bindings"]
 typescript-bindings = ["dep:ts-rs", "serde", "nym-bridges-types/typescript-bindings"]
 serde = ["dep:serde", "nym-bridges-types/serde"]
+clap = ["dep:clap"]
 
 [dependencies]
 bip39 = { workspace = true }
@@ -43,6 +44,7 @@ ts-rs = { workspace = true, optional = true }
 zeroize.workspace = true
 ipnetwork = { workspace = true, optional = true }
 uniffi = { workspace = true, optional = true }
+clap = { workspace = true, features = ["derive"], optional = true }
 
 nym-registration-common = { workspace = true, optional = true }
 nym-crypto = { workspace = true, features = ["asymmetric"] }
