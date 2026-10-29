@@ -3,27 +3,11 @@
 
 use anyhow::Result;
 
+use nym_vpn_lib_types::BridgeMode;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 use clap::builder::ValueParser;
-
-#[derive(Debug, Clone, Copy, clap::ValueEnum)]
-pub enum BridgeModeArg {
-    Auto,
-    On,
-    Off,
-}
-
-impl From<BridgeModeArg> for nym_vpn_lib_types::BridgeMode {
-    fn from(mode: BridgeModeArg) -> Self {
-        match mode {
-            BridgeModeArg::Auto => Self::Auto,
-            BridgeModeArg::On => Self::On,
-            BridgeModeArg::Off => Self::Off,
-        }
-    }
-}
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -50,14 +34,10 @@ pub struct SetParams {
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     netstack: Option<BooleanOption>,
 
-    /// Enable Circumvention Transport (CT) wrapping for the connection to the entry gateway in two hop wireguard mode.
-    #[arg(long, alias = "ct", value_parser = clap::value_parser!(BooleanOption))]
-    circumvention_transports: Option<BooleanOption>,
-
     /// Set the bridge mode: auto tries plain WireGuard first and uses a bridge when that fails,
     /// on always uses a bridge, off never does.
-    #[arg(long, value_enum, conflicts_with = "circumvention_transports")]
-    bridge_mode: Option<BridgeModeArg>,
+    #[arg(long, value_enum)]
+    bridge_mode: Option<BridgeMode>,
 
     /// Set the average delay for a loop cover packet (milliseconds)
     #[arg(
@@ -131,12 +111,8 @@ impl Command {
                     rpc_client.set_disable_ipv6(!*ipv6).await?;
                 }
 
-                if let Some(enable_ct) = params.circumvention_transports {
-                    rpc_client.set_enable_bridges(*enable_ct).await?;
-                }
-
                 if let Some(bridge_mode) = params.bridge_mode {
-                    rpc_client.set_bridge_mode(bridge_mode.into()).await?;
+                    rpc_client.set_bridge_mode(bridge_mode).await?;
                 }
 
                 if params.loop_cover_stream_average_delay.is_some()
