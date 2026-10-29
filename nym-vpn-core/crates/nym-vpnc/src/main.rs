@@ -98,7 +98,7 @@ pub enum Command {
         subcommand: commands::dns::Command,
     },
 
-    /// Tunnel configuration (enable or disable ipv6, two-hop mode, circumvention transports)
+    /// Tunnel configuration (enable or disable ipv6, two-hop mode, bridge mode)
     Tunnel {
         #[command(subcommand)]
         subcommand: commands::tunnel::Command,

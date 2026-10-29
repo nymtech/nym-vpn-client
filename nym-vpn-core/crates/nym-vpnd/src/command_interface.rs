@@ -159,20 +159,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn set_enable_bridges(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let bridge_mode = nym_vpn_lib_types::BridgeMode::from(request.into_inner());
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
-
-        Ok(tonic::Response::new(()))
-    }
-
     async fn set_bridge_mode(
         &self,
         request: tonic::Request<proto::BridgeModeRequest>,
