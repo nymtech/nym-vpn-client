@@ -238,12 +238,11 @@ private extension Tunnel {
 
             if let state = decoded.state {
                 let newStatus = TunnelStatus(state)
-                let isEnteringError = newStatus == .error && self.status != .error
+                if newStatus == .error, self.status != .error, case let .error(reason) = state {
+                    self.lastError = reason
+                }
                 if self.status != newStatus {
                     self.status = newStatus
-                }
-                if isEnteringError, case let .error(reason) = state {
-                    self.lastError = reason
                 }
             } else if let newError = decoded.lastError, decoded.status != .connected {
                 if self.status != .error {
