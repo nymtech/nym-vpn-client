@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds. It is always disabled when the VPN disconnects, and a proxy enabled right after a disconnect is no longer switched off (https://github.com/nymtech/nym-vpn-client/pull/6850)
+- SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds. Fixed the SOCKS5 proxy sometimes staying on after the VPN disconnected, or turning off right after being enabled (https://github.com/nymtech/nym-vpn-client/pull/6850)
 
 
 ## [2026.14.0] - 2026-10-22
