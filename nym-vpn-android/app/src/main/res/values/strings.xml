@@ -338,6 +338,8 @@
 	<string name="select_plan_line_2">No ads</string>
 	<string name="select_plan_line_3">Cancel anytime</string>
 	<string name="select_plan_button">Choose my NymVPN plan</string>
+	<string name="select_plan_billing_unavailable">Google Play billing is unavailable. Make sure you are signed in to the Play Store and try again.</string>
+	<string name="account_info_manage_play_unavailable">This subscription wasn\'t purchased through Google Play. Manage it where you bought it.</string>
 	<string name="select_plan_modal_title">Choose your plan. All features, cancel anytime.</string>
 	<plurals name="select_plan_free_trial_days">
 		<item quantity="one">%1$d-day free trial</item>
