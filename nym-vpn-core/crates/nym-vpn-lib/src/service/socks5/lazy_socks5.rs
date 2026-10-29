@@ -217,11 +217,22 @@ impl LazySocks5 {
         }
 
         // Clean up
-        idle_monitor_handle.abort();
-        state_monitor_handle.abort();
-        if let Some(handle) = rotation_monitor_handle {
-            handle.abort();
+        for handle in [
+            Some(idle_monitor_handle),
+            Some(state_monitor_handle),
+            rotation_monitor_handle,
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if let Err(e) = handle.await {
+                error!("Lazy SOCKS5 monitor task error: {:?}", e);
+            }
         }
+
+        // Wait for any mixnet client initialization in progress, so the client it creates is shut
+        // down too
+        let _init_guard = self.init_mutex.lock().await;
         self.shutdown_backend().await;
 
         info!("Lazy SOCKS5 wrapper stopped");
@@ -577,6 +588,12 @@ impl LazySocks5 {
             return Ok(());
         }
 
+        if self.cancel_token.is_cancelled() {
+            return Err(LazySocks5Error::Internal(
+                "SOCKS5 service is shutting down".to_owned(),
+            ));
+        }
+
         debug!("First connection detected, initializing Nym mixnet backend...");
 
         // Determine Network Requester address (fixed or random)
@@ -916,7 +933,10 @@ impl LazySocks5 {
     async fn monitor_idle_timeout(&self) {
         loop {
             // Wait a bit before checking
-            sleep(Duration::from_secs(5)).await;
+            tokio::select! {
+                _ = self.cancel_token.cancelled() => break,
+                _ = sleep(Duration::from_secs(5)) => {}
+            }
 
             // Check if we should shut down
             let should_shutdown = {
@@ -957,11 +977,6 @@ impl LazySocks5 {
                 // Reset timer
                 let mut last_closed = self.last_connection_closed.write().await;
                 *last_closed = None;
-            }
-
-            // Check for cancellation
-            if self.cancel_token.is_cancelled() {
-                break;
             }
         }
     }
@@ -1065,7 +1080,10 @@ impl LazySocks5 {
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
         loop {
-            interval.tick().await;
+            tokio::select! {
+                _ = self.cancel_token.cancelled() => break,
+                _ = interval.tick() => {}
+            }
 
             // Only rotate if mixnet is running and dVPN (WireGuard) is connected
             let should_rotate = {
@@ -1104,11 +1122,6 @@ impl LazySocks5 {
             if should_rotate {
                 info!("Rotating Network Requester after {:?}", rotation_interval);
                 self.rotate_network_requester().await;
-            }
-
-            // Check for cancellation
-            if self.cancel_token.is_cancelled() {
-                break;
             }
         }
 

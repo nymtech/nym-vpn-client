@@ -308,24 +308,18 @@ impl Socks5ServiceState {
             token.cancel();
         }
 
-        // Abort and await HTTP RPC proxy task
+        // Wait for the HTTP RPC proxy task to stop
         if let Some(handle) = self.http_rpc_proxy_handle.take() {
             debug!("Stopping HTTP RPC proxy task");
-            handle.abort();
-            if let Err(e) = handle.await
-                && !e.is_cancelled()
-            {
+            if let Err(e) = handle.await {
                 error!("HTTP RPC proxy task error: {:?}", e);
             }
         }
 
-        // Await lazy SOCKS5 task
+        // Wait for the lazy SOCKS5 task to stop, which shuts down the mixnet client
         if let Some(handle) = self.lazy_socks5_handle.take() {
             debug!("Stopping lazy SOCKS5 wrapper task");
-            handle.abort();
-            if let Err(e) = handle.await
-                && !e.is_cancelled()
-            {
+            if let Err(e) = handle.await {
                 error!("Lazy SOCKS5 wrapper task error: {:?}", e);
             }
         }
