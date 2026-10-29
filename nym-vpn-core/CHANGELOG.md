@@ -25,10 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix the gateway mixnet score being decoded from the general score in the gRPC conversion (https://github.com/nymtech/nym-vpn-client/pull/6859)
 - Fix `nym-vpnc connect --wait` waiting forever when the tunnel is already connected (https://github.com/nymtech/nym-vpn-client/pull/6849)
 - Fix `nym-vpnc` `--wait` options missing fast tunnel state changes and reporting success when the daemon's event stream ends (https://github.com/nymtech/nym-vpn-client/pull/6849)
-
-### Fixed
-
 - SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds. Fixed the SOCKS5 proxy sometimes staying on after the VPN disconnected, or turning off right after being enabled (https://github.com/nymtech/nym-vpn-client/pull/6850)
+- Stop the internal SOCKS5 mixnet client and its listener on `127.0.0.1:1081` when SOCKS5 is disabled, so the next enable starts a new mixnet client instead of reusing the first session's (https://github.com/nymtech/nym-vpn-client/pull/6854)
+- Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
 
 
 ## [2026.14.0] - 2026-10-22
