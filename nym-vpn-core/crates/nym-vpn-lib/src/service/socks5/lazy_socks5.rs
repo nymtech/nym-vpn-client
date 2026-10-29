@@ -25,6 +25,9 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, trace, warn};
 
+const IDLE_CHECK_INTERVAL: Duration = Duration::from_secs(5);
+const ROTATION_CHECK_INTERVAL: Duration = Duration::from_secs(60);
+
 /// Configuration for the LazySocks5
 #[derive(Clone)]
 pub struct LazySocks5Config {
@@ -126,81 +129,51 @@ impl LazySocks5 {
 
         info!("Listening on {}", self.config.listen_address.to_string());
 
-        // Spawn idle timeout monitor
-        let idle_monitor = self.clone();
-        let idle_monitor_handle = tokio::spawn(async move {
-            idle_monitor.monitor_idle_timeout().await;
-        });
+        // Idle timeout: check every 5 seconds, starting 5 seconds from now
+        let mut idle_check =
+            tokio::time::interval_at(Instant::now() + IDLE_CHECK_INTERVAL, IDLE_CHECK_INTERVAL);
+        idle_check.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+        // When the last connection closed, or None while there are active connections
+        let mut idle_since: Option<Instant> = None;
 
-        // Spawn tunnel state monitor to shut down mixnet when dVPN is available
-        let state_monitor = self.clone();
-        let state_monitor_handle = tokio::spawn(async move {
-            state_monitor.monitor_tunnel_state().await;
-        });
+        // Network Requester rotation: check every minute, if enabled
+        let rotation_enabled = self.config.network_requester_rotation_interval.is_some();
+        if let Some(rotation_interval) = self.config.network_requester_rotation_interval {
+            info!(
+                "Network Requester rotation enabled (interval: {:?})",
+                rotation_interval
+            );
+        }
+        let mut rotation_check = tokio::time::interval(ROTATION_CHECK_INTERVAL);
+        rotation_check.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        // Last time Network Requester was rotated
+        let mut last_rotation: Option<Instant> = None;
 
-        // Spawn Network Requester rotation monitor (if enabled)
-        let rotation_monitor_handle = if self.config.network_requester_rotation_interval.is_some() {
-            let rotation_monitor = self.clone();
-            Some(tokio::spawn(async move {
-                rotation_monitor.monitor_network_requester_rotation().await;
-            }))
-        } else {
-            None
-        };
+        // Tunnel state: shut down the mixnet backend when the VPN connects
+        let mut tunnel_state = self.tunnel_state.clone();
+        let mut last_tunnel_state = tunnel_state.borrow_and_update().clone();
+        let mut tunnel_state_open = true;
 
-        // Accept connections loop
         loop {
             tokio::select! {
-                result = listener.accept() => {
-                    match result {
-                        Ok((stream, addr)) => {
-                            debug!("Accepted connection from {}", addr);
-                            // Configure TCP options for better performance
-                            if let Err(e) = stream.set_nodelay(true) {
-                                warn!("Failed to set TCP_NODELAY for {}: {}", addr, e);
-                            }
-                            let wrapper = self.clone();
-
-                            // Check tunnel state to determine routing method
-                            // 1. If the tunnel is mixnet and connected -> use existing tunnel
-                            // 2. If the tunnel is wireguard and connected -> create new tunnel
-                            // 3. If the tunnel is disconnected or error'd -> create new tunnel
-                            // 4. If the tunnel is connecting, disconnecting or offline -> reject connection
-                            let tunnel_state = self.tunnel_state.borrow().clone();
-                            let use_existing_tunnel =  match &tunnel_state {
-                                TunnelState::Connected { connection_data } => {
-                                    match &connection_data.tunnel {
-                                        TunnelConnectionData::Mixnet(_) => true, // 1
-                                        TunnelConnectionData::Wireguard(_) => false, // 2
-                                    }
-                                }
-                                TunnelState::Disconnected | TunnelState::Error(_) => {
-                                    false // 3
-                                }
-                                _ => {
-                                    warn!("Rejecting SOCKS5 connection from {addr} due to tunnel state: {tunnel_state:?}");
-                                    let mut stream = stream;
-                                    let _ = Self::send_socks5_error(&mut stream).await; // 4
-                                    continue;
-                                }
-                            };
-
-                            // Spawn task to handle this connection
-                            tokio::spawn(async move {
-                                let result = if use_existing_tunnel {
-                                    wrapper.route_via_existing_tunnel(stream, addr).await
-                                } else {
-                                    Box::pin(wrapper.route_via_new_tunnel(stream, addr)).await
-                                };
-
-                                if let Err(e) = result {
-                                    error!("Connection handler error for {addr}: {e}");
-                                }
-                            });
-                        }
-                        Err(e) => {
-                            error!("Failed to accept connection: {e}");
-                        }
+                result = listener.accept() => match result {
+                    Ok((stream, addr)) => self.handle_connection(stream, addr),
+                    Err(e) => error!("Failed to accept connection: {e}"),
+                },
+                _ = idle_check.tick() => {
+                    self.check_idle_timeout(&mut idle_since).await;
+                }
+                _ = rotation_check.tick(), if rotation_enabled => {
+                    self.check_network_requester_rotation(&mut last_rotation).await;
+                }
+                result = tunnel_state.changed(), if tunnel_state_open => {
+                    if result.is_ok() {
+                        let current_tunnel_state = tunnel_state.borrow_and_update().clone();
+                        self.handle_tunnel_state_change(&last_tunnel_state, &current_tunnel_state)
+                            .await;
+                        last_tunnel_state = current_tunnel_state;
+                    } else {
+                        tunnel_state_open = false;
                     }
                 }
                 _ = self.cancel_token.cancelled() => {
@@ -210,26 +183,61 @@ impl LazySocks5 {
             }
         }
 
-        // Clean up
-        for handle in [
-            Some(idle_monitor_handle),
-            Some(state_monitor_handle),
-            rotation_monitor_handle,
-        ]
-        .into_iter()
-        .flatten()
-        {
-            if let Err(e) = handle.await {
-                error!("Lazy SOCKS5 monitor task error: {:?}", e);
-            }
-        }
-
         // Waits for any mixnet client initialization in progress, so the client it creates is shut
         // down too
         self.shutdown_backend().await;
 
         info!("Lazy SOCKS5 wrapper stopped");
         Ok(())
+    }
+
+    /// Route an accepted connection based on the tunnel state:
+    /// 1. If the tunnel is mixnet and connected -> use existing tunnel
+    /// 2. If the tunnel is wireguard and connected -> create new tunnel
+    /// 3. If the tunnel is disconnected or error'd -> create new tunnel
+    /// 4. If the tunnel is connecting, disconnecting or offline -> reject connection
+    fn handle_connection(self: &Arc<Self>, mut stream: TcpStream, addr: SocketAddr) {
+        enum Route {
+            ExistingTunnel,
+            NewTunnel,
+            Reject,
+        }
+
+        debug!("Accepted connection from {}", addr);
+        // Configure TCP options for better performance
+        if let Err(e) = stream.set_nodelay(true) {
+            warn!("Failed to set TCP_NODELAY for {}: {}", addr, e);
+        }
+
+        let route = match &*self.tunnel_state.borrow() {
+            TunnelState::Connected { connection_data } => match &connection_data.tunnel {
+                TunnelConnectionData::Mixnet(_) => Route::ExistingTunnel, // 1
+                TunnelConnectionData::Wireguard(_) => Route::NewTunnel,   // 2
+            },
+            TunnelState::Disconnected | TunnelState::Error(_) => Route::NewTunnel, // 3
+            tunnel_state => {
+                warn!(
+                    "Rejecting SOCKS5 connection from {addr} due to tunnel state: {tunnel_state:?}"
+                );
+                Route::Reject // 4
+            }
+        };
+
+        let wrapper = self.clone();
+        tokio::spawn(async move {
+            let result = match route {
+                Route::ExistingTunnel => wrapper.route_via_existing_tunnel(stream, addr).await,
+                Route::NewTunnel => Box::pin(wrapper.route_via_new_tunnel(stream, addr)).await,
+                Route::Reject => {
+                    let _ = Self::send_socks5_error(&mut stream).await;
+                    Ok(())
+                }
+            };
+
+            if let Err(e) = result {
+                error!("Connection handler error for {addr}: {e}");
+            }
+        });
     }
 
     /// Handle the SOCKS5 connection via the existing mixnet tunnel
@@ -916,182 +924,96 @@ impl LazySocks5 {
         }))
     }
 
-    /// Monitor idle timeout and shut down backend when idle
-    async fn monitor_idle_timeout(&self) {
-        // When the last connection closed, or None while there are active connections
-        let mut idle_since: Option<Instant> = None;
+    /// Shut down the backend once there were no active connections for the idle timeout
+    async fn check_idle_timeout(&self, idle_since: &mut Option<Instant>) {
+        let should_shutdown = if self.active_connections() > 0 {
+            // Still have active connections, reset timer
+            *idle_since = None;
+            false
+        } else {
+            // No active connections, start the timer if it is not running yet
+            let idle_since = *idle_since.get_or_insert_with(Instant::now);
+            idle_since.elapsed() >= self.config.idle_timeout
+        };
 
-        // Wait a bit before each check
-        while self
-            .cancel_token
-            .run_until_cancelled(sleep(Duration::from_secs(5)))
-            .await
-            .is_some()
-        {
-            // Check if we should shut down
-            let should_shutdown = if self.active_connections() > 0 {
-                // Still have active connections, reset timer
-                idle_since = None;
-                false
-            } else {
-                // No active connections, start the timer if it is not running yet
-                let idle_since = *idle_since.get_or_insert_with(Instant::now);
-                idle_since.elapsed() >= self.config.idle_timeout
-            };
+        trace!("should_shutdown: {}", should_shutdown);
 
-            trace!("should_shutdown: {}", should_shutdown);
+        if should_shutdown {
+            info!(
+                "Idle timeout of {:?} reached, shutting down backend",
+                self.config.idle_timeout
+            );
+            self.shutdown_backend().await;
 
-            if should_shutdown {
-                info!(
-                    "Idle timeout of {:?} reached, shutting down backend",
-                    self.config.idle_timeout
-                );
-                self.shutdown_backend().await;
-
-                // Reset timer
-                idle_since = None;
-            }
+            // Reset timer
+            *idle_since = None;
         }
     }
 
-    /// Monitor tunnel state and manage mixnet backend lifecycle
-    async fn monitor_tunnel_state(&self) {
-        let mut tunnel_state = self.tunnel_state.clone();
-        let mut last_vpn_state: Option<TunnelState> = None;
+    /// Manage the mixnet backend when the tunnel state changes
+    async fn handle_tunnel_state_change(
+        &self,
+        last_tunnel_state: &TunnelState,
+        current_tunnel_state: &TunnelState,
+    ) {
+        let connected_tunnel_type = |tunnel_state: &TunnelState| match tunnel_state {
+            TunnelState::Connected { connection_data } => {
+                Some(connection_data.tunnel.tunnel_type())
+            }
+            _ => None,
+        };
+        let last_tunnel_type = connected_tunnel_type(last_tunnel_state);
+        let current_tunnel_type = connected_tunnel_type(current_tunnel_state);
 
-        loop {
-            let current_state = tunnel_state.borrow_and_update().clone();
-
-            // Check if dVPN is currently available (Mixnet mode)
-            let dvpn_available = matches!(
-                current_state,
-                TunnelState::Connected { ref connection_data }
-                if connection_data.tunnel.tunnel_type() == TunnelType::Mixnet
-            );
-
-            // Check if VPN is connected in WireGuard mode
-            let vpn_connected_wireguard = matches!(
-                current_state,
-                TunnelState::Connected { ref connection_data }
-                if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
-            );
-
-            // React to state transitions
-            let last_dvpn_available = last_vpn_state
-                .as_ref()
-                .map(|s| {
-                    matches!(
-                        s,
-                        TunnelState::Connected { connection_data }
-                        if connection_data.tunnel.tunnel_type() == TunnelType::Mixnet
-                    )
-                })
-                .unwrap_or(false);
-
-            let last_vpn_connected_wireguard = last_vpn_state
-                .as_ref()
-                .map(|s| {
-                    matches!(
-                        s,
-                        TunnelState::Connected { connection_data }
-                        if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
-                    )
-                })
-                .unwrap_or(false);
-
-            if dvpn_available && !last_dvpn_available {
+        match current_tunnel_type {
+            Some(TunnelType::Mixnet) if last_tunnel_type != Some(TunnelType::Mixnet) => {
                 // dVPN just became available (Mixnet mode) - shut down mixnet backend
                 info!(
                     "dVPN tunnel is now available (Mixnet mode), shutting down mixnet SOCKS5 backend to save bandwidth"
                 );
                 self.shutdown_backend().await;
-            } else if vpn_connected_wireguard && !last_vpn_connected_wireguard {
+            }
+            Some(TunnelType::Wireguard) if last_tunnel_type != Some(TunnelType::Wireguard) => {
                 // VPN just connected in WireGuard mode - if mixnet client is running, shut it down
                 // so it will be recreated with VPN's entry gateway on next connection
-                let is_running = self.is_mixnet_running();
-                if is_running {
+                if self.is_mixnet_running() {
                     info!(
                         "VPN connected in WireGuard mode while mixnet client is running, shutting down mixnet client to ensure it uses VPN's entry gateway (firewall compatibility)"
                     );
                     self.shutdown_backend().await;
                 }
-            } else if !dvpn_available
-                && !vpn_connected_wireguard
-                && (last_dvpn_available || last_vpn_connected_wireguard)
-            {
+            }
+            None if last_tunnel_type.is_some() => {
                 // VPN just disconnected
                 info!(
                     "VPN disconnected, mixnet SOCKS5 backend will be lazily initialized on next connection"
                 );
             }
-
-            last_vpn_state = Some(current_state);
-
-            tokio::select! {
-                _ = self.cancel_token.cancelled() => break,
-                result = tunnel_state.changed() => {
-                    if result.is_err() {
-                        break;
-                    }
-                }
-            }
+            _ => {}
         }
     }
 
-    /// Monitor and rotate Network Requester periodically
-    async fn monitor_network_requester_rotation(&self) {
-        let Some(rotation_interval) = self.config.network_requester_rotation_interval else {
-            return; // Rotation disabled
-        };
-
-        info!(
-            "Network Requester rotation monitor started (interval: {:?})",
-            rotation_interval
+    /// Rotate the Network Requester once the rotation interval has passed
+    async fn check_network_requester_rotation(&self, last_rotation: &mut Option<Instant>) {
+        // Only rotate if mixnet is running and dVPN (WireGuard) is connected
+        let dvpn_wireguard_active = matches!(
+            *self.tunnel_state.borrow(),
+            TunnelState::Connected { ref connection_data }
+            if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
         );
 
-        let mut interval = tokio::time::interval(Duration::from_secs(60)); // Check every minute
-        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-
-        // Last time Network Requester was rotated
-        let mut last_rotation: Option<Instant> = None;
-
-        while self
-            .cancel_token
-            .run_until_cancelled(interval.tick())
-            .await
-            .is_some()
+        if let Some(rotation_interval) = self.config.network_requester_rotation_interval
+            && self.is_mixnet_running()
+            && dvpn_wireguard_active
         {
-            // Only rotate if mixnet is running and dVPN (WireGuard) is connected
-            let should_rotate = {
-                let is_running = self.is_mixnet_running();
-                let tunnel_state = self.tunnel_state.borrow().clone();
-                let dvpn_wireguard_active = matches!(
-                    tunnel_state,
-                    TunnelState::Connected { ref connection_data }
-                    if connection_data.tunnel.tunnel_type() == TunnelType::Wireguard
-                );
-
-                if !is_running || !dvpn_wireguard_active {
-                    false
-                } else {
-                    // Start the timer on the first check
-                    let rotated_at = *last_rotation.get_or_insert_with(Instant::now);
-                    if rotated_at.elapsed() >= rotation_interval {
-                        last_rotation = Some(Instant::now());
-                        true
-                    } else {
-                        false
-                    }
-                }
-            };
-
-            if should_rotate {
+            // Start the timer on the first check
+            let rotated_at = *last_rotation.get_or_insert_with(Instant::now);
+            if rotated_at.elapsed() >= rotation_interval {
+                *last_rotation = Some(Instant::now());
                 info!("Rotating Network Requester after {:?}", rotation_interval);
                 self.rotate_network_requester().await;
             }
         }
-
-        info!("Network Requester rotation monitor stopped");
     }
 
     /// Rotate to a new Network Requester by shutting down current mixnet client
