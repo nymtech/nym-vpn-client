@@ -38,6 +38,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -276,7 +277,9 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
-		onRenewSubscription = { deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION) },
+		onRenewSubscription = {
+			if (isPlayDistribution) navController.goFromRoot(Route.SelectPlan) else deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
+		},
 		onNavigateToSelectPlan = { navController.goFromRoot(Route.SelectPlan) },
 		isLoggedIn = appUiState.managerState.isMnemonicStored,
 		isScreenLockSet = deviceAuthViewModel::isScreenLockSet,

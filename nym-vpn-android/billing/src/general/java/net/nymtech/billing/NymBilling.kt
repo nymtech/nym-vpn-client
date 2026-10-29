@@ -60,6 +60,7 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 
 	private val billingClient = BillingClient.newBuilder(context.applicationContext)
 		.setListener(purchasesUpdatedListener)
+		.enableAutoServiceReconnection()
 		.enablePendingPurchases(
 			PendingPurchasesParams.newBuilder()
 				.enablePrepaidPlans()

@@ -9,17 +9,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.manager.billing.awaitReady
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.util.extensions.toBandwidthUiState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.StoredAccountMode
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
-class AccountInfoViewModel @Inject constructor(private val backendManager: BackendManager) : ViewModel() {
+class AccountInfoViewModel @Inject constructor(private val backendManager: BackendManager, private val billingManager: BillingManager) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-account-vm"
+		private val BILLING_READY_TIMEOUT = 5.seconds
 	}
 
 	private val _uiState = MutableStateFlow(AccountInfoUiState())
@@ -27,11 +32,17 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 
 	init {
 		loadAccountData()
+		if (isPlayDistribution) loadPlaySubscription()
 		viewModelScope.launch {
 			backendManager.accountSummaryFlow.collect { summary ->
 				_uiState.update { it.copy(bandwidth = summary?.toBandwidthUiState()) }
 			}
 		}
+	}
+
+	private fun loadPlaySubscription() = viewModelScope.launch {
+		if (!billingManager.awaitReady(BILLING_READY_TIMEOUT)) return@launch
+		_uiState.update { it.copy(hasPlaySubscription = billingManager.hasActiveSubscription()) }
 	}
 
 	private fun loadAccountData() {
