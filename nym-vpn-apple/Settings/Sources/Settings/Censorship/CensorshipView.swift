@@ -174,26 +174,51 @@ private extension BridgeModeSetting {
 
 private struct BridgeModeSelector: View {
     @Binding var selection: BridgeModeSetting
+    @Namespace private var thumbNamespace
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(BridgeModeSetting.allCases, id: \.self) { mode in
                 let isSelected = mode == selection
                 Button {
-                    selection = mode
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.78)) {
+                        selection = mode
+                    }
                 } label: {
                     Text(mode.title)
                         .nymTextStyle(.bodySmall)
                         .foregroundStyle(isSelected ? Color.Nym.primaryText : Color.Nym.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 36)
-                        .background(isSelected ? Color.Nym.primary : Color.clear, in: Capsule())
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .background {
+                            if isSelected {
+                                thumb.matchedGeometryEffect(id: "thumb", in: thumbNamespace)
+                            }
+                        }
+                        .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
         .padding(4)
-        .background(Color.Nym.surfaceAlt, in: Capsule())
+        .background { track }
+        .sensoryFeedback(.selection, trigger: selection)
+    }
+
+    @ViewBuilder private var thumb: some View {
+        if #available(iOS 26, macOS 26, *) {
+            Color.clear.glassEffect(.regular.tint(Color.Nym.primary).interactive(), in: Capsule())
+        } else {
+            Capsule().fill(Color.Nym.primary).shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+        }
+    }
+
+    @ViewBuilder private var track: some View {
+        if #available(iOS 26, macOS 26, *) {
+            Color.clear.glassEffect(.regular, in: Capsule())
+        } else {
+            Capsule().fill(Color.Nym.surfaceAlt)
+        }
     }
 }
 

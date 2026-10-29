@@ -3605,7 +3605,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower."
+            "value" : "When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower."
           }
         }
       }
@@ -20236,13 +20236,24 @@
         }
       }
     },
-    "oneClick.bridge.label" : {
+    "oneClick.bridge.direct" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bridge"
+            "value" : "Connected directly"
+          }
+        }
+      }
+    },
+    "oneClick.bridge.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected via %@ bridge"
           }
         }
       }
