@@ -20,11 +20,11 @@ use nym_network_defaults::v2::NymNetworkDetails;
 use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{
-    sync::{RwLock, watch},
+    sync::{mpsc, oneshot, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 pub use config::{socks5_idle_timeout, socks5_request_timeout};
 pub use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
@@ -65,6 +65,8 @@ struct Socks5ServiceState {
     state: Socks5State,
     /// Shared tunnel state
     tunnel_state: watch::Receiver<TunnelState>,
+    /// Whether the tunnel was disconnected or in error after the last tunnel state change
+    tunnel_down: bool,
     /// SOCKS5 listen address
     socks5_listen_address: Option<SocketAddr>,
     /// HTTP RPC listen address
@@ -85,9 +87,11 @@ struct Socks5ServiceState {
 
 impl Socks5ServiceState {
     fn new(tunnel_state: watch::Receiver<TunnelState>) -> Self {
+        let tunnel_down = is_tunnel_down(&tunnel_state.borrow());
         Self {
             state: Socks5State::Disabled,
             tunnel_state,
+            tunnel_down,
             socks5_listen_address: None,
             http_rpc_proxy_listen_address: None,
             network_requester_address: None,
@@ -269,6 +273,24 @@ impl Socks5ServiceState {
         Ok(())
     }
 
+    async fn handle_tunnel_state_change(&mut self, tunnel_state: TunnelState) {
+        let was_down = self.tunnel_down;
+        let is_down = is_tunnel_down(&tunnel_state);
+        let is_connected = matches!(tunnel_state, TunnelState::Connected { .. });
+        self.tunnel_down = is_down;
+
+        let is_enabled = self.state != Socks5State::Disabled;
+
+        if is_enabled && is_down && !was_down {
+            info!("VPN disconnected, auto-disabling SOCKS5 proxy");
+            self.disable().await;
+        } else if is_enabled && is_connected {
+            warn!(
+                "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
+            );
+        }
+    }
+
     async fn disable(&mut self) {
         if self.state == Socks5State::Disabled {
             return;
@@ -314,52 +336,180 @@ impl Socks5ServiceState {
     }
 }
 
+fn is_tunnel_down(tunnel_state: &TunnelState) -> bool {
+    matches!(
+        tunnel_state,
+        TunnelState::Disconnected | TunnelState::Error(_)
+    )
+}
+
+enum Socks5Command {
+    TunnelStateChanged(Box<TunnelState>),
+    Enable(
+        Box<Socks5EnableConfig>,
+        oneshot::Sender<Result<(), Socks5Error>>,
+    ),
+    Disable(oneshot::Sender<()>),
+    GetStatus(oneshot::Sender<Socks5Status>),
+    Shutdown(oneshot::Sender<()>),
+}
+
+impl Socks5ServiceState {
+    /// Handles commands in the order they were sent until shutdown or until all senders are dropped
+    async fn run(mut self, mut command_rx: mpsc::UnboundedReceiver<Socks5Command>) {
+        let mut shutdown_reply_tx = None;
+
+        while let Some(command) = command_rx.recv().await {
+            match command {
+                Socks5Command::TunnelStateChanged(tunnel_state) => {
+                    self.handle_tunnel_state_change(*tunnel_state).await;
+                }
+                Socks5Command::Enable(config, reply_tx) => {
+                    _ = reply_tx.send(self.enable(*config).await);
+                }
+                Socks5Command::Disable(reply_tx) => {
+                    self.disable().await;
+                    _ = reply_tx.send(());
+                }
+                Socks5Command::GetStatus(reply_tx) => {
+                    _ = reply_tx.send(self.get_status().await);
+                }
+                Socks5Command::Shutdown(reply_tx) => {
+                    shutdown_reply_tx = Some(reply_tx);
+                    break;
+                }
+            }
+        }
+
+        self.cleanup().await;
+        if let Some(reply_tx) = shutdown_reply_tx {
+            _ = reply_tx.send(());
+        }
+    }
+}
+
+fn service_stopped() -> Socks5Error {
+    Socks5Error::LazySocks5Error(LazySocks5Error::Internal(
+        "SOCKS5 service is not running".to_owned(),
+    ))
+}
+
 /// Handle to the lazy SOCKS5 service
 #[derive(Clone)]
 pub struct Socks5Service {
-    /// Socks5 service state
-    state: Arc<RwLock<Socks5ServiceState>>,
+    command_tx: mpsc::UnboundedSender<Socks5Command>,
 }
 
 impl Socks5Service {
     /// Create a new lazy SOCKS5 service (starts in disabled state)
+    ///
+    /// The service disables itself when the tunnel becomes disconnected or enters an error state.
+    /// Tunnel state changes must be reported with [`Socks5Service::tunnel_state_changed`].
     pub fn new(tunnel_state: watch::Receiver<TunnelState>) -> Self {
-        Self {
-            state: Arc::new(RwLock::new(Socks5ServiceState::new(tunnel_state))),
-        }
+        let (command_tx, command_rx) = mpsc::unbounded_channel();
+        tokio::spawn(Socks5ServiceState::new(tunnel_state).run(command_rx));
+        Self { command_tx }
+    }
+
+    /// Report a tunnel state change. Changes are handled in order with the other commands.
+    pub fn tunnel_state_changed(&self, tunnel_state: TunnelState) {
+        _ = self
+            .command_tx
+            .send(Socks5Command::TunnelStateChanged(Box::new(tunnel_state)));
     }
 
     /// Enable the lazy SOCKS5 proxy with optional HTTP RPC proxy
     pub async fn enable(&self, config: Socks5EnableConfig) -> Result<(), Socks5Error> {
-        let mut state = self.state.write().await;
-        state.enable(config).await
+        self.request(|reply_tx| Socks5Command::Enable(Box::new(config), reply_tx))
+            .await?
     }
 
     /// Disable the lazy SOCKS5 proxy
     pub async fn disable(&self) -> Result<(), Socks5Error> {
-        let mut state = self.state.write().await;
-        state.disable().await;
-        Ok(())
+        self.request(Socks5Command::Disable).await
     }
 
     /// Get the current status
     pub async fn get_status(&self) -> Result<Socks5Status, Socks5Error> {
-        let state = self.state.read().await;
-        Ok(state.get_status().await)
-    }
-
-    /// Check if SOCKS5 is currently enabled
-    pub fn is_enabled(&self) -> bool {
-        // Use try_read to avoid blocking - if we can't read, assume not enabled
-        self.state
-            .try_read()
-            .map(|state| state.state != Socks5State::Disabled)
-            .unwrap_or(false)
+        self.request(Socks5Command::GetStatus).await
     }
 
     /// Shutdown the service
     pub async fn shutdown(&self) {
-        let mut state = self.state.write().await;
-        state.cleanup().await;
+        _ = self.request(Socks5Command::Shutdown).await;
+    }
+
+    async fn request<T>(
+        &self,
+        make_command: impl FnOnce(oneshot::Sender<T>) -> Socks5Command,
+    ) -> Result<T, Socks5Error> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.command_tx
+            .send(make_command(reply_tx))
+            .map_err(|_| service_stopped())?;
+        reply_rx.await.map_err(|_| service_stopped())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use nym_vpn_lib_types::ErrorStateReason;
+
+    use super::*;
+
+    fn enabled_state(tunnel_state: watch::Receiver<TunnelState>) -> Socks5ServiceState {
+        let mut state = Socks5ServiceState::new(tunnel_state);
+        state.state = Socks5State::Idle;
+        state
+    }
+
+    #[tokio::test]
+    async fn disables_when_tunnel_goes_down() {
+        let (_tx, rx) = watch::channel(TunnelState::Offline { reconnect: true });
+        let mut state = enabled_state(rx);
+
+        state
+            .handle_tunnel_state_change(TunnelState::Error(ErrorStateReason::SetDns))
+            .await;
+
+        assert_eq!(state.state, Socks5State::Disabled);
+    }
+
+    #[tokio::test]
+    async fn stays_enabled_when_tunnel_was_already_down() {
+        let (_tx, rx) = watch::channel(TunnelState::Disconnected);
+        let mut state = enabled_state(rx);
+
+        state
+            .handle_tunnel_state_change(TunnelState::Disconnected)
+            .await;
+
+        assert_eq!(state.state, Socks5State::Idle);
+    }
+
+    #[tokio::test]
+    async fn stays_enabled_while_tunnel_is_up() {
+        let (_tx, rx) = watch::channel(TunnelState::Disconnected);
+        let mut state = enabled_state(rx);
+
+        state
+            .handle_tunnel_state_change(TunnelState::Offline { reconnect: true })
+            .await;
+
+        assert_eq!(state.state, Socks5State::Idle);
+    }
+
+    #[tokio::test]
+    async fn disables_when_tunnel_goes_down_and_up_in_quick_succession() {
+        let (_tx, rx) = watch::channel(TunnelState::Offline { reconnect: true });
+        let (command_tx, command_rx) = mpsc::unbounded_channel();
+        tokio::spawn(enabled_state(rx).run(command_rx));
+        let service = Socks5Service { command_tx };
+
+        service.tunnel_state_changed(TunnelState::Disconnected);
+        service.tunnel_state_changed(TunnelState::Offline { reconnect: true });
+        let status = service.get_status().await.unwrap();
+
+        assert_eq!(status.state, Socks5State::Disabled);
     }
 }

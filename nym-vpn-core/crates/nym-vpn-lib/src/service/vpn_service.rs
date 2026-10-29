@@ -975,29 +975,7 @@ impl NymVpnService {
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if let TunnelEvent::NewState(ref new_state) = event {
             self.tunnel_state.send_replace(new_state.clone());
-
-            // Auto-disable SOCKS5 when VPN disconnects
-            if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_))
-                && self.socks5_service.is_enabled()
-            {
-                tracing::info!("VPN disconnected, auto-disabling SOCKS5 proxy");
-                let socks5_service = self.socks5_service.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = socks5_service.disable().await {
-                        tracing::error!("Failed to auto-disable SOCKS5 on VPN disconnect: {}", e);
-                    }
-                });
-            }
-
-            // When VPN connects, if SOCKS5 is already enabled, warn that it may not work
-            // because SOCKS5 might be using a different gateway than VPN
-            if matches!(new_state, TunnelState::Connected { .. })
-                && self.socks5_service.is_enabled()
-            {
-                tracing::warn!(
-                    "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
-                );
-            }
+            self.socks5_service.tunnel_state_changed(new_state.clone());
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
