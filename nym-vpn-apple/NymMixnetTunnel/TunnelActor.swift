@@ -107,8 +107,12 @@ actor TunnelActor {
         relaxConsentContinuation = nil
     }
 
+    /// The app reads the error from `tunnelState`, so leave the error state too.
     func clearError() {
         lastError = nil
+        if case .error = tunnelState {
+            tunnelState = nil
+        }
     }
 
     /// Wait until the tunnel state shifted into either connected, disconnected or error state.

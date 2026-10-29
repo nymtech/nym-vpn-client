@@ -1,5 +1,6 @@
 import Foundation
 import ConnectionTypes
+import ErrorReason
 import NymVPNLib
 import TunnelMixnet
 import Tunnels
@@ -148,6 +149,21 @@ private extension PacketTunnelProvider {
                 connectionInfoData = nil
             }
 
+            let state: TunnelStateResponse = switch tunnelState {
+            case .disconnected:
+                .disconnected
+            case .connecting:
+                .connecting(retryAttempt: retryAttempt, state: tunnelConnectingState, connectionInfo: connectionInfoData)
+            case .connected:
+                .connected(connectionInfo: connectionInfoData, connectedAt: connectedAt)
+            case .disconnecting:
+                .disconnecting(afterDisconnect: afterDisconnectAction)
+            case let .error(reason):
+                .error(ErrorReason(with: reason))
+            case let .offline(reconnect):
+                .offline(reconnect: reconnect)
+            }
+
             let statusResponse = await TunnelStatusResponse(
                 status: TunnelStatus(from: tunnelState),
                 retryAttempt: retryAttempt,
@@ -155,7 +171,8 @@ private extension PacketTunnelProvider {
                 lastError: tunnelActor.lastError,
                 tunnelConnectingState: tunnelConnectingState,
                 connectionInfoData: connectionInfoData,
-                connectedAt: connectedAt
+                connectedAt: connectedAt,
+                state: state
             )
 
             let encoder = JSONEncoder()

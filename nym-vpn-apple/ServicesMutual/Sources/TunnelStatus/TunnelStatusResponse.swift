@@ -9,6 +9,8 @@ public struct TunnelStatusResponse: Codable {
     public let tunnelConnectingState: TunnelConnectingState?
     public let connectionInfoData: ConnectionInfoData?
     public let connectedAt: Date?
+    /// Absent when sent by an extension older than this field. Prefer it over `status` and `lastError`.
+    public let state: TunnelStateResponse?
 
     public init(
         status: TunnelStatus,
@@ -17,7 +19,8 @@ public struct TunnelStatusResponse: Codable {
         lastError: ErrorReason?,
         tunnelConnectingState: TunnelConnectingState?,
         connectionInfoData: ConnectionInfoData?,
-        connectedAt: Date? = nil
+        connectedAt: Date? = nil,
+        state: TunnelStateResponse? = nil
     ) {
         self.status = status
         self.retryAttempt = retryAttempt
@@ -26,5 +29,6 @@ public struct TunnelStatusResponse: Codable {
         self.tunnelConnectingState = tunnelConnectingState
         self.connectionInfoData = connectionInfoData
         self.connectedAt = connectedAt
+        self.state = state
     }
 }
