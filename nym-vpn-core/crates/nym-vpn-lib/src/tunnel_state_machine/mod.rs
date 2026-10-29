@@ -1532,19 +1532,21 @@ impl TunnelStateMachine {
                     self.current_state_handler = new_state_handler;
 
                     let state = TunnelState::from(new_state);
-                    tracing::info!("New tunnel state: {}", state);
-                    self.shared_state
-                        .statistics_event_sender
-                        .report_tunnel_state(state.clone());
-                    let diagnostics_suggestion =
-                        self.diagnostics_suggestion_tracker.observe(&state);
-                    self.current_state = state.clone();
-                    let _ = self.event_sender.send(TunnelEvent::NewState(state));
-                    if let Some(reason) = diagnostics_suggestion {
-                        tracing::info!("Suggesting diagnostics: {reason}");
-                        let _ = self
-                            .event_sender
-                            .send(TunnelEvent::DiagnosticsSuggested(reason));
+                    if state != self.current_state {
+                        tracing::info!("New tunnel state: {}", state);
+                        self.shared_state
+                            .statistics_event_sender
+                            .report_tunnel_state(state.clone());
+                        let diagnostics_suggestion =
+                            self.diagnostics_suggestion_tracker.observe(&state);
+                        self.current_state = state.clone();
+                        let _ = self.event_sender.send(TunnelEvent::NewState(state));
+                        if let Some(reason) = diagnostics_suggestion {
+                            tracing::info!("Suggesting diagnostics: {reason}");
+                            let _ = self
+                                .event_sender
+                                .send(TunnelEvent::DiagnosticsSuggested(reason));
+                        }
                     }
                 }
                 NextTunnelState::SameState(same_state) => {
