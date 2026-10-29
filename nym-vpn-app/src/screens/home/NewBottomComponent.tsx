@@ -23,16 +23,16 @@ export function NewBottomComponent() {
   const tunnel = useAppStore((s) => s.tunnel);
   const bridgeMode = useAppStore((s) => s.bridgeMode);
 
-  const bridgeTransport =
+  const entryBridge =
     tunnel && isWireguardData(tunnel.data)
-      ? tunnel.data.entryBridgeAddr?.transport
+      ? tunnel.data.entryBridgeAddr
       : undefined;
   const bridgeStatus =
     state !== 'connected'
       ? null
-      : bridgeTransport
+      : entryBridge
         ? t('connected-via-bridge', {
-            transport: bridgeTransport.toUpperCase(),
+            transport: entryBridge.transport?.toUpperCase() ?? 'QUIC',
           })
         : bridgeMode === 'auto' && tunnel && isWireguardData(tunnel.data)
           ? t('connected-directly')
