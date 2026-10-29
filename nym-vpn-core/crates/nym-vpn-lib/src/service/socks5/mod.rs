@@ -65,8 +65,6 @@ struct Socks5ServiceState {
     state: Socks5State,
     /// Tunnel state shared with the lazy SOCKS5 tasks
     tunnel_state_tx: watch::Sender<TunnelState>,
-    /// Whether the tunnel was disconnected or in error after the last tunnel state change
-    tunnel_down: bool,
     /// SOCKS5 listen address
     socks5_listen_address: Option<SocketAddr>,
     /// HTTP RPC listen address
@@ -87,12 +85,10 @@ struct Socks5ServiceState {
 
 impl Socks5ServiceState {
     fn new(tunnel_state: TunnelState) -> Self {
-        let tunnel_down = is_tunnel_down(&tunnel_state);
         let (tunnel_state_tx, _) = watch::channel(tunnel_state);
         Self {
             state: Socks5State::Disabled,
             tunnel_state_tx,
-            tunnel_down,
             socks5_listen_address: None,
             http_rpc_proxy_listen_address: None,
             network_requester_address: None,
@@ -275,15 +271,16 @@ impl Socks5ServiceState {
     }
 
     async fn handle_tunnel_state_change(&mut self, tunnel_state: TunnelState) {
-        let was_down = self.tunnel_down;
-        let is_down = is_tunnel_down(&tunnel_state);
+        let is_down = matches!(
+            tunnel_state,
+            TunnelState::Disconnected | TunnelState::Error(_)
+        );
         let is_connected = matches!(tunnel_state, TunnelState::Connected { .. });
-        self.tunnel_down = is_down;
         self.tunnel_state_tx.send_replace(tunnel_state);
 
         let is_enabled = self.state != Socks5State::Disabled;
 
-        if is_enabled && is_down && !was_down {
+        if is_enabled && is_down {
             info!("VPN disconnected, auto-disabling SOCKS5 proxy");
             self.disable().await;
         } else if is_enabled && is_connected {
@@ -336,13 +333,6 @@ impl Socks5ServiceState {
         self.lazy_socks5 = None;
         debug!("SOCKS5 service cleanup complete");
     }
-}
-
-fn is_tunnel_down(tunnel_state: &TunnelState) -> bool {
-    matches!(
-        tunnel_state,
-        TunnelState::Disconnected | TunnelState::Error(_)
-    )
 }
 
 enum Socks5Command {
@@ -478,14 +468,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn stays_enabled_when_tunnel_was_already_down() {
+    async fn disables_when_tunnel_goes_from_disconnected_to_error() {
         let mut state = enabled_state(TunnelState::Disconnected);
 
         state
-            .handle_tunnel_state_change(TunnelState::Disconnected)
+            .handle_tunnel_state_change(TunnelState::Error(ErrorStateReason::TunnelProvider))
             .await;
 
-        assert_eq!(state.state, Socks5State::Idle);
+        assert_eq!(state.state, Socks5State::Disabled);
     }
 
     #[tokio::test]
