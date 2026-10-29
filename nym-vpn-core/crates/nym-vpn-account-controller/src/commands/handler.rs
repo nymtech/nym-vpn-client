@@ -270,6 +270,7 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
+    session_id: u32,
 ) -> Result<(), AccountCommandError> {
     // We can only verify PIN if we're currently logged-in with an API account
     if let Some(ref account) = shared_state.vpn_api_account
@@ -277,7 +278,7 @@ pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
     {
         shared_state
             .qr_pairing_handler
-            .verified_pairing_pin(account)
+            .verified_pairing_pin(account, session_id)
             .await
     } else {
         tracing::error!("Cannot verify a pairing PIN when not logged-in with an API account");

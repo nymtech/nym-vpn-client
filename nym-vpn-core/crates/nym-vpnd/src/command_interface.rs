@@ -1028,9 +1028,11 @@ impl NymVpnService for CommandInterface {
 
     async fn verified_pairing_pin(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<u32>,
     ) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, ())
+        let session_id = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
             .await?
             .map_err(|err| {
                 tonic::Status::internal(format!("Failed to verify pairing PIN: {err}"))

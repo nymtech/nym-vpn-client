@@ -225,7 +225,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<QrPairingConfirmation, AccountCommandError>>,
         String,
     ),
-    VerifiedPairingPin(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    VerifiedPairingPin(oneshot::Sender<Result<(), AccountCommandError>>, u32),
     CancelPairingProcess(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
@@ -1273,8 +1273,8 @@ impl NymVpnService {
             VpnServiceCommand::ScannedKey(tx, pub_key) => {
                 let _ = tx.send(self.handle_scanned_key(pub_key).await);
             }
-            VpnServiceCommand::VerifiedPairingPin(tx, ()) => {
-                let _ = tx.send(self.handle_verified_pairing_pin().await);
+            VpnServiceCommand::VerifiedPairingPin(tx, session_id) => {
+                let _ = tx.send(self.handle_verified_pairing_pin(session_id).await);
             }
             VpnServiceCommand::CancelPairingProcess(tx, ()) => {
                 let _ = tx.send(self.handle_cancel_pairing_process().await);
@@ -2333,8 +2333,13 @@ impl NymVpnService {
         self.account_command_tx.scanned_key(pub_key).await
     }
 
-    async fn handle_verified_pairing_pin(&self) -> Result<(), AccountCommandError> {
-        self.account_command_tx.verified_pairing_pin().await
+    async fn handle_verified_pairing_pin(
+        &self,
+        session_id: u32,
+    ) -> Result<(), AccountCommandError> {
+        self.account_command_tx
+            .verified_pairing_pin(session_id)
+            .await
     }
 
     async fn handle_cancel_pairing_process(&self) -> Result<(), AccountCommandError> {

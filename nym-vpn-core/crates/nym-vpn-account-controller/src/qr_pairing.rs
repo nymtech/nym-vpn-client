@@ -70,6 +70,7 @@ enum QrPairingProcessHandle {
     None,
     PairingCheck {
         shared_key: Arc<Mutex<Option<SharedSymmetricKey>>>,
+        session_id: u32,
         _drop_guard: DropGuard,
     },
     GetPairingSecret {
@@ -166,6 +167,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         let cancel_token = self.cancel_token.clone();
         let shared_key = Arc::new(Mutex::new(None));
         let shared_key_setter = shared_key.clone();
+        let session_id = self.session_id;
 
         tokio::spawn(async move {
             loop {
@@ -230,6 +232,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
 
         QrPairingProcessHandle::PairingCheck {
             _drop_guard: cancel_token.drop_guard(),
+            session_id,
             shared_key,
         }
     }
@@ -502,12 +505,21 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
     async fn verified_pairing_pin_can_fail(
         &self,
         account: &Arc<VpnAccount>,
+        verified_session_id: u32,
     ) -> Result<(), AccountCommandError> {
-        let QrPairingProcessHandle::PairingCheck { ref shared_key, .. } = self.process_handle
+        let QrPairingProcessHandle::PairingCheck {
+            ref shared_key,
+            session_id,
+            ..
+        } = self.process_handle
         else {
             tracing::warn!("Pairing needs to be started first");
             return Err(AccountCommandError::PairingNotStarted);
         };
+        if verified_session_id != session_id {
+            tracing::error!("Started a new session with a different PIN");
+            return Err(AccountCommandError::PairingSessionIdMismatch);
+        }
         let (enc_mnemonic, nonce) = {
             let shared_key_lock = shared_key.lock().await;
             let Some(shared_key) = shared_key_lock.as_ref() else {
@@ -536,8 +548,11 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
     pub(crate) async fn verified_pairing_pin(
         &mut self,
         account: &Arc<VpnAccount>,
+        session_id: u32,
     ) -> Result<(), AccountCommandError> {
-        let ret = self.verified_pairing_pin_can_fail(account).await;
+        let ret = self
+            .verified_pairing_pin_can_fail(account, session_id)
+            .await;
         self.process_handle = QrPairingProcessHandle::None;
         ret
     }
@@ -822,7 +837,7 @@ mod tests {
         let generated_pin_code = logged_out_handler
             .scanned_key(
                 qr_pub_key,
-                logged_in_event_sender.clone(),
+                logged_out_event_sender.clone(),
                 cancel_token.child_token(),
             )
             .await
@@ -833,7 +848,7 @@ mod tests {
         // and be confirmed for match
         let AccountControllerEvent::Pairing(PairingResult {
             event: PairingEvent::PinCode(received_pin_code),
-            ..
+            session_id,
         }) = logged_in_event_sender.subscribe().recv().await.unwrap()
         else {
             panic!("no pin code event")
@@ -842,7 +857,7 @@ mod tests {
 
         // after PINs were cross checked, the logged in device initiates sharing of the secret
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, session_id)
             .await
             .unwrap();
 
@@ -950,14 +965,14 @@ mod tests {
 
         // the shared key was never derived, so the PIN can't be verified
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
 
         // the failed verification also discards the timed out process
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1036,7 +1051,7 @@ mod tests {
         assert!(matches!(event, PairingEvent::Cancelled), "{event:?}");
 
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1099,7 +1114,7 @@ mod tests {
         assert_channel_closed(&mut logged_in_event_rx).await;
 
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1136,7 +1151,7 @@ mod tests {
 
         // the secret shared afterwards is never picked up
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap();
         assert_channel_closed(&mut logged_out_event_rx).await;
@@ -1169,7 +1184,7 @@ mod tests {
         let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingEvent::PinCode(_)), "{event:?}");
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap();
         let PairingEvent::Mnemonic(mnemonic) =
@@ -1284,7 +1299,7 @@ mod tests {
 
         // and the mnemonic can't be shared anymore
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1317,7 +1332,7 @@ mod tests {
             let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
             assert!(matches!(event, PairingEvent::PinCode(_)), "{event:?}");
             logged_in_handler
-                .verified_pairing_pin(&account)
+                .verified_pairing_pin(&account, url.session_id)
                 .await
                 .unwrap();
 
@@ -1342,7 +1357,7 @@ mod tests {
         let (mut logged_in_handler, _, _) = new_handler(&api_db);
 
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, 0)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1362,7 +1377,7 @@ mod tests {
             .unwrap();
 
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
@@ -1372,7 +1387,7 @@ mod tests {
         let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingEvent::Cancelled), "{event:?}");
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1403,11 +1418,11 @@ mod tests {
         assert!(matches!(event, PairingEvent::PinCode(_)), "{event:?}");
 
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap();
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1436,7 +1451,7 @@ mod tests {
 
         // the logged out device is waiting for the secret, it has no PIN to verify
         let err = logged_out_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::PairingNotStarted);
@@ -1518,7 +1533,7 @@ mod tests {
         let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
         assert!(matches!(event, PairingEvent::PinCode(_)), "{event:?}");
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap();
         let PairingEvent::Mnemonic(mnemonic) =
@@ -1673,7 +1688,7 @@ mod tests {
         assert!(matches!(event, PairingEvent::Error(_)), "{event:?}");
 
         let err = logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
         assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
@@ -1720,7 +1735,7 @@ mod tests {
         assert!(matches!(event, PairingEvent::PinCode(_)), "{event:?}");
 
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, second_url.session_id)
             .await
             .unwrap();
         let PairingEvent::Mnemonic(mnemonic) =
@@ -1788,7 +1803,7 @@ mod tests {
         let event = next_pairing_event(&mut logged_in_event_rx, second_url.session_id).await;
         assert!(matches!(event, PairingEvent::PinCode(_)), "{event:?}");
         logged_in_handler
-            .verified_pairing_pin(&account)
+            .verified_pairing_pin(&account, second_url.session_id)
             .await
             .unwrap();
         let PairingEvent::Mnemonic(mnemonic) =

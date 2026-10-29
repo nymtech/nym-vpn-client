@@ -77,7 +77,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                     AccountCommand::ScannedKey(return_sender, remote_qr_pub_key) => {
                         return_sender.send(handler::handle_qr_scanned_key(shared_state, &remote_qr_pub_key).await);
                     }
-                    AccountCommand::VerifiedPairingPin(return_sender) => return_no_account(return_sender),
+                    AccountCommand::VerifiedPairingPin(return_sender, _) => return_no_account(return_sender),
                     AccountCommand::CancelPairingProcess(return_sender) => {
                         return_sender.send(handler::handle_qr_cancel_pairing_process(shared_state));
                     },
