@@ -123,12 +123,16 @@ where
 
         let mut account_controller_event_rx = event_channel.subscribe();
         tokio::spawn(async move {
-            while let Ok(event) = account_controller_event_rx.recv().await {
-                match event {
-                    AccountControllerEvent::NewState(_) => {}
-                    AccountControllerEvent::Pairing(pairing_result) => {
+            loop {
+                match account_controller_event_rx.recv().await {
+                    Ok(AccountControllerEvent::NewState(_)) => {}
+                    Ok(AccountControllerEvent::Pairing(pairing_result)) => {
                         let _ = event_tx.send(nym_vpn_lib_types::Event::Pairing(pairing_result));
                     }
+                    Err(broadcast::error::RecvError::Lagged(skipped)) => {
+                        tracing::warn!("Skipped {skipped} account controller events");
+                    }
+                    Err(broadcast::error::RecvError::Closed) => break,
                 }
             }
         });

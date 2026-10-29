@@ -60,6 +60,9 @@ pub enum VpnError {
     #[error("verify PIN has to be called after starting the pairing process")]
     PairingNotStarted,
 
+    #[error("pairing operation for different session")]
+    PairingSessionIdMismatch,
+
     #[error("pairing process hasn't produced a shared secret yet")]
     NoPairingSharedSecret,
 
@@ -152,6 +155,7 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::DeeplinkError(message) => Self::DeeplinkError { details: message },
             AccountCommandError::InvalidPublicKey(err) => Self::InvalidPublicKey { details: err },
             AccountCommandError::PairingNotStarted => Self::PairingNotStarted,
+            AccountCommandError::PairingSessionIdMismatch => Self::PairingSessionIdMismatch,
             AccountCommandError::NoPairingSharedSecret => Self::NoPairingSharedSecret,
             AccountCommandError::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret { details: err }

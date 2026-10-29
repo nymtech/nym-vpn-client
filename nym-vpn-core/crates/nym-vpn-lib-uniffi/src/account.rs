@@ -285,9 +285,9 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
-    pub async fn verified_pairing_pin(&self) -> Result<(), VpnError> {
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<(), VpnError> {
         self.account_command_sender
-            .verified_pairing_pin()
+            .verified_pairing_pin(session_id)
             .await
             .map_err(VpnError::from)
     }

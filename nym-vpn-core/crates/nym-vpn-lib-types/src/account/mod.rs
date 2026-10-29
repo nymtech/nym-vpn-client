@@ -119,6 +119,9 @@ pub enum AccountCommandError {
     #[error("verify PIN has to be called after starting the pairing process")]
     PairingNotStarted,
 
+    #[error("pairing operation for different session")]
+    PairingSessionIdMismatch,
+
     #[error("pairing process hasn't produced a shared secret yet")]
     NoPairingSharedSecret,
 

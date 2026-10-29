@@ -74,6 +74,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::PairingNotStarted(_) => {
                 Self::PairingNotStarted
             }
+            proto::account_command_error::ErrorDetail::PairingSessionIdMismatch(_) => {
+                Self::PairingSessionIdMismatch
+            }
             proto::account_command_error::ErrorDetail::NoPairingSharedSecret(_) => {
                 Self::NoPairingSharedSecret
             }
@@ -176,6 +179,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::PairingNotStarted => proto::AccountCommandError {
                 error_detail: Some(
                     proto::account_command_error::ErrorDetail::PairingNotStarted(true),
+                ),
+            },
+            AccountCommandError::PairingSessionIdMismatch => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::PairingSessionIdMismatch(true),
                 ),
             },
             AccountCommandError::NoPairingSharedSecret => proto::AccountCommandError {
