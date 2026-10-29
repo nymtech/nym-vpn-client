@@ -539,21 +539,14 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
 
     pub async fn force_remote_bandwidth_query(&mut self) -> bool {
         let stats = self.networks.get_interface_stats();
-        let most_used_interface_usage = stats
-            .iter()
-            .map(
-                |InterfaceStats {
-                     interface_name: _,
-                     received,
-                     transmitted,
-                 }| received + transmitted,
-            )
-            .max()
-            .unwrap_or_default();
 
-        // if interface name is specified, consider that specific interface, otherwise consider the highest used interface
-        let exit_interface_usage =
-            consumption_for(&stats, &self.exit_interface_name).unwrap_or(most_used_interface_usage);
+        let Some(exit_interface_usage) = consumption_for(&stats, &self.exit_interface_name) else {
+            tracing::warn!(
+                "No exit interface name or the interface name was not found: {:?}",
+                self.exit_interface_name
+            );
+            return false;
+        };
         let packet_count = exit_interface_usage / EXIT_MTU as u64;
         let entry_interface_usage_fallback =
             exit_interface_usage + packet_count * WG_TUNNEL_OVERHEAD as u64;
@@ -1151,9 +1144,13 @@ mod tests {
     #[tokio::test]
     async fn system_bandwidth_monitor_above_threshold_returns_true() {
         // 4 GB combined > 2.5 GB threshold
-        let mock = MockNetworks::new().with_interface("eth0", 2 * BW_1GB, 5 * BW_1GB);
-        let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        let mock = MockNetworks::new().with_interface("wg0", 2 * BW_1GB, 5 * BW_1GB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            None,
+            Some("wg0".to_string()),
+            MINIMUM_REMAINING_BANDWIDTH,
+            mock,
+        );
         assert!(monitor.force_remote_bandwidth_query().await);
     }
 
@@ -1161,12 +1158,16 @@ mod tests {
     async fn system_bandwidth_monitor_exactly_at_threshold_returns_false() {
         // usage must be greater or equal to the threshold
         let mock = MockNetworks::new().with_interface(
-            "eth0",
+            "wg0",
             MINIMUM_REMAINING_BANDWIDTH / 2,
             MINIMUM_REMAINING_BANDWIDTH / 2,
         );
-        let mut monitor =
-            SystemBandwidthMonitor::with_networks(None, None, MINIMUM_REMAINING_BANDWIDTH, mock);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            None,
+            Some("wg0".to_string()),
+            MINIMUM_REMAINING_BANDWIDTH,
+            mock,
+        );
         assert!(monitor.force_remote_bandwidth_query().await);
     }
 
@@ -1193,8 +1194,8 @@ mod tests {
             .with_interface("eth0", BW_1MB, BW_1MB)
             .with_interface("wg0", 2 * BW_1GB, 2 * BW_1GB);
         let mut monitor = SystemBandwidthMonitor::with_networks(
-            Some("wg0".to_string()),
             None,
+            Some("wg0".to_string()),
             MINIMUM_REMAINING_BANDWIDTH,
             mock,
         );
@@ -1202,7 +1203,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn system_bandwidth_monitor_nonexistent_target_interface_returns_true() {
+    async fn system_bandwidth_monitor_nonexistent_target_interface_returns_fase() {
         // eth0 has 4 GB but we watch a non-existent interface, so value used is maximum
         let mock = MockNetworks::new().with_interface("eth0", 2 * BW_1GB, 2 * BW_1GB);
         let mut monitor = SystemBandwidthMonitor::with_networks(
@@ -1211,6 +1212,6 @@ mod tests {
             MINIMUM_REMAINING_BANDWIDTH,
             mock,
         );
-        assert!(monitor.force_remote_bandwidth_query().await);
+        assert!(!monitor.force_remote_bandwidth_query().await);
     }
 }
