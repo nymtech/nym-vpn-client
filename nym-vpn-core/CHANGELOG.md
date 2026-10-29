@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix the gateway mixnet score being decoded from the WireGuard score in the gRPC conversion (https://github.com/nymtech/nym-vpn-client/pull/6859)
+- Fix the gateway mixnet score being decoded from the general score in the gRPC conversion (https://github.com/nymtech/nym-vpn-client/pull/6859)
 - Fix `nym-vpnc connect --wait` waiting forever when the tunnel is already connected (https://github.com/nymtech/nym-vpn-client/pull/6849)
 - Fix `nym-vpnc` `--wait` options missing fast tunnel state changes and reporting success when the daemon's event stream ends (https://github.com/nymtech/nym-vpn-client/pull/6849)
 
