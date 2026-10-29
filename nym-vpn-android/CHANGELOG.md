@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Restore residential icon on exit servers list (https://github.com/nymtech/nym-vpn-client/pull/6793)
+- Show connected server country before server list loads (https://github.com/nymtech/nym-vpn-client/pull/6858)
+- Fix mixed "your country" subtitles after picking Auto (https://github.com/nymtech/nym-vpn-client/pull/6858)
 
 ## [2026.14.0] - 2026-10-22
 
