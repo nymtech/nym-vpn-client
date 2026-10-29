@@ -23,7 +23,7 @@ use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -323,7 +323,7 @@ pub struct NymVpnService {
     target_state: TargetState,
 
     // Last known tunnel state
-    tunnel_state: Arc<RwLock<TunnelState>>,
+    tunnel_state: TunnelState,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -609,7 +609,7 @@ impl NymVpnService {
         let stats_control_commands_sender = statistics_controller.get_commands_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let tunnel_state = TunnelState::Disconnected;
 
         // Initialize lazy SOCKS5 service (disabled by default)
         let socks5_service = Socks5Service::new(tunnel_state.clone());
@@ -915,7 +915,7 @@ impl NymVpnService {
     }
 
     async fn set_target_state(&mut self, new_state: TargetState) -> bool {
-        if self.target_state != new_state || self.tunnel_state.read().await.is_error_state() {
+        if self.target_state != new_state || self.tunnel_state.is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
 
@@ -974,34 +974,8 @@ impl NymVpnService {
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if let TunnelEvent::NewState(ref new_state) = event {
-            if let Ok(mut state) = self.tunnel_state.try_write() {
-                *state = new_state.clone();
-            } else {
-                tracing::error!("Failed to update tunnel state to {new_state}");
-            }
-
-            // Auto-disable SOCKS5 when VPN disconnects
-            if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_))
-                && self.socks5_service.is_enabled()
-            {
-                tracing::info!("VPN disconnected, auto-disabling SOCKS5 proxy");
-                let socks5_service = self.socks5_service.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = socks5_service.disable().await {
-                        tracing::error!("Failed to auto-disable SOCKS5 on VPN disconnect: {}", e);
-                    }
-                });
-            }
-
-            // When VPN connects, if SOCKS5 is already enabled, warn that it may not work
-            // because SOCKS5 might be using a different gateway than VPN
-            if matches!(new_state, TunnelState::Connected { .. })
-                && self.socks5_service.is_enabled()
-            {
-                tracing::warn!(
-                    "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
-                );
-            }
+            self.tunnel_state = new_state.clone();
+            self.socks5_service.tunnel_state_changed(new_state.clone());
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -1698,7 +1672,7 @@ impl NymVpnService {
         // For location-based exit points, check if VPN is connected first
         // If connected, use VPN's actual gateway to avoid firewall routing issues
         // (but only if it supports SOCKS5 - otherwise fall back to location-based selection)
-        let tunnel_state = self.tunnel_state.read().await.clone();
+        let tunnel_state = self.tunnel_state.clone();
 
         let ret = if let TunnelState::Connected { connection_data } = tunnel_state {
             // VPN is connected - try to use its actual exit gateway
@@ -1914,10 +1888,9 @@ impl NymVpnService {
 
         // Get current VPN exit gateway identity to exclude during random selection for privacy
         let vpn_exit_gateway_identity = {
-            let tunnel_state = self.tunnel_state.read().await;
             if let TunnelState::Connected {
                 ref connection_data,
-            } = *tunnel_state
+            } = self.tunnel_state
             {
                 Some(connection_data.exit_gateway.id.clone())
             } else {
@@ -1971,7 +1944,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.read().await.clone()
+        self.tunnel_state.clone()
     }
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -2043,7 +2016,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
             ));
@@ -2065,7 +2038,7 @@ impl NymVpnService {
     }
 
     async fn handle_delete_account(&mut self) -> Result<(), AccountCommandError> {
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to delete account while connected",
             ));
@@ -2090,7 +2063,7 @@ impl NymVpnService {
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
         // TODO: temporary, until key rotation can be done while connected
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to rotate keys while connected",
             ));
@@ -2159,7 +2132,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
             ));
@@ -2422,7 +2395,7 @@ impl NymVpnService {
         &self,
         mut params: DiagnosticRegisterParams,
     ) -> RegistrationReport {
-        if !(*self.tunnel_state.read().await == TunnelState::Disconnected
+        if !(self.tunnel_state == TunnelState::Disconnected
             && self.account_state_rx.get_state() == AccountControllerState::ReadyToConnect)
         {
             return RegistrationReport::from_err(
