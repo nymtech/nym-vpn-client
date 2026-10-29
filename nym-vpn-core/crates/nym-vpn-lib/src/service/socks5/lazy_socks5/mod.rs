@@ -218,14 +218,18 @@ impl LazySocks5 {
         };
 
         let shared = self.shared.clone();
+
+        // Create the guard immediately before spawning.
+        // This guarantees the atomic connection count is >= 1 before the idle loop ticks again.
+        let connection_guard = shared.connection_guard();
+
         tokio::spawn(async move {
+            // Keep connection_guard in scope for the lifetime of this proxy task
+            let _guard = connection_guard;
+
             let result = match route {
-                Route::ExistingTunnel => {
-                    let _guard = shared.connection_guard();
-                    Self::route_via_existing_tunnel(stream, addr).await
-                }
+                Route::ExistingTunnel => Self::route_via_existing_tunnel(stream, addr).await,
                 Route::NewTunnel => {
-                    let _guard = shared.connection_guard();
                     Box::pin(Self::route_via_new_tunnel(&shared, stream, addr)).await
                 }
                 Route::Reject => {
@@ -339,7 +343,7 @@ pub struct SharedState {
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
     /// Active connection counter
-    active_connections: AtomicU32,
+    active_connections: Arc<AtomicU32>,
     /// Whether `mixnet_client` holds a client, readable without waiting for initialization
     is_mixnet_running: AtomicBool,
     /// Mixnet client, locked for the whole initialization to prevent concurrent initialization
@@ -356,7 +360,7 @@ impl SharedState {
             config,
             tunnel_state,
             cancel_token,
-            active_connections: AtomicU32::new(0),
+            active_connections: Arc::new(AtomicU32::new(0)),
             is_mixnet_running: AtomicBool::new(false),
             mixnet_client: Mutex::new(None),
         }
@@ -371,8 +375,8 @@ impl SharedState {
     }
 
     /// Count a connection as active until the returned guard is dropped
-    fn connection_guard(&self) -> ConnectionGuard<'_> {
-        ConnectionGuard::new(&self.active_connections)
+    fn connection_guard(&self) -> ConnectionGuard {
+        ConnectionGuard::new(self.active_connections.clone())
     }
 }
 
