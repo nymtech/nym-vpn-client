@@ -13,12 +13,13 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags,
-    FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath,
-    LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport, Socks5Settings,
-    Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways,
-    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, EntryPoint, ExitPoint,
+    FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions,
+    LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport,
+    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -176,9 +177,11 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
+    pub async fn set_bridge_mode(&mut self, bridge_mode: BridgeMode) -> Result<()> {
         self.0
-            .set_enable_bridges(enable_bridges)
+            .set_bridge_mode(proto::BridgeModeRequest {
+                mode: proto::BridgeModes::from(bridge_mode).into(),
+            })
             .await
             .map_err(Error::Rpc)?
             .into_inner();
