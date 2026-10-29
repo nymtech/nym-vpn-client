@@ -177,15 +177,6 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
-        self.0
-            .set_enable_bridges(enable_bridges)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
     pub async fn set_bridge_mode(&mut self, bridge_mode: BridgeMode) -> Result<()> {
         self.0
             .set_bridge_mode(proto::BridgeModeRequest {

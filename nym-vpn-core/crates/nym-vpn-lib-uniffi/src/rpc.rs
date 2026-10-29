@@ -82,14 +82,6 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
-        self.inner
-            .clone()
-            .set_enable_bridges(enable_bridges)
-            .await?;
-        Ok(())
-    }
-
     pub async fn set_bridge_mode(&self, bridge_mode: BridgeMode) -> Result<()> {
         self.inner.clone().set_bridge_mode(bridge_mode).await?;
         Ok(())
