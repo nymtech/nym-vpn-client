@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
 
+### Fixed
+
+- SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds (https://github.com/nymtech/nym-vpn-client/pull/6850)
+
 
 ## [2026.14.0] - 2026-10-22
 
