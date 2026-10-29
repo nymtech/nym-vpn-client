@@ -24,14 +24,12 @@ import {
   isGateway,
   isRegion,
   isSafestAuto,
-  isWireguardData,
 } from '../../types';
 import { countriesWithRegions } from '../../constants';
-import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
 import { ScoreIndicator } from '../node/ScoreIndicator';
-import { isBridgeMode, regionToCountryCode } from './util';
+import { regionToCountryCode } from './util';
 
 const DURATION = 0.3;
 
@@ -59,7 +57,6 @@ export type SelectedNodeDisplayProps = {
   name: string;
   location?: string;
   ip?: string;
-  showQuic?: boolean;
   disabled?: boolean;
   showStreamOptimized?: boolean;
   score?: Score;
@@ -80,7 +77,6 @@ export function NodeRow({ type }: NodeRowProps) {
     wg,
     mxEntry,
     mxExit,
-    bridgeMode,
   } = useAppStore(
     useShallow((s) => ({
       state: s.state,
@@ -94,7 +90,6 @@ export function NodeRow({ type }: NodeRowProps) {
       wg: s.wg,
       mxEntry: s.mxEntry,
       mxExit: s.mxExit,
-      bridgeMode: s.bridgeMode,
     })),
   );
 
@@ -134,30 +129,12 @@ export function NodeRow({ type }: NodeRowProps) {
     navigate(routes.nodeLocation, { state: { tab: type } });
   };
 
-  const quicTag =
-    type === 'entry' &&
-    (isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel));
-
-  const bridgeTransport =
-    type === 'entry' && tunnel && isWireguardData(tunnel.data)
-      ? tunnel.data.entryBridgeAddr?.transport
-      : null;
-
-  const connectedDirectly =
-    type === 'entry' &&
-    state === 'connected' &&
-    bridgeMode === 'auto' &&
-    tunnel &&
-    isWireguardData(tunnel.data) &&
-    !tunnel.data.entryBridgeAddr;
-
   const gwFlags = useCallback(
     (gw: Gateway | null) => ({
-      showQuic: Boolean(quicTag && (bridgeTransport || gw?.quic)),
       showStreamOptimized: type === 'exit' && gw?.asn?.type === 'residential',
       score: gw?.type === 'wg' ? gw?.wgScore : gw?.mxScore,
     }),
-    [quicTag, bridgeTransport, type],
+    [type],
   );
 
   const getLocationInfo = useCallback(
@@ -409,16 +386,6 @@ export function NodeRow({ type }: NodeRowProps) {
               )}
             </div>
             <div className="flex flex-row items-center justify-center gap-3">
-              {connectedDirectly && (
-                <p className="text-text-secondary text-xs select-none">
-                  {t('connected-directly')}
-                </p>
-              )}
-              {nodeDetails.showQuic && (
-                <div>
-                  <QuicTag label={bridgeTransport?.toUpperCase()} />
-                </div>
-              )}
               {nodeDetails.showStreamOptimized && (
                 <MsIcon icon="smart_display" className="text-status-info" />
               )}

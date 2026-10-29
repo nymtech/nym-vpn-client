@@ -16,6 +16,7 @@
   "nym-entry-server": "Entry server",
   "nym-exit-server": "Exit server",
   "connected-directly": "Connected directly",
+  "connected-via-bridge": "Connected via {{transport}} bridge",
   "connection-time": "Connection time",
   "random-server": "Random server",
   "safest-server-selection": "Auto server selection",

@@ -1,48 +1,69 @@
-import { useMemo } from 'react';
+import clsx from 'clsx';
+import { Radio, RadioGroup } from '@headlessui/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import {
-  CardSwitch,
-  Link,
-  PageAnim,
-  RadioGroup,
-  RadioGroupOption,
-  SettingsMenuCardBig,
-} from '../../../ui';
+import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
 import { useToast } from '../../../hooks';
 import { BridgeMode } from '../../../types';
+
+const bridgeModes: BridgeMode[] = ['off', 'auto', 'on'];
+
+// Segmented control: equal-width segments with a sliding thumb.
+// Headless UI RadioGroup provides role=radiogroup/radio and arrow keys.
+function BridgeModeSelector({
+  value,
+  onChange,
+}: {
+  value: BridgeMode;
+  onChange: (mode: BridgeMode) => void;
+}) {
+  const { t } = useTranslation('settings');
+  const index = Math.max(0, bridgeModes.indexOf(value));
+
+  return (
+    <RadioGroup
+      value={value}
+      onChange={onChange}
+      aria-label={t('anti-censorship.bridge-mode.label')}
+      className="bg-surface-sunken relative flex rounded-full p-1"
+      data-testid="bridge-mode-radio-group"
+    >
+      <span
+        aria-hidden
+        style={{ '--i': index } as React.CSSProperties}
+        className={clsx(
+          'bg-brand-primary pointer-events-none absolute inset-y-1 start-1 w-[calc((100%-0.5rem)/3)] rounded-full shadow-sm',
+          'translate-x-[calc(var(--i)*100%)] rtl:translate-x-[calc(var(--i)*-100%)]',
+          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+        )}
+      />
+      {bridgeModes.map((mode) => (
+        <Radio
+          key={mode}
+          value={mode}
+          className={({ checked }) =>
+            clsx(
+              'relative z-10 flex min-h-10 flex-1 cursor-default items-center justify-center rounded-full text-sm',
+              'focus-visible:ring-brand-primary focus:outline-hidden focus-visible:ring-2',
+              checked ? 'text-brand-on-primary' : 'text-text-primary',
+            )
+          }
+          data-testid={`bridge-mode-radio-group-option-${mode}`}
+        >
+          {t(`anti-censorship.bridge-mode.options.${mode}.label`)}
+        </Radio>
+      ))}
+    </RadioGroup>
+  );
+}
 
 function AntiCensorship() {
   const { bridgeMode, backendFlags, state, frontingMode } = useMainState();
   const { add } = useToast();
 
   const { t } = useTranslation('settings');
-
-  const bridgeOptions = useMemo<RadioGroupOption<BridgeMode>[]>(
-    () => [
-      {
-        key: 'off',
-        label: t('anti-censorship.bridge-mode.options.off.label'),
-        desc: t('anti-censorship.bridge-mode.options.off.desc'),
-        descWrap: true,
-      },
-      {
-        key: 'auto',
-        label: t('anti-censorship.bridge-mode.options.auto.label'),
-        desc: t('anti-censorship.bridge-mode.options.auto.desc'),
-        descWrap: true,
-      },
-      {
-        key: 'on',
-        label: t('anti-censorship.bridge-mode.options.on.label'),
-        desc: t('anti-censorship.bridge-mode.options.on.desc'),
-        descWrap: true,
-      },
-    ],
-    [t],
-  );
 
   const onBridgeModeChange = async (mode: BridgeMode) => {
     try {
@@ -109,6 +130,13 @@ function AntiCensorship() {
           }
         >
           <div className="flex flex-col gap-4">
+            <BridgeModeSelector
+              value={bridgeMode}
+              onChange={onBridgeModeChange}
+            />
+            <p className="text-text-primary text-sm">
+              {t(`anti-censorship.bridge-mode.options.${bridgeMode}.desc`)}
+            </p>
             <p className="text-text-secondary text-sm whitespace-pre-line">
               {t(
                 backendFlags.bridgeTransports
@@ -116,12 +144,6 @@ function AntiCensorship() {
                   : 'anti-censorship.bridge-mode.content',
               )}
             </p>
-            <RadioGroup
-              value={bridgeMode}
-              options={bridgeOptions}
-              onChange={onBridgeModeChange}
-              data-testid="bridge-mode-radio-group"
-            />
             <Link
               className="w-fit text-sm"
               text={t('anti-censorship.bridge-mode.link')}
