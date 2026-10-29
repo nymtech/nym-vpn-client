@@ -430,11 +430,12 @@ private fun MainScreenContent(
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
 	val profileName = appUiState.currentProfile?.let { stringResource(it.titleRes) }
-	val bridgeTransport = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)?.v1?.entryBridgeAddr?.transport
+	val wireguardTunnel = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)
 		.takeIf { connectionState == ConnectionState.Connected }
+	val bridgeTransport = wireguardTunnel?.v1?.entryBridgeAddr?.transport
 	val bridgeText = when {
 		bridgeTransport != null -> stringResource(R.string.connection_status_bridge, bridgeTransport.name)
-		connectionState == ConnectionState.Connected && appUiState.settings.bridgeMode == BridgeMode.AUTO ->
+		wireguardTunnel != null && appUiState.settings.bridgeMode == BridgeMode.AUTO ->
 			stringResource(R.string.connection_status_direct)
 		else -> null
 	}
