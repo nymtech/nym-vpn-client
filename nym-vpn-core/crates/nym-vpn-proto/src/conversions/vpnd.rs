@@ -42,7 +42,7 @@ impl TryFrom<proto::Performance> for nym_vpn_lib_types::Performance {
             score: proto::Score::try_from(value.score)
                 .map_err(|err| ConversionError::Decode("Performance.score", err))?
                 .into(),
-            mixnet_score: proto::Score::try_from(value.score)
+            mixnet_score: proto::Score::try_from(value.mixnet_score)
                 .map_err(|err| ConversionError::Decode("Performance.mixnet_score", err))?
                 .into(),
             load: proto::Score::try_from(value.load)
