@@ -460,9 +460,9 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    pub async fn verified_pairing_pin(&self) -> Result<()> {
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<()> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::VerifiedPairingPin, ())
+            .send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }

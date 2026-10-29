@@ -732,9 +732,9 @@ impl RpcClient {
         Ok(QrPairingConfirmation::from(response))
     }
 
-    pub async fn verified_pairing_pin(&mut self) -> Result<()> {
+    pub async fn verified_pairing_pin(&mut self, session_id: u32) -> Result<()> {
         self.0
-            .verified_pairing_pin(())
+            .verified_pairing_pin(session_id)
             .await
             .map_err(Error::Rpc)?
             .into_inner();

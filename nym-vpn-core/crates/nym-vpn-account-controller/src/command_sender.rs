@@ -87,10 +87,10 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn verified_pairing_pin(&self) -> Result<(), AccountCommandError> {
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::VerifiedPairingPin(tx))
+            .send(AccountCommand::VerifiedPairingPin(tx, session_id))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

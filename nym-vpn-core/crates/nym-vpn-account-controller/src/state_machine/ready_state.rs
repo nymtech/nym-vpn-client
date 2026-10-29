@@ -111,8 +111,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         return_sender.send(res);
                     },
                     AccountCommand::ScannedKey(return_sender, _) => return_existing_account(return_sender),
-                    AccountCommand::VerifiedPairingPin(return_sender) => {
-                        let res = handler::handle_qr_verified_pairing_pin(shared_state).await;
+                    AccountCommand::VerifiedPairingPin(return_sender, session_id) => {
+                        let res = handler::handle_qr_verified_pairing_pin(shared_state, session_id).await;
                         return_sender.send(res);
                     },
                     AccountCommand::CancelPairingProcess(return_sender) => {

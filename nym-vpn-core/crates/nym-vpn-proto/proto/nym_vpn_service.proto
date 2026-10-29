@@ -801,8 +801,9 @@ message AccountCommandError {
     string deeplink_error = 18;
     string invalid_public_key = 19;
     bool pairing_not_started = 20;
-    bool no_pairing_shared_secret = 21;
-    string pairing_deriving_shared_secret = 22;
+    bool pairing_session_id_mismatch = 21;
+    bool no_pairing_shared_secret = 22;
+    string pairing_deriving_shared_secret = 23;
   }
 }
 
@@ -1410,7 +1411,7 @@ service NymVpnService {
   rpc ScannedKey(google.protobuf.StringValue) returns (QrPairingConfirmationResponse) {}
 
   // Confirm that the pairing PIN matches on both devices, sharing the account with the other device
-  rpc VerifiedPairingPin(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc VerifiedPairingPin(google.protobuf.UInt32Value) returns (google.protobuf.Empty) {}
 
   // Cancel the running pairing process, e.g. when the user closes the pairing window
   rpc CancelPairingProcess(google.protobuf.Empty) returns (google.protobuf.Empty) {}

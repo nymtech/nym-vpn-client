@@ -82,7 +82,11 @@ pub enum Command {
         pub_key: String,
     },
     /// Confirm that the pairing PIN matches on both devices, sharing this account with the other device
-    VerifiedPairingPin,
+    VerifiedPairingPin {
+        /// The session id returned by the scanned key call
+        #[arg(long)]
+        session_id: u32,
+    },
     /// Cancel the running pairing process
     CancelPairingProcess,
 }
@@ -253,8 +257,8 @@ impl Command {
                 );
                 Ok(())
             }
-            Command::VerifiedPairingPin => {
-                rpc_client.verified_pairing_pin().await?;
+            Command::VerifiedPairingPin { session_id } => {
+                rpc_client.verified_pairing_pin(session_id).await?;
                 println!("Pairing PIN verified, the account is shared with the other device");
                 Ok(())
             }
