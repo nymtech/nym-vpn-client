@@ -1,3 +1,6 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 //! Lazy SOCKS5 proxy service that routes traffic through the Nym mixnet
 //!
 //! This module implements a lazy-initialized mixnet, triggered by the first SOCKS5 connection
@@ -13,12 +16,12 @@ mod lazy_socks5;
 mod util;
 
 use http_rpc::HttpRpc;
-use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error};
+use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error, LazySocks5Handle};
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::GatewayCacheHandle;
 use nym_network_defaults::v2::NymNetworkDetails;
 use nym_vpn_lib_types::TunnelState;
-use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
+use std::{net::SocketAddr, path::PathBuf, time::Duration};
 use tokio::{
     sync::{mpsc, oneshot, watch},
     task::JoinHandle,
@@ -75,10 +78,10 @@ struct Socks5ServiceState {
     error_message: Option<String>,
     /// Cancellation token for the wrapper and HTTP proxy
     cancel_token: Option<CancellationToken>,
-    /// Lazy SOCKS5 wrapper
-    lazy_socks5: Option<Arc<LazySocks5>>,
+    /// Status of the running lazy SOCKS5 wrapper
+    lazy_socks5: Option<LazySocks5Handle>,
     /// Lazy SOCKS5 task handle
-    lazy_socks5_handle: Option<JoinHandle<()>>,
+    lazy_socks5_task: Option<JoinHandle<()>>,
     /// HTTP RPC proxy task handle
     http_rpc_proxy_handle: Option<JoinHandle<()>>,
 }
@@ -95,7 +98,7 @@ impl Socks5ServiceState {
             error_message: None,
             cancel_token: None,
             lazy_socks5: None,
-            lazy_socks5_handle: None,
+            lazy_socks5_task: None,
             http_rpc_proxy_handle: None,
         }
     }
@@ -151,7 +154,7 @@ impl Socks5ServiceState {
         match self.state {
             Socks5State::Idle | Socks5State::Connected => {
                 // Already enabled - check if handle is still alive
-                if let Some(handle) = &self.lazy_socks5_handle
+                if let Some(handle) = &self.lazy_socks5_task
                     && !handle.is_finished()
                 {
                     debug!(
@@ -216,19 +219,12 @@ impl Socks5ServiceState {
             vpn_exit_gateway_identity,
             bandwidth_command_tx,
         };
-        let lazy_socks5 = Arc::new(LazySocks5::new(
+        let (lazy_socks5, lazy_socks5_task) = LazySocks5::spawn(
             config,
             self.tunnel_state_tx.subscribe(),
             cancel_token.clone(),
-        )?);
-
-        // Spawn lazy SOCKS5 task
-        let lazy_socks5_clone = lazy_socks5.clone();
-        let lazy_socks5_handle = tokio::spawn(async move {
-            if let Err(e) = lazy_socks5_clone.run().await {
-                error!("Lazy SOCKS5 error: {}", e);
-            }
-        });
+        )
+        .await?;
 
         info!("Lazy SOCKS5 service enabled successfully");
         info!(
@@ -262,7 +258,7 @@ impl Socks5ServiceState {
         self.state = Socks5State::Idle;
         self.error_message = None;
         self.lazy_socks5 = Some(lazy_socks5);
-        self.lazy_socks5_handle = Some(lazy_socks5_handle);
+        self.lazy_socks5_task = Some(lazy_socks5_task);
         self.http_rpc_proxy_handle = http_rpc_proxy_handle;
         self.cancel_token = Some(cancel_token);
 
@@ -316,7 +312,7 @@ impl Socks5ServiceState {
         }
 
         // Wait for the lazy SOCKS5 task to stop, which shuts down the mixnet client
-        if let Some(handle) = self.lazy_socks5_handle.take() {
+        if let Some(handle) = self.lazy_socks5_task.take() {
             debug!("Stopping lazy SOCKS5 wrapper task");
             if let Err(e) = handle.await {
                 error!("Lazy SOCKS5 wrapper task error: {:?}", e);
