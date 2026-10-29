@@ -12,9 +12,11 @@ use std::{
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
     net::TcpStream,
-    time::{Instant, sleep},
+    time::{Instant, sleep, timeout},
 };
 use tracing::{debug, error, info, warn};
+
+const REJECT_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 
 impl LazySocks5 {
     /// Handle the SOCKS5 connection via the existing mixnet tunnel
@@ -119,8 +121,7 @@ impl LazySocks5 {
         if let Err(e) = Box::pin(Self::ensure_backend_started_with_retry(shared, client_addr)).await
         {
             error!("Failed to start backend for {}: {}", client_addr, e);
-            // Send SOCKS5 error response
-            let _ = Self::send_socks5_error(&mut client_stream).await;
+            Self::reject_connection(&mut client_stream).await;
             return Err(e);
         }
 
@@ -134,7 +135,7 @@ impl LazySocks5 {
                     shared.config.internal_listen_address.to_owned(),
                     e
                 );
-                let _ = Self::send_socks5_error(&mut client_stream).await;
+                Self::reject_connection(&mut client_stream).await;
                 return Err(LazySocks5Error::InternalConnectionError(e));
             }
         };
@@ -161,8 +162,14 @@ impl LazySocks5 {
         Ok(())
     }
 
+    /// Read the client's SOCKS5 handshake and answer the request with a general failure
+    pub async fn reject_connection(stream: &mut TcpStream) {
+        let _ = timeout(REJECT_HANDSHAKE_TIMEOUT, Self::socks5_handshake(stream)).await;
+        let _ = Self::send_socks5_error(stream).await;
+    }
+
     /// Send a SOCKS5 general server failure error
-    pub async fn send_socks5_error(stream: &mut TcpStream) -> Result<(), std::io::Error> {
+    async fn send_socks5_error(stream: &mut TcpStream) -> Result<(), std::io::Error> {
         // SOCKS5 response: version 5, general failure (0x01), reserved, address type 1 (IPv4)
         // Followed by 4 bytes of zeros for address and 2 bytes for port
         let error_response = [0x05, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];

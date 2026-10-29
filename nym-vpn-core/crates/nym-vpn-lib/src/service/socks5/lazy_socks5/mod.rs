@@ -229,7 +229,7 @@ impl LazySocks5 {
                     Box::pin(Self::route_via_new_tunnel(&shared, stream, addr)).await
                 }
                 Route::Reject => {
-                    let _ = Self::send_socks5_error(&mut stream).await;
+                    Self::reject_connection(&mut stream).await;
                     Ok(())
                 }
             };
