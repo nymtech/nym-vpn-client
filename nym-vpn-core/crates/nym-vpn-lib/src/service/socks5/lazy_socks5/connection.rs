@@ -267,7 +267,8 @@ impl LazySocks5 {
                 stream.read_exact(&mut buf).await.map_err(|e| {
                     LazySocks5Error::Internal(format!("Failed to read IPv6 address: {}", e))
                 })?;
-                Ipv6Addr::from(buf).to_string()
+                // IPv6 literals need brackets so the port separator is unambiguous
+                format!("[{}]", Ipv6Addr::from(buf))
             }
             _ => {
                 return Err(LazySocks5Error::Internal(format!(
