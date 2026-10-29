@@ -63,8 +63,8 @@ pub enum Socks5Error {
 struct Socks5ServiceState {
     /// Current state
     state: Socks5State,
-    /// Shared tunnel state
-    tunnel_state: watch::Receiver<TunnelState>,
+    /// Tunnel state shared with the lazy SOCKS5 tasks
+    tunnel_state_tx: watch::Sender<TunnelState>,
     /// Whether the tunnel was disconnected or in error after the last tunnel state change
     tunnel_down: bool,
     /// SOCKS5 listen address
@@ -86,11 +86,12 @@ struct Socks5ServiceState {
 }
 
 impl Socks5ServiceState {
-    fn new(tunnel_state: watch::Receiver<TunnelState>) -> Self {
-        let tunnel_down = is_tunnel_down(&tunnel_state.borrow());
+    fn new(tunnel_state: TunnelState) -> Self {
+        let tunnel_down = is_tunnel_down(&tunnel_state);
+        let (tunnel_state_tx, _) = watch::channel(tunnel_state);
         Self {
             state: Socks5State::Disabled,
-            tunnel_state,
+            tunnel_state_tx,
             tunnel_down,
             socks5_listen_address: None,
             http_rpc_proxy_listen_address: None,
@@ -221,7 +222,7 @@ impl Socks5ServiceState {
         };
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,
-            self.tunnel_state.clone(),
+            self.tunnel_state_tx.subscribe(),
             cancel_token.clone(),
         )?);
 
@@ -278,6 +279,7 @@ impl Socks5ServiceState {
         let is_down = is_tunnel_down(&tunnel_state);
         let is_connected = matches!(tunnel_state, TunnelState::Connected { .. });
         self.tunnel_down = is_down;
+        self.tunnel_state_tx.send_replace(tunnel_state);
 
         let is_enabled = self.state != Socks5State::Disabled;
 
@@ -404,10 +406,11 @@ impl Socks5Service {
     /// Create a new lazy SOCKS5 service (starts in disabled state)
     ///
     /// The service disables itself when the tunnel becomes disconnected or enters an error state.
-    /// Tunnel state changes must be reported with [`Socks5Service::tunnel_state_changed`].
-    pub fn new(tunnel_state: watch::Receiver<TunnelState>) -> Self {
+    /// Tunnel state changes after `initial_tunnel_state` must be reported with
+    /// [`Socks5Service::tunnel_state_changed`].
+    pub fn new(initial_tunnel_state: TunnelState) -> Self {
         let (command_tx, command_rx) = mpsc::unbounded_channel();
-        tokio::spawn(Socks5ServiceState::new(tunnel_state).run(command_rx));
+        tokio::spawn(Socks5ServiceState::new(initial_tunnel_state).run(command_rx));
         Self { command_tx }
     }
 
@@ -457,7 +460,7 @@ mod tests {
 
     use super::*;
 
-    fn enabled_state(tunnel_state: watch::Receiver<TunnelState>) -> Socks5ServiceState {
+    fn enabled_state(tunnel_state: TunnelState) -> Socks5ServiceState {
         let mut state = Socks5ServiceState::new(tunnel_state);
         state.state = Socks5State::Idle;
         state
@@ -465,8 +468,7 @@ mod tests {
 
     #[tokio::test]
     async fn disables_when_tunnel_goes_down() {
-        let (_tx, rx) = watch::channel(TunnelState::Offline { reconnect: true });
-        let mut state = enabled_state(rx);
+        let mut state = enabled_state(TunnelState::Offline { reconnect: true });
 
         state
             .handle_tunnel_state_change(TunnelState::Error(ErrorStateReason::SetDns))
@@ -477,8 +479,7 @@ mod tests {
 
     #[tokio::test]
     async fn stays_enabled_when_tunnel_was_already_down() {
-        let (_tx, rx) = watch::channel(TunnelState::Disconnected);
-        let mut state = enabled_state(rx);
+        let mut state = enabled_state(TunnelState::Disconnected);
 
         state
             .handle_tunnel_state_change(TunnelState::Disconnected)
@@ -489,8 +490,7 @@ mod tests {
 
     #[tokio::test]
     async fn stays_enabled_while_tunnel_is_up() {
-        let (_tx, rx) = watch::channel(TunnelState::Disconnected);
-        let mut state = enabled_state(rx);
+        let mut state = enabled_state(TunnelState::Disconnected);
 
         state
             .handle_tunnel_state_change(TunnelState::Offline { reconnect: true })
@@ -501,9 +501,8 @@ mod tests {
 
     #[tokio::test]
     async fn disables_when_tunnel_goes_down_and_up_in_quick_succession() {
-        let (_tx, rx) = watch::channel(TunnelState::Offline { reconnect: true });
         let (command_tx, command_rx) = mpsc::unbounded_channel();
-        tokio::spawn(enabled_state(rx).run(command_rx));
+        tokio::spawn(enabled_state(TunnelState::Offline { reconnect: true }).run(command_rx));
         let service = Socks5Service { command_tx };
 
         service.tunnel_state_changed(TunnelState::Disconnected);
