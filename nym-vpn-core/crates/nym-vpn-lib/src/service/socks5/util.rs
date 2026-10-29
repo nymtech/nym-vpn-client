@@ -1,32 +1,22 @@
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::sync::atomic::{AtomicU32, Ordering};
 use tracing::debug;
 
 /// RAII guard to ensure connection counter is decremented when dropped
-pub struct ConnectionGuard {
-    active_connections: Arc<RwLock<u32>>,
+pub struct ConnectionGuard<'a> {
+    active_connections: &'a AtomicU32,
 }
 
-impl ConnectionGuard {
-    pub async fn new(active_connections: Arc<RwLock<u32>>) -> Self {
-        {
-            let mut count = active_connections.write().await;
-            *count += 1;
-            debug!("Active connections: {}", *count);
-        }
+impl<'a> ConnectionGuard<'a> {
+    pub fn new(active_connections: &'a AtomicU32) -> Self {
+        let count = active_connections.fetch_add(1, Ordering::Relaxed) + 1;
+        debug!("Active connections: {}", count);
         Self { active_connections }
     }
 }
 
-impl Drop for ConnectionGuard {
+impl Drop for ConnectionGuard<'_> {
     fn drop(&mut self) {
-        let active_connections = self.active_connections.clone();
-        tokio::spawn(async move {
-            let mut count = active_connections.write().await;
-            if *count > 0 {
-                *count -= 1;
-                debug!("Active connections: {}", *count);
-            }
-        });
+        let count = self.active_connections.fetch_sub(1, Ordering::Relaxed) - 1;
+        debug!("Active connections: {}", count);
     }
 }

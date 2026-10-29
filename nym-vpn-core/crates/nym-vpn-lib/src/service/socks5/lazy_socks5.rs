@@ -10,7 +10,10 @@ use rand::seq::IndexedRandom;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicU32, Ordering},
+    },
     time::Duration,
 };
 use tokio::{
@@ -77,17 +80,13 @@ pub struct LazySocks5 {
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
     /// Active connection counter
-    active_connections: Arc<RwLock<u32>>,
-    /// Last connection closed timestamp
-    last_connection_closed: Arc<RwLock<Option<Instant>>>,
-    /// Is mixnet running
-    is_mixnet_running: Arc<RwLock<bool>>,
-    /// Mixnet client
-    mixnet_client: Arc<RwLock<Option<Socks5MixnetClient>>>,
-    /// Mutex to prevent concurrent initialization
-    init_mutex: Arc<Mutex<()>>,
+    active_connections: AtomicU32,
+    /// Whether `mixnet_client` holds a client, readable without waiting for initialization
+    is_mixnet_running: AtomicBool,
+    /// Mixnet client, locked for the whole initialization to prevent concurrent initialization
+    mixnet_client: Mutex<Option<Socks5MixnetClient>>,
     /// Last time Network Requester was rotated
-    last_rotation: Arc<RwLock<Option<Instant>>>,
+    last_rotation: RwLock<Option<Instant>>,
 }
 
 impl LazySocks5 {
@@ -107,12 +106,10 @@ impl LazySocks5 {
             config,
             tunnel_state,
             cancel_token,
-            active_connections: Arc::new(RwLock::new(0)),
-            last_connection_closed: Arc::new(RwLock::new(None)),
-            is_mixnet_running: Arc::new(RwLock::new(false)),
-            mixnet_client: Arc::new(RwLock::new(None)),
-            init_mutex: Arc::new(Mutex::new(())),
-            last_rotation: Arc::new(RwLock::new(None)),
+            active_connections: AtomicU32::new(0),
+            is_mixnet_running: AtomicBool::new(false),
+            mixnet_client: Mutex::new(None),
+            last_rotation: RwLock::new(None),
         })
     }
 
@@ -230,9 +227,8 @@ impl LazySocks5 {
             }
         }
 
-        // Wait for any mixnet client initialization in progress, so the client it creates is shut
+        // Waits for any mixnet client initialization in progress, so the client it creates is shut
         // down too
-        let _init_guard = self.init_mutex.lock().await;
         self.shutdown_backend().await;
 
         info!("Lazy SOCKS5 wrapper stopped");
@@ -248,7 +244,7 @@ impl LazySocks5 {
         info!("Routing connection from {client_addr} via existing Mixnet tunnel");
 
         // Create connection guard - will automatically decrement on drop
-        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
+        let _guard = ConnectionGuard::new(&self.active_connections);
 
         // Parse SOCKS5 handshake and request
         let target_addr = match Self::socks5_handshake(&mut client_stream).await {
@@ -482,7 +478,7 @@ impl LazySocks5 {
         info!("Routing connection from {client_addr} via new Mixnet tunnel");
 
         // Create connection guard - will automatically decrement on drop
-        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
+        let _guard = ConnectionGuard::new(&self.active_connections);
 
         // Ensure backend is started (lazy initialization) with retries
         if let Err(e) = Box::pin(self.ensure_backend_started_with_retry(client_addr)).await {
@@ -575,16 +571,9 @@ impl LazySocks5 {
 
     /// Ensure the backend is started (lazy initialization)
     async fn ensure_backend_started(&self) -> Result<(), LazySocks5Error> {
-        // Client already initialized - quick check without mutex
-        if self.mixnet_client.read().await.is_some() {
-            return Ok(());
-        }
-
-        // Acquire init mutex to prevent concurrent initialization
-        let _init_guard = self.init_mutex.lock().await;
-
-        // Double-check after acquiring mutex (another task might have initialized it)
-        if self.mixnet_client.read().await.is_some() {
+        // Hold the lock until the client is stored to prevent concurrent initialization
+        let mut mixnet_client_slot = self.mixnet_client.lock().await;
+        if mixnet_client_slot.is_some() {
             return Ok(());
         }
 
@@ -825,7 +814,9 @@ impl LazySocks5 {
             mixnet_client.nym_address()
         );
 
-        *self.mixnet_client.write().await = Some(mixnet_client);
+        *mixnet_client_slot = Some(mixnet_client);
+        self.is_mixnet_running.store(true, Ordering::Relaxed);
+        drop(mixnet_client_slot);
 
         // Give the internal SOCKS5 server a moment to fully bind
         sleep(Duration::from_millis(100)).await;
@@ -901,7 +892,6 @@ impl LazySocks5 {
                     } else {
                         debug!("Connected to internal SOCKS5 server on first attempt");
                     }
-                    *self.is_mixnet_running.write().await = true;
                     return Ok(stream);
                 }
                 Err(e) => {
@@ -931,38 +921,25 @@ impl LazySocks5 {
 
     /// Monitor idle timeout and shut down backend when idle
     async fn monitor_idle_timeout(&self) {
-        loop {
-            // Wait a bit before checking
-            tokio::select! {
-                _ = self.cancel_token.cancelled() => break,
-                _ = sleep(Duration::from_secs(5)) => {}
-            }
+        // When the last connection closed, or None while there are active connections
+        let mut idle_since: Option<Instant> = None;
 
+        // Wait a bit before each check
+        while self
+            .cancel_token
+            .run_until_cancelled(sleep(Duration::from_secs(5)))
+            .await
+            .is_some()
+        {
             // Check if we should shut down
-            let should_shutdown = {
-                let count = self.active_connections.read().await;
-                if *count > 0 {
-                    // Still have active connections, reset timer
-                    let mut last_closed = self.last_connection_closed.write().await;
-                    *last_closed = None;
-                    false
-                } else {
-                    // No active connections
-                    let mut last_closed = self.last_connection_closed.write().await;
-                    if last_closed.is_none() {
-                        // Just became idle, start timer
-                        *last_closed = Some(Instant::now());
-                        false
-                    } else {
-                        // Check if timeout elapsed
-                        // last_closed is guaranteed to be Some() here due to the is_none() check above
-                        let elapsed = last_closed
-                            .as_ref()
-                            .expect("last_closed should be Some() after is_none() check")
-                            .elapsed();
-                        elapsed >= self.config.idle_timeout
-                    }
-                }
+            let should_shutdown = if self.active_connections() > 0 {
+                // Still have active connections, reset timer
+                idle_since = None;
+                false
+            } else {
+                // No active connections, start the timer if it is not running yet
+                let idle_since = *idle_since.get_or_insert_with(Instant::now);
+                idle_since.elapsed() >= self.config.idle_timeout
             };
 
             trace!("should_shutdown: {}", should_shutdown);
@@ -975,8 +952,7 @@ impl LazySocks5 {
                 self.shutdown_backend().await;
 
                 // Reset timer
-                let mut last_closed = self.last_connection_closed.write().await;
-                *last_closed = None;
+                idle_since = None;
             }
         }
     }
@@ -1035,7 +1011,7 @@ impl LazySocks5 {
             } else if vpn_connected_wireguard && !last_vpn_connected_wireguard {
                 // VPN just connected in WireGuard mode - if mixnet client is running, shut it down
                 // so it will be recreated with VPN's entry gateway on next connection
-                let is_running = self.is_mixnet_running().await;
+                let is_running = self.is_mixnet_running();
                 if is_running {
                     info!(
                         "VPN connected in WireGuard mode while mixnet client is running, shutting down mixnet client to ensure it uses VPN's entry gateway (firewall compatibility)"
@@ -1079,15 +1055,15 @@ impl LazySocks5 {
         let mut interval = tokio::time::interval(Duration::from_secs(60)); // Check every minute
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
-        loop {
-            tokio::select! {
-                _ = self.cancel_token.cancelled() => break,
-                _ = interval.tick() => {}
-            }
-
+        while self
+            .cancel_token
+            .run_until_cancelled(interval.tick())
+            .await
+            .is_some()
+        {
             // Only rotate if mixnet is running and dVPN (WireGuard) is connected
             let should_rotate = {
-                let is_running = self.is_mixnet_running().await;
+                let is_running = self.is_mixnet_running();
                 let tunnel_state = self.tunnel_state.borrow().clone();
                 let dvpn_wireguard_active = matches!(
                     tunnel_state,
@@ -1132,7 +1108,7 @@ impl LazySocks5 {
     /// Only rotates if there are no active connections to avoid disrupting ongoing transactions
     async fn rotate_network_requester(&self) {
         // Check if there are active connections
-        let active_count = self.active_connections().await;
+        let active_count = self.active_connections();
 
         if active_count > 0 {
             info!(
@@ -1293,10 +1269,10 @@ impl LazySocks5 {
     /// Shut down the backend
     /// Note: Callers should check for active connections before calling this
     async fn shutdown_backend(&self) {
-        let mut client_guard = self.mixnet_client.write().await;
+        let mut client_guard = self.mixnet_client.lock().await;
         if let Some(mixnet_client) = client_guard.take() {
             info!("Shutting down Nym mixnet client");
-            *self.is_mixnet_running.write().await = false;
+            self.is_mixnet_running.store(false, Ordering::Relaxed);
             mixnet_client.disconnect().await;
         }
     }
@@ -1312,13 +1288,13 @@ impl LazySocks5 {
     }
 
     /// Get the number of active connections
-    pub async fn active_connections(&self) -> u32 {
-        *self.active_connections.read().await
+    pub fn active_connections(&self) -> u32 {
+        self.active_connections.load(Ordering::Relaxed)
     }
 
     /// Is mixnet running
-    pub async fn is_mixnet_running(&self) -> bool {
-        *self.is_mixnet_running.read().await
+    pub fn is_mixnet_running(&self) -> bool {
+        self.is_mixnet_running.load(Ordering::Relaxed)
     }
 
     /// Get the public listen address
@@ -1428,7 +1404,7 @@ mod tests {
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
 
-        let client = socks5.mixnet_client.read().await;
+        let client = socks5.mixnet_client.lock().await;
         assert!(
             client.is_none(),
             "Mixnet client should be None initially (lazy init)"
@@ -1443,7 +1419,7 @@ mod tests {
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
 
-        let count = socks5.active_connections().await;
+        let count = socks5.active_connections();
         assert_eq!(count, 0, "Active connections should start at 0");
     }
 
@@ -1455,7 +1431,7 @@ mod tests {
 
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
 
-        let is_running = socks5.is_mixnet_running().await;
+        let is_running = socks5.is_mixnet_running();
         assert!(!is_running, "Mixnet should not be running initially");
     }
 
@@ -1468,17 +1444,17 @@ mod tests {
         let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
 
         // Simulate active connection
-        *socks5.active_connections.write().await = 5;
+        socks5.active_connections.store(5, Ordering::Relaxed);
 
         // Verify active connections
-        let count = socks5.active_connections().await;
+        let count = socks5.active_connections();
         assert_eq!(count, 5, "Should have 5 active connections");
 
         // Attempt rotation - should skip due to active connections
         socks5.rotate_network_requester().await;
 
         // Verify mixnet client is still None (not shutdown)
-        let client = socks5.mixnet_client.read().await;
+        let client = socks5.mixnet_client.lock().await;
         assert!(
             client.is_none(),
             "Client should still be None (rotation skipped)"
@@ -1594,19 +1570,14 @@ mod tests {
                 let socks5_clone = socks5.clone();
                 tokio::spawn(async move {
                     for _ in 0..5 {
-                        let mut count = socks5_clone.active_connections.write().await;
-                        *count += 1;
-                        drop(count);
+                        let guard = ConnectionGuard::new(&socks5_clone.active_connections);
 
                         // Check rotation (should be safe during concurrent access)
-                        let _ = socks5_clone.active_connections().await;
+                        let _ = socks5_clone.active_connections();
 
                         tokio::time::sleep(Duration::from_millis(i)).await;
 
-                        let mut count = socks5_clone.active_connections.write().await;
-                        if *count > 0 {
-                            *count -= 1;
-                        }
+                        drop(guard);
                     }
                 })
             })
@@ -1618,7 +1589,7 @@ mod tests {
         }
 
         // Should end at 0 (all increments/decrements balanced)
-        let final_count = socks5.active_connections().await;
+        let final_count = socks5.active_connections();
         assert_eq!(final_count, 0, "Connection count should be balanced");
     }
 

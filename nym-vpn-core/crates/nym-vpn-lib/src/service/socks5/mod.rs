@@ -102,13 +102,13 @@ impl Socks5ServiceState {
 
     async fn get_status(&self) -> Socks5Status {
         let active_connections = if let Some(lazy_socks5) = &self.lazy_socks5 {
-            lazy_socks5.active_connections().await
+            lazy_socks5.active_connections()
         } else {
             0
         };
 
         let is_mixnet_running = if let Some(lazy_socks5) = &self.lazy_socks5 {
-            lazy_socks5.is_mixnet_running().await
+            lazy_socks5.is_mixnet_running()
         } else {
             false
         };
