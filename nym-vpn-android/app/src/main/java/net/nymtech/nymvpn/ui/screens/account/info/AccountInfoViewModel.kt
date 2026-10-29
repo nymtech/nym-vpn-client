@@ -32,7 +32,6 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 
 	init {
 		loadAccountData()
-		if (isPlayDistribution) loadPlaySubscription()
 		viewModelScope.launch {
 			backendManager.accountSummaryFlow.collect { summary ->
 				_uiState.update { it.copy(bandwidth = summary?.toBandwidthUiState()) }
@@ -40,7 +39,8 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 		}
 	}
 
-	private fun loadPlaySubscription() = viewModelScope.launch {
+	fun loadPlaySubscription() = viewModelScope.launch {
+		if (!isPlayDistribution) return@launch
 		if (!billingManager.awaitReady(BILLING_READY_TIMEOUT)) return@launch
 		_uiState.update { it.copy(hasPlaySubscription = billingManager.hasActiveSubscription()) }
 	}

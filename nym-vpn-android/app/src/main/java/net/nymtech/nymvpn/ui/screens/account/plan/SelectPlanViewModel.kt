@@ -70,9 +70,10 @@ class SelectPlanViewModel @Inject constructor(private val billingManager: Billin
 		viewModelScope.launch {
 			_uiState.update { it.copy(isConnectingBilling = true) }
 			val ready = billingManager.awaitReady(BILLING_CONNECT_TIMEOUT)
+			val products = if (ready) billingManager.awaitProducts(PRODUCTS_TIMEOUT) else emptyList()
 			_uiState.update { it.copy(isConnectingBilling = false) }
-			if (ready) {
-				fetchSubscriptions()
+			if (products.isNotEmpty()) {
+				trialEligibilityRepository.refresh(viewModelScope)
 				_events.emit(SelectPlanEvent.ShowPlans)
 			} else {
 				Timber.tag(TAG).w("BillingUnavailableOnSelectPlan")

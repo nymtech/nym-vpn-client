@@ -49,7 +49,7 @@ class DeleteViewModel @Inject constructor(private val backendManager: BackendMan
 					awaitBillingReady() -> billingManager.hasRenewingSubscription()
 					else -> null
 				}
-				val isPlayCancelled = isPlayBilling && isPlayRenewing == false && billingManager.hasActiveSubscription()
+				val isPlayCancelled = isPlayBilling && isPlayRenewing == false && billingManager.hasActiveSubscription() == true
 				val subscription = backendManager.accountSummaryFlow.value
 					?.takeIf { it.isSubscriptionActive() }
 					?.toSubscriptionUiState()
