@@ -23,7 +23,7 @@
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E52C33F3D400465E84 /* ExternalLinkManager */; };
 		D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E72C33F3DA00465E84 /* ExternalLinkManager */; };
-		D925D5322CCFBEAF00C8286E /* PacketTunnelProvider+TunnelStatusListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */; };
+		D925D5322CCFBEAF00C8286E /* PacketTunnelProvider+StatusListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D925D5312CCFBEA100C8286E /* PacketTunnelProvider+StatusListener.swift */; };
 		D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9264E252B3DA062004594A8 /* Assets.xcassets */; };
 		D9281C452B877B8800834B53 /* Keychain in Frameworks */ = {isa = PBXBuildFile; productRef = D9281C442B877B8800834B53 /* Keychain */; };
 		D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = D92FBA2A2C6B6AB300D743DF /* ConfigurationManager */; };
@@ -223,7 +223,7 @@
 		58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-vpnd"; sourceTree = "<group>"; };
 		D90F19042BEED69D008D2232 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelActor.swift; sourceTree = "<group>"; };
-		D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunnelProvider+TunnelStatusListener.swift"; sourceTree = "<group>"; };
+		D925D5312CCFBEA100C8286E /* PacketTunnelProvider+StatusListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunnelProvider+StatusListener.swift"; sourceTree = "<group>"; };
 		D9264E252B3DA062004594A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9281C462B8884D400834B53 /* NymVPN.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPN.entitlements; sourceTree = "<group>"; };
 		D93551F12F4CED0C007AFE9D /* UINavigationController+SwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UINavigationController+SwipeBack.swift"; sourceTree = "<group>"; };
@@ -415,7 +415,7 @@
 			children = (
 				D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */,
 				D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */,
-				D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */,
+				D925D5312CCFBEA100C8286E /* PacketTunnelProvider+StatusListener.swift */,
 				D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */,
 				5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */,
 				D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */,
@@ -900,7 +900,7 @@
 			files = (
 				D956711E2D5144AE003BB2EA /* PacketTunneProvider+Messaging.swift in Sources */,
 				D9188A9E2CE12C5F0031E141 /* TunnelActor.swift in Sources */,
-				D925D5322CCFBEAF00C8286E /* PacketTunnelProvider+TunnelStatusListener.swift in Sources */,
+				D925D5322CCFBEAF00C8286E /* PacketTunnelProvider+StatusListener.swift in Sources */,
 				5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */,
 				D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */,
 				D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */,

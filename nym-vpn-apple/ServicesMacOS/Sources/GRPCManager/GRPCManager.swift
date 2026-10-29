@@ -64,7 +64,7 @@ let kRpcReconnectDelay = Duration.seconds(5)
 private extension GRPCManager {
     func connectRpcAndHandleEvents() async throws {
         let rpcClient = try await RpcClient()
-        let newRpcObserver = RPCTunnelObserver()
+        let newRpcObserver = RPCEventObserver()
 
         eventObserver = try await rpcClient.listenToEvents(observer: newRpcObserver)
         self.rpcClient = rpcClient
@@ -83,8 +83,17 @@ private extension GRPCManager {
         await onDisconnect()
     }
 
-    func didReceive(event: TunnelEvent) {
+    func didReceive(event: Event) {
         switch event {
+        case let .tunnel(tunnelEvent):
+            didReceive(tunnelEvent: tunnelEvent)
+        case .pairing:
+            break
+        }
+    }
+
+    func didReceive(tunnelEvent: TunnelEvent) {
+        switch tunnelEvent {
         case let .newState(tunnelState):
             updateTunnelStatus(with: tunnelState)
         case .mixnetState:
@@ -96,8 +105,6 @@ private extension GRPCManager {
         case .diagnosticsSuggested:
             break
         case .conflictDetected:
-            break
-        case .pairing:
             break
         }
     }
