@@ -19,7 +19,7 @@ use std::{
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
     net::{TcpListener, TcpStream},
-    sync::{Mutex, RwLock, watch},
+    sync::{Mutex, watch},
     time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
@@ -85,8 +85,6 @@ pub struct LazySocks5 {
     is_mixnet_running: AtomicBool,
     /// Mixnet client, locked for the whole initialization to prevent concurrent initialization
     mixnet_client: Mutex<Option<Socks5MixnetClient>>,
-    /// Last time Network Requester was rotated
-    last_rotation: RwLock<Option<Instant>>,
 }
 
 impl LazySocks5 {
@@ -109,7 +107,6 @@ impl LazySocks5 {
             active_connections: AtomicU32::new(0),
             is_mixnet_running: AtomicBool::new(false),
             mixnet_client: Mutex::new(None),
-            last_rotation: RwLock::new(None),
         })
     }
 
@@ -1055,6 +1052,9 @@ impl LazySocks5 {
         let mut interval = tokio::time::interval(Duration::from_secs(60)); // Check every minute
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
+        // Last time Network Requester was rotated
+        let mut last_rotation: Option<Instant> = None;
+
         while self
             .cancel_token
             .run_until_cancelled(interval.tick())
@@ -1074,23 +1074,13 @@ impl LazySocks5 {
                 if !is_running || !dvpn_wireguard_active {
                     false
                 } else {
-                    let mut last_rotation = self.last_rotation.write().await;
-                    if last_rotation.is_none() {
-                        // First rotation - start timer
-                        *last_rotation = Some(Instant::now());
-                        false
+                    // Start the timer on the first check
+                    let rotated_at = *last_rotation.get_or_insert_with(Instant::now);
+                    if rotated_at.elapsed() >= rotation_interval {
+                        last_rotation = Some(Instant::now());
+                        true
                     } else {
-                        // last_rotation is guaranteed to be Some() here due to the is_none() check above
-                        let elapsed = last_rotation
-                            .as_ref()
-                            .expect("last_rotation should be Some() after is_none() check")
-                            .elapsed();
-                        if elapsed >= rotation_interval {
-                            *last_rotation = Some(Instant::now());
-                            true
-                        } else {
-                            false
-                        }
+                        false
                     }
                 }
             };
@@ -1339,24 +1329,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_rotation_timer_initialization() {
-        let mut config = create_test_config();
-        config.network_requester_rotation_interval = Some(Duration::from_secs(25 * 60));
-
-        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
-        let cancel_token = CancellationToken::new();
-
-        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
-
-        // Verify rotation timer is None initially
-        let last_rotation = socks5.last_rotation.read().await;
-        assert!(
-            last_rotation.is_none(),
-            "Rotation timer should be None initially"
-        );
-    }
-
-    #[tokio::test]
     async fn test_fixed_network_requester_address() {
         let config = create_test_config();
         assert!(config.network_requester_address.is_some());
@@ -1500,58 +1472,6 @@ mod tests {
         assert!(
             LazySocks5::new(config3, tunnel_state, cancel_token).is_ok(),
             "Should create with NR3"
-        );
-    }
-
-    #[tokio::test]
-    async fn test_rotation_preserves_entry_gateway() {
-        // Verify that Network Requester rotation doesn't change entry gateway
-        // (which would cause firewall issues)
-
-        let mut config = create_test_config();
-        config.network_requester_address = Some("initial.nr@gateway".to_string());
-        config.network_requester_rotation_interval = Some(Duration::from_secs(1));
-
-        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
-        let cancel_token = CancellationToken::new();
-
-        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
-
-        // Initial state - no rotation yet
-        let initial_rotation = socks5.last_rotation.read().await;
-        assert!(
-            initial_rotation.is_none(),
-            "Should have no rotation timestamp initially"
-        );
-    }
-
-    #[tokio::test]
-    async fn test_rotation_timing_correctness() {
-        let mut config = create_test_config();
-        let rotation_interval = Duration::from_millis(100); // 100ms for testing
-        config.network_requester_rotation_interval = Some(rotation_interval);
-
-        let (_tunnel_state_tx, tunnel_state) = watch::channel(TunnelState::Disconnected);
-        let cancel_token = CancellationToken::new();
-
-        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
-
-        // Manually set rotation timestamp to test timing
-        *socks5.last_rotation.write().await = Some(Instant::now());
-
-        // Wait less than rotation interval
-        tokio::time::sleep(Duration::from_millis(50)).await;
-
-        let rotation_time = socks5.last_rotation.read().await;
-        assert!(
-            rotation_time.is_some(),
-            "Rotation timestamp should still be set"
-        );
-
-        let elapsed = rotation_time.unwrap().elapsed();
-        assert!(
-            elapsed < rotation_interval,
-            "Should not have reached rotation interval yet"
         );
     }
 
