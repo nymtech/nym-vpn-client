@@ -311,6 +311,14 @@ let package = Package(
             name: "PurchasesManagerTests",
             dependencies: ["PurchasesManager"],
             path: "Tests/PurchasesManagerTests"
+        ),
+        .testTarget(
+            name: "TunnelMixnetTests",
+            dependencies: [
+                "TunnelMixnet",
+                .product(name: "ConnectionTypes", package: "ServicesMutual")
+            ],
+            path: "Tests/TunnelMixnetTests"
         )
     ]
 )

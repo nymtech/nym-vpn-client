@@ -72,6 +72,51 @@ public struct MixnetConfig: Codable, Equatable {
         self.name = name
     }
 #endif
+
+    private enum CodingKeys: String, CodingKey {
+        case entryGateway, exitRouter, isTwoHopEnabled, bridgeMode, isStealthApiEnabled
+        case isAdBlockingEnabled, isErrorReportingEnabled, isStatisticsEnabled, isLanBypassEnabled
+        case mixnetTuning, name
+#if os(iOS)
+        case configPath, dataPath, logPath, customDns, gatewaySelectionAlgorithmConfig, isServerFamilyRemindersEnabled
+#endif
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case isQuicEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        entryGateway = try container.decode(EntryGateway.self, forKey: .entryGateway)
+        exitRouter = try container.decode(ExitRouter.self, forKey: .exitRouter)
+        isTwoHopEnabled = try container.decode(Bool.self, forKey: .isTwoHopEnabled)
+        // Stored before the bridge mode existed: carry the old QUIC flag over so the tunnel can still start.
+        if let mode = try container.decodeIfPresent(BridgeModeSetting.self, forKey: .bridgeMode) {
+            bridgeMode = mode
+        } else {
+            let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+            bridgeMode = try legacy.decode(Bool.self, forKey: .isQuicEnabled) ? .on : .off
+        }
+        isStealthApiEnabled = try container.decode(Bool.self, forKey: .isStealthApiEnabled)
+        isAdBlockingEnabled = try container.decode(Bool.self, forKey: .isAdBlockingEnabled)
+        isErrorReportingEnabled = try container.decode(Bool.self, forKey: .isErrorReportingEnabled)
+        isStatisticsEnabled = try container.decode(Bool.self, forKey: .isStatisticsEnabled)
+        isLanBypassEnabled = try container.decode(Bool.self, forKey: .isLanBypassEnabled)
+        mixnetTuning = try container.decode(MixnetTuningConfig.self, forKey: .mixnetTuning)
+        name = try container.decode(String.self, forKey: .name)
+#if os(iOS)
+        configPath = try container.decode(String.self, forKey: .configPath)
+        dataPath = try container.decode(String.self, forKey: .dataPath)
+        logPath = try container.decode(String.self, forKey: .logPath)
+        customDns = try container.decode([IpAddr].self, forKey: .customDns)
+        gatewaySelectionAlgorithmConfig = try container.decode(
+            NymGatewaySelectionAlgorithmConfig.self,
+            forKey: .gatewaySelectionAlgorithmConfig
+        )
+        isServerFamilyRemindersEnabled = try container.decode(Bool.self, forKey: .isServerFamilyRemindersEnabled)
+#endif
+    }
 }
 
 #if os(iOS)
@@ -118,15 +163,6 @@ extension MixnetConfig {
     public static func from(jsonString: String) -> MixnetConfig? {
         let decoder = JSONDecoder()
         guard let jsonData = jsonString.data(using: .utf8) else { return nil }
-        // Stored before the bridge mode existed: carry the old QUIC flag over so the tunnel can still start.
-        if var json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-           json["bridgeMode"] == nil,
-           let legacyQuic = json["isQuicEnabled"] as? Bool {
-            json["bridgeMode"] = (legacyQuic ? BridgeModeSetting.on : BridgeModeSetting.off).rawValue
-            if let migrated = try? JSONSerialization.data(withJSONObject: json) {
-                return try? decoder.decode(MixnetConfig.self, from: migrated)
-            }
-        }
         return try? decoder.decode(MixnetConfig.self, from: jsonData)
     }
 }
