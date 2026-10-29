@@ -11,8 +11,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, EntryPoint,
-    ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams,
+    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
+    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams,
     HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings, Socks5Status, SplitApp,
     SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode, SystemMessage,
@@ -82,11 +82,8 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
-        self.inner
-            .clone()
-            .set_enable_bridges(enable_bridges)
-            .await?;
+    pub async fn set_bridge_mode(&self, bridge_mode: BridgeMode) -> Result<()> {
+        self.inner.clone().set_bridge_mode(bridge_mode).await?;
         Ok(())
     }
 

@@ -7964,6 +7964,7 @@ name = "nym-vpn-lib-types"
 version = "2026.15.0-beta.1"
 dependencies = [
  "bip39",
+ "clap",
  "ipnetwork",
  "nym-bandwidth-controller",
  "nym-bridges-types",
