@@ -19,7 +19,10 @@ use nym_gateway_directory::GatewayCacheHandle;
 use nym_network_defaults::v2::NymNetworkDetails;
 use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
-use tokio::{sync::RwLock, task::JoinHandle};
+use tokio::{
+    sync::{RwLock, watch},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
@@ -61,7 +64,7 @@ struct Socks5ServiceState {
     /// Current state
     state: Socks5State,
     /// Shared tunnel state
-    tunnel_state: Arc<RwLock<TunnelState>>,
+    tunnel_state: watch::Receiver<TunnelState>,
     /// SOCKS5 listen address
     socks5_listen_address: Option<SocketAddr>,
     /// HTTP RPC listen address
@@ -81,7 +84,7 @@ struct Socks5ServiceState {
 }
 
 impl Socks5ServiceState {
-    fn new(tunnel_state: Arc<RwLock<TunnelState>>) -> Self {
+    fn new(tunnel_state: watch::Receiver<TunnelState>) -> Self {
         Self {
             state: Socks5State::Disabled,
             tunnel_state,
@@ -320,7 +323,7 @@ pub struct Socks5Service {
 
 impl Socks5Service {
     /// Create a new lazy SOCKS5 service (starts in disabled state)
-    pub fn new(tunnel_state: Arc<RwLock<TunnelState>>) -> Self {
+    pub fn new(tunnel_state: watch::Receiver<TunnelState>) -> Self {
         Self {
             state: Arc::new(RwLock::new(Socks5ServiceState::new(tunnel_state))),
         }
