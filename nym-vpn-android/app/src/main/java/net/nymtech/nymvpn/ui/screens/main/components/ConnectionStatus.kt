@@ -42,8 +42,6 @@ import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib_types.BridgeMode
-import nym_vpn_lib_types.BridgeTransport
 import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.EstablishConnectionState
 
@@ -59,8 +57,6 @@ fun ConnectionStatus(
 	vpnMode: Tunnel.Mode,
 	establishConnectionState: EstablishConnectionState? = null,
 	connectionTime: String? = null,
-	bridgeTransport: BridgeTransport? = null,
-	bridgeMode: BridgeMode = BridgeMode.OFF,
 	modifier: Modifier = Modifier,
 ) {
 	val context = LocalContext.current
@@ -272,18 +268,6 @@ fun ConnectionStatus(
 				color = MaterialTheme.colorScheme.primary,
 				modifier = Modifier.alpha(timeAlpha),
 			)
-			val bridgeText = when {
-				bridgeTransport != null -> stringResource(R.string.connection_status_bridge, bridgeTransport.name)
-				isConnected && bridgeMode == BridgeMode.AUTO -> stringResource(R.string.connection_status_direct)
-				else -> null
-			}
-			bridgeText?.let {
-				Text(
-					text = it,
-					style = MaterialTheme.typography.labelSmall,
-					color = MaterialTheme.colorScheme.onSurfaceVariant,
-				)
-			}
 		}
 	}
 }
