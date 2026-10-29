@@ -41,8 +41,8 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 
 	fun loadPlaySubscription() = viewModelScope.launch {
 		if (!isPlayDistribution) return@launch
-		if (!billingManager.awaitReady(BILLING_READY_TIMEOUT)) return@launch
-		_uiState.update { it.copy(hasPlaySubscription = billingManager.hasActiveSubscription()) }
+		val hasPlaySubscription = if (billingManager.awaitReady(BILLING_READY_TIMEOUT)) billingManager.hasActiveSubscription() else null
+		_uiState.update { it.copy(hasPlaySubscription = hasPlaySubscription) }
 	}
 
 	private fun loadAccountData() {
