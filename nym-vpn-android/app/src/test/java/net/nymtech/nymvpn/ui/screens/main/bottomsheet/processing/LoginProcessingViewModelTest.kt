@@ -221,6 +221,8 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig) = Unit
 	override suspend fun getPanelCollapsed(): Boolean = false
 	override suspend fun setPanelCollapsed(collapsed: Boolean) = Unit
+	override suspend fun getDismissedUpdateFloor(): String? = null
+	override suspend fun setDismissedUpdateFloor(floor: String) = Unit
 
 	private fun unsupported(): Nothing = throw UnsupportedOperationException("not used in LoginProcessingViewModelTest")
 }

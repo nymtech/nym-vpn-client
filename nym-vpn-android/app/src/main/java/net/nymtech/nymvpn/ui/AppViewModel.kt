@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -109,6 +110,17 @@ constructor(
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
 			AppUiState(),
 		)
+
+	init {
+		// Startup fetch can fail on first launch; retry once the tunnel is up
+		viewModelScope.launch {
+			backendManager.stateFlow
+				.map { it.tunnelState }
+				.distinctUntilChanged()
+				.filter { it == Tunnel.State.Up }
+				.collect { GatewayType.entries.forEach { type -> launch { gatewayCacheService.refresh(type) } } }
+		}
+	}
 
 	fun registerAccountInBackground() = viewModelScope.launch {
 		Timber.tag(TAG).i("RegisterAccountInBackgroundRequested")

@@ -427,7 +427,6 @@ private fun MainScreenContent(
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
-	val profileName = appUiState.currentProfile?.let { stringResource(it.titleRes) }
 	val panelState = ConnectPanelState(
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
@@ -435,9 +434,9 @@ private fun MainScreenContent(
 		connectMode = connectMode,
 		exitNode = ServerNode(
 			id = appUiState.exitPointGateway?.identity ?: "",
-			name = profileName.takeIf { appUiState.exitPointGateway == null } ?: appUiState.exitPointName.asString(context),
+			name = appUiState.exitPointName.asString(context),
 			countryCode = appUiState.exitPointCountry,
-			location = appUiState.exitPointLocation,
+			location = appUiState.exitPointLocation?.asString(context),
 			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
@@ -447,9 +446,9 @@ private fun MainScreenContent(
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
-			name = profileName.takeIf { appUiState.entryPointGateway == null } ?: appUiState.entryPointName.asString(context),
+			name = appUiState.entryPointName.asString(context),
 			countryCode = appUiState.entryPointCountry,
-			location = appUiState.entryPointLocation,
+			location = appUiState.entryPointLocation?.asString(context),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
 				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,

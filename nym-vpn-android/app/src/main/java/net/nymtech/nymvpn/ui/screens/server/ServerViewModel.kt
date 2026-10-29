@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -28,6 +29,8 @@ import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import net.nymtech.vpn.util.extensions.asFavoriteSelector
 import net.nymtech.vpn.util.extensions.toDisplayCountry
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FavoriteSelector
 import nym_vpn_lib_types.FavoriteSelectors
 import nym_vpn_lib_types.GatewayType
@@ -372,20 +375,34 @@ class ServerViewModel @Inject constructor(
 		Timber.tag(TAG).i("GatewaySelectionRequested location=%s", gatewayLocation)
 
 		runCatching {
+			val config = vpnConfigRepository.configFlow.first()
 			when (gatewayLocation) {
 				GatewayLocation.ENTRY -> {
-					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEntryPoint(id.asEntryPoint()))
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEntryPoint(id.asEntryPoint().alignedWith(config.exitPoint)))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=ENTRY")
 				}
 
 				GatewayLocation.EXIT -> {
-					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint().alignedWith(config.entryPoint)))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "GatewaySelectionFailed location=%s", gatewayLocation)
 		}
+	}
+
+	// List "Auto" has default flags; mirror the other side's Auto so profiles like Fastest stay consistent
+	private fun EntryPoint.alignedWith(exit: ExitPoint): EntryPoint = if (this is EntryPoint.Auto && exit is ExitPoint.Auto) {
+		EntryPoint.Auto(excludeUserCountry = exit.excludeUserCountry)
+	} else {
+		this
+	}
+
+	private fun ExitPoint.alignedWith(entry: EntryPoint): ExitPoint = if (this is ExitPoint.Auto && entry is EntryPoint.Auto) {
+		ExitPoint.Auto(excludeEntryPointCountry = entry.excludeUserCountry, excludeUserCountry = entry.excludeUserCountry)
+	} else {
+		this
 	}
 
 	private fun createCountryItem(locale: Locale, gateways: List<NymGateway>, selectors: List<FavoriteSelector>): ItemType.CountryItem {
