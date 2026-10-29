@@ -11,12 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add a bridge mode (auto, on, off) in place of the QUIC on/off setting (config v14). Auto connects over plain WireGuard first and alternates with the bridge on each retry. The gRPC setting still maps to on/off
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
-
-- Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
+- Add `--wait` to `nym-vpnc reconnect` to block until the tunnel has reconnected or failed (https://github.com/nymtech/nym-vpn-client/pull/6849)
 
 ### Changed
 
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
+- `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
+
+### Fixed
+
+- Fix `nym-vpnc connect --wait` waiting forever when the tunnel is already connected (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- Fix `nym-vpnc` `--wait` options missing fast tunnel state changes and reporting success when the daemon's event stream ends (https://github.com/nymtech/nym-vpn-client/pull/6849)
 
 
 ## [2026.14.0] - 2026-10-22
