@@ -1,6 +1,5 @@
 //! Receives HTTP requests and sends them to lazy SOCKS5 proxy.
 
-use super::lazy_socks5::LazySocks5;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use hyper::{
@@ -60,12 +59,12 @@ impl HttpRpc {
     }
 
     /// Start the HTTP RPC proxy server
-    pub async fn start(&mut self, lazy_socks5: Arc<LazySocks5>) -> Result<(), HttpRpcError> {
+    pub async fn start(&mut self, socks5_address: SocketAddr) -> Result<(), HttpRpcError> {
         let listen_address = self.config.listen_address.to_string();
         info!("Starting HTTP RPC proxy on {}", listen_address);
 
         // Get the SOCKS5 proxy public URL
-        let socks5_url = format!("socks5h://{}", lazy_socks5.public_address());
+        let socks5_url = format!("socks5h://{socks5_address}");
         info!("Configuring HTTP client with SOCKS5 proxy: {}", socks5_url);
 
         // Create reqwest client configured with SOCKS5 proxy

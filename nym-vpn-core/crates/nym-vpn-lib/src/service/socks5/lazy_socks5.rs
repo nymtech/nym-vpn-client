@@ -1208,11 +1208,6 @@ impl LazySocks5 {
     pub fn is_mixnet_running(&self) -> bool {
         self.is_mixnet_running.load(Ordering::Relaxed)
     }
-
-    /// Get the public listen address
-    pub fn public_address(&self) -> SocketAddr {
-        self.config.listen_address
-    }
 }
 
 #[cfg(test)]

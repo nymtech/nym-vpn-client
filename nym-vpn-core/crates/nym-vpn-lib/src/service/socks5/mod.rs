@@ -245,9 +245,8 @@ impl Socks5ServiceState {
             let mut http_proxy =
                 HttpRpc::new(http_rpc_address, request_timeout, cancel_token.clone());
 
-            let lazy_socks5_clone = lazy_socks5.clone();
             let handle = tokio::spawn(async move {
-                if let Err(e) = http_proxy.start(lazy_socks5_clone).await {
+                if let Err(e) = http_proxy.start(socks5_listen_address).await {
                     error!("HTTP RPC proxy error: {}", e);
                 }
             });
