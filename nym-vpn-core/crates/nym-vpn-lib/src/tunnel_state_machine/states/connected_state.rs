@@ -68,8 +68,8 @@ impl ConnectedState {
                 Endpoint::from_socket_address(wg.entry.endpoint, TransportProtocol::Udp),
                 |addr| {
                     let protocol = match addr.transport {
-                        Some(BridgeTransport::Tls | BridgeTransport::Ssh) => TransportProtocol::Tcp,
-                        Some(BridgeTransport::Quic) | None => TransportProtocol::Udp,
+                        BridgeTransport::Tls | BridgeTransport::Ssh => TransportProtocol::Tcp,
+                        BridgeTransport::Quic => TransportProtocol::Udp,
                     };
                     Endpoint::from_socket_address(addr.remote_addr, protocol)
                 },
