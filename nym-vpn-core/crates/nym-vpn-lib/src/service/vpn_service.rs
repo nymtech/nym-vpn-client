@@ -1473,12 +1473,13 @@ impl NymVpnService {
         }
 
         // Ensure that server name is not set to empty string
-        for dns_server in dns_servers.iter() {
+        for dns_server in dns_servers.iter_mut() {
             if dns_server.is_empty_server_name() {
                 return Err(SetCustomDnsError::EmptyServerName {
                     addr: dns_server.address(),
                 });
             }
+            dns_server.normalize_query_path();
         }
 
         if self.config_manager.set_custom_dns(dns_servers).await {

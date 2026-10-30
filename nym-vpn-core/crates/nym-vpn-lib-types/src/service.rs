@@ -693,6 +693,19 @@ impl DnsServer {
     pub fn is_empty_server_name(&self) -> bool {
         self.server_name().is_some_and(|v| v.is_empty())
     }
+
+    /// Prepends `/` to the query path if it's missing
+    pub fn normalize_query_path(&mut self) {
+        let query_path = match self {
+            Self::Https { query_path, .. } | Self::Http3 { query_path, .. } => query_path.as_mut(),
+            Self::Plain { .. } | Self::Tls { .. } | Self::Quic { .. } => None,
+        };
+        if let Some(path) = query_path
+            && !path.starts_with('/')
+        {
+            path.insert(0, '/');
+        }
+    }
 }
 
 impl std::fmt::Display for DnsServer {
@@ -816,4 +829,45 @@ pub struct VpnServiceInfo {
     pub git_commit: String,
     pub nym_network: NymNetworkDetails,
     pub nym_vpn_network: NymVpnNetwork,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::Ipv4Addr;
+
+    use super::*;
+
+    fn https(query_path: Option<&str>) -> DnsServer {
+        DnsServer::Https {
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port: None,
+            server_name: "dns.example".to_owned(),
+            query_path: query_path.map(str::to_owned),
+        }
+    }
+
+    fn http3(query_path: Option<&str>) -> DnsServer {
+        DnsServer::Http3 {
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port: None,
+            server_name: "dns.example".to_owned(),
+            query_path: query_path.map(str::to_owned),
+        }
+    }
+
+    #[test]
+    fn normalize_query_path() {
+        for make in [https, http3] {
+            for (input, expected) in [
+                (None, None),
+                (Some(""), Some("/")),
+                (Some("dns-query"), Some("/dns-query")),
+                (Some("/dns-query"), Some("/dns-query")),
+            ] {
+                let mut server = make(input);
+                server.normalize_query_path();
+                assert_eq!(server, make(expected));
+            }
+        }
+    }
 }
