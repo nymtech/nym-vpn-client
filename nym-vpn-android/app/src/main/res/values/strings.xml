@@ -623,7 +623,7 @@
 	<!-- Geo Exclusion -->
 	<string name="geo_exclusion_enable_title">Enable Geo-exclusion</string>
 	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>
-	<string name="geo_exclusion_beta_text">Beta version:  China only for now. More regions coming.</string>
+	<string name="geo_exclusion_beta_text">China only. More regions coming.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Traffic to excluded regions bypasses the VPN.</string>
 	<string name="geo_exclusion_server_title">Server</string>
 	<string name="geo_exclusion_sock55_title">SOCKS5 port</string>
