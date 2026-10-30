@@ -43,6 +43,9 @@ type SelectionResultSender = mpsc::Sender<SelectionResult>;
 type SelectedGatewaysStream =
     Arc<Mutex<Peekable<ReceiverStream<Result<SelectedGateways, GatewayProviderError>>>>>;
 
+/// Pre-compute at most this many different possibilities of selected gateways
+const SELECTION_BUFFER_SIZE: usize = 10;
+
 #[derive(Debug)]
 pub enum GatewayProviderEvent {
     /// Falling back to random for automatic selections on entry because of lack of user location
@@ -108,8 +111,11 @@ impl<C: GatewayCache> GatewayProvider<C> {
         let query_control = geo_ip_fetcher.query_control();
         let geo_ip_fetcher_handle = tokio::spawn(geo_ip_fetcher.run());
 
-        // Pre-compute at most 10 different possibilities of selected gateways
-        let (selection_tx, selection_rx) = mpsc::channel(10);
+        let (selection_tx, selection_rx) = mpsc::channel(SELECTION_BUFFER_SIZE);
+        let selected_gateways_stream = Arc::new(Mutex::new(tokio_stream::StreamExt::peekable(
+            ReceiverStream::new(selection_rx),
+        )));
+        let selected_gateways_stream_clone = selected_gateways_stream.clone();
         let gateway_cache_clone = gateway_cache.clone();
         let blacklisted_gateways_clone = blacklisted_gateways.clone();
         let selection_algorithm_handle = tokio::spawn(async move {
@@ -127,6 +133,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
                 tunnel_monitor_event_sender_rx,
+                selected_gateways_stream_clone,
                 gateway_cache_clone,
                 geo_ip_provider,
                 blacklisted_gateways_clone,
@@ -143,9 +150,6 @@ impl<C: GatewayCache> GatewayProvider<C> {
             )
             .await
         });
-        let selected_gateways_stream = Arc::new(Mutex::new(tokio_stream::StreamExt::peekable(
-            ReceiverStream::new(selection_rx),
-        )));
 
         // unify the two local handles into one
         let gateway_provider_handle = tokio::spawn(async {
@@ -204,8 +208,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         Peekable<ReceiverStream<Result<SelectedGateways, GatewayProviderError>>>,
         crate::tunnel_state_machine::Error,
     > {
-        // Pre-compute at most 10 different possibilities of selected gateways
-        let (selection_tx, selection_rx) = mpsc::channel(10);
+        let (selection_tx, selection_rx) = mpsc::channel(SELECTION_BUFFER_SIZE);
         tunnel_settings_tx
             .send(SelectAndSend {
                 tunnel_settings,
