@@ -38,6 +38,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -276,7 +277,9 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
-		onRenewSubscription = { deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION) },
+		onRenewSubscription = {
+			if (isPlayDistribution) navController.goFromRoot(Route.SelectPlan) else deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
+		},
 		onNavigateToSelectPlan = { navController.goFromRoot(Route.SelectPlan) },
 		isLoggedIn = appUiState.managerState.isMnemonicStored,
 		isScreenLockSet = deviceAuthViewModel::isScreenLockSet,
@@ -427,7 +430,6 @@ private fun MainScreenContent(
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
-	val profileName = appUiState.currentProfile?.let { stringResource(it.titleRes) }
 	val panelState = ConnectPanelState(
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
@@ -435,9 +437,9 @@ private fun MainScreenContent(
 		connectMode = connectMode,
 		exitNode = ServerNode(
 			id = appUiState.exitPointGateway?.identity ?: "",
-			name = profileName.takeIf { appUiState.exitPointGateway == null } ?: appUiState.exitPointName.asString(context),
+			name = appUiState.exitPointName.asString(context),
 			countryCode = appUiState.exitPointCountry,
-			location = appUiState.exitPointLocation,
+			location = appUiState.exitPointLocation?.asString(context),
 			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
@@ -447,9 +449,9 @@ private fun MainScreenContent(
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
-			name = profileName.takeIf { appUiState.entryPointGateway == null } ?: appUiState.entryPointName.asString(context),
+			name = appUiState.entryPointName.asString(context),
 			countryCode = appUiState.entryPointCountry,
-			location = appUiState.entryPointLocation,
+			location = appUiState.entryPointLocation?.asString(context),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
 				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,

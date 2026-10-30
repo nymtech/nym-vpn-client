@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+# NetworkManager does not rescan its keyfile directories on its own; pick up the shipped
+# NymVPN profile right away when NetworkManager is running.
+if [ "$1" = "configure" ] && command -v nmcli >/dev/null 2>&1; then
+    nmcli connection reload >/dev/null 2>&1 || true
+fi
+
+#DEBHELPER#
+exit 0

@@ -9,6 +9,7 @@ data class SelectPlanUiState(
 	val productsResolved: Boolean = false,
 	val trialEligibility: TrialEligibility = TrialEligibility.Loading,
 	val lastResolvedTrialEligible: Boolean? = null,
+	val isConnectingBilling: Boolean = false,
 ) {
 	val benefitsResolved: Boolean get() = productsResolved && lastResolvedTrialEligible != null
 

@@ -1,0 +1,8 @@
+[VPN Connection]
+name=nymvpn
+service=org.freedesktop.NetworkManager.nymvpn
+program=/usr/libexec/nm-nymvpn-service
+supports-multiple-connections=false
+
+[libnm]
+plugin=/usr/lib/NetworkManager/libnm-vpn-plugin-nymvpn.so
