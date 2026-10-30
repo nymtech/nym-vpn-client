@@ -44,6 +44,23 @@ pub const RPC_TIMEOUT: Duration = Duration::from_secs(5);
 pub type EventStream = Pin<Box<dyn Stream<Item = TunnelEvent> + Send>>;
 pub type DeactivationStream = Pin<Box<dyn Stream<Item = ()> + Send>>;
 
+/// The connection NetworkManager runs the VPN on top of.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Base {
+    /// NetworkManager's primary connection, as when the user activates the VPN.
+    Primary,
+    /// The loopback connection, which stays up while the device is offline.
+    Loopback,
+}
+
+/// The active connection of the VPN profile, as seen right after NetworkManager activated it.
+pub struct Watch {
+    /// Yields when NetworkManager starts deactivating the connection, which only happens when
+    /// the user disconnects it.
+    pub deactivation: DeactivationStream,
+    pub base: Base,
+}
+
 /// The daemon as the service sees it. Implemented for the gRPC client and by test fakes.
 pub trait Daemon: Send {
     /// (Re)open the connection to the daemon.
@@ -62,14 +79,14 @@ pub trait Sink: Send {
 
 /// NetworkManager as the service sees it. Implemented over D-Bus and by test fakes.
 pub trait Nm: Send {
-    /// Watch the active connection of the profile `uuid`. The stream yields when NetworkManager
-    /// starts deactivating it, which only happens when the user disconnects it.
-    fn watch_deactivation(
+    /// Watch the active connection of the profile `uuid`.
+    fn watch(&mut self, uuid: &str) -> impl Future<Output = Result<Watch, String>> + Send;
+    /// Ask NetworkManager to activate the profile `uuid` on top of `base`.
+    fn activate(
         &mut self,
         uuid: &str,
-    ) -> impl Future<Output = Result<DeactivationStream, String>> + Send;
-    /// Ask NetworkManager to activate the profile `uuid`.
-    fn activate(&mut self, uuid: &str) -> impl Future<Output = Result<(), String>> + Send;
+        base: Base,
+    ) -> impl Future<Output = Result<(), String>> + Send;
 }
 
 pub struct Service<D, S, N> {
@@ -83,6 +100,11 @@ pub struct Service<D, S, N> {
     user_disconnect: bool,
     /// UUID of the profile NetworkManager activated last.
     uuid: Option<String>,
+    /// What the current VPN connection runs on top of.
+    base: Base,
+    /// Set after NetworkManager tore the VPN down on its own: the profile to activate on
+    /// loopback once NetworkManager has the reply to its `Disconnect`.
+    activate_on_loopback: Option<String>,
     /// Set after NetworkManager tore the VPN down on its own while the daemon stayed up: the
     /// profile to activate again once the daemon reconnects.
     reactivate: Option<String>,
@@ -103,6 +125,8 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             deactivation: None,
             user_disconnect: false,
             uuid: None,
+            base: Base::Primary,
+            activate_on_loopback: None,
             reactivate: None,
             last_daemon_state: None,
             disconnect_deadline: None,
@@ -144,21 +168,22 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
 
     async fn watch_deactivation(&mut self, uuid: Option<String>) {
         self.user_disconnect = false;
+        self.base = Base::Primary;
         self.deactivation = match uuid {
-            Some(uuid) => match rpc(
-                "watch NetworkManager connection",
-                self.nm.watch_deactivation(&uuid),
-            )
-            .await
-            {
-                Ok(stream) => Some(stream),
-                Err(err) => {
-                    tracing::warn!(
-                        "cannot watch NetworkManager connection {uuid}, Disconnect will leave the daemon running: {err}"
-                    );
-                    None
+            Some(uuid) => {
+                match rpc("watch NetworkManager connection", self.nm.watch(&uuid)).await {
+                    Ok(watch) => {
+                        self.base = watch.base;
+                        Some(watch.deactivation)
+                    }
+                    Err(err) => {
+                        tracing::warn!(
+                            "cannot watch NetworkManager connection {uuid}, Disconnect will leave the daemon running: {err}"
+                        );
+                        None
+                    }
                 }
-            },
+            }
             None => {
                 tracing::warn!(
                     "Connect without a connection UUID, Disconnect will leave the daemon running"
@@ -277,6 +302,11 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                     "NetworkManager stopped the VPN without a user request, leaving the daemon {daemon_state}"
                 );
                 self.reactivate = self.uuid.clone();
+                // Moving to loopback means connecting from scratch, which would also pull the
+                // daemon out of its error state.
+                if self.base == Base::Primary && !matches!(daemon_state, TunnelState::Error(_)) {
+                    self.activate_on_loopback = self.uuid.clone();
+                }
                 let effects = self.machine.finish_stop();
                 self.apply(effects).await;
             }
@@ -331,11 +361,37 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
         self.idle_since = Instant::now();
         if connected {
             tracing::info!("daemon reconnected, activating NetworkManager connection {uuid}");
-            if let Err(err) = rpc("ActivateConnection", self.nm.activate(&uuid)).await {
+            if let Err(err) =
+                rpc("ActivateConnection", self.nm.activate(&uuid, Base::Primary)).await
+            {
                 tracing::warn!("cannot activate NetworkManager connection {uuid}: {err}");
             }
         } else {
             tracing::info!("daemon {state}, not activating NetworkManager connection {uuid}");
+        }
+    }
+
+    /// Activate the VPN again on loopback right after NetworkManager tore it down, so it stays up
+    /// while the device is offline. Without loopback, wait for the daemon to reconnect instead.
+    async fn move_to_loopback(&mut self) {
+        let Some(uuid) = self.activate_on_loopback.take() else {
+            return;
+        };
+        tracing::info!("activating NetworkManager connection {uuid} on loopback");
+        match rpc(
+            "ActivateConnection",
+            self.nm.activate(&uuid, Base::Loopback),
+        )
+        .await
+        {
+            Ok(()) => {
+                self.reactivate = None;
+                self.events = None;
+                self.idle_since = Instant::now();
+            }
+            Err(err) => tracing::warn!(
+                "cannot activate NetworkManager connection {uuid} on loopback, waiting for the daemon to reconnect: {err}"
+            ),
         }
     }
 
@@ -354,6 +410,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                     Some(Command::Disconnect(reply)) => {
                         self.handle_disconnect().await;
                         let _ = reply.send(());
+                        self.move_to_loopback().await;
                     }
                     None => return Ok(()),
                 },
@@ -468,6 +525,14 @@ impl Sink for InterfaceRef<VpnPlugin> {
     }
 }
 
+const LOOPBACK: &str = "loopback";
+
+#[derive(Clone, Copy)]
+enum Lookup<'a> {
+    Uuid(&'a str),
+    Type(&'a str),
+}
+
 /// `Nm` over the system bus.
 pub struct DbusNm {
     connection: zbus::Connection,
@@ -478,57 +543,63 @@ impl DbusNm {
         Self { connection }
     }
 
-    async fn find_active_connection(
-        &self,
-        uuid: &str,
-    ) -> zbus::Result<Option<ActiveConnectionProxy<'static>>> {
-        let network_manager = NetworkManagerProxy::builder(&self.connection)
+    async fn network_manager(&self) -> zbus::Result<NetworkManagerProxy<'static>> {
+        NetworkManagerProxy::builder(&self.connection)
             .cache_properties(zbus::proxy::CacheProperties::No)
             .build()
-            .await?;
-        for path in network_manager.active_connections().await? {
-            let active = ActiveConnectionProxy::builder(&self.connection)
-                .path(path)?
-                .cache_properties(zbus::proxy::CacheProperties::No)
-                .build()
-                .await?;
-            if active.uuid().await.is_ok_and(|candidate| candidate == uuid) {
+            .await
+    }
+
+    async fn active_connection(
+        &self,
+        path: zbus::zvariant::OwnedObjectPath,
+    ) -> zbus::Result<ActiveConnectionProxy<'static>> {
+        ActiveConnectionProxy::builder(&self.connection)
+            .path(path)?
+            .cache_properties(zbus::proxy::CacheProperties::No)
+            .build()
+            .await
+    }
+
+    async fn find_active_connection(
+        &self,
+        by: Lookup<'_>,
+    ) -> zbus::Result<Option<ActiveConnectionProxy<'static>>> {
+        for path in self.network_manager().await?.active_connections().await? {
+            let active = self.active_connection(path).await?;
+            let found = match by {
+                Lookup::Uuid(uuid) => active.uuid().await.is_ok_and(|value| value == uuid),
+                Lookup::Type(kind) => active
+                    .connection_type()
+                    .await
+                    .is_ok_and(|value| value == kind),
+            };
+            if found {
                 return Ok(Some(active));
             }
         }
         Ok(None)
     }
 
-    async fn activate_profile(&self, uuid: &str) -> zbus::Result<()> {
-        let profile = SettingsProxy::builder(&self.connection)
-            .cache_properties(zbus::proxy::CacheProperties::No)
-            .build()
-            .await?
-            .get_connection_by_uuid(uuid)
-            .await?;
-        let any = zbus::zvariant::ObjectPath::from_static_str_unchecked("/");
-        NetworkManagerProxy::builder(&self.connection)
-            .cache_properties(zbus::proxy::CacheProperties::No)
-            .build()
-            .await?
-            .activate_connection(&profile, &any, &any)
-            .await?;
-        Ok(())
+    async fn is_loopback(&self, path: zbus::zvariant::OwnedObjectPath) -> zbus::Result<bool> {
+        if path.as_str() == "/" {
+            return Ok(false);
+        }
+        let active = self.active_connection(path).await?;
+        Ok(active.connection_type().await? == LOOPBACK)
     }
-}
 
-impl Nm for DbusNm {
-    async fn watch_deactivation(&mut self, uuid: &str) -> Result<DeactivationStream, String> {
-        let active = self
-            .find_active_connection(uuid)
-            .await
-            .map_err(|e| e.to_string())?
-            .ok_or_else(|| format!("no active connection with UUID {uuid}"))?;
-        let changes = active
-            .receive_state_changed()
-            .await
-            .map_err(|e| e.to_string())?;
-        Ok(Box::pin(changes.filter_map(|signal| {
+    async fn watch_connection(&self, uuid: &str) -> zbus::Result<Option<Watch>> {
+        let Some(active) = self.find_active_connection(Lookup::Uuid(uuid)).await? else {
+            return Ok(None);
+        };
+        let base = if self.is_loopback(active.specific_object().await?).await? {
+            Base::Loopback
+        } else {
+            Base::Primary
+        };
+        let changes = active.receive_state_changed().await?;
+        let deactivation = Box::pin(changes.filter_map(|signal| {
             let args = signal.args().ok()?;
             (args.state == ACTIVE_CONNECTION_STATE_DEACTIVATING).then(|| {
                 tracing::info!(
@@ -536,11 +607,53 @@ impl Nm for DbusNm {
                     args.reason
                 );
             })
-        })))
+        }));
+        Ok(Some(Watch { deactivation, base }))
     }
 
-    async fn activate(&mut self, uuid: &str) -> Result<(), String> {
-        self.activate_profile(uuid).await.map_err(|e| e.to_string())
+    async fn activate_profile(&self, uuid: &str, base: Base) -> Result<(), String> {
+        let any = zbus::zvariant::ObjectPath::from_static_str_unchecked("/");
+        let base = match base {
+            Base::Primary => None,
+            Base::Loopback => Some(
+                self.find_active_connection(Lookup::Type(LOOPBACK))
+                    .await
+                    .map_err(|e| e.to_string())?
+                    .ok_or("no active loopback connection")?,
+            ),
+        };
+        let profile = SettingsProxy::builder(&self.connection)
+            .cache_properties(zbus::proxy::CacheProperties::No)
+            .build()
+            .await
+            .map_err(|e| e.to_string())?
+            .get_connection_by_uuid(uuid)
+            .await
+            .map_err(|e| e.to_string())?;
+        self.network_manager()
+            .await
+            .map_err(|e| e.to_string())?
+            .activate_connection(
+                &profile,
+                &any,
+                base.as_ref().map_or(&any, |active| active.inner().path()),
+            )
+            .await
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+}
+
+impl Nm for DbusNm {
+    async fn watch(&mut self, uuid: &str) -> Result<Watch, String> {
+        self.watch_connection(uuid)
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("no active connection with UUID {uuid}"))
+    }
+
+    async fn activate(&mut self, uuid: &str, base: Base) -> Result<(), String> {
+        self.activate_profile(uuid, base).await
     }
 }
 
@@ -620,22 +733,35 @@ mod tests {
     #[derive(Clone)]
     struct FakeNm {
         deactivation: Arc<Mutex<Option<mpsc::Receiver<()>>>>,
-        activations: Arc<Mutex<Vec<String>>>,
+        /// Whether NetworkManager has an active loopback connection.
+        loopback: bool,
+        /// What the VPN runs on top of once activated.
+        base: Base,
+        activations: Arc<Mutex<Vec<(String, Base)>>>,
     }
 
     impl Nm for FakeNm {
-        async fn watch_deactivation(&mut self, _uuid: &str) -> Result<DeactivationStream, String> {
+        async fn watch(&mut self, _uuid: &str) -> Result<Watch, String> {
             let rx = self
                 .deactivation
                 .lock()
                 .unwrap()
                 .take()
                 .ok_or("watched twice")?;
-            Ok(Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)))
+            Ok(Watch {
+                deactivation: Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)),
+                base: self.base,
+            })
         }
 
-        async fn activate(&mut self, uuid: &str) -> Result<(), String> {
-            self.activations.lock().unwrap().push(uuid.to_owned());
+        async fn activate(&mut self, uuid: &str, base: Base) -> Result<(), String> {
+            if base == Base::Loopback && !self.loopback {
+                return Err("no active loopback connection".into());
+            }
+            self.activations
+                .lock()
+                .unwrap()
+                .push((uuid.to_owned(), base));
             Ok(())
         }
     }
@@ -644,7 +770,7 @@ mod tests {
         tx: mpsc::Sender<Command>,
         events: Option<mpsc::Sender<TunnelEvent>>,
         deactivate: mpsc::Sender<()>,
-        activations: Arc<Mutex<Vec<String>>>,
+        activations: Arc<Mutex<Vec<(String, Base)>>>,
         sink: FakeSink,
         daemon: FakeDaemon,
         state: Arc<AtomicU32>,
@@ -657,11 +783,27 @@ mod tests {
         }
 
         fn start_with(reachable: bool, hang: bool, initial: TunnelState) -> Self {
+            Self::start_full(reachable, hang, initial, true, Base::Primary)
+        }
+
+        fn start_nm(initial: TunnelState, loopback: bool, base: Base) -> Self {
+            Self::start_full(true, false, initial, loopback, base)
+        }
+
+        fn start_full(
+            reachable: bool,
+            hang: bool,
+            initial: TunnelState,
+            loopback: bool,
+            base: Base,
+        ) -> Self {
             let (events, events_rx) = mpsc::channel(8);
             let (deactivate, deactivation_rx) = mpsc::channel(1);
-            let activations = Arc::<Mutex<Vec<String>>>::default();
+            let activations = Arc::<Mutex<Vec<(String, Base)>>>::default();
             let nm = FakeNm {
                 deactivation: Arc::new(Mutex::new(Some(deactivation_rx))),
+                loopback,
+                base,
                 activations: activations.clone(),
             };
             let daemon = FakeDaemon {
@@ -736,7 +878,7 @@ mod tests {
             self.sink.0.lock().unwrap().clone()
         }
 
-        fn activations(&self) -> Vec<String> {
+        fn activations(&self) -> Vec<(String, Base)> {
             self.activations.lock().unwrap().clone()
         }
     }
@@ -915,9 +1057,53 @@ mod tests {
         );
     }
 
+    fn activation(base: Base) -> (String, Base) {
+        ("4b1c".to_owned(), base)
+    }
+
+    #[tokio::test]
+    async fn network_loss_moves_connection_to_loopback() {
+        let h = Harness::start(true, connected(V4, None));
+        h.connect().await.unwrap();
+        *h.daemon.state.lock().unwrap() = offline(true);
+        h.disconnect().await;
+        h.settle().await;
+        assert_eq!(h.activations(), [activation(Base::Loopback)]);
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
+        assert_eq!(
+            h.effects()[3..],
+            [Effect::StateChanged(service_state::STOPPED)]
+        );
+    }
+
+    #[tokio::test]
+    async fn network_loss_on_loopback_waits_for_daemon_to_reconnect() {
+        let h = Harness::start_nm(connected(V4, None), true, Base::Loopback);
+        h.connect().await.unwrap();
+        *h.daemon.state.lock().unwrap() = offline(true);
+        h.disconnect().await;
+        h.settle().await;
+        assert!(h.activations().is_empty());
+        h.send(offline(true)).await;
+        h.send(connected(V4, None)).await;
+        h.settle().await;
+        assert_eq!(h.activations(), [activation(Base::Primary)]);
+    }
+
+    #[tokio::test]
+    async fn network_loss_in_error_state_waits_for_daemon_to_reconnect() {
+        let h = Harness::start(true, connected(V4, None));
+        h.connect().await.unwrap();
+        *h.daemon.state.lock().unwrap() = error();
+        h.disconnect().await;
+        h.settle().await;
+        assert!(h.activations().is_empty());
+        assert_eq!(h.daemon.connect_calls.load(Ordering::SeqCst), 0);
+    }
+
     #[tokio::test]
     async fn daemon_reconnect_after_network_loss_reactivates_connection() {
-        let h = Harness::start(true, connected(V4, None));
+        let h = Harness::start_nm(connected(V4, None), false, Base::Primary);
         h.connect().await.unwrap();
         h.send(offline(true)).await;
         h.settle().await;
@@ -928,7 +1114,7 @@ mod tests {
         assert!(h.activations().is_empty());
         h.send(connected(V4, None)).await;
         h.settle().await;
-        assert_eq!(h.activations(), ["4b1c"]);
+        assert_eq!(h.activations(), [activation(Base::Primary)]);
         assert_eq!(
             h.effects()[3..],
             [Effect::StateChanged(service_state::STOPPED)]
@@ -937,7 +1123,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn waiting_to_reactivate_keeps_the_plugin_alive() {
-        let h = Harness::start(true, connected(V4, None));
+        let h = Harness::start_nm(connected(V4, None), false, Base::Primary);
         h.connect().await.unwrap();
         h.disconnect().await;
         tokio::time::advance(IDLE_EXIT * 3).await;
@@ -946,12 +1132,12 @@ mod tests {
         h.send(offline(true)).await;
         h.send(connected(V4, None)).await;
         h.settle().await;
-        assert_eq!(h.activations(), ["4b1c"]);
+        assert_eq!(h.activations(), [activation(Base::Primary)]);
     }
 
     #[tokio::test(start_paused = true)]
     async fn daemon_going_down_after_network_loss_cancels_reactivation() {
-        let h = Harness::start(true, connected(V4, None));
+        let h = Harness::start_nm(connected(V4, None), false, Base::Primary);
         h.connect().await.unwrap();
         h.disconnect().await;
         h.send(TunnelState::Disconnected).await;
