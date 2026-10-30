@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
 - [iOS] Flush DNS when changing ad-block setting by reconnecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6866)
 - `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- `nym-vpnc dns set` no longer accepts positional argument to configure plain DNS. Use one of the following arguments instead: `--plain`, `--tcp` or `--udp` (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Fixed
 
