@@ -615,6 +615,16 @@ pub enum PlainDnsProtocol {
     UdpAndTcp,
 }
 
+impl std::fmt::Display for PlainDnsProtocol {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Udp => "udp",
+            Self::Tcp => "tcp",
+            Self::UdpAndTcp => "udp/tcp",
+        })
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
@@ -665,6 +675,78 @@ impl DnsServer {
             Self::Https { address, .. } => *address,
             Self::Quic { address, .. } => *address,
             Self::Http3 { address, .. } => *address,
+        }
+    }
+}
+
+impl std::fmt::Display for DnsServer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Plain {
+                address,
+                port,
+                ip_proto,
+            } => {
+                write!(f, "plain: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, " {}", ip_proto)
+            }
+            Self::Tls {
+                address,
+                port,
+                server_name,
+            } => {
+                write!(f, "tls: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)
+            }
+            Self::Https {
+                address,
+                port,
+                server_name,
+                query_path,
+            } => {
+                write!(f, "https: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)?;
+                if let Some(query_path) = query_path {
+                    write!(f, ", query-path: {}", query_path)?;
+                }
+                Ok(())
+            }
+            Self::Quic {
+                address,
+                port,
+                server_name,
+            } => {
+                write!(f, "quic: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)
+            }
+            Self::Http3 {
+                address,
+                port,
+                server_name,
+                query_path,
+            } => {
+                write!(f, "h3: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)?;
+                if let Some(query_path) = query_path {
+                    write!(f, ", query-path: {}", query_path)?;
+                }
+                Ok(())
+            }
         }
     }
 }
