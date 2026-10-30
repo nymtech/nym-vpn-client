@@ -25,8 +25,12 @@ pub mod failure {
     pub const BAD_IP_CONFIG: u32 = 2;
 }
 
-/// `NMState` threshold below which NetworkManager is asleep, disconnected or still connecting.
-pub const NM_STATE_CONNECTED_LOCAL: u32 = 50;
+/// `NMActiveConnectionState::DEACTIVATING`.
+///
+/// A VPN connection only passes through this state when it is deactivated on request (the user
+/// disconnecting it or deleting its profile). Losing the parent device, sleep and plugin failures
+/// take it straight to DEACTIVATED.
+pub const ACTIVE_CONNECTION_STATE_DEACTIVATING: u32 = 3;
 
 #[zbus::proxy(
     interface = "org.freedesktop.NetworkManager",
@@ -34,7 +38,18 @@ pub const NM_STATE_CONNECTED_LOCAL: u32 = 50;
     default_path = "/org/freedesktop/NetworkManager"
 )]
 pub trait NetworkManager {
-    /// Overall NetworkManager state (`NMState`).
     #[zbus(property)]
-    fn state(&self) -> zbus::Result<u32>;
+    fn active_connections(&self) -> zbus::Result<Vec<zbus::zvariant::OwnedObjectPath>>;
+}
+
+#[zbus::proxy(
+    interface = "org.freedesktop.NetworkManager.Connection.Active",
+    default_service = "org.freedesktop.NetworkManager"
+)]
+pub trait ActiveConnection {
+    #[zbus(property)]
+    fn uuid(&self) -> zbus::Result<String>;
+
+    #[zbus(signal)]
+    fn state_changed(&self, state: u32, reason: u32) -> zbus::Result<()>;
 }

@@ -11,7 +11,7 @@ use std::{
 use nym_vpn_lib_types::{ConnectionData, TunnelConnectionData, TunnelState};
 use zbus::zvariant::{OwnedValue, Value};
 
-use crate::nm::{NM_STATE_CONNECTED_LOCAL, failure, service_state};
+use crate::nm::{failure, service_state};
 
 #[derive(Debug, thiserror::Error)]
 pub enum GatewayError {
@@ -81,9 +81,10 @@ pub enum Effect {
 pub enum DisconnectDecision {
     /// The daemon is already down; just report STOPPED.
     AlreadyStopped,
-    /// NetworkManager is asleep or has lost the network; leave the daemon to its own recovery.
+    /// NetworkManager is tearing the VPN down on its own (network loss, sleep, timeout); report
+    /// STOPPED and leave the daemon to its own recovery.
     LeaveDaemon,
-    /// A real disconnect request; tear the tunnel down.
+    /// The user disconnected the VPN in NetworkManager; tear the tunnel down.
     DisconnectDaemon,
 }
 
@@ -98,23 +99,28 @@ fn is_terminal(state: &TunnelState) -> bool {
     )
 }
 
-pub fn disconnect_decision(daemon: &TunnelState, nm_state: Option<u32>) -> DisconnectDecision {
+pub fn disconnect_decision(daemon: &TunnelState, user_requested: bool) -> DisconnectDecision {
     if is_terminal(daemon) {
         DisconnectDecision::AlreadyStopped
-    } else if nm_state.is_some_and(|s| s < NM_STATE_CONNECTED_LOCAL) {
-        DisconnectDecision::LeaveDaemon
-    } else {
+    } else if user_requested {
         DisconnectDecision::DisconnectDaemon
+    } else {
+        DisconnectDecision::LeaveDaemon
     }
 }
 
 pub struct Machine {
     phase: Phase,
+    /// The last gateway reported to NetworkManager, reused while the daemon waits to reconnect.
+    last_gateway: Option<Ipv4Addr>,
 }
 
 impl Machine {
     pub fn new() -> Self {
-        Self { phase: Phase::Idle }
+        Self {
+            phase: Phase::Idle,
+            last_gateway: None,
+        }
     }
 
     pub fn phase(&self) -> Phase {
@@ -136,6 +142,15 @@ impl Machine {
         Effect::StateChanged(self.service_state())
     }
 
+    fn config(&mut self, gateway: Ipv4Addr) -> Effect {
+        self.last_gateway = Some(gateway);
+        Effect::Config(gateway)
+    }
+
+    fn fail(&mut self, reason: u32) -> Vec<Effect> {
+        vec![Effect::Failure(reason), self.enter(Phase::Stopped)]
+    }
+
     pub fn begin_connect(&mut self) -> Vec<Effect> {
         match self.phase {
             Phase::Idle | Phase::Stopped => vec![self.enter(Phase::Starting)],
@@ -148,25 +163,39 @@ impl Machine {
             Phase::Starting => match state {
                 TunnelState::Connected { connection_data } => {
                     match external_gateway(connection_data) {
-                        Ok(gateway) => vec![Effect::Config(gateway), self.enter(Phase::Started)],
+                        Ok(gateway) => vec![self.config(gateway), self.enter(Phase::Started)],
                         Err(err) => {
                             tracing::error!("{err}");
-                            vec![
-                                Effect::Failure(failure::BAD_IP_CONFIG),
-                                self.enter(Phase::Stopped),
-                            ]
+                            self.fail(failure::BAD_IP_CONFIG)
                         }
                     }
                 }
-                state if is_terminal(state) => vec![
-                    Effect::Failure(failure::CONNECT_FAILED),
-                    self.enter(Phase::Stopped),
-                ],
+                // NetworkManager needs a gateway to activate the VPN. Without one, report the
+                // failure and leave the daemon waiting for the network.
+                TunnelState::Offline { reconnect: true } => match self.last_gateway {
+                    Some(gateway) => vec![self.config(gateway), self.enter(Phase::Started)],
+                    None => self.fail(failure::CONNECT_FAILED),
+                },
+                state if is_terminal(state) => self.fail(failure::CONNECT_FAILED),
                 _ => vec![],
             },
-            Phase::Started | Phase::Stopping if is_terminal(state) => {
-                vec![self.enter(Phase::Stopped)]
-            }
+            Phase::Started => match state {
+                TunnelState::Connected { connection_data } => {
+                    match external_gateway(connection_data) {
+                        Ok(gateway) if self.last_gateway != Some(gateway) => {
+                            vec![self.config(gateway)]
+                        }
+                        Ok(_) => vec![],
+                        Err(err) => {
+                            tracing::error!("{err}");
+                            vec![]
+                        }
+                    }
+                }
+                state if is_terminal(state) => vec![self.enter(Phase::Stopped)],
+                _ => vec![],
+            },
+            Phase::Stopping if is_terminal(state) => vec![self.enter(Phase::Stopped)],
             _ => vec![],
         }
     }
@@ -437,16 +466,43 @@ mod tests {
     }
 
     #[test]
-    fn offline_with_reconnect_while_starting_is_ignored() {
+    fn reconnect_cycle_while_starting_is_ignored() {
         let mut m = Machine::new();
         m.begin_connect();
-        assert_eq!(m.on_daemon_state(&offline(true)), vec![]);
         assert_eq!(m.on_daemon_state(&connecting()), vec![]);
         assert_eq!(
             m.on_daemon_state(&disconnecting(ActionAfterDisconnect::Reconnect)),
             vec![]
         );
         assert_eq!(m.phase(), Phase::Starting);
+    }
+
+    #[test]
+    fn offline_recovery_while_starting_without_gateway_fails_connect() {
+        let mut m = Machine::new();
+        m.begin_connect();
+        assert_eq!(
+            m.on_daemon_state(&offline(true)),
+            vec![
+                Effect::Failure(failure::CONNECT_FAILED),
+                Effect::StateChanged(service_state::STOPPED)
+            ]
+        );
+    }
+
+    #[test]
+    fn offline_recovery_while_starting_reuses_last_gateway() {
+        let mut m = started_machine();
+        m.on_daemon_state(&TunnelState::Disconnected);
+        m.begin_connect();
+        assert_eq!(
+            m.on_daemon_state(&offline(true)),
+            vec![
+                Effect::Config(GW),
+                Effect::StateChanged(service_state::STARTED)
+            ]
+        );
+        assert_eq!(m.on_daemon_state(&connected(V4, None)), vec![]);
     }
 
     #[test]
@@ -458,6 +514,21 @@ mod tests {
         );
         assert_eq!(m.on_daemon_state(&connecting()), vec![]);
         assert_eq!(m.on_daemon_state(&connected(V4, None)), vec![]);
+        assert_eq!(m.phase(), Phase::Started);
+    }
+
+    #[test]
+    fn reconnect_through_another_gateway_resends_config() {
+        let mut m = started_machine();
+        let other = Ipv4Addr::new(5, 6, 7, 8);
+        assert_eq!(
+            m.on_daemon_state(&connected("5.6.7.8:51820".parse().unwrap(), None)),
+            vec![Effect::Config(other)]
+        );
+        assert_eq!(
+            m.on_daemon_state(&connected("5.6.7.8:51820".parse().unwrap(), None)),
+            vec![]
+        );
         assert_eq!(m.phase(), Phase::Started);
     }
 
@@ -545,43 +616,24 @@ mod tests {
     #[test]
     fn disconnect_decision_table() {
         for terminal in [TunnelState::Disconnected, error(), offline(false)] {
-            assert_eq!(
-                disconnect_decision(&terminal, Some(70)),
-                DisconnectDecision::AlreadyStopped
-            );
+            for user_requested in [true, false] {
+                assert_eq!(
+                    disconnect_decision(&terminal, user_requested),
+                    DisconnectDecision::AlreadyStopped
+                );
+            }
         }
-        let up = connected(V4, None);
-        assert_eq!(
-            disconnect_decision(&up, Some(70)),
-            DisconnectDecision::DisconnectDaemon
-        );
-        assert_eq!(
-            disconnect_decision(&up, None),
-            DisconnectDecision::DisconnectDaemon
-        );
-        for nm in [10, 20, 30, 40] {
+        for up in [connected(V4, None), connecting(), offline(true)] {
             assert_eq!(
-                disconnect_decision(&up, Some(nm)),
+                disconnect_decision(&up, true),
+                DisconnectDecision::DisconnectDaemon,
+                "{up}"
+            );
+            assert_eq!(
+                disconnect_decision(&up, false),
                 DisconnectDecision::LeaveDaemon,
-                "nm state {nm}"
+                "{up}"
             );
         }
-        assert_eq!(
-            disconnect_decision(&connecting(), Some(50)),
-            DisconnectDecision::DisconnectDaemon
-        );
-        let recovering = offline(true);
-        assert_eq!(
-            disconnect_decision(&recovering, Some(70)),
-            DisconnectDecision::DisconnectDaemon
-        );
-        assert_eq!(
-            disconnect_decision(&recovering, None),
-            DisconnectDecision::DisconnectDaemon
-        );
-        assert_eq!(
-            disconnect_decision(&recovering, Some(20)),
-            DisconnectDecision::LeaveDaemon
-        );
     }
 }

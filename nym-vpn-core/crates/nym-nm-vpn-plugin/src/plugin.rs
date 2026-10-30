@@ -27,7 +27,11 @@ pub type Dict = HashMap<String, OwnedValue>;
 /// What the D-Bus object asks the service task to do.
 pub enum Command {
     /// Start the tunnel. The reply is sent once the daemon accepted or refused the request.
-    Connect(oneshot::Sender<Result<(), String>>),
+    Connect {
+        /// UUID of the NetworkManager connection profile being activated.
+        uuid: Option<String>,
+        reply: oneshot::Sender<Result<(), String>>,
+    },
     /// Stop the tunnel. The reply is sent once the service decided how to handle it.
     Disconnect(oneshot::Sender<()>),
 }
@@ -50,6 +54,11 @@ impl VpnPlugin {
     }
 }
 
+fn connection_uuid(connection: &Settings) -> Option<String> {
+    let value = connection.get("connection")?.get("uuid")?;
+    <&str>::try_from(&**value).ok().map(str::to_owned)
+}
+
 #[zbus::interface(name = "org.freedesktop.NetworkManager.VPN.Plugin")]
 impl VpnPlugin {
     async fn connect(&self, connection: Settings) -> fdo::Result<()> {
@@ -58,8 +67,9 @@ impl VpnPlugin {
             return Err(fdo::Error::Failed("connection already active".into()));
         }
         let (reply, result) = oneshot::channel();
+        let uuid = connection_uuid(&connection);
         self.tx
-            .send(Command::Connect(reply))
+            .send(Command::Connect { uuid, reply })
             .await
             .map_err(|_| fdo::Error::Failed("service task is gone".into()))?;
         result
@@ -230,10 +240,18 @@ mod tests {
     #[tokio::test]
     async fn connect_forwards_command_and_returns_service_reply() {
         let (plugin, mut rx) = plugin(service_state::INIT);
-        let call = tokio::spawn(async move { plugin.connect(Settings::new()).await });
-        let Some(Command::Connect(reply)) = rx.recv().await else {
+        let settings = Settings::from([(
+            "connection".to_owned(),
+            Dict::from([(
+                "uuid".to_owned(),
+                OwnedValue::try_from(zbus::zvariant::Value::from("4b1c")).unwrap(),
+            )]),
+        )]);
+        let call = tokio::spawn(async move { plugin.connect(settings).await });
+        let Some(Command::Connect { uuid, reply }) = rx.recv().await else {
             panic!("expected Connect command")
         };
+        assert_eq!(uuid.as_deref(), Some("4b1c"));
         reply.send(Err("daemon unreachable".into())).unwrap();
         let err = call.await.unwrap().unwrap_err();
         assert!(err.to_string().contains("daemon unreachable"), "{err}");
