@@ -298,9 +298,8 @@ pub struct BridgeAddress {
     /// Remote bridge address
     pub remote_addr: SocketAddr,
 
-    /// Bridge transport in use, if known
-    #[cfg_attr(feature = "serde", serde(default))]
-    pub transport: Option<BridgeTransport>,
+    /// Bridge transport in use
+    pub transport: BridgeTransport,
 }
 
 /// Transport carrying the bridge connection.

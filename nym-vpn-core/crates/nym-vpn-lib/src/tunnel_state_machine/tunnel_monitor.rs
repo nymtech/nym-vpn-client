@@ -1346,7 +1346,7 @@ impl TunnelMonitor {
         let bridge_addr = BridgeAddress {
             listen_addr,
             remote_addr,
-            transport: Some(transport),
+            transport,
         };
 
         Ok((bridge_addr, join_handle))

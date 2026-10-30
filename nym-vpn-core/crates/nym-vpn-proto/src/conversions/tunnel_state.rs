@@ -548,15 +548,13 @@ impl TryFrom<proto::BridgeAddress> for BridgeAddress {
         let remote_addr = value
             .remote_addr
             .ok_or(ConversionError::NoValueSet("BridgeAddress.remote_addr"))?;
-        // A transport this build does not know shows as unknown rather than failing the state.
-        let transport = value
-            .transport
-            .and_then(|t| proto::BridgeTransports::try_from(t).ok())
-            .map(|t| match t {
-                proto::BridgeTransports::Quic => BridgeTransport::Quic,
-                proto::BridgeTransports::Tls => BridgeTransport::Tls,
-                proto::BridgeTransports::Ssh => BridgeTransport::Ssh,
-            });
+        let transport = match proto::BridgeTransport::try_from(value.transport)
+            .map_err(|e| ConversionError::Decode("BridgeAddress.transport", e))?
+        {
+            proto::BridgeTransport::Quic => BridgeTransport::Quic,
+            proto::BridgeTransport::Tls => BridgeTransport::Tls,
+            proto::BridgeTransport::Ssh => BridgeTransport::Ssh,
+        };
         Ok(Self {
             listen_addr: SocketAddr::try_from(listen_addr)?,
             remote_addr: SocketAddr::try_from(remote_addr)?,
@@ -570,14 +568,12 @@ impl From<BridgeAddress> for proto::BridgeAddress {
         Self {
             listen_addr: Some(proto::SocketAddr::from(value.listen_addr)),
             remote_addr: Some(proto::SocketAddr::from(value.remote_addr)),
-            transport: value.transport.map(|t| {
-                match t {
-                    BridgeTransport::Quic => proto::BridgeTransports::Quic,
-                    BridgeTransport::Tls => proto::BridgeTransports::Tls,
-                    BridgeTransport::Ssh => proto::BridgeTransports::Ssh,
-                }
-                .into()
-            }),
+            transport: match value.transport {
+                BridgeTransport::Quic => proto::BridgeTransport::Quic,
+                BridgeTransport::Tls => proto::BridgeTransport::Tls,
+                BridgeTransport::Ssh => proto::BridgeTransport::Ssh,
+            }
+            .into(),
         }
     }
 }
@@ -716,37 +712,5 @@ impl From<TunnelState> for proto::TunnelState {
 impl From<GatewayId> for proto::GatewayId {
     fn from(value: GatewayId) -> Self {
         Self { id: value.id }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn bridge_address_unknown_transport_reads_as_none() {
-        let addr = |port| {
-            Some(proto::SocketAddr::from(SocketAddr::from((
-                [1, 2, 3, 4],
-                port,
-            ))))
-        };
-        let bridge = |transport| proto::BridgeAddress {
-            listen_addr: addr(51820),
-            remote_addr: addr(4443),
-            transport,
-        };
-
-        let tls =
-            BridgeAddress::try_from(bridge(Some(proto::BridgeTransports::Tls.into()))).unwrap();
-        assert_eq!(tls.transport, Some(BridgeTransport::Tls));
-        assert_eq!(
-            BridgeAddress::try_from(bridge(None)).unwrap().transport,
-            None
-        );
-        assert_eq!(
-            BridgeAddress::try_from(bridge(Some(42))).unwrap().transport,
-            None
-        );
     }
 }
