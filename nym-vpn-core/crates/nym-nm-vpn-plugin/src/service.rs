@@ -140,13 +140,14 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
         };
         tracing::info!("daemon state at connect: {state}");
         // The current state is a snapshot from before our request, so only `Connected` means
-        // anything to the machine; a terminal state here is the normal starting point.
+        // anything to the machine; a terminal state here is the normal starting point. A daemon
+        // that is connecting or waiting to reconnect is already on its way up.
         match &state {
             TunnelState::Connected { .. } => {
                 let effects = self.machine.on_daemon_state(&state);
                 self.apply(effects).await;
             }
-            TunnelState::Connecting { .. } => {}
+            TunnelState::Connecting { .. } | TunnelState::Offline { reconnect: true } => {}
             _ => {
                 if let Err(err) = rpc("ConnectTunnel", self.daemon.connect()).await {
                     // Keep STARTING: NetworkManager's own connect timeout decides the outcome.
@@ -631,6 +632,83 @@ mod tests {
         assert_eq!(
             h.effects()[3..],
             [Effect::StateChanged(service_state::STOPPED)]
+        );
+    }
+
+    #[tokio::test]
+    async fn offline_recovery_keeps_started_and_event_stream() {
+        let h = Harness::start(true, connected(V4, None), Some(70));
+        h.connect().await.unwrap();
+        h.send(offline(true)).await;
+        h.send(connecting()).await;
+        h.send(connected(V4, None)).await;
+        h.settle().await;
+        assert_eq!(h.effects().len(), 3);
+        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STARTED);
+        h.send(TunnelState::Disconnected).await;
+        h.settle().await;
+        assert_eq!(
+            h.effects()[3..],
+            [Effect::StateChanged(service_state::STOPPED)]
+        );
+    }
+
+    #[tokio::test]
+    async fn disconnect_during_offline_recovery_disconnects_daemon() {
+        let h = Harness::start(true, connected(V4, None), Some(70));
+        h.connect().await.unwrap();
+        h.send(offline(true)).await;
+        h.settle().await;
+        *h.daemon.state.lock().unwrap() = offline(true);
+        h.disconnect().await;
+        h.settle().await;
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(
+            h.effects()[3..],
+            [Effect::StateChanged(service_state::STOPPING)]
+        );
+        h.send(offline(false)).await;
+        h.settle().await;
+        assert_eq!(
+            h.effects()[3..],
+            [
+                Effect::StateChanged(service_state::STOPPING),
+                Effect::StateChanged(service_state::STOPPED)
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn disconnect_during_offline_recovery_on_network_loss_leaves_daemon() {
+        let h = Harness::start(true, connected(V4, None), Some(20));
+        h.connect().await.unwrap();
+        h.send(offline(true)).await;
+        h.settle().await;
+        *h.daemon.state.lock().unwrap() = offline(true);
+        h.disconnect().await;
+        h.settle().await;
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
+        assert_eq!(
+            h.effects()[3..],
+            [Effect::StateChanged(service_state::STOPPED)]
+        );
+    }
+
+    #[tokio::test]
+    async fn connect_during_offline_recovery_waits_for_daemon() {
+        let h = Harness::start(true, offline(true), Some(70));
+        assert!(h.connect().await.is_ok());
+        assert_eq!(h.daemon.connect_calls.load(Ordering::SeqCst), 0);
+        h.send(connecting()).await;
+        h.send(connected(V4, None)).await;
+        h.settle().await;
+        assert_eq!(
+            h.effects(),
+            vec![
+                Effect::StateChanged(service_state::STARTING),
+                Effect::Config(GW),
+                Effect::StateChanged(service_state::STARTED),
+            ]
         );
     }
 
