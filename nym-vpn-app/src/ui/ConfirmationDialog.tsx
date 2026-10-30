@@ -10,7 +10,7 @@ export type ConfirmationDialogProps = {
   cancelButtonText?: string;
   isOpen: boolean;
   isLoading: boolean;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => void | Promise<void>;
   onCancel: () => void;
 };
 
@@ -34,7 +34,7 @@ function ConfirmationDialog({
 
         <DialogTitle
           as="h3"
-          className="text-text-primary w-full truncate text-center text-xl"
+          className="text-text-primary w-full text-center text-xl"
         >
           {title}
         </DialogTitle>
