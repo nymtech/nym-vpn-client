@@ -1,5 +1,6 @@
 import Foundation
 import ConnectionTypes
+import ErrorReason
 import NymVPNLib
 import TunnelMixnet
 import Tunnels
@@ -106,64 +107,55 @@ private extension PacketTunnelProvider {
         }
     }
 
-    // swiftlint:disable:next function_body_length
     func handleStatusMessage() async -> Data? {
         guard let tunnelState = await tunnelActor.tunnelState else { return nil }
         do {
-            var retryAttempt: Int?
-            var afterDisconnectAction: AfterDisconnectAction?
-            var tunnelConnectingState: TunnelConnectingState?
-            var connectionInfoData: ConnectionInfoData?
-            var connectedAt: Date?
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            return try encoder.encode(TunnelStateResponse(tunnelState))
+        } catch {
+            logger.error("AppMessage: \(error.localizedDescription)")
+            return nil
+        }
+    }
+}
 
-            switch tunnelState {
-            case let .connecting(
-                retryAttempt: attempt,
-                state: establishConnectionState,
-                selectorFallbackState: _, // todo: must be used
-                tunnelType: tunnelType,
-                connectionData: connectionData
-            ):
-                retryAttempt = Int(attempt)
-                tunnelConnectingState = TunnelConnectingState(with: establishConnectionState)
-                connectionInfoData = ConnectionInfoData(
+private extension TunnelStateResponse {
+    init(_ tunnelState: TunnelState) {
+        switch tunnelState {
+        case .disconnected:
+            self = .disconnected
+        case let .connecting(
+            retryAttempt: attempt,
+            state: establishConnectionState,
+            selectorFallbackState: _, // todo: must be used
+            tunnelType: tunnelType,
+            connectionData: connectionData
+        ):
+            self = .connecting(
+                retryAttempt: Int(attempt),
+                state: TunnelConnectingState(with: establishConnectionState),
+                connectionInfo: ConnectionInfoData(
                     entryGatewayId: connectionData?.entryGateway.id,
                     exitGatewayId: connectionData?.exitGateway.id,
                     tunnelType: ConnectionTunnelType(tunnelType)
                 )
-            case let .connected(connectionData: connectionData):
-                connectionInfoData = ConnectionInfoData(
+            )
+        case let .connected(connectionData: connectionData):
+            self = .connected(
+                connectionInfo: ConnectionInfoData(
                     entryGatewayId: connectionData.entryGateway.id,
                     exitGatewayId: connectionData.exitGateway.id,
                     tunnelType: ConnectionTunnelType(connectionData.tunnel)
-                )
-                connectedAt = Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
-            case let .disconnecting(afterDisconnect: action):
-                afterDisconnectAction = AfterDisconnectAction.convert(from: action)
-                connectionInfoData = nil
-            default:
-                retryAttempt = nil
-                afterDisconnectAction = nil
-                tunnelConnectingState = nil
-                connectionInfoData = nil
-            }
-
-            let statusResponse = await TunnelStatusResponse(
-                status: TunnelStatus(from: tunnelState),
-                retryAttempt: retryAttempt,
-                afterDisconnectAction: afterDisconnectAction,
-                lastError: tunnelActor.lastError,
-                tunnelConnectingState: tunnelConnectingState,
-                connectionInfoData: connectionInfoData,
-                connectedAt: connectedAt
+                ),
+                connectedAt: Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
             )
-
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            return try encoder.encode(statusResponse)
-        } catch {
-            logger.error("AppMessage: \(error.localizedDescription)")
-            return nil
+        case let .disconnecting(afterDisconnect: action):
+            self = .disconnecting(afterDisconnect: AfterDisconnectAction.convert(from: action))
+        case let .error(reason):
+            self = .error(ErrorReason(with: reason))
+        case let .offline(reconnect):
+            self = .offline(reconnect: reconnect)
         }
     }
 }
