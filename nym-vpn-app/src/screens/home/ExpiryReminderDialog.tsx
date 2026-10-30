@@ -1,16 +1,39 @@
 import { DialogTitle } from '@headlessui/react';
+import { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { Button, Dialog, MsIcon } from '../../ui';
-import { ExpiryReminderDialogProps } from './useExpiryReminder';
+import { ExpiryReminder } from './expiryReminder';
 
-function ExpiryReminderDialog({
-  isOpen,
-  title,
-  body,
-  actionLabel,
-  dismissLabel,
-  onAction,
-  onClose,
-}: ExpiryReminderDialogProps) {
+export type Props = {
+  isOpen: boolean;
+  reminder: ExpiryReminder | null;
+  onAction: () => void;
+  onClose: () => void;
+};
+
+function reminderTitle(
+  t: TFunction<'notifications', undefined>,
+  { tier, isFreepass, count }: ExpiryReminder,
+): string {
+  const plan = isFreepass ? 'freepass' : 'subscription';
+  switch (tier) {
+    case 'day7':
+    case 'day3':
+      return t(`renewal-reminder.days.${plan}`, { count });
+    case 'hour24':
+      return t(`renewal-reminder.hours.${plan}`, { count });
+    default:
+      return t(`renewal-reminder.expired.${plan}`);
+  }
+}
+
+function ExpiryReminderDialog({ isOpen, reminder, onAction, onClose }: Props) {
+  const { t } = useTranslation('notifications');
+  if (!reminder) {
+    return null;
+  }
+  const plan = reminder.isFreepass ? 'freepass' : 'subscription';
+
   return (
     <Dialog
       open={isOpen}
@@ -29,14 +52,14 @@ function ExpiryReminderDialog({
           className="text-text-primary text-xl"
           data-testid="expiry-reminder-dialog-title"
         >
-          {title}
+          {reminderTitle(t, reminder)}
         </DialogTitle>
       </div>
       <p
         className="text-text-secondary"
         data-testid="expiry-reminder-dialog-description"
       >
-        {body}
+        {t(`renewal-reminder.body.${plan}`)}
       </p>
       <Button
         variant="primary"
@@ -44,14 +67,18 @@ function ExpiryReminderDialog({
         className="mt-2"
         data-testid="expiry-reminder-dialog-button"
       >
-        {actionLabel}
+        {t(
+          reminder.isFreepass
+            ? 'renewal-reminder.action.get-plan'
+            : 'renewal-reminder.action.renew',
+        )}
       </Button>
       <Button
         variant="outlined"
         onClick={onClose}
         data-testid="expiry-reminder-dialog-dismiss"
       >
-        {dismissLabel}
+        {t('renewal-reminder.action.not-now')}
       </Button>
     </Dialog>
   );
