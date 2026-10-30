@@ -264,6 +264,16 @@ private extension SettingsViewModel {
                 }
             }
             .store(in: &cancellables)
+#if os(iOS)
+        purchasesManager.$appleIdEntitlement
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.updateAccountSectionOnly()
+                }
+            }
+            .store(in: &cancellables)
+#endif
     }
 
     /// Configures sections, to reload all the content - use reloadSections
@@ -306,8 +316,17 @@ private extension SettingsViewModel {
 private extension SettingsViewModel {
     func accountSection() -> AppSettingsSection {
         let subtitle: AttributedString
+#if os(iOS)
+        let appleIdExplanation = purchasesManager.appleIdSubscriptionState(for: credentialsManager).localizedExplanation
+#else
+        let appleIdExplanation: String? = nil
+#endif
         if let accountSummary = credentialsManager.accountSummary {
-            if let planText = accountSummary.planValidUntilAttributedString {
+            if let appleIdExplanation {
+                var text = AttributedString(appleIdExplanation)
+                text.foregroundColor = Color.Nym.error
+                subtitle = text
+            } else if let planText = accountSummary.planValidUntilAttributedString {
                 if accountSummary.isActive,
                    isAutoRenewEnabled(accountSummary: accountSummary),
                    !accountSummary.isExpiringSoon,

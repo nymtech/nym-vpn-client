@@ -148,6 +148,13 @@ extension AccountAndDevicesView {
 
     func manageSubscriptionSubtitle() -> AttributedString? {
         let accountSummary = credentialsManager.accountSummary
+#if os(iOS)
+        if let explanation = purchasesManager.appleIdSubscriptionState(for: credentialsManager).localizedExplanation {
+            var text = AttributedString(explanation)
+            text.foregroundColor = Color.Nym.error
+            return text
+        }
+#endif
         if accountSummary?.subscription?.status == .pending {
             var confirmingPayment = AttributedString("confirmingPayment".localizedString)
             confirmingPayment.foregroundColor = Color.Nym.error
