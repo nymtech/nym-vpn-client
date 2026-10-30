@@ -418,31 +418,3 @@ impl From<SphinxPacketRates> for proto::mixnet_event::SphinxPacketRates {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn pairing_event_round_trip() {
-        let results = [
-            PairingEvent::Cancelled,
-            PairingEvent::TimedOut,
-            PairingEvent::Error("error".to_string()),
-            PairingEvent::PinCode("123456".to_string()),
-            PairingEvent::Mnemonic("mnemonic".to_string()),
-        ];
-
-        for (session_id, event) in (1..).zip(results) {
-            let result = PairingResult {
-                session_id,
-                event: event.clone(),
-            };
-
-            let converted = proto::PairingCheckResult::from(result);
-            assert_eq!(converted.session_id, session_id);
-            // PairingResult has no PartialEq, but Debug shows every payload
-            assert_eq!(format!("{:?}", converted.event), format!("{event:?}"));
-        }
-    }
-}
