@@ -471,8 +471,7 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	geoExclusionCountries = geoExclusion.excludedCountries,
 )
 
-private fun List<String>.toPlainDnsServers(): List<DnsServer> =
-	map { DnsServer.Plain(address = it, port = null, ipProto = PlainDnsProtocol.UDP_AND_TCP) }
+private fun List<String>.toPlainDnsServers(): List<DnsServer> = map { DnsServer.Plain(address = it, port = null, ipProto = PlainDnsProtocol.UDP_AND_TCP) }
 
 private val DnsServer.address: String
 	get() = when (this) {
