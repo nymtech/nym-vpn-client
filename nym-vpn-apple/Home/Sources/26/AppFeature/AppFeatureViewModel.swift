@@ -525,49 +525,6 @@ private extension AppFeatureViewModel {
         presentedExpiryReminder = desired
     }
 
-    /// The user tapped the reminder's action button: route to the purchase/renew entry.
-    /// Not persisted as a dismissal, so backing out of purchase re-presents it.
-    func expiryReminderActionTapped() {
-        presentedExpiryReminder = nil
-        reminderKey = nil
-        requestInactiveSubscriptionPurchase()
-    }
-
-    /// The user dismissed the reminder ("Not now"): suppress it for this exact tier +
-    /// expiry window. Takes the presented value directly so it is robust to the alert's
-    /// `isPresented` binding clearing `presentedExpiryReminder` first.
-    func expiryReminderDismissed(_ reminder: ExpiryReminderPresentation) {
-        appSettings.expiryReminderDismissedTier = reminder.tier.rawValue
-        appSettings.expiryReminderDismissedValidUntil = reminder.validUntil
-        presentedExpiryReminder = nil
-        reminderKey = nil
-    }
-
-    struct ExpiryReminderPresentation {
-        let key: String
-        let tier: ExpiryReminderTier
-        let isFreepass: Bool
-        let validUntil: Double
-
-        var title: String {
-            "renewalReminder.\(tier.rawValue).\(planSuffix).title".localizedString
-        }
-
-        var message: String {
-            "renewalReminder.body.\(planSuffix)".localizedString
-        }
-
-        var actionTitle: String {
-            isFreepass
-                ? "renewalReminder.action.getPlan".localizedString
-                : "renewalReminder.action.renew".localizedString
-        }
-
-        private var planSuffix: String {
-            isFreepass ? "freepass" : "subscription"
-        }
-    }
-
     private func desiredExpiryReminder() -> ExpiryReminderPresentation? {
         guard let summary = credentialsManager.accountSummary else { return nil }
         let tier = summary.expiryReminderTier()
@@ -858,5 +815,52 @@ private extension AppFeatureViewModel {
                 )
             )
         }
+    }
+}
+
+// Reached from `AppFeatureView` (a different file), so the presentation type and the
+// user-action handlers must be internal — the reconcile logic stays file-private above.
+extension AppFeatureViewModel {
+    struct ExpiryReminderPresentation {
+        let key: String
+        let tier: ExpiryReminderTier
+        let isFreepass: Bool
+        let validUntil: Double
+
+        var title: String {
+            "renewalReminder.\(tier.rawValue).\(planSuffix).title".localizedString
+        }
+
+        var message: String {
+            "renewalReminder.body.\(planSuffix)".localizedString
+        }
+
+        var actionTitle: String {
+            isFreepass
+                ? "renewalReminder.action.getPlan".localizedString
+                : "renewalReminder.action.renew".localizedString
+        }
+
+        private var planSuffix: String {
+            isFreepass ? "freepass" : "subscription"
+        }
+    }
+
+    /// The user tapped the reminder's action button: route to the purchase/renew entry.
+    /// Not persisted as a dismissal, so backing out of purchase re-presents it.
+    func expiryReminderActionTapped() {
+        presentedExpiryReminder = nil
+        reminderKey = nil
+        requestInactiveSubscriptionPurchase()
+    }
+
+    /// The user dismissed the reminder ("Not now"): suppress it for this exact tier +
+    /// expiry window. Takes the presented value directly so it is robust to the alert's
+    /// `isPresented` binding clearing `presentedExpiryReminder` first.
+    func expiryReminderDismissed(_ reminder: ExpiryReminderPresentation) {
+        appSettings.expiryReminderDismissedTier = reminder.tier.rawValue
+        appSettings.expiryReminderDismissedValidUntil = reminder.validUntil
+        presentedExpiryReminder = nil
+        reminderKey = nil
     }
 }
