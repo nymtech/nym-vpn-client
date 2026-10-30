@@ -129,6 +129,7 @@ async fn load_filter_set(cache_dir: &Path) -> Result<FilterSet> {
 mod tests {
     use super::*;
     use crate::adblocker::file_manager::tests::init_tests;
+    use std::assert_matches;
 
     const SHOULD_BE_BLOCKED_DOMAIN: &str = "ad.doubleclick.net";
 
@@ -146,10 +147,10 @@ mod tests {
         let engine = BraveAdblockEngine::default();
 
         engine.load_filters(temp_dir.path()).await.unwrap();
-        assert!(matches!(
+        assert_matches!(
             engine.should_block(SHOULD_BE_BLOCKED_DOMAIN).await,
             DnsFilterDecision::Block(_)
-        ));
+        );
     }
 
     #[tokio::test]
@@ -157,6 +158,6 @@ mod tests {
     async fn test_should_not_block_without_rules() {
         let adblock = BraveAdblockEngine::default();
         let decision = adblock.should_block(SHOULD_BE_BLOCKED_DOMAIN).await;
-        assert!(matches!(decision, DnsFilterDecision::Pass));
+        assert_matches!(decision, DnsFilterDecision::Pass);
     }
 }

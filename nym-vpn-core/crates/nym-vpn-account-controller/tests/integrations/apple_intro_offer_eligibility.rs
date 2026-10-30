@@ -7,6 +7,7 @@
 //! the contract drifts.
 
 use crate::common::{TestBench, account_summary::*, endpoints};
+use std::assert_matches;
 
 use nym_vpn_api_client::response::NymErrorResponse;
 use nym_vpn_lib_types::{
@@ -145,8 +146,9 @@ async fn signing_not_configured_is_an_error_not_a_verdict() -> anyhow::Result<()
         .await;
 
     let result = check(&test_bench).await;
-    assert!(
-        matches!(result, Err(AccountCommandError::VpnApi(_))),
+    assert_matches!(
+        result,
+        Err(AccountCommandError::VpnApi(_)),
         "expected a VPN API error, got {result:?}"
     );
     Ok(())

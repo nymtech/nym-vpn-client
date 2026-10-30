@@ -6,6 +6,7 @@ use std::ops::Deref;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+#[derive(Debug)]
 pub enum State {
     /// Indicates that adblocker is not active
     Disabled,
@@ -38,6 +39,7 @@ pub enum State {
 }
 
 #[cfg(test)]
+#[derive(Debug)]
 pub enum PrimitiveState {
     Enabled,
     Disabled,
