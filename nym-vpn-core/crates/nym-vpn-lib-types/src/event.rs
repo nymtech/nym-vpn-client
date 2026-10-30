@@ -78,15 +78,6 @@ impl fmt::Display for TunnelEvent {
     }
 }
 
-#[cfg(feature = "uniffi-bindings")]
-pub type BoxedTunnelEvent = Box<TunnelEvent>;
-#[cfg(feature = "uniffi-bindings")]
-uniffi::custom_type!(BoxedTunnelEvent, TunnelEvent, {
-    remote,
-    try_lift: |val| Ok(Box::new(val)),
-    lower: |val| *val
-});
-
 /// A conflicting application was found on the system that may interfere with
 /// NymVPN's own network filtering. Does not change `TunnelState` - the
 /// tunnel connects and operates normally regardless.

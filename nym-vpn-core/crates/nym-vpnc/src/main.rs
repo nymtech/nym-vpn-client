@@ -293,7 +293,7 @@ impl Command {
             let Event::Tunnel(tunnel_event) = event? else {
                 continue;
             };
-            let TunnelEvent::NewState(new_state) = event? else {
+            let TunnelEvent::NewState(new_state) = *tunnel_event else {
                 continue;
             };
             println!("{new_state}");
@@ -346,7 +346,7 @@ impl Command {
     }
 
     async fn wait_until_disconnected(
-        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<Event>> + Unpin,
     ) -> Result<()> {
         loop {
             let Some(event) = stream.next().await else {
