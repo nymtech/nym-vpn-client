@@ -116,8 +116,8 @@ private extension DnsView {
             Text("dns.default.title".localizedString)
                 .nymTextStyle(.bodyDefault)
                 .foregroundStyle(Color.Nym.textSecondary)
-            ForEach(viewModel.defaultDns, id: \.self) { ip in
-                Text("• \(ip)")
+            ForEach(viewModel.defaultDns, id: \.self) { server in
+                Text("• \(server.displayName)")
                     .nymTextStyle(.bodyDefault)
                     .foregroundStyle(Color.Nym.textSecondary)
             }

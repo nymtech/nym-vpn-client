@@ -3,6 +3,7 @@ import GRPCManager
 #endif
 import SwiftUI
 import AppSettings
+import ConnectionTypes
 import ConnectionManager
 import Network
 import UIComponents
@@ -18,15 +19,15 @@ import SnackbarManager
 
     @Binding private var path: NavigationPath
 
-    @Published var defaultDns: [String] = [
-        "9.9.9.9",
-        "149.112.112.112",
-        "2620:fe::fe",
-        "2620:fe::fe:9",
-        "1.1.1.1",
-        "1.0.0.1",
-        "2606:4700:4700::1111",
-        "2606:4700:4700::1001"
+    @Published var defaultDns: [CustomDnsConfig.Server] = [
+        .tls(address: "9.9.9.9", port: nil, serverName: "dns.quad9.net"),
+        .tls(address: "149.112.112.112", port: nil, serverName: "dns.quad9.net"),
+        .https(address: "9.9.9.9", port: nil, serverName: "dns.quad9.net", queryPath: "/dns-query"),
+        .https(address: "149.112.112.112", port: nil, serverName: "dns.quad9.net", queryPath: "/dns-query"),
+        .tls(address: "1.1.1.1", port: nil, serverName: "cloudflare-dns.com"),
+        .tls(address: "1.0.0.1", port: nil, serverName: "cloudflare-dns.com"),
+        .https(address: "1.1.1.1", port: nil, serverName: "cloudflare-dns.com", queryPath: "/dns-query"),
+        .https(address: "1.0.0.1", port: nil, serverName: "cloudflare-dns.com", queryPath: "/dns-query")
     ]
     @Published var isDefaultDnsDisplayed = false
 

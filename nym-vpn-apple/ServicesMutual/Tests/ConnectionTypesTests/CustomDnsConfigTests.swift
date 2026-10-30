@@ -35,6 +35,23 @@ import Testing
         )
     }
 
+    @Test func displayNameShowsProtocol() {
+        #expect(Self.allServers.map(\.displayName) == [
+            "1.1.1.1 (UDP)",
+            "1.0.0.1:5353 (TCP)",
+            "2606:4700:4700::1111 (UDP/TCP)",
+            "9.9.9.9 (TLS)",
+            "8.8.8.8 (HTTPS)",
+            "94.140.14.14 (QUIC)",
+            "1.1.1.1 (HTTP/3)"
+        ])
+    }
+
+    @Test func displayNameBracketsIpv6WithCustomPort() {
+        let server = CustomDnsConfig.Server.tls(address: "2620:fe::fe", port: 8853, serverName: "dns.quad9.net")
+        #expect(server.displayName == "[2620:fe::fe]:8853 (TLS)")
+    }
+
     @Test func settingsRoundTrip() {
         let config = CustomDnsConfig(isEnabled: true, dnsServers: Self.allServers)
         #expect(CustomDnsConfig(from: config.settings) == config)

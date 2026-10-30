@@ -5,7 +5,7 @@ public struct CustomDnsConfig: Codable, Equatable {
         case udp, tcp, udpAndTcp
     }
 
-    public enum Server: Codable, Equatable {
+    public enum Server: Codable, Hashable {
         case plain(address: String, port: UInt16?, ipProto: PlainProtocol)
         case tls(address: String, port: UInt16?, serverName: String)
         // swiftlint:disable:next enum_case_associated_values_count
@@ -98,5 +98,64 @@ extension CustomDnsConfig.Server {
              let .http3(address, _, _, _):
             address
         }
+    }
+
+    public var port: UInt16? {
+        switch self {
+        case let .plain(_, port, _),
+             let .tls(_, port, _),
+             let .https(_, port, _, _),
+             let .quic(_, port, _),
+             let .http3(_, port, _, _):
+            port
+        }
+    }
+
+    public var protocolName: String {
+        switch self {
+        case let .plain(_, _, ipProto):
+            switch ipProto {
+            case .udp:
+                "UDP"
+            case .tcp:
+                "TCP"
+            case .udpAndTcp:
+                "UDP/TCP"
+            }
+        case .tls:
+            "TLS"
+        case .https:
+            "HTTPS"
+        case .quic:
+            "QUIC"
+        case .http3:
+            "HTTP/3"
+        }
+    }
+
+    public var defaultPort: UInt16 {
+        switch self {
+        case .plain:
+            53
+        case .tls, .quic:
+            853
+        case .https, .http3:
+            443
+        }
+    }
+
+    /// Address followed by the port when it differs from the protocol default, e.g. `1.1.1.1:5353` or `[::1]:5353`.
+    public var endpoint: String {
+        switch port {
+        case let .some(port) where port != defaultPort:
+            address.contains(":") ? "[\(address)]:\(port)" : "\(address):\(port)"
+        default:
+            address
+        }
+    }
+
+    /// Endpoint followed by the protocol, e.g. `9.9.9.9 (TLS)`.
+    public var displayName: String {
+        "\(endpoint) (\(protocolName))"
     }
 }
