@@ -193,7 +193,7 @@ pub(crate) mod fixtures {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use nym_vpn_lib_types::{
-        ActionAfterDisconnect, BridgeAddress, ConnectionData, ErrorStateReason,
+        ActionAfterDisconnect, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
         EstablishConnectionState, GatewayLightInfo, MixnetConnectionData, NymAddress,
         SelectorFallbackState, TunnelConnectionData, TunnelState, TunnelType,
         WireguardConnectionData, WireguardNode,
@@ -228,6 +228,7 @@ pub(crate) mod fixtures {
             entry_bridge_addr: bridge.map(|remote_addr| BridgeAddress {
                 listen_addr: "127.0.0.1:1".parse().unwrap(),
                 remote_addr,
+                transport: BridgeTransport::Quic,
             }),
             entry: node(entry_endpoint),
             exit: node("10.1.1.1:51820".parse().unwrap()),
