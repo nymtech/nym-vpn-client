@@ -46,6 +46,7 @@ maintainer-scripts = "packaging/debian"
 # The editor libraries are built by `make -C editor` before `cargo deb`.
 assets = [
     { source = "target/release/nm-nymvpn-service", dest = "usr/libexec/nm-nymvpn-service", mode = "755" },
+    { source = "packaging/nm-nymvpn-auth-dialog", dest = "usr/libexec/nm-nymvpn-auth-dialog", mode = "755" },
     { source = "packaging/nm-nymvpn-service.name", dest = "usr/lib/NetworkManager/VPN/nm-nymvpn-service.name", mode = "644" },
     { source = "packaging/nm-nymvpn-service.conf", dest = "usr/share/dbus-1/system.d/nm-nymvpn-service.conf", mode = "644" },
     # NetworkManager ignores keyfiles that are readable by others, hence 600.
