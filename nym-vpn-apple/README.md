@@ -16,7 +16,7 @@ Requires Apple machine - macOS + Xcode 26.5 or newer.
 4. Install all dependencies using Homebrew:
   
   ```sh
-  brew install swiftlint fastlane protobuf go@1.25
+  brew install swiftlint fastlane go@1.25
   ```
 
 ## Build nym-vpn-core

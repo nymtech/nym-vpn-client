@@ -36,26 +36,47 @@ use crate::{
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct VpnServiceConfig {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry_point: EntryPoint,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit_point: ExitPoint,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub allow_lan: bool,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub disable_ipv6: bool,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub enable_two_hop: bool,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub bridge_mode: BridgeMode,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub enable_ad_blocking: bool,
+    #[cfg_attr(feature = "cbor", n(7))]
     pub enable_conflict_detection: bool,
+    #[cfg_attr(feature = "cbor", n(8))]
     pub fronting_mode: FrontingMode,
+    #[cfg_attr(feature = "cbor", n(9))]
     pub netstack: bool,
+    #[cfg_attr(feature = "cbor", n(10))]
     pub min_gateway_vpn_performance: Option<u8>,
+    #[cfg_attr(feature = "cbor", n(11))]
     pub residential_exit: bool,
+    #[cfg_attr(feature = "cbor", n(12))]
     pub enable_custom_dns: bool,
+    #[cfg_attr(feature = "cbor", n(13))]
     pub custom_dns: Vec<IpAddr>,
+    #[cfg_attr(feature = "cbor", n(14))]
     pub mixnet_traffic: MixnetTrafficConfig,
+    #[cfg_attr(feature = "cbor", n(15))]
     pub network_stats: NetworkStatisticsConfig,
+    #[cfg_attr(feature = "cbor", n(16))]
     pub split_tunnel: SplitTunnelSettings,
+    #[cfg_attr(feature = "cbor", n(17))]
     pub geo_exclusion: GeoExclusionSettings,
+    #[cfg_attr(feature = "cbor", n(18))]
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    #[cfg_attr(feature = "cbor", n(19))]
     pub gateway_independence: GatewayIndependence,
 }
 
@@ -160,15 +181,23 @@ pub fn default_vpn_service_config() -> VpnServiceConfig {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct MixnetTrafficConfig {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub poisson_parameter_for_loop_cover_stream: Option<u32>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub average_packet_delay: Option<u32>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub message_sending_average_delay: Option<u32>,
 
+    #[cfg_attr(feature = "cbor", n(3))]
     pub disable_poisson_rate: bool,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub disable_background_cover_traffic: bool,
 
+    #[cfg_attr(feature = "cbor", n(5))]
     pub min_mixnode_performance: Option<u8>,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub min_gateway_mixnet_performance: Option<u8>,
 }
 
@@ -319,9 +348,13 @@ impl MixnetTrafficDefaults {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct MixingDelay {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub min_value: u32,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub max_value: u32,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub default_value: u32,
 }
 
@@ -346,11 +379,17 @@ impl Default for MixingDelay {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum BackgroundCoverTrafficRate {
     #[default]
+    #[cfg_attr(feature = "cbor", n(0))]
     Ms200, // DEFAULT_LOOP_COVER_STREAM_AVERAGE_DELAY
+    #[cfg_attr(feature = "cbor", n(1))]
     Ms40,
+    #[cfg_attr(feature = "cbor", n(2))]
     Ms20,
+    #[cfg_attr(feature = "cbor", n(3))]
     Ms10,
 }
 
@@ -388,10 +427,15 @@ impl BackgroundCoverTrafficRate {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum ContinuousTrafficSendingRate {
+    #[cfg_attr(feature = "cbor", n(0))]
     Ms30,
     #[default]
+    #[cfg_attr(feature = "cbor", n(1))]
     Ms20,
+    #[cfg_attr(feature = "cbor", n(2))]
     Ms10,
 }
 
@@ -428,13 +472,18 @@ impl ContinuousTrafficSendingRate {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum BridgeMode {
     /// Plain WireGuard first, then bridges when an attempt fails.
+    #[cfg_attr(feature = "cbor", n(0))]
     Auto,
     /// Bridges only.
+    #[cfg_attr(feature = "cbor", n(1))]
     On,
     /// Plain WireGuard only.
     #[default]
+    #[cfg_attr(feature = "cbor", n(2))]
     Off,
 }
 
@@ -454,10 +503,15 @@ impl From<bool> for BridgeMode {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum FrontingMode {
+    #[cfg_attr(feature = "cbor", n(0))]
     Off,
     #[default]
+    #[cfg_attr(feature = "cbor", n(1))]
     OnRetry,
+    #[cfg_attr(feature = "cbor", n(2))]
     Always,
 }
 
@@ -472,9 +526,11 @@ pub enum FrontingMode {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct SplitApp {
     /// Path to executable
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "cbor", n(0))]
     pub path: String,
 }
 
@@ -504,11 +560,14 @@ impl fmt::Display for SplitApp {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct SplitTunnelSettings {
     /// Whether split tunneling is enabled.
+    #[cfg_attr(feature = "cbor", n(0))]
     pub enabled: bool,
 
     /// Applications participating in split tunneling.
+    #[cfg_attr(feature = "cbor", n(1))]
     pub apps: Vec<SplitApp>,
 }
 
@@ -561,9 +620,13 @@ impl fmt::Display for SplitTunnelSettings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct GeoExclusionSettings {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub enabled: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub listen_port: u16,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub excluded_countries: Vec<String>,
 }
 
@@ -601,11 +664,15 @@ impl Default for GeoExclusionSettings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum TargetState {
     /// Unsecure the device.
+    #[cfg_attr(feature = "cbor", n(0))]
     Unsecured,
 
     /// Secure the device.
+    #[cfg_attr(feature = "cbor", n(1))]
     Secured,
 }
 
@@ -629,14 +696,26 @@ impl fmt::Display for TargetState {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct VpnServiceInfo {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub version: String,
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    #[cfg_attr(feature = "cbor", n(1))]
+    #[cfg_attr(
+        feature = "cbor",
+        cbor(with = "crate::cbor::option_offset_date_time", has_nil)
+    )]
     pub build_timestamp: Option<OffsetDateTime>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub triple: String,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub platform: String,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub git_commit: String,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub nym_network: NymNetworkDetails,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub nym_vpn_network: NymVpnNetwork,
 }

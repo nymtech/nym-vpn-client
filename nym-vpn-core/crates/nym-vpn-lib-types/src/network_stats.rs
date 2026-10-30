@@ -19,8 +19,10 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NetworkStatisticsConfig {
     /// Is stats reporting enabled
+    #[cfg_attr(feature = "cbor", n(0))]
     pub enabled: bool,
 
     // Allow sending reports even with a not connected tunnel
@@ -30,6 +32,7 @@ pub struct NetworkStatisticsConfig {
     // - If the tunnel is connected in wireguard mode, it will go through wireguard
     // We thus need this option to allow users to report even if they can't connect (i.e. if they're being censored)
     /// Allow statistics sending, even if not connected to the mixnet/vpn
+    #[cfg_attr(feature = "cbor", n(1))]
     pub allow_disconnected: bool,
 }
 
@@ -63,10 +66,13 @@ impl fmt::Display for NetworkStatisticsConfig {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NetworkStatisticsIdentity {
     /// Seed used to generate the id
+    #[cfg_attr(feature = "cbor", n(0))]
     pub seed: String,
 
     /// Actual ID used
+    #[cfg_attr(feature = "cbor", n(1))]
     pub id: String,
 }

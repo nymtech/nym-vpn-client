@@ -50,23 +50,6 @@ jobs:
           # Simulator slices Maestro drives: aarch64-apple-ios-sim on Apple Silicon, x86_64-apple-ios on Intel hosts.
           targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios x86_64-apple-darwin
 
-      # Same protoc as ci-nym-vpn-core-ios.yml. The action queries the GitHub
-      # releases API, which occasionally times out; retry once before failing.
-      - name: Install Protoc
-        id: protoc
-        continue-on-error: true
-        uses: arduino/setup-protoc@v3
-        with:
-          version: "21.12"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Protoc (retry)
-        if: steps.protoc.outcome == 'failure'
-        uses: arduino/setup-protoc@v3
-        with:
-          version: "21.12"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Go
         uses: actions/setup-go@v7.0.0
         with:

@@ -13,7 +13,7 @@ mod tunnel_tests;
 
 use futures::future::BoxFuture;
 use itertools::Itertools;
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use std::{ops::Not, time::Duration};
 pub use test_metadata::TestMetadata;
 
@@ -46,7 +46,7 @@ pub enum Error {
     Daemon(String),
 
     #[error("Nym gRPC client ran into an error: {0}")]
-    NymManagementInterface(#[from] nym_vpn_proto::rpc_client::Error),
+    NymManagementInterface(#[from] nym_vpn_rpc::Error),
 
     #[error("An error occurred: {0}")]
     Other(#[from] anyhow::Error),

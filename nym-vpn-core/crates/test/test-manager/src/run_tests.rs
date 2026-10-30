@@ -12,7 +12,7 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use futures::FutureExt;
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use std::{future::Future, io::Write, net::IpAddr, panic, time::Duration};
 use test_rpc::{client_nym::NymServiceClient, logging::Output};
 

@@ -19,28 +19,57 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum AccountControllerErrorStateReason {
     /// Error due to storage
-    Storage { context: String, details: String },
+    #[cfg_attr(feature = "cbor", n(0))]
+    Storage {
+        #[cfg_attr(feature = "cbor", n(0))]
+        context: String,
+        #[cfg_attr(feature = "cbor", n(1))]
+        details: String,
+    },
 
     /// API Failure
-    ApiFailure { context: String, details: String },
+    #[cfg_attr(feature = "cbor", n(1))]
+    ApiFailure {
+        #[cfg_attr(feature = "cbor", n(0))]
+        context: String,
+        #[cfg_attr(feature = "cbor", n(1))]
+        details: String,
+    },
 
     // Let's limit that type to the minimum
     /// Internal
-    Internal { context: String, details: String },
+    #[cfg_attr(feature = "cbor", n(2))]
+    Internal {
+        #[cfg_attr(feature = "cbor", n(0))]
+        context: String,
+        #[cfg_attr(feature = "cbor", n(1))]
+        details: String,
+    },
 
     // ==== User need to do something for these below ==== //
     /// Bandwidth Exceeded
-    BandwidthExceeded { context: String },
+    #[cfg_attr(feature = "cbor", n(3))]
+    BandwidthExceeded {
+        #[cfg_attr(feature = "cbor", n(0))]
+        context: String,
+    },
 
     /// Account status is not "Active"
-    AccountStatusNotActive { status: String },
+    #[cfg_attr(feature = "cbor", n(4))]
+    AccountStatusNotActive {
+        #[cfg_attr(feature = "cbor", n(0))]
+        status: String,
+    },
 
     /// Inactive Subscription
+    #[cfg_attr(feature = "cbor", n(5))]
     InactiveSubscription,
 
     /// Max device numbers reached
+    #[cfg_attr(feature = "cbor", n(6))]
     MaxDeviceReached,
 }
 

@@ -10,7 +10,7 @@ use crate::tests::{
 };
 use anyhow::Context;
 use helpers_nym::ExpectedTunnelState;
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use std::{
     future::Future,
     net::{IpAddr, Ipv4Addr, SocketAddr},

@@ -4,7 +4,7 @@
 use anyhow::Result;
 
 use nym_diagnostic::cli::Command;
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 // This subcommand is a bit different from the others because the CLI is shared with nym-diagnostic binary
 

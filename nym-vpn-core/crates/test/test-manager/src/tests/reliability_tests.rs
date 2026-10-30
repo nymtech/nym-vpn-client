@@ -13,7 +13,7 @@ use crate::{
 };
 use anyhow::{Context, bail, ensure};
 use nym_vpn_lib_types::ExitPoint;
-use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use nym_vpn_rpc::RpcClient as NymProxyClient;
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     time::Duration,

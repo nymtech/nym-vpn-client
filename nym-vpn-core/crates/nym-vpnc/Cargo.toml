@@ -25,7 +25,7 @@ tokio-stream.workspace = true
 
 nym-diagnostic.workspace = true
 nym-favorites.workspace = true
-nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
+nym-vpn-rpc.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["clap", "serde"] }
 
 # Debian

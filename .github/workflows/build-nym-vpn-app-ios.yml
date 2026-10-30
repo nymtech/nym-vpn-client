@@ -155,11 +155,6 @@ jobs:
         with:
           crate: cargo-get
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Go
         uses: actions/setup-go@v7.0.0
         with:

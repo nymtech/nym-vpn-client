@@ -27,10 +27,12 @@ use ts_rs::TS;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 #[cfg(any(target_os = "ios", target_os = "android"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct RegisterAccountRequest {
     /// Present for Google Play in-app purchases
     /// Omitted for anonymous registration
     #[cfg(target_os = "android")]
+    #[cfg_attr(feature = "cbor", n(0))]
     pub purchase_token: Option<String>,
 }
 
@@ -60,61 +62,84 @@ pub struct RegisterAccountResponse {
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum AccountCommandError {
     // Internal error that should not happen
     #[error("internal error: {0}")]
-    Internal(String),
+    #[cfg_attr(feature = "cbor", n(0))]
+    Internal(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("storage error: {0}")]
-    Storage(String),
+    #[cfg_attr(feature = "cbor", n(1))]
+    Storage(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("vpn-api error")]
-    VpnApi(#[from] VpnApiError),
+    #[cfg_attr(feature = "cbor", n(2))]
+    VpnApi(
+        #[cfg_attr(feature = "cbor", n(0))]
+        #[from]
+        VpnApiError,
+    ),
 
     #[error("unexpected vpn-api response: {0}")]
-    UnexpectedVpnApiResponse(String),
+    #[cfg_attr(feature = "cbor", n(3))]
+    UnexpectedVpnApiResponse(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("failed to connect to nyxd instance: {0}")]
-    NyxdConnectionFailure(String),
+    #[cfg_attr(feature = "cbor", n(4))]
+    NyxdConnectionFailure(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("failed to resolve query to a nyxd instance: {0}")]
-    NyxdQueryFailure(String),
+    #[cfg_attr(feature = "cbor", n(5))]
+    NyxdQueryFailure(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("account doesn't exist on chain")]
+    #[cfg_attr(feature = "cbor", n(6))]
     AccountDoesntExistOnChain,
 
     #[error("no account stored")]
+    #[cfg_attr(feature = "cbor", n(7))]
     NoAccountStored,
 
     #[error("no device stored")]
+    #[cfg_attr(feature = "cbor", n(8))]
     NoDeviceStored,
 
     #[error("an account is already stored")]
+    #[cfg_attr(feature = "cbor", n(9))]
     ExistingAccount,
 
     #[error("no connectivity")]
+    #[cfg_attr(feature = "cbor", n(10))]
     Offline,
 
     #[error("account is not set in decentralised mode")]
+    #[cfg_attr(feature = "cbor", n(11))]
     AccountNotDecentralised,
 
     #[error("account is set in decentralised mode")]
+    #[cfg_attr(feature = "cbor", n(12))]
     AccountDecentralised,
 
     #[error("account does not have sufficient funds")]
+    #[cfg_attr(feature = "cbor", n(13))]
     InsufficientFunds,
 
     #[error("failed to obtain zk-nym: {0}")]
-    ZkNymAcquisitionFailure(String),
+    #[cfg_attr(feature = "cbor", n(14))]
+    ZkNymAcquisitionFailure(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("invalid passphrase: {0}")]
-    InvalidMnemonic(String),
+    #[cfg_attr(feature = "cbor", n(15))]
+    InvalidMnemonic(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("invalid secret: {0}")]
-    InvalidSecret(String),
+    #[cfg_attr(feature = "cbor", n(16))]
+    InvalidSecret(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("deeplink error: {0}")]
-    DeeplinkError(String),
+    #[cfg_attr(feature = "cbor", n(17))]
+    DeeplinkError(#[cfg_attr(feature = "cbor", n(0))] String),
 }
 
 impl AccountCommandError {
@@ -140,15 +165,28 @@ impl From<nym_validator_client::nyxd::error::NyxdError> for AccountCommandError 
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum VpnApiError {
     #[error("timeout: {0}")]
-    Timeout(String),
+    #[cfg_attr(feature = "cbor", n(0))]
+    Timeout(#[cfg_attr(feature = "cbor", n(0))] String),
 
     #[error("status code: {code}, error: {msg}")]
-    StatusCode { code: u16, msg: String },
+    #[cfg_attr(feature = "cbor", n(1))]
+    StatusCode {
+        #[cfg_attr(feature = "cbor", n(0))]
+        code: u16,
+        #[cfg_attr(feature = "cbor", n(1))]
+        msg: String,
+    },
 
     #[error(transparent)]
-    Response(#[from] VpnApiErrorResponse),
+    #[cfg_attr(feature = "cbor", n(2))]
+    Response(
+        #[cfg_attr(feature = "cbor", n(0))]
+        #[from]
+        VpnApiErrorResponse,
+    ),
 }
 
 impl VpnApiError {
@@ -223,9 +261,13 @@ impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 #[error("{message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}")]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct VpnApiErrorResponse {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub message: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub message_id: Option<String>,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub code_reference_id: Option<String>,
 }
 
@@ -261,42 +303,63 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct VpnAccountSummary {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub traffic_used_gb: u64,
 
+    #[cfg_attr(feature = "cbor", n(1))]
     pub traffic_limit_gb: u64,
 
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    #[cfg_attr(feature = "cbor", n(2))]
+    #[cfg_attr(
+        feature = "cbor",
+        cbor(with = "crate::cbor::option_offset_date_time", has_nil)
+    )]
     pub traffic_reset_time: Option<OffsetDateTime>,
 
     /// True when the API could not retrieve fair-usage data from the database.
     /// Clients should treat this as fail-open rather than surfacing a quota-exceeded error.
+    #[cfg_attr(feature = "cbor", n(3))]
     pub fair_usage_data_unavailable: bool,
 
+    #[cfg_attr(feature = "cbor", n(4))]
     pub account_addr: String,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub canonical_account_addr: Option<String>,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub auth_methods: Vec<VpnAccountAuthMethod>,
+    #[cfg_attr(feature = "cbor", n(7))]
     pub account_mode: Option<StoredAccountMode>,
+    #[cfg_attr(feature = "cbor", n(8))]
     pub subscription: Option<Subscription>,
+    #[cfg_attr(feature = "cbor", n(9))]
     pub is_subscription_stacked: bool,
 
     /// Status of the account itself (active/inactive/delete-me).
+    #[cfg_attr(feature = "cbor", n(10))]
     pub account_status: VpnAccountStatus,
 
     /// Number of additional devices that can still be registered to this account.
+    #[cfg_attr(feature = "cbor", n(11))]
     pub remaining_devices: u64,
 
     /// Whether the current device is registered and active on this account.
+    #[cfg_attr(feature = "cbor", n(12))]
     pub is_device_active: bool,
 
     /// Additional staleness flag
+    #[cfg_attr(feature = "cbor", n(13))]
     pub stale: bool,
 
     /// When this summary was last synced from the VPN API. Used to decide when a
     /// background refresh is due.
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
+    #[cfg_attr(feature = "cbor", n(14))]
+    #[cfg_attr(feature = "cbor", cbor(with = "crate::cbor::offset_date_time"))]
     pub last_synced_utc: OffsetDateTime,
 }
 
@@ -437,15 +500,23 @@ impl VpnAccountSummary {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct VpnAccountAuthMethod {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub id: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub pubkey: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub kind: String,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub label: String,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub status: VpnAccountStatus,
 
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
+    #[cfg_attr(feature = "cbor", n(5))]
+    #[cfg_attr(feature = "cbor", cbor(with = "crate::cbor::offset_date_time"))]
     pub created: OffsetDateTime,
 }
 
@@ -459,14 +530,21 @@ pub struct VpnAccountAuthMethod {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum NymVpnSubscriptionKind {
+    #[cfg_attr(feature = "cbor", n(0))]
     OneMonth,
+    #[cfg_attr(feature = "cbor", n(1))]
     OneYear,
+    #[cfg_attr(feature = "cbor", n(2))]
     TwoYears,
+    #[cfg_attr(feature = "cbor", n(3))]
     Freepass,
+    #[cfg_attr(feature = "cbor", n(4))]
     SixMonths,
     #[cfg_attr(feature = "serde", serde(untagged))]
-    Other(String),
+    #[cfg_attr(feature = "cbor", n(5))]
+    Other(#[cfg_attr(feature = "cbor", n(0))] String),
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -505,8 +583,12 @@ impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscr
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum NymVpnSubscriptionStatus {
+    #[cfg_attr(feature = "cbor", n(0))]
     Pending,
+    #[cfg_attr(feature = "cbor", n(1))]
     Active,
 }
 
@@ -520,14 +602,23 @@ pub enum NymVpnSubscriptionStatus {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NymVpnSubscription {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub created_on_utc: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub last_updated_utc: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub id: String,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub valid_until_utc: i64,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub valid_from_utc: i64,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub status: String,
+    #[cfg_attr(feature = "cbor", n(6))]
     pub kind: NymVpnSubscriptionKind,
+    #[cfg_attr(feature = "cbor", n(7))]
     pub is_recurring: bool,
 }
 
@@ -590,8 +681,11 @@ fn parse_timestamp(raw: &str, field: &'static str) -> Option<OffsetDateTime> {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Subscription {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub status: NymVpnSubscriptionStatus,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub subscription: NymVpnSubscription,
 }
 
@@ -632,9 +726,14 @@ impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum VpnAccountStatus {
+    #[cfg_attr(feature = "cbor", n(0))]
     Active,
+    #[cfg_attr(feature = "cbor", n(1))]
     Inactive,
+    #[cfg_attr(feature = "cbor", n(2))]
     DeleteMe,
 }
 
@@ -682,18 +781,23 @@ impl From<nym_vpn_api_client::response::NymVpnAccountStatusResponse> for VpnAcco
     serde(rename_all = "snake_case")
 )]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum StoredAccountMode {
     /// Account works in the API mode, i.e. the subscription is managed
     /// by the VPN API which provides required ticketbooks
     #[default]
+    #[cfg_attr(feature = "cbor", n(0))]
     Api,
 
     /// Account works in the decentralised mode, i.e. there is no associated subscription
     /// and the account uses its own funds for obtaining required ticketbooks
+    #[cfg_attr(feature = "cbor", n(1))]
     Decentralised,
 
     /// Account works in the API mode, but the mnemonic is derived from the Privy
     /// wallet private key.
+    #[cfg_attr(feature = "cbor", n(2))]
     Privy,
 }
 

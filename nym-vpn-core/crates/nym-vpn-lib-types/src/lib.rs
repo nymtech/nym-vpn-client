@@ -33,6 +33,8 @@
 //! Serde can be enabled using `serde` feature flag. Note that TypeScript adds camelCase transformation for keys. Do not mix both feature flags in the same workspace.
 
 mod account;
+#[cfg(feature = "cbor")]
+mod cbor;
 mod connection_data;
 mod device;
 mod diagnostic;

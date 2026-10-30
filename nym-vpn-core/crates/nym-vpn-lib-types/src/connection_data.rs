@@ -25,7 +25,9 @@ use crate::TunnelType;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct GatewayId {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub id: String,
 }
 
@@ -53,8 +55,11 @@ impl From<nym_gateway_directory::Gateway> for GatewayId {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct GatewayLightInfo {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub id: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub country_code: Option<String>,
 }
 
@@ -84,15 +89,19 @@ impl From<nym_gateway_directory::Gateway> for GatewayLightInfo {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry_gateway: GatewayLightInfo,
 
     /// Mixnet exit gateway.
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit_gateway: GatewayLightInfo,
 
     /// Tunnel connection data.
     /// Becomes available once tunnel connection is initiated.
+    #[cfg_attr(feature = "cbor", n(2))]
     pub tunnel: Option<TunnelConnectionData>,
 }
 
@@ -107,26 +116,35 @@ pub struct EstablishConnectionData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "cbor", cbor(index_only))]
 pub enum EstablishConnectionState {
     /// Resolving API IP addresses
+    #[cfg_attr(feature = "cbor", n(0))]
     ResolvingApiAddresses,
 
     /// Awaiting for account to be ready for establishing connection
+    #[cfg_attr(feature = "cbor", n(1))]
     AwaitingAccountReadiness,
 
     /// Awaiting for credentials to be ready for establishing connection
+    #[cfg_attr(feature = "cbor", n(2))]
     AwaitingCredentialsAvailability,
 
     /// Refreshing gateways
+    #[cfg_attr(feature = "cbor", n(3))]
     RefreshingGateways,
 
     /// Selecting gateways
+    #[cfg_attr(feature = "cbor", n(4))]
     SelectingGateways,
 
     /// Registering with gateways
+    #[cfg_attr(feature = "cbor", n(5))]
     RegisteringWithGateways,
 
     /// Establishing tunnel connection
+    #[cfg_attr(feature = "cbor", n(6))]
     ConnectingTunnel,
 }
 
@@ -156,10 +174,13 @@ impl fmt::Display for EstablishConnectionState {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct SelectorFallbackState {
     /// Using a fallback for entry selector
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry_fallback: bool,
     /// Using a fallback for exit selector
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit_fallback: bool,
 }
 
@@ -173,19 +194,25 @@ pub struct SelectorFallbackState {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry_gateway: GatewayLightInfo,
 
     /// Mixnet exit gateway.
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit_gateway: GatewayLightInfo,
 
     /// When the tunnel connection was last established.
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
+    #[cfg_attr(feature = "cbor", n(2))]
+    #[cfg_attr(feature = "cbor", cbor(with = "crate::cbor::offset_date_time"))]
     pub connected_at: OffsetDateTime,
 
     /// Tunnel connection data.
+    #[cfg_attr(feature = "cbor", n(3))]
     pub tunnel: TunnelConnectionData,
 }
 
@@ -199,9 +226,12 @@ pub struct ConnectionData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum TunnelConnectionData {
-    Mixnet(MixnetConnectionData),
-    Wireguard(WireguardConnectionData),
+    #[cfg_attr(feature = "cbor", n(0))]
+    Mixnet(#[cfg_attr(feature = "cbor", n(0))] MixnetConnectionData),
+    #[cfg_attr(feature = "cbor", n(1))]
+    Wireguard(#[cfg_attr(feature = "cbor", n(0))] WireguardConnectionData),
 }
 
 impl TunnelConnectionData {
@@ -224,8 +254,11 @@ impl TunnelConnectionData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct NymAddress {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub nym_address: String,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub gateway_id: String,
 }
 
@@ -272,12 +305,19 @@ impl From<nym_gateway_directory::IpPacketRouterAddress> for NymAddress {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct MixnetConnectionData {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub nym_address: NymAddress,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub exit_ipr: NymAddress,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub entry_ip: IpAddr,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub exit_ip: IpAddr,
+    #[cfg_attr(feature = "cbor", n(4))]
     pub ipv4: Ipv4Addr,
+    #[cfg_attr(feature = "cbor", n(5))]
     pub ipv6: Option<Ipv6Addr>,
 }
 
@@ -291,11 +331,14 @@ pub struct MixnetConnectionData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct BridgeAddress {
     /// Local forwarder listen address
+    #[cfg_attr(feature = "cbor", n(0))]
     pub listen_addr: SocketAddr,
 
     /// Remote bridge address
+    #[cfg_attr(feature = "cbor", n(1))]
     pub remote_addr: SocketAddr,
 }
 
@@ -309,9 +352,13 @@ pub struct BridgeAddress {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct WireguardConnectionData {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub entry_bridge_addr: Option<BridgeAddress>,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub entry: WireguardNode,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub exit: WireguardNode,
 }
 
@@ -325,10 +372,15 @@ pub struct WireguardConnectionData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct WireguardNode {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub endpoint: SocketAddr,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub public_key: String,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub private_ipv4: Ipv4Addr,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub private_ipv6: Option<Ipv6Addr>,
 }
 

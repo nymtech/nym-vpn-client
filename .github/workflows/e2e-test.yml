@@ -182,12 +182,6 @@ jobs:
             libdbus-1-dev libmnl-dev libnftnl-dev \
             libssl-dev libpcap-dev
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          version: "21.12"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Restore cargo registry cache
         uses: actions/cache/restore@v6.1.0
         with:

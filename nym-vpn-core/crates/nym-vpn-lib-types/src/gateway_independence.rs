@@ -18,10 +18,15 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct GatewayIndependence {
+    #[cfg_attr(feature = "cbor", n(0))]
     pub enable_notifications: bool,
+    #[cfg_attr(feature = "cbor", n(1))]
     pub different_node_family: bool,
+    #[cfg_attr(feature = "cbor", n(2))]
     pub different_asn: bool,
+    #[cfg_attr(feature = "cbor", n(3))]
     pub different_subnet: bool,
 }
 

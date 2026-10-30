@@ -7,7 +7,7 @@ use clap::builder::ValueParserFactory;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::boolean_option::BooleanOption;

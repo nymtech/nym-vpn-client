@@ -4,7 +4,7 @@
 use anyhow::Result;
 
 use nym_vpn_lib_types::ProfileOptions;
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Profile {

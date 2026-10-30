@@ -61,9 +61,7 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
 nym-favorites = { path = "../../nym-vpn-core/crates/nym-favorites" }
-nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto", features = [
-    "rpc_client",
-] }
+nym-vpn-rpc = { path = "../../nym-vpn-core/crates/nym-vpn-rpc" }
 nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types", features = [
     "serde",
 ] }

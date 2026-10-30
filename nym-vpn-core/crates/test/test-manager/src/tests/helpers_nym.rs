@@ -8,7 +8,7 @@ use super::{
 };
 use crate::nym_daemon::RpcClientProvider;
 use nym_vpn_lib_types::AccountCommandError;
-use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
+use nym_vpn_rpc::{Error as NymClientError, RpcClient as NymProxyClient};
 use std::{
     future::Future,
     net::{IpAddr, Ipv4Addr, SocketAddr},
@@ -1117,7 +1117,7 @@ mod tests {
     };
     use crate::tests::{Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
     use futures::StreamExt;
-    use nym_vpn_proto::rpc_client::Error as NymClientError;
+    use nym_vpn_rpc::Error as NymClientError;
     use std::{cell::Cell, collections::VecDeque, sync::Mutex};
 
     fn sample_addr() -> std::net::SocketAddr {

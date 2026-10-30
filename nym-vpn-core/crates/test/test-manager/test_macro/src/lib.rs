@@ -158,7 +158,7 @@ fn create_test_nym(test_function: TestFunction) -> proc_macro2::TokenStream {
     let wrapper_closure = quote! {
         |test_context: crate::tests::TestContext,
         rpc: test_rpc::NymServiceClient,
-        nym_client: Option<::nym_vpn_proto::rpc_client::RpcClient>|
+        nym_client: Option<::nym_vpn_rpc::RpcClient>|
         {
             let nym_client = nym_client.expect("Test functions defined using the macro should be given a Nym client");
             Box::pin(async move {

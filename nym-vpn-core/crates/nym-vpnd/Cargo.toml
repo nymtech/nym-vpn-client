@@ -40,7 +40,7 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }
-nym-vpn-proto = { workspace = true, features = ["conversions"] }
+nym-vpn-rpc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
@@ -62,6 +62,8 @@ features = [
 
 [dev-dependencies]
 pretty_assertions.workspace = true
+tokio = { workspace = true, features = ["macros"] }
+tokio-stream = { workspace = true, features = ["net"] }
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [

@@ -6,7 +6,7 @@ use std::io::Write;
 use anyhow::Result;
 use clap::Parser;
 
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 use crate::Command;
 

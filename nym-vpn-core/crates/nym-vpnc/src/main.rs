@@ -15,7 +15,7 @@ use clap_complete::Shell;
 use tokio_stream::{Stream, StreamExt};
 
 use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 
 use crate::table_style::TableStyle;
 
@@ -284,7 +284,7 @@ impl Command {
     }
 
     async fn wait_until_connected(
-        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+        mut stream: impl Stream<Item = nym_vpn_rpc::Result<TunnelEvent>> + Unpin,
     ) -> Result<()> {
         loop {
             let Some(event) = stream.next().await else {
@@ -343,7 +343,7 @@ impl Command {
     }
 
     async fn wait_until_disconnected(
-        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+        mut stream: impl Stream<Item = nym_vpn_rpc::Result<TunnelEvent>> + Unpin,
     ) -> Result<()> {
         loop {
             let Some(event) = stream.next().await else {

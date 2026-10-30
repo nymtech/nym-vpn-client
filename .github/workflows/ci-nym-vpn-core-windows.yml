@@ -63,12 +63,6 @@ jobs:
           targets: i686-pc-windows-msvc
           components: rustfmt, clippy
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install GNU make
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make

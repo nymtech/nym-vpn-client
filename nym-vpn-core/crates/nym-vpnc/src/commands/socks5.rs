@@ -3,7 +3,7 @@
 
 use anyhow::{Result, anyhow};
 use nym_vpn_lib_types::{ExitPoint, HttpRpcSettings, NodeIdentity, Recipient, Socks5Settings};
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 use std::net::SocketAddr;
 
 #[derive(Debug, Clone, clap::Subcommand)]

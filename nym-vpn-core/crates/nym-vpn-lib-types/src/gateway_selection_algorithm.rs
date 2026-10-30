@@ -18,8 +18,10 @@ use ts_rs::TS;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct GatewaySelectionAlgorithmConfig {
     /// Whether selection algorithm uses geo-location is enabled.
+    #[cfg_attr(feature = "cbor", n(0))]
     pub enable_geo_location: bool,
 }
 

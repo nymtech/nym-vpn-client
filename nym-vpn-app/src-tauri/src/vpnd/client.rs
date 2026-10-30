@@ -21,7 +21,7 @@ use anyhow::Result;
 use futures::future::TryFutureExt;
 use lib::UserAgent;
 use nym_vpn_lib_types::{self as lib, AccountCommandResponse};
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_rpc::RpcClient;
 use std::{
     env::consts::{ARCH, OS},
     net::IpAddr,
@@ -111,7 +111,7 @@ impl VpndClient {
                 self.reset_log_connect_failed().await;
                 c
             }
-            Err(nym_vpn_proto::rpc_client::Error::AuthenticationRequired) => {
+            Err(nym_vpn_rpc::Error::AuthenticationRequired) => {
                 self.log_connect_failed("need to authenticate").await;
                 *guard = ConnectionState::AuthenticationDenied;
                 return Err(VpndError::AuthenticationRequired);
@@ -162,15 +162,10 @@ impl VpndClient {
         }
     }
 
-    async fn handle_rpc_error<T>(
-        &self,
-        func: &str,
-        e: nym_vpn_proto::rpc_client::Error,
-    ) -> Result<T, VpndError> {
+    async fn handle_rpc_error<T>(&self, func: &str, e: nym_vpn_rpc::Error) -> Result<T, VpndError> {
         if matches!(
             e,
-            nym_vpn_proto::rpc_client::Error::Rpc(_)
-                | nym_vpn_proto::rpc_client::Error::Transport(_)
+            nym_vpn_rpc::Error::Rpc(_) | nym_vpn_rpc::Error::Transport(_)
         ) {
             self.drop_rpc_client().await;
         }

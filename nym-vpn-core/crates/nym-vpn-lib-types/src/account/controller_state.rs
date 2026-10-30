@@ -20,27 +20,35 @@ use crate::AccountControllerErrorStateReason;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "cbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum AccountControllerState {
     /// We don't have network
+    #[cfg_attr(feature = "cbor", n(0))]
     Offline,
 
     /// Figuring out account state
+    #[cfg_attr(feature = "cbor", n(1))]
     Syncing,
 
     /// Not logged in with a mnemonic
+    #[cfg_attr(feature = "cbor", n(2))]
     LoggedOut,
 
     /// Logged in, registered device
+    #[cfg_attr(feature = "cbor", n(3))]
     ReadyToConnect,
 
     /// Logged in, operating independently of VPN API
+    #[cfg_attr(feature = "cbor", n(4))]
     Decentralised,
 
     /// Logged in, subscription is pending (e.g. cash payment still processing)
+    #[cfg_attr(feature = "cbor", n(5))]
     PendingSubscription,
 
     /// Logged in, error during sync, can't proceed
-    Error(AccountControllerErrorStateReason),
+    #[cfg_attr(feature = "cbor", n(6))]
+    Error(#[cfg_attr(feature = "cbor", n(0))] AccountControllerErrorStateReason),
 }
 
 impl fmt::Display for AccountControllerState {
