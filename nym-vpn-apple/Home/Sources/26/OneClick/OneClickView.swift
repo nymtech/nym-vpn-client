@@ -82,15 +82,12 @@ private extension OneClickView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
-            if let bridgeTransport = viewModel.bridgeTransport {
-                HStack {
-                    Text("oneClick.bridge.label".localizedString)
-                    Spacer()
-                    Text(verbatim: bridgeTransport)
-                }
-                .nymTextStyle(.bodySmall)
-                .foregroundStyle(Color.Nym.textSecondary)
-                .padding(.top, NymSpacing.medium)
+            if let bridgeStatus {
+                Text(bridgeStatus)
+                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, NymSpacing.medium)
             }
             connectDivider
             connectButton
@@ -98,6 +95,14 @@ private extension OneClickView {
         .padding(.horizontal, NymSpacing.standard)
         .padding(.top, NymSpacing.medium)
         .padding(.bottom, NymSpacing.component)
+    }
+
+    var bridgeStatus: String? {
+        guard viewModel.connectState == .connected else { return nil }
+        if let bridgeTransport = viewModel.bridgeTransport {
+            return String(format: "oneClick.bridge.connected".localizedString, bridgeTransport)
+        }
+        return viewModel.appSettings.bridgeMode == .auto ? "oneClick.bridge.direct".localizedString : nil
     }
 
     var connectDivider: some View {
