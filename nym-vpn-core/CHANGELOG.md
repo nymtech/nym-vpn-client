@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
 
+### Fixed
+
+- Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
+
 
 ## [2026.14.0] - 2026-10-22
 
