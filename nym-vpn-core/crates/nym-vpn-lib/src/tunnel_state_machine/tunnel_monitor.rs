@@ -53,7 +53,7 @@ use nym_registration_client::{
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
-    AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
+    AccountControllerError, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
     TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
@@ -1303,6 +1303,11 @@ impl TunnelMonitor {
         );
 
         let remote_addr = bridge_conn.endpoint();
+        let transport = match bridge_conn.params() {
+            transports::ClientConfig::QuicPlain(_) => BridgeTransport::Quic,
+            transports::ClientConfig::TlsPlain(_) => BridgeTransport::Tls,
+            transports::ClientConfig::SshPlain(_) => BridgeTransport::Ssh,
+        };
         let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
             bridge_conn,
             None,
@@ -1317,6 +1322,7 @@ impl TunnelMonitor {
         let bridge_addr = BridgeAddress {
             listen_addr,
             remote_addr,
+            transport,
         };
 
         Ok((bridge_addr, join_handle))
