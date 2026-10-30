@@ -6,3 +6,6 @@ supports-multiple-connections=false
 
 [libnm]
 plugin=/usr/lib/NetworkManager/libnm-vpn-plugin-nymvpn.so
+
+[GNOME]
+auth-dialog=/usr/libexec/nm-nymvpn-auth-dialog
