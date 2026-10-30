@@ -25,10 +25,13 @@ use zbus::object_server::InterfaceRef;
 
 use crate::{
     nm::{
-        ACTIVE_CONNECTION_STATE_DEACTIVATING, ActiveConnectionProxy, NetworkManagerProxy, failure,
+        ACTIVE_CONNECTION_STATE_DEACTIVATING, ActiveConnectionProxy, NetworkManagerProxy,
+        SettingsProxy, failure,
     },
     plugin::{Command, VpnPlugin, VpnPluginSignals},
-    state::{DisconnectDecision, Effect, Machine, Phase, config_dict, disconnect_decision},
+    state::{
+        DisconnectDecision, Effect, Machine, Phase, config_dict, disconnect_decision, is_terminal,
+    },
 };
 
 /// How long the plugin stays alive once idle before letting NetworkManager respawn it later.
@@ -65,6 +68,8 @@ pub trait Nm: Send {
         &mut self,
         uuid: &str,
     ) -> impl Future<Output = Result<DeactivationStream, String>> + Send;
+    /// Ask NetworkManager to activate the profile `uuid`.
+    fn activate(&mut self, uuid: &str) -> impl Future<Output = Result<(), String>> + Send;
 }
 
 pub struct Service<D, S, N> {
@@ -76,6 +81,11 @@ pub struct Service<D, S, N> {
     events: Option<EventStream>,
     deactivation: Option<DeactivationStream>,
     user_disconnect: bool,
+    /// UUID of the profile NetworkManager activated last.
+    uuid: Option<String>,
+    /// Set after NetworkManager tore the VPN down on its own while the daemon stayed up: the
+    /// profile to activate again once the daemon reconnects.
+    reactivate: Option<String>,
     last_daemon_state: Option<TunnelState>,
     disconnect_deadline: Option<Instant>,
     idle_since: Instant,
@@ -92,6 +102,8 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             events: None,
             deactivation: None,
             user_disconnect: false,
+            uuid: None,
+            reactivate: None,
             last_daemon_state: None,
             disconnect_deadline: None,
             idle_since: Instant::now(),
@@ -111,7 +123,9 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             self.sink.emit(&effect).await;
         }
         if self.is_idle() {
-            self.events = None;
+            if self.reactivate.is_none() {
+                self.events = None;
+            }
             self.deactivation = None;
             self.user_disconnect = false;
             self.disconnect_deadline = None;
@@ -180,6 +194,8 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
     }
 
     async fn handle_connect(&mut self, uuid: Option<String>) -> Result<(), String> {
+        self.reactivate = None;
+        self.uuid = uuid.clone();
         let effects = self.machine.begin_connect();
         self.apply(effects).await;
         self.watch_deactivation(uuid).await;
@@ -260,6 +276,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                 tracing::info!(
                     "NetworkManager stopped the VPN without a user request, leaving the daemon {daemon_state}"
                 );
+                self.reactivate = self.uuid.clone();
                 let effects = self.machine.finish_stop();
                 self.apply(effects).await;
             }
@@ -283,23 +300,49 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             Some(TunnelEvent::NewState(state)) => {
                 tracing::info!("daemon state: {state}");
                 let effects = self.machine.on_daemon_state(&state);
-                self.last_daemon_state = Some(state);
                 self.apply(effects).await;
+                self.follow_recovery(&state).await;
+                self.last_daemon_state = Some(state);
             }
             Some(_) => {}
             None => {
                 tracing::warn!("daemon event stream closed");
                 self.events = None;
+                if self.reactivate.take().is_some() {
+                    self.idle_since = Instant::now();
+                }
                 let effects = self.machine.on_stream_closed();
                 self.apply(effects).await;
             }
         }
     }
 
+    /// Activate the NetworkManager profile again once the daemon has reconnected on its own, or
+    /// stop waiting when it went down for good.
+    async fn follow_recovery(&mut self, state: &TunnelState) {
+        let connected = matches!(state, TunnelState::Connected { .. });
+        if !connected && !is_terminal(state) {
+            return;
+        }
+        let Some(uuid) = self.reactivate.take() else {
+            return;
+        };
+        self.events = None;
+        self.idle_since = Instant::now();
+        if connected {
+            tracing::info!("daemon reconnected, activating NetworkManager connection {uuid}");
+            if let Err(err) = rpc("ActivateConnection", self.nm.activate(&uuid)).await {
+                tracing::warn!("cannot activate NetworkManager connection {uuid}: {err}");
+            }
+        } else {
+            tracing::info!("daemon {state}, not activating NetworkManager connection {uuid}");
+        }
+    }
+
     /// Serve commands until the idle timer fires or the command channel closes.
     pub async fn run(mut self, mut rx: mpsc::Receiver<Command>) -> anyhow::Result<()> {
         loop {
-            let idle = self.is_idle();
+            let idle = self.is_idle() && self.reactivate.is_none();
             let idle_at = self.idle_since + IDLE_EXIT;
             let deadline = self.disconnect_deadline;
             tokio::select! {
@@ -455,6 +498,23 @@ impl DbusNm {
         }
         Ok(None)
     }
+
+    async fn activate_profile(&self, uuid: &str) -> zbus::Result<()> {
+        let profile = SettingsProxy::builder(&self.connection)
+            .cache_properties(zbus::proxy::CacheProperties::No)
+            .build()
+            .await?
+            .get_connection_by_uuid(uuid)
+            .await?;
+        let any = zbus::zvariant::ObjectPath::from_static_str_unchecked("/");
+        NetworkManagerProxy::builder(&self.connection)
+            .cache_properties(zbus::proxy::CacheProperties::No)
+            .build()
+            .await?
+            .activate_connection(&profile, &any, &any)
+            .await?;
+        Ok(())
+    }
 }
 
 impl Nm for DbusNm {
@@ -477,6 +537,10 @@ impl Nm for DbusNm {
                 );
             })
         })))
+    }
+
+    async fn activate(&mut self, uuid: &str) -> Result<(), String> {
+        self.activate_profile(uuid).await.map_err(|e| e.to_string())
     }
 }
 
@@ -556,6 +620,7 @@ mod tests {
     #[derive(Clone)]
     struct FakeNm {
         deactivation: Arc<Mutex<Option<mpsc::Receiver<()>>>>,
+        activations: Arc<Mutex<Vec<String>>>,
     }
 
     impl Nm for FakeNm {
@@ -568,12 +633,18 @@ mod tests {
                 .ok_or("watched twice")?;
             Ok(Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)))
         }
+
+        async fn activate(&mut self, uuid: &str) -> Result<(), String> {
+            self.activations.lock().unwrap().push(uuid.to_owned());
+            Ok(())
+        }
     }
 
     struct Harness {
         tx: mpsc::Sender<Command>,
         events: Option<mpsc::Sender<TunnelEvent>>,
         deactivate: mpsc::Sender<()>,
+        activations: Arc<Mutex<Vec<String>>>,
         sink: FakeSink,
         daemon: FakeDaemon,
         state: Arc<AtomicU32>,
@@ -588,8 +659,10 @@ mod tests {
         fn start_with(reachable: bool, hang: bool, initial: TunnelState) -> Self {
             let (events, events_rx) = mpsc::channel(8);
             let (deactivate, deactivation_rx) = mpsc::channel(1);
+            let activations = Arc::<Mutex<Vec<String>>>::default();
             let nm = FakeNm {
                 deactivation: Arc::new(Mutex::new(Some(deactivation_rx))),
+                activations: activations.clone(),
             };
             let daemon = FakeDaemon {
                 reachable,
@@ -608,6 +681,7 @@ mod tests {
                 tx,
                 events: Some(events),
                 deactivate,
+                activations,
                 sink,
                 daemon,
                 state,
@@ -660,6 +734,10 @@ mod tests {
 
         fn effects(&self) -> Vec<Effect> {
             self.sink.0.lock().unwrap().clone()
+        }
+
+        fn activations(&self) -> Vec<String> {
+            self.activations.lock().unwrap().clone()
         }
     }
 
@@ -761,6 +839,7 @@ mod tests {
                 Effect::StateChanged(service_state::STOPPED)
             ]
         );
+        assert!(h.activations().is_empty());
     }
 
     #[tokio::test]
@@ -837,6 +916,53 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn daemon_reconnect_after_network_loss_reactivates_connection() {
+        let h = Harness::start(true, connected(V4, None));
+        h.connect().await.unwrap();
+        h.send(offline(true)).await;
+        h.settle().await;
+        *h.daemon.state.lock().unwrap() = offline(true);
+        h.disconnect().await;
+        h.send(connecting()).await;
+        h.settle().await;
+        assert!(h.activations().is_empty());
+        h.send(connected(V4, None)).await;
+        h.settle().await;
+        assert_eq!(h.activations(), ["4b1c"]);
+        assert_eq!(
+            h.effects()[3..],
+            [Effect::StateChanged(service_state::STOPPED)]
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn waiting_to_reactivate_keeps_the_plugin_alive() {
+        let h = Harness::start(true, connected(V4, None));
+        h.connect().await.unwrap();
+        h.disconnect().await;
+        tokio::time::advance(IDLE_EXIT * 3).await;
+        h.settle().await;
+        assert!(!h.task.is_finished());
+        h.send(offline(true)).await;
+        h.send(connected(V4, None)).await;
+        h.settle().await;
+        assert_eq!(h.activations(), ["4b1c"]);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn daemon_going_down_after_network_loss_cancels_reactivation() {
+        let h = Harness::start(true, connected(V4, None));
+        h.connect().await.unwrap();
+        h.disconnect().await;
+        h.send(TunnelState::Disconnected).await;
+        h.settle().await;
+        assert!(h.activations().is_empty());
+        tokio::time::advance(IDLE_EXIT + std::time::Duration::from_secs(1)).await;
+        h.settle().await;
+        assert!(h.task.is_finished());
+    }
+
+    #[tokio::test]
     async fn connect_during_offline_recovery_without_gateway_fails_and_leaves_daemon() {
         let h = Harness::start(true, offline(true));
         assert!(h.connect().await.is_err());
@@ -872,6 +998,28 @@ mod tests {
         h.disconnect().await;
         h.settle().await;
         assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn user_disconnect_in_error_state_disconnects_daemon() {
+        let h = Harness::start(true, connected(V4, None));
+        h.connect().await.unwrap();
+        h.send(error()).await;
+        h.settle().await;
+        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STARTED);
+        *h.daemon.state.lock().unwrap() = error();
+        h.user_disconnect().await;
+        h.settle().await;
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 1);
+        h.send(TunnelState::Disconnected).await;
+        h.settle().await;
+        assert_eq!(
+            h.effects()[3..],
+            [
+                Effect::StateChanged(service_state::STOPPING),
+                Effect::StateChanged(service_state::STOPPED)
+            ]
+        );
     }
 
     #[tokio::test]

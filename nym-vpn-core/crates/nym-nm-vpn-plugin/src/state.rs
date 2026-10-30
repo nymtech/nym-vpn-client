@@ -88,14 +88,13 @@ pub enum DisconnectDecision {
     DisconnectDaemon,
 }
 
-/// States the daemon will not leave on its own. `Offline { reconnect: true }` is excluded because
-/// the daemon reconnects by itself once connectivity returns.
-fn is_terminal(state: &TunnelState) -> bool {
+/// States in which the daemon has no tunnel and does not block traffic. `Offline { reconnect: false }`
+/// is the daemon's disconnected state while offline. `Error` is not terminal: the daemon keeps
+/// blocking traffic until it is told to connect or disconnect.
+pub fn is_terminal(state: &TunnelState) -> bool {
     matches!(
         state,
-        TunnelState::Disconnected
-            | TunnelState::Error(_)
-            | TunnelState::Offline { reconnect: false }
+        TunnelState::Disconnected | TunnelState::Offline { reconnect: false }
     )
 }
 
@@ -176,6 +175,7 @@ impl Machine {
                     Some(gateway) => vec![self.config(gateway), self.enter(Phase::Started)],
                     None => self.fail(failure::CONNECT_FAILED),
                 },
+                TunnelState::Error(_) => self.fail(failure::CONNECT_FAILED),
                 state if is_terminal(state) => self.fail(failure::CONNECT_FAILED),
                 _ => vec![],
             },
@@ -543,7 +543,7 @@ mod tests {
 
     #[test]
     fn terminal_while_started_emits_stopped() {
-        for terminal in [TunnelState::Disconnected, error(), offline(false)] {
+        for terminal in [TunnelState::Disconnected, offline(false)] {
             let mut m = started_machine();
             assert_eq!(
                 m.on_daemon_state(&terminal),
@@ -552,6 +552,21 @@ mod tests {
             );
             assert_eq!(m.phase(), Phase::Stopped);
         }
+    }
+
+    #[test]
+    fn error_while_started_keeps_started() {
+        let mut m = started_machine();
+        assert_eq!(m.on_daemon_state(&error()), vec![]);
+        assert_eq!(m.phase(), Phase::Started);
+    }
+
+    #[test]
+    fn error_while_stopping_keeps_stopping() {
+        let mut m = started_machine();
+        m.begin_disconnect();
+        assert_eq!(m.on_daemon_state(&error()), vec![]);
+        assert_eq!(m.phase(), Phase::Stopping);
     }
 
     #[test]
@@ -573,7 +588,7 @@ mod tests {
 
     #[test]
     fn terminal_while_stopping_emits_stopped() {
-        for terminal in [TunnelState::Disconnected, error(), offline(false)] {
+        for terminal in [TunnelState::Disconnected, offline(false)] {
             let mut m = started_machine();
             m.begin_disconnect();
             assert_eq!(
@@ -615,7 +630,7 @@ mod tests {
 
     #[test]
     fn disconnect_decision_table() {
-        for terminal in [TunnelState::Disconnected, error(), offline(false)] {
+        for terminal in [TunnelState::Disconnected, offline(false)] {
             for user_requested in [true, false] {
                 assert_eq!(
                     disconnect_decision(&terminal, user_requested),
@@ -623,7 +638,7 @@ mod tests {
                 );
             }
         }
-        for up in [connected(V4, None), connecting(), offline(true)] {
+        for up in [connected(V4, None), connecting(), offline(true), error()] {
             assert_eq!(
                 disconnect_decision(&up, true),
                 DisconnectDecision::DisconnectDaemon,
