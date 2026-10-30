@@ -11,8 +11,8 @@
   },
   "mode": {
     "mode": "Mode",
-    "anonymous-mixnet": "Anonymous(mixnet)",
-    "fast-wireguard": "Fast(WireGuard)"
+    "anonymous-mixnet": "Mixnet",
+    "fast-wireguard": "dVPN"
   },
   "entry": "Entry",
   "exit": "Exit",

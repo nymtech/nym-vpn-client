@@ -21,6 +21,7 @@ object Constants {
 	const val RELEASE = "release"
 	const val PRERELEASE = "prerelease"
 	const val NIGHTLY = "nightly"
+	const val PLAYTEST = "playtest"
 	const val TYPE = "type"
 	const val FLAVOR = "FLAVOR"
 

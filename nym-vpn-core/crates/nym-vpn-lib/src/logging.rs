@@ -49,7 +49,12 @@ static INFO_TARGETS: [&str; 16] = [
     "hickory_net",
 ];
 
-static WARN_TARGETS: [&str; 3] = ["hickory_server", "quinn::connection", "zbus"];
+static WARN_TARGETS: [&str; 4] = [
+    "hickory_server",
+    "quinn::connection",
+    "zbus",
+    "nym_socks5_client_core",
+];
 
 pub struct Options {
     pub verbosity_level: Level,

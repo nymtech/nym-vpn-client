@@ -15,7 +15,7 @@
       "tagline": "Can’t snitch - won’t snitch network design."
     },
     "mixnet": {
-      "title": "Your mixnet",
+      "title": "Your Mixnet",
       "description": "The most <bold>anonymous</bold> way to be online\n5-hop <bold>mixnet</bold> with <bold>noise</bold>\nCustomize your traffic patterns",
       "tagline": "Protecting metadata fingerprints."
     }
@@ -25,7 +25,7 @@
     "description": "Disguise WireGuard with <bold>AmneziaWG</bold>\nGet around firewalls with <bold>QUIC</bold>\nAvoid VPN blocking with <bold>Stealth Connect</bold>\n<bold>Post-quantum</bold> security"
   },
   "controls": {
-    "get-started": "Get Started",
+    "get-started": "Get started",
     "previous": "Previous",
     "next": "Next",
     "close": "Close"

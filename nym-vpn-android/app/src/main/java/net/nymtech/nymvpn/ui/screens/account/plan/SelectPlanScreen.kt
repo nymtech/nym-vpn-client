@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,6 +56,7 @@ import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.billing.TrialEligibility
 import net.nymtech.nymvpn.manager.billing.isEligible
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -95,18 +99,31 @@ fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel 
 		AutologinState.Idle -> {}
 	}
 
+	LaunchedEffect(Unit) {
+		viewModel.events.collect { event ->
+			when (event) {
+				SelectPlanEvent.ShowPlans -> showSheet = true
+				SelectPlanEvent.BillingUnavailable ->
+					SnackbarController.showMessage(StringValue.StringResource(R.string.select_plan_billing_unavailable))
+			}
+		}
+	}
+
 	SelectPlanScreen(
 		products = uiState.subscriptions,
 		trialEligibility = uiState.trialEligibility,
 		benefitsResolved = uiState.benefitsResolved,
 		benefitsTrialDays = uiState.benefitsTrialDays,
 		showSheet = showSheet,
+		isConnectingBilling = uiState.isConnectingBilling,
 		onSelectPlanButtonClick = {
-			if (viewModel.isBillingAvailable()) {
-				viewModel.fetchSubscriptions()
-				showSheet = true
-			} else {
-				deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
+			when {
+				viewModel.isBillingAvailable() -> {
+					viewModel.fetchSubscriptions()
+					showSheet = true
+				}
+				isPlayDistribution -> viewModel.connectBilling()
+				else -> deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
 			}
 		},
 		onDismissSheet = { showSheet = false },
@@ -146,6 +163,7 @@ fun SelectPlanScreen(
 	benefitsResolved: Boolean,
 	benefitsTrialDays: Int?,
 	showSheet: Boolean = false,
+	isConnectingBilling: Boolean = false,
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
 	onSelectSubscription: (ProductData) -> Unit,
@@ -189,10 +207,21 @@ fun SelectPlanScreen(
 			MainStyledButton(
 				onClick = onSelectPlanButtonClick,
 				content = {
-					Text(
-						stringResource(R.string.select_plan_button),
-						style = MaterialTheme.typography.titleMedium,
-					)
+					if (isConnectingBilling) {
+						val label = stringResource(R.string.select_plan_button)
+						CircularProgressIndicator(
+							modifier = Modifier
+								.size(24.dp)
+								.semantics { contentDescription = label },
+							color = MaterialTheme.colorScheme.onPrimary,
+							strokeWidth = 2.dp,
+						)
+					} else {
+						Text(
+							stringResource(R.string.select_plan_button),
+							style = MaterialTheme.typography.titleMedium,
+						)
+					}
 				},
 				modifier = Modifier
 					.fillMaxWidth()

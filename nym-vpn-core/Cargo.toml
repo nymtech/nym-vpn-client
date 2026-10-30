@@ -16,6 +16,7 @@ members = [
     "crates/nym-ifconfig",
     "crates/nym-ipc",
     "crates/nym-macos",
+    "crates/nym-nm-vpn-plugin",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
     "crates/nym-routing",
@@ -50,6 +51,7 @@ members = [
 default-members = [
     "crates/nym-diagnostic",
     "crates/nym-exclude",
+    "crates/nym-nm-vpn-plugin",
     "crates/nym-setup",
     "crates/nym-socks5-proxy",
     "crates/nym-vpnc",

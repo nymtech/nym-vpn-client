@@ -110,22 +110,9 @@ private extension PacketTunnelProvider {
     func handleStatusMessage() async -> Data? {
         guard let tunnelState = await tunnelActor.tunnelState else { return nil }
         do {
-            // The flat fields are only for apps older than `state`.
-            let state = TunnelStateResponse(tunnelState)
-            let statusResponse = await TunnelStatusResponse(
-                status: TunnelStatus(from: tunnelState),
-                retryAttempt: state.retryAttempt,
-                afterDisconnectAction: state.afterDisconnectAction,
-                lastError: tunnelActor.lastError,
-                tunnelConnectingState: state.tunnelConnectingState,
-                connectionInfoData: state.connectionInfoData,
-                connectedAt: state.connectedAt,
-                state: state
-            )
-
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
-            return try encoder.encode(statusResponse)
+            return try encoder.encode(TunnelStateResponse(tunnelState))
         } catch {
             logger.error("AppMessage: \(error.localizedDescription)")
             return nil

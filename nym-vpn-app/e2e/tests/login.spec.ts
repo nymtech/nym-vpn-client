@@ -58,7 +58,7 @@ test.describe('Login', () => {
     await expect(
       page.getByRole('textbox', { name: /24-word passphrase/ }),
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
   });
 
   test('logs in correctly', async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe('Login', () => {
     await page
       .getByRole('textbox', { name: /24-word passphrase/ })
       .fill(MNEMONIC);
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Log in' }).click();
     await mainPage.settingsButton.click();
     await settingsPage.accountRow.click();
     await expect(settingsPage.accountId).toBeVisible();

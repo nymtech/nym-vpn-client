@@ -225,35 +225,23 @@ private extension Tunnel {
 
     func pollTunnelStatus() async {
         do {
-            let decoded: TunnelStatusResponse = try await sendWithResponse(message: .status)
+            let state: TunnelStateResponse = try await sendWithResponse(message: .status)
             guard self.isPolling, !Task.isCancelled else { return }
 
-            // `state` is the source of truth; the flat fields are only sent for apps older than it.
-            let state = decoded.state
-            self.retryAttempt = state?.retryAttempt ?? decoded.retryAttempt
-            self.afterDisconnectAction = state?.afterDisconnectAction ?? decoded.afterDisconnectAction
-            self.tunnelConnectingState = state?.tunnelConnectingState ?? decoded.tunnelConnectingState
-            self.connectionInfoData = state?.connectionInfoData ?? decoded.connectionInfoData
-            let newConnectedAt = state?.connectedAt ?? decoded.connectedAt
-            if self.connectedAt != newConnectedAt {
-                self.connectedAt = newConnectedAt
+            self.retryAttempt = state.retryAttempt
+            self.afterDisconnectAction = state.afterDisconnectAction
+            self.tunnelConnectingState = state.tunnelConnectingState
+            self.connectionInfoData = state.connectionInfoData
+            if self.connectedAt != state.connectedAt {
+                self.connectedAt = state.connectedAt
             }
 
-            if let state {
-                let newStatus = TunnelStatus(state)
-                if newStatus == .error, self.status != .error, case let .error(reason) = state {
-                    self.lastError = reason
-                }
-                if self.status != newStatus {
-                    self.status = newStatus
-                }
-            } else if let newError = decoded.lastError, decoded.status != .connected {
-                if self.status != .error {
-                    self.status = .error
-                    self.lastError = newError
-                }
-            } else if self.status != decoded.status {
-                self.status = decoded.status
+            let newStatus = TunnelStatus(state)
+            if newStatus == .error, self.status != .error, case let .error(reason) = state {
+                self.lastError = reason
+            }
+            if self.status != newStatus {
+                self.status = newStatus
             }
         } catch {
             logger.error("Failed to poll status: \(error)")

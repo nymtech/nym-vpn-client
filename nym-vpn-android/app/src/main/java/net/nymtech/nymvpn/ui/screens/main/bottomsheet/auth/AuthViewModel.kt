@@ -81,7 +81,7 @@ class AuthViewModel @Inject constructor(
 
 		try {
 			billingManager.initialize()
-			val subscribed = billingManager.hasActiveSubscription()
+			val subscribed = billingManager.hasActiveSubscription() == true
 			_uiState.update { it.copy(hasActiveSubscription = subscribed, isBillingAvailable = true) }
 		} catch (t: Throwable) {
 			Timber.tag(TAG).w(t, "BillingInitOrCheckFailed")
