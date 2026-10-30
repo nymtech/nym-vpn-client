@@ -63,7 +63,8 @@ impl FeatureFlags {
         self.get_group_flag("privy", "enabled")
     }
 
-    /// If bridges may fall back from QUIC to TLS and SSH, if set
+    /// If the v2 bridge transports (TLS and SSH, after QUIC) may be used, if set.
+    /// Bridges and QUIC themselves do not depend on this flag, only the bridge mode controls them.
     pub fn bridge_transports_enabled(&self) -> Option<bool> {
         self.get_group_flag("bridge_transports", "enabled")
     }
