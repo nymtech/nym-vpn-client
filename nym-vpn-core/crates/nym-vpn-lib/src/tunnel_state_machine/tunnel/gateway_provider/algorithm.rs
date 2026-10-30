@@ -133,9 +133,16 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
     /// sends new settings to us, so keep receiving settings while waiting for
     /// the lock. New settings come with a fresh stream of their own, which
     /// makes the replacement unnecessary.
+    ///
+    /// Settings may already be queued when we get the lock. Take them first,
+    /// otherwise the outer loop would pick them up after the replacement and
+    /// select into a stream that is no longer read.
     async fn reset_selection_stream(&mut self, latest_tunnel_settings: &mut SelectAndSend) {
         tokio::select! {
             mut selected_gateways_stream = self.selected_gateways_stream.lock() => {
+                while let Ok(new_settings) = self.tunnel_settings_rx.try_recv() {
+                    *latest_tunnel_settings = new_settings;
+                }
                 let (selection_tx, selection_rx) = mpsc::channel(SELECTION_BUFFER_SIZE);
                 *selected_gateways_stream =
                     tokio_stream::StreamExt::peekable(ReceiverStream::new(selection_rx));
