@@ -523,66 +523,67 @@ fn parse_url_server(input: &str) -> Result<DnsServerSpec> {
     })?;
     let port = url.port();
 
-    match url.scheme() {
-        "udp" | "tcp" => {
-            if url.fragment().is_some() {
-                bail!("Plain DNS server URL '{input}' must not contain a server name");
-            }
-            if url_query_path(&url).is_some() {
-                bail!("Plain DNS server URL '{input}' must not contain a path");
-            }
-            let ip_proto = match url.scheme() {
-                "udp" => PlainDnsProtocol::Udp,
-                _ => PlainDnsProtocol::Tcp,
-            };
-            Ok(DnsServerSpec::new(host, |address| DnsServer::Plain {
+    Ok(match url.scheme() {
+        "udp" => {
+            reject_server_name(&url, input)?;
+            reject_path(&url, input)?;
+            DnsServerSpec::new(host, |address| DnsServer::Plain {
                 address,
                 port,
-                ip_proto,
-            }))
+                ip_proto: PlainDnsProtocol::Udp,
+            })
         }
-        "tls" | "quic" => {
-            if url_query_path(&url).is_some() {
-                bail!("DNS server URL '{input}' must not contain a path");
-            }
+        "tcp" => {
+            reject_server_name(&url, input)?;
+            reject_path(&url, input)?;
+            DnsServerSpec::new(host, |address| DnsServer::Plain {
+                address,
+                port,
+                ip_proto: PlainDnsProtocol::Tcp,
+            })
+        }
+        "tls" => {
+            reject_path(&url, input)?;
             let server_name = url_server_name(&url, &host, input)?;
-            let is_tls = url.scheme() == "tls";
-            Ok(DnsServerSpec::new(host, |address| match is_tls {
-                true => DnsServer::Tls {
-                    address,
-                    port,
-                    server_name,
-                },
-                false => DnsServer::Quic {
-                    address,
-                    port,
-                    server_name,
-                },
-            }))
+            DnsServerSpec::new(host, |address| DnsServer::Tls {
+                address,
+                port,
+                server_name,
+            })
         }
-        "https" | "h3" => {
+        "quic" => {
+            reject_path(&url, input)?;
             let server_name = url_server_name(&url, &host, input)?;
-            let query_path = url_query_path(&url);
-            let is_https = url.scheme() == "https";
-            Ok(DnsServerSpec::new(host, |address| match is_https {
-                true => DnsServer::Https {
-                    address,
-                    port,
-                    server_name,
-                    query_path,
-                },
-                false => DnsServer::Http3 {
-                    address,
-                    port,
-                    server_name,
-                    query_path,
-                },
-            }))
+            DnsServerSpec::new(host, |address| DnsServer::Quic {
+                address,
+                port,
+                server_name,
+            })
         }
-        scheme => Err(anyhow!(
+        "https" => {
+            let server_name = url_server_name(&url, &host, input)?;
+            let query_path = Some(url_query_path(&url));
+            DnsServerSpec::new(host, |address| DnsServer::Https {
+                address,
+                port,
+                server_name,
+                query_path,
+            })
+        }
+        "h3" => {
+            let server_name = url_server_name(&url, &host, input)?;
+            let query_path = Some(url_query_path(&url));
+            DnsServerSpec::new(host, |address| DnsServer::Http3 {
+                address,
+                port,
+                server_name,
+                query_path,
+            })
+        }
+        scheme => bail!(
             "Unsupported DNS server scheme '{scheme}' in '{input}', expected one of: udp, tcp, tls, https, quic, h3"
-        )),
-    }
+        ),
+    })
 }
 
 fn url_host(url: &Url) -> Option<ServerHost> {
@@ -607,10 +608,26 @@ fn url_server_name(url: &Url, host: &ServerHost, input: &str) -> Result<String> 
     }
 }
 
-fn url_query_path(url: &Url) -> Option<String> {
+fn reject_server_name(url: &Url, input: &str) -> Result<()> {
+    match url.fragment() {
+        Some(_) => bail!("Plain DNS server URL '{input}' must not contain a server name"),
+        None => Ok(()),
+    }
+}
+
+fn reject_path(url: &Url, input: &str) -> Result<()> {
     match url.path() {
-        "" | "/" => None,
-        path => Some(path.to_owned()),
+        "" | "/" => Ok(()),
+        _ => bail!("DNS server URL '{input}' must not contain a path"),
+    }
+}
+
+/// The URL path as given. Non-special schemes like h3 have an empty path when none is given,
+/// which HTTP treats as `/`.
+fn url_query_path(url: &Url) -> String {
+    match url.path() {
+        "" => "/".to_owned(),
+        path => path.to_owned(),
     }
 }
 
@@ -1059,7 +1076,32 @@ mod tests {
                 address: "2606:4700:4700::1111".parse().unwrap(),
                 port: Some(8443),
                 server_name: "cloudflare-dns.com".to_owned(),
-                query_path: None,
+                query_path: Some("/".to_owned()),
+            }
+        );
+    }
+
+    #[test]
+    fn keeps_url_path_as_given() {
+        for input in ["https://8.8.8.8#dns.google", "https://8.8.8.8/#dns.google"] {
+            assert_eq!(
+                parse(input),
+                DnsServer::Https {
+                    address: "8.8.8.8".parse().unwrap(),
+                    port: None,
+                    server_name: "dns.google".to_owned(),
+                    query_path: Some("/".to_owned()),
+                },
+                "{input}"
+            );
+        }
+        assert_eq!(
+            parse("h3://1.1.1.1/resolve#cloudflare-dns.com"),
+            DnsServer::Http3 {
+                address: "1.1.1.1".parse().unwrap(),
+                port: None,
+                server_name: "cloudflare-dns.com".to_owned(),
+                query_path: Some("/resolve".to_owned()),
             }
         );
     }
