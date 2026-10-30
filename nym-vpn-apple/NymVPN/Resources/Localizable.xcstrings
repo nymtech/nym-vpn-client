@@ -213,7 +213,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "dVPN (WireGuard)"
+            "value" : "dVPN"
           }
         },
         "es" : {
@@ -516,7 +516,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous (mixnet)"
+            "value" : "Mixnet"
           }
         },
         "es" : {
@@ -2307,7 +2307,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Update required"
+            "value" : "Update required!"
           }
         }
       }
@@ -2452,7 +2452,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "dVPN mode protection"
+            "value" : "dVPN protection"
           }
         }
       }
@@ -4695,7 +4695,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting..."
+            "value" : "Connecting"
           }
         },
         "es" : {
@@ -5901,7 +5901,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disconnecting..."
+            "value" : "Disconnecting"
           }
         },
         "es" : {
@@ -6034,7 +6034,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Custom DNS Servers"
+            "value" : "Custom DNS servers"
           }
         }
       }
@@ -6111,7 +6111,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Custom DNS saved."
+            "value" : "Custom DNS saved"
           }
         }
       }
@@ -10616,7 +10616,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable “QUIC protocol”"
+            "value" : "Enable QUIC protocol"
           }
         },
         "es" : {
@@ -11356,7 +11356,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "More details in the Nym"
+            "value" : "More details in the"
           }
         },
         "es" : {
@@ -11457,7 +11457,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Network Explorer"
+            "value" : "Nym Network Explorer"
           }
         },
         "es" : {
@@ -12632,7 +12632,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing dVPN mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+            "value" : "Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC."
           }
         },
         "es" : {
@@ -13787,7 +13787,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+            "value" : "Encrypting credentials with your device key"
           }
         },
         "es" : {
@@ -13888,7 +13888,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Generating cryptographic keypairs..."
+            "value" : "Generating cryptographic keys"
           }
         },
         "es" : {
@@ -13989,7 +13989,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Creating your anonymous identity..."
+            "value" : "Creating your anonymous identity"
           }
         },
         "es" : {
@@ -14090,7 +14090,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Securing your credentials locally..."
+            "value" : "Securing your credentials locally"
           }
         },
         "es" : {
@@ -14234,7 +14234,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable Geo Exclusion"
+            "value" : "Enable Geo-exclusion"
           }
         }
       }
@@ -15687,7 +15687,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initializing client..."
+            "value" : "Initializing your app"
           }
         },
         "es" : {
@@ -17032,7 +17032,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the dVPN mode reliability in restrictive networks by"
+            "value" : "Improves the dVPN reliability in restrictive networks by"
           }
         }
       }
@@ -18655,7 +18655,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Timing protection is currently turned off. This could put your privacy at risk."
+            "value" : "⚠️ Timing protection is currently turned off and could affect your privacy."
           }
         }
       }
@@ -18732,7 +18732,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your packets will be sent as they become available. This could reveal traffic patterns."
+            "value" : "⚠️ Your packets will be sent as they become available. This could reveal traffic patterns."
           }
         }
       }
@@ -19280,7 +19280,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please try reconnecting."
+            "value" : "Try reconnecting"
           }
         },
         "es" : {
@@ -20169,7 +20169,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mixnet"
+            "value" : "Mixnet"
           }
         }
       }
@@ -20224,7 +20224,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your mixnet"
+            "value" : "Your Mixnet"
           }
         }
       }
@@ -21968,7 +21968,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Login"
+            "value" : "Log in"
           }
         }
       }
@@ -22103,7 +22103,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copy Code and open web"
+            "value" : "Copy code and open web"
           }
         }
       }
@@ -22675,7 +22675,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send anonymous crash reports to help us fix bugs faster."
           }
         },
         "es" : {
@@ -23107,7 +23107,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+            "value" : "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
           }
         }
       }
@@ -23173,7 +23173,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading…"
+            "value" : "Loading"
           }
         }
       }
@@ -23316,7 +23316,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose my NymVPN plan"
+            "value" : "Choose your NymVPN plan"
           }
         }
       }
@@ -23484,7 +23484,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose your subscription plan"
+            "value" : "Choose your plan"
           }
         },
         "es" : {
@@ -24289,7 +24289,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Requesting ZkNyms..."
+            "value" : "Requesting zk-nyms"
           }
         }
       }
@@ -25455,7 +25455,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Daily allowance reached!"
+            "value" : "Daily allowance reached"
           }
         }
       }
@@ -26763,7 +26763,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copied to Clipboard!"
+            "value" : "Copied to clipboard"
           }
         },
         "es" : {
@@ -27120,7 +27120,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geo Exclusion"
+            "value" : "Geo-exclusion"
           }
         }
       }
@@ -28128,7 +28128,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Customize traffic patterns of anonymous mode"
+            "value" : "Customize traffic patterns of Mixnet mode"
           }
         }
       }
@@ -28429,7 +28429,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App & Wallet proxy"
+            "value" : "App & wallet proxy"
           }
         }
       }
@@ -28629,7 +28629,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "*You need to connect socials to an existing account first before you can use them for login."
+            "value" : "*Account must be connected before NymVPN login."
           }
         }
       }
@@ -28651,7 +28651,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign Up"
+            "value" : "Sign up"
           }
         }
       }
@@ -28673,7 +28673,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "*Signing up with an existing social account decreases your anonymity."
+            "value" : "*May not be anonymous."
           }
         }
       }
@@ -28761,7 +28761,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Excluding an app will leave it unprotected."
+            "value" : "⚠️  Excluding an app will leave it unprotected."
           }
         }
       }
@@ -29249,7 +29249,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Protect yourself from scams"
+            "value" : "⚠️ Protect yourself from scams"
           }
         }
       }
@@ -29888,7 +29888,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting..."
+            "value" : "Connecting"
           }
         }
       }
@@ -31033,7 +31033,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To the world’s most private VPN"
+            "value" : "To the world's most private VPN"
           }
         },
         "es" : {
@@ -31134,7 +31134,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose what anonymous data to share. All data is stripped of identifying information before being sent."
+            "value" : "Choose what anonymous data to share. \nNo personal information included."
           }
         },
         "es" : {
@@ -31873,7 +31873,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Choose what anonymous data to share. All data is stripped of identifying information before being sent."
+            "value" : "Choose what anonymous data to share. \nNo personal information included."
           }
         }
       }
@@ -32444,7 +32444,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery."
+            "value" : "It's a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it – there's no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account."
           }
         }
       }
