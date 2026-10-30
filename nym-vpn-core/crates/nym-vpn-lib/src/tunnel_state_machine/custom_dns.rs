@@ -85,9 +85,7 @@ impl DnsServerExt for DnsServer {
                     query_path.as_deref().map(Arc::from),
                 );
                 if let Some(port) = port {
-                    for conn in config.connections.iter_mut() {
-                        conn.port = *port;
-                    }
+                    set_port(&mut config, *port);
                 }
                 config
             }
