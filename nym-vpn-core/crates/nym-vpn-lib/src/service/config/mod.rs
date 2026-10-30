@@ -3,6 +3,7 @@
 
 mod circumvention;
 mod config_manager;
+mod custom_dns;
 mod entry_exit;
 mod gateway_independence;
 mod gateway_selection_algorithm;
@@ -18,6 +19,7 @@ mod v11;
 mod v12;
 mod v13;
 mod v14;
+mod v15;
 mod v2;
 mod v3;
 mod v4;
@@ -46,6 +48,7 @@ use tokio::{
 
 use crate::service::config::{
     circumvention::v9::FrontingMode,
+    custom_dns::v15::CustomDnsSettings,
     entry_exit::v3::{EntryPoint, ExitPoint},
     gateway_independence::v11::GatewayIndependence,
     gateway_selection_algorithm::v12::GatewaySelectionAlgorithmConfig,
@@ -116,12 +119,13 @@ enum VpnServiceConfigVersion {
     V12,
     V13,
     V14,
+    V15,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V14
+        VpnServiceConfigVersion::V15
     }
 }
 
@@ -142,6 +146,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V12 => "v12",
             VpnServiceConfigVersion::V13 => "v13",
             VpnServiceConfigVersion::V14 => "v14",
+            VpnServiceConfigVersion::V15 => "v15",
         })
     }
 }
@@ -164,6 +169,7 @@ enum VpnServiceConfigExt {
     V12(v12::VpnServiceConfig),
     V13(v13::VpnServiceConfig),
     V14(v14::VpnServiceConfig),
+    V15(v15::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -183,6 +189,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V12(_) => VpnServiceConfigVersion::V12,
             VpnServiceConfigExt::V13(_) => VpnServiceConfigVersion::V13,
             VpnServiceConfigExt::V14(_) => VpnServiceConfigVersion::V14,
+            VpnServiceConfigExt::V15(_) => VpnServiceConfigVersion::V15,
         }
     }
 }
@@ -206,6 +213,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V12(v12) => nym_vpn_lib_types::VpnServiceConfig::try_from(v12),
             VpnServiceConfigExt::V13(v13) => nym_vpn_lib_types::VpnServiceConfig::try_from(v13),
             VpnServiceConfigExt::V14(v14) => nym_vpn_lib_types::VpnServiceConfig::try_from(v14),
+            VpnServiceConfigExt::V15(v15) => nym_vpn_lib_types::VpnServiceConfig::try_from(v15),
         }
     }
 }
@@ -218,11 +226,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let exit_point = ExitPoint::try_from(&value.exit_point)?;
 
-        let custom_dns = value
-            .custom_dns
-            .iter()
-            .map(|ip| ip.to_string())
-            .collect::<Vec<_>>();
+        let custom_dns = CustomDnsSettings::from(&value.custom_dns);
 
         let mixnet_traffic = MixnetTrafficConfig::from(&value.mixnet_traffic);
 
@@ -238,7 +242,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let gateway_independence = GatewayIndependence::from(&value.gateway_independence);
 
-        let v14 = v14::VpnServiceConfig {
+        let v15 = v15::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -261,7 +265,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             gateway_independence,
         };
 
-        Ok(VpnServiceConfigExt::V14(v14))
+        Ok(VpnServiceConfigExt::V15(v15))
     }
 }
 

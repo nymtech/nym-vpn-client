@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{conversions::ConversionError, proto};
-use std::net::IpAddr;
 
 impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConversionError;
@@ -20,10 +19,11 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.exit_point"))?;
 
-        let custom_dns: Vec<IpAddr> = match value.custom_dns {
-            Some(ip_addr_list) => ip_addr_list.try_into()?,
-            None => vec![],
-        };
+        let custom_dns = value
+            .custom_dns
+            .map(nym_vpn_lib_types::CustomDnsSettings::try_from)
+            .transpose()?
+            .ok_or(ConversionError::NoValueSet("VpnServiceConfig.custom_dns"))?;
 
         let mixnet_traffic = value
             .mixnet_traffic
@@ -100,7 +100,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
     fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         let entry_point = Some(proto::EntryNode::from(value.entry_point));
         let exit_point = Some(proto::ExitNode::from(value.exit_point));
-        let custom_dns = Some(proto::IpAddrList::from(value.custom_dns));
+        let custom_dns = Some(proto::CustomDnsSettings::from(value.custom_dns));
         let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
