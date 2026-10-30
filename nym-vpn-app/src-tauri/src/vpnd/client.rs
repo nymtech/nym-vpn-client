@@ -949,9 +949,11 @@ impl VpndClient {
     pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.get_default_dns()
+        let servers = vpnd
+            .get_default_dns()
             .or_else(async |e| self.handle_rpc_error("get_default_dns", e).await)
-            .await
+            .await?;
+        Ok(servers.iter().map(lib::DnsServer::address).collect())
     }
 
     #[instrument(skip_all)]
@@ -967,7 +969,18 @@ impl VpndClient {
     pub async fn set_custom_dns(&self, dns: Vec<IpAddr>) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.set_custom_dns(dns)
+        // The app only supports plain DNS servers on the default port.
+        let custom_dns = lib::CustomDnsSettings {
+            dns_servers: dns
+                .into_iter()
+                .map(|address| lib::DnsServer::Plain {
+                    address,
+                    port: None,
+                    ip_proto: lib::PlainDnsProtocol::UdpAndTcp,
+                })
+                .collect(),
+        };
+        vpnd.set_custom_dns(custom_dns)
             .or_else(async |e| self.handle_rpc_error("set_custom_dns", e).await)
             .await
     }

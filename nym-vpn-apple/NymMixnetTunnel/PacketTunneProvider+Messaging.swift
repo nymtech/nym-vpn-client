@@ -21,7 +21,9 @@ extension PacketTunnelProvider {
             return nil
 
         case let .setCustomDns(addrs):
-            await runCommand { try await self.commandSender?.setCustomDns(addrs: addrs) }
+            await runCommand {
+                try await self.commandSender?.setCustomDns(dnsServers: CustomDnsSettings(plainDnsAddresses: addrs))
+            }
             return nil
 
         case let .setEnableCustomDns(enabled):

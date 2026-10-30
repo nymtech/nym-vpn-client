@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, sync::Arc};
+use std::sync::Arc;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib::service::{
@@ -11,11 +11,11 @@ use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    CustomDnsSettings, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags,
+    FrontingMode, Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
+    ParsedAccountLinks, Profile, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -162,8 +162,8 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn set_custom_dns(&self, addrs: Vec<IpAddr>) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::SetCustomDns, addrs)
+    pub async fn set_custom_dns(&self, dns_servers: CustomDnsSettings) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
             .await
     }
 
