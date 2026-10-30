@@ -28,6 +28,7 @@ interface BackendManager {
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
+	suspend fun deleteAccount()
 	suspend fun getAccountLinks(): ParsedAccountLinks?
 	suspend fun getSystemMessages(): List<SystemMessage>
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>

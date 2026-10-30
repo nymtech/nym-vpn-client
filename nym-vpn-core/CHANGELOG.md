@@ -7,7 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.14.0] - TBD
+## [2026.15.0] - TBD
+
+
+### Added
+
+- Add a bridge mode (auto, on, off) in place of the QUIC on/off setting (config v14). Auto connects over plain WireGuard first and alternates with the bridge on each retry
+- Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
+- Add a `SetBridgeMode` gRPC call and `vpnc tunnel set --bridge-mode` to choose the bridge mode (auto, on or off), replacing the `SetEnableBridges` gRPC call and `vpnc tunnel set --circumvention-transports`, which are removed (breaking: an older desktop app calling `SetEnableBridges` against this daemon gets UNIMPLEMENTED)
+- Add `--wait` to `nym-vpnc reconnect` to block until the tunnel has reconnected or failed (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- `bridge_transports.enabled` feature flag (`FeatureFlags::bridge_transports_enabled`, uniffi `is_bridge_transports_enabled`) for the v2 bridge transports (TLS and SSH after QUIC). Bridges and QUIC do not depend on it
+- `BridgeAddress` in the connection data carries the bridge transport in use (`transport`: QUIC, TLS or SSH)
+- When the `bridge_transports.enabled` feature flag is on, a bridge connection tries QUIC for 5 seconds, then races the entry gateway's TLS and SSH bridges. The firewall allows only the bridges being tried, QUIC over UDP and TLS and SSH over TCP, in both the connecting and connected states. With the flag off or unset, QUIC only as before
+- Add support for custom secure DNS. Supported protocols: TLS, HTTPS, QUIC, HTTP/3. Currently only cli supports that. No UI support yet. (https://github.com/nymtech/nym-vpn-client/pull/6876)
+
+### Changed
+
+- Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
+- `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- [iOS] Flush DNS when changing ad-block setting by reconnecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6866)
+- `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- `nym-vpnc dns set` no longer accepts positional argument to configure plain DNS. Use one of the following arguments instead: `--plain`, `--tcp` or `--udp` (https://github.com/nymtech/nym-vpn-client/pull/6876)
+
+### Fixed
+
+- Fix the gateway mixnet score being decoded from the general score in the gRPC conversion (https://github.com/nymtech/nym-vpn-client/pull/6859)
+- Fix `nym-vpnc connect --wait` waiting forever when the tunnel is already connected (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- Fix `nym-vpnc` `--wait` options missing fast tunnel state changes and reporting success when the daemon's event stream ends (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds. Fixed the SOCKS5 proxy sometimes staying on after the VPN disconnected, or turning off right after being enabled (https://github.com/nymtech/nym-vpn-client/pull/6850)
+- Stop the internal SOCKS5 mixnet client and its listener on `127.0.0.1:1081` when SOCKS5 is disabled, so the next enable starts a new mixnet client instead of reusing the first session's (https://github.com/nymtech/nym-vpn-client/pull/6854)
+- Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
+
+
+### Changed
+
+- Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
+
+### Fixed
+
+- Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
+
+
+## [2026.14.0] - 2026-10-22
 
 ### Added
 
@@ -25,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rotate logs on iOS and Android on per session basis (https://github.com/nymtech/nym-vpn-client/pull/6679)
 - Remove SQLite WAL and shared-memory files (-wal, -shm) along with their databases when wiping local storage. (https://github.com/nymtech/nym-vpn-client/pull/6706)
 - Resolve the nyxd, nym-api and VPN API hostnames concurrently when connecting, so a blocked encrypted DNS no longer adds its timeout once per lookup
+- Blacklist the gateway that failed registration, entry or exit, instead of always blaming the entry, so retries no longer re-select a failing exit. The connection attempts exceeded message no longer suggests turning on QUIC
 
 ### Security
 

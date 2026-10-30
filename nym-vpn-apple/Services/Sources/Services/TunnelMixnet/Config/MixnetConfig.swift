@@ -20,7 +20,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
-    public let isQuicEnabled: Bool
+    public let bridgeMode: BridgeModeSetting
     public let isStealthApiEnabled: Bool
     public let isAdBlockingEnabled: Bool
     public let isErrorReportingEnabled: Bool
@@ -44,7 +44,7 @@ public struct MixnetConfig: Codable, Equatable {
         mixnetTuning: MixnetTuningConfig,
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
-        isQuicEnabled: Bool,
+        bridgeMode: BridgeModeSetting,
         isStealthApiEnabled: Bool,
         isLanBypassEnabled: Bool,
         isAdBlockingEnabled: Bool,
@@ -62,7 +62,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.mixnetTuning = mixnetTuning
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
-        self.isQuicEnabled = isQuicEnabled
+        self.bridgeMode = bridgeMode
         self.isStealthApiEnabled = isStealthApiEnabled
         self.isLanBypassEnabled = isLanBypassEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
@@ -72,6 +72,51 @@ public struct MixnetConfig: Codable, Equatable {
         self.name = name
     }
 #endif
+
+    private enum CodingKeys: String, CodingKey {
+        case entryGateway, exitRouter, isTwoHopEnabled, bridgeMode, isStealthApiEnabled
+        case isAdBlockingEnabled, isErrorReportingEnabled, isStatisticsEnabled, isLanBypassEnabled
+        case mixnetTuning, name
+#if os(iOS)
+        case configPath, dataPath, logPath, customDns, gatewaySelectionAlgorithmConfig, isServerFamilyRemindersEnabled
+#endif
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case isQuicEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        entryGateway = try container.decode(EntryGateway.self, forKey: .entryGateway)
+        exitRouter = try container.decode(ExitRouter.self, forKey: .exitRouter)
+        isTwoHopEnabled = try container.decode(Bool.self, forKey: .isTwoHopEnabled)
+        // Stored before the bridge mode existed: carry the old QUIC flag over so the tunnel can still start.
+        if let mode = try container.decodeIfPresent(BridgeModeSetting.self, forKey: .bridgeMode) {
+            bridgeMode = mode
+        } else {
+            let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+            bridgeMode = try legacy.decode(Bool.self, forKey: .isQuicEnabled) ? .on : .off
+        }
+        isStealthApiEnabled = try container.decode(Bool.self, forKey: .isStealthApiEnabled)
+        isAdBlockingEnabled = try container.decode(Bool.self, forKey: .isAdBlockingEnabled)
+        isErrorReportingEnabled = try container.decode(Bool.self, forKey: .isErrorReportingEnabled)
+        isStatisticsEnabled = try container.decode(Bool.self, forKey: .isStatisticsEnabled)
+        isLanBypassEnabled = try container.decode(Bool.self, forKey: .isLanBypassEnabled)
+        mixnetTuning = try container.decode(MixnetTuningConfig.self, forKey: .mixnetTuning)
+        name = try container.decode(String.self, forKey: .name)
+#if os(iOS)
+        configPath = try container.decode(String.self, forKey: .configPath)
+        dataPath = try container.decode(String.self, forKey: .dataPath)
+        logPath = try container.decode(String.self, forKey: .logPath)
+        customDns = try container.decode([IpAddr].self, forKey: .customDns)
+        gatewaySelectionAlgorithmConfig = try container.decode(
+            NymGatewaySelectionAlgorithmConfig.self,
+            forKey: .gatewaySelectionAlgorithmConfig
+        )
+        isServerFamilyRemindersEnabled = try container.decode(Bool.self, forKey: .isServerFamilyRemindersEnabled)
+#endif
+    }
 }
 
 #if os(iOS)
@@ -85,11 +130,14 @@ extension MixnetConfig {
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
-            enableBridges: isQuicEnabled,
+            bridgeMode: bridgeMode.bridgeMode,
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,
-            customDns: customDns,
+            customDns: CustomDnsSettings(
+                enabled: !customDns.isEmpty,
+                dnsServers: [DnsServer](plainDnsAddresses: customDns)
+            ),
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: NetworkStatisticsConfig(enabled: isStatisticsEnabled, allowDisconnected: false),
             gatewaySelectionAlgorithmConfig: gatewaySelectionAlgorithmConfig.sdkValue,

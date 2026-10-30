@@ -64,6 +64,10 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		core.requireCoreSender { it.forgetAccount() }
 	}
 
+	override suspend fun deleteAccount() {
+		core.requireCoreSender { it.deleteAccount() }
+	}
+
 	override suspend fun getStoredMnemonic(): String = core.requireCoreSender { it.getStoredMnemonic() }
 
 	override suspend fun createAccount() {
@@ -87,10 +91,10 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun getSystemMessages(): List<SystemMessage> = core.tryWithCoreSender { it.getSystemMessages() } ?: emptyList()
 
-	override suspend fun getGateways(type: GatewayType): List<NymGateway> = core.tryWithCoreSender {
+	override suspend fun getGateways(type: GatewayType): List<NymGateway> = core.requireCoreSender {
 		it.listGateways(ListGatewaysOptions(gwType = type, userAgent = null))
 			.map(NymGateway.Companion::from)
-	} ?: emptyList()
+	}
 
 	override suspend fun getRecentGateways(tunnelType: TunnelType): RecentGateways? = core.tryWithCoreSender { sender ->
 		val recent = sender.getRecentGateways(tunnelType)

@@ -60,6 +60,7 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 
 	private val billingClient = BillingClient.newBuilder(context.applicationContext)
 		.setListener(purchasesUpdatedListener)
+		.enableAutoServiceReconnection()
 		.enablePendingPurchases(
 			PendingPurchasesParams.newBuilder()
 				.enablePrepaidPlans()
@@ -234,8 +235,12 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 
 	override fun isReady(): Boolean = billingClient.isReady
 
-	override suspend fun hasActiveSubscription(): Boolean {
-		if (!billingClient.isReady) return false
+	override suspend fun hasActiveSubscription(): Boolean? = queryActiveSubscriptions("HasActiveSubscriptionNonOk")?.isNotEmpty()
+
+	override suspend fun hasRenewingSubscription(): Boolean? = queryActiveSubscriptions("HasRenewingSubscriptionNonOk")?.any { it.isAutoRenewing }
+
+	private suspend fun queryActiveSubscriptions(nonOkEvent: String): List<Purchase>? {
+		if (!billingClient.isReady) return null
 
 		return suspendCancellableCoroutine { c ->
 			val params = QueryPurchasesParams.newBuilder()
@@ -245,16 +250,16 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 			billingClient.queryPurchasesAsync(params) { result, purchases ->
 				_uiState.update { result.toInfo(purchases) }
 
-				val active = result.responseCode == BillingClient.BillingResponseCode.OK &&
-					purchases.any { purchase ->
+				val active = if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+					purchases.filter { purchase ->
 						purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
 							purchase.products.any { productId ->
 								ProductId.fromId(productId) != null
 							}
 					}
-
-				if (result.responseCode != BillingClient.BillingResponseCode.OK) {
-					Timber.tag(TAG).w("HasActiveSubscriptionNonOk code=%d", result.responseCode)
+				} else {
+					Timber.tag(TAG).w("%s code=%d", nonOkEvent, result.responseCode)
+					null
 				}
 
 				if (c.isActive) c.resume(active)

@@ -125,6 +125,15 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn delete_account(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::DeleteAccount(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn rotate_keys(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

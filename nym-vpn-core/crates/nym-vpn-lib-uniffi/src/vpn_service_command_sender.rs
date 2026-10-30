@@ -1,17 +1,18 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, sync::Arc};
+use std::sync::Arc;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib::service::{
-    AccountLinksError, GeoExclusionConfigError, ListGatewaysError, VpnServiceCommand,
+    AccountLinksError, GeoExclusionConfigError, ListGatewaysError, SetCustomDnsError,
+    VpnServiceCommand,
 };
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse,
-    DiagnosticRunParams, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
+    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
+    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
     RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
@@ -25,6 +26,7 @@ enum NymVpnServiceCommandInnerError {
     Account(#[source] AccountCommandError),
     AccountLinks(#[source] AccountLinksError),
     GeoExclusionConfig(#[source] GeoExclusionConfigError),
+    SetCustomDns(#[source] SetCustomDnsError),
 }
 
 impl NymVpnServiceCommandInnerError {
@@ -35,6 +37,7 @@ impl NymVpnServiceCommandInnerError {
             Self::Account(err) => err.display_chain(),
             Self::AccountLinks(err) => err.display_chain(),
             Self::GeoExclusionConfig(err) => err.display_chain(),
+            Self::SetCustomDns(err) => err.display_chain(),
         }
     }
 }
@@ -47,6 +50,7 @@ impl std::fmt::Display for NymVpnServiceCommandInnerError {
             Self::Account(err) => write!(f, "{}", err),
             Self::AccountLinks(err) => write!(f, "{}", err),
             Self::GeoExclusionConfig(err) => write!(f, "{}", err),
+            Self::SetCustomDns(err) => write!(f, "{}", err),
         }
     }
 }
@@ -142,8 +146,8 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
+    pub async fn set_bridge_mode(&self, bridge_mode: BridgeMode) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode)
             .await
     }
 
@@ -162,9 +166,11 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn set_custom_dns(&self, addrs: Vec<IpAddr>) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::SetCustomDns, addrs)
-            .await
+    pub async fn set_custom_dns(&self, dns_servers: Vec<DnsServer>) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::SetCustomDns)?)
     }
 
     pub async fn set_enable_gateway_independence(
@@ -244,7 +250,7 @@ impl NymVpnServiceCommandSender {
             .map(|v| v.map(Arc::new))
     }
 
-    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
+    pub async fn get_default_dns(&self) -> Result<Vec<DnsServer>> {
         self.send_and_wait(VpnServiceCommand::GetDefaultDns, ())
             .await
     }
@@ -338,6 +344,13 @@ impl NymVpnServiceCommandSender {
 
     pub async fn forget_account(&self) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::ForgetAccount, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        Ok(())
+    }
+
+    pub async fn delete_account(&self) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::DeleteAccount, ())
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?;
         Ok(())

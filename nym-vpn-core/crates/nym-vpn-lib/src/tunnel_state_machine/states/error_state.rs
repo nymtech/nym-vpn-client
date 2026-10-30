@@ -73,7 +73,7 @@ impl ErrorState {
                     // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
                     // client based on `nym-http-api-client::Client` that not modified to be independent will
                     // use these overrides automatically.
-                    let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+                    let dns_resolver: nym_http_api_client::HickoryDnsResolver =
                         nym_http_api_client::HickoryDnsResolver::shared();
                     dns_resolver.set_static_preresolve(resolved_config.addr_map());
 
@@ -227,7 +227,7 @@ impl TunnelStateHandler for ErrorState {
                             return NextTunnelState::SameState(self);
                         }
 
-                        shared_state.set_tunnel_settings(tunnel_settings).await;
+                        shared_state.set_tunnel_settings(tunnel_settings, false).await;
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {

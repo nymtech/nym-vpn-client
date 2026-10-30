@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashSet,
-    net::IpAddr,
     pin::{Pin, pin},
     sync::Arc,
 };
@@ -23,7 +21,7 @@ use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -52,10 +50,10 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AppCompatibility,
     AutologinResponse, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport,
-    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
+    DiagnosticRunParams, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags,
+    Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    MixnetTrafficConfig, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork,
+    NymVpnUsage, ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
     StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
     TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
@@ -68,7 +66,7 @@ use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
+        Result, SetCustomDnsError, SetNetworkError,
     },
     socks5::Socks5EnableConfig,
     socks5_idle_timeout, socks5_request_timeout,
@@ -89,7 +87,8 @@ use crate::{
     paths::{NymConfigPaths, Paths},
     tunnel_state_machine::{
         GatewayPerformanceOptions, NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
-        TunnelStateMachineArguments, tunnel::gateway_provider::GatewayProvider,
+        TunnelStateMachineArguments, dns_servers_from_hickory_config,
+        tunnel::gateway_provider::GatewayProvider,
     },
 };
 
@@ -109,13 +108,16 @@ pub enum VpnServiceCommand {
     SetEnableTwoHop(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
-    SetEnableBridges(oneshot::Sender<()>, bool),
+    SetBridgeMode(oneshot::Sender<()>, nym_vpn_lib_types::BridgeMode),
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetEnableConflictDetection(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
-    SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
+    SetCustomDns(
+        oneshot::Sender<Result<(), SetCustomDnsError>>,
+        Vec<DnsServer>,
+    ),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetEnableGatewayIndependence(oneshot::Sender<()>, bool),
@@ -124,7 +126,7 @@ pub enum VpnServiceCommand {
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetAppCompatibility(oneshot::Sender<Option<AppCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
-    GetDefaultDns(oneshot::Sender<Vec<IpAddr>>, ()),
+    GetDefaultDns(oneshot::Sender<Vec<DnsServer>>, ()),
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
@@ -163,6 +165,7 @@ pub enum VpnServiceCommand {
     DecentralisedObtainTicketbooks(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    DeleteAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     RotateKeys(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetAccountIdentity(
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
@@ -322,7 +325,7 @@ pub struct NymVpnService {
     target_state: TargetState,
 
     // Last known tunnel state
-    tunnel_state: Arc<RwLock<TunnelState>>,
+    tunnel_state: TunnelState,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -455,7 +458,7 @@ impl NymVpnService {
             .network()
             .map_err(|_| Error::NetworkEnvNotInitialized)?;
 
-        let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+        let dns_resolver: nym_http_api_client::HickoryDnsResolver =
             nym_http_api_client::HickoryDnsResolver::shared();
         dns_resolver.set_fallback_addrs(
             network_env
@@ -608,7 +611,7 @@ impl NymVpnService {
         let stats_control_commands_sender = statistics_controller.get_commands_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
-        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let tunnel_state = TunnelState::Disconnected;
 
         // Initialize lazy SOCKS5 service (disabled by default)
         let socks5_service = Socks5Service::new(tunnel_state.clone());
@@ -914,7 +917,7 @@ impl NymVpnService {
     }
 
     async fn set_target_state(&mut self, new_state: TargetState) -> bool {
-        if self.target_state != new_state || self.tunnel_state.read().await.is_error_state() {
+        if self.target_state != new_state || self.tunnel_state.is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
 
@@ -973,34 +976,8 @@ impl NymVpnService {
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if let TunnelEvent::NewState(ref new_state) = event {
-            if let Ok(mut state) = self.tunnel_state.try_write() {
-                *state = new_state.clone();
-            } else {
-                tracing::error!("Failed to update tunnel state to {new_state}");
-            }
-
-            // Auto-disable SOCKS5 when VPN disconnects
-            if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_))
-                && self.socks5_service.is_enabled()
-            {
-                tracing::info!("VPN disconnected, auto-disabling SOCKS5 proxy");
-                let socks5_service = self.socks5_service.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = socks5_service.disable().await {
-                        tracing::error!("Failed to auto-disable SOCKS5 on VPN disconnect: {}", e);
-                    }
-                });
-            }
-
-            // When VPN connects, if SOCKS5 is already enabled, warn that it may not work
-            // because SOCKS5 might be using a different gateway than VPN
-            if matches!(new_state, TunnelState::Connected { .. })
-                && self.socks5_service.is_enabled()
-            {
-                tracing::warn!(
-                    "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
-                );
-            }
+            self.tunnel_state = new_state.clone();
+            self.socks5_service.tunnel_state_changed(new_state.clone());
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -1097,8 +1074,8 @@ impl NymVpnService {
                 self.handle_set_allow_lan(allow_lan).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
-                self.handle_set_enable_bridges(enable_bridges).await;
+            VpnServiceCommand::SetBridgeMode(tx, bridge_mode) => {
+                self.handle_set_bridge_mode(bridge_mode).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
@@ -1109,9 +1086,8 @@ impl NymVpnService {
                 self.handle_set_enable_custom_dns(enable_custom_dns).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetCustomDns(tx, custom_dns) => {
-                self.handle_set_custom_dns(custom_dns).await;
-                let _ = tx.send(());
+            VpnServiceCommand::SetCustomDns(tx, dns_servers) => {
+                let _ = tx.send(self.handle_set_custom_dns(dns_servers).await);
             }
             VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
                 let res = self
@@ -1200,6 +1176,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let _ = tx.send(self.handle_forget_account().await);
+            }
+            VpnServiceCommand::DeleteAccount(tx, ()) => {
+                let _ = tx.send(self.handle_delete_account().await);
             }
             VpnServiceCommand::RotateKeys(tx, ()) => {
                 let _ = tx.send(self.handle_rotate_keys().await);
@@ -1437,8 +1416,8 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
-        self.config_manager.set_enable_bridges(enable_bridges).await;
+    async fn handle_set_bridge_mode(&mut self, bridge_mode: nym_vpn_lib_types::BridgeMode) {
+        self.config_manager.set_bridge_mode(bridge_mode).await;
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -1476,27 +1455,45 @@ impl NymVpnService {
         {
             let config = self.config_manager.config();
             // Ignore reconnect if custom DNS is enabled but custom DNS addresses aren't set
-            if !enable_custom_dns || !config.custom_dns.is_empty() {
+            if !enable_custom_dns || !config.custom_dns.dns_servers.is_empty() {
                 self.update_tunnel_settings_with_throttle();
             }
         }
     }
 
-    async fn handle_set_custom_dns(&mut self, mut custom_dns: Vec<IpAddr>) {
+    async fn handle_set_custom_dns(
+        &mut self,
+        mut dns_servers: Vec<DnsServer>,
+    ) -> Result<(), SetCustomDnsError> {
         const MAX_CUSTOM_DNS_SERVERS: usize = 5;
 
-        if custom_dns.len() > MAX_CUSTOM_DNS_SERVERS {
-            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
-            custom_dns.truncate(MAX_CUSTOM_DNS_SERVERS);
+        if dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
+            return Err(SetCustomDnsError::TooManyServers {
+                count: dns_servers.len(),
+                max: MAX_CUSTOM_DNS_SERVERS,
+            });
         }
 
-        if self.config_manager.set_custom_dns(custom_dns).await {
+        // Ensure that server name is not set to empty string
+        for dns_server in dns_servers.iter_mut() {
+            if dns_server.is_empty_server_name() {
+                return Err(SetCustomDnsError::EmptyServerName {
+                    addr: dns_server.address(),
+                });
+            }
+            dns_server.normalize_port();
+            dns_server.normalize_query_path();
+        }
+
+        if self.config_manager.set_custom_dns(dns_servers).await {
             let config = self.config_manager.config();
             // Only issue reconnect if custom DNS is enabled
-            if config.enable_custom_dns {
+            if config.custom_dns.enabled {
                 self.update_tunnel_settings_with_throttle();
             }
         }
+
+        Ok(())
     }
 
     async fn handle_set_mixnet_traffic_config(
@@ -1594,13 +1591,10 @@ impl NymVpnService {
             .map(FeatureFlags::from)
     }
 
-    fn handle_get_default_dns(&self) -> Vec<IpAddr> {
-        // todo: return protocols too!
-        let mut seen = HashSet::with_capacity(DEFAULT_DNS_SERVERS_CONFIG.len());
+    fn handle_get_default_dns(&self) -> Vec<DnsServer> {
         DEFAULT_DNS_SERVERS_CONFIG
             .iter()
-            .map(|v| v.ip)
-            .filter(|ip| seen.insert(*ip))
+            .flat_map(dns_servers_from_hickory_config)
             .collect()
     }
 
@@ -1694,7 +1688,7 @@ impl NymVpnService {
         // For location-based exit points, check if VPN is connected first
         // If connected, use VPN's actual gateway to avoid firewall routing issues
         // (but only if it supports SOCKS5 - otherwise fall back to location-based selection)
-        let tunnel_state = self.tunnel_state.read().await.clone();
+        let tunnel_state = self.tunnel_state.clone();
 
         let ret = if let TunnelState::Connected { connection_data } = tunnel_state {
             // VPN is connected - try to use its actual exit gateway
@@ -1910,10 +1904,9 @@ impl NymVpnService {
 
         // Get current VPN exit gateway identity to exclude during random selection for privacy
         let vpn_exit_gateway_identity = {
-            let tunnel_state = self.tunnel_state.read().await;
             if let TunnelState::Connected {
                 ref connection_data,
-            } = *tunnel_state
+            } = self.tunnel_state
             {
                 Some(connection_data.exit_gateway.id.clone())
             } else {
@@ -1967,7 +1960,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.read().await.clone()
+        self.tunnel_state.clone()
     }
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -2039,7 +2032,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
             ));
@@ -2060,9 +2053,33 @@ impl NymVpnService {
         self.account_command_tx.forget_account().await
     }
 
+    async fn handle_delete_account(&mut self) -> Result<(), AccountCommandError> {
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountCommandError::internal(
+                "Unable to delete account while connected",
+            ));
+        }
+
+        let data_dir = self.paths.network_data_dir.clone();
+        tracing::info!(
+            "DELETING ACCOUNT AND REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
+            data_dir.display()
+        );
+
+        self.account_command_tx.delete_account().await?;
+
+        let _ = self
+            .stats_control_commands_sender
+            .reset_seed(None)
+            .await
+            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
+
+        Ok(())
+    }
+
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
         // TODO: temporary, until key rotation can be done while connected
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to rotate keys while connected",
             ));
@@ -2131,7 +2148,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        if *self.tunnel_state.read().await != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
             ));
@@ -2394,7 +2411,7 @@ impl NymVpnService {
         &self,
         mut params: DiagnosticRegisterParams,
     ) -> RegistrationReport {
-        if !(*self.tunnel_state.read().await == TunnelState::Disconnected
+        if !(self.tunnel_state == TunnelState::Disconnected
             && self.account_state_rx.get_state() == AccountControllerState::ReadyToConnect)
         {
             return RegistrationReport::from_err(
@@ -2576,7 +2593,7 @@ fn update_active_network(network_tx: &watch::Sender<Box<Network>>, new_network: 
         .map(|(host, addrs)| (host, addrs.into_iter().collect()))
         .collect();
 
-    let mut dns_resolver: nym_http_api_client::HickoryDnsResolver =
+    let dns_resolver: nym_http_api_client::HickoryDnsResolver =
         nym_http_api_client::HickoryDnsResolver::shared();
     dns_resolver.set_fallback_addrs(addrs);
 

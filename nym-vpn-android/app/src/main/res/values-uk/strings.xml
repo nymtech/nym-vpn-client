@@ -363,7 +363,6 @@
 	<string name="censorship_description">Розширені функції для поліпшення зв\'язку в обмежених мережах або при блокуванні NymVPN.</string>
 	<string name="censorship_learn_more_link_text">Дізнатися більше</string>
 	<string name="censorship_quic_title">Покращене з\'єднання (QUIC)</string>
-	<string name="censorship_quic_description">Покращує з\'єднання в мережах з обмеженим доступом завдяки використанню протоколу QUIC (HTTP/3) для WireGuard.\n\nПримітка: Обмежує вибір серверів входу лише тими, що підтримують QUIC.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Приховане підключення API</string>
 	<string name="censorship_stealth_description">Захищає від блокування VPN за допомогою прикривальних доменів. Увімкніть цю функцію, щоб використовувати її завжди, або вимкніть, щоб використовувати її лише у разі, якщо звичайні з’єднання не працюють.</string>
@@ -453,9 +452,7 @@
 	<string name="account_info_data_unavailable">Дані про використання відсутні</string>
 	<string name="account_info_valid_text">План дійсний до %s</string>
 	<string name="account_info_expires_text">Термін дії плану закінчується %s</string>
-	<string name="banner_plan_expires_text">Термін дії плану закінчується:\n%s</string>
 	<string name="account_info_renew_text">Поновіть зараз, щоб залишатися захищеним</string>
-	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
 	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
 	<string name="account_info_no_plan">Активної підписки не виявлено</string>
 	<string name="account_info_contact_support_action">Звернутися до служби підтримки</string>

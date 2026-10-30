@@ -14,7 +14,7 @@
 		58E98AED2F92534300A120DF /* nym-socks5-proxy in Copy Files */ = {isa = PBXBuildFile; fileRef = 58E98AEB2F92533600A120DF /* nym-socks5-proxy */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		58FF8CE32F8EADEA0037AC51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 58FF8CDE2F8EADEA0037AC51 /* Assets.xcassets */; };
 		58FF8CEC2F8EAF2F0037AC51 /* nym-setup in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEA2F8EAF2F0037AC51 /* nym-setup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */; };
+		58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */; };
 		D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */; };
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
@@ -93,7 +93,6 @@
 		D9CACB112D67B7090004F9E0 /* gatewaysVpn.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */; };
 		D9CDF2DC2BF49909007E5DAF /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9CDF2DB2BF49909007E5DAF /* Home */; };
 		D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */; };
-		D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */; };
 		D9D336672E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
 		D9D381332E7B1683006DAFBB /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D381322E7B1683006DAFBB /* FeatureFlagsManager */; };
 		D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */ = {isa = PBXBuildFile; productRef = D9D483572BEBA72F0005A41C /* UIComponents */; };
@@ -251,7 +250,6 @@
 		D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysEntry.json; sourceTree = "<group>"; };
 		D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysExit.json; sourceTree = "<group>"; };
 		D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysVpn.json; sourceTree = "<group>"; };
-		D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TunnelStatus+Extensions.swift"; sourceTree = "<group>"; };
 		D9CF05D52BA1CBE000489055 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 		D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		D9CF05DA2BA1CD1E00489055 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
@@ -418,7 +416,6 @@
 				D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */,
 				D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */,
 				5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */,
-				D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */,
 				D954C0BD2B51C1CA00C6BAAC /* Info.plist */,
 				D954C0BE2B51C1CA00C6BAAC /* NymMixnetTunnel.entitlements */,
 			);
@@ -725,7 +722,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2640;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					58C9571E2F8E3F0C00FD0C81 = {
 						CreatedOnToolsVersion = 26.1;
@@ -903,7 +900,6 @@
 				D925D5322CCFBEAF00C8286E /* PacketTunnelProvider+TunnelStatusListener.swift in Sources */,
 				5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */,
 				D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */,
-				D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -968,7 +964,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -982,7 +978,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn.daemon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1002,7 +998,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				DEAD_CODE_STRIPPING = YES;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1017,7 +1013,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn.daemon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "NymVPN daemon";
@@ -1035,7 +1031,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1050,7 +1045,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1073,7 +1068,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1088,7 +1082,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1140,6 +1134,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -1205,6 +1200,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -1239,7 +1235,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1254,7 +1249,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1280,7 +1275,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1295,7 +1289,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1321,7 +1315,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -1335,7 +1328,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				SDKROOT = macosx;
@@ -1357,7 +1350,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = VW5DZLFHM5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1372,7 +1364,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2026.15.0;
+				MARKETING_VERSION = 2026.16.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "NymVPN macOS + Daemon";
@@ -1389,7 +1381,6 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
@@ -1409,7 +1400,6 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;

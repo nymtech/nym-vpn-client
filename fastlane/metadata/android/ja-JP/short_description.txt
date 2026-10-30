@@ -1,1 +1,1 @@
-プライベートで安全なスイスのdVPNです。 WireGuard、Mixnet、分散型プロキシ、メール不要。
+プライベートで安全なスイスのdVPN。WireGuard、Mixnet、分散型プロキシ、メール不要。

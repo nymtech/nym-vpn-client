@@ -16,6 +16,7 @@ members = [
     "crates/nym-ifconfig",
     "crates/nym-ipc",
     "crates/nym-macos",
+    "crates/nym-nm-vpn-plugin",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
     "crates/nym-routing",
@@ -50,6 +51,7 @@ members = [
 default-members = [
     "crates/nym-diagnostic",
     "crates/nym-exclude",
+    "crates/nym-nm-vpn-plugin",
     "crates/nym-setup",
     "crates/nym-socks5-proxy",
     "crates/nym-vpnc",
@@ -58,7 +60,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymvpn.com/"
@@ -85,10 +87,9 @@ async-stream = "0.3.6"
 async-tempfile = "0.8"
 async-trait = "0.1.92"
 backon = "1.6"
-base64 = "0.23.1"
 base64-url = "3.0.4"
 bincode = "=1.3.3"
-bip39 = "2.2"
+bip39 = { version = "3.0.0", features = ["zeroize"] }
 bitflags = "2"
 block2 = "0.6.2"
 boringtun = "0.7.1"
@@ -106,6 +107,7 @@ debounced = "0.2"
 dispatch2 = "0.3.1"
 duct = "1.1"
 env_logger = "0.11.11"
+enum-iterator = "2.3.0"
 endpoint-sec = "0.6.2"
 eventlog = "0.4.0"
 fast-socks5 = "1.0.0"
@@ -131,7 +133,6 @@ inventory = "0.3"
 ipnetwork = "0.21.1"
 itertools = "0.15.0"
 jni = "0.22.4"
-lazy_static = "1.5.0"
 libc = "0.2"
 log = "0.4.34"
 log-panics = "2"
@@ -156,18 +157,9 @@ proc-macro2 = "1.0"
 prost = "0.14.4"
 prost-types = "0.14.4"
 pretty_assertions = "1.4.1"
-quinn = { version = "0.11", default-features = false, features = [
-    "ring",
-    "rustls",
-    "runtime-tokio",
-] }
-quinn-proto = { version = "0.11.18", default-features = false, features = [
-    "rustls",
-] }
 quote = "1.0"
 rand = "0.10.2"
 rand08 = { package = "rand", version = "=0.8.8" }
-rand_chacha = "=0.3.1"
 regex = "1"
 resolv-conf = "0.7"
 rs-release = "0.1.11"
@@ -176,7 +168,6 @@ netlink-packet-core = "0.9.0"
 netlink-packet-netfilter = "0.4.0"
 netlink-sys = "0.9.0"
 rustls = { version = "0.23.45", default-features = false }
-rustls-pemfile = "2.2.0"
 semver = "1.0"
 sentry = { version = "0.49.2", default-features = false }
 serde = "1.0"
@@ -212,7 +203,6 @@ ts-rs = "12.0.1"
 tower = "0.5.3"
 ssh2 = "0.9.6"
 tarpc = "=0.30.0"
-tokio-serde = "0.9.0"
 tokio-serial = "5.5.0"
 tracing = "0.1"
 tracing-android = "0.2.0"
@@ -222,7 +212,7 @@ tracing-oslog = "0.3.0"
 tracing-subscriber = "0.3"
 tracing-test = "0.2.6"
 triggered = "0.1.3"
-uniffi = { version = "=0.31.1", features = ["cli"] }
+uniffi = { version = "0.32.2", features = ["cli"] }
 url = "2.5"
 vergen-gitcl = { version = "10.0.3", default-features = false }
 verifysign = "0.2.5"
@@ -236,7 +226,6 @@ windows-sys = "0.61.2"
 winreg = "0.56.0"
 wiremock = "0.6.5"
 wmi = "0.18.4"
-x509-parser = "0.18.1"
 zbus = "5.19.0"
 zbus_polkit = "5.1.0"
 zeroize = "1.9.0"
@@ -279,44 +268,44 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing", default-features = false }
-# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.19-fuqing" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+# nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+# nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow", default-features = false }
+# nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+# nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.20-glasgow" }
 
-nym-bridges = "0.2.1"
-nym-bridges-types = "0.2.1"
+nym-bridges = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
+nym-bridges-types = { git = "https://github.com/nymtech/nym-bridges", rev = "5739d44957af2020de1983745b9712e9bdfcf72a" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]

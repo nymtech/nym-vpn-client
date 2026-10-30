@@ -51,6 +51,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseCard
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
+import net.nymtech.nymvpn.ui.common.security.SecureOverlayProtection
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -64,6 +65,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
 	SecureScreen()
+	SecureOverlayProtection()
 
 	val passphrase by viewModel.passphrase.collectAsState()
 	val showSheet = passphrase.isNotEmpty()

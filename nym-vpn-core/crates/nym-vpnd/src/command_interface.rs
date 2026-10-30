@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-
 use futures::{StreamExt, stream::BoxStream};
 use nym_ipc::AuthenticationMaterial;
 use tokio::{
@@ -19,7 +17,7 @@ use tonic::{Request, Response, Status, transport::Server};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
+    DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
     LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
 };
 
@@ -159,16 +157,17 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn set_enable_bridges(
+    async fn set_bridge_mode(
         &self,
-        request: tonic::Request<bool>,
+        request: tonic::Request<proto::BridgeModeRequest>,
     ) -> Result<tonic::Response<()>> {
-        let enable_bridges = request.into_inner();
+        let bridge_mode = proto::BridgeModes::try_from(request.into_inner().mode)
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid bridge mode: {e}")))?;
 
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
+            .send_and_wait(VpnServiceCommand::SetBridgeMode, bridge_mode.into())
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
+            .map_err(|e| tonic::Status::internal(format!("Failed to set bridge mode: {e}")))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -284,15 +283,15 @@ impl NymVpnService for CommandInterface {
 
     async fn set_custom_dns(
         &self,
-        request: tonic::Request<proto::IpAddrList>,
+        request: tonic::Request<proto::DnsServerList>,
     ) -> Result<tonic::Response<()>> {
-        let custom_dns: Vec<IpAddr> = request
+        let dns_servers: Vec<DnsServer> = request
             .into_inner()
             .try_into()
             .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
 
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
+            .send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
 
@@ -505,12 +504,11 @@ impl NymVpnService for CommandInterface {
     async fn get_default_dns(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::IpAddrList>> {
-        let dns_ips = self
+    ) -> Result<tonic::Response<proto::DnsServerList>> {
+        let servers = self
             .send_and_wait(VpnServiceCommand::GetDefaultDns, ())
             .await?;
-        let ipaddr_list = proto::IpAddrList::from(dns_ips);
-        Ok(tonic::Response::new(ipaddr_list))
+        Ok(tonic::Response::new(proto::DnsServerList::from(servers)))
     }
 
     async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<bool>> {

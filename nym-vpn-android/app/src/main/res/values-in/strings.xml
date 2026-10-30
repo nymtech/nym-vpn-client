@@ -358,7 +358,6 @@
 	<string name="censorship_description">Fitur-fitur canggih untuk meningkatkan konektivitas di jaringan yang membatasi akses atau saat menghadapi pemblokiran NymVPN.</string>
 	<string name="censorship_learn_more_link_text">Pelajari lebih lanjut</string>
 	<string name="censorship_quic_title">Koneksi yang ditingkatkan (QUIC)</string>
-	<string name="censorship_quic_description">Meningkatkan koneksi pada jaringan yang dibatasi dengan membungkus WireGuard dalam QUIC (HTTP/3).\n\nCatatan: Membatasi pilihan server masuk hanya pada server yang kompatibel dengan QUIC.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Koneksi API Stealth</string>
 	<string name="censorship_stealth_description">Melindungi dari pemblokiran VPN dengan menggunakan domain penyamar. Aktifkan untuk penggunaan terus-menerus, atau nonaktifkan agar hanya digunakan saat koneksi biasa gagal.</string>
@@ -448,9 +447,7 @@
 	<string name="account_info_data_unavailable">Data penggunaan tidak tersedia</string>
 	<string name="account_info_valid_text">Paket ini berlaku hingga %s</string>
 	<string name="account_info_expires_text">Paket ini akan berakhir pada %s</string>
-	<string name="banner_plan_expires_text">Paket ini akan berakhir pada:\n%s</string>
 	<string name="account_info_renew_text">Perpanjang sekarang agar tetap terlindungi</string>
-	<string name="banner_renew_text">Perpanjang sekarang\nagar tetap terlindungi</string>
 	<string name="account_info_auto_renew_text">*Perpanjangan otomatis*</string>
 	<string name="account_info_no_plan">Tidak ada langganan yang aktif</string>
 	<string name="account_info_contact_support_action">Hubungi Layanan Pelanggan</string>

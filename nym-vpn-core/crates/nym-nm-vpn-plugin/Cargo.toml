@@ -1,0 +1,57 @@
+[package]
+name = "nym-nm-vpn-plugin"
+description = "NetworkManager VPN plugin for nym-vpnd"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "nm-nymvpn-service"
+path = "src/main.rs"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+anyhow.workspace = true
+clap = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
+tokio-stream.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+zbus.workspace = true
+
+nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
+nym-vpn-lib-types.workspace = true
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+time.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+
+# Debian
+[package.metadata.deb]
+name = "nym-vpn-networkmanager"
+extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
+
+This package contains the NetworkManager VPN plugin that lets NetworkManager
+start, stop and display the NymVPN tunnel managed by nym-vpnd.'''
+# `$auto` resolves libnm0, GTK 3 and GTK 4 from the editor libraries via dpkg-shlibdeps.
+depends = "$auto, nym-vpnd, network-manager"
+suggests = "nym-vpn-app"
+maintainer-scripts = "packaging/debian"
+# The editor libraries are built by `make -C editor` before `cargo deb`.
+assets = [
+    { source = "target/release/nm-nymvpn-service", dest = "usr/libexec/nm-nymvpn-service", mode = "755" },
+    { source = "packaging/nm-nymvpn-service.name", dest = "usr/lib/NetworkManager/VPN/nm-nymvpn-service.name", mode = "644" },
+    { source = "packaging/nm-nymvpn-service.conf", dest = "usr/share/dbus-1/system.d/nm-nymvpn-service.conf", mode = "644" },
+    # NetworkManager ignores keyfiles that are readable by others, hence 600.
+    { source = "packaging/NymVPN.nmconnection", dest = "usr/lib/NetworkManager/system-connections/NymVPN.nmconnection", mode = "600" },
+    { source = "editor/build/libnm-vpn-plugin-nymvpn.so", dest = "usr/lib/NetworkManager/libnm-vpn-plugin-nymvpn.so", mode = "644" },
+    { source = "editor/build/libnm-vpn-plugin-nymvpn-editor.so", dest = "usr/lib/NetworkManager/libnm-vpn-plugin-nymvpn-editor.so", mode = "644" },
+    { source = "editor/build/libnm-gtk4-vpn-plugin-nymvpn-editor.so", dest = "usr/lib/NetworkManager/libnm-gtk4-vpn-plugin-nymvpn-editor.so", mode = "644" },
+]
+revision = ""

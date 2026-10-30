@@ -361,7 +361,6 @@
 	<string name="censorship_description">Erweiterte Funktionen zur Verbesserung der Konnektivität in restriktiven Netzwerken oder bei Blockierung von NymVPN.</string>
 	<string name="censorship_learn_more_link_text">Mehr erfahren</string>
 	<string name="censorship_quic_title">Verbesserte Verbindung (QUIC)</string>
-	<string name="censorship_quic_description">Verbessert Verbindungen in eingeschränkten Netzwerken, indem WireGuard in QUIC (HTTP/3) verpackt wird.\n\nHinweis: Begrenzt die Optionen für Eintrittsserver auf QUIC-kompatible Server.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth-API-Verbindung</string>
 	<string name="censorship_stealth_description">Schützt vor VPN-Blockierung durch die Verwendung von Cover-Domains. Schalte sie ein, um sie immer zu verwenden, oder aus, um sie zu verwenden, wenn normale Verbindungen fehlschlagen.</string>
@@ -451,9 +450,7 @@
 	<string name="account_info_data_unavailable">Nutzungsdaten nicht verfügbar</string>
 	<string name="account_info_valid_text">Abo gültig bis %s</string>
 	<string name="account_info_expires_text">Abo läuft am %s ab</string>
-	<string name="banner_plan_expires_text">Abo läuft ab am:\n%s</string>
 	<string name="account_info_renew_text">Jetzt erneuern, um geschützt zu bleiben</string>
-	<string name="banner_renew_text">Jetzt erneuern\num geschützt zu bleiben</string>
 	<string name="account_info_auto_renew_text">*Auto-Erneuerung</string>
 	<string name="account_info_no_plan">Kein aktives Abonnement</string>
 	<string name="account_info_contact_support_action">Kundensupport kontaktieren</string>

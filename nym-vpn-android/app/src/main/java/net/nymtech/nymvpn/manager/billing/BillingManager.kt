@@ -16,5 +16,6 @@ interface BillingManager {
 	fun fetchSubscriptions()
 	suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String, trialEligible: Boolean): PurchaseFlowResult
 	fun endConnection()
-	suspend fun hasActiveSubscription(): Boolean
+	suspend fun hasActiveSubscription(): Boolean?
+	suspend fun hasRenewingSubscription(): Boolean?
 }

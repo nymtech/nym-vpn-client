@@ -359,7 +359,6 @@
 	<string name="censorship_description">Fonctionnalités avancées pour améliorer la connectivité sur les réseaux restrictifs ou en cas de blocage de NymVPN.</string>
 	<string name="censorship_learn_more_link_text">En savoir plus</string>
 	<string name="censorship_quic_title">Connexion améliorée (QUIC)</string>
-	<string name="censorship_quic_description">Améliore les connexions sur les réseaux restreints en encapsulant WireGuard dans QUIC (HTTP/3).\n\nRemarque : limite les options de serveur d\'entrée aux serveurs compatibles QUIC uniquement.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Connexion Stealth API</string>
 	<string name="censorship_stealth_description">Protège contre le blocage du VPN en utilisant des domaines de couverture. Activez pour toujours utiliser, ou désactivez pour n\'utiliser qu\'en cas d\'échec des connexions normales.</string>
@@ -449,9 +448,7 @@
 	<string name="account_info_data_unavailable">Données d\'utilisation indisponibles</string>
 	<string name="account_info_valid_text">Abonnement valable jusqu\'au %s</string>
 	<string name="account_info_expires_text">Abonnement expirant le %s</string>
-	<string name="banner_plan_expires_text">L\'abonnement expire le :\n%s</string>
 	<string name="account_info_renew_text">Renouveler maintenant et rester en sécurité</string>
-	<string name="banner_renew_text">Renouveler maintenant\net rester en sécurité</string>
 	<string name="account_info_auto_renew_text">*Renouvellement automatique</string>
 	<string name="account_info_no_plan">Pas d\'abonnement actif</string>
 	<string name="account_info_contact_support_action">Contacter l\'assistance clientèle</string>

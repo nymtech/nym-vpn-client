@@ -159,6 +159,28 @@ fn test_matching_quic_enabled() {
                     id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
                 },
             )],
+            transports_v2: vec![],
+        }))
+        .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::QuicEnabled));
+
+    // Newer bridges list every transport in `transports_v2`.
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .bridge_params(Some(BridgeInformation {
+            version: String::from("1"),
+            transports: vec![],
+            transports_v2: vec![BridgeParameters::QuicPlain(
+                nym_vpn_api_client::response::QuicClientOptions {
+                    addresses: vec!["1.2.3.4:5".parse().unwrap()],
+                    host: None,
+                    id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
+                },
+            )],
         }))
         .build();
 
@@ -172,6 +194,7 @@ fn test_matching_quic_enabled() {
         .bridge_params(Some(BridgeInformation {
             version: String::from("1"),
             transports: vec![],
+            transports_v2: vec![],
         }))
         .build();
 
@@ -744,4 +767,41 @@ fn closest_pick_still_prefers_the_better_score_tier_over_distance() {
             .unwrap();
         assert_eq!(gw.identity().to_base58_string(), CLOSEST_IDS[5]);
     }
+}
+
+#[test]
+fn bridge_candidates_fall_back_to_tls_only_when_allowed() {
+    let pin = String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
+    let quic = BridgeParameters::QuicPlain(nym_vpn_api_client::response::QuicClientOptions {
+        addresses: vec!["1.2.3.4:4443".parse().unwrap()],
+        host: None,
+        id_pubkey: pin.clone(),
+    });
+    let tls = BridgeParameters::TlsPlain(nym_vpn_api_client::response::TlsClientOptions {
+        addresses: vec!["1.2.3.4:443".parse().unwrap()],
+        host: None,
+        id_pubkey: pin,
+    });
+    let unpinned = BridgeParameters::TlsPlain(nym_vpn_api_client::response::TlsClientOptions {
+        addresses: vec!["1.2.3.4:8443".parse().unwrap()],
+        host: None,
+        id_pubkey: String::new(),
+    });
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .bridge_params(Some(BridgeInformation {
+            version: String::from("1"),
+            transports: vec![quic.clone()],
+            transports_v2: vec![quic.clone(), tls.clone(), unpinned],
+        }))
+        .build();
+
+    assert_eq!(
+        gateway.bridge_candidates(false),
+        (vec![quic.clone()], vec![])
+    );
+    assert_eq!(gateway.bridge_candidates(true), (vec![quic], vec![tls]));
 }

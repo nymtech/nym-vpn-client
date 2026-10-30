@@ -38,6 +38,7 @@ import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.SecureScreen
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.common.security.SecureOverlayProtection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -54,6 +55,7 @@ fun PassphraseView(
 	modifier: Modifier = Modifier,
 ) {
 	SecureScreen()
+	SecureOverlayProtection()
 
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val isError = mnemonicError != null

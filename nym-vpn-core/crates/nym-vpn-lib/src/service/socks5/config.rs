@@ -1,3 +1,6 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 const DEFAULT_SOCKS5_REQUEST_TIMEOUT_SECS: u64 = 30;
 const DEFAULT_SOCKS5_IDLE_TIMEOUT_SECS: u64 = 300;
 

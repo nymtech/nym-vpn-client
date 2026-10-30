@@ -53,7 +53,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler libnm-dev libgtk-3-dev libgtk-4-dev
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -120,6 +120,9 @@ jobs:
           target/release/nym-vpnc completions zsh > "$COMPLETIONS_DIR/_nym-vpnc"
           target/release/nym-vpnc completions fish > "$COMPLETIONS_DIR/nym-vpnc.fish"
 
+      - name: Build NetworkManager editor plugin libraries
+        run: make -C nym-vpn-core/crates/nym-nm-vpn-plugin/editor all test
+
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.
       - name: Build nym-vpn-core debian packages
@@ -129,6 +132,7 @@ jobs:
         run: |
           cargo deb -p nym-vpnd --no-build
           cargo deb -p nym-vpnc --no-build
+          cargo deb -p nym-nm-vpn-plugin --no-build
 
       - name: Get rust version used for build
         id: rust-version
@@ -146,10 +150,12 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-exclude ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-socks5-proxy ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nm-nymvpn-service ${{ env.UPLOAD_DIR_LINUX }}
 
           mkdir ${{ env.UPLOAD_DIR_DEB }}
           cp -vpr ${{ env.SRC_DEB }}/nym-vpnc_*.deb ${{ env.UPLOAD_DIR_DEB }}
           cp -vpr ${{ env.SRC_DEB }}/nym-vpnd_*.deb ${{ env.UPLOAD_DIR_DEB }}
+          cp -vpr ${{ env.SRC_DEB }}/nym-vpn-networkmanager_*.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7.0.1

@@ -7,11 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.14.0] - TBD
+## [2026.15.0] - TBD
 
 ### Added
+- Hide overlay windows on sensitive screens (https://github.com/nymtech/nym-vpn-client/pull/6780)
+- `playtest` build type for local Google Play billing testing (https://github.com/nymtech/nym-vpn-client/pull/6855)
 
+### Changed
+- Open server list instantly with saved servers and updates in the background (https://github.com/nymtech/nym-vpn-client/pull/6799)
+- Google Play build keeps plan selection, renewal and subscription management on Google Play billing (https://github.com/nymtech/nym-vpn-client/pull/6855)
+
+### Fixed
+- Restore residential icon on exit servers list (https://github.com/nymtech/nym-vpn-client/pull/6793)
+- Show connected server country before server list loads (https://github.com/nymtech/nym-vpn-client/pull/6858)
+- Fix mixed "your country" subtitles after picking Auto (https://github.com/nymtech/nym-vpn-client/pull/6858)
+
+## [2026.14.0] - 2026-10-22
+
+### Added
 - Show the app update prompt on Android. A dismissible prompt can be closed; a required one cannot and blocks new tunnels (https://github.com/nymtech/nym-vpn-client/pull/6451)
+- In-app account deletion from the Account screen, behind device authentication and a final confirm (https://github.com/nymtech/nym-vpn-client/pull/6790)
 
 ### Changed
 - Keystore-bound auth with PIN fallback for passphrase and subscription (https://github.com/nymtech/nym-vpn-client/pull/6727)

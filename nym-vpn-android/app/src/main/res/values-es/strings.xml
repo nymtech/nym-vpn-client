@@ -361,7 +361,6 @@
 	<string name="censorship_description">Activa estas funciones si estás experimentando problemas de conexión o si NymVPN bloquea en tu ubicación.</string>
 	<string name="censorship_learn_more_link_text">Aprende más</string>
 	<string name="censorship_quic_title">Conexión mejorada (QUIC)</string>
-	<string name="censorship_quic_description">Mejora la fiabilidad del modo Rápido en redes restrictivas envolviendo el tráfico de Wirex en QUIC (HTTP/3) para que aparezca como navegación normal por la web.\n\nNota: Limita las opciones del servidor de entradas a las pasarelas compatibles con QUIC solamente.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Conexión API de sigilo</string>
 	<string name="censorship_stealth_description">Protege contra el bloqueo de VPN mediante el uso de dominios de portada. Actívalo para usar siempre, o apagado para usar cuando fallen las conexiones normales.</string>
@@ -451,9 +450,7 @@
 	<string name="account_info_data_unavailable">Datos de uso no disponibles</string>
 	<string name="account_info_valid_text">Plan válido hasta %s</string>
 	<string name="account_info_expires_text">El plan expira el %s</string>
-	<string name="banner_plan_expires_text">El plan expira el\n%s</string>
 	<string name="account_info_renew_text">Renovar ahora para estar protegido</string>
-	<string name="banner_renew_text">Renovar ahora\npara estar protegido</string>
 	<string name="account_info_auto_renew_text">* Auto-renovación</string>
 	<string name="account_info_no_plan">Ninguna suscripción activa</string>
 	<string name="account_info_contact_support_action">Póngase en contacto con el servicio de atención al cliente</string>

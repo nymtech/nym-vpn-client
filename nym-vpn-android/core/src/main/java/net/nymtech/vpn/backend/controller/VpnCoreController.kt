@@ -30,10 +30,12 @@ import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
+import nym_vpn_lib_types.DnsServer
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.MixnetEvent
+import nym_vpn_lib_types.PlainDnsProtocol
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib_types.UserAgent
@@ -356,9 +358,9 @@ class VpnCoreController(
 				sender.setEntryPoint(legacy.entryPoint)
 				sender.setExitPoint(legacy.exitPoint)
 				sender.setEnableTwoHop(legacy.mode.isTwoHop())
-				sender.setEnableBridges(legacy.enableBridges)
+				sender.setBridgeMode(legacy.bridgeMode)
 				sender.setEnableCustomDns(legacy.customDnsEnabled)
-				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns)
+				if (legacy.customDnsEnabled) sender.setCustomDns(legacy.customDns.toPlainDnsServers())
 				sender.setEnableAdBlocking(legacy.adBlockingEnabled)
 				sender.setFrontingMode(if (legacy.stealthMode) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
 				sender.setGatewayIndependenceNotifications(legacy.nodeFamiliesNotificationsEnabled)
@@ -420,9 +422,9 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
 			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
 			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
-			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setEnableBridges(update.value) }
+			is CoreVpnConfigUpdate.SetBridgeMode -> requireCoreSender { it.setBridgeMode(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
-			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }
+			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value.toPlainDnsServers()) }
 			is CoreVpnConfigUpdate.SetAdBlockingEnabled -> requireCoreSender { it.setEnableAdBlocking(update.value) }
 			is CoreVpnConfigUpdate.SetStealthMode -> requireCoreSender {
 				it.setFrontingMode(if (update.value) FrontingMode.ALWAYS else FrontingMode.ON_RETRY)
@@ -454,9 +456,9 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	exitPoint = exitPoint,
 	mode = if (enableTwoHop) Tunnel.Mode.TWO_HOP_MIXNET else Tunnel.Mode.FIVE_HOP_MIXNET,
 	bypassLan = localPrefs.bypassLan,
-	enableBridges = enableBridges,
-	customDnsEnabled = enableCustomDns,
-	customDns = customDns,
+	bridgeMode = bridgeMode,
+	customDnsEnabled = customDns.enabled,
+	customDns = customDns.dnsServers.map { it.address },
 	restrictedApps = localPrefs.restrictedApps,
 	network = localPrefs.network,
 	debugLog = localPrefs.debugLog,
@@ -468,3 +470,14 @@ private fun VpnServiceConfig.asCoreVpnConfig(localPrefs: LocalVpnPrefs): CoreVpn
 	geoExclusionPort = geoExclusion.listenPort.toInt(),
 	geoExclusionCountries = geoExclusion.excludedCountries,
 )
+
+private fun List<String>.toPlainDnsServers(): List<DnsServer> = map { DnsServer.Plain(address = it, port = null, ipProto = PlainDnsProtocol.UDP_AND_TCP) }
+
+private val DnsServer.address: String
+	get() = when (this) {
+		is DnsServer.Plain -> address
+		is DnsServer.Tls -> address
+		is DnsServer.Https -> address
+		is DnsServer.Quic -> address
+		is DnsServer.Http3 -> address
+	}

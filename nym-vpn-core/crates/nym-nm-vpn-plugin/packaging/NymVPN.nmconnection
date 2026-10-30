@@ -1,0 +1,20 @@
+# Distro-provided NetworkManager profile for NymVPN, installed read-only under
+# /usr/lib/NetworkManager/system-connections. The UUID is fixed so upgrades replace, not
+# duplicate, the profile. Everything about the tunnel is configured in the NymVPN app.
+[connection]
+id=NymVPN
+uuid=d6e3779f-2e64-4757-99fa-3e20c26592e4
+type=vpn
+autoconnect=false
+
+[vpn]
+service-type=org.freedesktop.NetworkManager.nymvpn
+
+[ipv4]
+method=auto
+
+[ipv6]
+addr-gen-mode=default
+method=auto
+
+[proxy]

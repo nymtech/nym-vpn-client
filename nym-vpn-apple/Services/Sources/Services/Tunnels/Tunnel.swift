@@ -225,22 +225,23 @@ private extension Tunnel {
 
     func pollTunnelStatus() async {
         do {
-            let decoded: TunnelStatusResponse = try await sendWithResponse(message: .status)
+            let state: TunnelStateResponse = try await sendWithResponse(message: .status)
             guard self.isPolling, !Task.isCancelled else { return }
 
-            self.retryAttempt = decoded.retryAttempt
-            self.afterDisconnectAction = decoded.afterDisconnectAction
-            self.tunnelConnectingState = decoded.tunnelConnectingState
-            self.connectionInfoData = decoded.connectionInfoData
-            if self.connectedAt != decoded.connectedAt {
-                self.connectedAt = decoded.connectedAt
+            self.retryAttempt = state.retryAttempt
+            self.afterDisconnectAction = state.afterDisconnectAction
+            self.tunnelConnectingState = state.tunnelConnectingState
+            self.connectionInfoData = state.connectionInfoData
+            if self.connectedAt != state.connectedAt {
+                self.connectedAt = state.connectedAt
             }
 
-            if let newError = decoded.lastError, self.status != .error {
-                self.status = .error
-                self.lastError = newError
-            } else if self.status != decoded.status {
-                self.status = decoded.status
+            let newStatus = TunnelStatus(state)
+            if newStatus == .error, self.status != .error, case let .error(reason) = state {
+                self.lastError = reason
+            }
+            if self.status != newStatus {
+                self.status = newStatus
             }
         } catch {
             logger.error("Failed to poll status: \(error)")

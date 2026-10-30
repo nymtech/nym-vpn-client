@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -41,6 +42,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
+import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
@@ -108,6 +110,17 @@ constructor(
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
 			AppUiState(),
 		)
+
+	init {
+		// Startup fetch can fail on first launch; retry once the tunnel is up
+		viewModelScope.launch {
+			backendManager.stateFlow
+				.map { it.tunnelState }
+				.distinctUntilChanged()
+				.filter { it == Tunnel.State.Up }
+				.collect { GatewayType.entries.forEach { type -> launch { gatewayCacheService.refresh(type) } } }
+		}
+	}
 
 	fun registerAccountInBackground() = viewModelScope.launch {
 		Timber.tag(TAG).i("RegisterAccountInBackgroundRequested")
@@ -216,6 +229,8 @@ constructor(
 		if (tunnelState == Tunnel.State.Down) {
 			Timber.tag(TAG).i("EnvironmentChangeApplied env=%s", environment)
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetwork(environment))
+			runCatching { gatewayCacheService.clear() }
+				.onFailure { Timber.tag(TAG).e(it, "GatewayCacheClearFailed") }
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
 			Timber.tag(TAG).w("EnvironmentChangeRejected reason=tunnel_not_down state=%s", tunnelState)
@@ -311,9 +326,7 @@ constructor(
 
 		Timber.tag(TAG).i("AppReady")
 
-		launch { gatewayCacheService.updateExitGatewayCache() }
-		launch { gatewayCacheService.updateEntryGatewayCache() }
-		launch { gatewayCacheService.updateWgGatewayCache() }
+		GatewayType.entries.forEach { type -> launch { gatewayCacheService.refresh(type) } }
 
 		launch { checkSystemMessages() }
 

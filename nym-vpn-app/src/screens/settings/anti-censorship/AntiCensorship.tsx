@@ -1,38 +1,88 @@
+import clsx from 'clsx';
+import { Radio, RadioGroup } from '@headlessui/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { dispatch, useMainState } from '../../../store';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
 import { useToast } from '../../../hooks';
+import { BridgeMode } from '../../../types';
+
+const bridgeModes: BridgeMode[] = ['off', 'auto', 'on'];
+
+// Segmented control: equal-width segments with a sliding thumb.
+// Headless UI RadioGroup provides role=radiogroup/radio and arrow keys.
+function BridgeModeSelector({
+  value,
+  onChange,
+}: {
+  value: BridgeMode;
+  onChange: (mode: BridgeMode) => void;
+}) {
+  const { t } = useTranslation('settings');
+  const index = Math.max(0, bridgeModes.indexOf(value));
+
+  return (
+    <RadioGroup
+      value={value}
+      onChange={onChange}
+      aria-label={t('anti-censorship.bridge-mode.label')}
+      className="bg-surface-sunken relative flex rounded-full p-1"
+      data-testid="bridge-mode-radio-group"
+    >
+      <span
+        aria-hidden
+        style={{ '--i': index } as React.CSSProperties}
+        className={clsx(
+          'bg-brand-primary pointer-events-none absolute inset-y-1 start-1 w-[calc((100%-0.5rem)/3)] rounded-full shadow-sm',
+          'translate-x-[calc(var(--i)*100%)] rtl:translate-x-[calc(var(--i)*-100%)]',
+          'transition-transform duration-300 ease-out motion-reduce:transition-none',
+        )}
+      />
+      {bridgeModes.map((mode) => (
+        <Radio
+          key={mode}
+          value={mode}
+          className={({ checked }) =>
+            clsx(
+              'relative z-10 flex min-h-10 flex-1 cursor-default items-center justify-center rounded-full text-sm',
+              'focus-visible:ring-brand-primary focus:outline-hidden focus-visible:ring-2',
+              checked ? 'text-brand-on-primary' : 'text-text-primary',
+            )
+          }
+          data-testid={`bridge-mode-radio-group-option-${mode}`}
+        >
+          {t(`anti-censorship.bridge-mode.options.${mode}.label`)}
+        </Radio>
+      ))}
+    </RadioGroup>
+  );
+}
 
 function AntiCensorship() {
-  const { quic, backendFlags, state, frontingMode } = useMainState();
+  const { bridgeMode, backendFlags, state, frontingMode } = useMainState();
   const { add } = useToast();
 
   const { t } = useTranslation('settings');
 
-  const onQuicChange = async () => {
-    const isChecked = !quic;
+  const onBridgeModeChange = async (mode: BridgeMode) => {
     try {
-      await invoke('set_quic', { enabled: isChecked });
-      dispatch({ type: 'set-quic', enabled: isChecked });
+      await invoke('set_bridge_mode', { mode });
+      dispatch({ type: 'set-bridge-mode', mode });
     } catch (err: unknown) {
-      console.error('Failed to set QUIC', err);
+      console.error('Failed to set bridge mode', err);
       add({
-        id: `quic-switch-${isChecked}`,
-        title: t('anti-censorship.quic.error'),
+        id: `bridge-mode-${mode}`,
+        title: t('anti-censorship.bridge-mode.error'),
         type: 'error',
       });
+      return;
     }
 
     if (state == 'connected' || state == 'connecting') {
       add({
-        id: `quic-switch-${isChecked}`,
-        title: t(
-          isChecked
-            ? 'anti-censorship.snackbar-switch-on'
-            : 'anti-censorship.snackbar-switch-off',
-        ),
+        id: `bridge-mode-${mode}`,
+        title: t('anti-censorship.bridge-mode.snackbar'),
         type: 'info',
       });
     }
@@ -69,22 +119,34 @@ function AntiCensorship() {
       {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
-            <CardSwitch
-              header={t('anti-censorship.quic.label')}
-              subheader={t('anti-censorship.quic.warning')}
-              subheaderColor="king-nacho"
-              checked={quic}
-              onClick={onQuicChange}
-            />
+            <div className="flex w-full min-w-0 flex-col gap-1 px-5 pt-4">
+              <p className="text-text-primary truncate text-base select-none">
+                {t('anti-censorship.bridge-mode.label')}
+              </p>
+              <p className="text-status-warning text-sm select-none">
+                {t('anti-censorship.bridge-mode.warning')}
+              </p>
+            </div>
           }
         >
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
+            <BridgeModeSelector
+              value={bridgeMode}
+              onChange={onBridgeModeChange}
+            />
+            <p className="text-text-primary text-sm">
+              {t(`anti-censorship.bridge-mode.options.${bridgeMode}.desc`)}
+            </p>
             <p className="text-text-secondary text-sm whitespace-pre-line">
-              {t('anti-censorship.quic.content')}
+              {t(
+                backendFlags.bridgeTransports
+                  ? 'anti-censorship.bridge-mode.content-transports'
+                  : 'anti-censorship.bridge-mode.content',
+              )}
             </p>
             <Link
-              className="mt-2 w-fit text-sm"
-              text={t('anti-censorship.quic.link')}
+              className="w-fit text-sm"
+              text={t('anti-censorship.bridge-mode.link')}
               url={QuicUrl}
               color="primary"
             />

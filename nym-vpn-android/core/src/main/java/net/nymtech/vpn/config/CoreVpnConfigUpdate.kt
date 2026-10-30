@@ -1,6 +1,7 @@
 package net.nymtech.vpn.config
 
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.Profile
@@ -12,7 +13,7 @@ sealed class CoreVpnConfigUpdate {
 	data class SetProfile(val value: Profile) : CoreVpnConfigUpdate()
 	data class SetEnableGeoLocation(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetBypassLan(val value: Boolean) : CoreVpnConfigUpdate()
-	data class SetEnableBridges(val value: Boolean) : CoreVpnConfigUpdate()
+	data class SetBridgeMode(val value: BridgeMode) : CoreVpnConfigUpdate()
 	data class SetCustomDnsEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetCustomDns(val value: List<String>) : CoreVpnConfigUpdate()
 	data class SetRestrictedApps(val value: List<String>) : CoreVpnConfigUpdate()

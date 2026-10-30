@@ -200,23 +200,9 @@ impl<'de> Deserialize<'de> for Recipient {
 }
 
 #[cfg(feature = "uniffi-bindings")]
-pub type BoxedRecepient = Box<Recipient>;
-#[cfg(feature = "uniffi-bindings")]
-pub type BoxedNodeIdentity = Box<NodeIdentity>;
-#[cfg(feature = "uniffi-bindings")]
-pub type BoxedGateway = Box<Gateway>;
-
-#[cfg(feature = "uniffi-bindings")]
 uniffi::custom_type!(NodeIdentity, String, {
     remote,
     try_lift: |val| Ok(NodeIdentity::from_base58_string(val)?),
-    lower: |val| val.to_base58_string()
-});
-
-#[cfg(feature = "uniffi-bindings")]
-uniffi::custom_type!(BoxedNodeIdentity, String, {
-    remote,
-    try_lift: |val| Ok(Box::new(NodeIdentity::from_base58_string(val)?)),
     lower: |val| val.to_base58_string()
 });
 
@@ -225,20 +211,6 @@ uniffi::custom_type!(Recipient, String, {
     remote,
     try_lift: |val| Ok(Recipient::try_from_base58_string(val)?),
     lower: |val| val.to_string()
-});
-
-#[cfg(feature = "uniffi-bindings")]
-uniffi::custom_type!(BoxedRecepient, String, {
-    remote,
-    try_lift: |val| Ok(Box::new(Recipient::try_from_base58_string(val)?)),
-    lower: |val| val.to_string()
-});
-
-#[cfg(feature = "uniffi-bindings")]
-uniffi::custom_type!(BoxedGateway, Gateway, {
-    remote,
-    try_lift: |val| Ok(Box::new(val)),
-    lower: |val| *val
 });
 
 #[cfg(feature = "nym-type-conversions")]

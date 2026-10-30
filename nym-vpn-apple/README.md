@@ -18,11 +18,6 @@ Requires Apple machine - macOS + Xcode 26.5 or newer.
   ```sh
   brew install swiftlint fastlane protobuf go@1.25
   ```
-5. Install cargo-swift:
-  
-  ```sh
-  cargo install cargo-swift@0.11.1
-  ```
 
 ## Build nym-vpn-core
 

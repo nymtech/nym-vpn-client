@@ -3,6 +3,7 @@ import { Dayjs } from 'dayjs';
 import { StateAction } from '../store/slices/createMainSlice';
 import {
   AccountLinks,
+  BridgeMode,
   ConnectingState,
   DiagnosticsSuggestedReason,
   FeatureFlags,
@@ -43,7 +44,7 @@ export type InitState = {
   vpnd: VpndStatus;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
-  quic: boolean;
+  bridgeMode: BridgeMode;
   noIpv6: boolean;
   allowLan: boolean;
   enableAdBlocking: boolean;
@@ -112,8 +113,7 @@ export type AppState = {
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   technicalOptinSeen: boolean;
-  // aka bridges mode
-  quic: boolean;
+  bridgeMode: BridgeMode;
   // current user setting
   customDnsEnabled: boolean;
   customDns: string[];

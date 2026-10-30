@@ -53,7 +53,7 @@ use nym_registration_client::{
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
-    AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
+    AccountControllerError, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
     TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
@@ -87,8 +87,7 @@ use crate::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
             gateway_provider::GatewayProvider,
-            mixnet,
-            transports::{self, TransportError},
+            mixnet, transports,
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 connected_tunnel::ConnectedTunnel,
@@ -272,6 +271,9 @@ pub struct TunnelParameters {
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
+    pub use_bridges: bool,
+    /// Fall back from QUIC to TLS and SSH bridges.
+    pub bridge_fallback: bool,
     pub user_agent: UserAgent,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
@@ -549,7 +551,7 @@ impl TunnelMonitor {
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
             ))
-            .network_env(nym_network.into())
+            .network_env(nym_network)
             .cancel_token(self.shutdown_token.child_token());
 
         #[cfg(unix)]
@@ -583,9 +585,14 @@ impl TunnelMonitor {
             }
         }
 
-        let registration_result = registration_result.inspect_err(|_| {
+        let registration_result = registration_result.inspect_err(|err| {
+            let gateway = if let RegistrationClientError::ExitGatewayRegisterLp { .. } = err {
+                selected_gateways.exit_gateway()
+            } else {
+                selected_gateways.entry_gateway()
+            };
             self.send_event(TunnelMonitorEvent::RegistrationFailed {
-                gateway_id: selected_gateways.entry_gateway().identity(),
+                gateway_id: gateway.identity(),
             })
         })?;
 
@@ -670,7 +677,7 @@ impl TunnelMonitor {
                     )
                     .await?;
 
-                let bridge_close_tx = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+                let bridge_close_tx = if self.tunnel_parameters.use_bridges {
                     let (entry_bridge_addr, transport_fwd_handle) = self
                         .start_bridges(&selected_gateways, bridge_close_tx)
                         .await?;
@@ -1247,18 +1254,21 @@ impl TunnelMonitor {
         selected_gateways: &SelectedGateways,
         bridge_close_tx: mpsc::UnboundedSender<()>,
     ) -> Result<(BridgeAddress, JoinHandle<()>)> {
-        let entry_bridge_params = selected_gateways
+        let (quic, fallback) = selected_gateways
             .entry_gateway()
-            .get_bridge_params()
-            .ok_or(TransportError::config_err(
-                "attempted to open transport connection without bridge params",
-            ))?;
+            .bridge_candidates(self.tunnel_parameters.bridge_fallback);
+        let ipv4_only = |params: Vec<_>| -> Vec<_> {
+            params
+                .into_iter()
+                .map(transports::filter_bridge_params_ipv4_only)
+                .collect()
+        };
+        let (quic, fallback) = (ipv4_only(quic), ipv4_only(fallback));
 
-        let transport_name = entry_bridge_params.transport_name();
         // Attempt transport Connection. If successful a listening UDP connection is created
         // and the bind address of that UDP listener is provided to the entry wireguard tunnel
         // as the endpoint address.
-        tracing::info!("Establishing DVPN {transport_name} tunnel",);
+        tracing::info!("Establishing DVPN bridge tunnel");
 
         #[cfg(target_os = "linux")]
         let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
@@ -1268,28 +1278,48 @@ impl TunnelMonitor {
         let on_bridge_socket_open = move |fd| {
             #[cfg(target_os = "android")]
             {
-                tracing::debug!("Bypass {transport_name}  socket");
+                tracing::debug!("Bypass bridge socket");
                 tun_provider.bypass(fd);
             }
 
             #[cfg(target_os = "linux")]
             {
-                tracing::debug!("Bypass {transport_name}  socket");
+                tracing::debug!("Bypass bridge socket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(fd) };
                 if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
-                    tracing::error!("Could not set fwmark for {transport_name} socket fd: {err}");
+                    tracing::error!("Could not set fwmark for bridge socket fd: {err}");
                 }
             }
         };
-        let entry_bridge_params = transports::filter_bridge_params_ipv4_only(entry_bridge_params);
-        let bridge_conn = transports::BridgeConn::try_connect(
-            entry_bridge_params,
+        // QUIC first: TLS and SSH run over TCP and are slower, so they are raced only once QUIC fails.
+        let quic_timeout = if fallback.is_empty() {
+            transports::BRIDGE_CONNECT_TIMEOUT
+        } else {
+            transports::QUIC_FALLBACK_TIMEOUT
+        };
+        let bridge_conn = match transports::BridgeConn::try_connect_parallel(
+            quic,
             self.shutdown_token.child_token(),
             #[cfg(any(target_os = "linux", target_os = "android"))]
-            on_bridge_socket_open,
-            Some(transports::BRIDGE_CONNECT_TIMEOUT),
+            &on_bridge_socket_open,
+            Some(quic_timeout),
         )
-        .await?;
+        .await
+        {
+            Ok(conn) => conn,
+            Err(err) if fallback.is_empty() => return Err(err.into()),
+            Err(err) => {
+                tracing::warn!("QUIC bridge failed, trying TLS and SSH: {err}");
+                transports::BridgeConn::try_connect_parallel(
+                    fallback,
+                    self.shutdown_token.child_token(),
+                    #[cfg(any(target_os = "linux", target_os = "android"))]
+                    &on_bridge_socket_open,
+                    Some(transports::BRIDGE_CONNECT_TIMEOUT),
+                )
+                .await?
+            }
+        };
 
         tracing::info!(
             "{} transport connected",
@@ -1297,6 +1327,11 @@ impl TunnelMonitor {
         );
 
         let remote_addr = bridge_conn.endpoint();
+        let transport = match bridge_conn.params() {
+            transports::ClientConfig::QuicPlain(_) => BridgeTransport::Quic,
+            transports::ClientConfig::TlsPlain(_) => BridgeTransport::Tls,
+            transports::ClientConfig::SshPlain(_) => BridgeTransport::Ssh,
+        };
         let (listen_addr, join_handle) = transports::UdpForwarder::launch_initiator(
             bridge_conn,
             None,
@@ -1311,6 +1346,7 @@ impl TunnelMonitor {
         let bridge_addr = BridgeAddress {
             listen_addr,
             remote_addr,
+            transport,
         };
 
         Ok((bridge_addr, join_handle))
@@ -1323,7 +1359,7 @@ impl TunnelMonitor {
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_tun_mtu = connected_tunnel.exit_mtu();
@@ -1396,7 +1432,7 @@ impl TunnelMonitor {
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_mtu = connected_tunnel.exit_mtu();
@@ -1501,7 +1537,7 @@ impl TunnelMonitor {
         connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
@@ -1613,7 +1649,7 @@ impl TunnelMonitor {
         connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_tun_mtu = connected_tunnel.entry_mtu();
@@ -1765,7 +1801,7 @@ impl TunnelMonitor {
     ) -> Result<StartTunnelResult> {
         let mtu = connected_tunnel.exit_mtu();
         let conn_data = connected_tunnel.connection_data();
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+        let use_bridges = self.tunnel_parameters.use_bridges;
 
         let mut interface_addresses = vec![IpNetwork::V4(Ipv4Network::from(
             conn_data.exit.private_ipv4,
