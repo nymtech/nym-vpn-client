@@ -3544,6 +3544,72 @@
         }
       }
     },
+    "censorship.bridge.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect directly without a bridge."
+          }
+        }
+      }
+    },
+    "censorship.bridge.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect directly first, and use a bridge if that fails."
+          }
+        }
+      }
+    },
+    "censorship.bridge.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always use a bridge. Only servers that offer one can be chosen as the entry server."
+          }
+        }
+      }
+    },
+    "censorship.bridge.auto.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "censorship.bridge.reconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes will apply after reconnect"
+          }
+        }
+      }
+    },
+    "censorship.quic.fallback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower."
+          }
+        }
+      }
+    },
     "censorship.quic.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3645,208 +3711,6 @@
         }
       }
     },
-    "censorship.quic.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3) للظهور كتصفح منتظم على شبكة الإنترنت."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken durch das Einwickeln des WireGuard-Datenverkehrs in QUIC (HTTP/3) um als reguläres Surfen im Internet zu erscheinen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Mejora la fiabilidad del modo Rápido en redes restrictivas envolviendo el tráfico de Wirex en QUIC (HTTP/3) para que aparezca como navegación normal por la web."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "قابلیت اطمینان حالت سریع (Fast Mode) را در شبکه‌های محدود بهبود می‌بخشد؛ با پوشاندن ترافیک WireGuard در پروتکل QUIC ‏(HTTP/3) تا شبیه ترافیک معمول در وب گردی به‌نظر برسد."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Améliore la fiabilité du mode rapide dans les réseaux restrictifs en enveloppant le trafic WireGuard dans QUIC (HTTP/3) pour qu'il apparaisse comme une navigation Web ordinaire."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Migliora l'affidabilità della modalità veloce nelle reti restrittive avvolgendo il traffico WireGuard in QUIC (HTTP/3) per apparire come normale navigazione web."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "WireGuard トラフィックを QUIC (HTTP/3) でラップすることで、制限的なネットワークにおける高速モードの信頼性を向上させ、通常の Web ブラウジングとして表示させます。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Повышает надёжность Быстрого режима в сетях с ограниченным доступом, оборачивая трафик WireGuard в QUIC (HTTP/3), чтобы он выглядел как обычный веб-сёрфинг."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Kısıtlı ağlarda Hızlı Modun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) ile sararak normal web gezintisi gibi görünmesini sağlar."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Покращує надійність швидкого режиму в обмежених мережах, обертаючи трафік WireGuard в QUIC (HTTP/3), щоб він виглядав як звичайний веб-перегляд."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "使用 QUIC (HTTP/3) 包装无线保真流量以作为常规浏览器来提高限制性网络中的快速模式可靠性。"
-          }
-        }
-      }
-    },
-    "censorship.quic.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ملاحظة: الحد من خيارات خادم الدخول إلى البوابات المتوافقة مع QUIC-فقط."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hinweis: Nur QUIC-kompatible Gateways für Eintragsserver Optionen einschränken."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Note: Limits entry server options to QUIC-compatible servers only."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nota: Limita las opciones del servidor de entradas a las pasarelas compatibles con QUIC."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "توجه: گزینه‌های سرور ورودی را به گِیت‌وی‌هایی که با QUIC سازگار هستند محدود می‌کند."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Note : Limite les options du serveur d'entrée aux passerelles compatibles QUIC."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nota: Limita le opzioni del server di entrata solo ai gateway compatibili con QUIC."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "注: QUIC互換ゲートウェイのみエントリサーバーオプションを制限します。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Nota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Примечание: ограничивает выбор входных серверов только шлюзами, совместимыми с QUIC."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Not: Bu, giriş sunucusu seçeneklerini sadece QUIC uyumlu gatewayler'le sınırlamaktadır."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Примітка: обмежує параметри сервера входу тільки шлюзами, сумісними з QUIC."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Lưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích QUIC."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "注意：将条目服务器选项限制为只兼容QUIC网关。"
-          }
-        }
-      }
-    },
     "censorship.quic.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3865,7 +3729,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enhanced connection (QUIC)"
+            "value" : "Enhanced connection"
           }
         },
         "es" : {
@@ -7186,7 +7050,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The entry server didn't complete your connection. Try again, or turn on QUIC in Anti-censorship settings."
+            "value" : "The entry server didn't complete your connection. Try again, or turn on Enhanced connection in Anti-censorship settings."
           }
         },
         "es" : {
@@ -10616,7 +10480,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable “QUIC protocol”"
+            "value" : "Enable “Enhanced connection”"
           }
         },
         "es" : {
@@ -12632,7 +12496,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing dVPN mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+            "value" : "Only showing dVPN mode locations and servers that offer a bridge. To reveal all servers, change Enhanced connection "
           }
         },
         "es" : {
@@ -20368,6 +20232,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Welcome to NymVPN"
+          }
+        }
+      }
+    },
+    "oneClick.bridge.direct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected directly"
+          }
+        }
+      }
+    },
+    "oneClick.bridge.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected via %@ bridge"
           }
         }
       }

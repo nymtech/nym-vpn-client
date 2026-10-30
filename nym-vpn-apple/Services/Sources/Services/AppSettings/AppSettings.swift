@@ -112,9 +112,10 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.dismissedAppUpdateFloor.rawValue)
     public var dismissedAppUpdateFloor = ""
 
-    @AppStorage(AppSettingKey.quic.rawValue)
-    public var isQuicEnabled = false {
-        didSet { isQuicEnabledPublisher = isQuicEnabled }
+    // Falls back to the legacy Bool flag until the user picks a mode.
+    @AppStorage(AppSettingKey.bridgeMode.rawValue)
+    public var bridgeMode: BridgeModeSetting = UserDefaults.standard.bool(forKey: AppSettingKey.quic.rawValue) ? .on : .off {
+        didSet { bridgeModePublisher = bridgeMode }
     }
 
     @AppStorage(AppSettingKey.stealthApi.rawValue)
@@ -184,7 +185,7 @@ import ConnectionTypes
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
     @Published public var isCredentialImportedPublisher: Bool
-    @Published public var isQuicEnabledPublisher: Bool
+    @Published public var bridgeModePublisher: BridgeModeSetting
     @Published public var isStealthApiEnabledPublisher: Bool
     @Published public var isCustomDnsEnabledPublisher: Bool
     @Published public var customDnsPublisher: [String]
@@ -199,7 +200,7 @@ import ConnectionTypes
     private init() {
         self.isErrorReportingOnPublisher = false
         self.isCredentialImportedPublisher = false
-        self.isQuicEnabledPublisher = false
+        self.bridgeModePublisher = .off
         self.isStealthApiEnabledPublisher = false
         self.isCustomDnsEnabledPublisher = false
         self.customDnsPublisher = []
@@ -219,7 +220,7 @@ import ConnectionTypes
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
-        self.isQuicEnabledPublisher = self.isQuicEnabled
+        self.bridgeModePublisher = self.bridgeMode
         self.isStealthApiEnabledPublisher = self.isStealthApiEnabled
         self.isCustomDnsEnabledPublisher = self.isCustomDnsEnabled
         self.customDnsPublisher = self.customDns
@@ -270,6 +271,7 @@ public enum AppSettingKey: String {
     case statisticsConnectionCount
     case dismissedAppUpdateFloor
     case quic
+    case bridgeMode
     case stealthApi
     case lanBypass
     case passphraseStored

@@ -36,8 +36,8 @@ extension PacketTunnelProvider {
             await runCommand { try await self.commandSender?.setEnableAdBlocking(enableAdBlocking: enabled) }
             return nil
 
-        case let .setEnableBridges(enabled):
-            await runCommand { try await self.commandSender?.setBridgeMode(bridgeMode: enabled ? .on : .off) }
+        case let .setBridgeMode(mode):
+            await runCommand { try await self.commandSender?.setBridgeMode(bridgeMode: mode.bridgeMode) }
             return nil
 
         case let .setEntryPoint(entry):
@@ -129,13 +129,15 @@ private extension PacketTunnelProvider {
                 connectionInfoData = ConnectionInfoData(
                     entryGatewayId: connectionData?.entryGateway.id,
                     exitGatewayId: connectionData?.exitGateway.id,
-                    tunnelType: ConnectionTunnelType(tunnelType)
+                    tunnelType: ConnectionTunnelType(tunnelType),
+                    bridgeTransport: connectionData?.tunnel?.bridgeTransportName
                 )
             case let .connected(connectionData: connectionData):
                 connectionInfoData = ConnectionInfoData(
                     entryGatewayId: connectionData.entryGateway.id,
                     exitGatewayId: connectionData.exitGateway.id,
-                    tunnelType: ConnectionTunnelType(connectionData.tunnel)
+                    tunnelType: ConnectionTunnelType(connectionData.tunnel),
+                    bridgeTransport: connectionData.tunnel.bridgeTransportName
                 )
                 connectedAt = Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
             case let .disconnecting(afterDisconnect: action):

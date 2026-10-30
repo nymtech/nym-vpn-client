@@ -51,7 +51,8 @@ extension OneClickViewModel {
 
         connectionManager.$connectionInfoData
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
+            .sink { [weak self] info in
+                self?.bridgeTransport = info?.bridgeTransport
                 self?.refreshSelection()
             }
             .store(in: &cancellables)

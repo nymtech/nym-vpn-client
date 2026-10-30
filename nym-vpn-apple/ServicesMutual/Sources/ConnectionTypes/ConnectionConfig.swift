@@ -8,7 +8,7 @@ public struct ConnectionConfig: Codable {
     public var allowLan: Bool
     public var disableIpv6: Bool
     public var enableTwoHop: Bool
-    public var enableBridges: Bool
+    public var bridgeMode: BridgeModeSetting
     public var enableAdBlocking: Bool
     public var stealthMode: Bool
     public var netstack: Bool
@@ -33,7 +33,7 @@ public struct ConnectionConfig: Codable {
         allowLan: Bool,
         disableIpv6: Bool,
         enableTwoHop: Bool,
-        enableBridges: Bool,
+        bridgeMode: BridgeModeSetting,
         enableAdBlocking: Bool,
         netstack: Bool,
         residentialExit: Bool,
@@ -49,7 +49,7 @@ public struct ConnectionConfig: Codable {
         self.allowLan = allowLan
         self.disableIpv6 = disableIpv6
         self.enableTwoHop = enableTwoHop
-        self.enableBridges = enableBridges
+        self.bridgeMode = bridgeMode
         self.enableAdBlocking = enableAdBlocking
         self.stealthMode = stealthMode
         self.netstack = netstack
@@ -67,7 +67,7 @@ public struct ConnectionConfig: Codable {
         self.allowLan = config.allowLan
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
-        self.enableBridges = config.bridgeMode == .on
+        self.bridgeMode = BridgeModeSetting(config.bridgeMode)
         self.stealthMode = config.frontingMode == .always
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit
@@ -159,7 +159,7 @@ extension ConnectionConfig: Equatable {
         lhs.allowLan == rhs.allowLan &&
         lhs.disableIpv6 == rhs.disableIpv6 &&
         lhs.enableTwoHop == rhs.enableTwoHop &&
-        lhs.enableBridges == rhs.enableBridges &&
+        lhs.bridgeMode == rhs.bridgeMode &&
         lhs.stealthMode == rhs.stealthMode &&
         lhs.netstack == rhs.netstack &&
         lhs.residentialExit == rhs.residentialExit &&
@@ -170,10 +170,38 @@ extension ConnectionConfig: Equatable {
     }
 }
 
+public enum BridgeModeSetting: String, Codable, CaseIterable {
+    case off, auto, on
+
+    public init(_ mode: BridgeMode) {
+        switch mode {
+        case .off:
+            self = .off
+        case .auto:
+            self = .auto
+        case .on:
+            self = .on
+        }
+    }
+
+    public var bridgeMode: BridgeMode {
+        switch self {
+        case .off:
+            .off
+        case .auto:
+            .auto
+        case .on:
+            .on
+        }
+    }
+}
+
 extension ConnectionConfig {
+    private enum LegacyCodingKeys: String, CodingKey { case enableBridges }
+
     private enum CodingKeys: String, CodingKey {
         case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
-        case enableBridges, enableAdBlocking, stealthMode, netstack
+        case bridgeMode, enableAdBlocking, stealthMode, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
         case geoExclusionConfig
         case gatewaySelectionAlgorithmConfig
@@ -187,7 +215,9 @@ extension ConnectionConfig {
         self.allowLan = try container.decode(Bool.self, forKey: .allowLan)
         self.disableIpv6 = try container.decode(Bool.self, forKey: .disableIpv6)
         self.enableTwoHop = try container.decode(Bool.self, forKey: .enableTwoHop)
-        self.enableBridges = try container.decode(Bool.self, forKey: .enableBridges)
+        let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        self.bridgeMode = try container.decodeIfPresent(BridgeModeSetting.self, forKey: .bridgeMode)
+            ?? (try legacy.decodeIfPresent(Bool.self, forKey: .enableBridges) == true ? .on : .off)
         self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
         self.stealthMode = try container.decodeIfPresent(Bool.self, forKey: .stealthMode) ?? false
         self.netstack = try container.decode(Bool.self, forKey: .netstack)

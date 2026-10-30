@@ -36,6 +36,7 @@ public final class OneClickViewModel {
     var entrySelectionPhase: OneClickSelectionPhase = .selecting
     var selectionPhase: OneClickSelectionPhase = .selecting
     var isLiveConnection: Bool = false
+    var bridgeTransport: String?
     var currentProfile: ConnectionProfile?
     let profiles = ConnectionProfile.allCases
 
