@@ -13,12 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
 - Add a `SetBridgeMode` gRPC call and `vpnc tunnel set --bridge-mode` to choose the bridge mode (auto, on or off), replacing the `SetEnableBridges` gRPC call and `vpnc tunnel set --circumvention-transports`, which are removed (breaking: an older desktop app calling `SetEnableBridges` against this daemon gets UNIMPLEMENTED)
 - Add `--wait` to `nym-vpnc reconnect` to block until the tunnel has reconnected or failed (https://github.com/nymtech/nym-vpn-client/pull/6849)
-
+- Add support for custom secure DNS. Supported protocols: TLS, HTTPS, QUIC, HTTP/3. Currently only cli supports that. No UI support yet. (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Changed
 
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
 - `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
+- `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Fixed
 
@@ -31,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [2026.14.0] - 2026-10-22
-
 
 ### Added
 
