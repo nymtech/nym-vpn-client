@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashSet,
-    net::IpAddr,
     pin::{Pin, pin},
     sync::Arc,
 };
@@ -52,10 +50,10 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AppCompatibility,
     AutologinResponse, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport,
-    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
+    DiagnosticRunParams, DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags,
+    Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    MixnetTrafficConfig, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork,
+    NymVpnUsage, ParsedAccountLinks, Profile, RecentGateways, RegistrationReport, StorableAccount,
     StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
     TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
@@ -68,7 +66,7 @@ use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
+        Result, SetCustomDnsError, SetNetworkError,
     },
     socks5::Socks5EnableConfig,
     socks5_idle_timeout, socks5_request_timeout,
@@ -89,7 +87,8 @@ use crate::{
     paths::{NymConfigPaths, Paths},
     tunnel_state_machine::{
         GatewayPerformanceOptions, NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
-        TunnelStateMachineArguments, tunnel::gateway_provider::GatewayProvider,
+        TunnelStateMachineArguments, dns_servers_from_hickory_config,
+        tunnel::gateway_provider::GatewayProvider,
     },
 };
 
@@ -115,7 +114,10 @@ pub enum VpnServiceCommand {
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
-    SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
+    SetCustomDns(
+        oneshot::Sender<Result<(), SetCustomDnsError>>,
+        Vec<DnsServer>,
+    ),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetEnableGatewayIndependence(oneshot::Sender<()>, bool),
@@ -124,7 +126,7 @@ pub enum VpnServiceCommand {
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetAppCompatibility(oneshot::Sender<Option<AppCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
-    GetDefaultDns(oneshot::Sender<Vec<IpAddr>>, ()),
+    GetDefaultDns(oneshot::Sender<Vec<DnsServer>>, ()),
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
@@ -1084,9 +1086,8 @@ impl NymVpnService {
                 self.handle_set_enable_custom_dns(enable_custom_dns).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetCustomDns(tx, custom_dns) => {
-                self.handle_set_custom_dns(custom_dns).await;
-                let _ = tx.send(());
+            VpnServiceCommand::SetCustomDns(tx, dns_servers) => {
+                let _ = tx.send(self.handle_set_custom_dns(dns_servers).await);
             }
             VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
                 let res = self
@@ -1454,27 +1455,45 @@ impl NymVpnService {
         {
             let config = self.config_manager.config();
             // Ignore reconnect if custom DNS is enabled but custom DNS addresses aren't set
-            if !enable_custom_dns || !config.custom_dns.is_empty() {
+            if !enable_custom_dns || !config.custom_dns.dns_servers.is_empty() {
                 self.update_tunnel_settings_with_throttle();
             }
         }
     }
 
-    async fn handle_set_custom_dns(&mut self, mut custom_dns: Vec<IpAddr>) {
+    async fn handle_set_custom_dns(
+        &mut self,
+        mut dns_servers: Vec<DnsServer>,
+    ) -> Result<(), SetCustomDnsError> {
         const MAX_CUSTOM_DNS_SERVERS: usize = 5;
 
-        if custom_dns.len() > MAX_CUSTOM_DNS_SERVERS {
-            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
-            custom_dns.truncate(MAX_CUSTOM_DNS_SERVERS);
+        if dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
+            return Err(SetCustomDnsError::TooManyServers {
+                count: dns_servers.len(),
+                max: MAX_CUSTOM_DNS_SERVERS,
+            });
         }
 
-        if self.config_manager.set_custom_dns(custom_dns).await {
+        // Ensure that server name is not set to empty string
+        for dns_server in dns_servers.iter_mut() {
+            if dns_server.is_empty_server_name() {
+                return Err(SetCustomDnsError::EmptyServerName {
+                    addr: dns_server.address(),
+                });
+            }
+            dns_server.normalize_port();
+            dns_server.normalize_query_path();
+        }
+
+        if self.config_manager.set_custom_dns(dns_servers).await {
             let config = self.config_manager.config();
             // Only issue reconnect if custom DNS is enabled
-            if config.enable_custom_dns {
+            if config.custom_dns.enabled {
                 self.update_tunnel_settings_with_throttle();
             }
         }
+
+        Ok(())
     }
 
     async fn handle_set_mixnet_traffic_config(
@@ -1572,13 +1591,10 @@ impl NymVpnService {
             .map(FeatureFlags::from)
     }
 
-    fn handle_get_default_dns(&self) -> Vec<IpAddr> {
-        // todo: return protocols too!
-        let mut seen = HashSet::with_capacity(DEFAULT_DNS_SERVERS_CONFIG.len());
+    fn handle_get_default_dns(&self) -> Vec<DnsServer> {
         DEFAULT_DNS_SERVERS_CONFIG
             .iter()
-            .map(|v| v.ip)
-            .filter(|ip| seen.insert(*ip))
+            .flat_map(dns_servers_from_hickory_config)
             .collect()
     }
 

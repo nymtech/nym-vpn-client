@@ -48,8 +48,15 @@ impl VpndConfig {
         Ok(VpndConfig {
             entry_node: config.entry_point.into(),
             exit_node: config.exit_point.try_into()?,
-            custom_dns: Some(config.custom_dns),
-            enable_custom_dns: config.enable_custom_dns,
+            custom_dns: Some(
+                config
+                    .custom_dns
+                    .dns_servers
+                    .iter()
+                    .map(lib::DnsServer::address)
+                    .collect(),
+            ),
+            enable_custom_dns: config.custom_dns.enabled,
             allow_lan: config.allow_lan,
             enable_ad_blocking: config.enable_ad_blocking,
             enable_conflict_detection: config.enable_conflict_detection,

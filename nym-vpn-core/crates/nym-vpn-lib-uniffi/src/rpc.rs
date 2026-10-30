@@ -3,7 +3,7 @@
 
 //! Uniffi interface for RPC client from `nym-vpn-proto`.
 
-use std::{net::IpAddr, sync::Arc};
+use std::sync::Arc;
 
 use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
@@ -12,11 +12,12 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams,
-    HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings, Socks5Status, SplitApp,
-    SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
+    GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings,
+    Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 
 #[derive(Clone, uniffi::Object)]
@@ -92,7 +93,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&self, dns_servers: Vec<IpAddr>) -> Result<()> {
+    pub async fn set_custom_dns(&self, dns_servers: Vec<DnsServer>) -> Result<()> {
         self.inner.clone().set_custom_dns(dns_servers).await?;
         Ok(())
     }
@@ -188,9 +189,9 @@ impl RpcClient {
         Ok(self.inner.clone().get_feature_flags().await?)
     }
 
-    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
-        let ips = self.inner.clone().get_default_dns().await?;
-        Ok(ips)
+    pub async fn get_default_dns(&self) -> Result<Vec<DnsServer>> {
+        let servers = self.inner.clone().get_default_dns().await?;
+        Ok(servers)
     }
 
     pub async fn connect_tunnel(&self) -> Result<()> {

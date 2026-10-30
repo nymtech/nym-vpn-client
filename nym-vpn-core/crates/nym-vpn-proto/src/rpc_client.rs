@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as _, net::IpAddr, path::PathBuf};
+use std::{error::Error as _, path::PathBuf};
 
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -13,13 +13,13 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, EntryPoint, ExitPoint,
-    FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions,
-    LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport,
-    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, DnsServer, EntryPoint,
+    ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
+    ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways,
+    RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -206,10 +206,8 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
-        let request = proto::IpAddrList {
-            ips: ips.into_iter().map(proto::IpAddr::from).collect(),
-        };
+    pub async fn set_custom_dns(&mut self, dns_servers: Vec<DnsServer>) -> Result<()> {
+        let request = proto::DnsServerList::from(dns_servers);
 
         self.0
             .set_custom_dns(request)
@@ -325,15 +323,15 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn get_default_dns(&mut self) -> Result<Vec<IpAddr>> {
+    pub async fn get_default_dns(&mut self) -> Result<Vec<DnsServer>> {
         let response = self
             .0
             .get_default_dns(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
-        let ip_vec = response.try_into().map_err(Error::InvalidResponse)?;
-        Ok(ip_vec)
+        let servers = response.try_into().map_err(Error::InvalidResponse)?;
+        Ok(servers)
     }
 
     pub async fn connect_tunnel(&mut self) -> Result<bool> {

@@ -17,12 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `bridge_transports.enabled` feature flag (`FeatureFlags::bridge_transports_enabled`, uniffi `is_bridge_transports_enabled`) for the v2 bridge transports (TLS and SSH after QUIC). Bridges and QUIC do not depend on it
 - `BridgeAddress` in the connection data carries the bridge transport in use (`transport`: QUIC, TLS or SSH)
 - When the `bridge_transports.enabled` feature flag is on, a bridge connection tries QUIC for 5 seconds, then races the entry gateway's TLS and SSH bridges. The firewall allows only the bridges being tried, QUIC over UDP and TLS and SSH over TCP, in both the connecting and connected states. With the flag off or unset, QUIC only as before
+- Add support for custom secure DNS. Supported protocols: TLS, HTTPS, QUIC, HTTP/3. Currently only cli supports that. No UI support yet. (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Changed
 
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
 - `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
 - [iOS] Flush DNS when changing ad-block setting by reconnecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6866)
+- `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- `nym-vpnc dns set` no longer accepts positional argument to configure plain DNS. Use one of the following arguments instead: `--plain`, `--tcp` or `--udp` (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Fixed
 
@@ -44,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [2026.14.0] - 2026-10-22
-
 
 ### Added
 
