@@ -677,6 +677,22 @@ impl DnsServer {
             Self::Http3 { address, .. } => *address,
         }
     }
+
+    /// Returns server name in the given DNS configuration if present, otherwise `None`
+    pub fn server_name(&self) -> Option<&String> {
+        match self {
+            Self::Plain { .. } => None,
+            Self::Tls { server_name, .. } => Some(server_name),
+            Self::Https { server_name, .. } => Some(server_name),
+            Self::Quic { server_name, .. } => Some(server_name),
+            Self::Http3 { server_name, .. } => Some(server_name),
+        }
+    }
+
+    /// Returns `true` if server name is set to empty string
+    pub fn is_empty_server_name(&self) -> bool {
+        self.server_name().is_some_and(|v| !v.is_empty())
+    }
 }
 
 impl std::fmt::Display for DnsServer {

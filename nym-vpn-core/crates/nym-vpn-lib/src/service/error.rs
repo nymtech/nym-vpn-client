@@ -1,12 +1,20 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+use std::net::IpAddr;
+
 use nym_favorites::FavoritesError;
 use nym_vpn_api_client::error::VpnApiClientError;
 use nym_vpn_lib_types::GatewayType;
 
 use super::config::ConfigSetupError;
+use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+
+#[derive(Debug, thiserror::Error)]
+pub enum SetCustomDnsError {
+    #[error("Empty server name is not supported ({addr})")]
+    EmptyServerName { addr: IpAddr },
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum SetNetworkError {
