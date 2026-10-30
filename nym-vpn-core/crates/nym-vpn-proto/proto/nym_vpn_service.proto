@@ -555,13 +555,13 @@ message MixnetConnectionData {
 message BridgeAddress {
   SocketAddr listen_addr = 1;
   SocketAddr remote_addr = 2;
-  optional BridgeTransports transport = 3;
+  BridgeTransport transport = 3;
 }
 
-enum BridgeTransports {
-  BRIDGE_TRANSPORTS_QUIC = 0;
-  BRIDGE_TRANSPORTS_TLS = 1;
-  BRIDGE_TRANSPORTS_SSH = 2;
+enum BridgeTransport {
+  BRIDGE_TRANSPORT_QUIC = 0;
+  BRIDGE_TRANSPORT_TLS = 1;
+  BRIDGE_TRANSPORT_SSH = 2;
 }
 
 message WireguardConnectionData {
