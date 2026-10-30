@@ -9,6 +9,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.data.domain.Settings.Companion.MIXNET_CONFIG_DEFAULT
 import net.nymtech.nymvpn.ui.theme.Theme
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.MixnetTrafficConfig
 import timber.log.Timber
 
@@ -26,7 +27,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
 	private val statsConsentMigrated = booleanPreferencesKey("STATS_CONSENT_MIGRATED_V1")
 	private val technicalOptScreenCompleted = booleanPreferencesKey("TECHNICAL_OPT_SCREEN_COMPLETE")
-	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
+	private val legacyQuicEnabled = booleanPreferencesKey("QUIC_ENABLED")
+	private val bridgeMode = stringPreferencesKey("BRIDGE_MODE")
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
@@ -132,10 +134,13 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun isTechnicalOptScreenCompleted(): Boolean = dataStoreManager.getFromStore(technicalOptScreenCompleted) ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED
 
-	override suspend fun getQUICEnabled(): Boolean = dataStoreManager.getFromStore(quicEnabled) ?: Settings.DEFAULT_QUIC_ENABLED
+	private fun toBridgeMode(stored: String?, legacyQuicEnabled: Boolean?): BridgeMode = stored?.let { runCatching { BridgeMode.valueOf(it) }.getOrNull() }
+		?: if (legacyQuicEnabled == true) BridgeMode.ON else Settings.DEFAULT_BRIDGE_MODE
 
-	override suspend fun setQUICEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(quicEnabled, enabled)
+	override suspend fun getBridgeMode(): BridgeMode = toBridgeMode(dataStoreManager.getFromStore(bridgeMode), dataStoreManager.getFromStore(legacyQuicEnabled))
+
+	override suspend fun setBridgeMode(mode: BridgeMode) {
+		dataStoreManager.saveToDataStore(bridgeMode, mode.name)
 	}
 
 	override suspend fun getIsStreamServerBannerDisplayed(): Boolean = dataStoreManager.getFromStore(isStreamingServerBannerDisplayed) ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED
@@ -233,7 +238,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
 						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
 						technicalOptCompleted = pref[technicalOptScreenCompleted] ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED,
-						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
+						bridgeMode = toBridgeMode(pref[bridgeMode], pref[legacyQuicEnabled]),
 						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
