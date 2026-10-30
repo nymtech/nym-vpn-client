@@ -498,8 +498,9 @@ impl TunnelSettingsDiffFields {
             | Self::GatewaySelectionAlgorithmConfig
             | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
-                // On android reconnect is necessary due to packet filtering used for adblocking.
-                cfg!(target_os = "android")
+                // On Android reconnect is necessary due to packet filtering used for adblocking.
+                // On iOS reconnect is necessary because there is no other way to flush DNS cache.
+                cfg!(any(target_os = "android", target_os = "ios"))
             }
             Self::AllowLan
             | Self::EnableConflictDetection
