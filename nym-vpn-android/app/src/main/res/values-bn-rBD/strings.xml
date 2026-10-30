@@ -449,9 +449,7 @@
 	<string name="account_info_data_unavailable">ব্যবহারের ডেটা পাওয়া যাচ্ছে না</string>
 	<string name="account_info_valid_text">প্ল্যানটি %s পর্যন্ত বৈধ থাকবে</string>
 	<string name="account_info_expires_text">প্ল্যানটির মেয়াদ %s তারিখে শেষ হবে।</string>
-	<string name="banner_plan_expires_text">প্ল্যানের মেয়াদ শেষ হওয়ার তারিখ:\n%s</string>
 	<string name="account_info_renew_text">সুরক্ষিত থাকতে এখনই নবায়ন করুন।</string>
-	<string name="banner_renew_text">সুরক্ষিত থাকতে\n এখনই নবায়ন করুন</string>
 	<string name="account_info_auto_renew_text">*স্বয়ংক্রিয়ভাবে নবায়ন</string>
 	<string name="account_info_no_plan">কোনো সক্রিয় সাবস্ক্রিপশন নেই</string>
 	<string name="account_info_contact_support_action">গ্রাহক সহায়তার সাথে যোগাযোগ করুন</string>

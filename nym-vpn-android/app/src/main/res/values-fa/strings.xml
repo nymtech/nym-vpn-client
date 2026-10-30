@@ -452,9 +452,7 @@
 	<string name="account_info_data_unavailable">داده‌های مصرف در دسترس نیست</string>
 	<string name="account_info_valid_text">اشتراک تا %s معتبر است</string>
 	<string name="account_info_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
-	<string name="banner_plan_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
 	<string name="account_info_renew_text">همین حالا تمدید کنید تا محافظت بشوید</string>
-	<string name="banner_renew_text">همین حالا تمدید کنید\nتا محافظت بشوید</string>
 	<string name="account_info_auto_renew_text">*تمدید-خودکار</string>
 	<string name="account_info_no_plan">اشتراک فعالی وجود ندارد</string>
 	<string name="account_info_contact_support_action">تماس با پشتیبانی مشتریان</string>

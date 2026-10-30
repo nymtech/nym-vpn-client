@@ -453,9 +453,7 @@
 	<string name="account_info_data_unavailable">Дані про використання відсутні</string>
 	<string name="account_info_valid_text">План дійсний до %s</string>
 	<string name="account_info_expires_text">Термін дії плану закінчується %s</string>
-	<string name="banner_plan_expires_text">Термін дії плану закінчується:\n%s</string>
 	<string name="account_info_renew_text">Поновіть зараз, щоб залишатися захищеним</string>
-	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
 	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
 	<string name="account_info_no_plan">Активної підписки не виявлено</string>
 	<string name="account_info_contact_support_action">Звернутися до служби підтримки</string>

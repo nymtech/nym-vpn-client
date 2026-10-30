@@ -448,9 +448,7 @@
 	<string name="account_info_data_unavailable">Data penggunaan tidak tersedia</string>
 	<string name="account_info_valid_text">Paket ini berlaku hingga %s</string>
 	<string name="account_info_expires_text">Paket ini akan berakhir pada %s</string>
-	<string name="banner_plan_expires_text">Paket ini akan berakhir pada:\n%s</string>
 	<string name="account_info_renew_text">Perpanjang sekarang agar tetap terlindungi</string>
-	<string name="banner_renew_text">Perpanjang sekarang\nagar tetap terlindungi</string>
 	<string name="account_info_auto_renew_text">*Perpanjangan otomatis*</string>
 	<string name="account_info_no_plan">Tidak ada langganan yang aktif</string>
 	<string name="account_info_contact_support_action">Hubungi Layanan Pelanggan</string>
