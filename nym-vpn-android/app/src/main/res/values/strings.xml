@@ -185,6 +185,7 @@
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew now</string>
+	<string name="renewal_reminder_description">Renew now to stay protected without interruption.</string>
 	<string name="error_no_subscription_title">No active subscription</string>
 	<string name="error_no_subscription_description">Choose a plan to start using NymVPN</string>
 	<string name="error_no_subscription_button">Select Plan</string>
@@ -493,9 +494,7 @@
 	<string name="account_info_data_unavailable">Usage data temporarily unavailable</string>
 	<string name="account_info_valid_text">Plan valid until %s</string>
 	<string name="account_info_expires_text">Plan expires on %s</string>
-	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">Renew now to stay protected</string>
-	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">Auto-renews</string>
 	<string name="account_info_no_plan">No active subscription</string>
 	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>

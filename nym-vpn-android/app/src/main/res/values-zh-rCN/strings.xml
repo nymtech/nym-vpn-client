@@ -448,9 +448,7 @@
 	<string name="account_info_data_unavailable">使用数据不可用</string>
 	<string name="account_info_valid_text">订阅有效期至 %s</string>
 	<string name="account_info_expires_text">订阅在 %s 到期</string>
-	<string name="banner_plan_expires_text">订阅到期时间：\n%s</string>
 	<string name="account_info_renew_text">立即续订以继续获得保护</string>
-	<string name="banner_renew_text">现在续订\n以继续获得保护</string>
 	<string name="account_info_auto_renew_text">*自动续订</string>
 	<string name="account_info_no_plan">没有有效订阅</string>
 	<string name="account_info_contact_support_action">联系支持人员</string>

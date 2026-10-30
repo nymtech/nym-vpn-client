@@ -449,9 +449,7 @@
 	<string name="account_info_data_unavailable">उपयोग डेटा उपलब्ध नहीं है</string>
 	<string name="account_info_valid_text">यह प्लान %s तक वैध है</string>
 	<string name="account_info_expires_text">यह प्लान %s को समाप्त हो रहा है</string>
-	<string name="banner_plan_expires_text">प्लान की समाप्ति तिथि:\n%s है</string>
 	<string name="account_info_renew_text">सुरक्षित रहने के लिए अभी रिन्यू करें</string>
-	<string name="banner_renew_text">सुरक्षित रहने के लिए अभी\nरिन्यू करें</string>
 	<string name="account_info_auto_renew_text">*ऑटो-रिन्यू</string>
 	<string name="account_info_no_plan">कोई सक्रिय सब्स्क्रिप्शन नहीं</string>
 	<string name="account_info_contact_support_action">ग्राहक सहायता से संपर्क करें</string>

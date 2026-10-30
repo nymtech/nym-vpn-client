@@ -450,9 +450,7 @@
 	<string name="account_info_data_unavailable">Datos de uso no disponibles</string>
 	<string name="account_info_valid_text">Plan válido hasta %s</string>
 	<string name="account_info_expires_text">El plan expira el %s</string>
-	<string name="banner_plan_expires_text">El plan expira el\n%s</string>
 	<string name="account_info_renew_text">Renovar ahora para estar protegido</string>
-	<string name="banner_renew_text">Renovar ahora\npara estar protegido</string>
 	<string name="account_info_auto_renew_text">* Auto-renovación</string>
 	<string name="account_info_no_plan">Ninguna suscripción activa</string>
 	<string name="account_info_contact_support_action">Póngase en contacto con el servicio de atención al cliente</string>
