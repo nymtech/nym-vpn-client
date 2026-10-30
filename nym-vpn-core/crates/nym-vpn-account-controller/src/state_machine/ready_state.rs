@@ -106,6 +106,18 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         let res = handler::handle_link_account(shared_state, privy_account).await;
                         return_sender.send(res);
                     },
+                    AccountCommand::StartPairing(return_sender) => {
+                        let res = handler::handle_qr_pair_account(shared_state).await;
+                        return_sender.send(res);
+                    },
+                    AccountCommand::ScannedKey(return_sender, _) => return_existing_account(return_sender),
+                    AccountCommand::VerifiedPairingPin(return_sender, session_id) => {
+                        let res = handler::handle_qr_verified_pairing_pin(shared_state, session_id).await;
+                        return_sender.send(res);
+                    },
+                    AccountCommand::CancelPairingProcess(return_sender) => {
+                        return_sender.send(handler::handle_qr_cancel_pairing_process(shared_state));
+                    },
                     AccountCommand::RotateKeys(return_sender) => {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);

@@ -36,6 +36,10 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
 
     assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
+    assert_eq!(
+        test_bench.command_sender.cancel_pairing_process().await,
+        Ok(())
+    );
     assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
@@ -126,6 +130,10 @@ async fn offline_state_command() -> anyhow::Result<()> {
     );
 
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
+    assert_eq!(
+        test_bench.command_sender.cancel_pairing_process().await,
+        Ok(())
+    );
 
     assert_eq!(
         test_bench.command_sender.get_active_devices().await,
@@ -237,6 +245,11 @@ async fn ready_state_command() -> anyhow::Result<()> {
         .assert_state(AccountControllerState::ReadyToConnect)
         .await;
 
+    assert_eq!(
+        test_bench.command_sender.cancel_pairing_process().await,
+        Ok(())
+    );
+
     // A local refresh re-evaluates the cached summary and lands back in the ready state.
     assert_eq!(
         test_bench.command_sender.refresh_account_state(false).await,
@@ -341,6 +354,11 @@ async fn error_state_command() -> anyhow::Result<()> {
             AccountControllerErrorStateReason::MaxDeviceReached,
         ))
         .await;
+
+    assert_eq!(
+        test_bench.command_sender.cancel_pairing_process().await,
+        Ok(())
+    );
 
     // A local refresh re-evaluates the cached summary and lands back in the error state.
     assert_eq!(

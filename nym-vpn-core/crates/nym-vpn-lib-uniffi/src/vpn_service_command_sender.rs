@@ -13,9 +13,9 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
     DiagnosticRunParams, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -442,6 +442,34 @@ impl NymVpnServiceCommandSender {
                 VpnServiceCommand::DeeplinkStoreAccount,
                 deeplink_callback_url,
             )
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn start_pairing(&self) -> Result<QrUrl> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn scanned_key(&self, pub_key: String) -> Result<QrPairingConfirmation> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::ScannedKey, pub_key)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn cancel_pairing_process(&self) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::CancelPairingProcess, ())
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }

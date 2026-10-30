@@ -113,6 +113,21 @@ pub enum AccountCommandError {
     #[error("invalid secret: {0}")]
     InvalidSecret(String),
 
+    #[error("invalid public key: {0}")]
+    InvalidPublicKey(String),
+
+    #[error("verify PIN has to be called after starting the pairing process")]
+    PairingNotStarted,
+
+    #[error("pairing operation for different session")]
+    PairingSessionIdMismatch,
+
+    #[error("pairing process hasn't produced a shared secret yet")]
+    NoPairingSharedSecret,
+
+    #[error("shared secret could not be derived for pairing process: {0}")]
+    PairingDerivingSharedSecret(String),
+
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
 }

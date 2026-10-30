@@ -13,13 +13,13 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, EntryPoint, ExitPoint,
-    FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions,
-    LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, RecentGateways, RegistrationReport,
-    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport, EntryPoint, Event,
+    ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams, HttpRpcSettings,
+    ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions, QrPairingConfirmation,
+    QrUrl, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TentativeGateways, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -373,7 +373,7 @@ impl RpcClient {
 
     pub async fn listen_to_events(
         &mut self,
-    ) -> Result<impl Stream<Item = Result<TunnelEvent>> + 'static> {
+    ) -> Result<impl Stream<Item = Result<Event>> + 'static> {
         let listener = self
             .0
             .listen_to_events(())
@@ -383,7 +383,7 @@ impl RpcClient {
 
         Ok(listener.map(|item| {
             item.map_err(Error::Rpc).and_then(|daemon_event| {
-                TunnelEvent::try_from(daemon_event).map_err(Error::InvalidResponse)
+                Event::try_from(daemon_event).map_err(Error::InvalidResponse)
             })
         }))
     }
@@ -708,6 +708,46 @@ impl RpcClient {
             .into_inner();
 
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn start_pairing(&mut self) -> Result<QrUrl> {
+        let response = self
+            .0
+            .start_pairing(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrUrl::from(response))
+    }
+
+    pub async fn scanned_key(&mut self, pub_key: String) -> Result<QrPairingConfirmation> {
+        let response = self
+            .0
+            .scanned_key(pub_key)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(QrPairingConfirmation::from(response))
+    }
+
+    pub async fn verified_pairing_pin(&mut self, session_id: u32) -> Result<()> {
+        self.0
+            .verified_pairing_pin(session_id)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn cancel_pairing_process(&mut self) -> Result<()> {
+        self.0
+            .cancel_pairing_process(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_log_path(&mut self) -> Result<Option<LogPath>> {

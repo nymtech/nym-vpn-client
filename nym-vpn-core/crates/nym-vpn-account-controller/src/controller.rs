@@ -7,6 +7,7 @@ use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
 use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
 use tokio::sync::{
+    broadcast,
     mpsc::{self, UnboundedReceiver, UnboundedSender},
     watch,
 };
@@ -59,18 +60,48 @@ where
     cancel_token: CancellationToken,
 }
 
+pub struct AccountControllerClients {
+    nym_vpn_api_client: VpnApiClient,
+    nyxd_client: NyxdClient,
+}
+
+impl AccountControllerClients {
+    pub fn new(nym_vpn_api_client: VpnApiClient, nyxd_client: NyxdClient) -> Self {
+        Self {
+            nym_vpn_api_client,
+            nyxd_client,
+        }
+    }
+}
+
+pub struct AccountControllerChannels {
+    bandwidth_control_command_tx: BandwidthControllerRequestSender,
+    event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+}
+
+impl AccountControllerChannels {
+    pub fn new(
+        bandwidth_control_command_tx: BandwidthControllerRequestSender,
+        event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+    ) -> Self {
+        Self {
+            bandwidth_control_command_tx,
+            event_tx,
+        }
+    }
+}
+
 impl<C, S> AccountController<C, S>
 where
     S: VpnStorage + Send + Sync + 'static,
     C: ConnectivityMonitor,
 {
     pub async fn new(
-        nym_vpn_api_client: VpnApiClient,
-        nyxd_client: NyxdClient,
+        clients: AccountControllerClients,
         config: AccountControllerConfig,
         storage: S,
         connectivity_handle: C,
-        bandwidth_control_command_tx: BandwidthControllerRequestSender,
+        channels: AccountControllerChannels,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -78,12 +109,33 @@ where
             config.data_dir.display(),
         );
 
+        let AccountControllerChannels {
+            bandwidth_control_command_tx,
+            event_tx,
+        } = channels;
+
         // Channels for the account storage
         let (storage_op_sender, storage_op_receiver) = mpsc::unbounded_channel();
 
         // Channels to communicate with the account controller
         let event_channel = AccountControllerEventSender::new();
         let command_channel = mpsc::unbounded_channel();
+
+        let mut account_controller_event_rx = event_channel.subscribe();
+        tokio::spawn(async move {
+            loop {
+                match account_controller_event_rx.recv().await {
+                    Ok(AccountControllerEvent::NewState(_)) => {}
+                    Ok(AccountControllerEvent::Pairing(pairing_result)) => {
+                        let _ = event_tx.send(nym_vpn_lib_types::Event::Pairing(pairing_result));
+                    }
+                    Err(broadcast::error::RecvError::Lagged(skipped)) => {
+                        tracing::warn!("Skipped {skipped} account controller events");
+                    }
+                    Err(broadcast::error::RecvError::Closed) => break,
+                }
+            }
+        });
 
         // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
@@ -115,8 +167,8 @@ where
             bandwidth_control_command_tx,
             config,
             wireguard_keys_storage,
-            nym_vpn_api_client,
-            nyxd_client,
+            clients.nym_vpn_api_client,
+            clients.nyxd_client,
             vpn_api_account,
             cached_account_summary,
             device_keys,

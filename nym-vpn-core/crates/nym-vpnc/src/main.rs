@@ -14,7 +14,7 @@ use clap::{ArgAction, CommandFactory, Parser};
 use clap_complete::Shell;
 use tokio_stream::{Stream, StreamExt};
 
-use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
+use nym_vpn_lib_types::{Event, PairingEvent, TunnelEvent, TunnelState, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::table_style::TableStyle;
@@ -284,13 +284,16 @@ impl Command {
     }
 
     async fn wait_until_connected(
-        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<Event>> + Unpin,
     ) -> Result<()> {
         loop {
             let Some(event) = stream.next().await else {
                 bail!("Event stream ended before the tunnel connected");
             };
-            let TunnelEvent::NewState(new_state) = event? else {
+            let Event::Tunnel(tunnel_event) = event? else {
+                continue;
+            };
+            let TunnelEvent::NewState(new_state) = *tunnel_event else {
                 continue;
             };
             println!("{new_state}");
@@ -343,13 +346,16 @@ impl Command {
     }
 
     async fn wait_until_disconnected(
-        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<TunnelEvent>> + Unpin,
+        mut stream: impl Stream<Item = nym_vpn_proto::rpc_client::Result<Event>> + Unpin,
     ) -> Result<()> {
         loop {
             let Some(event) = stream.next().await else {
                 bail!("Event stream ended before the tunnel disconnected");
             };
-            let TunnelEvent::NewState(new_state) = event? else {
+            let Event::Tunnel(tunnel_event) = event? else {
+                continue;
+            };
+            let TunnelEvent::NewState(new_state) = *tunnel_event else {
                 continue;
             };
             println!("{new_state}");
@@ -374,13 +380,29 @@ impl Command {
 
         while let Some(event) = stream.next().await {
             match event {
-                Ok(TunnelEvent::NewState(new_state)) => {
-                    println!("State: {new_state}");
-                }
-                Ok(TunnelEvent::ConfigChanged(new_config)) => {
-                    let json = serde_json::to_string_pretty(&new_config)
-                        .context("failed to convert new config to JSON")?;
-                    println!("Configuration changed:\n{json}");
+                Ok(Event::Tunnel(tunnel_event)) => match *tunnel_event {
+                    TunnelEvent::NewState(new_state) => {
+                        println!("State: {new_state}");
+                    }
+                    TunnelEvent::ConfigChanged(new_config) => {
+                        let json = serde_json::to_string_pretty(&new_config)
+                            .context("failed to convert new config to JSON")?;
+                        println!("Configuration changed:\n{json}");
+                    }
+                    _ => {}
+                },
+                Ok(Event::Pairing(event)) => {
+                    let session_id = event.session_id;
+                    // The Display impl hides the secrets, but pairing from the CLI needs them
+                    match event.event {
+                        PairingEvent::PinCode(pin_code) => println!(
+                            "Pairing process {session_id}: check that the other device shows PIN {pin_code}"
+                        ),
+                        PairingEvent::Mnemonic(_) => {
+                            println!("Pairing process {session_id}: received the account mnemonic")
+                        }
+                        result => println!("Pairing process {session_id}: {result}"),
+                    }
                 }
                 _ => {}
             }

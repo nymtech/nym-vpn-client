@@ -19,8 +19,8 @@ use tonic::{Request, Response, Status, transport::Server};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
-    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
+    EnableSocks5Request, EntryPoint, Event, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
+    LookupGatewayFilters, ProfileOptions, TargetState,
 };
 
 use nym_vpn_proto::proto::{
@@ -49,18 +49,18 @@ pub struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 
-    // Broadcast tunnel events to our API endpoint listeners
-    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
+    // Broadcast events to our API endpoint listeners
+    event_rx: broadcast::Receiver<Event>,
 }
 
 impl CommandInterface {
     fn new(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-        tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
+        event_rx: broadcast::Receiver<Event>,
     ) -> Self {
         Self {
             vpn_command_tx,
-            tunnel_event_rx,
+            event_rx,
         }
     }
 
@@ -554,15 +554,15 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(tunnel_state))
     }
 
-    type ListenToEventsStream = BoxStream<'static, Result<proto::TunnelEvent>>;
+    type ListenToEventsStream = BoxStream<'static, Result<proto::Event>>;
     async fn listen_to_events(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToEventsStream>> {
-        let rx = self.tunnel_event_rx.resubscribe();
+        let rx = self.event_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|event| {
             event
-                .map(proto::TunnelEvent::from)
+                .map(proto::Event::from)
                 .map_err(|_| tonic::Status::internal("Failed to receive tunnel event"))
         });
         Ok(tonic::Response::new(
@@ -995,6 +995,66 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn start_pairing(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::QrUrlResponse>> {
+        let qr_url = self
+            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to start pairing: {err}")))?;
+
+        let response = proto::QrUrlResponse::from(qr_url);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn scanned_key(
+        &self,
+        request: tonic::Request<String>,
+    ) -> Result<tonic::Response<proto::QrPairingConfirmationResponse>> {
+        let pub_key = request.into_inner();
+
+        let qr_pairing_confirmation = self
+            .send_and_wait(VpnServiceCommand::ScannedKey, pub_key)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to obtain scanned key PIN: {err}"))
+            })?;
+
+        let response = proto::QrPairingConfirmationResponse::from(qr_pairing_confirmation);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn verified_pairing_pin(
+        &self,
+        request: tonic::Request<u32>,
+    ) -> Result<tonic::Response<()>> {
+        let session_id = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to verify pairing PIN: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn cancel_pairing_process(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::CancelPairingProcess, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to cancel pairing process: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,
@@ -1404,7 +1464,7 @@ impl NymVpnService for CommandInterface {
 
 pub async fn start_command_interface(
     disable_client_verification: bool,
-    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
+    event_rx: broadcast::Receiver<Event>,
     shutdown_token: CancellationToken,
 ) -> std::io::Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>)> {
     tracing::debug!("Starting command interface");
@@ -1433,7 +1493,7 @@ pub async fn start_command_interface(
 
     let server_handle = tokio::spawn(async move {
         let socket_listener_handle = tokio::spawn(async move {
-            let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
+            let command_interface = CommandInterface::new(vpn_command_tx, event_rx);
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
             // Linux needs to handle the shutdown internally first, as it spawns an authentication prompt that needs to

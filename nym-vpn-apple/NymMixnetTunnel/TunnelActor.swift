@@ -7,7 +7,7 @@ import NymLogger
 import Tunnels
 
 actor TunnelActor {
-    private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
+    private let eventContinuation: AsyncStream<Event>.Continuation
 
     private let logger = Logger(label: "TunnelActor")
 
@@ -26,11 +26,11 @@ actor TunnelActor {
     private var relaxConsentContinuation: CheckedContinuation<Void, Error>?
 
     init() {
-        let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
+        let (eventStream, eventContinuation) = AsyncStream<Event>.makeStream()
         self.eventContinuation = eventContinuation
 
         Task.detached { [weak self, eventStream] in
-            for await case let .newState(tunnelState) in eventStream {
+            for await case let .tunnel(.newState(tunnelState)) in eventStream {
                 await self?.setCurrentState(tunnelState)
             }
         }
@@ -40,7 +40,7 @@ actor TunnelActor {
         eventContinuation.finish()
     }
 
-    nonisolated func onEvent(_ event: TunnelEvent) {
+    nonisolated func onEvent(_ event: Event) {
         eventContinuation.yield(event)
     }
 

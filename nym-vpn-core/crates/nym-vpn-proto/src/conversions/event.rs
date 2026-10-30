@@ -3,11 +3,44 @@
 
 use nym_vpn_lib_types::{
     AccountControllerState, BandwidthEvent, ConflictDetected, ConnectionEvent,
-    ConnectionStatisticsEvent, DiagnosticsSuggestionReason, ErrorStateReason, MixnetEvent,
-    SphinxPacketRates, TunnelEvent, TunnelState,
+    ConnectionStatisticsEvent, DiagnosticsSuggestionReason, ErrorStateReason, Event, MixnetEvent,
+    PairingEvent, PairingResult, SphinxPacketRates, TunnelEvent, TunnelState,
 };
 
 use crate::{conversions::ConversionError, proto};
+
+impl TryFrom<proto::Event> for Event {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::Event) -> Result<Self, Self::Error> {
+        let event = value
+            .event
+            .ok_or(ConversionError::NoValueSet("Event.event"))?;
+
+        Ok(match event {
+            proto::event::Event::TunnelEvent(tunnel_event) => {
+                Event::Tunnel(Box::new(TunnelEvent::try_from(tunnel_event)?))
+            }
+            proto::event::Event::PairingCheckResult(pairing_check_result) => {
+                Event::Pairing(PairingResult::try_from(pairing_check_result)?)
+            }
+        })
+    }
+}
+
+impl From<Event> for proto::Event {
+    fn from(value: Event) -> Self {
+        let event = match value {
+            Event::Tunnel(tunnel_event) => {
+                proto::event::Event::TunnelEvent(proto::TunnelEvent::from(*tunnel_event))
+            }
+            Event::Pairing(pairing_result) => proto::event::Event::PairingCheckResult(
+                proto::PairingCheckResult::from(pairing_result),
+            ),
+        };
+        Self { event: Some(event) }
+    }
+}
 
 impl TryFrom<proto::TunnelEvent> for TunnelEvent {
     type Error = ConversionError;
@@ -106,6 +139,53 @@ impl From<ConflictDetected> for proto::ConflictDetectedEvent {
         Self {
             conflict: conflict as i32,
         }
+    }
+}
+
+impl From<PairingResult> for proto::PairingCheckResult {
+    fn from(value: PairingResult) -> Self {
+        let res = match value.event {
+            PairingEvent::Cancelled => proto::pairing_check_result::Event::Cancelled(()),
+            PairingEvent::TimedOut => proto::pairing_check_result::Event::TimedOut(()),
+            PairingEvent::Error(err) => proto::pairing_check_result::Event::Error(err),
+            PairingEvent::PinCode(pin_code) => {
+                proto::pairing_check_result::Event::PinCode(pin_code)
+            }
+            PairingEvent::Mnemonic(mnemonic) => {
+                proto::pairing_check_result::Event::Mnemonic(mnemonic)
+            }
+        };
+        Self {
+            event: Some(res),
+            session_id: value.session_id,
+        }
+    }
+}
+
+impl TryFrom<proto::PairingCheckResult> for PairingResult {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::PairingCheckResult) -> Result<Self, ConversionError> {
+        let result = value
+            .event
+            .ok_or(ConversionError::NoValueSet("PairingCheckResult.event"))?;
+
+        let result = match result {
+            proto::pairing_check_result::Event::Cancelled(_) => PairingEvent::Cancelled,
+            proto::pairing_check_result::Event::TimedOut(_) => PairingEvent::TimedOut,
+            proto::pairing_check_result::Event::Error(err) => PairingEvent::Error(err),
+            proto::pairing_check_result::Event::PinCode(pin_code) => {
+                PairingEvent::PinCode(pin_code)
+            }
+            proto::pairing_check_result::Event::Mnemonic(mnemonic) => {
+                PairingEvent::Mnemonic(mnemonic)
+            }
+        };
+
+        Ok(Self {
+            session_id: value.session_id,
+            event: result,
+        })
     }
 }
 

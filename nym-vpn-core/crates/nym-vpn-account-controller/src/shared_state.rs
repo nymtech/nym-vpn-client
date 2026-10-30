@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     AccountControllerConfig, AccountControllerEventSender, deeplink::Deeplinks,
-    nyxd_client::NyxdClient, storage::AccountStorageOp,
+    nyxd_client::NyxdClient, qr_pairing::QrPairingHandler, storage::AccountStorageOp,
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -68,6 +68,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Channel for broadcasting global `AccountController` events
     pub(crate) event_sender: AccountControllerEventSender,
 
+    /// Handler for the QR pairing process
+    pub(crate) qr_pairing_handler: QrPairingHandler<VpnApiClient>,
+
     /// AccountController cancellation token; child tokens are handed to constructed fetchers so
     /// controller shutdown interrupts their in-flight work.
     pub(crate) cancel_token: CancellationToken,
@@ -90,6 +93,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         cancel_token: CancellationToken,
     ) -> Self {
         let deeplinks = Deeplinks::default();
+        let qr_pairing_handler = QrPairingHandler::new(vpn_api_client.clone());
 
         Self {
             connectivity_handle,
@@ -106,6 +110,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             current_credential_fetcher: CredentialFetcherInUse::None,
             storage_op_sender,
             event_sender,
+            qr_pairing_handler,
             cancel_token,
         }
     }

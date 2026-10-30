@@ -267,12 +267,12 @@ impl VpndClient {
             .or_else(async |e| self.handle_rpc_error("listen_to_events", e).await)
             .await?;
 
-        trace!("started listening to tunnel events");
+        trace!("started listening to events");
 
         while let Some(event) = stream.next().await {
             match event {
                 Ok(event) => {
-                    trace!("received tunnel event: {:?}", event);
+                    trace!("received event: {event}");
                     self.handle_event(app, event).await.ok();
                 }
                 Err(e) => warn!("event stream error: {:?}", e),
@@ -283,7 +283,18 @@ impl VpndClient {
     }
 
     #[instrument(skip_all)]
-    async fn handle_event(&self, app: &AppHandle, event: lib::TunnelEvent) -> Result<()> {
+    async fn handle_event(&self, app: &AppHandle, event: lib::Event) -> Result<()> {
+        match event {
+            lib::Event::Tunnel(event) => self.handle_tunnel_event(app, *event).await,
+            lib::Event::Pairing(result) => {
+                debug!("pairing event: {result}");
+                Ok(())
+            }
+        }
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_tunnel_event(&self, app: &AppHandle, event: lib::TunnelEvent) -> Result<()> {
         match event {
             lib::TunnelEvent::NewState(state) => {
                 debug!("tunnel state event {:?}", state);
