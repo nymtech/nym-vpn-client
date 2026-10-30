@@ -87,7 +87,7 @@ use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
-    ConnectionData, CustomDnsSettings, DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason,
+    ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint, ErrorStateReason,
     EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
     GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
     SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
@@ -268,12 +268,11 @@ impl TunnelSettings {
 
         let mut config = match self.dns {
             DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref custom_dns) => {
-                if custom_dns.dns_servers.is_empty() {
+            DnsOptions::Custom(ref dns_servers) => {
+                if dns_servers.is_empty() {
                     defaults()
                 } else {
-                    custom_dns
-                        .dns_servers
+                    dns_servers
                         .iter()
                         .map(|ns| ns.to_name_server_config())
                         .collect()
@@ -309,13 +308,12 @@ impl TunnelSettings {
 
         let mut addrs: Vec<IpAddr> = match self.dns {
             DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref custom_dns) => {
-                if custom_dns.dns_servers.is_empty() {
+            DnsOptions::Custom(ref dns_servers) => {
+                if dns_servers.is_empty() {
                     defaults()
                 } else {
                     let mut seen = HashSet::new();
-                    custom_dns
-                        .dns_servers
+                    dns_servers
                         .iter()
                         .map(|dns_server| dns_server.address())
                         .filter(|ip| seen.insert(*ip))
@@ -330,12 +328,11 @@ impl TunnelSettings {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub fn allowed_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
         match self.dns {
-            DnsOptions::Custom(ref custom_dns) => {
-                if custom_dns.dns_servers.is_empty() {
+            DnsOptions::Custom(ref dns_servers) => {
+                if dns_servers.is_empty() {
                     self.allowed_default_dns_endpoints()
                 } else {
-                    custom_dns
-                        .dns_servers
+                    dns_servers
                         .iter()
                         .filter(|dns_server| {
                             let ip = dns_server.address();
@@ -618,7 +615,7 @@ pub struct WireguardTunnelOptions {
 pub enum DnsOptions {
     #[default]
     Default,
-    Custom(CustomDnsSettings),
+    Custom(Vec<DnsServer>),
 }
 
 #[derive(Debug)]

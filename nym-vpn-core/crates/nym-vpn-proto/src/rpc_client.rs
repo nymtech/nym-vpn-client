@@ -13,7 +13,7 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AppCompatibility,
-    AutologinResponse, AvailableTickets, BridgeMode, CustomDnsSettings, DiagnosticReport,
+    AutologinResponse, AvailableTickets, BridgeMode, DiagnosticReport,
     DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GetDeeplinkParams,
     HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkStatisticsIdentity,
     NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, ProfileOptions,
@@ -206,8 +206,8 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&mut self, custom_dns_settings: CustomDnsSettings) -> Result<()> {
-        let request = proto::CustomDnsSettings::from(custom_dns_settings);
+    pub async fn set_custom_dns(&mut self, dns_servers: Vec<DnsServer>) -> Result<()> {
+        let request = proto::DnsServerList::from(dns_servers);
 
         self.0
             .set_custom_dns(request)

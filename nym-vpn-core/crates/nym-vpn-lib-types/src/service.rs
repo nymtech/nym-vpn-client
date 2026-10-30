@@ -49,7 +49,6 @@ pub struct VpnServiceConfig {
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
-    pub enable_custom_dns: bool,
     pub custom_dns: CustomDnsSettings,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
@@ -85,8 +84,8 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
         writeln!(
             f,
-            "enable_custom_dns: {}, custom_dns: {:?}",
-            self.enable_custom_dns, self.custom_dns.dns_servers
+            "custom_dns: enabled: {}, servers: {:?}",
+            self.custom_dns.enabled, self.custom_dns.dns_servers
         )?;
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
@@ -123,7 +122,6 @@ impl Default for VpnServiceConfig {
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
-            enable_custom_dns: false,
             custom_dns: CustomDnsSettings::default(),
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
@@ -596,6 +594,8 @@ impl Default for GeoExclusionSettings {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct CustomDnsSettings {
+    /// Use `dns_servers` instead of the default DNS servers when there is at least one.
+    pub enabled: bool,
     pub dns_servers: Vec<DnsServer>,
 }
 

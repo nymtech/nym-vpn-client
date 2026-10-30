@@ -12,12 +12,12 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    CustomDnsSettings, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Profile, RecentGateways,
-    Socks5Settings, Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
+    GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings,
+    Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 
 #[derive(Clone, uniffi::Object)]
@@ -93,7 +93,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&self, dns_servers: CustomDnsSettings) -> Result<()> {
+    pub async fn set_custom_dns(&self, dns_servers: Vec<DnsServer>) -> Result<()> {
         self.inner.clone().set_custom_dns(dns_servers).await?;
         Ok(())
     }

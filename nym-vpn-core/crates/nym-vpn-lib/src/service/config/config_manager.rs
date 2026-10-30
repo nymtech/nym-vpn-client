@@ -11,7 +11,7 @@ use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-use nym_vpn_lib_types::{CustomDnsSettings, MixnetTrafficConfigValidationError};
+use nym_vpn_lib_types::{DnsServer, MixnetTrafficConfigValidationError};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -196,25 +196,25 @@ impl VpnServiceConfigManager {
     }
 
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
-        if self.config.enable_custom_dns == enable_custom_dns {
+        if self.config.custom_dns.enabled == enable_custom_dns {
             false
         } else {
-            self.config.enable_custom_dns = enable_custom_dns;
+            self.config.custom_dns.enabled = enable_custom_dns;
             self.save_config_and_send_event().await;
             true
         }
     }
 
-    pub async fn set_custom_dns(&mut self, mut custom_dns: CustomDnsSettings) -> bool {
-        if custom_dns.dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
+    pub async fn set_custom_dns(&mut self, mut dns_servers: Vec<DnsServer>) -> bool {
+        if dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
             tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
-            custom_dns.dns_servers.truncate(MAX_CUSTOM_DNS_SERVERS);
+            dns_servers.truncate(MAX_CUSTOM_DNS_SERVERS);
         }
 
-        if self.config.custom_dns == custom_dns {
+        if self.config.custom_dns.dns_servers == dns_servers {
             false
         } else {
-            self.config.custom_dns = custom_dns;
+            self.config.custom_dns.dns_servers = dns_servers;
             self.save_config_and_send_event().await;
             true
         }
@@ -545,9 +545,9 @@ impl VpnServiceConfigManager {
             nym_vpn_lib_types::TunnelType::Mixnet
         };
 
-        let dns = if self.config.enable_custom_dns && !self.config.custom_dns.dns_servers.is_empty()
-        {
-            DnsOptions::Custom(self.config.custom_dns.clone())
+        let custom_dns = &self.config.custom_dns;
+        let dns = if custom_dns.enabled && !custom_dns.dns_servers.is_empty() {
+            DnsOptions::Custom(custom_dns.dns_servers.clone())
         } else {
             DnsOptions::default()
         };

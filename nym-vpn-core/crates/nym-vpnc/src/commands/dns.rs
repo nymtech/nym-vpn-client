@@ -5,7 +5,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use anyhow::{Result, anyhow, bail};
 use clap::{Arg, ArgAction, ArgMatches};
-use nym_vpn_lib_types::{CustomDnsSettings, DnsServer, PlainDnsProtocol};
+use nym_vpn_lib_types::{DnsServer, PlainDnsProtocol};
 use nym_vpn_proto::rpc_client::RpcClient;
 use url::{Host, Url};
 
@@ -67,7 +67,7 @@ impl Command {
                 let config = rpc_client.get_config().await?;
                 println!(
                     "Custom DNS: {}",
-                    if config.enable_custom_dns {
+                    if config.custom_dns.enabled {
                         "enabled"
                     } else {
                         "disabled"
@@ -94,15 +94,11 @@ impl Command {
                     );
                 }
                 let dns_servers = servers.resolve().await?;
-                rpc_client
-                    .set_custom_dns(CustomDnsSettings { dns_servers })
-                    .await?;
+                rpc_client.set_custom_dns(dns_servers).await?;
                 Ok(())
             }
             Command::Clear => {
-                rpc_client
-                    .set_custom_dns(CustomDnsSettings::default())
-                    .await?;
+                rpc_client.set_custom_dns(Vec::new()).await?;
                 Ok(())
             }
             Command::GetDefault => {

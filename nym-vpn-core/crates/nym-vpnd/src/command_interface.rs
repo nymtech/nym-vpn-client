@@ -17,8 +17,8 @@ use tonic::{Request, Response, Status, transport::Server};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    CustomDnsSettings, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams,
-    ListGatewaysOptions, LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
+    DnsServer, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
+    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -283,15 +283,15 @@ impl NymVpnService for CommandInterface {
 
     async fn set_custom_dns(
         &self,
-        request: tonic::Request<proto::CustomDnsSettings>,
+        request: tonic::Request<proto::DnsServerList>,
     ) -> Result<tonic::Response<()>> {
-        let custom_dns: CustomDnsSettings = request
+        let dns_servers: Vec<DnsServer> = request
             .into_inner()
             .try_into()
             .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
 
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
+            .send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
 

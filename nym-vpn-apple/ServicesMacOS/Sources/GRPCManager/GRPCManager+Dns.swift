@@ -11,6 +11,6 @@ extension GRPCManager {
     }
 
     public func setCustomDns(dnsServers: [IpAddr]) async throws {
-        try await rpcClient?.setCustomDns(dnsServers: CustomDnsSettings(plainDnsAddresses: dnsServers))
+        try await rpcClient?.setCustomDns(dnsServers: [DnsServer](plainDnsAddresses: dnsServers))
     }
 }

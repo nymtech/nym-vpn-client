@@ -255,7 +255,6 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
-            enable_custom_dns: value.enable_custom_dns,
             custom_dns,
             mixnet_traffic,
             network_stats,
