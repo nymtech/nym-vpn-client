@@ -21,7 +21,10 @@ impl TryFrom<proto::CustomDnsSettings> for nym_vpn_lib_types::CustomDnsSettings 
             .map(nym_vpn_lib_types::DnsServer::try_from)
             .collect::<Result<_, _>>()?;
 
-        Ok(Self { dns_servers })
+        Ok(Self {
+            enabled: value.enabled,
+            dns_servers,
+        })
     }
 }
 
@@ -33,6 +36,7 @@ impl From<nym_vpn_lib_types::CustomDnsSettings> for proto::CustomDnsSettings {
                 .into_iter()
                 .map(proto::DnsServer::from)
                 .collect(),
+            enabled: value.enabled,
         }
     }
 }

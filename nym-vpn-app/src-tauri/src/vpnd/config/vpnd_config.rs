@@ -56,7 +56,7 @@ impl VpndConfig {
                     .map(lib::DnsServer::address)
                     .collect(),
             ),
-            enable_custom_dns: config.enable_custom_dns,
+            enable_custom_dns: config.custom_dns.enabled,
             allow_lan: config.allow_lan,
             enable_ad_blocking: config.enable_ad_blocking,
             enable_conflict_detection: config.enable_conflict_detection,

@@ -1,9 +1,9 @@
 import NymVPNLib
 
-extension CustomDnsSettings {
+extension Array where Element == DnsServer {
     /// Plain DNS over UDP and TCP on the default port for each address.
     public init(plainDnsAddresses: [IpAddr]) {
-        self.init(dnsServers: plainDnsAddresses.map { .plain(address: $0, port: nil, ipProto: .udpAndTcp) })
+        self = plainDnsAddresses.map { .plain(address: $0, port: nil, ipProto: .udpAndTcp) }
     }
 }
 

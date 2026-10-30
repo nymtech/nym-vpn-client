@@ -110,8 +110,7 @@ pub struct VPNConfig {
     #[cfg(not(target_os = "android"))]
     pub fronting_mode: FrontingMode,
 
-    /// Custom DNS used when set.
-    /// Leave empty to use default DNS servers.
+    /// Custom DNS used when enabled and not empty.
     #[cfg(not(target_os = "android"))]
     pub custom_dns: CustomDnsSettings,
 
@@ -154,7 +153,6 @@ impl VPNConfig {
             netstack: true,
 
             residential_exit: self.residential_exit,
-            enable_custom_dns: !self.custom_dns.dns_servers.is_empty(),
             custom_dns: self.custom_dns.clone(),
             min_gateway_vpn_performance: None,
             mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
