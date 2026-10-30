@@ -691,7 +691,7 @@ impl DnsServer {
 
     /// Returns `true` if server name is set to empty string
     pub fn is_empty_server_name(&self) -> bool {
-        self.server_name().is_some_and(|v| !v.is_empty())
+        self.server_name().is_some_and(|v| v.is_empty())
     }
 }
 
