@@ -14,7 +14,7 @@
 		58E98AED2F92534300A120DF /* nym-socks5-proxy in Copy Files */ = {isa = PBXBuildFile; fileRef = 58E98AEB2F92533600A120DF /* nym-socks5-proxy */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		58FF8CE32F8EADEA0037AC51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 58FF8CDE2F8EADEA0037AC51 /* Assets.xcassets */; };
 		58FF8CEC2F8EAF2F0037AC51 /* nym-setup in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEA2F8EAF2F0037AC51 /* nym-setup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */; };
+		58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */; };
 		D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */; };
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
