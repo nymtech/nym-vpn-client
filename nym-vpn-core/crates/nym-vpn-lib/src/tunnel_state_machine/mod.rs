@@ -4,6 +4,7 @@
 mod account;
 #[cfg(any(target_os = "android", target_os = "ios", test))]
 mod blocking_tun;
+mod custom_dns;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
 mod entry_blame;
@@ -55,6 +56,8 @@ use crate::{
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
+use custom_dns::DnsServerExt;
+pub(crate) use custom_dns::dns_servers_from_hickory_config;
 
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
@@ -84,7 +87,7 @@ use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
-    ConnectionData, DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason,
+    ConnectionData, CustomDnsSettings, DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason,
     EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
     GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
     SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
@@ -265,14 +268,14 @@ impl TunnelSettings {
 
         let mut config = match self.dns {
             DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref addrs) => {
-                if addrs.is_empty() {
+            DnsOptions::Custom(ref custom_dns) => {
+                if custom_dns.dns_servers.is_empty() {
                     defaults()
                 } else {
-                    addrs
+                    custom_dns
+                        .dns_servers
                         .iter()
-                        .cloned()
-                        .map(NameServerConfig::udp_and_tcp)
+                        .map(|ns| ns.to_name_server_config())
                         .collect()
                 }
             }
@@ -321,29 +324,18 @@ impl TunnelSettings {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub fn allowed_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
         match self.dns {
-            DnsOptions::Custom(ref addrs) => {
-                if addrs.is_empty() {
+            DnsOptions::Custom(ref custom_dns) => {
+                if custom_dns.dns_servers.is_empty() {
                     self.allowed_default_dns_endpoints()
                 } else {
-                    addrs
+                    custom_dns
+                        .dns_servers
                         .iter()
-                        .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-                        .copied()
-                        .flat_map(|ip| {
-                            // todo: add support for DoH/DoT in custom DNS options
-                            [
-                                nym_firewall::Endpoint::new(
-                                    ip,
-                                    53,
-                                    nym_firewall::TransportProtocol::Udp,
-                                ),
-                                nym_firewall::Endpoint::new(
-                                    ip,
-                                    53,
-                                    nym_firewall::TransportProtocol::Tcp,
-                                ),
-                            ]
+                        .filter(|dns_server| {
+                            let ip = dns_server.address();
+                            ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6)
                         })
+                        .flat_map(|dns_server| dns_server.firewall_endpoints())
                         .collect()
                 }
             }
@@ -620,7 +612,7 @@ pub struct WireguardTunnelOptions {
 pub enum DnsOptions {
     #[default]
     Default,
-    Custom(Vec<IpAddr>),
+    Custom(CustomDnsSettings),
 }
 
 #[derive(Debug)]

@@ -74,7 +74,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
             enable_custom_dns: value.enable_custom_dns,
-            custom_dns,
+            custom_dns: super::custom_dns::from_legacy_ips(custom_dns),
             mixnet_traffic,
             network_stats,
             split_tunnel,
