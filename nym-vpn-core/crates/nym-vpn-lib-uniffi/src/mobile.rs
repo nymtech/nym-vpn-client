@@ -1,8 +1,6 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(not(target_os = "android"))]
-use std::net::IpAddr;
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     path::PathBuf,
@@ -14,7 +12,7 @@ use tokio::runtime::Runtime;
 
 #[cfg(not(target_os = "android"))]
 use nym_vpn_lib_types::{
-    BridgeMode, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
+    BridgeMode, CustomDnsSettings, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
     GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
     NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
 };
@@ -115,7 +113,7 @@ pub struct VPNConfig {
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
     #[cfg(not(target_os = "android"))]
-    pub custom_dns: Vec<IpAddr>,
+    pub custom_dns: CustomDnsSettings,
 
     #[cfg(not(target_os = "android"))]
     pub mixnet_traffic: Option<MixnetTrafficConfig>,
@@ -156,7 +154,7 @@ impl VPNConfig {
             netstack: true,
 
             residential_exit: self.residential_exit,
-            enable_custom_dns: !self.custom_dns.is_empty(),
+            enable_custom_dns: !self.custom_dns.dns_servers.is_empty(),
             custom_dns: self.custom_dns.clone(),
             min_gateway_vpn_performance: None,
             mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),

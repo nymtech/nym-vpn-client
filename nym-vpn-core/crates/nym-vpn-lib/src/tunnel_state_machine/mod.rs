@@ -307,13 +307,19 @@ impl TunnelSettings {
                 .collect()
         };
 
-        let mut addrs = match self.dns {
+        let mut addrs: Vec<IpAddr> = match self.dns {
             DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref addrs) => {
-                if addrs.is_empty() {
+            DnsOptions::Custom(ref custom_dns) => {
+                if custom_dns.dns_servers.is_empty() {
                     defaults()
                 } else {
-                    addrs.clone()
+                    let mut seen = HashSet::new();
+                    custom_dns
+                        .dns_servers
+                        .iter()
+                        .map(|dns_server| dns_server.address())
+                        .filter(|ip| seen.insert(*ip))
+                        .collect()
                 }
             }
         };

@@ -134,7 +134,7 @@ extension MixnetConfig {
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,
-            customDns: customDns,
+            customDns: CustomDnsSettings(plainDnsAddresses: customDns),
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: NetworkStatisticsConfig(enabled: isStatisticsEnabled, allowDisconnected: false),
             gatewaySelectionAlgorithmConfig: gatewaySelectionAlgorithmConfig.sdkValue,
