@@ -8,6 +8,14 @@ import PurchasesManager
 
 // MARK: - Views -
 extension GeneratePassphraseView {
+    var appleIdExplanation: String? {
+        purchasesManager.appleIdSubscriptionState(for: credentialsManager).localizedExplanation
+    }
+
+    var isPlanPurchaseBlocked: Bool {
+        purchasesManager.appleIdSubscriptionState(for: credentialsManager).blocksPlanPurchase
+    }
+
     func subscriptionTitle(for plan: Product) -> String {
         if purchasesManager.freeTrialVisibility(for: plan.id).isShown,
            let subscription = plan.subscription,
@@ -109,6 +117,7 @@ extension GeneratePassphraseView {
     }
 
     func selectPlanAction() {
+        guard !isPlanPurchaseBlocked else { return }
         isPlanAlertDisplayed = true
     }
 

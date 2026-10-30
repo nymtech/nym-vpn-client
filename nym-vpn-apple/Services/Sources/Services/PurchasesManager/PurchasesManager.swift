@@ -34,6 +34,8 @@ public enum PurchaseOutcome: Equatable, Sendable {
     /// While true, `isEligibleForIntroOffer` may be stale: the Apple ID can have used up its trial since.
     @Published public private(set) var isRefreshingIntroOfferEligibility = false
     @Published public var isAutoRenewEnabled = false
+    /// The Apple ID's live NymVPN subscription, whichever NymVPN account it pays for. Nil when there is none.
+    @Published public private(set) var appleIdEntitlement: AppleIdEntitlement?
     /// The Nym account's verdict, read when the plan screen appears. Never persisted.
     @Published public private(set) var nymTrialEligibility: NymTrialEligibility = .unknown
 
@@ -155,8 +157,11 @@ public enum PurchaseOutcome: Equatable, Sendable {
         @unknown default:
             outcome = .failed
         }
-        // Apple may have used up the trial; the outcome does not wait for the re-check.
-        Task { await refreshIntroOfferEligibility() }
+        // Apple may have used up the trial or changed the renewal; the outcome does not wait for the re-check.
+        Task {
+            await refreshIntroOfferEligibility()
+            await updateAutoRenewStatus()
+        }
         return outcome
     }
 
@@ -190,21 +195,29 @@ public enum PurchaseOutcome: Equatable, Sendable {
     }
 
     public func updateAutoRenewStatus() async {
-        var autoRenew = false
+        var renewalInfo: Product.SubscriptionInfo.RenewalInfo?
         for product in products {
             guard let subscription = product.subscription,
                   let statuses = try? await subscription.status,
-                  let latestStatus = statuses.first
+                  let latestStatus = statuses.first,
+                  case let .verified(info) = latestStatus.renewalInfo
             else {
                 continue
             }
-
-            if case let .verified(renewalInfo) = latestStatus.renewalInfo {
-                autoRenew = renewalInfo.willAutoRenew
-                break
-            }
+            renewalInfo = info
+            break
         }
-        isAutoRenewEnabled = autoRenew
+        isAutoRenewEnabled = renewalInfo?.willAutoRenew ?? false
+        appleIdEntitlement = await currentAppleIdEntitlement(renewalInfo: renewalInfo)
+        if let entitlement = appleIdEntitlement {
+            // Token presence only: whether Apple sets the chooser's token on renewal info is an open question.
+            let hasToken = entitlement.appAccountToken != nil
+            let hasRenewalToken = entitlement.renewalAppAccountToken != nil
+            let sameAccount = entitlement.appAccountToken == entitlement.renewalAppAccountToken
+            logger.debug(
+                "Apple ID entitlement \(entitlement.productId): hasToken=\(hasToken) hasRenewalToken=\(hasRenewalToken) sameAccount=\(sameAccount) willAutoRenew=\(entitlement.willAutoRenew)"
+            )
+        }
     }
 }
 
@@ -260,6 +273,31 @@ private extension PurchasesManager {
     nonisolated static func verifiedAppTransactionID() async throws -> String? {
         guard case let .verified(appTransaction) = try await AppTransaction.shared else { return nil }
         return appTransaction.appTransactionID
+    }
+
+    /// The longest-lived verified NymVPN entitlement; `currentEntitlements` already drops expired and revoked ones.
+    func currentAppleIdEntitlement(
+        renewalInfo: Product.SubscriptionInfo.RenewalInfo?
+    ) async -> AppleIdEntitlement? {
+        var latest: AppleIdEntitlement?
+        for await result in Transaction.currentEntitlements {
+            guard case let .verified(transaction) = result,
+                  productIds.contains(transaction.productID),
+                  let expirationDate = transaction.expirationDate,
+                  expirationDate > (latest?.expirationDate ?? .distantPast)
+            else {
+                continue
+            }
+            latest = AppleIdEntitlement(
+                productId: transaction.productID,
+                expirationDate: expirationDate,
+                appAccountToken: transaction.appAccountToken,
+                willAutoRenew: renewalInfo?.willAutoRenew ?? false,
+                renewalDate: renewalInfo?.renewalDate,
+                renewalAppAccountToken: renewalInfo?.appAccountToken
+            )
+        }
+        return latest
     }
 
     func refreshIntroOfferEligibility() async {

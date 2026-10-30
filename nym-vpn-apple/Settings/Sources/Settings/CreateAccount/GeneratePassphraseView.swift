@@ -75,6 +75,15 @@ public struct GeneratePassphraseView: View {
                     titleSubtitleView
                     Spacer()
 #if os(iOS)
+                    if let appleIdExplanation {
+                        Text(appleIdExplanation)
+                            .nymTextStyle(.bodyDefault)
+                            .foregroundStyle(Color.Nym.error)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                        Spacer()
+                            .frame(height: 16)
+                    }
                     if showsWebSubscribeOnSubscriptionPage {
                         webSubscribeButton
                         Spacer()
@@ -115,6 +124,7 @@ public struct GeneratePassphraseView: View {
             // Read once the account exists, so the verdict is about this account.
             guard didRegisterAccount else { return }
             await purchasesManager.refreshTrialEligibility()
+            await purchasesManager.updateAutoRenewStatus()
         }
         .autologinOverlay(state: autologinState, onRetry: { beginWebSubscriptionPurchase() })
         .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
@@ -280,7 +290,16 @@ private extension GeneratePassphraseView {
     }
 
     var selectPlanButton: some View {
-        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isPurchasing)
+#if os(iOS)
+        let isDisabled = isPlanPurchaseBlocked
+#else
+        let isDisabled = false
+#endif
+        return GenericButton(
+            title: "purchasePlan.selectPlan".localizedString,
+            isDisabled: .constant(isDisabled),
+            isLoading: $isPurchasing
+        )
             .onTapGesture {
                 selectPlanAction()
             }

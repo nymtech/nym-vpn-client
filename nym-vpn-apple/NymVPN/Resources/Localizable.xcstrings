@@ -2257,6 +2257,28 @@
         }
       }
     },
+    "appleIdSubscription.onAnotherAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription on another NymVPN account. It is active there until %@. Sign in to that account to use it."
+          }
+        }
+      }
+    },
+    "appleIdSubscription.switchesToThisAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID's NymVPN subscription is on another NymVPN account until %@. It switches to this account on that date."
+          }
+        }
+      }
+    },
     "appUpdate.available.message" : {
       "extractionState" : "manual",
       "localizations" : {
