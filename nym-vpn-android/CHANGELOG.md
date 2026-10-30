@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.15.0] - TBD
+
 ### Added
 - Hide overlay windows on sensitive screens (https://github.com/nymtech/nym-vpn-client/pull/6780)
 - `playtest` build type for local Google Play billing testing (https://github.com/nymtech/nym-vpn-client/pull/6855)
