@@ -358,7 +358,6 @@
 	<string name="censorship_description">Fitur-fitur canggih untuk meningkatkan konektivitas di jaringan yang membatasi akses atau saat menghadapi pemblokiran NymVPN.</string>
 	<string name="censorship_learn_more_link_text">Pelajari lebih lanjut</string>
 	<string name="censorship_quic_title">Koneksi yang ditingkatkan (QUIC)</string>
-	<string name="censorship_quic_description">Meningkatkan koneksi pada jaringan yang dibatasi dengan membungkus WireGuard dalam QUIC (HTTP/3).\n\nCatatan: Membatasi pilihan server masuk hanya pada server yang kompatibel dengan QUIC.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Koneksi API Stealth</string>
 	<string name="censorship_stealth_description">Melindungi dari pemblokiran VPN dengan menggunakan domain penyamar. Aktifkan untuk penggunaan terus-menerus, atau nonaktifkan agar hanya digunakan saat koneksi biasa gagal.</string>

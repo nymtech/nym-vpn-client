@@ -359,7 +359,6 @@
 	<string name="censorship_description">সীমাবদ্ধ নেটওয়ার্কে অথবা NymVPN ব্লক হওয়ার ক্ষেত্রে কানেক্টিভিটি উন্নত করার জন্য বিশেষ ফিচার।</string>
 	<string name="censorship_learn_more_link_text">আরো জানুন</string>
 	<string name="censorship_quic_title">উন্নত সংযোগ (QUIC)</string>
-	<string name="censorship_quic_description">WireGuard-কে QUIC (HTTP/3)-এর আবরণে মুড়ে দিয়ে সীমাবদ্ধ নেটওয়ার্কের সংযোগ উন্নত করে।\n\nদ্রষ্টব্য: এন্ট্রি সার্ভার বিকল্পগুলো শুধুমাত্র QUIC-উপযোগী সার্ভারের জন্য সীমাবদ্ধ।</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API সংযোগ</string>
 	<string name="censorship_stealth_description">কভার ডোমেইন ব্যবহার করে VPN ব্লক হওয়া থেকে সুরক্ষা দেয়। সর্বদা ব্যবহার করতে এটি চালু করুন, অথবা সাধারণ সংযোগ ব্যর্থ হলে ব্যবহার করতে এটি বন্ধ করুন।</string>

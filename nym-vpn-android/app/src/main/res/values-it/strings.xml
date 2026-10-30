@@ -361,7 +361,6 @@
 	<string name="censorship_description">Funzioni avanzate per migliorare la connettività in reti restrittive o quando NymVPN viene bloccato.</string>
 	<string name="censorship_learn_more_link_text">Scopri di più</string>
 	<string name="censorship_quic_title">Connessione migliorata (QUIC)</string>
-	<string name="censorship_quic_description">Migliora le connessioni su reti soggette a restrizioni avvolgendo WireGuard in QUIC (HTTP/3).\n\nNota: limita le opzioni del server di ingresso ai soli server compatibili con QUIC.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">Protegge dal blocco delle VPN utilizzando domini di copertura. Attiva per utilizzarlo sempre, oppure disattiva per utilizzarlo quando le connessioni normali falliscono.</string>

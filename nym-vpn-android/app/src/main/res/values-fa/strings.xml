@@ -362,7 +362,6 @@
 	<string name="censorship_description">اگر در محل شما مشکل اتصال وجود دارد یا NymVPN مسدود شده است، این ویژگی‌ها را فعال کنید.</string>
 	<string name="censorship_learn_more_link_text">بیشتر بدانید</string>
 	<string name="censorship_quic_title">اتصال بهبود یافته (QUIC)</string>
-	<string name="censorship_quic_description">اتصال در شبکه‌های محدودشده را با قرار دادن WireGuard داخل QUIC ‏(HTTP/3) بهبود می‌بخشد.\n\nتوجه: گزینه‌های سرور ورودی را فقط به سرورهای سازگار با QUIC محدود می‌کند.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">با استفاده از دامنه‌های پوششی از مسدودسازی VPN جلوگیری می‌کند. آن را روشن کنید تا همیشه استفاده شود، یا خاموش بگذارید تا فقط هنگام عدم موفقیت اتصال عادی فعال شود.</string>

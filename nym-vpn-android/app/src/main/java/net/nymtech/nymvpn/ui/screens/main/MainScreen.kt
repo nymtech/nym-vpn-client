@@ -75,6 +75,7 @@ import net.nymtech.nymvpn.util.extensions.toConnectMode
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
@@ -429,7 +430,17 @@ private fun MainScreenContent(
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
 	val profileName = appUiState.currentProfile?.let { stringResource(it.titleRes) }
+	val wireguardTunnel = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)
+		.takeIf { connectionState == ConnectionState.Connected }
+	val bridgeTransport = wireguardTunnel?.v1?.entryBridgeAddr?.transport
+	val bridgeText = when {
+		bridgeTransport != null -> stringResource(R.string.connection_status_bridge, bridgeTransport.name)
+		wireguardTunnel != null && appUiState.settings.bridgeMode == BridgeMode.AUTO ->
+			stringResource(R.string.connection_status_direct)
+		else -> null
+	}
 	val panelState = ConnectPanelState(
+		bridgeText = bridgeText,
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
 		isMnemonicStored = appUiState.managerState.isMnemonicStored,
@@ -480,8 +491,6 @@ private fun MainScreenContent(
 				vpnMode = appUiState.vpnConfig.mode,
 				establishConnectionState = appUiState.managerState.establishConnectionState,
 				connectionTime = connectionTime,
-				bridgeTransport = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)?.v1?.entryBridgeAddr?.transport
-					.takeIf { connectionState == ConnectionState.Connected },
 			)
 		}
 

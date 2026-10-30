@@ -15,6 +15,7 @@ import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.BridgeMode
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -31,12 +32,12 @@ class CensorshipViewModel @Inject constructor(private val vpnConfigRepository: V
 	val bridgeTransportsEnabled = flow { emit(environmentManager.isBridgeTransportsEnabled()) }
 		.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
-	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
+	fun onBridgeModeSelected(mode: BridgeMode) = viewModelScope.launch {
 		runCatching {
-			settingsRepository.setQUICEnabled(enabled)
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEnableBridges(enabled))
+			settingsRepository.setBridgeMode(mode)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetBridgeMode(mode))
 		}.onFailure {
-			Timber.e(it, "Failed to update QUIC setting")
+			Timber.e(it, "Failed to update bridge mode setting")
 		}
 	}
 
