@@ -283,7 +283,7 @@ impl TunnelSettings {
         ResolverConfig(config)
     }
 
-    /// Returns IP addresses of the DNS servers suitable for Android DNS configuraiton.
+    /// Returns IP addresses of the DNS servers suitable for Android DNS configuration.
     ///
     /// If Private DNS is enabled, these IPs will be probed for DoT before falling back to UDP/TCP.
     #[cfg(target_os = "android")]
@@ -315,6 +315,10 @@ impl TunnelSettings {
                     let mut seen = HashSet::new();
                     dns_servers
                         .iter()
+                        .filter(|dns_server| {
+                            // Android only supports TCP/UDP 53 and TLS (853)
+                            matches!(dns_server, DnsServer::Tls { .. } | DnsServer::Plain { .. })
+                        })
                         .map(|dns_server| dns_server.address())
                         .filter(|ip| seen.insert(*ip))
                         .collect()
