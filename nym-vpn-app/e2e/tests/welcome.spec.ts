@@ -10,7 +10,7 @@ test.describe('Welcome screen', () => {
   test('renders the welcome copy', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Welcome!' })).toBeVisible();
     await expect(
-      page.getByText('To the world’s most private VPN.'),
+      page.getByText("To the world's most private VPN"),
     ).toBeVisible();
   });
 
