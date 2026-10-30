@@ -11,7 +11,6 @@ import ExpiryReminderDialog from './ExpiryReminderDialog';
 import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
-import useExpiryReminder from './useExpiryReminder';
 import { NewBottomComponent } from './NewBottomComponent';
 import { TunnelState } from './TunnelState';
 
@@ -23,7 +22,6 @@ function Home() {
   const connected = useAppStore((s) => s.state === 'connected');
   useGatewayIndependenceWatcher();
   useDeviceLocationErrorToast();
-  const expiryReminder = useExpiryReminder();
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
@@ -67,7 +65,7 @@ function Home() {
         appUpdate={!networkCompat?.tauri}
         daemonUpdate={!networkCompat?.core}
       />
-      <ExpiryReminderDialog {...expiryReminder} />
+      <ExpiryReminderDialog />
       <motion.div
         initial={{ opacity: 0, x: '-1rem' }}
         animate={{ opacity: 1, x: 0 }}

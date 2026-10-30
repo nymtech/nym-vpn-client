@@ -2,13 +2,7 @@ import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ConfirmationDialog } from '../../ui';
 import { ExpiryReminder } from './expiryReminder';
-
-export type Props = {
-  isOpen: boolean;
-  reminder: ExpiryReminder | null;
-  onAction: () => void;
-  onClose: () => void;
-};
+import useExpiryReminder from './useExpiryReminder';
 
 function reminderTitle(
   t: TFunction<'notifications', undefined>,
@@ -26,8 +20,9 @@ function reminderTitle(
   }
 }
 
-function ExpiryReminderDialog({ isOpen, reminder, onAction, onClose }: Props) {
+function ExpiryReminderDialog() {
   const { t } = useTranslation('notifications');
+  const { reminder, isOpen, onAction, onClose } = useExpiryReminder();
   if (!reminder) {
     return null;
   }
