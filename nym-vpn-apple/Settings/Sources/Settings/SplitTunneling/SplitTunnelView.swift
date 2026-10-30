@@ -106,6 +106,34 @@ private extension SplitTunnelView {
         .id(isFullDiskAccessEnabled)
     }
 
+    /// Routes every displayed app via NymVPN (on) or excludes all of them (off).
+    /// On only when the complete exclusion list is empty, so an excluded app that
+    /// discovery no longer lists still keeps the switch off.
+    func allAppsToggle(apps: [FoundApp]) -> some View {
+        let paths = Set(apps.compactMap(\.executablePath))
+        let allProtected = splitTunnelConfig.appPaths.isEmpty
+
+        return SettingsListItem(
+            viewModel:
+                SettingsListItemViewModel(
+                    accessory: .toggle(
+                        isOn:
+                            Binding(
+                                get: { allProtected },
+                                set: { newValue in
+                                    setAllApps(protected: newValue, paths: paths)
+                                }
+                            ),
+                        isDisabled: paths.isEmpty && allProtected
+                    ),
+                    title: "splitTunnel.allApps".localizedString,
+                    systemImageName: "shield.fill",
+                    position: SettingsListItemPosition(isFirst: true, isLast: true),
+                    action: {}
+                )
+        )
+    }
+
     var changesText: some View {
         HStack {
             Text("⚠️ \("splitTunnel.betaFeature".localizedString)\n\("splitTunel.apps.exclude".localizedString) \n\("splitTunnel.apps.unprotected".localizedString)")
@@ -212,6 +240,9 @@ private extension SplitTunnelView {
                 Spacer()
                     .frame(height: 24)
                 appsText
+                Spacer()
+                    .frame(height: 8)
+                allAppsToggle(apps: sections.flatMap(\.apps))
                 Spacer()
                     .frame(height: 8)
                 addApplicationButton
@@ -479,6 +510,16 @@ private extension SplitTunnelView {
             next.appPaths.remove(path)
         } else {
             next.appPaths.insert(path)
+        }
+        connectionManager.setSplitTunnelConfig(next)
+    }
+
+    func setAllApps(protected: Bool, paths: Set<String>) {
+        var next = splitTunnelConfig
+        if protected {
+            next.appPaths.removeAll()
+        } else {
+            next.appPaths.formUnion(paths)
         }
         connectionManager.setSplitTunnelConfig(next)
     }

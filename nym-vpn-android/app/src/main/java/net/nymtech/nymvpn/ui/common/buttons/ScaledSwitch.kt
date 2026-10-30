@@ -17,8 +17,12 @@ import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
+/**
+ * @param onClick pass null when a parent row owns the toggle semantics (e.g. via
+ * `Modifier.toggleable(role = Role.Switch)`), so the switch renders state only.
+ */
 @Composable
-fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled: Boolean = true) {
+fun ScaledSwitch(checked: Boolean, onClick: ((checked: Boolean) -> Unit)?, enabled: Boolean = true) {
 	val primary = MaterialTheme.colorScheme.primary
 	val onSurfaceVariant = LocalNymColors.current.switchBackground
 
