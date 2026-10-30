@@ -46,6 +46,3 @@ e2e/.playwright/
 test-results/
 playwright-report/
 blob-report/
-
-# openlore analysis artifacts
-.openlore/
