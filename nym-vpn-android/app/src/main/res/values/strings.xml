@@ -207,6 +207,8 @@
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">dVPN protection</string>
 	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_bridge">Connected via %1$s bridge</string>
+	<string name="connection_status_direct">Connected directly</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
 	<string name="gateway_random">Random server</string>
@@ -391,8 +393,15 @@
 	<!-- Censorship screen -->
 	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
-	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
-	<string name="censorship_quic_description">Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).\n\nNote: Limits entry server options to QUIC-compatible servers only.</string>
+	<string name="censorship_quic_title">Enhanced connection</string>
+	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_bridge_off_title">Off</string>
+	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_auto_title">Auto</string>
+	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_on_title">On</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
+	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>

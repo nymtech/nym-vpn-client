@@ -359,7 +359,6 @@
 	<string name="censorship_description">यदि आप कनेक्शन समस्याओं का सामना कर रहे हैं या आपके स्थान पर NymVPN अवरुद्ध है, तो इन सुविधाओं को सक्षम करें।</string>
 	<string name="censorship_learn_more_link_text">और जानें</string>
 	<string name="censorship_quic_title">संशोधित कनेक्शन (QUIC)</string>
-	<string name="censorship_quic_description">यह QUIC (HTTP/3) में WireGuard ट्रैफ़िक को रैप करके प्रतिबंधित नेटवर्क में फ़ास्ट मोड की विश्वसनीयता को बेहतर बनाता है। ट्रैफ़िक सामान्य वेब ब्राउज़िंग के रूप में दिखाई देगा, जिससे डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप सिस्टम को नाकाम किया जा सकेगा।\n\nनोट: यह केवल QUIC-संगत सर्वरों तक ही सीमित है।</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">स्टेल्थ API कनेक्ट</string>
 	<string name="censorship_stealth_description">कवर डोमेन का उपयोग करके वीपीएन ब्लॉकिंग से सुरक्षा करता है। हमेशा उपयोग करने के लिए टॉगल चालू करें, या सामान्य कनेक्शन विफल होने पर उपयोग करने के लिए बंद करें।</string>

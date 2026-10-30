@@ -17,6 +17,7 @@ use crate::{
     fs::{app::AppFs, config::AppConfig},
     vpnd::client::VpndClient,
     vpnd::error::VpndError,
+    vpnd::tunnel::BridgeMode,
 };
 
 use anyhow::{Result, anyhow};
@@ -78,7 +79,7 @@ const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
 const DEFAULT_NETSTATS_ENABLED: bool = true;
-const DEFAULT_QUIC: bool = false;
+const DEFAULT_BRIDGE_MODE: BridgeMode = BridgeMode::Off;
 const DEFAULT_DEBUG_LOGGING: bool = true;
 
 // build time pkg data
@@ -334,7 +335,7 @@ async fn main() -> Result<()> {
             tunnel::disconnect,
             tunnel::reconnect,
             tunnel::set_node,
-            tunnel::set_quic,
+            tunnel::set_bridge_mode,
             tunnel::set_fronting_mode,
             tunnel::set_profile,
             tunnel::get_default_dns,

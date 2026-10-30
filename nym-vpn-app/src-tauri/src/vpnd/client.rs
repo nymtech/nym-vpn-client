@@ -14,7 +14,7 @@ use super::{
     events::{ConflictDetected, DiagnosticsSuggestedReason, MixnetEvent},
     gateway::{Gateway, GatewayType, RecentGateways, parse_gateways},
     tentative_gateways::TentativeGateways,
-    tunnel::{FrontingMode, Profile, SplitApp, TunnelState},
+    tunnel::{BridgeMode, FrontingMode, Profile, SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -398,17 +398,12 @@ impl VpndClient {
             .await
     }
 
-    /// Enable or disable QUIC mode (aka bridges)
+    /// Set the bridge mode (QUIC, TLS and SSH bridges): off, on or auto
     #[instrument(skip_all)]
-    pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {
+    pub async fn set_bridge_mode(&self, mode: BridgeMode) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let mode = if enabled {
-            lib::BridgeMode::On
-        } else {
-            lib::BridgeMode::Off
-        };
-        vpnd.set_bridge_mode(mode)
+        vpnd.set_bridge_mode(mode.into())
             .or_else(async |e| self.handle_rpc_error("set_bridge_mode", e).await)
             .await
     }

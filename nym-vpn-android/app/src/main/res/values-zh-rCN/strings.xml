@@ -359,7 +359,6 @@
 	<string name="censorship_description">改善 NymVPN 在严苛的网络环境中的连接能力。</string>
 	<string name="censorship_learn_more_link_text">了解更多</string>
 	<string name="censorship_quic_title">增强连接（QUIC）</string>
-	<string name="censorship_quic_description">通过使用 QUIC (HTTP/3) 包装的 WireGuard 协议来改善快速模式在严苛的网络环境中的稳定性。该功能使得 VPN 流量看起来像常规网络流量，从而躲避深度包检测（DPI）系统检测。\n\n注意：服务器列表只会显示支持 QUIC 协议的入口服务器。</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API 连接</string>
 	<string name="censorship_stealth_description">通过使用混淆域名技术来绕开 VPN 封锁。打开此开关会始终使用混淆域名技术，关闭此开关则会在正常连接失败后自动使用该功能。</string>
