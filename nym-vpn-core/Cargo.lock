@@ -5667,7 +5667,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "block2",
  "dispatch2",
@@ -5854,7 +5854,7 @@ dependencies = [
 
 [[package]]
 name = "nym-cgroup"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "log",
@@ -6002,7 +6002,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -6048,7 +6048,7 @@ dependencies = [
 
 [[package]]
 name = "nym-conflict"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "ipnetwork",
  "netlink-packet-core",
@@ -6061,12 +6061,12 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "async-trait",
  "futures",
  "nix 0.31.3",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "pretty_assertions",
  "socket2 0.6.5",
  "surge-ping",
@@ -6214,7 +6214,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "dbus",
  "libc",
@@ -6225,7 +6225,7 @@ dependencies = [
 
 [[package]]
 name = "nym-diagnostic"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6307,13 +6307,13 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "duct",
  "futures",
  "inotify",
  "nix 0.31.3",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-dbus",
  "nym-routing",
  "nym-windows",
@@ -6370,7 +6370,7 @@ dependencies = [
 
 [[package]]
 name = "nym-exclude"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "nym-cgroup",
@@ -6391,7 +6391,7 @@ dependencies = [
 
 [[package]]
 name = "nym-favorites"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "async-trait",
  "itertools 0.15.0",
@@ -6406,7 +6406,7 @@ dependencies = [
 
 [[package]]
 name = "nym-file-updater"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "futures",
  "nym-http-api-client",
@@ -6422,7 +6422,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "ipnetwork",
  "libc",
@@ -6431,7 +6431,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.3",
  "nym-cgroup",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-firewall-config",
  "nym-platform-metadata",
  "pfctl",
@@ -6444,7 +6444,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall-config"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "ipnetwork",
  "nym-network-defaults",
@@ -6491,7 +6491,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -6649,7 +6649,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ifconfig"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bitflags 2.13.1",
  "futures",
@@ -6701,7 +6701,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -6835,7 +6835,7 @@ dependencies = [
 
 [[package]]
 name = "nym-macos"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "tracing",
@@ -6938,7 +6938,7 @@ dependencies = [
 
 [[package]]
 name = "nym-nm-vpn-plugin"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -7039,14 +7039,14 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "async-trait",
  "debounced",
  "dispatch2",
  "futures",
  "nym-apple-network",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-routing",
  "nym-windows",
  "thiserror 2.0.20",
@@ -7094,7 +7094,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "hex",
  "nym-bin-common",
@@ -7157,14 +7157,14 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bitflags 2.13.1",
  "futures",
  "ipnetwork",
  "libc",
  "nix 0.31.3",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-windows",
  "rtnetlink",
  "system-configuration 0.8.0",
@@ -7264,7 +7264,7 @@ dependencies = [
 
 [[package]]
 name = "nym-setup"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -7307,7 +7307,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -7349,7 +7349,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-ipc"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -7542,7 +7542,7 @@ dependencies = [
 
 [[package]]
 name = "nym-split-tunnel"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bitflags 2.13.1",
  "bytes",
@@ -7556,7 +7556,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.3",
  "nym-cgroup",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-dbus",
  "nym-firewall",
  "nym-firewall-config",
@@ -7581,7 +7581,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "futures",
  "nym-bin-common",
@@ -7601,7 +7601,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-api-client"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "nym-http-api-client",
  "nym-statistics-common",
@@ -7774,7 +7774,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "aes-gcm 0.11.1",
  "anyhow",
@@ -7785,7 +7785,7 @@ dependencies = [
  "hkdf 0.13.0",
  "nym-bandwidth-controller",
  "nym-bandwidth-fetcher",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
  "nym-credentials",
@@ -7821,7 +7821,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "async-trait",
  "backon",
@@ -7832,7 +7832,7 @@ dependencies = [
  "hex",
  "itertools 0.15.0",
  "nym-bridges-types",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
@@ -7857,7 +7857,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-credential-fetcher"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7885,7 +7885,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "adblock",
  "anyhow",
@@ -7917,7 +7917,7 @@ dependencies = [
  "nym-bridges",
  "nym-cgroup",
  "nym-client-core",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-config",
  "nym-conflict",
  "nym-connection-monitor",
@@ -7998,7 +7998,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bip39",
  "clap",
@@ -8030,7 +8030,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-uniffi"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "async-trait",
  "futures",
@@ -8043,7 +8043,7 @@ dependencies = [
  "log",
  "ndk-context",
  "nym-bandwidth-controller",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-diagnostic",
  "nym-favorites",
  "nym-firewall-config",
@@ -8076,10 +8076,10 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "itertools 0.15.0",
- "nym-common 2026.15.0-beta.1",
+ "nym-common 2026.16.0-beta.1",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -8100,7 +8100,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "hyper 1.11.1",
  "nym-ipc",
@@ -8119,7 +8119,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -8142,7 +8142,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "celes 3.0.0",
@@ -8164,7 +8164,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -8207,7 +8207,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "hex",
  "ipnetwork",
@@ -8223,7 +8223,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-metadata-client"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "nym-credentials-interface",
@@ -8240,7 +8240,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bitflags 2.13.1",
  "futures",
@@ -12009,7 +12009,7 @@ dependencies = [
 
 [[package]]
 name = "test-manager"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "anyhow",
  "async-tempfile",
@@ -12051,7 +12051,7 @@ dependencies = [
 
 [[package]]
 name = "test-rpc"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bytes",
  "colored 3.1.1",
@@ -12073,7 +12073,7 @@ dependencies = [
 
 [[package]]
 name = "test-runner"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "bytes",
  "dirs 7.0.0",
@@ -12098,7 +12098,7 @@ dependencies = [
 
 [[package]]
 name = "test_macro"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -12978,7 +12978,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "2026.15.0-beta.1"
+version = "2026.16.0-beta.1"
 dependencies = [
  "uniffi",
 ]
