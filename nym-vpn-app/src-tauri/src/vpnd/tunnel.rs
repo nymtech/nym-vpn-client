@@ -41,7 +41,7 @@ pub struct MixnetData {
 pub struct BridgeAddress {
     pub listen_addr: String,
     pub remote_addr: String,
-    pub transport: Option<BridgeTransport>,
+    pub transport: BridgeTransport,
 }
 
 #[derive(Serialize, Clone, Copy, Debug, PartialEq, TS)]
@@ -203,7 +203,7 @@ impl From<lib::BridgeAddress> for BridgeAddress {
         BridgeAddress {
             listen_addr: addr.listen_addr.to_string(),
             remote_addr: addr.remote_addr.to_string(),
-            transport: addr.transport.map(BridgeTransport::from),
+            transport: addr.transport.into(),
         }
     }
 }

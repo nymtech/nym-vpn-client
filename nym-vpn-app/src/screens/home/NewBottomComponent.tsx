@@ -32,7 +32,7 @@ export function NewBottomComponent() {
       ? null
       : entryBridge
         ? t('connected-via-bridge', {
-            transport: entryBridge.transport?.toUpperCase() ?? 'QUIC',
+            transport: entryBridge.transport.toUpperCase(),
           })
         : bridgeMode === 'auto' && tunnel && isWireguardData(tunnel.data)
           ? t('connected-directly')

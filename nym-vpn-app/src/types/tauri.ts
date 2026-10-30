@@ -33,7 +33,7 @@ export type BackgroundCoverTrafficRate = { value: number; multiplier: string };
 export type BridgeAddress = {
   listenAddr: string;
   remoteAddr: string;
-  transport: BridgeTransport | null;
+  transport: BridgeTransport;
 };
 
 export type BridgeMode = 'off' | 'on' | 'auto';
