@@ -30,7 +30,6 @@ import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
-import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.FrontingMode
@@ -421,7 +420,7 @@ class VpnCoreController(
 			is CoreVpnConfigUpdate.SetMode -> requireCoreSender { it.setEnableTwoHop(update.value.isTwoHop()) }
 			is CoreVpnConfigUpdate.SetProfile -> requireCoreSender { it.setProfile(update.value) }
 			is CoreVpnConfigUpdate.SetEnableGeoLocation -> requireCoreSender { it.setEnableGeoLocation(update.value) }
-			is CoreVpnConfigUpdate.SetEnableBridges -> requireCoreSender { it.setBridgeMode(if (update.value) BridgeMode.ON else BridgeMode.OFF) }
+			is CoreVpnConfigUpdate.SetBridgeMode -> requireCoreSender { it.setBridgeMode(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDnsEnabled -> requireCoreSender { it.setEnableCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetCustomDns -> requireCoreSender { it.setCustomDns(update.value) }
 			is CoreVpnConfigUpdate.SetAdBlockingEnabled -> requireCoreSender { it.setEnableAdBlocking(update.value) }
