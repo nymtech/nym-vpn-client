@@ -2,10 +2,11 @@ import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonVariant } from '../../ui';
-import { dispatch, useMainState } from '../../store';
+import { dispatch, useAppStore, useMainState } from '../../store';
 import { useConnect, useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
+import { isWireguardData } from '../../types';
 import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
 import { NodeRow } from './NodeRow';
@@ -19,6 +20,23 @@ export function NewBottomComponent() {
   const navigate = useAnimatedNavigate();
   const { t } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
+  const tunnel = useAppStore((s) => s.tunnel);
+  const bridgeMode = useAppStore((s) => s.bridgeMode);
+
+  const entryBridge =
+    tunnel && isWireguardData(tunnel.data)
+      ? tunnel.data.entryBridgeAddr
+      : undefined;
+  const bridgeStatus =
+    state !== 'connected'
+      ? null
+      : entryBridge
+        ? t('connected-via-bridge', {
+            transport: entryBridge.transport.toUpperCase(),
+          })
+        : bridgeMode === 'auto' && tunnel && isWireguardData(tunnel.data)
+          ? t('connected-directly')
+          : null;
 
   const daemonUnavailable =
     daemonStatus === 'auth-denied' || daemonStatus === 'down';
@@ -173,6 +191,11 @@ export function NewBottomComponent() {
             </motion.div>
           </div>
         </div>
+        {bridgeStatus && (
+          <p className="text-brand-primary mb-4 text-start text-xs select-none">
+            {bridgeStatus}
+          </p>
+        )}
         {/* ── Main card ─────────────────────────────────────────────────────── */}
 
         {/* Button ───────────────────────────────────────────────────────── */}

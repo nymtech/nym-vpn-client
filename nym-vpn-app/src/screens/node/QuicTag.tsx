@@ -3,9 +3,10 @@ import { MsIcon } from '../../ui';
 
 type QuicTagProps = {
   className?: string;
+  label?: string;
 };
 
-function QuicTag({ className }: QuicTagProps) {
+function QuicTag({ className, label = 'QUIC' }: QuicTagProps) {
   return (
     <div
       className={clsx(
@@ -19,7 +20,7 @@ function QuicTag({ className }: QuicTagProps) {
         icon="package_2"
         className="text-status-info dark:text-illustration-accent text-base"
       />
-      <p>QUIC</p>
+      <p>{label}</p>
     </div>
   );
 }

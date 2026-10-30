@@ -161,7 +161,7 @@ export function useNodeListData(hop: NodeHop) {
     vpnMode,
     entryNode,
     exitNode,
-    quic,
+    bridgeMode,
     backendFlags,
     mxEntry,
     mxExit,
@@ -180,7 +180,7 @@ export function useNodeListData(hop: NodeHop) {
       vpnMode: s.vpnMode,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
-      quic: s.quic,
+      bridgeMode: s.bridgeMode,
       backendFlags: s.backendFlags,
       mxEntry: s.mxEntry,
       mxExit: s.mxExit,
@@ -198,7 +198,10 @@ export function useNodeListData(hop: NodeHop) {
   );
 
   const quicFilter =
-    vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
+    vpnMode === 'wg' &&
+    hop === 'entry' &&
+    backendFlags.quic &&
+    bridgeMode === 'on';
 
   const nodes = useMemo(() => {
     let rawList: GatewaysByCountry[];
