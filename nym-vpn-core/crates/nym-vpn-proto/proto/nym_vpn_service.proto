@@ -321,7 +321,7 @@ message VpnServiceConfig {
   bool enable_conflict_detection = 33;
   bool residential_exit = 15;
   bool netstack = 13;
-  bool enable_custom_dns = 17;
+  reserved 17; // formerly enable_custom_dns, now CustomDnsSettings.enabled
   CustomDnsSettings custom_dns = 16;
   optional uint32 min_gateway_vpn_performance = 10;
   NetworkStatsConfig network_stats = 18;
@@ -1226,6 +1226,7 @@ message DnsServerList {
 
 message CustomDnsSettings {
   repeated DnsServer dns_servers = 1;
+  bool enabled = 2;
 }
 
 enum PlainDnsProtocol {
@@ -1290,7 +1291,7 @@ service NymVpnService {
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetCustomDns(CustomDnsSettings) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns(DnsServerList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionListenPort(GeoExclusionListenPortRequest) returns (google.protobuf.Empty) {}

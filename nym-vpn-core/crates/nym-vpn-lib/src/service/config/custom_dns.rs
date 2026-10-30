@@ -3,9 +3,11 @@
 
 use std::net::IpAddr;
 
-/// Converts the plain list of DNS server addresses stored by config versions before v15.
-pub fn from_legacy_ips(ips: Vec<IpAddr>) -> nym_vpn_lib_types::CustomDnsSettings {
+/// Converts the custom DNS flag and plain list of DNS server addresses stored by config versions
+/// before v15.
+pub fn from_legacy_ips(enabled: bool, ips: Vec<IpAddr>) -> nym_vpn_lib_types::CustomDnsSettings {
     nym_vpn_lib_types::CustomDnsSettings {
+        enabled,
         dns_servers: ips
             .into_iter()
             .map(|address| nym_vpn_lib_types::DnsServer::Plain {
@@ -24,6 +26,7 @@ pub(crate) mod v15 {
 
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     pub struct CustomDnsSettings {
+        pub enabled: bool,
         pub dns_servers: Vec<DnsServer>,
     }
 
@@ -70,6 +73,7 @@ pub(crate) mod v15 {
     impl From<CustomDnsSettings> for nym_vpn_lib_types::CustomDnsSettings {
         fn from(value: CustomDnsSettings) -> Self {
             Self {
+                enabled: value.enabled,
                 dns_servers: value.dns_servers.into_iter().map(Into::into).collect(),
             }
         }
@@ -145,6 +149,7 @@ pub(crate) mod v15 {
     impl From<&nym_vpn_lib_types::CustomDnsSettings> for CustomDnsSettings {
         fn from(value: &nym_vpn_lib_types::CustomDnsSettings) -> Self {
             Self {
+                enabled: value.enabled,
                 dns_servers: value.dns_servers.iter().map(Into::into).collect(),
             }
         }

@@ -89,7 +89,10 @@ extension MixnetConfig {
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,
-            customDns: CustomDnsSettings(plainDnsAddresses: customDns),
+            customDns: CustomDnsSettings(
+                enabled: !customDns.isEmpty,
+                dnsServers: [DnsServer](plainDnsAddresses: customDns)
+            ),
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: NetworkStatisticsConfig(enabled: isStatisticsEnabled, allowDisconnected: false),
             gatewaySelectionAlgorithmConfig: gatewaySelectionAlgorithmConfig.sdkValue,

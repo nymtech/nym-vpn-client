@@ -970,17 +970,15 @@ impl VpndClient {
         let mut vpnd = self.vpnd().await?;
 
         // The app only supports plain DNS servers on the default port.
-        let custom_dns = lib::CustomDnsSettings {
-            dns_servers: dns
-                .into_iter()
-                .map(|address| lib::DnsServer::Plain {
-                    address,
-                    port: None,
-                    ip_proto: lib::PlainDnsProtocol::UdpAndTcp,
-                })
-                .collect(),
-        };
-        vpnd.set_custom_dns(custom_dns)
+        let dns_servers = dns
+            .into_iter()
+            .map(|address| lib::DnsServer::Plain {
+                address,
+                port: None,
+                ip_proto: lib::PlainDnsProtocol::UdpAndTcp,
+            })
+            .collect();
+        vpnd.set_custom_dns(dns_servers)
             .or_else(async |e| self.handle_rpc_error("set_custom_dns", e).await)
             .await
     }

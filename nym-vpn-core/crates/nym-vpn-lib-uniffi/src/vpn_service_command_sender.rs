@@ -11,11 +11,11 @@ use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    CustomDnsSettings, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags,
-    FrontingMode, Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
-    ParsedAccountLinks, Profile, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
+    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
+    RecentGateways, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState, TunnelType,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -162,7 +162,7 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn set_custom_dns(&self, dns_servers: CustomDnsSettings) -> Result<()> {
+    pub async fn set_custom_dns(&self, dns_servers: Vec<DnsServer>) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
             .await
     }
