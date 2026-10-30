@@ -107,71 +107,19 @@ private extension PacketTunnelProvider {
         }
     }
 
-    // swiftlint:disable:next function_body_length
     func handleStatusMessage() async -> Data? {
         guard let tunnelState = await tunnelActor.tunnelState else { return nil }
         do {
-            var retryAttempt: Int?
-            var afterDisconnectAction: AfterDisconnectAction?
-            var tunnelConnectingState: TunnelConnectingState?
-            var connectionInfoData: ConnectionInfoData?
-            var connectedAt: Date?
-
-            switch tunnelState {
-            case let .connecting(
-                retryAttempt: attempt,
-                state: establishConnectionState,
-                selectorFallbackState: _, // todo: must be used
-                tunnelType: tunnelType,
-                connectionData: connectionData
-            ):
-                retryAttempt = Int(attempt)
-                tunnelConnectingState = TunnelConnectingState(with: establishConnectionState)
-                connectionInfoData = ConnectionInfoData(
-                    entryGatewayId: connectionData?.entryGateway.id,
-                    exitGatewayId: connectionData?.exitGateway.id,
-                    tunnelType: ConnectionTunnelType(tunnelType)
-                )
-            case let .connected(connectionData: connectionData):
-                connectionInfoData = ConnectionInfoData(
-                    entryGatewayId: connectionData.entryGateway.id,
-                    exitGatewayId: connectionData.exitGateway.id,
-                    tunnelType: ConnectionTunnelType(connectionData.tunnel)
-                )
-                connectedAt = Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
-            case let .disconnecting(afterDisconnect: action):
-                afterDisconnectAction = AfterDisconnectAction.convert(from: action)
-                connectionInfoData = nil
-            default:
-                retryAttempt = nil
-                afterDisconnectAction = nil
-                tunnelConnectingState = nil
-                connectionInfoData = nil
-            }
-
-            let state: TunnelStateResponse = switch tunnelState {
-            case .disconnected:
-                .disconnected
-            case .connecting:
-                .connecting(retryAttempt: retryAttempt, state: tunnelConnectingState, connectionInfo: connectionInfoData)
-            case .connected:
-                .connected(connectionInfo: connectionInfoData, connectedAt: connectedAt)
-            case .disconnecting:
-                .disconnecting(afterDisconnect: afterDisconnectAction)
-            case let .error(reason):
-                .error(ErrorReason(with: reason))
-            case let .offline(reconnect):
-                .offline(reconnect: reconnect)
-            }
-
+            // The flat fields are only for apps older than `state`.
+            let state = TunnelStateResponse(tunnelState)
             let statusResponse = await TunnelStatusResponse(
                 status: TunnelStatus(from: tunnelState),
-                retryAttempt: retryAttempt,
-                afterDisconnectAction: afterDisconnectAction,
+                retryAttempt: state.retryAttempt,
+                afterDisconnectAction: state.afterDisconnectAction,
                 lastError: tunnelActor.lastError,
-                tunnelConnectingState: tunnelConnectingState,
-                connectionInfoData: connectionInfoData,
-                connectedAt: connectedAt,
+                tunnelConnectingState: state.tunnelConnectingState,
+                connectionInfoData: state.connectionInfoData,
+                connectedAt: state.connectedAt,
                 state: state
             )
 
@@ -181,6 +129,46 @@ private extension PacketTunnelProvider {
         } catch {
             logger.error("AppMessage: \(error.localizedDescription)")
             return nil
+        }
+    }
+}
+
+private extension TunnelStateResponse {
+    init(_ tunnelState: TunnelState) {
+        switch tunnelState {
+        case .disconnected:
+            self = .disconnected
+        case let .connecting(
+            retryAttempt: attempt,
+            state: establishConnectionState,
+            selectorFallbackState: _, // todo: must be used
+            tunnelType: tunnelType,
+            connectionData: connectionData
+        ):
+            self = .connecting(
+                retryAttempt: Int(attempt),
+                state: TunnelConnectingState(with: establishConnectionState),
+                connectionInfo: ConnectionInfoData(
+                    entryGatewayId: connectionData?.entryGateway.id,
+                    exitGatewayId: connectionData?.exitGateway.id,
+                    tunnelType: ConnectionTunnelType(tunnelType)
+                )
+            )
+        case let .connected(connectionData: connectionData):
+            self = .connected(
+                connectionInfo: ConnectionInfoData(
+                    entryGatewayId: connectionData.entryGateway.id,
+                    exitGatewayId: connectionData.exitGateway.id,
+                    tunnelType: ConnectionTunnelType(connectionData.tunnel)
+                ),
+                connectedAt: Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
+            )
+        case let .disconnecting(afterDisconnect: action):
+            self = .disconnecting(afterDisconnect: AfterDisconnectAction.convert(from: action))
+        case let .error(reason):
+            self = .error(ErrorReason(with: reason))
+        case let .offline(reconnect):
+            self = .offline(reconnect: reconnect)
         }
     }
 }

@@ -228,15 +228,18 @@ private extension Tunnel {
             let decoded: TunnelStatusResponse = try await sendWithResponse(message: .status)
             guard self.isPolling, !Task.isCancelled else { return }
 
-            self.retryAttempt = decoded.retryAttempt
-            self.afterDisconnectAction = decoded.afterDisconnectAction
-            self.tunnelConnectingState = decoded.tunnelConnectingState
-            self.connectionInfoData = decoded.connectionInfoData
-            if self.connectedAt != decoded.connectedAt {
-                self.connectedAt = decoded.connectedAt
+            // `state` is the source of truth; the flat fields are only sent for apps older than it.
+            let state = decoded.state
+            self.retryAttempt = state?.retryAttempt ?? decoded.retryAttempt
+            self.afterDisconnectAction = state?.afterDisconnectAction ?? decoded.afterDisconnectAction
+            self.tunnelConnectingState = state?.tunnelConnectingState ?? decoded.tunnelConnectingState
+            self.connectionInfoData = state?.connectionInfoData ?? decoded.connectionInfoData
+            let newConnectedAt = state?.connectedAt ?? decoded.connectedAt
+            if self.connectedAt != newConnectedAt {
+                self.connectedAt = newConnectedAt
             }
 
-            if let state = decoded.state {
+            if let state {
                 let newStatus = TunnelStatus(state)
                 if newStatus == .error, self.status != .error, case let .error(reason) = state {
                     self.lastError = reason
