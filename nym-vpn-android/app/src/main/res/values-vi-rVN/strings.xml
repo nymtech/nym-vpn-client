@@ -357,7 +357,6 @@
 	<string name="censorship_description">Bật các tính năng này nếu bạn gặp sự cố kết nối hoặc NymVPN bị chặn tại vị trí của bạn.</string>
 	<string name="censorship_learn_more_link_text">Tìm hiểu thêm</string>
 	<string name="censorship_quic_title">Kết nối nâng cao (QUIC)</string>
-	<string name="censorship_quic_description">Cải thiện kết nối trên các mạng bị hạn chế bằng cách tích hợp WireGuard vào QUIC (HTTP/3).\n\nLưu ý: Giới hạn các tùy chọn máy chủ đầu vào chỉ dành cho các máy chủ tương thích với QUIC.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Kết nối API Ẩn danh</string>
 	<string name="censorship_stealth_description">Bảo vệ khỏi việc bị chặn VPN bằng cách sử dụng các tên miền giả. Bật tùy chọn này để sử dụng mọi lúc, hoặc tắt để sử dụng khi các kết nối thông thường gặp sự cố.</string>

@@ -359,7 +359,6 @@
 	<string name="censorship_description">Bağlantı sorunları yaşıyorsanız veya bulunduğunuz lokasyonda NymVPN engeli ile karşılaşıyorsanız, bu özellikleri etkinleştirin.</string>
 	<string name="censorship_learn_more_link_text">Daha fazla bilgi edinin</string>
 	<string name="censorship_quic_title">Geliştirilmiş bağlantı (QUIC)</string>
-	<string name="censorship_quic_description">Kısıtlayıcı ağlarda Hızlı modunun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) içinde paketleyerek normal web trafiği gibi görünmesini sağlar.\n\nNot: Giriş sunucusu seçeneklerini yalnızca QUIC uyumlu sunucular ile sınırlar.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
 	<string name="censorship_stealth_description">Bu özellik, VPN bağlantınız engellendiğinde alternatif alan adları kullanarak erişim sağlar. Modu \"Her zaman açık\" veya \"Bağlantı hatasında etkinleştir\" olarak ayarlayabilirsiniz.</string>

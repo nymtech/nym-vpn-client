@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `delete_account` command that deletes the account through the VPN API and removes local account data (https://github.com/nymtech/nym-vpn-client/pull/6790)
 - Add a `SetBridgeMode` gRPC call and `vpnc tunnel set --bridge-mode` to choose the bridge mode (auto, on or off), replacing the `SetEnableBridges` gRPC call and `vpnc tunnel set --circumvention-transports`, which are removed (breaking: an older desktop app calling `SetEnableBridges` against this daemon gets UNIMPLEMENTED)
 - Add `--wait` to `nym-vpnc reconnect` to block until the tunnel has reconnected or failed (https://github.com/nymtech/nym-vpn-client/pull/6849)
-- `bridge_transports.enabled` feature flag (`FeatureFlags::bridge_transports_enabled`, uniffi `is_bridge_transports_enabled`) for letting bridges fall back from QUIC to TLS and SSH
-- `BridgeAddress` in the connection data carries the bridge transport in use (`transport`: QUIC, TLS or SSH), optional so older daemons and unknown transports read as unset
+- `bridge_transports.enabled` feature flag (`FeatureFlags::bridge_transports_enabled`, uniffi `is_bridge_transports_enabled`) for the v2 bridge transports (TLS and SSH after QUIC). Bridges and QUIC do not depend on it
+- `BridgeAddress` in the connection data carries the bridge transport in use (`transport`: QUIC, TLS or SSH)
 - When the `bridge_transports.enabled` feature flag is on, a bridge connection tries QUIC for 3 seconds, then races the entry gateway's TLS and SSH bridges. The firewall allows only the bridges being tried, QUIC over UDP and TLS and SSH over TCP, in both the connecting and connected states. With the flag off or unset, QUIC only as before
 
 ### Changed
