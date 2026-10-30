@@ -60,23 +60,22 @@ impl ConnectedState {
         shared_state.clear_android_blocking_tun();
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let wg_entry_endpoint = if let TunnelConnectionData::Wireguard(ref wg) =
-            connection_data.tunnel
-        {
-            // The bridge address is only set when the tunnel connected over a bridge.
-            Some(wg.entry_bridge_addr.as_ref().map_or(
-                Endpoint::from_socket_address(wg.entry.endpoint, TransportProtocol::Udp),
-                |addr| {
-                    let protocol = match addr.transport {
-                        Some(BridgeTransport::Tls | BridgeTransport::Ssh) => TransportProtocol::Tcp,
-                        Some(BridgeTransport::Quic) | None => TransportProtocol::Udp,
-                    };
-                    Endpoint::from_socket_address(addr.remote_addr, protocol)
-                },
-            ))
-        } else {
-            None
-        };
+        let wg_entry_endpoint =
+            if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
+                // The bridge address is only set when the tunnel connected over a bridge.
+                Some(wg.entry_bridge_addr.as_ref().map_or(
+                    Endpoint::from_socket_address(wg.entry.endpoint, TransportProtocol::Udp),
+                    |addr| {
+                        let protocol = match addr.transport {
+                            BridgeTransport::Tls | BridgeTransport::Ssh => TransportProtocol::Tcp,
+                            BridgeTransport::Quic => TransportProtocol::Udp,
+                        };
+                        Endpoint::from_socket_address(addr.remote_addr, protocol)
+                    },
+                ))
+            } else {
+                None
+            };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
