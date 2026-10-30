@@ -12632,7 +12632,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC."
+            "value" : "Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC"
           }
         },
         "es" : {
@@ -14190,7 +14190,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beta version: China only for now. More regions coming."
+            "value" : "China only. More regions coming."
           }
         }
       }
