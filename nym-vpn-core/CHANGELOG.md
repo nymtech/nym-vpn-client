@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Read gateway bridge transports from `transports_v2` (falling back to `transports` for older bridges), skipping transport types this build does not know, so gateways can advertise TLS, SSH and future transports without breaking the gateway list
 - `nym-vpnc reconnect` now fails when the daemon rejects the reconnect because the tunnel is not set to connect (https://github.com/nymtech/nym-vpn-client/pull/6849)
 - `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- `nym-vpnc dns set` no longer accepts positional argument to configure plain DNS. Use one of the following arguments instead: `--plain`, `--tcp` or `--udp` (https://github.com/nymtech/nym-vpn-client/pull/6876)
 
 ### Fixed
 
