@@ -66,7 +66,7 @@ use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
+        Result, SetCustomDnsError, SetNetworkError,
     },
     socks5::Socks5EnableConfig,
     socks5_idle_timeout, socks5_request_timeout,
@@ -114,7 +114,10 @@ pub enum VpnServiceCommand {
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
-    SetCustomDns(oneshot::Sender<()>, Vec<DnsServer>),
+    SetCustomDns(
+        oneshot::Sender<Result<(), SetCustomDnsError>>,
+        Vec<DnsServer>,
+    ),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetEnableGatewayIndependence(oneshot::Sender<()>, bool),
@@ -1084,8 +1087,7 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetCustomDns(tx, dns_servers) => {
-                self.handle_set_custom_dns(dns_servers).await;
-                let _ = tx.send(());
+                let _ = tx.send(self.handle_set_custom_dns(dns_servers).await);
             }
             VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
                 let res = self
@@ -1459,7 +1461,26 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_set_custom_dns(&mut self, dns_servers: Vec<DnsServer>) {
+    async fn handle_set_custom_dns(
+        &mut self,
+        mut dns_servers: Vec<DnsServer>,
+    ) -> Result<(), SetCustomDnsError> {
+        const MAX_CUSTOM_DNS_SERVERS: usize = 5;
+
+        if dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
+            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
+            dns_servers.truncate(MAX_CUSTOM_DNS_SERVERS);
+        }
+
+        // Ensure that server name is not set to empty string
+        for dns_server in dns_servers.iter() {
+            if dns_server.is_empty_server_name() {
+                return Err(SetCustomDnsError::EmptyServerName {
+                    addr: dns_server.address(),
+                });
+            }
+        }
+
         if self.config_manager.set_custom_dns(dns_servers).await {
             let config = self.config_manager.config();
             // Only issue reconnect if custom DNS is enabled
@@ -1467,6 +1488,8 @@ impl NymVpnService {
                 self.update_tunnel_settings_with_throttle();
             }
         }
+
+        Ok(())
     }
 
     async fn handle_set_mixnet_traffic_config(

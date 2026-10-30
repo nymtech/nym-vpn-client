@@ -30,8 +30,6 @@ use crate::{
     },
 };
 
-const MAX_CUSTOM_DNS_SERVERS: usize = 5;
-
 pub struct VpnServiceConfigManager {
     json_config_path: Option<PathBuf>,
     config: Box<nym_vpn_lib_types::VpnServiceConfig>,
@@ -205,12 +203,7 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_custom_dns(&mut self, mut dns_servers: Vec<DnsServer>) -> bool {
-        if dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
-            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
-            dns_servers.truncate(MAX_CUSTOM_DNS_SERVERS);
-        }
-
+    pub async fn set_custom_dns(&mut self, dns_servers: Vec<DnsServer>) -> bool {
         if self.config.custom_dns.dns_servers == dns_servers {
             false
         } else {
