@@ -81,7 +81,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             residential_exit: value.residential_exit,
             mixnet_traffic,
             enable_custom_dns: value.enable_custom_dns,
-            custom_dns,
+            custom_dns: super::custom_dns::from_legacy_ips(custom_dns),
             network_stats,
             ..Default::default()
         };

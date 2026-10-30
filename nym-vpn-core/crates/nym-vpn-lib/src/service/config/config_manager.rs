@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    net::IpAddr,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -10,9 +9,9 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
+use nym_vpn_lib_types::{CustomDnsSettings, MixnetTrafficConfigValidationError};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -30,6 +29,8 @@ use crate::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
+
+const MAX_CUSTOM_DNS_SERVERS: usize = 5;
 
 pub struct VpnServiceConfigManager {
     json_config_path: Option<PathBuf>,
@@ -204,7 +205,12 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) -> bool {
+    pub async fn set_custom_dns(&mut self, mut custom_dns: CustomDnsSettings) -> bool {
+        if custom_dns.dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
+            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
+            custom_dns.dns_servers.truncate(MAX_CUSTOM_DNS_SERVERS);
+        }
+
         if self.config.custom_dns == custom_dns {
             false
         } else {
@@ -539,7 +545,8 @@ impl VpnServiceConfigManager {
             nym_vpn_lib_types::TunnelType::Mixnet
         };
 
-        let dns = if self.config.enable_custom_dns && !self.config.custom_dns.is_empty() {
+        let dns = if self.config.enable_custom_dns && !self.config.custom_dns.dns_servers.is_empty()
+        {
             DnsOptions::Custom(self.config.custom_dns.clone())
         } else {
             DnsOptions::default()

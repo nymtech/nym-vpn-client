@@ -50,7 +50,7 @@ pub struct VpnServiceConfig {
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
     pub enable_custom_dns: bool,
-    pub custom_dns: Vec<IpAddr>,
+    pub custom_dns: CustomDnsSettings,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
@@ -85,13 +85,8 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
         writeln!(
             f,
-            "enable_custom_dns: {}, custom_dns: {}",
-            self.enable_custom_dns,
-            self.custom_dns
-                .iter()
-                .map(|ip| ip.to_string())
-                .collect::<Vec<_>>()
-                .join(", ")
+            "enable_custom_dns: {}, custom_dns: {:?}",
+            self.enable_custom_dns, self.custom_dns.dns_servers
         )?;
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
@@ -129,7 +124,7 @@ impl Default for VpnServiceConfig {
             min_gateway_vpn_performance: None,
             residential_exit: false,
             enable_custom_dns: false,
-            custom_dns: vec![],
+            custom_dns: CustomDnsSettings::default(),
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
@@ -586,6 +581,90 @@ impl Default for GeoExclusionSettings {
             enabled: false,
             listen_port: 1081,
             excluded_countries: vec!["CN".to_string()],
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct CustomDnsSettings {
+    pub dns_servers: Vec<DnsServer>,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum PlainDnsProtocol {
+    Udp,
+    Tcp,
+    UdpAndTcp,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum DnsServer {
+    Plain {
+        address: IpAddr,
+        port: Option<u16>,
+        ip_proto: PlainDnsProtocol,
+    },
+    Tls {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+    },
+    Https {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+        /// Defaults to '/dns-query' when unspecified
+        query_path: Option<String>,
+    },
+    Quic {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+    },
+    Http3 {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+        /// Defaults to '/dns-query' when unspecified
+        query_path: Option<String>,
+    },
+}
+
+impl DnsServer {
+    pub fn address(&self) -> IpAddr {
+        match self {
+            Self::Plain { address, .. } => *address,
+            Self::Tls { address, .. } => *address,
+            Self::Https { address, .. } => *address,
+            Self::Quic { address, .. } => *address,
+            Self::Http3 { address, .. } => *address,
         }
     }
 }

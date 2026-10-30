@@ -115,10 +115,6 @@ message Dns {
   optional string ip = 1;
 }
 
-message IpAddrList {
-  repeated IpAddr ips = 1;
-}
-
 message StringList {
   repeated string values = 1;
 }
@@ -326,7 +322,7 @@ message VpnServiceConfig {
   bool residential_exit = 15;
   bool netstack = 13;
   bool enable_custom_dns = 17;
-  IpAddrList custom_dns = 16;
+  CustomDnsSettings custom_dns = 16;
   optional uint32 min_gateway_vpn_performance = 10;
   NetworkStatsConfig network_stats = 18;
   MixnetTrafficConfig mixnet_traffic = 25;
@@ -1224,6 +1220,57 @@ message GetRecentGatewaysParams {
   TunnelType tunnel_type = 1;
 }
 
+message DnsServerList {
+  repeated DnsServer servers = 1;
+}
+
+message CustomDnsSettings {
+  repeated DnsServer dns_servers = 1;
+}
+
+enum PlainDnsProtocol {
+  PLAIN_DNS_PROTOCOL_UDP = 0;
+  PLAIN_DNS_PROTOCOL_TCP = 1;
+  PLAIN_DNS_PROTOCOL_UDP_AND_TCP = 2;
+}
+
+message DnsServer {
+    message PlainDns {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        PlainDnsProtocol ip_proto = 3;
+    }
+    message DnsOverTls {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+    }
+    message DnsOverHttps {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+        optional string query_path = 4;
+    }
+    message DnsOverQuic {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+    }
+    message DnsOverHttp3 {
+        IpAddr address = 1;
+        optional uint32 port = 2;
+        string server_name = 3;
+        optional string query_path = 4;
+    }
+    oneof server {
+      PlainDns plain = 1;
+      DnsOverTls tls = 2;
+      DnsOverHttps https = 3;
+      DnsOverQuic quic = 4;
+      DnsOverHttp3 http3 = 5;
+    }
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1243,7 +1290,7 @@ service NymVpnService {
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetCustomDns(IpAddrList) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns(CustomDnsSettings) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGeoExclusionListenPort(GeoExclusionListenPortRequest) returns (google.protobuf.Empty) {}
@@ -1266,7 +1313,7 @@ service NymVpnService {
   rpc GetFeatureFlags(google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
   // Get the default DNS used by the daemon
-  rpc GetDefaultDns(google.protobuf.Empty) returns (IpAddrList) {}
+  rpc GetDefaultDns(google.protobuf.Empty) returns (DnsServerList) {}
 
   // Connect the tunnel
   rpc ConnectTunnel(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

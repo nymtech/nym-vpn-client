@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-
 use futures::{StreamExt, stream::BoxStream};
 use nym_ipc::AuthenticationMaterial;
 use tokio::{
@@ -19,8 +17,8 @@ use tonic::{Request, Response, Status, transport::Server};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
-    LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
+    CustomDnsSettings, EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams,
+    ListGatewaysOptions, LookupGatewayFilters, ProfileOptions, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -285,9 +283,9 @@ impl NymVpnService for CommandInterface {
 
     async fn set_custom_dns(
         &self,
-        request: tonic::Request<proto::IpAddrList>,
+        request: tonic::Request<proto::CustomDnsSettings>,
     ) -> Result<tonic::Response<()>> {
-        let custom_dns: Vec<IpAddr> = request
+        let custom_dns: CustomDnsSettings = request
             .into_inner()
             .try_into()
             .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
@@ -506,12 +504,11 @@ impl NymVpnService for CommandInterface {
     async fn get_default_dns(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::IpAddrList>> {
-        let dns_ips = self
+    ) -> Result<tonic::Response<proto::DnsServerList>> {
+        let servers = self
             .send_and_wait(VpnServiceCommand::GetDefaultDns, ())
             .await?;
-        let ipaddr_list = proto::IpAddrList::from(dns_ips);
-        Ok(tonic::Response::new(ipaddr_list))
+        Ok(tonic::Response::new(proto::DnsServerList::from(servers)))
     }
 
     async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<bool>> {

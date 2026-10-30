@@ -8121,6 +8121,7 @@ dependencies = [
  "tabled",
  "tokio",
  "tokio-stream",
+ "url",
 ]
 
 [[package]]
