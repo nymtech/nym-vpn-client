@@ -49,17 +49,6 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D9EACBC22BBFFE340094CDDF"
-               BuildableName = "NymVPNTests.xctest"
-               BlueprintName = "NymVPNTests"
-               ReferencedContainer = "container:NymVPN.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "D9EACBD22BC016D60094CDDF"
                BuildableName = "NymVPNUITests.xctest"
                BlueprintName = "NymVPNUITests"
