@@ -59,11 +59,13 @@ function useExpiryReminder(): ExpiryReminderDialogProps {
   const accountSummary = useAppStore((s) => s.accountSummary);
   const { t } = useTranslation('notifications');
   const navigate = useNavigate();
-  // The reminder currently on screen and its key.
+  // The reminder on screen and its key. Kept after closing so the dialog keeps
+  // its text during the fade-out; `open` alone drives visibility.
   const [current, setCurrent] = useState<{
     reminder: ExpiryReminder;
     key: string;
   } | null>(null);
+  const [open, setOpen] = useState(false);
   // Mirror of what's on screen (key + remaining count), so a re-render doesn't
   // re-trigger work; and the last key the user acted on, covering the window
   // before the KV write lands.
@@ -75,7 +77,7 @@ function useExpiryReminder(): ExpiryReminderDialogProps {
     if (reminder.tier === 'none') {
       // Renewed, logged out or otherwise no longer due.
       displayedRef.current = null;
-      setCurrent(null);
+      setOpen(false);
       return;
     }
 
@@ -97,6 +99,7 @@ function useExpiryReminder(): ExpiryReminderDialogProps {
       }
       displayedRef.current = { key, count: reminder.count };
       setCurrent({ reminder, key });
+      setOpen(true);
     });
 
     return () => {
@@ -110,7 +113,7 @@ function useExpiryReminder(): ExpiryReminderDialogProps {
     displayedRef.current = null;
     actedKeyRef.current = key;
     void kvSet('expiry-reminder-shown', key);
-    setCurrent(null);
+    setOpen(false);
   };
 
   const onClose = () => {
@@ -131,14 +134,12 @@ function useExpiryReminder(): ExpiryReminderDialogProps {
 
   const reminder = current?.reminder ?? null;
   return {
-    isOpen: reminder !== null,
+    isOpen: open && reminder !== null,
     title: reminder ? reminderTitle(t, reminder) : '',
     body: reminder ? reminderBody(t, reminder) : '',
-    actionLabel: reminder
-      ? reminder.isFreepass
-        ? t('renewal-reminder.action.get-plan')
-        : t('renewal-reminder.action.renew')
-      : '',
+    actionLabel: reminder?.isFreepass
+      ? t('renewal-reminder.action.get-plan')
+      : t('renewal-reminder.action.renew'),
     dismissLabel: t('renewal-reminder.action.not-now'),
     onAction,
     onClose,
