@@ -37,7 +37,8 @@ extension AppleIdSubscriptionState {
         }
     }
 
-    /// Buying from this state can only be another uncharged plan change against the other account.
+    /// Apple purchases are blocked in this state: a downgrade or re-enabled auto-renew is uncharged and gives
+    /// this account nothing, an upgrade would move the subscription away from the other account.
     var blocksPlanPurchase: Bool {
         if case .onAnotherAccount = self { return true }
         return false

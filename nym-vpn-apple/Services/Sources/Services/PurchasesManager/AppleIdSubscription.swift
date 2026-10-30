@@ -35,7 +35,9 @@ public enum AppleIdSubscriptionState: Equatable, Sendable {
     /// The Apple ID paid for this account but the backend has not confirmed it yet (lag or a lost webhook).
     case confirmingPayment
     /// The Apple ID's subscription pays for another NymVPN account. `switchesToThisAccountOn` is set when
-    /// this account chose the next renewal and it will renew; buying here can only be another uncharged plan change.
+    /// this account chose the next renewal and it will renew. Apple purchases are blocked here: a downgrade or
+    /// re-enabled auto-renew is uncharged and gives this account nothing, an upgrade would move the subscription
+    /// away from the other account.
     case onAnotherAccount(activeUntil: Date, switchesToThisAccountOn: Date?)
 }
 
