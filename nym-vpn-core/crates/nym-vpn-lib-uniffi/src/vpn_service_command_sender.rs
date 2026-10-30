@@ -5,7 +5,8 @@ use std::sync::Arc;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib::service::{
-    AccountLinksError, GeoExclusionConfigError, ListGatewaysError, VpnServiceCommand,
+    AccountLinksError, GeoExclusionConfigError, ListGatewaysError, SetCustomDnsError,
+    VpnServiceCommand,
 };
 use tokio::sync::{mpsc, oneshot};
 
@@ -25,6 +26,7 @@ enum NymVpnServiceCommandInnerError {
     Account(#[source] AccountCommandError),
     AccountLinks(#[source] AccountLinksError),
     GeoExclusionConfig(#[source] GeoExclusionConfigError),
+    SetCustomDns(#[source] SetCustomDnsError),
 }
 
 impl NymVpnServiceCommandInnerError {
@@ -35,6 +37,7 @@ impl NymVpnServiceCommandInnerError {
             Self::Account(err) => err.display_chain(),
             Self::AccountLinks(err) => err.display_chain(),
             Self::GeoExclusionConfig(err) => err.display_chain(),
+            Self::SetCustomDns(err) => err.display_chain(),
         }
     }
 }
@@ -47,6 +50,7 @@ impl std::fmt::Display for NymVpnServiceCommandInnerError {
             Self::Account(err) => write!(f, "{}", err),
             Self::AccountLinks(err) => write!(f, "{}", err),
             Self::GeoExclusionConfig(err) => write!(f, "{}", err),
+            Self::SetCustomDns(err) => write!(f, "{}", err),
         }
     }
 }
@@ -163,8 +167,10 @@ impl NymVpnServiceCommandSender {
     }
 
     pub async fn set_custom_dns(&self, dns_servers: Vec<DnsServer>) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
-            .await
+        Ok(self
+            .send_and_wait(VpnServiceCommand::SetCustomDns, dns_servers)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::SetCustomDns)?)
     }
 
     pub async fn set_enable_gateway_independence(
