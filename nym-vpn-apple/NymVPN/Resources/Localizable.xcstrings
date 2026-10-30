@@ -24184,6 +24184,17 @@
         }
       }
     },
+    "renewalReminder.action.notNow" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        }
+      }
+    },
     "renewalReminder.action.renew" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -24191,6 +24202,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Renew now"
+          }
+        }
+      }
+    },
+    "renewalReminder.body.freepass" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get a plan to keep your protection."
+          }
+        }
+      }
+    },
+    "renewalReminder.body.subscription" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renew now to stay protected without interruption."
           }
         }
       }

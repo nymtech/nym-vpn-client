@@ -46,6 +46,9 @@ import GRPCManager
     var deviceIdentifier: String?
     var accountSummaryFetchFailed = false
 
+    // The upcoming-expiry renewal reminder presented as an alert, or nil when none.
+    var presentedExpiryReminder: ExpiryReminderPresentation?
+
     var purchaseTransitionOverlayVisible: Bool {
         DrawerSessionPolicy.showsPurchaseTransitionOverlay(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
@@ -62,7 +65,6 @@ import GRPCManager
     }
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
-    @ObservationIgnored private var reminderItemID: UUID?
     @ObservationIgnored private var reminderKey: String?
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
     @ObservationIgnored private var pendingPostDisconnectAccountRefresh: Task<Void, Never>?
@@ -489,25 +491,20 @@ private extension AppFeatureViewModel {
     }
 
     /// Reconciles the upcoming-expiry renewal reminder against the current account
-    /// state on every summary refresh: shows the right tier's sticky snackbar when
-    /// one is due and not already shown/dismissed, and **retracts** a presented
-    /// reminder once it is no longer justified (renewed elsewhere, logged out, tier
-    /// changed). Reconciling — rather than firing once — is what lets it survive a
-    /// `SnackbarManager.clear()` (connect/disconnect/network flaps call it): the next
-    /// refresh re-enqueues because the item is no longer `current`. Note the re-arm
-    /// cadence is therefore the summary-refresh cadence — after a `clear()` a due
-    /// reminder stays absent until the next account-summary emission (launch, foreground,
-    /// post-disconnect refresh), which is acceptable here (no timer).
+    /// state on every summary refresh: presents the right tier's alert when one is due
+    /// and not already shown/dismissed, and retracts a presented reminder once it is no
+    /// longer justified (renewed elsewhere, logged out, tier changed). Unlike the
+    /// snackbar it replaces, the alert is driven by `presentedExpiryReminder` and is not
+    /// wiped by `SnackbarManager.clear()`, so no re-arm after a clear is needed.
     ///
     /// Subscriptions get "Renew now"; free passes get "Get a plan" — both route to
     /// the same purchase/renew entry. Suppression is per tier + expiry window.
     func updateExpiryReminder() {
         let desired = desiredExpiryReminder()
 
-        // Retract a presented/queued reminder that no longer matches what's wanted.
-        if let shownKey = reminderKey, shownKey != desired?.key, let id = reminderItemID {
-            snackbarManager.dismiss(id: id)
-            reminderItemID = nil
+        // Retract a presented reminder that no longer matches what's wanted.
+        if let shownKey = reminderKey, shownKey != desired?.key {
+            presentedExpiryReminder = nil
             reminderKey = nil
         }
 
@@ -518,77 +515,70 @@ private extension AppFeatureViewModel {
            appSettings.expiryReminderDismissedValidUntil == desired.validUntil {
             return
         }
-        // Still on screen for this key — nothing to do. (If it was cleared, `current`
-        // no longer carries our id, so we fall through and re-enqueue.)
-        if reminderKey == desired.key, let id = reminderItemID, snackbarManager.current?.id == id {
+
+        // Already presenting this reminder — nothing to do.
+        if reminderKey == desired.key, presentedExpiryReminder != nil {
             return
         }
 
-        // Retract the previously tracked item before enqueuing its replacement. When it
-        // is sitting in the queue (behind another snackbar) rather than being `current`,
-        // skipping this would orphan a duplicate that nothing tracks — leaving unbounded
-        // sticky copies and a stale reminder that survives a renewal. A no-op when the
-        // item was already cleared or dismissed.
-        if let previous = reminderItemID {
-            snackbarManager.dismiss(id: previous)
-        }
-
-        let id = UUID()
-        reminderItemID = id
         reminderKey = desired.key
-        snackbarManager.enqueue(
-            SnackbarItem(
-                id: id,
-                style: expiryReminderStyle(for: desired.tier),
-                title: expiryReminderTitle(tier: desired.tier, isFreepass: desired.isFreepass),
-                actionTitle: desired.isFreepass
-                    ? "renewalReminder.action.getPlan".localizedString
-                    : "renewalReminder.action.renew".localizedString,
-                onAction: { [weak self] in
-                    self?.requestInactiveSubscriptionPurchase()
-                },
-                onDismiss: { [weak self] in
-                    guard let self else { return }
-                    self.appSettings.expiryReminderDismissedTier = desired.tier.rawValue
-                    self.appSettings.expiryReminderDismissedValidUntil = desired.validUntil
-                },
-                duration: nil
-            )
-        )
+        presentedExpiryReminder = desired
     }
 
-    private struct DesiredExpiryReminder {
+    /// The user tapped the reminder's action button: route to the purchase/renew entry.
+    /// Not persisted as a dismissal, so backing out of purchase re-presents it.
+    func expiryReminderActionTapped() {
+        presentedExpiryReminder = nil
+        reminderKey = nil
+        requestInactiveSubscriptionPurchase()
+    }
+
+    /// The user dismissed the reminder ("Not now"): suppress it for this exact tier +
+    /// expiry window. Takes the presented value directly so it is robust to the alert's
+    /// `isPresented` binding clearing `presentedExpiryReminder` first.
+    func expiryReminderDismissed(_ reminder: ExpiryReminderPresentation) {
+        appSettings.expiryReminderDismissedTier = reminder.tier.rawValue
+        appSettings.expiryReminderDismissedValidUntil = reminder.validUntil
+        presentedExpiryReminder = nil
+        reminderKey = nil
+    }
+
+    struct ExpiryReminderPresentation {
         let key: String
         let tier: ExpiryReminderTier
         let isFreepass: Bool
         let validUntil: Double
+
+        var title: String {
+            "renewalReminder.\(tier.rawValue).\(planSuffix).title".localizedString
+        }
+
+        var message: String {
+            "renewalReminder.body.\(planSuffix)".localizedString
+        }
+
+        var actionTitle: String {
+            isFreepass
+                ? "renewalReminder.action.getPlan".localizedString
+                : "renewalReminder.action.renew".localizedString
+        }
+
+        private var planSuffix: String {
+            isFreepass ? "freepass" : "subscription"
+        }
     }
 
-    private func desiredExpiryReminder() -> DesiredExpiryReminder? {
+    private func desiredExpiryReminder() -> ExpiryReminderPresentation? {
         guard let summary = credentialsManager.accountSummary else { return nil }
         let tier = summary.expiryReminderTier()
         guard tier != .none else { return nil }
         let validUntil = summary.validUntilDate?.timeIntervalSince1970 ?? 0
-        return DesiredExpiryReminder(
+        return ExpiryReminderPresentation(
             key: "\(tier.rawValue)|\(validUntil)",
             tier: tier,
             isFreepass: summary.isFreepassPlan,
             validUntil: validUntil
         )
-    }
-
-    private func expiryReminderStyle(for tier: ExpiryReminderTier) -> SnackbarItem.Style {
-        switch tier {
-        case .hour24, .expired:
-            return .critical
-        default:
-            return .warning
-        }
-    }
-
-    private func expiryReminderTitle(tier: ExpiryReminderTier, isFreepass: Bool) -> String {
-        let planSuffix = isFreepass ? "freepass" : "subscription"
-        return "renewalReminder.\(tier.rawValue).\(planSuffix).title".localizedString
     }
 
     func applyAuthRoute(_ route: AuthCompletionRoute) {
