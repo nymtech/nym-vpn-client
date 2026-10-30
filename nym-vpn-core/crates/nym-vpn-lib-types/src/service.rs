@@ -694,6 +694,20 @@ impl DnsServer {
         self.server_name().is_some_and(|v| v.is_empty())
     }
 
+    /// Replaces port 0 with `None` so that the default port is used
+    pub fn normalize_port(&mut self) {
+        let port = match self {
+            Self::Plain { port, .. }
+            | Self::Tls { port, .. }
+            | Self::Https { port, .. }
+            | Self::Quic { port, .. }
+            | Self::Http3 { port, .. } => port,
+        };
+        if *port == Some(0) {
+            *port = None;
+        }
+    }
+
     /// Prepends `/` to the query path if it's missing
     pub fn normalize_query_path(&mut self) {
         let query_path = match self {
@@ -852,6 +866,50 @@ mod tests {
             port: None,
             server_name: "dns.example".to_owned(),
             query_path: query_path.map(str::to_owned),
+        }
+    }
+
+    #[test]
+    fn normalize_port() {
+        let address = IpAddr::V4(Ipv4Addr::LOCALHOST);
+        let server_name = "dns.example".to_owned();
+        let make_all = |port: Option<u16>| {
+            [
+                DnsServer::Plain {
+                    address,
+                    port,
+                    ip_proto: PlainDnsProtocol::UdpAndTcp,
+                },
+                DnsServer::Tls {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                },
+                DnsServer::Https {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                    query_path: None,
+                },
+                DnsServer::Quic {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                },
+                DnsServer::Http3 {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                    query_path: None,
+                },
+            ]
+        };
+
+        for (input, expected) in [(None, None), (Some(0), None), (Some(5353), Some(5353))] {
+            for (mut server, expected) in make_all(input).into_iter().zip(make_all(expected)) {
+                server.normalize_port();
+                assert_eq!(server, expected);
+            }
         }
     }
 

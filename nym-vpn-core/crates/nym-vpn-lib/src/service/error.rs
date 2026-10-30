@@ -14,6 +14,9 @@ use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError}
 pub enum SetCustomDnsError {
     #[error("Empty server name is not supported ({addr})")]
     EmptyServerName { addr: IpAddr },
+
+    #[error("Too many DNS servers ({count}), at most {max} are supported")]
+    TooManyServers { count: usize, max: usize },
 }
 
 #[derive(Debug, thiserror::Error)]

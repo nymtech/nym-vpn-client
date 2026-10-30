@@ -1468,8 +1468,10 @@ impl NymVpnService {
         const MAX_CUSTOM_DNS_SERVERS: usize = 5;
 
         if dns_servers.len() > MAX_CUSTOM_DNS_SERVERS {
-            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
-            dns_servers.truncate(MAX_CUSTOM_DNS_SERVERS);
+            return Err(SetCustomDnsError::TooManyServers {
+                count: dns_servers.len(),
+                max: MAX_CUSTOM_DNS_SERVERS,
+            });
         }
 
         // Ensure that server name is not set to empty string
@@ -1479,6 +1481,7 @@ impl NymVpnService {
                     addr: dns_server.address(),
                 });
             }
+            dns_server.normalize_port();
             dns_server.normalize_query_path();
         }
 
