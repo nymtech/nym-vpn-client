@@ -178,13 +178,28 @@
   "anti-censorship": {
     "title": "Anti-censorship",
     "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",
-    "quic": {
-      "label": "Enhanced connection (QUIC)",
+    "bridge-mode": {
+      "label": "Enhanced connection",
       "warning": "Changes will apply after reconnect",
       "content": "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).",
-      "bridges": "Tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.",
+      "content-transports": "Improves connections on restricted networks by wrapping WireGuard in a bridge. When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.",
+      "options": {
+        "off": {
+          "label": "Off",
+          "desc": "Connect directly without a bridge."
+        },
+        "auto": {
+          "label": "Auto",
+          "desc": "Connect directly first, and use a bridge if that fails."
+        },
+        "on": {
+          "label": "On",
+          "desc": "Always use a bridge. Only servers that offer one can be chosen as the entry server."
+        }
+      },
       "link": "Learn more",
-      "error": "Failed to enable QUIC"
+      "error": "Failed to change the enhanced connection setting",
+      "snackbar": "The enhanced connection setting will apply when you reconnect."
     },
     "stealth-api": {
       "label": "Stealth API connect",
@@ -196,9 +211,7 @@
       "label": "Minimal obfuscation (AmneziaWG)",
       "content": "Disguises WireGuard traffic with decoy packets to prevent VPN blocking.",
       "link": "Learn more"
-    },
-    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
-    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
+    }
   },
   "display-theme": "Display mode",
   "language-system": "System language",

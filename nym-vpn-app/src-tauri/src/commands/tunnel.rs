@@ -8,7 +8,7 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, FrontingMode, Profile, SplitApp, TunnelState},
+        tunnel::{BridgeMode, ConnectingState, FrontingMode, Profile, SplitApp, TunnelState},
     },
 };
 use std::net::IpAddr;
@@ -58,7 +58,7 @@ pub async fn connect(
         info!("vpn mode: {}", config.vpn_mode);
         info!("entry node: {}", config.entry_node);
         info!("exit node: {}", config.exit_node);
-        info!("QUIC mode: {}", config.bridges);
+        info!("bridge mode: {:?}", config.bridge_mode);
         info!("fronting mode: {}", config.fronting_mode.to_string());
         info!("allow LAN: {}", config.allow_lan);
         info!("no IPv6: {}", config.disable_ipv6);
@@ -148,8 +148,11 @@ pub async fn set_node(
 
 #[instrument(skip(vpnd))]
 #[tauri::command]
-pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
-    vpnd.set_quic(enabled).await?;
+pub async fn set_bridge_mode(
+    vpnd: State<'_, VpndClient>,
+    mode: BridgeMode,
+) -> Result<(), BackendError> {
+    vpnd.set_bridge_mode(mode).await?;
     Ok(())
 }
 
