@@ -132,6 +132,7 @@ impl Machine {
     }
 
     fn enter(&mut self, phase: Phase) -> Effect {
+        tracing::debug!("Set new phase: {:?}", self.phase);
         self.phase = phase;
         Effect::StateChanged(self.service_state())
     }
@@ -148,11 +149,17 @@ impl Machine {
     }
 
     pub fn on_daemon_state(&mut self, state: &TunnelState) -> Vec<Effect> {
+        tracing::info!("Received daemon state: {state:?}, phase: {:?}", self.phase);
+
         match self.phase {
             Phase::Starting => match state {
                 TunnelState::Connected { connection_data } => {
+                    tracing::info!("Phase::Starting: Connected!");
                     match external_gateway(connection_data) {
-                        Ok(gateway) => vec![Effect::Config(gateway), self.enter(Phase::Started)],
+                        Ok(gateway) => {
+                            tracing::info!("Phase::Started: Effect(gateway = {gateway})");
+                            vec![Effect::Config(gateway), self.enter(Phase::Started)]
+                        }
                         Err(err) => {
                             tracing::error!("{err}");
                             self.fail(failure::BAD_IP_CONFIG)
@@ -164,8 +171,12 @@ impl Machine {
             },
             Phase::Started => match state {
                 TunnelState::Connected { connection_data } => {
+                    tracing::info!("Phase::Started: Connected!");
                     match external_gateway(connection_data) {
-                        Ok(gateway) => vec![Effect::Config(gateway)],
+                        Ok(gateway) => {
+                            tracing::info!("Phase::Started: Effect(gateway = {gateway})");
+                            vec![Effect::Config(gateway)]
+                        }
                         Err(err) => {
                             tracing::error!("{err}");
                             vec![]
@@ -181,8 +192,14 @@ impl Machine {
                 state if is_terminal(state) => vec![self.enter(Phase::Stopped)],
                 _ => vec![],
             },
-            Phase::Stopping if is_terminal(state) => vec![self.enter(Phase::Stopped)],
-            _ => vec![],
+            Phase::Stopping => {
+                if is_terminal(state) {
+                    vec![self.enter(Phase::Stopped)]
+                } else {
+                    vec![]
+                }
+            }
+            Phase::Idle | Phase::Stopped => vec![],
         }
     }
 
