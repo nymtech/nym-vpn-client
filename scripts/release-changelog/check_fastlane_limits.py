@@ -65,7 +65,11 @@ def _safe_under(root, path):
 def field_len(path, unit, root):
     """Length as the store counts it, trailing whitespace stripped: characters, or UTF-8 bytes for
     byte-limited fields (Apple keywords), where a multi-byte locale can fit fewer characters."""
-    with open(_safe_under(root, path), encoding="utf-8") as f:
+    # _safe_under validates the path stays under the repo root (realpath + containment), and callers
+    # only ever pass a pathspec-restricted git diff or translate.py's own manifest — so this read
+    # cannot traverse. Sonar's taint engine doesn't recognise the commonpath guard as a sanitiser
+    # (pythonsecurity:S8707 false positive), so it's suppressed on the line below with the guard kept.
+    with open(_safe_under(root, path), encoding="utf-8") as f:  # NOSONAR pythonsecurity:S8707 - path validated in _safe_under
         s = f.read().rstrip()
     return len(s.encode("utf-8")) if unit == "bytes" else len(s)
 
