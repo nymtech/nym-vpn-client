@@ -8149,6 +8149,7 @@ dependencies = [
  "eventlog",
  "futures",
  "nym-bin-common",
+ "nym-dbus",
  "nym-ipc",
  "nym-platform-metadata",
  "nym-sdk",

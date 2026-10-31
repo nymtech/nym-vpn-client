@@ -518,6 +518,8 @@ impl NymVpnService for CommandInterface {
         let accepted = self
             .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Secured)
             .await?;
+        #[cfg(target_os = "linux")]
+        crate::network_manager::activate_vpn_connection(self.tunnel_event_rx.resubscribe());
 
         Ok(tonic::Response::new(accepted))
     }
