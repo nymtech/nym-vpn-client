@@ -1,6 +1,9 @@
 # Distro-provided NetworkManager profile for NymVPN, installed read-only under
 # /usr/lib/NetworkManager/system-connections. The UUID is fixed so upgrades replace, not
 # duplicate, the profile. Everything about the tunnel is configured in the NymVPN app.
+#
+# The daemon does all routing. The plugin reports no IP config, and auto-route-ext-gw=false stops
+# NetworkManager from adding its route to the VPN gateway (NetworkManager 1.42+).
 [connection]
 id=NymVPN
 uuid=d6e3779f-2e64-4757-99fa-3e20c26592e4
@@ -12,10 +15,12 @@ service-type=org.freedesktop.NetworkManager.nymvpn
 timeout=120
 
 [ipv4]
+auto-route-ext-gw=false
 method=auto
 
 [ipv6]
 addr-gen-mode=default
+auto-route-ext-gw=false
 method=auto
 
 [proxy]
