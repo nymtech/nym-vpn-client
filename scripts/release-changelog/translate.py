@@ -87,6 +87,8 @@ def version_code():
 
 
 def deepl(bullets, target, formality=None):
+    if not bullets:
+        return []  # DeepL 400s on a request with no `text` param — skip the call entirely
     masked, mapping = protect(bullets)
     data = [("text", b) for b in masked]
     data += [("source_lang", "EN"), ("target_lang", target)]
@@ -123,8 +125,10 @@ def render_all(bullets, platform):
 
 
 def write_files(rendered, platform, version):
+    """Write each locale's file; return the list of paths written (for the generated-files manifest)."""
     tmpl = CONFIG[f"{platform}_changelog_path" if platform == "android"
                   else "apple_release_notes_path"]
+    written = []
     for loc, text in rendered.items():
         sub = CONFIG["locales"][loc][platform]
         path = tmpl.format(android=sub, apple=sub, version_code=version)
@@ -132,11 +136,14 @@ def write_files(rendered, platform, version):
         with open(path, "w", encoding="utf-8") as f:
             f.write(text + "\n")
         print(f"  {platform} {loc:7} {len(text):4} -> {path}")
+        written.append(path)
+    return written
 
 
 def main():
     version = version_code()
     limit = CONFIG["android_char_limit"]
+    generated = []
 
     # --- Android with auto-fit ---
     bullets = read_bullets("android.en.txt")
@@ -149,7 +156,7 @@ def main():
         print(f"[auto-fit] longest={longest} > {limit}; dropped bullet: {dropped!r}")
     over = {loc: len(t) for loc, t in rendered.items() if len(t) > limit}
     print(f"Android versionCode {version} — {len(rendered)} locales (limit {limit}):")
-    write_files(rendered, "android", version)
+    generated += write_files(rendered, "android", version)
     if over:
         print(f"::warning:: Android still over limit after dropping to {len(bullets)} "
               f"bullet(s): {over}")
@@ -157,7 +164,14 @@ def main():
     # --- Apple (no hard limit) ---
     apple_bullets = read_bullets("apple.en.txt")
     print("Apple release_notes:")
-    write_files(render_all(apple_bullets, "apple"), "apple", version)
+    generated += write_files(render_all(apple_bullets, "apple"), "apple", version)
+
+    # Manifest of the files THIS run generated, so the length guard checks only these (not the whole
+    # fastlane tree, which carries pre-existing over-limit legacy files from older releases).
+    os.makedirs(OUT, exist_ok=True)
+    with open(os.path.join(OUT, "generated.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(generated) + "\n")
+    print(f"wrote manifest: {len(generated)} files -> out/generated.txt")
 
 
 if __name__ == "__main__":

@@ -72,20 +72,37 @@ def _bullets(body):
     return out
 
 
-def unreleased_bullets(path):
-    """Bullets for the release being prepared. Reads `[Unreleased]`; if it's empty — because the
-    version header was already stamped (add-changelog-release) before this runs — falls back to the
-    newest versioned section, so store-notes works whether it runs before or after the stamp."""
+def unreleased_bullets(path, allow_fallback):
+    """Bullets for the release being prepared.
+
+    Reads `[Unreleased]` first. If it is empty, the fallback is only safe at the FINAL release, where
+    `add-changelog-release` has just moved this release's bullets into the newest `## [version] - date`
+    section — so `allow_fallback` must be passed only then. At a beta (no stamp) there is no section
+    for the current release, so falling back would grab the PREVIOUS release's copy; betas pass
+    `allow_fallback=False` and get an empty result instead.
+
+    The fallback regex matches the DATED header (`## [ver] - date`). The old `## \\[\\d[^\\]]*\\]`
+    required `]` immediately before the newline, so it never matched a dated section and silently ran
+    on to an ancient UNDATED one (e.g. `## [2.8.0]`) — the bug this replaces. Empty results are loud,
+    never silent."""
     with open(os.path.join(ROOT, path), encoding="utf-8") as f:
         text = f.read()
     bullets = _bullets(_section_body(text, r"## \[Unreleased\]"))
     if bullets:
         return bullets
-    return _bullets(_section_body(text, r"## \[\d[^\]]*\]"))
+    if not allow_fallback:
+        return []
+    fb = _bullets(_section_body(text, r"## \[\d[^\]]*\][^\n]*"))  # newest dated section
+    if fb:
+        print(f"::notice::{path}: [Unreleased] empty; using the latest stamped release section")
+    else:
+        print(f"::warning::{path}: no [Unreleased] bullets and no stamped release section — "
+              f"store copy for this component will be empty")
+    return fb
 
 
-def gather():
-    return {store: sorted({b for p in paths for b in unreleased_bullets(p)})
+def gather(allow_fallback):
+    return {store: sorted({b for p in paths for b in unreleased_bullets(p, allow_fallback)})
             for store, paths in STORE_SOURCES.items()}
 
 
@@ -118,7 +135,10 @@ def call_anthropic(sources):
 def main():
     dry = "--dry-run" in sys.argv
     no_llm = "--no-llm" in sys.argv
-    sources = gather()
+    # --final (or STORE_NOTES_FINAL=1): this is the final release, where [Unreleased] has been
+    # stamped, so fall back to the newest dated section. Betas must NOT pass it (see unreleased_bullets).
+    allow_fallback = "--final" in sys.argv or os.environ.get("STORE_NOTES_FINAL") == "1"
+    sources = gather(allow_fallback)
     print("changelog bullets → " +
           ", ".join(f"{s}:{len(v)}" for s, v in sources.items()))
     copy = sources if no_llm else call_anthropic(sources)

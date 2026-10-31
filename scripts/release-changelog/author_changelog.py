@@ -122,7 +122,11 @@ def get_pr(number):
 
 def pr_diff(number, cap=6000):
     out = subprocess.check_output(["gh", "pr", "diff", str(number), "-R", REPO])
-    return out.decode("utf-8", "replace")[:cap]
+    text = out.decode("utf-8", "replace")
+    if len(text) > cap:
+        # flag the cut rather than silently dropping the tail, so a thin entry on a big PR is explainable
+        return text[:cap] + f"\n\n[diff truncated at {cap} chars; {len(text) - cap} more omitted]"
+    return text
 
 
 def set_pr_body(number, body, dry):
@@ -271,8 +275,8 @@ def upsert(path, buckets, pr_url, dry):
             cur = hm.group(1)
             sections.setdefault(cur, [])
             continue
-        if pr_url in ln:            # drop prior bullets for this PR (dedup / in-place update)
-            continue
+        if f"({pr_url})" in ln:     # drop prior bullets for THIS PR — match the parenthesised link
+            continue                # the writer appends, so /pull/686 won't match inside /pull/6860
         (sections[cur] if cur else preamble).append(ln)
 
     # add the new bullets
@@ -385,13 +389,16 @@ def main():
     for component in sorted(comps):
         buckets = stub(pr["title"]) if no_llm else \
             author_entry(component, pr["title"], desc, diff)
-        if not any(buckets.get(h.lower()) for h in HEADINGS):
-            print(f"  {component}: no user-facing entry (skipped)")
-            continue
+        has_entry = any(buckets.get(h.lower()) for h in HEADINGS)
         path = os.path.join(ROOT, COMPONENTS[component]["changelog"])
+        # Always upsert: empty buckets REMOVE any prior bullet for this PR (e.g. a PR re-edited to be
+        # non-user-facing), keeping [Unreleased] in sync. upsert only reports a change when one moved.
         if upsert(path, buckets, pr["url"], dry):
             changed.append(COMPONENTS[component]["changelog"])
-            print(f"  {component}: upserted -> {COMPONENTS[component]['changelog']}")
+            verb = "upserted" if has_entry else "removed stale entry in"
+            print(f"  {component}: {verb} {COMPONENTS[component]['changelog']}")
+        elif not has_entry:
+            print(f"  {component}: no user-facing entry (nothing to do)")
 
     if from_diff:
         print(f"::warning::PR #{number} entry authored from diff — proofread closely")

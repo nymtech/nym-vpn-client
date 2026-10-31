@@ -27,6 +27,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write   # creating the needs-proofread label uses the labels (issues) API
 
 jobs:
   store-notes:
@@ -46,18 +47,28 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}  # only for org-scoped keys
           ANTHROPIC_MODEL: claude-opus-4-8
-        run: python scripts/release-changelog/author_store.py
+        # --final: this is the final release (post-stamp), so an empty [Unreleased] may fall back to
+        # the just-stamped section. Betas must never pass --final (they'd grab the previous release).
+        run: python scripts/release-changelog/author_store.py --final
 
       - name: Translate + auto-fit the store copy
         env:
           DEEPL_AUTH_KEY: ${{ secrets.DEEPL_AUTH_KEY }}
         run: python scripts/release-changelog/translate.py
 
-      # Same guard as check-fastlane-metadata.yml, run in-generator: fail before opening the PR if
-      # any generated field is over its store limit (changelogs are auto-fit, but this also catches
-      # Apple release_notes and any other field).
+      # Same guard as check-fastlane-metadata.yml, run in-generator — but only over the files THIS run
+      # generated (from translate.py's manifest), NOT `--all`: the tree carries pre-existing
+      # over-limit legacy changelogs from older releases that would otherwise fail every run.
       - name: Check generated fastlane fields against store limits
-        run: python scripts/release-changelog/check_fastlane_limits.py --all
+        run: |
+          set -euo pipefail
+          manifest=scripts/release-changelog/out/generated.txt
+          files=$(grep -v '^[[:space:]]*$' "$manifest" || true)
+          if [ -z "$files" ]; then
+            echo "::notice::no generated store files to check"; exit 0
+          fi
+          # shellcheck disable=SC2086
+          python scripts/release-changelog/check_fastlane_limits.py $files
 
       - name: Open the proofread store-notes PR
         env:
@@ -76,8 +87,17 @@ jobs:
           fi
           git commit -m "store notes: ${BASE} (auto-generated, needs proofread)"
           git push -f origin "$HEAD"
-          gh pr create --base "$BASE" --head "$HEAD" \
-            --title "Store notes — ${BASE} (needs proofread)" \
-            --label "needs-proofread" \
-            --body "Auto-generated app-store \"What's new\" for \`${BASE}\`: derived from the release changelog (LLM) and translated (DeepL round-1, informal register, brand/protocol terms kept Latin). **Proofread the translations before release — never auto-merge.** English source: \`scripts/release-changelog/out/\`." \
-            || echo "::notice::PR already exists for $HEAD"
+          # Ensure the label exists (idempotent) — otherwise `gh pr create --label` aborts creation.
+          gh label create needs-proofread --color BFD4F2 --force \
+            --description "Auto-generated copy; human proofread required before merge"
+          # Explicit existence check instead of `|| echo` — a bare || would mask a real create
+          # failure (auth, base mismatch, missing label) as success and the proofread PR would
+          # silently never open.
+          if gh pr view "$HEAD" --json number >/dev/null 2>&1; then
+            echo "::notice::store-notes PR already exists for $HEAD"
+          else
+            gh pr create --base "$BASE" --head "$HEAD" \
+              --title "Store notes — ${BASE} (needs proofread)" \
+              --label "needs-proofread" \
+              --body "Auto-generated app-store \"What's new\" for \`${BASE}\`: derived from the release changelog (LLM) and translated (DeepL round-1, informal register, brand/protocol terms kept Latin). **Proofread the translations before release — never auto-merge.** English source: \`scripts/release-changelog/out/\`."
+          fi

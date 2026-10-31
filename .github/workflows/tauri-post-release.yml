@@ -89,6 +89,10 @@ jobs:
           ./update_metainfo.sh
 
       - name: Create PR
+        # Only the installer + flatpak steps stage anything, and both are gated on inputs.linux; a
+        # Windows-only release stages nothing, so without this guard `git commit` would fail on an
+        # empty index. (This step no longer touches the changelog — that moved to the unified stamp.)
+        if: ${{ inputs.linux }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
