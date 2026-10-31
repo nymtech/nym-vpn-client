@@ -46,8 +46,8 @@ $(BUILD)/test-gtk3: test/load-plugin.c | $(BUILD)
 $(BUILD)/test-gtk4: test/load-plugin.c | $(BUILD)
 	$(CC) $(CFLAGS) -DWITH_GTK $(LIBNM_CFLAGS) $(GTK4_CFLAGS) -o $@ $< $(LIBNM_LIBS) $(GTK4_LIBS)
 
-# The GTK tests run with no desktop entries and no PATH so the page's app launch takes the
-# "app not installed" path (a g_warning) instead of opening the real NymVPN app.
+# The GTK tests run with no desktop entries and no PATH so nothing they do can open the real
+# NymVPN app.
 NO_APP := XDG_DATA_DIRS=/nonexistent XDG_DATA_HOME=/nonexistent XDG_CONFIG_HOME=/nonexistent PATH=/nonexistent
 NAME_FILE := $(abspath ../packaging/nm-nymvpn-service.name)
 
