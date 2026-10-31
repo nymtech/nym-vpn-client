@@ -8,14 +8,18 @@ name: author-pr-changelog
 # PR, then authors the entry. Everything downstream (add-changelog-release stamp, prepare-release-notes
 # assemble) is unchanged — this just fills `[Unreleased]` instead of a human hand-writing it.
 #
-# Triggers: opened (first author), edited (description changed -> re-author), milestoned (PR
-# milestoned after opening). NOT synchronize: code pushes don't re-author, so a reviewer's edits to
-# the entry survive. The bot's own commit (synchronize) and its own description edit (edited by the
-# Actions bot) are therefore ignored / filtered, avoiding any loop.
+# Triggers: opened (first author), edited (re-author only when the *description* changed),
+# milestoned (PR milestoned after opening), ready_for_review (draft marked ready -> re-author from
+# the now-complete description, since we skip synchronize). NOT synchronize: code pushes don't
+# re-author, so a reviewer's edits to the entry survive. The bot's own commit (synchronize) and its
+# own description edit (edited by the Actions bot) are therefore ignored / filtered, avoiding a loop.
+#
+# `edited` also fires on title/base/label changes, so it is gated on changes.body below — a title
+# tweak must not re-author and clobber a reviewer's hand-edited entry.
 
 on:
   pull_request:
-    types: [opened, edited, milestoned]
+    types: [opened, edited, milestoned, ready_for_review]
 
 permissions:
   contents: write
@@ -27,10 +31,12 @@ concurrency:
 
 jobs:
   author:
-    # same-repo PRs only (can't push to a fork head); skip the bot's own description edits
+    # same-repo PRs only (can't push to a fork head); skip the bot's own description edits; on an
+    # `edited` event only run when the description (body) actually changed, not on title/base/label edits
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.sender.login != 'github-actions[bot]'
+      github.event.sender.login != 'github-actions[bot]' &&
+      (github.event.action != 'edited' || github.event.changes.body != null)
     runs-on: arc-linux-latest
     steps:
       - name: Checkout the PR branch
