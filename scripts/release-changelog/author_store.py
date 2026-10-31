@@ -58,17 +58,30 @@ must survive ~60% translation expansion under the 500-char limit.
 - Return ONLY JSON, no prose or code fences: {"android": ["line", ...], "apple": ["line", ...]}"""
 
 
-def unreleased_bullets(path):
-    with open(os.path.join(ROOT, path), encoding="utf-8") as f:
-        text = f.read()
-    m = re.search(r"## \[Unreleased\]\n(.*?)\n## \[", text, re.S)
-    body = m.group(1) if m else ""
+def _section_body(text, header_regex):
+    m = re.search(rf"{header_regex}\n(.*?)(?=\n## \[|\Z)", text, re.S)
+    return m.group(1) if m else ""
+
+
+def _bullets(body):
     out = []
     for line in body.splitlines():
         line = line.strip()
         if line.startswith("- "):
             out.append(re.sub(r"\s*\(https?://\S+\)\s*$", "", line[2:]).strip())
     return out
+
+
+def unreleased_bullets(path):
+    """Bullets for the release being prepared. Reads `[Unreleased]`; if it's empty — because the
+    version header was already stamped (add-changelog-release) before this runs — falls back to the
+    newest versioned section, so store-notes works whether it runs before or after the stamp."""
+    with open(os.path.join(ROOT, path), encoding="utf-8") as f:
+        text = f.read()
+    bullets = _bullets(_section_body(text, r"## \[Unreleased\]"))
+    if bullets:
+        return bullets
+    return _bullets(_section_body(text, r"## \[\d[^\]]*\]"))
 
 
 def gather():

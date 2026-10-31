@@ -108,7 +108,7 @@ def gh_json(args):
 
 def get_pr(number):
     pr = gh_json(["pr", "view", str(number), "-R", REPO,
-                  "--json", "number,title,url,body,files,milestone"])
+                  "--json", "number,title,url,body,files,milestone,baseRefName"])
     return {
         "number": pr["number"],
         "title": pr["title"],
@@ -116,6 +116,7 @@ def get_pr(number):
         "body": pr.get("body") or "",
         "files": [f["path"] for f in pr.get("files", [])],
         "milestone": (pr.get("milestone") or {}).get("title", ""),
+        "base": pr.get("baseRefName", ""),
     }
 
 
@@ -130,6 +131,38 @@ def set_pr_body(number, body, dry):
         return
     subprocess.run(["gh", "pr", "edit", str(number), "-R", REPO, "--body", body], check=True)
     print(f"::notice::backfilled PR #{number} description from diff")
+
+
+# ----------------------------------------------------------------------------- milestone gate
+
+def ms_version(text):
+    """The MAJOR.MINOR version embedded in a milestone title or branch name, e.g.
+    'v2026.15 - Yari' / 'release/2026.15-yari' -> '2026.15'; '' if none."""
+    m = re.search(r"(\d+)\.(\d+)", text or "")
+    return f"{m.group(1)}.{m.group(2)}" if m else ""
+
+
+def ver_tuple(v):
+    return tuple(int(x) for x in v.split(".")) if v else ()
+
+
+def next_release_version():
+    """The release develop is heading toward: the lowest open-milestone version that has no
+    release/<version> branch yet (i.e. the next one to be cut)."""
+    rows = gh_json(["api", f"repos/{REPO}/milestones?state=open&per_page=100"])
+    open_vers = {ms_version(r.get("title", "")) for r in rows} - {""}
+    out = subprocess.check_output(["git", "ls-remote", "--heads", "origin", "release/*"],
+                                  cwd=ROOT).decode()
+    cut_vers = {ms_version(l) for l in out.splitlines()} - {""}
+    candidates = sorted(open_vers - cut_vers, key=ver_tuple)
+    return candidates[0] if candidates else ""
+
+
+def target_version(base):
+    """The release version that PRs merging into `base` belong to: taken from a release/<ver>
+    branch name directly, else (develop and the like) the next release to be cut."""
+    m = re.match(r"release/(\d+\.\d+)", base or "")
+    return m.group(1) if m else next_release_version()
 
 
 # ----------------------------------------------------------------------------- description
@@ -281,15 +314,26 @@ def main():
 
     pr = get_pr(number)
 
-    # --- milestone gate ---
+    # --- milestone gate: the PR must be milestoned to THIS release (the one its base branch
+    # feeds). Un-milestoned PRs and PRs milestoned to a later release stay out entirely. ---
     ms = pr["milestone"]
     if not ms:
-        print(f"::notice::PR #{number} has no milestone — skipping changelog authoring")
+        print(f"::notice::PR #{number} has no milestone — skipping")
         return
-    if ACTIVE_MILESTONE and ms != ACTIVE_MILESTONE:
-        print(f"::notice::PR #{number} milestone {ms!r} != active {ACTIVE_MILESTONE!r} — skipping")
-        return
-    print(f"PR #{number} milestone={ms!r} — authoring")
+    if ACTIVE_MILESTONE:                       # explicit override (exact title) wins
+        if ms != ACTIVE_MILESTONE:
+            print(f"::notice::PR #{number} milestone {ms!r} != active {ACTIVE_MILESTONE!r} — skipping")
+            return
+    else:
+        target = target_version(pr["base"])
+        if not target:
+            print(f"::notice::could not resolve the active release for base {pr['base']!r} — skipping")
+            return
+        if ms_version(ms) != target:
+            print(f"::notice::PR #{number} milestone {ms!r} is not release {target} "
+                  f"(base {pr['base']}) — skipping")
+            return
+    print(f"PR #{number} milestone={ms!r} base={pr['base']} — authoring")
 
     diff = pr_diff(number)
 
