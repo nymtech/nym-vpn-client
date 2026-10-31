@@ -98,11 +98,6 @@ pub fn is_terminal(state: &TunnelState) -> bool {
     )
 }
 
-/// Whether the daemon waits for the network to reconnect on its own.
-pub fn awaits_network(state: &TunnelState) -> bool {
-    matches!(state, TunnelState::Offline { reconnect: true })
-}
-
 pub fn disconnect_decision(daemon: &TunnelState, user_requested: bool) -> DisconnectDecision {
     if is_terminal(daemon) {
         DisconnectDecision::AlreadyStopped

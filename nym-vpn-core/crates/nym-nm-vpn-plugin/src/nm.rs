@@ -38,24 +38,8 @@ pub const ACTIVE_CONNECTION_STATE_DEACTIVATING: u32 = 3;
     default_path = "/org/freedesktop/NetworkManager"
 )]
 pub trait NetworkManager {
-    fn activate_connection(
-        &self,
-        connection: &zbus::zvariant::ObjectPath<'_>,
-        device: &zbus::zvariant::ObjectPath<'_>,
-        specific_object: &zbus::zvariant::ObjectPath<'_>,
-    ) -> zbus::Result<zbus::zvariant::OwnedObjectPath>;
-
     #[zbus(property)]
     fn active_connections(&self) -> zbus::Result<Vec<zbus::zvariant::OwnedObjectPath>>;
-}
-
-#[zbus::proxy(
-    interface = "org.freedesktop.NetworkManager.Settings",
-    default_service = "org.freedesktop.NetworkManager",
-    default_path = "/org/freedesktop/NetworkManager/Settings"
-)]
-pub trait Settings {
-    fn get_connection_by_uuid(&self, uuid: &str) -> zbus::Result<zbus::zvariant::OwnedObjectPath>;
 }
 
 #[zbus::proxy(
