@@ -322,8 +322,8 @@ pub struct NymVpnService {
     // Target state
     target_state: TargetState,
 
-    // Last known tunnel state
-    tunnel_state: TunnelState,
+    // Last known tunnel state, observable by the services that follow the tunnel
+    tunnel_state: watch::Sender<TunnelState>,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -780,7 +780,7 @@ impl NymVpnService {
             account_state_rx,
             bandwidth_command_tx,
             target_state: TargetState::Unsecured,
-            tunnel_state,
+            tunnel_state: watch::Sender::new(tunnel_state),
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -816,6 +816,12 @@ impl NymVpnService {
     pub async fn run(mut self) -> anyhow::Result<()> {
         // Skip the initial account state value
         let mut account_state_rx = WatchStream::new(self.account_state_rx.subscribe()).skip(1);
+
+        #[cfg(target_os = "linux")]
+        let network_manager_handle = tokio::spawn(super::network_manager::run(
+            self.tunnel_state.subscribe(),
+            self.services_shutdown_token.child_token(),
+        ));
 
         loop {
             tokio::select! {
@@ -874,6 +880,11 @@ impl NymVpnService {
         // Shutdown SOCKS5 service
         self.socks5_service.shutdown().await;
 
+        #[cfg(target_os = "linux")]
+        if let Err(e) = network_manager_handle.await {
+            tracing::error!("Failed to join on NetworkManager handle: {e}");
+        }
+
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {e}");
         }
@@ -915,7 +926,7 @@ impl NymVpnService {
     }
 
     async fn set_target_state(&mut self, new_state: TargetState) -> bool {
-        if self.target_state != new_state || self.tunnel_state.is_error_state() {
+        if self.target_state != new_state || self.tunnel_state.borrow().is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
 
@@ -974,7 +985,7 @@ impl NymVpnService {
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if let TunnelEvent::NewState(ref new_state) = event {
-            self.tunnel_state = new_state.clone();
+            self.tunnel_state.send_replace(new_state.clone());
             self.socks5_service.tunnel_state_changed(new_state.clone());
         }
         if self.tunnel_event_tx.send(event).is_err() {
@@ -1672,7 +1683,7 @@ impl NymVpnService {
         // For location-based exit points, check if VPN is connected first
         // If connected, use VPN's actual gateway to avoid firewall routing issues
         // (but only if it supports SOCKS5 - otherwise fall back to location-based selection)
-        let tunnel_state = self.tunnel_state.clone();
+        let tunnel_state = self.tunnel_state.borrow().clone();
 
         let ret = if let TunnelState::Connected { connection_data } = tunnel_state {
             // VPN is connected - try to use its actual exit gateway
@@ -1890,7 +1901,7 @@ impl NymVpnService {
         let vpn_exit_gateway_identity = {
             if let TunnelState::Connected {
                 ref connection_data,
-            } = self.tunnel_state
+            } = *self.tunnel_state.borrow()
             {
                 Some(connection_data.exit_gateway.id.clone())
             } else {
@@ -1944,7 +1955,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.clone()
+        self.tunnel_state.borrow().clone()
     }
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -2016,7 +2027,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
             ));
@@ -2038,7 +2049,7 @@ impl NymVpnService {
     }
 
     async fn handle_delete_account(&mut self) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to delete account while connected",
             ));
@@ -2063,7 +2074,7 @@ impl NymVpnService {
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
         // TODO: temporary, until key rotation can be done while connected
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to rotate keys while connected",
             ));
@@ -2132,7 +2143,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
             ));
@@ -2395,7 +2406,7 @@ impl NymVpnService {
         &self,
         mut params: DiagnosticRegisterParams,
     ) -> RegistrationReport {
-        if !(self.tunnel_state == TunnelState::Disconnected
+        if !(*self.tunnel_state.borrow() == TunnelState::Disconnected
             && self.account_state_rx.get_state() == AccountControllerState::ReadyToConnect)
         {
             return RegistrationReport::from_err(
