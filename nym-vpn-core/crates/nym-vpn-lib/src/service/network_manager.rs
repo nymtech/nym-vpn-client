@@ -65,15 +65,16 @@ pub async fn run(mut tunnel_state_rx: watch::Receiver<TunnelState>, shutdown: Ca
 /// available.
 async fn watch_new_profiles() -> BoxStream<'static, ()> {
     match with_timeout(subscribe_new_profiles()).await {
-        Ok(stream) => stream,
-        Err(err) => {
-            tracing::debug!(
-                "{}",
-                err.display_chain_with_msg("Cannot watch NetworkManager for new profiles")
-            );
-            futures::stream::pending().boxed()
-        }
+        Some(Ok(stream)) => return stream,
+        Some(Err(err)) => tracing::debug!(
+            "{}",
+            err.display_chain_with_msg("Cannot watch NetworkManager for new profiles")
+        ),
+        None => tracing::debug!(
+            "Cannot watch NetworkManager for new profiles: NetworkManager did not respond in time"
+        ),
     }
+    futures::stream::pending().boxed()
 }
 
 async fn subscribe_new_profiles() -> zbus::Result<BoxStream<'static, ()>> {
@@ -88,31 +89,21 @@ async fn subscribe_new_profiles() -> zbus::Result<BoxStream<'static, ()>> {
 
 async fn activate_connection() {
     match with_timeout(activate_vpn_connection(SERVICE_TYPE)).await {
-        Ok(Some(uuid)) => tracing::info!("Activated NetworkManager connection {uuid}"),
-        Ok(None) => {}
-        Err(err) => tracing::debug!(
+        Some(Ok(Some(uuid))) => tracing::info!("Activated NetworkManager connection {uuid}"),
+        Some(Ok(None)) => {}
+        Some(Err(err)) => tracing::debug!(
             "{}",
             err.display_chain_with_msg("Cannot activate the NetworkManager connection")
+        ),
+        None => tracing::debug!(
+            "Cannot activate the NetworkManager connection: NetworkManager did not respond in time"
         ),
     }
 }
 
-#[derive(Debug, thiserror::Error)]
-enum Error {
-    #[error("D-Bus call to NetworkManager failed")]
-    Dbus(#[from] zbus::Error),
-
-    #[error("NetworkManager did not respond in time")]
-    Timeout,
-}
-
-async fn with_timeout<T>(
-    future: impl Future<Output = zbus::Result<T>>,
-) -> std::result::Result<T, Error> {
-    tokio::time::timeout(NM_TIMEOUT, future)
-        .await
-        .map_err(|_| Error::Timeout)?
-        .map_err(Error::Dbus)
+/// Run `future` for at most [`NM_TIMEOUT`]. Returns `None` if it did not finish in time.
+async fn with_timeout<F: Future>(future: F) -> Option<F::Output> {
+    tokio::time::timeout(NM_TIMEOUT, future).await.ok()
 }
 
 /// Activate the most recently used profile of the VPN `service_type` on top of the primary
