@@ -5,6 +5,8 @@
 //! into the signals decided by [`crate::state::Machine`].
 
 use std::{
+    collections::HashMap,
+    net::IpAddr,
     pin::Pin,
     sync::{
         Arc,
@@ -21,14 +23,17 @@ use tokio::{
     time::{Instant, sleep_until},
 };
 use tokio_stream::{Stream, StreamExt};
-use zbus::object_server::InterfaceRef;
+use zbus::{
+    object_server::InterfaceRef,
+    zvariant::{OwnedValue, Value},
+};
 
 use crate::{
     nm::{
         ACTIVE_CONNECTION_STATE_DEACTIVATING, ActiveConnectionProxy, NetworkManagerProxy, failure,
     },
     plugin::{Command, VpnPlugin, VpnPluginSignals},
-    state::{Effect, Machine, Phase, config_dict},
+    state::{Effect, Machine, Phase},
 };
 
 /// How long the plugin stays alive once idle before letting NetworkManager respawn it later.
@@ -73,8 +78,8 @@ pub struct Service<D, S, N> {
     daemon: D,
     sink: S,
     nm: N,
-    events: Option<EventStream>,
-    deactivation: Option<DeactivationStream>,
+    events: EventStream,
+    deactivation: DeactivationStream,
     user_disconnect: bool,
     last_daemon_state: Option<TunnelState>,
     disconnect_deadline: Option<Instant>,
@@ -89,8 +94,8 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             daemon,
             sink,
             nm,
-            events: None,
-            deactivation: None,
+            events: no_stream(),
+            deactivation: no_stream(),
             user_disconnect: false,
             last_daemon_state: None,
             disconnect_deadline: None,
@@ -111,8 +116,8 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             self.sink.emit(&effect).await;
         }
         if self.is_idle() {
-            self.events = None;
-            self.deactivation = None;
+            self.events = no_stream();
+            self.deactivation = no_stream();
             self.user_disconnect = false;
             self.disconnect_deadline = None;
             self.idle_since = Instant::now();
@@ -137,19 +142,19 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             )
             .await
             {
-                Ok(stream) => Some(stream),
+                Ok(stream) => stream,
                 Err(err) => {
                     tracing::warn!(
                         "cannot watch NetworkManager connection {uuid}, Disconnect will leave the daemon running: {err}"
                     );
-                    None
+                    no_stream()
                 }
             },
             None => {
                 tracing::warn!(
                     "Connect without a connection UUID, Disconnect will leave the daemon running"
                 );
-                None
+                no_stream()
             }
         };
     }
@@ -157,25 +162,16 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
     /// Pick up a deactivation NetworkManager signalled before its `Disconnect` call. zbus queues
     /// the signal before it dispatches the later method call, so it is ready to be polled here.
     fn drain_deactivation(&mut self) {
-        let Some(stream) = self.deactivation.as_mut() else {
-            return;
-        };
         let mut cx = Context::from_waker(Waker::noop());
-        let mut deactivated = false;
-        let mut closed = false;
         loop {
-            match stream.as_mut().poll_next(&mut cx) {
-                Poll::Ready(Some(())) => deactivated = true,
+            match self.deactivation.as_mut().poll_next(&mut cx) {
+                Poll::Ready(Some(())) => self.user_disconnect = true,
                 Poll::Ready(None) => {
-                    closed = true;
+                    self.deactivation = no_stream();
                     break;
                 }
                 Poll::Pending => break,
             }
-        }
-        self.user_disconnect |= deactivated;
-        if closed {
-            self.deactivation = None;
         }
     }
 
@@ -191,7 +187,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                 .await;
         }
         match rpc("ListenToEvents", self.daemon.subscribe()).await {
-            Ok(events) => self.events = Some(events),
+            Ok(events) => self.events = events,
             Err(err) => {
                 return self
                     .fail_connect(format!("cannot subscribe to events: {err}"))
@@ -207,10 +203,6 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             }
         };
         tracing::info!("daemon state at connect: {state}");
-        // The current state is a snapshot from before our request, so a terminal state here is
-        // the normal starting point. A connected daemon needs nothing more. One waiting for the
-        // network cannot give NetworkManager a gateway yet, so the activation fails and the
-        // daemon is left waiting.
         match &state {
             TunnelState::Connected { .. } | TunnelState::Offline { reconnect: true } => {
                 let effects = self.machine.on_daemon_state(&state);
@@ -288,7 +280,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             Some(_) => {}
             None => {
                 tracing::warn!("daemon event stream closed");
-                self.events = None;
+                self.events = no_stream();
                 let effects = self.machine.on_stream_closed();
                 self.apply(effects).await;
             }
@@ -313,15 +305,14 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                     }
                     None => return Ok(()),
                 },
-                event = next_item(&mut self.events), if self.events.is_some() => {
+                event = self.events.next() => {
                     self.handle_event(event).await;
                 }
-                deactivated = next_item(&mut self.deactivation), if self.deactivation.is_some() => {
-                    match deactivated {
-                        Some(()) => self.user_disconnect = true,
-                        None => self.deactivation = None,
-                    }
-                }
+                deactivated = self.deactivation.next() => match deactivated {
+                    Some(()) => self.user_disconnect = true,
+                    None => self.deactivation = no_stream(),
+                },
+
                 _ = sleep_until(deadline.unwrap_or_else(Instant::now)), if deadline.is_some() => {
                     tracing::warn!("daemon did not reach a terminal state within {DISCONNECT_WAIT:?}");
                     self.disconnect_deadline = None;
@@ -334,22 +325,6 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                 }
             }
         }
-    }
-}
-
-/// Bound a daemon RPC so a wedged daemon cannot pin the plugin (and NetworkManager's 10 s method
-/// timeout) in STARTING forever.
-async fn rpc<T>(what: &str, fut: impl Future<Output = Result<T, String>>) -> Result<T, String> {
-    match tokio::time::timeout(RPC_TIMEOUT, fut).await {
-        Ok(result) => result,
-        Err(_) => Err(format!("{what} timed out after {RPC_TIMEOUT:?}")),
-    }
-}
-
-async fn next_item<T>(stream: &mut Option<Pin<Box<dyn Stream<Item = T> + Send>>>) -> Option<T> {
-    match stream {
-        Some(stream) => stream.next().await,
-        None => std::future::pending().await,
     }
 }
 
@@ -476,5 +451,40 @@ impl Nm for DbusNm {
                 );
             })
         })))
+    }
+}
+
+/// `Config["gateway"]` as NetworkManager reads it: IPv4 as a `u32` whose in-memory bytes are the
+/// address in network order (`in_addr` read as a host `u32`), IPv6 as the 16 address bytes (`ay`).
+fn nm_gateway(addr: IpAddr) -> OwnedValue {
+    match addr {
+        IpAddr::V4(v4) => OwnedValue::from(u32::from_ne_bytes(v4.octets())),
+        IpAddr::V6(v6) => OwnedValue::try_from(Value::from(v6.octets().to_vec()))
+            .expect("byte arrays never contain file descriptors"),
+    }
+}
+
+/// The `Config` signal payload: gateway only, no tun device, no IP families.
+fn config_dict(gateway: IpAddr) -> HashMap<String, OwnedValue> {
+    HashMap::from([
+        ("gateway".to_string(), nm_gateway(gateway)),
+        ("has-ip4".to_string(), OwnedValue::from(false)),
+        ("has-ip6".to_string(), OwnedValue::from(false)),
+        ("can-persist".to_string(), OwnedValue::from(false)),
+    ])
+}
+
+/// A stream that never yields: stands in for a subscription we don't have. Replacing a real
+/// stream with it drops that stream, which ends the subscription.
+fn no_stream<T: Send + 'static>() -> Pin<Box<dyn Stream<Item = T> + Send>> {
+    Box::pin(tokio_stream::pending())
+}
+
+/// Bound a daemon RPC so a wedged daemon cannot pin the plugin (and NetworkManager's 10 s method
+/// timeout) in STARTING forever.
+async fn rpc<T>(what: &str, fut: impl Future<Output = Result<T, String>>) -> Result<T, String> {
+    match tokio::time::timeout(RPC_TIMEOUT, fut).await {
+        Ok(result) => result,
+        Err(_) => Err(format!("{what} timed out after {RPC_TIMEOUT:?}")),
     }
 }

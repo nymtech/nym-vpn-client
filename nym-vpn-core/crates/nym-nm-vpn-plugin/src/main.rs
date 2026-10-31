@@ -45,12 +45,11 @@ async fn main() -> anyhow::Result<()> {
     use clap::Parser;
 
     let cli = Cli::parse();
-    // let level = if cli.verbose {
-    //     "info,nm_nymvpn_service=debug"
-    // } else {
-    //     "info"
-    // };
-    let level = "debug";
+    let level = if cli.verbose {
+        "info,nm_nymvpn_service=debug"
+    } else {
+        "info"
+    };
     tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
         .with_env_filter(

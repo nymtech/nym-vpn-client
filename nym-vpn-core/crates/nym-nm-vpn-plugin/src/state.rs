@@ -3,62 +3,11 @@
 
 //! Pure plugin state machine: daemon tunnel states in, NetworkManager signals out.
 
-use std::{
-    collections::HashMap,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-};
+use std::net::IpAddr;
 
 use nym_vpn_lib_types::{ActionAfterDisconnect, TunnelConnectionData, TunnelState};
-use zbus::zvariant::{OwnedValue, Value};
 
 use crate::nm::{failure, service_state};
-
-#[derive(Debug, thiserror::Error)]
-pub enum GatewayError {
-    #[error("entry gateway {0} is IPv6; NetworkManager integration only supports IPv4 gateways")]
-    Ipv6(Ipv6Addr),
-}
-
-/// The address NetworkManager is told the VPN talks to (`Config["gateway"]`).
-///
-/// It is the first hop the daemon actually sends packets to: the bridge when one is in use,
-/// otherwise the entry WireGuard endpoint, or the mixnet entry gateway.
-pub fn external_gateway(data: &TunnelConnectionData) -> Result<Ipv4Addr, GatewayError> {
-    let ip = match data {
-        TunnelConnectionData::Wireguard(wg) => wg
-            .entry_bridge_addr
-            .as_ref()
-            .map(|bridge| bridge.remote_addr.ip())
-            .unwrap_or_else(|| wg.entry.endpoint.ip()),
-        TunnelConnectionData::Mixnet(mixnet) => mixnet.entry_ip,
-    };
-    match ip {
-        IpAddr::V4(v4) => Ok(v4),
-        IpAddr::V6(v6) => Err(GatewayError::Ipv6(v6)),
-    }
-}
-
-/// IPv4 address as libnm expects it: the `in_addr` bytes read as a host `u32`.
-pub fn nm_ipv4(addr: Ipv4Addr) -> u32 {
-    u32::from_ne_bytes(addr.octets())
-}
-
-fn owned<'a, T: Into<Value<'a>>>(value: T) -> OwnedValue {
-    value
-        .into()
-        .try_to_owned()
-        .expect("primitive values never contain file descriptors")
-}
-
-/// The `Config` signal payload: gateway only, no tun device, no IP families.
-pub fn config_dict(gateway: Ipv4Addr) -> HashMap<String, OwnedValue> {
-    HashMap::from([
-        ("gateway".to_string(), owned(nm_ipv4(gateway))),
-        ("has-ip4".to_string(), owned(false)),
-        ("has-ip6".to_string(), owned(false)),
-        ("can-persist".to_string(), owned(false)),
-    ])
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phase {
@@ -69,12 +18,24 @@ pub enum Phase {
     Stopped,
 }
 
+impl Phase {
+    pub fn service_state(&self) -> u32 {
+        match self {
+            Self::Idle => service_state::INIT,
+            Self::Starting => service_state::STARTING,
+            Self::Started => service_state::STARTED,
+            Self::Stopping => service_state::STOPPING,
+            Self::Stopped => service_state::STOPPED,
+        }
+    }
+}
+
 /// A NetworkManager signal the service must emit, in order.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Effect {
     StateChanged(u32),
     Failure(u32),
-    Config(Ipv4Addr),
+    Config(IpAddr),
 }
 
 pub struct Machine {
@@ -90,20 +51,9 @@ impl Machine {
         self.phase
     }
 
-    pub fn service_state(&self) -> u32 {
-        match self.phase {
-            Phase::Idle => service_state::INIT,
-            Phase::Starting => service_state::STARTING,
-            Phase::Started => service_state::STARTED,
-            Phase::Stopping => service_state::STOPPING,
-            Phase::Stopped => service_state::STOPPED,
-        }
-    }
-
     fn enter(&mut self, phase: Phase) -> Effect {
-        tracing::debug!("Set new phase: {:?}", self.phase);
         self.phase = phase;
-        Effect::StateChanged(self.service_state())
+        Effect::StateChanged(phase.service_state())
     }
 
     fn fail(&mut self, reason: u32) -> Vec<Effect> {
@@ -117,54 +67,27 @@ impl Machine {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     pub fn on_daemon_state(&mut self, state: &TunnelState) -> Vec<Effect> {
         tracing::info!("Received daemon state: {state:?}, phase: {:?}", self.phase);
 
         match self.phase {
-            Phase::Starting => self.handle_starting_phase(&state),
-            Phase::Started => self.handle_started_phase(&state),
-            Phase::Stopping => self.handle_stopping_phase(&state),
+            Phase::Starting => self.handle_starting_phase(state),
+            Phase::Started => self.handle_started_phase(state),
+            Phase::Stopping => self.handle_stopping_phase(state),
             Phase::Idle | Phase::Stopped => vec![],
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn handle_starting_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
         match state {
-            TunnelState::Connecting {
-                connection_data, ..
-            } => {
-                if let Some(connection_data) =
-                    connection_data.as_ref().and_then(|v| v.tunnel.as_ref())
-                {
-                    tracing::info!("Phase::Starting: Connecting!");
-                    match external_gateway(&connection_data) {
-                        Ok(gateway) => {
-                            tracing::info!(
-                                "Phase::Starting(Connecting): Effect(gateway = {gateway})"
-                            );
-                            vec![Effect::Config(gateway)]
-                        }
-                        Err(err) => {
-                            tracing::error!("{err}");
-                            self.fail(failure::BAD_IP_CONFIG)
-                        }
-                    }
-                } else {
-                    vec![]
-                }
+            TunnelState::Connecting { .. } => {
+                vec![]
             }
             TunnelState::Connected { connection_data } => {
-                tracing::info!("Phase::Starting: Connected!");
-                match external_gateway(&connection_data.tunnel) {
-                    Ok(gateway) => {
-                        tracing::info!("Phase::Started(Connected): Effect(gateway = {gateway})");
-                        vec![Effect::Config(gateway), self.enter(Phase::Started)]
-                    }
-                    Err(err) => {
-                        tracing::error!("{err}");
-                        self.fail(failure::BAD_IP_CONFIG)
-                    }
-                }
+                let gateway = external_gateway(&connection_data.tunnel);
+                vec![Effect::Config(gateway), self.enter(Phase::Started)]
             }
             TunnelState::Disconnecting { after_disconnect } => match after_disconnect {
                 ActionAfterDisconnect::Reconnect => {
@@ -182,24 +105,15 @@ impl Machine {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn handle_started_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
         match state {
             TunnelState::Connected { connection_data } => {
-                tracing::info!("Phase::Started: Connected!");
-                match external_gateway(&connection_data.tunnel) {
-                    Ok(gateway) => {
-                        tracing::info!("Phase::Started: Effect(gateway = {gateway})");
-                        vec![Effect::Config(gateway)]
-                    }
-                    Err(err) => {
-                        tracing::error!("{err}");
-                        vec![]
-                    }
-                }
+                vec![Effect::Config(external_gateway(&connection_data.tunnel))]
             }
             TunnelState::Disconnecting { after_disconnect } => match after_disconnect {
                 ActionAfterDisconnect::Reconnect => {
-                    vec![self.enter(Phase::Starting)]
+                    vec![]
                 }
                 ActionAfterDisconnect::Nothing
                 | ActionAfterDisconnect::Error
@@ -207,13 +121,14 @@ impl Machine {
                     vec![self.enter(Phase::Stopping)]
                 }
             },
-            TunnelState::Connecting { .. } => vec![self.enter(Phase::Starting)],
+            TunnelState::Connecting { .. } => vec![],
             TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. } => {
                 vec![self.enter(Phase::Stopped)]
             }
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn handle_stopping_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
         match state {
             TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. } => {
@@ -241,5 +156,20 @@ impl Machine {
 
     pub fn on_stream_closed(&mut self) -> Vec<Effect> {
         self.finish_stop()
+    }
+}
+
+/// The address NetworkManager is told the VPN talks to (`Config["gateway"]`).
+///
+/// It is the first hop the daemon actually sends packets to: the bridge when one is in use,
+/// otherwise the entry WireGuard endpoint, or the mixnet entry gateway.
+fn external_gateway(data: &TunnelConnectionData) -> IpAddr {
+    match data {
+        TunnelConnectionData::Wireguard(wg) => wg
+            .entry_bridge_addr
+            .as_ref()
+            .map(|bridge| bridge.remote_addr.ip())
+            .unwrap_or_else(|| wg.entry.endpoint.ip()),
+        TunnelConnectionData::Mixnet(mixnet) => mixnet.entry_ip,
     }
 }

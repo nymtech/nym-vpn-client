@@ -66,12 +66,15 @@ impl VpnPlugin {
         if self.is_active() {
             return Err(fdo::Error::Failed("connection already active".into()));
         }
+
         let (reply, result) = oneshot::channel();
         let uuid = connection_uuid(&connection);
+
         self.tx
             .send(Command::Connect { uuid, reply })
             .await
             .map_err(|_| fdo::Error::Failed("service task is gone".into()))?;
+
         result
             .await
             .map_err(|_| fdo::Error::Failed("service task dropped the request".into()))?

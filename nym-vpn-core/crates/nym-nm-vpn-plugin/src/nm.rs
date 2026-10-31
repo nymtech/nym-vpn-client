@@ -22,7 +22,6 @@ pub mod service_state {
 /// `NMVpnPluginFailure` values.
 pub mod failure {
     pub const CONNECT_FAILED: u32 = 1;
-    pub const BAD_IP_CONFIG: u32 = 2;
 }
 
 /// `NMActiveConnectionState::DEACTIVATING`.
