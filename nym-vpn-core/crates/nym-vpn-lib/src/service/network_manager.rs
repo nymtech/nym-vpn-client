@@ -7,8 +7,6 @@
 //! active already. NetworkManager then starts the nm-nymvpn-service plugin, which follows the
 //! tunnel from there. Nothing happens when NetworkManager is not running or has no NymVPN profile.
 
-use std::time::Duration;
-
 use anyhow::Context;
 use nym_dbus::network_manager::NetworkManager;
 use nym_vpn_lib_types::TunnelState;
@@ -16,10 +14,6 @@ use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
 const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
-
-/// How long to wait after the tunnel came up before activating, so a NetworkManager connection
-/// the plugin is bringing back up on its own is already visible.
-const SETTLE: Duration = Duration::from_secs(2);
 
 /// Activate the NymVPN connection each time the tunnel comes up, until `shutdown` is cancelled.
 pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: CancellationToken) {
@@ -37,14 +31,6 @@ pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: Cance
         let came_up = connected && !was_connected;
         was_connected = connected;
         if !came_up {
-            continue;
-        }
-
-        tokio::select! {
-            _ = tokio::time::sleep(SETTLE) => {}
-            _ = shutdown.cancelled() => break,
-        }
-        if !is_connected(&tunnel_state) {
             continue;
         }
         match with_network_manager(|nm| nm.activate_vpn_connection(SERVICE_TYPE)).await {
