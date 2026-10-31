@@ -53,6 +53,12 @@ jobs:
           DEEPL_AUTH_KEY: ${{ secrets.DEEPL_AUTH_KEY }}
         run: python scripts/release-changelog/translate.py
 
+      # Same guard as check-fastlane-metadata.yml, run in-generator: fail before opening the PR if
+      # any generated field is over its store limit (changelogs are auto-fit, but this also catches
+      # Apple release_notes and any other field).
+      - name: Check generated fastlane fields against store limits
+        run: python scripts/release-changelog/check_fastlane_limits.py --all
+
       - name: Open the proofread store-notes PR
         env:
           GH_TOKEN: ${{ github.token }}

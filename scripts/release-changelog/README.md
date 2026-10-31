@@ -34,25 +34,55 @@ PR.** Upsert is **idempotent, keyed by the PR URL**: re-runs update this PR's bu
 never touch other PRs' bullets. `[Unreleased]` is therefore always current, so **betas just ship
 what's accumulated and cherry-picks carry each entry along — no diff/batch logic anywhere.**
 
+**Release-close gate.** The authoring step refuses to write into a release that is already stamped
+(the final `add-changelog-release` has rolled `[Unreleased]` over into `## [version] - date`).
+A PR still milestoned to that closed release fails with a clear message to re-milestone (or
+cherry-pick before the stamp), rather than silently orphaning its entry into the next release.
+
 Core `CHANGELOG.md` files are English-only; they are never translated.
+
+> **One stamper.** The app changelog is stamped only by the unified `add-changelog-release`
+> (via `bump-all-platforms`), like the other three components. `tauri-post-release.yml` no longer
+> touches any `CHANGELOG.md` — it only bumps the Linux installer + flatpak metainfo now.
 
 ### 2. Final-release store notes — `release-store-notes.yml` → `author_store.py` + `translate.py`
 **Stage 4 only, never betas.** Derives the app-store "What's new" from the release's changelog,
 translates it into every Google Play / App Store locale (DeepL round-1; brand/protocol terms kept
-Latin via protect-and-restore; informal register; Android auto-fit ≤500), and opens **one**
-`needs-proofread` PR with the fastlane metadata. DeepL is round-1 — **never auto-merge.**
+Latin via protect-and-restore; informal register; Android auto-fit ≤500), runs the fastlane length
+guard (below), and opens **one** `needs-proofread` PR with the fastlane metadata. DeepL is round-1 —
+**never auto-merge.**
+
+### 3. Beta TestFlight notes — `publish-nym-vpn-ios.yml`
+TestFlight is a **beta** asset, so (Apple only) at each beta the TestFlight "what's new" is authored
+from the release's `[Unreleased]` (`author_store.py`, English) and passed to `--whats-new`. Auto —
+no PR — so betas stay smooth; it falls back to the build-metadata note when no API key is present.
+**Android does not** publish store copy at betas, so this is Apple-only; full translated store copy
+for both stores still comes from lane 2 at final.
+
+### Guard — `check-fastlane-metadata.yaml` → `check_fastlane_limits.py`
+One check for the **whole** store-metadata surface, not just changelogs: every length-limited
+fastlane field (Play title/short/full/changelog; App Store name/subtitle/promo/keywords/description/
+release-notes) against its store limit. Runs on PRs to **develop and `release/**`** (the store-notes
+PR targets a release branch), and the same check runs in-generator in `release-store-notes.yml`
+before it opens its PR. Replaces the old changelog-only, develop-only `check-changelog.yaml`.
 
 ## Release stages
 
 1. **Cut** → branch created; `[Unreleased]` already holds the PR-authored entries.
-2. **Beta 1** (public) → ships the accumulated changelog (GitHub notes / TestFlight via the existing CI).
-3. **Beta 2, 3, …** → new cherry-picked PRs bring their own entries; nothing extra to run.
+2. **Beta 1** (public) → ships the accumulated changelog (GitHub notes via the existing CI); the
+   TestFlight "what's new" is authored from `[Unreleased]` (lane 3).
+3. **Beta 2, 3, …** → new cherry-picked PRs bring their own entries; TestFlight notes re-author each
+   beta; nothing else to run.
 4. **Final** → `release-store-notes.yml` produces the translated store copy; human QA at PR approval.
+   After the final stamp, the release-close gate rejects any PR still milestoned to it.
 
 ## Secrets
 
 `ANTHROPIC_API_KEY` (a **workspace-scoped** key needs no header; an org-scoped key also needs
-`ANTHROPIC_WORKSPACE_ID`), `DEEPL_AUTH_KEY`. Apple store-note *upload* is a separate, deferred piece.
+`ANTHROPIC_WORKSPACE_ID`) — used by lane 1, lane 2, and the beta TestFlight notes (lane 3) — and
+`DEEPL_AUTH_KEY` (lane 2). The iOS workflow receives `ANTHROPIC_API_KEY` via `secrets: inherit`;
+absent, TestFlight falls back to the build-metadata note. Apple App Store note *upload* (`deliver`)
+is Stage 2, still deferred.
 
 ## Run locally
 

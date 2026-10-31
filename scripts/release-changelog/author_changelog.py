@@ -165,6 +165,17 @@ def target_version(base):
     return m.group(1) if m else next_release_version()
 
 
+def release_stamped(changelog_text, version_mm):
+    """True if this component changelog already has a STAMPED section for `version_mm`
+    (`## [<version_mm>...] - <date>` with a real date, not TBD). That is the exact state
+    `add-changelog-release` leaves at release close: `[Unreleased]` has rolled over, so authoring a
+    PR still milestoned to this version would orphan its entry into the next release."""
+    if not version_mm:
+        return False
+    pat = re.compile(rf"^##\s*\[{re.escape(version_mm)}(?:\.\d+)*\]\s*-\s*(?!TBD\b)\S", re.M)
+    return bool(pat.search(changelog_text))
+
+
 # ----------------------------------------------------------------------------- description
 
 def section(body, name):
@@ -335,6 +346,26 @@ def main():
             return
     print(f"PR #{number} milestone={ms!r} base={pr['base']} — authoring")
 
+    comps = route(pr["files"])
+    print(f"routes to: {', '.join(sorted(comps))}")
+
+    # --- release-close gate: refuse to author into a release that is already stamped (the final
+    # `add-changelog-release` has rolled `[Unreleased]` over). Authoring then would orphan this entry
+    # into the next release. The stamped, dated section for this version is that signal. ---
+    v = ms_version(ms)
+    for component in sorted(comps):
+        cpath = os.path.join(ROOT, COMPONENTS[component]["changelog"])
+        try:
+            ctext = open(cpath, encoding="utf-8").read()
+        except OSError:
+            continue
+        if release_stamped(ctext, v):
+            print(f"::error::release {v} is already stamped in "
+                  f"{COMPONENTS[component]['changelog']} — PR #{number} is milestoned to a closed "
+                  f"release. Re-milestone to the next release (or cherry-pick before the stamp); "
+                  f"not authoring, to avoid orphaning the entry.")
+            sys.exit(1)
+
     diff = pr_diff(number)
 
     # --- 1. repair the base: backfill an empty/template description ---
@@ -350,8 +381,6 @@ def main():
             set_pr_body(number, new_body, dry)
 
     # --- 2. author the changelog entry per routed component ---
-    comps = route(pr["files"])
-    print(f"routes to: {', '.join(sorted(comps))}")
     changed = []
     for component in sorted(comps):
         buckets = stub(pr["title"]) if no_llm else \

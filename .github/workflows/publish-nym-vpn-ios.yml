@@ -24,6 +24,12 @@ on:
         required: true
       APP_STORE_CONNECT_API_PRIVATE_KEY:
         required: true
+      # Optional: used to author the TestFlight "what's new" from the release changelog.
+      # Absent -> falls back to the build-metadata note. Flows via `secrets: inherit`.
+      ANTHROPIC_API_KEY:
+        required: false
+      ANTHROPIC_WORKSPACE_ID:
+        required: false
 env:
   HOMEBREW_NO_ANALYTICS: 1
   CARGO_TERM_COLOR: always
@@ -80,6 +86,23 @@ jobs:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: dist
 
+      # Beta TestFlight notes: derive the Apple consumer "what's new" (English) from the release's
+      # CHANGELOG [Unreleased] so testers see real notes. Best-effort — on any failure (incl. no API
+      # key) the Upload step falls back to the build-metadata note.
+      - name: Author TestFlight "what's new" from the release changelog
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}  # only for org-scoped keys
+          ANTHROPIC_MODEL: claude-opus-4-8
+        run: |
+          set -euo pipefail
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::notice::ANTHROPIC_API_KEY not set — TestFlight notes will use the build-metadata fallback"
+            exit 0
+          fi
+          python3 scripts/release-changelog/author_store.py
+
       - name: Upload to TestFlight
         working-directory: nym-vpn-apple
         env:
@@ -96,12 +119,19 @@ jobs:
 
           echo "🚀 Uploading to TestFlight (beta group: $BETA_GROUP)..."
 
-          DATE=$(date -u '+%F %T')
-          cat << EOF > "$WHATS_NEW_FILE"
+          APPLE_NOTES="${{ github.workspace }}/scripts/release-changelog/out/apple.en.txt"
+          if [ -s "$APPLE_NOTES" ]; then
+            echo "Using authored release notes for the TestFlight what's-new."
+            cp "$APPLE_NOTES" "$WHATS_NEW_FILE"
+          else
+            echo "No authored notes — using build-metadata fallback."
+            DATE=$(date -u '+%F %T')
+            cat << EOF > "$WHATS_NEW_FILE"
           Date: $DATE
           Branch: $BRANCH_NAME
           Git commit: $COMMIT_SHA
           EOF
+          fi
 
           app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$IPA_FILE" --whats-new="@file:${WHATS_NEW_FILE}"
 
