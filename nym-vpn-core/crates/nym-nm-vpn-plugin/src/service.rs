@@ -202,7 +202,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                     .await;
             }
         };
-        tracing::info!("daemon state at connect: {state}");
+        tracing::info!("Tunnel state at connect: {state}");
         match &state {
             TunnelState::Connected { .. } | TunnelState::Offline { reconnect: true } => {
                 let effects = self.machine.on_daemon_state(&state);
@@ -268,18 +268,17 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     async fn handle_event(&mut self, event: Option<TunnelEvent>) {
         match event {
             Some(TunnelEvent::NewState(state)) => {
-                tracing::info!("daemon state: {state}");
+                tracing::info!("New tunnel state: {state}");
                 let effects = self.machine.on_daemon_state(&state);
                 self.last_daemon_state = Some(state);
                 self.apply(effects).await;
             }
             Some(_) => {}
             None => {
-                tracing::warn!("daemon event stream closed");
+                tracing::warn!("Tunnel event stream closed");
                 self.events = no_stream();
                 let effects = self.machine.on_stream_closed();
                 self.apply(effects).await;
