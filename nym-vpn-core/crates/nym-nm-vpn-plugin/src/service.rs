@@ -145,7 +145,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                 Ok(stream) => stream,
                 Err(err) => {
                     tracing::warn!(
-                        "cannot watch NetworkManager connection {uuid}, Disconnect will leave the daemon running: {err}"
+                        "Cannot watch NetworkManager connection {uuid}, Disconnect will leave the daemon running: {err}"
                     );
                     no_stream()
                 }
@@ -220,7 +220,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
 
         match self.machine.phase() {
             Phase::Starting | Phase::Started => Ok(()),
-            _ => Err(format!("daemon cannot connect right now: {state}")),
+            _ => Err(format!("Daemon cannot connect right now: {state}")),
         }
     }
 
@@ -313,7 +313,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                 },
 
                 _ = sleep_until(deadline.unwrap_or_else(Instant::now)), if deadline.is_some() => {
-                    tracing::warn!("daemon did not reach a terminal state within {DISCONNECT_WAIT:?}");
+                    tracing::warn!("Daemon did not reach a terminal state within {DISCONNECT_WAIT:?}");
                     self.disconnect_deadline = None;
                     let effects = self.machine.finish_stop();
                     self.apply(effects).await;
