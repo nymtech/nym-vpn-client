@@ -8,7 +8,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
 };
 
-use nym_vpn_lib_types::{ConnectionData, TunnelConnectionData, TunnelState};
+use nym_vpn_lib_types::{ActionAfterDisconnect, ConnectionData, TunnelConnectionData, TunnelState};
 use zbus::zvariant::{OwnedValue, Value};
 
 use crate::nm::{failure, service_state};
@@ -185,6 +185,12 @@ impl Machine {
                         }
                     }
                 }
+                // Going back to STARTING tells NetworkManager the VPN is reconnecting; it shows the
+                // connection as activating until the next Config and STARTED.
+                TunnelState::Disconnecting {
+                    after_disconnect: ActionAfterDisconnect::Reconnect,
+                }
+                | TunnelState::Connecting { .. } => vec![self.enter(Phase::Starting)],
                 state if is_terminal(state) => vec![self.enter(Phase::Stopped)],
                 _ => vec![],
             },
@@ -484,14 +490,40 @@ mod tests {
     }
 
     #[test]
-    fn reconnect_cycle_while_started_is_ignored() {
+    fn reconnect_while_started_goes_back_to_starting() {
         let mut m = started_machine();
         assert_eq!(
             m.on_daemon_state(&disconnecting(ActionAfterDisconnect::Reconnect)),
-            vec![]
+            vec![Effect::StateChanged(service_state::STARTING)]
         );
         assert_eq!(m.on_daemon_state(&connecting()), vec![]);
-        assert_eq!(m.on_daemon_state(&connected(V4, None)), vec![]);
+        assert_eq!(
+            m.on_daemon_state(&connected(V4, None)),
+            vec![
+                Effect::Config(GW),
+                Effect::StateChanged(service_state::STARTED)
+            ]
+        );
+        assert_eq!(m.phase(), Phase::Started);
+    }
+
+    #[test]
+    fn connecting_while_started_goes_back_to_starting() {
+        let mut m = started_machine();
+        assert_eq!(
+            m.on_daemon_state(&connecting()),
+            vec![Effect::StateChanged(service_state::STARTING)]
+        );
+        assert_eq!(m.phase(), Phase::Starting);
+    }
+
+    #[test]
+    fn disconnect_without_reconnect_while_started_is_ignored() {
+        let mut m = started_machine();
+        assert_eq!(
+            m.on_daemon_state(&disconnecting(ActionAfterDisconnect::Nothing)),
+            vec![]
+        );
         assert_eq!(m.phase(), Phase::Started);
     }
 
