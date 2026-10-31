@@ -8,7 +8,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
 };
 
-use nym_vpn_lib_types::{ActionAfterDisconnect, ConnectionData, TunnelConnectionData, TunnelState};
+use nym_vpn_lib_types::{ActionAfterDisconnect, TunnelConnectionData, TunnelState};
 use zbus::zvariant::{OwnedValue, Value};
 
 use crate::nm::{failure, service_state};
@@ -23,8 +23,8 @@ pub enum GatewayError {
 ///
 /// It is the first hop the daemon actually sends packets to: the bridge when one is in use,
 /// otherwise the entry WireGuard endpoint, or the mixnet entry gateway.
-pub fn external_gateway(data: &ConnectionData) -> Result<Ipv4Addr, GatewayError> {
-    let ip = match &data.tunnel {
+pub fn external_gateway(data: &TunnelConnectionData) -> Result<Ipv4Addr, GatewayError> {
+    let ip = match data {
         TunnelConnectionData::Wireguard(wg) => wg
             .entry_bridge_addr
             .as_ref()
@@ -152,54 +152,104 @@ impl Machine {
         tracing::info!("Received daemon state: {state:?}, phase: {:?}", self.phase);
 
         match self.phase {
-            Phase::Starting => match state {
-                TunnelState::Connected { connection_data } => {
-                    tracing::info!("Phase::Starting: Connected!");
-                    match external_gateway(connection_data) {
+            Phase::Starting => self.handle_starting_phase(&state),
+            Phase::Started => self.handle_started_phase(&state),
+            Phase::Stopping => self.handle_stopping_phase(&state),
+            Phase::Idle | Phase::Stopped => vec![],
+        }
+    }
+
+    fn handle_starting_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
+        match state {
+            TunnelState::Connecting {
+                connection_data, ..
+            } => {
+                if let Some(connection_data) =
+                    connection_data.as_ref().and_then(|v| v.tunnel.as_ref())
+                {
+                    tracing::info!("Phase::Starting: Connecting!");
+                    match external_gateway(&connection_data) {
                         Ok(gateway) => {
-                            tracing::info!("Phase::Started: Effect(gateway = {gateway})");
-                            vec![Effect::Config(gateway), self.enter(Phase::Started)]
+                            tracing::info!(
+                                "Phase::Starting(Connecting): Effect(gateway = {gateway})"
+                            );
+                            vec![Effect::Config(gateway)]
                         }
                         Err(err) => {
                             tracing::error!("{err}");
                             self.fail(failure::BAD_IP_CONFIG)
                         }
                     }
-                }
-                state if is_terminal(state) => self.fail(failure::CONNECT_FAILED),
-                _ => vec![],
-            },
-            Phase::Started => match state {
-                TunnelState::Connected { connection_data } => {
-                    tracing::info!("Phase::Started: Connected!");
-                    match external_gateway(connection_data) {
-                        Ok(gateway) => {
-                            tracing::info!("Phase::Started: Effect(gateway = {gateway})");
-                            vec![Effect::Config(gateway)]
-                        }
-                        Err(err) => {
-                            tracing::error!("{err}");
-                            vec![]
-                        }
-                    }
-                }
-                // Going back to STARTING tells NetworkManager the VPN is reconnecting; it shows the
-                // connection as activating until the next Config and STARTED.
-                TunnelState::Disconnecting {
-                    after_disconnect: ActionAfterDisconnect::Reconnect,
-                }
-                | TunnelState::Connecting { .. } => vec![self.enter(Phase::Starting)],
-                state if is_terminal(state) => vec![self.enter(Phase::Stopped)],
-                _ => vec![],
-            },
-            Phase::Stopping => {
-                if is_terminal(state) {
-                    vec![self.enter(Phase::Stopped)]
                 } else {
                     vec![]
                 }
             }
-            Phase::Idle | Phase::Stopped => vec![],
+            TunnelState::Connected { connection_data } => {
+                tracing::info!("Phase::Starting: Connected!");
+                match external_gateway(&connection_data.tunnel) {
+                    Ok(gateway) => {
+                        tracing::info!("Phase::Started(Connected): Effect(gateway = {gateway})");
+                        vec![Effect::Config(gateway), self.enter(Phase::Started)]
+                    }
+                    Err(err) => {
+                        tracing::error!("{err}");
+                        self.fail(failure::BAD_IP_CONFIG)
+                    }
+                }
+            }
+            TunnelState::Disconnecting { after_disconnect } => match after_disconnect {
+                ActionAfterDisconnect::Reconnect => {
+                    vec![]
+                }
+                ActionAfterDisconnect::Nothing
+                | ActionAfterDisconnect::Error
+                | ActionAfterDisconnect::Offline => {
+                    vec![self.enter(Phase::Stopping)]
+                }
+            },
+            TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. } => {
+                self.fail(failure::CONNECT_FAILED)
+            }
+        }
+    }
+
+    fn handle_started_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
+        match state {
+            TunnelState::Connected { connection_data } => {
+                tracing::info!("Phase::Started: Connected!");
+                match external_gateway(&connection_data.tunnel) {
+                    Ok(gateway) => {
+                        tracing::info!("Phase::Started: Effect(gateway = {gateway})");
+                        vec![Effect::Config(gateway)]
+                    }
+                    Err(err) => {
+                        tracing::error!("{err}");
+                        vec![]
+                    }
+                }
+            }
+            TunnelState::Disconnecting { after_disconnect } => match after_disconnect {
+                ActionAfterDisconnect::Reconnect => {
+                    vec![self.enter(Phase::Starting)]
+                }
+                ActionAfterDisconnect::Nothing
+                | ActionAfterDisconnect::Error
+                | ActionAfterDisconnect::Offline => {
+                    vec![self.enter(Phase::Stopping)]
+                }
+            },
+            TunnelState::Connecting { .. } => vec![self.enter(Phase::Starting)],
+            TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. } => {
+                vec![self.enter(Phase::Stopped)]
+            }
+        }
+    }
+
+    fn handle_stopping_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
+        if is_terminal(state) {
+            vec![self.enter(Phase::Stopped)]
+        } else {
+            vec![]
         }
     }
 
