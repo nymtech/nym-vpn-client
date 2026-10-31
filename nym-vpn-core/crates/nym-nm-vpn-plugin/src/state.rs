@@ -88,14 +88,19 @@ pub enum DisconnectDecision {
     DisconnectDaemon,
 }
 
-/// States in which the daemon has no tunnel and does not block traffic. `Offline { reconnect: false }`
-/// is the daemon's disconnected state while offline. `Error` is not terminal: the daemon keeps
-/// blocking traffic until it is told to connect or disconnect.
+/// States in which NetworkManager shows the VPN as stopped. The plugin never tears the daemon
+/// down from them: in `Error` the daemon keeps blocking traffic until it is told to connect or
+/// disconnect, and in `Offline { reconnect: true }` it reconnects once the network is back.
 pub fn is_terminal(state: &TunnelState) -> bool {
     matches!(
         state,
-        TunnelState::Disconnected | TunnelState::Offline { reconnect: false }
+        TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. }
     )
+}
+
+/// Whether the daemon waits for the network to reconnect on its own.
+pub fn awaits_network(state: &TunnelState) -> bool {
+    matches!(state, TunnelState::Offline { reconnect: true })
 }
 
 pub fn disconnect_decision(daemon: &TunnelState, user_requested: bool) -> DisconnectDecision {
@@ -110,7 +115,7 @@ pub fn disconnect_decision(daemon: &TunnelState, user_requested: bool) -> Discon
 
 pub struct Machine {
     phase: Phase,
-    /// The last gateway reported to NetworkManager, reused while the daemon waits to reconnect.
+    /// The last gateway reported to NetworkManager.
     last_gateway: Option<Ipv4Addr>,
 }
 
@@ -169,13 +174,6 @@ impl Machine {
                         }
                     }
                 }
-                // NetworkManager needs a gateway to activate the VPN. Without one, report the
-                // failure and leave the daemon waiting for the network.
-                TunnelState::Offline { reconnect: true } => match self.last_gateway {
-                    Some(gateway) => vec![self.config(gateway), self.enter(Phase::Started)],
-                    None => self.fail(failure::CONNECT_FAILED),
-                },
-                TunnelState::Error(_) => self.fail(failure::CONNECT_FAILED),
                 state if is_terminal(state) => self.fail(failure::CONNECT_FAILED),
                 _ => vec![],
             },
@@ -478,7 +476,7 @@ mod tests {
     }
 
     #[test]
-    fn offline_recovery_while_starting_without_gateway_fails_connect() {
+    fn offline_recovery_while_starting_fails_connect() {
         let mut m = Machine::new();
         m.begin_connect();
         assert_eq!(
@@ -488,21 +486,6 @@ mod tests {
                 Effect::StateChanged(service_state::STOPPED)
             ]
         );
-    }
-
-    #[test]
-    fn offline_recovery_while_starting_reuses_last_gateway() {
-        let mut m = started_machine();
-        m.on_daemon_state(&TunnelState::Disconnected);
-        m.begin_connect();
-        assert_eq!(
-            m.on_daemon_state(&offline(true)),
-            vec![
-                Effect::Config(GW),
-                Effect::StateChanged(service_state::STARTED)
-            ]
-        );
-        assert_eq!(m.on_daemon_state(&connected(V4, None)), vec![]);
     }
 
     #[test]
@@ -533,17 +516,13 @@ mod tests {
     }
 
     #[test]
-    fn offline_recovery_while_started_keeps_started() {
-        let mut m = started_machine();
-        assert_eq!(m.on_daemon_state(&offline(true)), vec![]);
-        assert_eq!(m.on_daemon_state(&connecting()), vec![]);
-        assert_eq!(m.on_daemon_state(&connected(V4, None)), vec![]);
-        assert_eq!(m.phase(), Phase::Started);
-    }
-
-    #[test]
     fn terminal_while_started_emits_stopped() {
-        for terminal in [TunnelState::Disconnected, offline(false)] {
+        for terminal in [
+            TunnelState::Disconnected,
+            error(),
+            offline(false),
+            offline(true),
+        ] {
             let mut m = started_machine();
             assert_eq!(
                 m.on_daemon_state(&terminal),
@@ -552,21 +531,6 @@ mod tests {
             );
             assert_eq!(m.phase(), Phase::Stopped);
         }
-    }
-
-    #[test]
-    fn error_while_started_keeps_started() {
-        let mut m = started_machine();
-        assert_eq!(m.on_daemon_state(&error()), vec![]);
-        assert_eq!(m.phase(), Phase::Started);
-    }
-
-    #[test]
-    fn error_while_stopping_keeps_stopping() {
-        let mut m = started_machine();
-        m.begin_disconnect();
-        assert_eq!(m.on_daemon_state(&error()), vec![]);
-        assert_eq!(m.phase(), Phase::Stopping);
     }
 
     #[test]
@@ -588,7 +552,12 @@ mod tests {
 
     #[test]
     fn terminal_while_stopping_emits_stopped() {
-        for terminal in [TunnelState::Disconnected, offline(false)] {
+        for terminal in [
+            TunnelState::Disconnected,
+            error(),
+            offline(false),
+            offline(true),
+        ] {
             let mut m = started_machine();
             m.begin_disconnect();
             assert_eq!(
@@ -597,14 +566,6 @@ mod tests {
                 "{terminal}"
             );
         }
-    }
-
-    #[test]
-    fn offline_recovery_while_stopping_keeps_stopping() {
-        let mut m = started_machine();
-        m.begin_disconnect();
-        assert_eq!(m.on_daemon_state(&offline(true)), vec![]);
-        assert_eq!(m.phase(), Phase::Stopping);
     }
 
     #[test]
@@ -630,7 +591,12 @@ mod tests {
 
     #[test]
     fn disconnect_decision_table() {
-        for terminal in [TunnelState::Disconnected, offline(false)] {
+        for terminal in [
+            TunnelState::Disconnected,
+            error(),
+            offline(false),
+            offline(true),
+        ] {
             for user_requested in [true, false] {
                 assert_eq!(
                     disconnect_decision(&terminal, user_requested),
@@ -638,7 +604,7 @@ mod tests {
                 );
             }
         }
-        for up in [connected(V4, None), connecting(), offline(true), error()] {
+        for up in [connected(V4, None), connecting()] {
             assert_eq!(
                 disconnect_decision(&up, true),
                 DisconnectDecision::DisconnectDaemon,
