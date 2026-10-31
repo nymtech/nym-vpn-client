@@ -21,40 +21,43 @@ import os
 import re
 import sys
 
-# (regex on the path relative to repo root, char limit, human label)
+# (regex on the path relative to repo root, limit, human label, unit)
+# unit "bytes" for fields the store measures in bytes (Apple keywords), else "chars".
 RULES = [
     # --- Google Play (fastlane/metadata/android/<locale>/...) ---
-    (r"fastlane/metadata/android/[^/]+/title\.txt$",                 30,   "Play title"),
-    (r"fastlane/metadata/android/[^/]+/short_description\.txt$",     80,   "Play short description"),
-    (r"fastlane/metadata/android/[^/]+/full_description\.txt$",      4000, "Play full description"),
-    (r"fastlane/metadata/android/[^/]+/changelogs/[^/]+\.txt$",      500,  "Play changelog"),
+    (r"fastlane/metadata/android/[^/]+/title\.txt$",                 30,   "Play title",            "chars"),
+    (r"fastlane/metadata/android/[^/]+/short_description\.txt$",     80,   "Play short description","chars"),
+    (r"fastlane/metadata/android/[^/]+/full_description\.txt$",      4000, "Play full description", "chars"),
+    (r"fastlane/metadata/android/[^/]+/changelogs/[^/]+\.txt$",      500,  "Play changelog",        "chars"),
     # --- Apple App Store (nym-vpn-apple/fastlane/metadata/<locale>/...) ---
-    (r"nym-vpn-apple/fastlane/metadata/[^/]+/name\.txt$",            30,   "App Store name"),
-    (r"nym-vpn-apple/fastlane/metadata/[^/]+/subtitle\.txt$",        30,   "App Store subtitle"),
-    (r"nym-vpn-apple/fastlane/metadata/[^/]+/promotional_text\.txt$",170,  "App Store promo text"),
-    (r"nym-vpn-apple/fastlane/metadata/[^/]+/keywords\.txt$",        100,  "App Store keywords"),
-    (r"nym-vpn-apple/fastlane/metadata/[^/]+/description\.txt$",     4000, "App Store description"),
-    (r"nym-vpn-apple/fastlane/metadata/[^/]+/release_notes\.txt$",   4000, "App Store release notes"),
+    (r"nym-vpn-apple/fastlane/metadata/[^/]+/name\.txt$",            30,   "App Store name",        "chars"),
+    (r"nym-vpn-apple/fastlane/metadata/[^/]+/subtitle\.txt$",        30,   "App Store subtitle",    "chars"),
+    (r"nym-vpn-apple/fastlane/metadata/[^/]+/promotional_text\.txt$",170,  "App Store promo text",  "chars"),
+    (r"nym-vpn-apple/fastlane/metadata/[^/]+/keywords\.txt$",        100,  "App Store keywords",    "bytes"),
+    (r"nym-vpn-apple/fastlane/metadata/[^/]+/description\.txt$",     4000, "App Store description", "chars"),
+    (r"nym-vpn-apple/fastlane/metadata/[^/]+/release_notes\.txt$",   4000, "App Store release notes","chars"),
 ]
-COMPILED = [(re.compile(p), lim, label) for p, lim, label in RULES]
+COMPILED = [(re.compile(p), lim, label, unit) for p, lim, label, unit in RULES]
 
 # Roots walked by --all
 SCAN_DIRS = ["fastlane/metadata/android", "nym-vpn-apple/fastlane/metadata"]
 
 
 def rule_for(rel_path):
-    """Return (limit, label) for the first rule matching this repo-relative path, else None."""
+    """Return (limit, label, unit) for the first rule matching this repo-relative path, else None."""
     rel = rel_path.replace(os.sep, "/")
-    for pat, lim, label in COMPILED:
+    for pat, lim, label, unit in COMPILED:
         if pat.search(rel):
-            return lim, label
+            return lim, label, unit
     return None
 
 
-def field_len(path):
-    """Character length as the stores count it: content with trailing whitespace stripped."""
+def field_len(path, unit="chars"):
+    """Length as the store counts it, trailing whitespace stripped: characters, or UTF-8 bytes for
+    byte-limited fields (Apple keywords), where a multi-byte locale can fit fewer characters."""
     with open(path, encoding="utf-8") as f:
-        return len(f.read().rstrip())
+        s = f.read().rstrip()
+    return len(s.encode("utf-8")) if unit == "bytes" else len(s)
 
 
 def iter_all(root):
@@ -85,14 +88,14 @@ def main():
             continue  # not a length-limited field — ignore (e.g. video.txt, URLs)
         if not os.path.isfile(path):
             continue  # deleted in the diff
-        limit, label = rule
-        n = field_len(path)
+        limit, label, unit = rule
+        n = field_len(path, unit)
         checked += 1
         status = "OK" if n <= limit else "FAIL"
-        print(f"  [{status}] {label:24} {n:5}/{limit:<5} {rel}")
+        print(f"  [{status}] {label:24} {n:5}/{limit:<5} {unit:5} {rel}")
         if n > limit:
             print(f"::error file={rel}::{label} exceeds the store limit of {limit} "
-                  f"characters ({n}).")
+                  f"{unit} ({n}).")
             failed += 1
 
     if not checked:

@@ -9,17 +9,18 @@ name: author-pr-changelog
 # assemble) is unchanged — this just fills `[Unreleased]` instead of a human hand-writing it.
 #
 # Triggers: opened (first author), edited (re-author only when the *description* changed),
-# milestoned (PR milestoned after opening), ready_for_review (draft marked ready -> re-author from
-# the now-complete description, since we skip synchronize). NOT synchronize: code pushes don't
-# re-author, so a reviewer's edits to the entry survive. The bot's own commit (synchronize) and its
-# own description edit (edited by the Actions bot) are therefore ignored / filtered, avoiding a loop.
+# milestoned (PR milestoned after opening), demilestoned (milestone removed/changed -> REMOVE the
+# entry the PR no longer qualifies for), ready_for_review (draft marked ready -> re-author from the
+# now-complete description, since we skip synchronize). NOT synchronize: code pushes don't re-author,
+# so a reviewer's edits to the entry survive. The bot's own commit (synchronize) and its own
+# description edit (edited by the Actions bot) are therefore ignored / filtered, avoiding a loop.
 #
 # `edited` also fires on title/base/label changes, so it is gated on changes.body below — a title
 # tweak must not re-author and clobber a reviewer's hand-edited entry.
 
 on:
   pull_request:
-    types: [opened, edited, milestoned, ready_for_review]
+    types: [opened, edited, milestoned, demilestoned, ready_for_review]
 
 permissions:
   contents: write

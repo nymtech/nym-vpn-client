@@ -15,6 +15,7 @@ Env: ANTHROPIC_API_KEY (required unless --no-llm), ANTHROPIC_MODEL (optional).
 Flags: --dry-run (print, write nothing) · --no-llm (pass the raw changelog bullets through, for a
 plumbing smoke test only — not real store copy).
 """
+import glob
 import json
 import os
 import re
@@ -138,11 +139,16 @@ def main():
     # --final (or STORE_NOTES_FINAL=1): this is the final release, where [Unreleased] has been
     # stamped, so fall back to the newest dated section. Betas must NOT pass it (see unreleased_bullets).
     allow_fallback = "--final" in sys.argv or os.environ.get("STORE_NOTES_FINAL") == "1"
+    # Clear prior store copy up front (not in dry-run) so a later skip/failure can't leave STALE
+    # notes for a consumer (e.g. the TestFlight step) to pick up.
+    if not dry:
+        os.makedirs(OUT, exist_ok=True)
+        for old in glob.glob(os.path.join(OUT, "*.en.txt")):
+            os.remove(old)
     sources = gather(allow_fallback)
     print("changelog bullets → " +
           ", ".join(f"{s}:{len(v)}" for s, v in sources.items()))
     copy = sources if no_llm else call_anthropic(sources)
-    os.makedirs(OUT, exist_ok=True)
     for store in ("android", "apple"):
         lines = [l.strip() for l in copy.get(store, []) if l.strip()]
         if dry or no_llm:

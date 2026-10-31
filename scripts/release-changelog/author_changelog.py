@@ -330,24 +330,41 @@ def main():
     pr = get_pr(number)
 
     # --- milestone gate: the PR must be milestoned to THIS release (the one its base branch
-    # feeds). Un-milestoned PRs and PRs milestoned to a later release stay out entirely. ---
+    # feeds). Un-milestoned PRs and PRs milestoned to a later release don't qualify. ---
     ms = pr["milestone"]
+    reason = ""
     if not ms:
-        print(f"::notice::PR #{number} has no milestone — skipping")
-        return
-    if ACTIVE_MILESTONE:                       # explicit override (exact title) wins
+        reason = "has no milestone"
+    elif ACTIVE_MILESTONE:                      # explicit override (exact title) wins
         if ms != ACTIVE_MILESTONE:
-            print(f"::notice::PR #{number} milestone {ms!r} != active {ACTIVE_MILESTONE!r} — skipping")
-            return
+            reason = f"milestone {ms!r} != active {ACTIVE_MILESTONE!r}"
     else:
         target = target_version(pr["base"])
         if not target:
-            print(f"::notice::could not resolve the active release for base {pr['base']!r} — skipping")
-            return
-        if ms_version(ms) != target:
-            print(f"::notice::PR #{number} milestone {ms!r} is not release {target} "
-                  f"(base {pr['base']}) — skipping")
-            return
+            reason = f"could not resolve the active release for base {pr['base']!r}"
+        elif ms_version(ms) != target:
+            reason = f"milestone {ms!r} is not release {target} (base {pr['base']})"
+
+    if reason:
+        # The PR doesn't belong to this release (unmilestoned, milestoned elsewhere, or just
+        # demilestoned). Don't author — but REMOVE any entry we previously wrote for it, so a
+        # demilestone / re-milestone cleans up instead of leaving a stale bullet behind.
+        print(f"::notice::PR #{number} {reason} — not authoring; removing any prior entry")
+        removed = []
+        for component in sorted(route(pr["files"])):
+            path = os.path.join(ROOT, COMPONENTS[component]["changelog"])
+            if not os.path.isfile(path) or "## [Unreleased]" not in open(path, encoding="utf-8").read():
+                continue
+            if upsert(path, {"added": [], "changed": [], "fixed": []}, pr["url"], dry):
+                removed.append(COMPONENTS[component]["changelog"])
+                print(f"  {component}: removed stale entry")
+        gh_out = os.environ.get("GITHUB_OUTPUT")
+        if gh_out and not dry:
+            with open(gh_out, "a", encoding="utf-8") as f:
+                f.write(f"changed={' '.join(removed)}\n")
+                f.write("backfilled=false\n")
+        print(f"done: removed entry from {len(removed)} changelog file(s)")
+        return
     print(f"PR #{number} milestone={ms!r} base={pr['base']} — authoring")
 
     comps = route(pr["files"])

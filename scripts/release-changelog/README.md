@@ -16,8 +16,9 @@ final release only ──(release-store-notes.yml)→ author_store.py → out/*.
 ## The two lanes
 
 ### 1. Per-PR changelog — `author-pr-changelog.yml` → `author_changelog.py`
-Runs on each PR (`opened`, `edited`, `milestoned` — **not** `synchronize`, so code pushes don't
-re-author and a reviewer's edits to the entry survive). For **one** PR it:
+Runs on each PR (`opened`, `edited`, `milestoned`, `demilestoned`, `ready_for_review` — **not**
+`synchronize`, so code pushes don't re-author and a reviewer's edits to the entry survive;
+`demilestoned` removes the entry a PR no longer qualifies for). For **one** PR it:
 
 1. **Milestone gate.** Skips the PR entirely unless it carries a release milestone (the team's
    reliable release-scope signal). `ACTIVE_MILESTONE` can pin an exact title; unset = any milestone.

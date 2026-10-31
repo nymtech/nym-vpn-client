@@ -38,6 +38,18 @@ jobs:
           ref: ${{ inputs.release_branch || github.ref_name }}
           fetch-depth: 0
 
+      # Guard: this lane generates FINAL-release store copy only. Refuse to run on develop or any
+      # non-release ref, so it can never translate + open a store PR off the wrong branch.
+      - name: Require a release/* ref
+        env:
+          REF: ${{ inputs.release_branch || github.ref_name }}
+        run: |
+          set -euo pipefail
+          case "$REF" in
+            release/*) echo "ref $REF OK" ;;
+            *) echo "::error::store notes may only run on a release/* branch (got '$REF')"; exit 1 ;;
+          esac
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
