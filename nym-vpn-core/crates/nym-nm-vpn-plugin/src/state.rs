@@ -77,37 +77,6 @@ pub enum Effect {
     Config(Ipv4Addr),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DisconnectDecision {
-    /// The daemon is already down; just report STOPPED.
-    AlreadyStopped,
-    /// NetworkManager is tearing the VPN down on its own (network loss, sleep, timeout); report
-    /// STOPPED and leave the daemon to its own recovery.
-    LeaveDaemon,
-    /// The user disconnected the VPN in NetworkManager; tear the tunnel down.
-    DisconnectDaemon,
-}
-
-/// States in which NetworkManager shows the VPN as stopped. The plugin never tears the daemon
-/// down from them: in `Error` the daemon keeps blocking traffic until it is told to connect or
-/// disconnect, and in `Offline { reconnect: true }` it reconnects once the network is back.
-pub fn is_terminal(state: &TunnelState) -> bool {
-    matches!(
-        state,
-        TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. }
-    )
-}
-
-pub fn disconnect_decision(daemon: &TunnelState, user_requested: bool) -> DisconnectDecision {
-    if is_terminal(daemon) {
-        DisconnectDecision::AlreadyStopped
-    } else if user_requested {
-        DisconnectDecision::DisconnectDaemon
-    } else {
-        DisconnectDecision::LeaveDaemon
-    }
-}
-
 pub struct Machine {
     phase: Phase,
 }

@@ -28,7 +28,7 @@ use crate::{
         ACTIVE_CONNECTION_STATE_DEACTIVATING, ActiveConnectionProxy, NetworkManagerProxy, failure,
     },
     plugin::{Command, VpnPlugin, VpnPluginSignals},
-    state::{DisconnectDecision, Effect, Machine, Phase, config_dict, disconnect_decision},
+    state::{Effect, Machine, Phase, config_dict},
 };
 
 /// How long the plugin stays alive once idle before letting NetworkManager respawn it later.
@@ -240,6 +240,7 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
             tracing::debug!("Disconnect while {:?}: nothing to do", self.machine.phase());
             return;
         }
+
         let daemon_state = match rpc("GetTunnelState", self.daemon.tunnel_state()).await {
             Ok(state) => Some(state),
             Err(err) => {
@@ -247,37 +248,31 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
                 self.last_daemon_state.clone()
             }
         };
+
         let Some(daemon_state) = daemon_state else {
             let effects = self.machine.finish_stop();
             self.apply(effects).await;
             return;
         };
         self.drain_deactivation();
-        match disconnect_decision(&daemon_state, self.user_disconnect) {
-            DisconnectDecision::AlreadyStopped => {
-                tracing::info!("daemon already {daemon_state}; reporting stopped");
-                let effects = self.machine.finish_stop();
-                self.apply(effects).await;
-            }
-            DisconnectDecision::LeaveDaemon => {
-                tracing::info!(
-                    "NetworkManager stopped the VPN without a user request, leaving the daemon {daemon_state}"
-                );
-                let effects = self.machine.finish_stop();
-                self.apply(effects).await;
-            }
-            DisconnectDecision::DisconnectDaemon => {
-                let effects = self.machine.begin_disconnect();
-                self.apply(effects).await;
-                match rpc("DisconnectTunnel", self.daemon.disconnect()).await {
-                    Ok(()) => self.disconnect_deadline = Some(Instant::now() + DISCONNECT_WAIT),
-                    Err(err) => {
-                        tracing::warn!("DisconnectTunnel failed: {err}");
-                        let effects = self.machine.finish_stop();
-                        self.apply(effects).await;
-                    }
+
+        if self.user_disconnect {
+            let effects = self.machine.begin_disconnect();
+            self.apply(effects).await;
+            match rpc("DisconnectTunnel", self.daemon.disconnect()).await {
+                Ok(()) => self.disconnect_deadline = Some(Instant::now() + DISCONNECT_WAIT),
+                Err(err) => {
+                    tracing::warn!("DisconnectTunnel failed: {err}");
+                    let effects = self.machine.finish_stop();
+                    self.apply(effects).await;
                 }
             }
+        } else {
+            tracing::info!(
+                "NetworkManager stopped the VPN without a user request, leaving the daemon {daemon_state}"
+            );
+            let effects = self.machine.finish_stop();
+            self.apply(effects).await;
         }
     }
 
