@@ -302,10 +302,11 @@ impl NetworkManager {
 
             // 4. If this active connection matches one of our VPN profiles, deactivate it
             if profiles.iter().any(|profile| profile.uuid == uuid) {
+                let any = dbus::Path::from("/");
                 self.nm_manager().method_call(
                     NM_MANAGER,
                     "DeactivateConnection",
-                    (&path,), // Passes the D-Bus path of the ActiveConnection instance
+                    (&path, &any, &any), // Passes the D-Bus path of the ActiveConnection instance
                 )?;
                 return Ok(Some(uuid));
             }
