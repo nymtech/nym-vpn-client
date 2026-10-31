@@ -7,7 +7,7 @@
 //! active already. NetworkManager then starts the nm-nymvpn-service plugin, which follows the
 //! tunnel from there. Nothing happens when NetworkManager is not running or has no NymVPN profile.
 
-use anyhow::Context;
+use nym_common::ErrorExt;
 use nym_dbus::network_manager::NetworkManager;
 use nym_vpn_lib_types::TunnelState;
 use tokio::sync::watch;
@@ -17,7 +17,7 @@ const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
 
 /// Activate the NymVPN connection each time the tunnel comes up, until `shutdown` is cancelled.
 pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: CancellationToken) {
-    let mut was_connected = is_connected(&tunnel_state);
+    let mut was_connected = tunnel_state.borrow().is_connected();
     loop {
         tokio::select! {
             changed = tunnel_state.changed() => {
@@ -27,30 +27,33 @@ pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: Cance
             }
             _ = shutdown.cancelled() => break,
         }
-        let connected = is_connected(&tunnel_state);
+
+        let connected = tunnel_state.borrow().is_connected();
         let came_up = connected && !was_connected;
         was_connected = connected;
         if !came_up {
             continue;
         }
-        match with_network_manager(|nm| nm.activate_vpn_connection(SERVICE_TYPE)).await {
-            Ok(Some(uuid)) => tracing::info!("Activated NetworkManager connection {uuid}"),
-            Ok(None) => {}
-            Err(err) => tracing::debug!("Cannot activate the NetworkManager connection: {err:#}"),
+
+        let result = tokio::task::spawn_blocking(|| {
+            match NetworkManager::new().and_then(|nm| nm.activate_vpn_connection(SERVICE_TYPE)) {
+                Ok(uuid) => {
+                    if let Some(uuid) = uuid {
+                        tracing::info!("Activated NetworkManager connection {uuid}");
+                    }
+                }
+                Err(err) => {
+                    tracing::debug!(
+                        "{}",
+                        err.display_chain_with_msg("Cannot activate the NetworkManager connection")
+                    );
+                }
+            }
+        })
+        .await;
+
+        if let Err(err) = result {
+            tracing::debug!("NetworkManager task failed: {err}");
         }
     }
-}
-
-fn is_connected(tunnel_state: &watch::Receiver<TunnelState>) -> bool {
-    matches!(*tunnel_state.borrow(), TunnelState::Connected { .. })
-}
-
-/// Run a blocking NetworkManager call off the async runtime.
-async fn with_network_manager<T: Send + 'static>(
-    call: impl FnOnce(&NetworkManager) -> nym_dbus::network_manager::Result<T> + Send + 'static,
-) -> anyhow::Result<T> {
-    let result = tokio::task::spawn_blocking(move || call(&NetworkManager::new()?))
-        .await
-        .context("NetworkManager task failed")?;
-    Ok(result?)
 }
