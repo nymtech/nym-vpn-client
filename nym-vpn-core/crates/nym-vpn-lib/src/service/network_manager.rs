@@ -17,7 +17,8 @@ const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
 
 /// Activate the NymVPN connection each time the tunnel comes up, until `shutdown` is cancelled.
 pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: CancellationToken) {
-    let mut was_connected = tunnel_state.borrow().is_connected();
+    let mut is_active = false;
+
     loop {
         tokio::select! {
             changed = tunnel_state.changed() => {
@@ -28,32 +29,76 @@ pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: Cance
             _ = shutdown.cancelled() => break,
         }
 
-        let connected = tunnel_state.borrow().is_connected();
-        let came_up = connected && !was_connected;
-        was_connected = connected;
-        if !came_up {
-            continue;
-        }
-
-        let result = tokio::task::spawn_blocking(|| {
-            match NetworkManager::new().and_then(|nm| nm.activate_vpn_connection(SERVICE_TYPE)) {
-                Ok(uuid) => {
-                    if let Some(uuid) = uuid {
-                        tracing::info!("Activated NetworkManager connection {uuid}");
-                    }
-                }
-                Err(err) => {
-                    tracing::debug!(
-                        "{}",
-                        err.display_chain_with_msg("Cannot activate the NetworkManager connection")
-                    );
+        match tunnel_state.borrow().as_ref() {
+            TunnelState::Connected { .. } | TunnelState::Connecting { .. } => {
+                if !is_active {
+                    is_active = activate_connection().await;
                 }
             }
-        })
-        .await;
-
-        if let Err(err) = result {
-            tracing::debug!("NetworkManager task failed: {err}");
+            TunnelState::Disconnecting { .. } => {}
+            TunnelState::Disconnected | TunnelState::Offline { .. } | TunnelState::Error(..) => {
+                if is_active {
+                    is_active = deactivate_connection().await;
+                }
+            }
         }
     }
+}
+
+async fn activate_connection() -> bool {
+    let result = tokio::task::spawn_blocking(|| {
+        match NetworkManager::new().and_then(|nm| nm.activate_vpn_connection(SERVICE_TYPE)) {
+            Ok(uuid) => {
+                if let Some(uuid) = uuid {
+                    tracing::info!("Activated NetworkManager connection {uuid}");
+                    true
+                } else {
+                    false
+                }
+            }
+            Err(err) => {
+                tracing::debug!(
+                    "{}",
+                    err.display_chain_with_msg("Cannot activate the NetworkManager connection")
+                );
+                false
+            }
+        }
+    })
+    .await;
+
+    if let Err(err) = result {
+        tracing::debug!("NetworkManager task failed: {err}");
+    }
+
+    result.unwrap_or_default()
+}
+
+async fn deactivate_connection() -> bool {
+    let result = tokio::task::spawn_blocking(|| {
+        match NetworkManager::new().and_then(|nm| nm.deactivate_vpn_connection(SERVICE_TYPE)) {
+            Ok(uuid) => {
+                if let Some(uuid) = uuid {
+                    tracing::info!("Deactivated NetworkManager connection {uuid}");
+                    true
+                } else {
+                    false
+                }
+            }
+            Err(err) => {
+                tracing::debug!(
+                    "{}",
+                    err.display_chain_with_msg("Cannot activate the NetworkManager connection")
+                );
+                false
+            }
+        }
+    })
+    .await;
+
+    if let Err(err) = result {
+        tracing::debug!("NetworkManager task failed: {err}");
+    }
+
+    result.unwrap_or_default()
 }
