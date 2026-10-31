@@ -110,16 +110,11 @@ pub fn disconnect_decision(daemon: &TunnelState, user_requested: bool) -> Discon
 
 pub struct Machine {
     phase: Phase,
-    /// The last gateway reported to NetworkManager.
-    last_gateway: Option<Ipv4Addr>,
 }
 
 impl Machine {
     pub fn new() -> Self {
-        Self {
-            phase: Phase::Idle,
-            last_gateway: None,
-        }
+        Self { phase: Phase::Idle }
     }
 
     pub fn phase(&self) -> Phase {
@@ -141,11 +136,6 @@ impl Machine {
         Effect::StateChanged(self.service_state())
     }
 
-    fn config(&mut self, gateway: Ipv4Addr) -> Effect {
-        self.last_gateway = Some(gateway);
-        Effect::Config(gateway)
-    }
-
     fn fail(&mut self, reason: u32) -> Vec<Effect> {
         vec![Effect::Failure(reason), self.enter(Phase::Stopped)]
     }
@@ -162,7 +152,7 @@ impl Machine {
             Phase::Starting => match state {
                 TunnelState::Connected { connection_data } => {
                     match external_gateway(connection_data) {
-                        Ok(gateway) => vec![self.config(gateway), self.enter(Phase::Started)],
+                        Ok(gateway) => vec![Effect::Config(gateway), self.enter(Phase::Started)],
                         Err(err) => {
                             tracing::error!("{err}");
                             self.fail(failure::BAD_IP_CONFIG)
@@ -175,10 +165,7 @@ impl Machine {
             Phase::Started => match state {
                 TunnelState::Connected { connection_data } => {
                     match external_gateway(connection_data) {
-                        Ok(gateway) if self.last_gateway != Some(gateway) => {
-                            vec![self.config(gateway)]
-                        }
-                        Ok(_) => vec![],
+                        Ok(gateway) => vec![Effect::Config(gateway)],
                         Err(err) => {
                             tracing::error!("{err}");
                             vec![]
