@@ -3,12 +3,13 @@
 
 //! Shows the tunnel as an active VPN in NetworkManager, whichever client connected it.
 //!
-//! Whenever the tunnel comes up, the NymVPN connection is activated in NetworkManager unless it is
-//! active already. NetworkManager then starts the nm-nymvpn-service plugin, which follows the
+//! Whenever the tunnel comes up, or a profile is added to NetworkManager while the tunnel is up, the
+//! NymVPN connection is activated in NetworkManager unless it is active already. NetworkManager then starts the nm-nymvpn-service plugin, which follows the
 //! tunnel from there. Nothing happens when NetworkManager is not running or has no NymVPN profile.
 
 use std::{collections::HashMap, future::Future, time::Duration};
 
+use futures::{StreamExt, stream::BoxStream};
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::TunnelState;
 use tokio::sync::watch;
@@ -16,17 +17,28 @@ use tokio_util::sync::CancellationToken;
 use zbus::{
     Connection,
     proxy::CacheProperties,
-    zvariant::{ObjectPath, OwnedObjectPath, OwnedValue},
+    zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value},
 };
 
 const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
 
+/// First NetworkManager version with `auto-route-ext-gw`.
+const MIN_VERSION_AUTO_ROUTE_EXT_GW: (u32, u32) = (1, 42);
+
+/// `NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY`. Keeps the change out of /etc, where a copy of the packaged
+/// profile would shadow the one in /usr/lib and hide its future updates.
+const UPDATE2_FLAG_IN_MEMORY: u32 = 0x2;
+
+/// `NM_TERNARY_FALSE`.
+const TERNARY_FALSE: i32 = 0;
+
 /// Upper bound for a whole activation round trip with NetworkManager.
 const NM_TIMEOUT: Duration = Duration::from_secs(5);
 
-/// Activate the NymVPN connection each time the tunnel comes up, until `shutdown` is cancelled.
+/// Activate the NymVPN connection each time the tunnel comes up or a profile is added while it is
+/// up, until `shutdown` is cancelled.
 pub async fn run(mut tunnel_state_rx: watch::Receiver<TunnelState>, shutdown: CancellationToken) {
-    let mut is_active = false;
+    let mut new_profiles = watch_new_profiles().await;
 
     loop {
         tokio::select! {
@@ -35,38 +47,53 @@ pub async fn run(mut tunnel_state_rx: watch::Receiver<TunnelState>, shutdown: Ca
                     break;
                 }
             }
+            Some(()) = new_profiles.next() => {}
             _ = shutdown.cancelled() => break,
         }
 
-        let tunnel_state = tunnel_state_rx.borrow().clone();
-        match tunnel_state {
-            TunnelState::Connected { .. } | TunnelState::Connecting { .. } => {
-                if !is_active {
-                    is_active = activate_connection().await;
-                }
-            }
-            TunnelState::Disconnecting { .. } => {}
-            TunnelState::Disconnected | TunnelState::Offline { .. } | TunnelState::Error(..) => {
-                is_active = false
-            }
+        let is_tunnel_up = matches!(
+            *tunnel_state_rx.borrow(),
+            TunnelState::Connected { .. } | TunnelState::Connecting { .. }
+        );
+        if is_tunnel_up {
+            activate_connection().await;
         }
     }
 }
 
-async fn activate_connection() -> bool {
-    match with_timeout(activate_vpn_connection(SERVICE_TYPE)).await {
-        Ok(Some(uuid)) => {
-            tracing::info!("Activated NetworkManager connection {uuid}");
-            true
-        }
-        Ok(None) => false,
+/// Yields each time a profile is added to NetworkManager. Never yields when the system bus is not
+/// available.
+async fn watch_new_profiles() -> BoxStream<'static, ()> {
+    match with_timeout(subscribe_new_profiles()).await {
+        Ok(stream) => stream,
         Err(err) => {
             tracing::debug!(
                 "{}",
-                err.display_chain_with_msg("Cannot activate the NetworkManager connection")
+                err.display_chain_with_msg("Cannot watch NetworkManager for new profiles")
             );
-            false
+            futures::stream::pending().boxed()
         }
+    }
+}
+
+async fn subscribe_new_profiles() -> zbus::Result<BoxStream<'static, ()>> {
+    let connection = Connection::system().await?;
+    let settings = SettingsProxy::builder(&connection)
+        .cache_properties(CacheProperties::No)
+        .build()
+        .await?;
+    let new_connections = settings.receive_new_connection().await?;
+    Ok(new_connections.map(|_| ()).boxed())
+}
+
+async fn activate_connection() {
+    match with_timeout(activate_vpn_connection(SERVICE_TYPE)).await {
+        Ok(Some(uuid)) => tracing::info!("Activated NetworkManager connection {uuid}"),
+        Ok(None) => {}
+        Err(err) => tracing::debug!(
+            "{}",
+            err.display_chain_with_msg("Cannot activate the NetworkManager connection")
+        ),
     }
 }
 
@@ -102,12 +129,83 @@ async fn activate_vpn_connection(service_type: &str) -> zbus::Result<Option<Stri
         return Ok(None);
     }
 
+    let network_manager = network_manager(&connection).await?;
+    if supports_auto_route_ext_gw(&network_manager).await {
+        // Still activate on failure: NetworkManager showing the VPN matters more than one route.
+        if let Err(err) = disable_gateway_route(&connection, profile).await {
+            tracing::warn!(
+                "{}",
+                err.display_chain_with_msg(
+                    "Cannot stop NetworkManager from routing to the VPN gateway"
+                )
+            );
+        }
+    }
+
     let any = ObjectPath::from_static_str_unchecked("/");
-    network_manager(&connection)
-        .await?
+    network_manager
         .activate_connection(&profile.path, &any, &any)
         .await?;
     Ok(Some(profile.uuid.clone()))
+}
+
+/// Whether NetworkManager knows `auto-route-ext-gw`. Older versions may reject a profile that
+/// sets it.
+async fn supports_auto_route_ext_gw(network_manager: &NetworkManagerProxy<'_>) -> bool {
+    let Ok(version) = network_manager.version().await else {
+        return false;
+    };
+    let mut parts = version.split('.').map(str::parse::<u32>);
+    match (parts.next(), parts.next()) {
+        (Some(Ok(major)), Some(Ok(minor))) => (major, minor) >= MIN_VERSION_AUTO_ROUTE_EXT_GW,
+        _ => false,
+    }
+}
+
+/// Stop NetworkManager from adding a route to the VPN gateway through the physical interface when
+/// `profile` is activated. The daemon does all routing itself.
+///
+/// The change is kept in memory only, so it is made again after a reboot. Secrets are not carried
+/// over, which is fine as NymVPN profiles have none.
+async fn disable_gateway_route(connection: &Connection, profile: &VpnProfile) -> zbus::Result<()> {
+    let is_disabled = |section: &str| {
+        profile
+            .settings
+            .get(section)
+            .and_then(|section| section.get("auto-route-ext-gw"))
+            .and_then(|value| value.downcast_ref::<i32>().ok())
+            == Some(TERNARY_FALSE)
+    };
+    if is_disabled("ipv4") && is_disabled("ipv6") {
+        return Ok(());
+    }
+
+    let mut settings = HashMap::<&str, HashMap<&str, Value<'_>>>::new();
+    for (section, properties) in &profile.settings {
+        let section = settings.entry(section.as_str()).or_default();
+        for (key, value) in properties {
+            section.insert(key.as_str(), Value::from(value.try_clone()?));
+        }
+    }
+    for section in ["ipv4", "ipv6"] {
+        settings
+            .entry(section)
+            .or_default()
+            .insert("auto-route-ext-gw", Value::from(TERNARY_FALSE));
+    }
+
+    SettingsConnectionProxy::builder(connection)
+        .path(&profile.path)?
+        .cache_properties(CacheProperties::No)
+        .build()
+        .await?
+        .update2(settings, UPDATE2_FLAG_IN_MEMORY, HashMap::new())
+        .await?;
+    tracing::info!(
+        "Disabled the NetworkManager route to the VPN gateway for {}",
+        profile.uuid
+    );
+    Ok(())
 }
 
 /// A VPN profile in NetworkManager.
@@ -116,7 +214,11 @@ struct VpnProfile {
     uuid: String,
     /// When the profile was last activated, in seconds since the epoch; 0 if never.
     last_used: u64,
+    settings: ProfileSettings,
 }
+
+/// Profile settings as `GetSettings` returns them: properties by section.
+type ProfileSettings = HashMap<String, HashMap<String, OwnedValue>>;
 
 /// All saved profiles of the VPN `service_type`.
 async fn vpn_profiles(
@@ -160,12 +262,15 @@ async fn vpn_profiles(
             uuid: uuid.to_owned(),
             path,
             last_used,
+            settings,
         });
     }
     Ok(profiles)
 }
 
-/// Whether any of `profiles` is currently active.
+/// Whether any of `profiles` is currently active, in any state. A profile that is still being torn
+/// down counts too: it may be the user disconnecting in NetworkManager, and activating it again
+/// would bring back the tunnel they just turned off.
 async fn has_active_profile(
     connection: &Connection,
     profiles: &[VpnProfile],
@@ -213,6 +318,9 @@ trait NetworkManager {
 
     #[zbus(property)]
     fn active_connections(&self) -> zbus::Result<Vec<OwnedObjectPath>>;
+
+    #[zbus(property)]
+    fn version(&self) -> zbus::Result<String>;
 }
 
 #[zbus::proxy(
@@ -222,6 +330,9 @@ trait NetworkManager {
 )]
 trait Settings {
     fn list_connections(&self) -> zbus::Result<Vec<OwnedObjectPath>>;
+
+    #[zbus(signal)]
+    fn new_connection(&self, connection: OwnedObjectPath) -> zbus::Result<()>;
 }
 
 #[zbus::proxy(
@@ -229,7 +340,14 @@ trait Settings {
     default_service = "org.freedesktop.NetworkManager"
 )]
 trait SettingsConnection {
-    fn get_settings(&self) -> zbus::Result<HashMap<String, HashMap<String, OwnedValue>>>;
+    fn get_settings(&self) -> zbus::Result<ProfileSettings>;
+
+    fn update2(
+        &self,
+        settings: HashMap<&str, HashMap<&str, Value<'_>>>,
+        flags: u32,
+        args: HashMap<&str, Value<'_>>,
+    ) -> zbus::Result<HashMap<String, OwnedValue>>;
 }
 
 #[zbus::proxy(
