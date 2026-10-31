@@ -66,13 +66,6 @@ pub trait ActiveConnection {
     #[zbus(property)]
     fn uuid(&self) -> zbus::Result<String>;
 
-    #[zbus(property, name = "Type")]
-    fn connection_type(&self) -> zbus::Result<String>;
-
-    /// For a VPN, the active connection it runs on top of.
-    #[zbus(property)]
-    fn specific_object(&self) -> zbus::Result<zbus::zvariant::OwnedObjectPath>;
-
     #[zbus(signal)]
     fn state_changed(&self, state: u32, reason: u32) -> zbus::Result<()>;
 }
