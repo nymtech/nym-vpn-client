@@ -117,6 +117,14 @@ pub type VariantMap = HashMap<String, VariantRefArg>;
 // settings are a{sa{sv}}
 pub type DeviceConfig = HashMap<String, VariantMap>;
 
+/// A VPN profile in NetworkManager.
+struct VpnProfile {
+    path: dbus::Path<'static>,
+    uuid: String,
+    /// When the profile was last activated, in seconds since the epoch; 0 if never.
+    last_used: u64,
+}
+
 /// Implements functionality to control NetworkManager over DBus.
 pub struct NetworkManager {
     connection: Arc<SyncConnection>,
@@ -379,6 +387,45 @@ impl NetworkManager {
         }
     }
 
+    /// Whether NetworkManager has a primary connection, the one holding the default route. A VPN
+    /// can only be activated on top of one.
+    pub fn has_primary_connection(&self) -> Result<bool> {
+        let path: dbus::Path<'static> = self.nm_manager().get(NM_MANAGER, "PrimaryConnection")?;
+        Ok(&*path != "/")
+    }
+
+    /// Activate the most recently used profile of the VPN `service_type` on top of the primary
+    /// connection, unless a profile of that VPN is already active. Returns the UUID of the
+    /// activated profile.
+    pub fn activate_vpn_connection(&self, service_type: &str) -> Result<Option<String>> {
+        let profiles = self.vpn_profiles(service_type)?;
+        let Some(profile) = profiles.iter().max_by_key(|profile| profile.last_used) else {
+            return Ok(None);
+        };
+
+        let active: Vec<dbus::Path<'static>> =
+            self.nm_manager().get(NM_MANAGER, "ActiveConnections")?;
+        for path in active {
+            let Ok(uuid) = self
+                .as_path(&path)
+                .get::<String>(NM_CONNECTION_ACTIVE, "Uuid")
+            else {
+                continue;
+            };
+            if profiles.iter().any(|profile| profile.uuid == uuid) {
+                return Ok(None);
+            }
+        }
+
+        let any = dbus::Path::from("/");
+        let (_active,): (dbus::Path<'static>,) = self.nm_manager().method_call(
+            NM_MANAGER,
+            "ActivateConnection",
+            (&profile.path, &any, &any),
+        )?;
+        Ok(Some(profile.uuid.clone()))
+    }
+
     fn nm_manager(&self) -> Proxy<'_, &SyncConnection> {
         Proxy::new(NM_BUS, NM_MANAGER_PATH, RPC_TIMEOUT, &*self.connection)
     }
@@ -451,6 +498,42 @@ impl NetworkManager {
 
     fn as_path<'a>(&'a self, device: &'a dbus::Path<'a>) -> Proxy<'a, &'a SyncConnection> {
         Proxy::new(NM_BUS, device, RPC_TIMEOUT, &*self.connection)
+    }
+
+    fn vpn_profiles(&self, service_type: &str) -> Result<Vec<VpnProfile>> {
+        let (paths,): (Vec<dbus::Path<'static>>,) =
+            Proxy::new(NM_BUS, NM_SETTINGS_PATH, RPC_TIMEOUT, &*self.connection).method_call(
+                NM_SETTINGS_INTERFACE,
+                "ListConnections",
+                (),
+            )?;
+        let mut profiles = Vec::new();
+        for path in paths {
+            let Ok((settings,)) = self.as_path(&path).method_call::<(DeviceConfig,), _, _, _>(
+                NM_SETTINGS_CONNECTION_INTERFACE,
+                "GetSettings",
+                (),
+            ) else {
+                continue;
+            };
+            let value = |section: &str, key: &str| settings.get(section)?.get(key);
+            if value("vpn", "service-type").and_then(|value| value.0.as_str()) != Some(service_type)
+            {
+                continue;
+            }
+            let Some(uuid) = value("connection", "uuid").and_then(|value| value.0.as_str()) else {
+                continue;
+            };
+            let last_used = value("connection", "timestamp")
+                .and_then(|value| value.0.as_u64())
+                .unwrap_or(0);
+            profiles.push(VpnProfile {
+                uuid: uuid.to_owned(),
+                path,
+                last_used,
+            });
+        }
+        Ok(profiles)
     }
 
     pub fn set_dns(&mut self, interface_name: &str, servers: &[IpAddr]) -> Result<DeviceConfig> {
