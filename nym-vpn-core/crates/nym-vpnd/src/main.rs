@@ -4,8 +4,6 @@
 mod cli;
 mod command_interface;
 mod environment;
-#[cfg(target_os = "linux")]
-mod network_manager;
 mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;

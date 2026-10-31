@@ -247,13 +247,6 @@ impl NetworkManager {
         }
     }
 
-    /// Whether NetworkManager has a primary connection, the one holding the default route. A VPN
-    /// can only be activated on top of one.
-    pub fn has_primary_connection(&self) -> Result<bool> {
-        let path: dbus::Path<'static> = self.nm_manager().get(NM_MANAGER, "PrimaryConnection")?;
-        Ok(&*path != "/")
-    }
-
     /// Activate the most recently used profile of the VPN `service_type` on top of the primary
     /// connection, unless a profile of that VPN is already active. Returns the UUID of the
     /// activated profile.
