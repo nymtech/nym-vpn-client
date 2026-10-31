@@ -52,10 +52,20 @@ def rule_for(rel_path):
     return None
 
 
-def field_len(path, unit="chars"):
+def _safe_under(root, path):
+    """Resolve `path` and return it only if it stays inside `root`; else raise. Sanitiser at the open
+    sink: the file list comes from CLI args, so validate containment here, right before reading."""
+    root_real = os.path.realpath(root)
+    real = os.path.realpath(path)
+    if os.path.commonpath([root_real, real]) != root_real:
+        raise ValueError(f"refusing to read outside the repo root: {path!r}")
+    return real
+
+
+def field_len(path, unit, root):
     """Length as the store counts it, trailing whitespace stripped: characters, or UTF-8 bytes for
     byte-limited fields (Apple keywords), where a multi-byte locale can fit fewer characters."""
-    with open(path, encoding="utf-8") as f:
+    with open(_safe_under(root, path), encoding="utf-8") as f:
         s = f.read().rstrip()
     return len(s.encode("utf-8")) if unit == "bytes" else len(s)
 
@@ -99,7 +109,7 @@ def main():
         if not os.path.isfile(path):
             continue  # deleted in the diff
         limit, label, unit = rule
-        n = field_len(path, unit)
+        n = field_len(path, unit, root)
         checked += 1
         status = "OK" if n <= limit else "FAIL"
         print(f"  [{status}] {label:24} {n:5}/{limit:<5} {unit:5} {rel}")
