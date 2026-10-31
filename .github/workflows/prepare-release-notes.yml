@@ -49,6 +49,12 @@ on:
       vpnc_deb_aarch64:
         type: string
         required: false
+      nm_plugin_deb_x86_64:
+        type: string
+        required: false
+      nm_plugin_deb_aarch64:
+        type: string
+        required: false
       linux_app_deb_x64:
         type: string
         required: false
@@ -114,6 +120,12 @@ on:
       vpnc_deb_aarch64:
         type: string
         required: false
+      nm_plugin_deb_x86_64:
+        type: string
+        required: false
+      nm_plugin_deb_aarch64:
+        type: string
+        required: false
       linux_app_deb_x64:
         type: string
         required: false
@@ -165,6 +177,8 @@ jobs:
       vpnd_deb_aarch64: ${{ steps.set-params.outputs.vpnd_deb_aarch64 }}
       vpnc_deb_x86_64: ${{ steps.set-params.outputs.vpnc_deb_x86_64 }}
       vpnc_deb_aarch64: ${{ steps.set-params.outputs.vpnc_deb_aarch64 }}
+      nm_plugin_deb_x86_64: ${{ steps.set-params.outputs.nm_plugin_deb_x86_64 }}
+      nm_plugin_deb_aarch64: ${{ steps.set-params.outputs.nm_plugin_deb_aarch64 }}
       linux_app_deb_x64: ${{ steps.set-params.outputs.linux_app_deb_x64 }}
       linux_app_deb_arm64: ${{ steps.set-params.outputs.linux_app_deb_arm64 }}
       linux_app_appimage_x64: ${{ steps.set-params.outputs.linux_app_appimage_x64 }}
@@ -195,6 +209,8 @@ jobs:
             echo "vpnd_deb_aarch64=vpnd_arm64.deb" >> $GITHUB_OUTPUT
             echo "vpnc_deb_x86_64=vpnc_amd64.deb" >> $GITHUB_OUTPUT
             echo "vpnc_deb_aarch64=vpnc_arm64.deb" >> $GITHUB_OUTPUT
+            echo "nm_plugin_deb_x86_64=nm_plugin_amd64.deb" >> $GITHUB_OUTPUT
+            echo "nm_plugin_deb_aarch64=nm_plugin_arm64.deb" >> $GITHUB_OUTPUT
             echo "linux_app_deb_x64=app_amd64.deb" >> $GITHUB_OUTPUT
             echo "linux_app_deb_arm64=app_arm64.deb" >> $GITHUB_OUTPUT
             echo "linux_app_appimage_x64=app_x64.AppImage" >> $GITHUB_OUTPUT
@@ -218,6 +234,8 @@ jobs:
             echo "vpnd_deb_aarch64=${{ inputs.vpnd_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
             echo "vpnc_deb_x86_64=${{ inputs.vpnc_deb_x86_64 || '' }}" >> $GITHUB_OUTPUT
             echo "vpnc_deb_aarch64=${{ inputs.vpnc_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
+            echo "nm_plugin_deb_x86_64=${{ inputs.nm_plugin_deb_x86_64 || '' }}" >> $GITHUB_OUTPUT
+            echo "nm_plugin_deb_aarch64=${{ inputs.nm_plugin_deb_aarch64 || '' }}" >> $GITHUB_OUTPUT
             echo "linux_app_deb_x64=${{ inputs.linux_app_deb_x64 || '' }}" >> $GITHUB_OUTPUT
             echo "linux_app_deb_arm64=${{ inputs.linux_app_deb_arm64 || '' }}" >> $GITHUB_OUTPUT
             echo "linux_app_appimage_x64=${{ inputs.linux_app_appimage_x64 || '' }}" >> $GITHUB_OUTPUT
@@ -474,6 +492,8 @@ jobs:
           VPND_DEB_ARM64: ${{ needs.resolve.outputs.vpnd_deb_aarch64 }}
           VPNC_DEB_X86_64: ${{ needs.resolve.outputs.vpnc_deb_x86_64 }}
           VPNC_DEB_ARM64: ${{ needs.resolve.outputs.vpnc_deb_aarch64 }}
+          NM_PLUGIN_DEB_X86_64: ${{ needs.resolve.outputs.nm_plugin_deb_x86_64 }}
+          NM_PLUGIN_DEB_ARM64: ${{ needs.resolve.outputs.nm_plugin_deb_aarch64 }}
           LINUX_APP_DEB_X64: ${{ needs.resolve.outputs.linux_app_deb_x64 }}
           LINUX_APP_DEB_ARM64: ${{ needs.resolve.outputs.linux_app_deb_arm64 }}
           LINUX_APP_APPIMAGE_X64: ${{ needs.resolve.outputs.linux_app_appimage_x64 }}
@@ -492,6 +512,9 @@ jobs:
             - `${{ env.VPND_DEB_ARM64 }}`: Nym VPN daemon, debian package (arm64)
             - `${{ env.VPNC_DEB_X86_64 }}`: Nym VPN command-line tool, debian package (x86_64)
             - `${{ env.VPNC_DEB_ARM64 }}`: Nym VPN command-line tool, debian package (arm64)
+          - **NetworkManager Plugin**
+            - `${{ env.NM_PLUGIN_DEB_X86_64 }}`: NetworkManager VPN plugin, debian package (x86_64)
+            - `${{ env.NM_PLUGIN_DEB_ARM64 }}`: NetworkManager VPN plugin, debian package (arm64)
 
           EOF
 
