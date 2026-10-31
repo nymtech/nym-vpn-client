@@ -56,7 +56,7 @@ COMPONENTS = {
     "apple":   {"changelog": "nym-vpn-apple/CHANGELOG.md",   "dirs": ["nym-vpn-apple/"],   "labels": ["affects:ios", "affects:macos"]},
 }
 
-SYSTEM = """You write the developer release changelog for the {component} component of the \
+SYSTEM = """You write the developer release changelog for the __COMPONENT__ component of the \
 NymVPN client, from a list of merged pull requests. You are an EDITOR, not a pipe: a developer's \
 raw description is your INPUT, never your output — a dev's unthinking internal wording is a prompt, \
 not the answer.
@@ -171,16 +171,19 @@ def call_anthropic(component, prs):
     body = {
         "model": MODEL,
         "max_tokens": 2000,
-        "system": SYSTEM.format(component=component) + (f"\n\n{STYLE}" if STYLE else ""),
+        "system": SYSTEM.replace("__COMPONENT__", component) + (f"\n\n{STYLE}" if STYLE else ""),
         "messages": [{"role": "user",
                       "content": f"Milestone: {MILESTONE}\nComponent: {component}\n"
                                  f"Merged PRs:\n{json.dumps(payload, ensure_ascii=False)}"}],
     }
+    headers = {"x-api-key": os.environ["ANTHROPIC_API_KEY"],
+               "anthropic-version": "2023-06-01", "content-type": "application/json"}
+    ws = os.environ.get("ANTHROPIC_WORKSPACE_ID")  # needed only for org-scoped keys
+    if ws:
+        headers["anthropic-workspace-id"] = ws
     req = urllib.request.Request(
         "https://api.anthropic.com/v1/messages",
-        data=json.dumps(body).encode("utf-8"),
-        headers={"x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                 "anthropic-version": "2023-06-01", "content-type": "application/json"})
+        data=json.dumps(body).encode("utf-8"), headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
         data = json.load(resp)
     text = "".join(b.get("text", "") for b in data["content"])

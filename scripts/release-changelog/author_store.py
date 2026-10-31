@@ -85,11 +85,14 @@ def call_anthropic(sources):
             f"Android (android + core):\n- " + "\n- ".join(sources["android"]) +
             "\n\nApple (apple + core):\n- " + "\n- ".join(sources["apple"])}],
     }
+    headers = {"x-api-key": os.environ["ANTHROPIC_API_KEY"],
+               "anthropic-version": "2023-06-01", "content-type": "application/json"}
+    ws = os.environ.get("ANTHROPIC_WORKSPACE_ID")  # needed only for org-scoped keys
+    if ws:
+        headers["anthropic-workspace-id"] = ws
     req = urllib.request.Request(
         "https://api.anthropic.com/v1/messages",
-        data=json.dumps(body).encode("utf-8"),
-        headers={"x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                 "anthropic-version": "2023-06-01", "content-type": "application/json"})
+        data=json.dumps(body).encode("utf-8"), headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
         data = json.load(resp)
     text = "".join(b.get("text", "") for b in data["content"])
