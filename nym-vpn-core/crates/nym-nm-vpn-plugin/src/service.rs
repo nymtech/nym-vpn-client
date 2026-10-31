@@ -30,7 +30,8 @@ use crate::{
     },
     plugin::{Command, VpnPlugin, VpnPluginSignals},
     state::{
-        DisconnectDecision, Effect, Machine, Phase, config_dict, disconnect_decision, is_terminal,
+        DisconnectDecision, Effect, Machine, Phase, awaits_network, config_dict,
+        disconnect_decision,
     },
 };
 
@@ -223,8 +224,9 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
         };
         tracing::info!("daemon state at connect: {state}");
         // The current state is a snapshot from before our request, so a terminal state here is
-        // the normal starting point. A daemon that is connected or waiting to reconnect is
-        // already set to connect.
+        // the normal starting point. A connected daemon needs nothing more. One waiting for the
+        // network cannot give NetworkManager a gateway yet, so the activation fails and the
+        // daemon is left waiting.
         match &state {
             TunnelState::Connected { .. } | TunnelState::Offline { reconnect: true } => {
                 let effects = self.machine.on_daemon_state(&state);
@@ -269,6 +271,9 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
         match disconnect_decision(&daemon_state, self.user_disconnect) {
             DisconnectDecision::AlreadyStopped => {
                 tracing::info!("daemon already {daemon_state}; reporting stopped");
+                if !self.user_disconnect && awaits_network(&daemon_state) {
+                    self.reactivate = self.uuid.clone();
+                }
                 let effects = self.machine.finish_stop();
                 self.apply(effects).await;
             }
@@ -299,7 +304,11 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
         match event {
             Some(TunnelEvent::NewState(state)) => {
                 tracing::info!("daemon state: {state}");
+                let was_started = self.machine.phase() == Phase::Started;
                 let effects = self.machine.on_daemon_state(&state);
+                if was_started && self.is_idle() && awaits_network(&state) {
+                    self.reactivate = self.uuid.clone();
+                }
                 self.apply(effects).await;
                 self.follow_recovery(&state).await;
                 self.last_daemon_state = Some(state);
@@ -321,7 +330,13 @@ impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
     /// stop waiting when it went down for good.
     async fn follow_recovery(&mut self, state: &TunnelState) {
         let connected = matches!(state, TunnelState::Connected { .. });
-        if !connected && !is_terminal(state) {
+        let down = matches!(
+            state,
+            TunnelState::Disconnected
+                | TunnelState::Error(_)
+                | TunnelState::Offline { reconnect: false }
+        );
+        if !connected && !down {
             return;
         }
         let Some(uuid) = self.reactivate.take() else {
@@ -857,46 +872,37 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn offline_recovery_keeps_started_and_event_stream() {
+    async fn offline_stops_and_reactivates_once_daemon_reconnects() {
         let h = Harness::start(true, connected(V4, None));
         h.connect().await.unwrap();
         h.send(offline(true)).await;
-        h.send(connecting()).await;
-        h.send(connected(V4, None)).await;
-        h.settle().await;
-        assert_eq!(h.effects().len(), 3);
-        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STARTED);
-        h.send(TunnelState::Disconnected).await;
         h.settle().await;
         assert_eq!(
             h.effects()[3..],
             [Effect::StateChanged(service_state::STOPPED)]
         );
+        *h.daemon.state.lock().unwrap() = offline(true);
+        h.disconnect().await;
+        h.send(connecting()).await;
+        h.send(connected(V4, None)).await;
+        h.settle().await;
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
+        assert_eq!(h.activations(), ["4b1c"]);
     }
 
     #[tokio::test]
-    async fn user_disconnect_during_offline_recovery_disconnects_daemon() {
+    async fn user_disconnect_while_offline_leaves_daemon() {
         let h = Harness::start(true, connected(V4, None));
         h.connect().await.unwrap();
-        h.send(offline(true)).await;
-        h.settle().await;
         *h.daemon.state.lock().unwrap() = offline(true);
         h.user_disconnect().await;
         h.settle().await;
-        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
         assert_eq!(
             h.effects()[3..],
-            [Effect::StateChanged(service_state::STOPPING)]
+            [Effect::StateChanged(service_state::STOPPED)]
         );
-        h.send(offline(false)).await;
-        h.settle().await;
-        assert_eq!(
-            h.effects()[3..],
-            [
-                Effect::StateChanged(service_state::STOPPING),
-                Effect::StateChanged(service_state::STOPPED)
-            ]
-        );
+        assert!(h.activations().is_empty());
     }
 
     #[tokio::test]
@@ -1001,25 +1007,21 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn user_disconnect_in_error_state_disconnects_daemon() {
+    async fn error_stops_vpn_and_leaves_daemon() {
         let h = Harness::start(true, connected(V4, None));
         h.connect().await.unwrap();
         h.send(error()).await;
         h.settle().await;
-        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STARTED);
+        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STOPPED);
         *h.daemon.state.lock().unwrap() = error();
-        h.user_disconnect().await;
+        h.disconnect().await;
         h.settle().await;
-        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 1);
-        h.send(TunnelState::Disconnected).await;
-        h.settle().await;
+        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
         assert_eq!(
             h.effects()[3..],
-            [
-                Effect::StateChanged(service_state::STOPPING),
-                Effect::StateChanged(service_state::STOPPED)
-            ]
+            [Effect::StateChanged(service_state::STOPPED)]
         );
+        assert!(h.activations().is_empty());
     }
 
     #[tokio::test]
