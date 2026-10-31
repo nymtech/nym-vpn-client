@@ -76,9 +76,19 @@ def main():
     ap.add_argument("--all", action="store_true", help="scan the whole fastlane metadata tree")
     args = ap.parse_args()
 
-    root = os.path.abspath(args.root)
-    paths = list(iter_all(root)) if args.all else [
+    root = os.path.realpath(args.root)
+    raw = list(iter_all(root)) if args.all else [
         p if os.path.isabs(p) else os.path.join(root, p) for p in args.files]
+
+    # Path-traversal guard: the file list comes from CLI args (a diff / a generated manifest), so
+    # resolve each one and keep only those that stay INSIDE the repo root before anything opens them.
+    paths = []
+    for p in raw:
+        real = os.path.realpath(p)
+        if os.path.commonpath([root, real]) == root:
+            paths.append(real)
+        else:
+            print(f"::warning::ignoring path outside the repo root: {p}")
 
     checked = failed = 0
     for path in paths:
