@@ -1,25 +1,35 @@
 #!/usr/bin/env python3
-"""(a) Author the component CHANGELOG `[Unreleased]` sections from a milestone's merged PRs.
+"""Author ONE pull request's changelog entry from its `## Description` (the base).
 
-Flow: gather the milestone's merged PRs (via `gh`) -> route each to one or more
-components by its `affects:*` labels -> ask the Anthropic Messages API to write
-Keep-a-Changelog bullets per component -> inject them into each component's
-`## [Unreleased]` section. The existing release CI (`add-changelog-release` stamp +
-`ffurrer2/extract-release-notes`) consumes those sections unchanged.
+Runs per-PR in CI, gated on the PR carrying a release milestone. For a milestoned PR:
 
-There is no agent/Claude Code session in CI: one stateless HTTPS call per component.
+  1. If the `## Description` is empty or an untouched template, author a description FROM THE
+     DIFF and write it back to the PR body (flagged) — repair the base before anything consumes it.
+  2. Author a Keep-a-Changelog entry from the (now-complete) description, using the diff to fill
+     gaps when the description is thin, and upsert it into the `## [Unreleased]` section of each
+     component CHANGELOG.md the PR's changed paths route to.
+
+This replaces the hand-written changelog entry a dev used to add (the `- [ ] Changelog` checkbox).
+Everything downstream is unchanged: `add-changelog-release` stamps `[Unreleased]` -> `[version]`
+at release, and `prepare-release-notes` (`extract-release-notes`) assembles the GitHub/TestFlight
+notes. There is no agent in CI — one stateless HTTPS call per task.
+
+Upsert is idempotent: entries are keyed by the PR URL, so re-runs (on `synchronize`) update this
+PR's bullet in place instead of duplicating it, and other PRs' bullets are left untouched.
 
 Env:
-    MILESTONE          (required, e.g. 'v2026.15 - Yari')
+    PR_NUMBER          (required) the PR to author for
     ANTHROPIC_API_KEY  (required unless --no-llm)
     GH_TOKEN           (for `gh`)
     ANTHROPIC_MODEL    (optional; pin a dated snapshot in CI)
+    ANTHROPIC_WORKSPACE_ID (optional; only for org-scoped keys)
     REPO               (optional; default nymtech/nym-vpn-client)
+    ACTIVE_MILESTONE   (optional) require the PR's milestone to equal this exact title; if unset,
+                       any non-empty milestone qualifies (the team tags release milestones reliably)
 
 Flags:
-    --dry-run   print the rendered sections, write nothing
-    --no-llm    skip the API; render raw PR titles as bullets (smoke test of
-                gather+route+inject only — NOT real changelog copy)
+    --dry-run   print what would change; write no files and don't edit the PR
+    --no-llm    skip the API; stub the entry from the PR title (plumbing smoke test only)
 """
 import json
 import os
@@ -29,14 +39,30 @@ import sys
 import urllib.request
 
 REPO = os.environ.get("REPO", "nymtech/nym-vpn-client")
-MILESTONE = os.environ.get("MILESTONE", "")
 MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
 ROOT = os.environ.get("GITHUB_WORKSPACE", os.getcwd())
 HERE = os.path.dirname(os.path.abspath(__file__))
+ACTIVE_MILESTONE = os.environ.get("ACTIVE_MILESTONE", "").strip()
+
+HEADINGS = ("Added", "Changed", "Fixed")
+
+# component -> its CHANGELOG file and the source dirs whose changes route a PR to it.
+# Routing is by CHANGED PATHS (reliable); labels are not used (most PRs carry none).
+COMPONENTS = {
+    "core":    {"changelog": "nym-vpn-core/CHANGELOG.md",    "dirs": ["nym-vpn-core/"]},
+    "android": {"changelog": "nym-vpn-android/CHANGELOG.md",  "dirs": ["nym-vpn-android/"]},
+    "app":     {"changelog": "nym-vpn-app/CHANGELOG.md",      "dirs": ["nym-vpn-app/"]},
+    "apple":   {"changelog": "nym-vpn-apple/CHANGELOG.md",    "dirs": ["nym-vpn-apple/"]},
+}
+
+# Placeholder phrases from the PR template; a line containing one is boilerplate, not a real
+# description, and is dropped when deciding whether `## Description` is blank.
+TEMPLATE_PLACEHOLDERS = ("JIRA-NYM-XXXX", "Replace `XXXX`", "Please include a summary",
+                         "Please also include relevant motivation", "Linking this PR does not count",
+                         "optional, if UI related")
 
 
 def load_style():
-    """The committed house style/terminology, loaded into the author prompt."""
     try:
         return open(os.path.join(HERE, "style.md"), encoding="utf-8").read().strip()
     except OSError:
@@ -45,224 +71,264 @@ def load_style():
 
 STYLE = load_style()
 
-# component -> its CHANGELOG file, the source dirs whose changes route a PR to it,
-# and the affects:* labels used only as a fallback when a PR touches no component dir.
-# Routing is primarily by CHANGED PATHS: labels are applied too inconsistently to rely on
-# (most PRs carry no affects:* label), so path is the signal that reflects what actually moved.
-COMPONENTS = {
-    "core":    {"changelog": "nym-vpn-core/CHANGELOG.md",   "dirs": ["nym-vpn-core/"],    "labels": []},
-    "android": {"changelog": "nym-vpn-android/CHANGELOG.md", "dirs": ["nym-vpn-android/"], "labels": ["affects:android"]},
-    "app":     {"changelog": "nym-vpn-app/CHANGELOG.md",     "dirs": ["nym-vpn-app/"],     "labels": ["affects:windows", "affects:linux"]},
-    "apple":   {"changelog": "nym-vpn-apple/CHANGELOG.md",   "dirs": ["nym-vpn-apple/"],   "labels": ["affects:ios", "affects:macos"]},
-}
-
-SYSTEM = """You write the developer release changelog for the __COMPONENT__ component of the \
-NymVPN client, from a list of merged pull requests. You are an EDITOR, not a pipe: a developer's \
-raw description is your INPUT, never your output — a dev's unthinking internal wording is a prompt, \
+ENTRY_SYSTEM = """You write ONE developer changelog entry for the __COMPONENT__ component of the \
+NymVPN client, from a single merged pull request. You are an EDITOR, not a pipe: the developer's \
+description is your INPUT, never your output — a dev's unthinking internal wording is a prompt, \
 not the answer.
 
 Rules:
-- Include only user-facing or otherwise notable changes. Exclude pure CI, build, tests, \
-dependency bumps, refactors and internal plumbing unless genuinely notable.
+- Include the change only if it is user-facing or otherwise notable. If it is pure CI, build, \
+tests, a dependency bump, or internal refactor/plumbing with no notable effect, return empty lists.
 - STRIP internal language. No code symbols or type/function/module names \
-(e.g. `Socks5ServiceState::cleanup()`), no ticket ids, no dev shorthand. Rewrite the underlying \
-change as one clear sentence a technical user understands.
-- Be CONSISTENT across the whole set: name the same feature/setting/component the same way in every \
-entry, matching how the existing changelog already names it. Use the project's established product \
-terms, never ad-hoc per-dev phrasing. Fix terminology drift between entries.
-- If a PR has an empty `release_note`, author the entry from its `diff_excerpt` instead — describe \
-the observable change, and be conservative (don't overstate what the diff proves).
+(e.g. `Socks5ServiceState::cleanup()`), no ticket ids, no dev shorthand. Rewrite the change as one \
+clear sentence a technical user understands.
+- Use the project's established product terms (see the terminology below), matching how the \
+existing changelog already names the same feature/setting. Never invent ad-hoc phrasing.
+- The description is the base. If it is thin, vague, or internal-only, use the diff_excerpt to \
+write an accurate entry — but be conservative: never claim more than the diff proves.
 - This is the technical/developer changelog (feeds GitHub release notes + TestFlight), NOT \
 app-store copy. Clear, precise, technical-but-readable — not marketing.
-- Classify each change into exactly one of Added / Changed / Fixed. One line per change. \
-Don't invent detail beyond the PR's material.
-- Preserve the PR link.
+- Classify into Added / Changed / Fixed. Usually ONE line total for a PR; split only if the PR \
+genuinely makes two distinct user-facing changes to this component.
 - Return ONLY JSON, no prose or code fences:
-  {"added":[{"text":"...","pr":"<url>"}], "changed":[...], "fixed":[...]}"""
+  {"added":["..."], "changed":["..."], "fixed":["..."]}"""
 
-# Placeholder phrases from the PR template; a line containing one is template boilerplate,
-# not a real description, and is dropped when deciding whether a body is blank.
-TEMPLATE_PLACEHOLDERS = ("JIRA-NYM-XXXX", "Replace `XXXX`", "Please include a summary",
-                         "Please also include relevant motivation", "Linking this PR does not count",
-                         "optional, if UI related")
-
-
-def gather_prs():
-    out = subprocess.check_output([
-        "gh", "pr", "list", "-R", REPO, "--state", "merged", "--limit", "300",
-        "--search", f'milestone:"{MILESTONE}"',
-        "--json", "number,title,labels,body,url",
-    ])
-    rows = json.loads(out)
-    prs = []
-    for r in rows:
-        body = r.get("body") or ""
-        note = extract_release_note(body)
-        # no release note AND a blank/template description -> author from the diff, and flag it
-        from_diff = not note and is_blank_body(body)
-        prs.append({
-            "number": r["number"],
-            "title": r["title"],
-            "url": r["url"],
-            "labels": [l["name"] for l in r.get("labels", [])],
-            "files": pr_files(r["number"]),
-            "note": note,
-            "from_diff": from_diff,
-            "diff": pr_diff(r["number"]) if from_diff else "",
-        })
-    return prs
+DESC_SYSTEM = """You write a pull request description from its diff, because the author left it \
+empty or only the template. Write 2–4 plain sentences: what observably changed and, if the diff \
+makes it clear, why. Technical but readable. No code symbols, type/function names, file paths, or \
+ticket ids. Be conservative — describe only what the diff proves. Return ONLY the description \
+text, no heading, no preamble, no code fences."""
 
 
-def is_blank_body(body):
-    """True if the PR body is empty or only the untouched template (no real description)."""
-    text = re.sub(r"<!--.*?-->", "", body, flags=re.S)                 # HTML comments
-    text = re.sub(r"(?is)(##\s*Summary by CodeRabbit|Reviewable:).*", "", text)  # bot blocks
+# ----------------------------------------------------------------------------- gh helpers
+
+def gh_json(args):
+    return json.loads(subprocess.check_output(["gh", *args]))
+
+
+def get_pr(number):
+    pr = gh_json(["pr", "view", str(number), "-R", REPO,
+                  "--json", "number,title,url,body,files,milestone"])
+    return {
+        "number": pr["number"],
+        "title": pr["title"],
+        "url": pr["url"],
+        "body": pr.get("body") or "",
+        "files": [f["path"] for f in pr.get("files", [])],
+        "milestone": (pr.get("milestone") or {}).get("title", ""),
+    }
+
+
+def pr_diff(number, cap=6000):
+    out = subprocess.check_output(["gh", "pr", "diff", str(number), "-R", REPO])
+    return out.decode("utf-8", "replace")[:cap]
+
+
+def set_pr_body(number, body, dry):
+    if dry:
+        print(f"[dry-run] would update PR #{number} body ({len(body)} chars)")
+        return
+    subprocess.run(["gh", "pr", "edit", str(number), "-R", REPO, "--body", body], check=True)
+    print(f"::notice::backfilled PR #{number} description from diff")
+
+
+# ----------------------------------------------------------------------------- description
+
+def section(body, name):
+    """Text of a `## <name>` section up to the next `## ` heading, or '' if absent."""
+    m = re.search(rf"^##+\s*{re.escape(name)}\s*\n(.*?)(?=^##\s|\Z)", body, re.S | re.M | re.I)
+    return m.group(1).strip() if m else ""
+
+
+def is_blank_text(text):
+    """True if `text` is empty or only template boilerplate / checkboxes."""
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
     kept = []
     for ln in text.splitlines():
         s = ln.strip()
-        if not s or s == "---":
+        if not s or s == "---" or s.startswith("#"):
             continue
-        if s.startswith("#"):                                          # headings
+        if s.startswith("- [") or re.fullmatch(r"[-*]", s):
             continue
-        if s.startswith("- [") or re.fullmatch(r"[-*]", s):            # checkboxes / empty bullets
-            continue
-        if any(ph in s for ph in TEMPLATE_PLACEHOLDERS):               # template placeholder lines
+        if any(ph in s for ph in TEMPLATE_PLACEHOLDERS):
             continue
         kept.append(s)
     return len(" ".join(kept)) < 20
 
 
-def pr_diff(number, cap=6000):
-    """Capped unified diff, used to author an entry when the description is blank."""
-    out = subprocess.check_output(["gh", "pr", "diff", str(number), "-R", REPO])
-    return out.decode("utf-8", "replace")[:cap]
+def replace_section(body, name, new_text):
+    """Replace the body of a `## <name>` section, or prepend one if it doesn't exist."""
+    pat = re.compile(rf"(^##+\s*{re.escape(name)}\s*\n)(.*?)(?=^##\s|\Z)", re.S | re.M | re.I)
+    if pat.search(body):
+        return pat.sub(lambda m: f"{m.group(1)}\n{new_text}\n\n", body, count=1)
+    head = f"## {name}\n\n{new_text}\n"
+    return f"{head}\n{body}" if body.strip() else head
 
 
-def pr_files(number):
-    """Changed file paths for a PR (the reliable routing signal)."""
-    out = subprocess.check_output([
-        "gh", "pr", "view", str(number), "-R", REPO, "--json", "files"])
-    return [f["path"] for f in json.loads(out).get("files", [])]
+# ----------------------------------------------------------------------------- anthropic
 
-
-def extract_release_note(body):
-    """Pull a `## Release note` section or `Release note:` line from the PR body, else ''."""
-    m = re.search(r"##+\s*Release note\s*\n+(.+?)(?:\n#{1,6}\s|\Z)", body, re.S | re.I)
-    if m:
-        return m.group(1).strip()
-    m = re.search(r"Release note:\s*(.+)", body, re.I)
-    return m.group(1).strip() if m else ""
-
-
-def route(pr):
-    """Components this PR belongs to, by changed path; fall back to affects:* labels, else core."""
-    hits = {c for c, cfg in COMPONENTS.items()
-            if any(p.startswith(d) for d in cfg["dirs"] for p in pr["files"])}
-    if not hits:
-        hits = {c for c, cfg in COMPONENTS.items()
-                if cfg["labels"] and any(lbl in pr["labels"] for lbl in cfg["labels"])}
-    return hits or {"core"}
-
-
-def call_anthropic(component, prs):
-    payload = [{"number": p["number"], "title": p["title"], "url": p["url"],
-                "release_note": p["note"],
-                "diff_excerpt": p["diff"] if p["from_diff"] else ""} for p in prs]
-    body = {
-        "model": MODEL,
-        "max_tokens": 2000,
-        "system": SYSTEM.replace("__COMPONENT__", component) + (f"\n\n{STYLE}" if STYLE else ""),
-        "messages": [{"role": "user",
-                      "content": f"Milestone: {MILESTONE}\nComponent: {component}\n"
-                                 f"Merged PRs:\n{json.dumps(payload, ensure_ascii=False)}"}],
-    }
+def call_anthropic(system, user, max_tokens=1500):
+    body = {"model": MODEL, "max_tokens": max_tokens, "system": system,
+            "messages": [{"role": "user", "content": user}]}
     headers = {"x-api-key": os.environ["ANTHROPIC_API_KEY"],
                "anthropic-version": "2023-06-01", "content-type": "application/json"}
-    ws = os.environ.get("ANTHROPIC_WORKSPACE_ID")  # needed only for org-scoped keys
+    ws = os.environ.get("ANTHROPIC_WORKSPACE_ID")
     if ws:
         headers["anthropic-workspace-id"] = ws
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
-        data=json.dumps(body).encode("utf-8"), headers=headers)
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages",
+                                 data=json.dumps(body).encode("utf-8"), headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
         data = json.load(resp)
-    text = "".join(b.get("text", "") for b in data["content"])
+    return "".join(b.get("text", "") for b in data["content"]).strip()
+
+
+def author_description(diff):
+    return call_anthropic(DESC_SYSTEM, f"Diff:\n{diff}", max_tokens=600)
+
+
+def author_entry(component, title, description, diff):
+    system = ENTRY_SYSTEM.replace("__COMPONENT__", component) + (f"\n\n{STYLE}" if STYLE else "")
+    user = (f"Component: {component}\nPR title: {title}\n\n"
+            f"Description (the base):\n{description}\n\nDiff excerpt:\n{diff}")
+    text = call_anthropic(system, user, max_tokens=1200)
     s, e = text.find("{"), text.rfind("}")
     if s < 0 or e < 0:
         sys.exit(f"[{component}] could not parse JSON from model:\n{text}")
     return json.loads(text[s:e + 1])
 
 
-def stub(prs):
-    """--no-llm: group raw titles under Changed, for a gather/route/inject smoke test only."""
-    return {"added": [], "changed": [{"text": p["title"], "pr": p["url"]} for p in prs],
-            "fixed": []}
+# ----------------------------------------------------------------------------- routing + upsert
+
+def route(files):
+    hits = {c for c, cfg in COMPONENTS.items()
+            if any(p.startswith(d) for d in cfg["dirs"] for p in files)}
+    return hits or {"core"}
 
 
-def render_section(buckets):
-    parts = []
-    for heading in ("Added", "Changed", "Fixed"):
-        items = buckets.get(heading.lower()) or []
-        if not items:
-            continue
-        parts.append(f"### {heading}")
-        for it in items:
-            pr = f" ({it['pr']})" if it.get("pr") else ""
-            parts.append(f"- {it['text'].rstrip('.')}{pr}")
-        parts.append("")
-    return "\n".join(parts).rstrip() + "\n" if parts else ""
+def upsert(path, buckets, pr_url, dry):
+    """Idempotently place this PR's bullets in `## [Unreleased]`, keyed by pr_url.
 
-
-def inject_unreleased(path, section_body):
-    """Replace the body of `## [Unreleased]` (up to the next `## [`) with section_body."""
+    Removes any existing lines carrying this pr_url (so re-runs update in place), then appends the
+    new bullets under their heading. Other PRs' bullets are untouched; headings keep Added/Changed/
+    Fixed order. Returns True if the file content changed.
+    """
     with open(path, encoding="utf-8") as f:
         text = f.read()
-    if "## [Unreleased]" not in text:
+    m = re.search(r"(## \[Unreleased\]\n)(.*?)(\n## \[|\Z)", text, re.S)
+    if not m:
         sys.exit(f"{path}: no '## [Unreleased]' section")
-    pat = re.compile(r"(## \[Unreleased\]\n)(.*?)(\n## \[)", re.S)
-    repl = f"\\g<1>\n{section_body}\n\\g<3>" if section_body else r"\g<1>\g<3>"
-    new, n = pat.subn(repl, text, count=1)
-    if n == 0:  # [Unreleased] is the last section
-        new = re.sub(r"(## \[Unreleased\]\n)", f"\\g<1>\n{section_body}", text, count=1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(new)
+    head, body, tail = m.group(1), m.group(2), m.group(3)
 
+    # parse existing [Unreleased] into preamble + {heading: [bullet lines]}, dropping this PR's lines
+    preamble, sections, cur = [], {}, None
+    for ln in body.splitlines():
+        hm = re.match(r"^###\s+(.+?)\s*$", ln)
+        if hm:
+            cur = hm.group(1)
+            sections.setdefault(cur, [])
+            continue
+        if pr_url in ln:            # drop prior bullets for this PR (dedup / in-place update)
+            continue
+        (sections[cur] if cur else preamble).append(ln)
+
+    # add the new bullets
+    added_n = 0
+    for heading in HEADINGS:
+        items = [i for i in (buckets.get(heading.lower()) or []) if i.strip()]
+        if not items:
+            continue
+        sections.setdefault(heading, [])
+        for it in items:
+            sections[heading].append(f"- {it.rstrip('.')} ({pr_url})")
+            added_n += 1
+
+    # re-render: canonical heading order first, then any others, preserving bullet order
+    order = [h for h in HEADINGS if sections.get(h)] + \
+            [h for h in sections if h not in HEADINGS and sections.get(h)]
+    parts = []
+    pre = "\n".join(preamble).strip("\n")
+    if pre:
+        parts.append(pre)
+    for h in order:
+        lines = [l for l in sections[h] if l.strip()]
+        if lines:
+            parts.append(f"### {h}\n" + "\n".join(lines))
+    new_body = "\n\n" + "\n\n".join(parts) + "\n" if parts else "\n"
+    new_text = text[:m.start()] + head + new_body + tail + text[m.end():]
+
+    if new_text == text:
+        return False
+    if dry:
+        print(f"[dry-run] {path}: would set this PR's {added_n} bullet(s) in [Unreleased]")
+        return True
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(new_text)
+    return True
+
+
+def stub(title):
+    return {"added": [], "changed": [title], "fixed": []}
+
+
+# ----------------------------------------------------------------------------- main
 
 def main():
     dry = "--dry-run" in sys.argv
     no_llm = "--no-llm" in sys.argv
-    if not MILESTONE:
-        sys.exit("MILESTONE is required")
+    number = os.environ.get("PR_NUMBER", "").strip()
+    if not number:
+        sys.exit("PR_NUMBER is required")
 
-    prs = gather_prs()
-    if not prs:
-        sys.exit(f"No merged PRs for milestone {MILESTONE!r}")
+    pr = get_pr(number)
 
-    by_component = {c: [] for c in COMPONENTS}
-    for pr in prs:
-        for c in route(pr):
-            by_component[c].append(pr)
+    # --- milestone gate ---
+    ms = pr["milestone"]
+    if not ms:
+        print(f"::notice::PR #{number} has no milestone — skipping changelog authoring")
+        return
+    if ACTIVE_MILESTONE and ms != ACTIVE_MILESTONE:
+        print(f"::notice::PR #{number} milestone {ms!r} != active {ACTIVE_MILESTONE!r} — skipping")
+        return
+    print(f"PR #{number} milestone={ms!r} — authoring")
 
-    print(f"{len(prs)} merged PRs → " +
-          ", ".join(f"{c}:{len(v)}" for c, v in by_component.items()))
+    diff = pr_diff(number)
 
-    flagged = [p["number"] for p in prs if p["from_diff"]]
-    if flagged:
-        print(f"::warning::{len(flagged)} PR(s) had no description — authored from diff, "
-              f"proofread closely: {flagged}")
+    # --- 1. repair the base: backfill an empty/template description ---
+    desc = section(pr["body"], "Description")
+    from_diff = is_blank_text(desc)
+    if from_diff:
+        print(f"::warning::PR #{number} description is empty/template — authoring from diff")
+        if no_llm:
+            desc = pr["title"]
+        else:
+            desc = author_description(diff)
+            new_body = replace_section(pr["body"], "Description", desc)
+            set_pr_body(number, new_body, dry)
 
-    for component, cfg in COMPONENTS.items():
-        cprs = by_component[component]
-        if not cprs:
+    # --- 2. author the changelog entry per routed component ---
+    comps = route(pr["files"])
+    print(f"routes to: {', '.join(sorted(comps))}")
+    changed = []
+    for component in sorted(comps):
+        buckets = stub(pr["title"]) if no_llm else \
+            author_entry(component, pr["title"], desc, diff)
+        if not any(buckets.get(h.lower()) for h in HEADINGS):
+            print(f"  {component}: no user-facing entry (skipped)")
             continue
-        buckets = stub(cprs) if no_llm else call_anthropic(component, cprs)
-        section = render_section(buckets)
-        path = os.path.join(ROOT, cfg["changelog"])
-        if dry or no_llm:
-            print(f"\n----- {component}: {cfg['changelog']} -----\n{section}", end="")
-        if not dry:
-            inject_unreleased(path, section)
-            print(f"wrote {component} → {cfg['changelog']}")
+        path = os.path.join(ROOT, COMPONENTS[component]["changelog"])
+        if upsert(path, buckets, pr["url"], dry):
+            changed.append(COMPONENTS[component]["changelog"])
+            print(f"  {component}: upserted -> {COMPONENTS[component]['changelog']}")
+
+    if from_diff:
+        print(f"::warning::PR #{number} entry authored from diff — proofread closely")
+    # emit changed files for the workflow to commit
+    gh_out = os.environ.get("GITHUB_OUTPUT")
+    if gh_out and not dry:
+        with open(gh_out, "a", encoding="utf-8") as f:
+            f.write(f"changed={' '.join(changed)}\n")
+            f.write(f"backfilled={'true' if from_diff else 'false'}\n")
+    print(f"done: {len(changed)} changelog file(s) changed")
 
 
 if __name__ == "__main__":

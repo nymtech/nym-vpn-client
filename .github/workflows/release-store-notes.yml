@@ -1,0 +1,77 @@
+name: release-store-notes
+
+# STAGE 4 (final release) ONLY — not betas.
+# Derive the app-store "What's new" from the release's changelog, translate it into every Google
+# Play / App Store locale (DeepL round-1, brand/protocol terms kept Latin, Android auto-fit <=500),
+# and open ONE proofread PR carrying the fastlane metadata. The PR is the translation-QA gate and is
+# NEVER auto-merged.
+#
+# The per-PR changelog (author-pr-changelog.yml) keeps the English CHANGELOG.md files current through
+# cut + every beta; this lane runs once, at the final release, to produce the translated store copy.
+# Core CHANGELOG.md files are English-only and are not touched here.
+#
+# Invoke via workflow_dispatch, or workflow_call from the final-release flow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: "Release branch to open the PR against (blank = current branch)."
+        required: false
+  workflow_call:
+    inputs:
+      release_branch:
+        type: string
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  store-notes:
+    runs-on: arc-linux-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.release_branch || github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Derive app-store copy from the release changelog
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}  # only for org-scoped keys
+          ANTHROPIC_MODEL: claude-opus-4-8
+        run: python scripts/release-changelog/author_store.py
+
+      - name: Translate + auto-fit the store copy
+        env:
+          DEEPL_AUTH_KEY: ${{ secrets.DEEPL_AUTH_KEY }}
+        run: python scripts/release-changelog/translate.py
+
+      - name: Open the proofread store-notes PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ inputs.release_branch || github.ref_name }}
+        run: |
+          set -euo pipefail
+          HEAD="l10n/store-notes-${BASE//\//-}"
+          git config user.name "nym-bot"
+          git config user.email "noreply@nymte.ch"
+          git switch -c "$HEAD"
+          git add fastlane/metadata nym-vpn-apple/fastlane/metadata \
+                  scripts/release-changelog/out
+          if git diff --cached --quiet; then
+            echo "::notice::no store-notes changes to propose"; exit 0
+          fi
+          git commit -m "store notes: ${BASE} (auto-generated, needs proofread)"
+          git push -f origin "$HEAD"
+          gh pr create --base "$BASE" --head "$HEAD" \
+            --title "Store notes — ${BASE} (needs proofread)" \
+            --label "needs-proofread" \
+            --body "Auto-generated app-store \"What's new\" for \`${BASE}\`: derived from the release changelog (LLM) and translated (DeepL round-1, informal register, brand/protocol terms kept Latin). **Proofread the translations before release — never auto-merge.** English source: \`scripts/release-changelog/out/\`." \
+            || echo "::notice::PR already exists for $HEAD"
