@@ -16,12 +16,12 @@ use tokio_util::sync::CancellationToken;
 const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
 
 /// Activate the NymVPN connection each time the tunnel comes up, until `shutdown` is cancelled.
-pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: CancellationToken) {
+pub async fn run(mut tunnel_state_rx: watch::Receiver<TunnelState>, shutdown: CancellationToken) {
     let mut is_active = false;
 
     loop {
         tokio::select! {
-            changed = tunnel_state.changed() => {
+            changed = tunnel_state_rx.changed() => {
                 if changed.is_err() {
                     break;
                 }
@@ -29,7 +29,8 @@ pub async fn run(mut tunnel_state: watch::Receiver<TunnelState>, shutdown: Cance
             _ = shutdown.cancelled() => break,
         }
 
-        match tunnel_state.borrow().as_ref() {
+        let tunnel_state = tunnel_state_rx.borrow().clone();
+        match tunnel_state {
             TunnelState::Connected { .. } | TunnelState::Connecting { .. } => {
                 if !is_active {
                     is_active = activate_connection().await;
@@ -67,7 +68,7 @@ async fn activate_connection() -> bool {
     })
     .await;
 
-    if let Err(err) = result {
+    if let Err(err) = result.as_ref() {
         tracing::debug!("NetworkManager task failed: {err}");
     }
 
@@ -96,7 +97,7 @@ async fn deactivate_connection() -> bool {
     })
     .await;
 
-    if let Err(err) = result {
+    if let Err(err) = result.as_ref() {
         tracing::debug!("NetworkManager task failed: {err}");
     }
 
