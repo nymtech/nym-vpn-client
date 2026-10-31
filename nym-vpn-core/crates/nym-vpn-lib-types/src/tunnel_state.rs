@@ -82,6 +82,10 @@ impl TunnelState {
     pub fn is_error_state(&self) -> bool {
         matches!(self, Self::Error(_))
     }
+
+    pub fn is_connected(&self) -> bool {
+        matches!(self, Self::Connected { .. })
+    }
 }
 
 impl std::fmt::Display for TunnelState {
