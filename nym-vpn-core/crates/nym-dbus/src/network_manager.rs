@@ -43,11 +43,6 @@ const NM_DEVICE_STATE_IP_CHECK: u32 = 80;
 const NM_DEVICE_STATE_SECONDARY: u32 = 90;
 const NM_DEVICE_STATE_ACTIVATED: u32 = 100;
 
-const NM_SETTINGS_INTERFACE: &str = "org.freedesktop.NetworkManager.Settings";
-const NM_SETTINGS_CONNECTION_INTERFACE: &str = "org.freedesktop.NetworkManager.Settings.Connection";
-const NM_SETTINGS_PATH: &str = "/org/freedesktop/NetworkManager/Settings";
-const NM_CONNECTION_ACTIVE: &str = "org.freedesktop.NetworkManager.Connection.Active";
-
 const RPC_TIMEOUT: std::time::Duration = Duration::from_secs(3);
 
 const MAXIMUM_SUPPORTED_MAJOR_VERSION: u32 = 1;
@@ -103,14 +98,6 @@ pub type VariantRefArg = Variant<Box<dyn RefArg>>;
 pub type VariantMap = HashMap<String, VariantRefArg>;
 // settings are a{sa{sv}}
 pub type DeviceConfig = HashMap<String, VariantMap>;
-
-/// A VPN profile in NetworkManager.
-struct VpnProfile {
-    path: dbus::Path<'static>,
-    uuid: String,
-    /// When the profile was last activated, in seconds since the epoch; 0 if never.
-    last_used: u64,
-}
 
 /// Implements functionality to control NetworkManager over DBus.
 pub struct NetworkManager {
@@ -247,73 +234,6 @@ impl NetworkManager {
         }
     }
 
-    /// Activate the most recently used profile of the VPN `service_type` on top of the primary
-    /// connection, unless a profile of that VPN is already active. Returns the UUID of the
-    /// activated profile.
-    pub fn activate_vpn_connection(&self, service_type: &str) -> Result<Option<String>> {
-        let profiles = self.vpn_profiles(service_type)?;
-        let Some(profile) = profiles.iter().max_by_key(|profile| profile.last_used) else {
-            return Ok(None);
-        };
-
-        let active: Vec<dbus::Path<'static>> =
-            self.nm_manager().get(NM_MANAGER, "ActiveConnections")?;
-        for path in active {
-            let Ok(uuid) = self
-                .as_path(&path)
-                .get::<String>(NM_CONNECTION_ACTIVE, "Uuid")
-            else {
-                continue;
-            };
-            if profiles.iter().any(|profile| profile.uuid == uuid) {
-                return Ok(None);
-            }
-        }
-
-        let any = dbus::Path::from("/");
-        let (_active,): (dbus::Path<'static>,) = self.nm_manager().method_call(
-            NM_MANAGER,
-            "ActivateConnection",
-            (&profile.path, &any, &any),
-        )?;
-        Ok(Some(profile.uuid.clone()))
-    }
-
-    /// Deactivate any active connection belonging to the specified VPN `service_type`.
-    /// Returns `Ok(true)` if a connection was deactivated, or `Ok(false)` if none were active.
-    pub fn deactivate_vpn_connection(&self, service_type: &str) -> Result<Option<String>> {
-        // 1. Get the list of known profiles for this VPN type to match against
-        let profiles = self.vpn_profiles(service_type)?;
-        if profiles.is_empty() {
-            return Ok(None);
-        }
-
-        // 2. Fetch all currently active connections from NetworkManager
-        let active: Vec<dbus::Path<'static>> =
-            self.nm_manager().get(NM_MANAGER, "ActiveConnections")?;
-
-        for path in active {
-            let active_conn_proxy = self.as_path(&path);
-
-            // 3. Get the UUID of this specific active instance
-            let Ok(uuid) = active_conn_proxy.get::<String>(NM_CONNECTION_ACTIVE, "Uuid") else {
-                continue;
-            };
-
-            // 4. If this active connection matches one of our VPN profiles, deactivate it
-            if profiles.iter().any(|profile| profile.uuid == uuid) {
-                self.nm_manager().method_call::<(), _, _, _>(
-                    NM_MANAGER,
-                    "DeactivateConnection",
-                    (&path,), // Passes the D-Bus path of the ActiveConnection instance
-                )?;
-                return Ok(Some(uuid));
-            }
-        }
-
-        Ok(None)
-    }
-
     fn nm_manager(&self) -> Proxy<'_, &SyncConnection> {
         Proxy::new(NM_BUS, NM_MANAGER_PATH, RPC_TIMEOUT, &*self.connection)
     }
@@ -386,42 +306,6 @@ impl NetworkManager {
 
     fn as_path<'a>(&'a self, device: &'a dbus::Path<'a>) -> Proxy<'a, &'a SyncConnection> {
         Proxy::new(NM_BUS, device, RPC_TIMEOUT, &*self.connection)
-    }
-
-    fn vpn_profiles(&self, service_type: &str) -> Result<Vec<VpnProfile>> {
-        let (paths,): (Vec<dbus::Path<'static>>,) =
-            Proxy::new(NM_BUS, NM_SETTINGS_PATH, RPC_TIMEOUT, &*self.connection).method_call(
-                NM_SETTINGS_INTERFACE,
-                "ListConnections",
-                (),
-            )?;
-        let mut profiles = Vec::new();
-        for path in paths {
-            let Ok((settings,)) = self.as_path(&path).method_call::<(DeviceConfig,), _, _, _>(
-                NM_SETTINGS_CONNECTION_INTERFACE,
-                "GetSettings",
-                (),
-            ) else {
-                continue;
-            };
-            let value = |section: &str, key: &str| settings.get(section)?.get(key);
-            if value("vpn", "service-type").and_then(|value| value.0.as_str()) != Some(service_type)
-            {
-                continue;
-            }
-            let Some(uuid) = value("connection", "uuid").and_then(|value| value.0.as_str()) else {
-                continue;
-            };
-            let last_used = value("connection", "timestamp")
-                .and_then(|value| value.0.as_u64())
-                .unwrap_or(0);
-            profiles.push(VpnProfile {
-                uuid: uuid.to_owned(),
-                path,
-                last_used,
-            });
-        }
-        Ok(profiles)
     }
 
     pub fn set_dns(&mut self, interface_name: &str, servers: &[IpAddr]) -> Result<DeviceConfig> {

@@ -136,6 +136,7 @@ nix = { workspace = true, features = [
 [target.'cfg(target_os = "linux")'.dependencies]
 nym-cgroup.workspace = true
 nym-dbus.workspace = true
+zbus.workspace = true
 
 # Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
