@@ -66,8 +66,9 @@ the way libnm and the GTK editors do and checks the `.name` file. The GTK tests 
 
 ## Build the Debian package
 
-Both parts have to be built first: `cargo deb` only collects the files. Packages
-are always built from the release profile, since `cargo deb` does not support the debug one.
+Both parts have to be built first: `cargo deb` only collects the files. `cargo deb` does not
+support the debug profile, so packages are built from the release profile, or from the `ci`
+profile for a faster unoptimized build (see the deploy script below).
 
 ```sh
 cargo build --release -p nym-nm-vpn-plugin
@@ -81,6 +82,35 @@ package silently contains the old ones, so rerun `make` after changing anything 
 
 The package depends on `nym-vpnd`, which is built and packaged the same way with
 `cargo deb -p nym-vpnd`.
+
+## Build and install with the deploy script
+
+`scripts/deploy-nm-vpn-plugin.sh` does the build, packaging and install in one go: it builds the
+plugin service, the editor libraries and `nym-vpnd`, packages them, installs both packages and
+restarts `nym-vpnd` and NetworkManager. It does not run the editor tests (`make test`).
+
+```sh
+./scripts/deploy-nm-vpn-plugin.sh
+```
+
+Run it as your normal user. It uses `sudo` only to install and restart services, so build files in
+`target/` are not owned by root. It works from any directory.
+
+| Option | Effect |
+| --- | --- |
+| `--debug` | Build with the `ci` profile (an unoptimized debug build) instead of release. Much faster to build. |
+| `--plugin-only` | Build and install only the plugin package. `nym-vpnd` is left alone. |
+| `--no-build` | Skip building and install the newest packages already in `target/debian/`. |
+| `CORE_DIR` | Path to `nym-vpn-core`. Defaults to the parent of `scripts/`. |
+
+For example, to iterate on the plugin alone:
+
+```sh
+./scripts/deploy-nm-vpn-plugin.sh --debug --plugin-only
+```
+
+The script brings the NymVPN connection down and stops the old plugin process before installing,
+then prints the status of `nym-vpnd` and NetworkManager and whether the NymVPN profile is present.
 
 ## Install and try it
 
@@ -122,7 +152,7 @@ sudo pkill -f /usr/libexec/nm-nymvpn-service
 The service logs to stderr, which NetworkManager forwards to its journal:
 
 ```sh
-journalctl -u NetworkManager -f
+journalctl -o cat -u NetworkManager.service -f  | grep nym
 ```
 
 The log level follows `RUST_LOG` and otherwise defaults to `info`. To run the service by hand with
