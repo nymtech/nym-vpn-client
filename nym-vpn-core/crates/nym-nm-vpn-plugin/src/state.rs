@@ -67,10 +67,7 @@ impl Machine {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     pub fn on_daemon_state(&mut self, state: &TunnelState) -> Vec<Effect> {
-        tracing::info!("Received daemon state: {state:?}, phase: {:?}", self.phase);
-
         match self.phase {
             Phase::Starting => self.handle_starting_phase(state),
             Phase::Started => self.handle_started_phase(state),
@@ -79,7 +76,6 @@ impl Machine {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     fn handle_starting_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
         match state {
             TunnelState::Connecting { .. } => {
@@ -105,7 +101,6 @@ impl Machine {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     fn handle_started_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
         match state {
             TunnelState::Connected { connection_data } => {
@@ -128,7 +123,6 @@ impl Machine {
         }
     }
 
-    #[tracing::instrument(skip(self))]
     fn handle_stopping_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
         match state {
             TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. } => {
