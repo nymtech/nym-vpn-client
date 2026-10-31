@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.15.0] - TBD
+### Added
 
+- [Linux] Add VPN plugin for Network Manager that can be used to control VPN connection. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user.
+
+
+## [2026.15.0] - TBD
 
 ### Added
 
