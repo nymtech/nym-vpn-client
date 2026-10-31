@@ -215,10 +215,13 @@ impl Machine {
     }
 
     fn handle_stopping_phase(&mut self, state: &TunnelState) -> Vec<Effect> {
-        if is_terminal(state) {
-            vec![self.enter(Phase::Stopped)]
-        } else {
-            vec![]
+        match state {
+            TunnelState::Disconnected | TunnelState::Error(_) | TunnelState::Offline { .. } => {
+                vec![self.enter(Phase::Stopped)]
+            }
+            TunnelState::Disconnecting { .. }
+            | TunnelState::Connecting { .. }
+            | TunnelState::Connected { .. } => vec![],
         }
     }
 
