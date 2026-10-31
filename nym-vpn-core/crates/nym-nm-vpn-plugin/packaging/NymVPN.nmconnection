@@ -9,6 +9,7 @@ autoconnect=false
 
 [vpn]
 service-type=org.freedesktop.NetworkManager.nymvpn
+timeout=120
 
 [ipv4]
 method=auto
