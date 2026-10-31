@@ -130,6 +130,9 @@ def write_files(rendered, platform, version):
                   else "apple_release_notes_path"]
     written = []
     for loc, text in rendered.items():
+        if not text.strip():
+            print(f"  {platform} {loc:7}    0 (empty — not written)")
+            continue  # don't write/stage an empty store file when a platform has no bullets
         sub = CONFIG["locales"][loc][platform]
         path = tmpl.format(android=sub, apple=sub, version_code=version)
         os.makedirs(os.path.dirname(path), exist_ok=True)

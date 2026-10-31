@@ -353,7 +353,12 @@ def main():
         removed = []
         for component in sorted(route(pr["files"])):
             path = os.path.join(ROOT, COMPONENTS[component]["changelog"])
-            if not os.path.isfile(path) or "## [Unreleased]" not in open(path, encoding="utf-8").read():
+            if not os.path.isfile(path):
+                continue
+            content = open(path, encoding="utf-8").read()
+            # Only touch a changelog that actually has an entry for THIS PR — otherwise skip, so the
+            # cleanup never rewrites (or whitespace-churns) a file that had nothing of ours in it.
+            if "## [Unreleased]" not in content or f"({pr['url']})" not in content:
                 continue
             if upsert(path, {"added": [], "changed": [], "fixed": []}, pr["url"], dry):
                 removed.append(COMPONENTS[component]["changelog"])

@@ -63,14 +63,16 @@ def _safe_under(root, path):
 
 
 def field_len(path, unit, root):
-    """Length as the store counts it, trailing whitespace stripped: characters, or UTF-8 bytes for
-    byte-limited fields (Apple keywords), where a multi-byte locale can fit fewer characters."""
+    """Length as the store counts it: characters, or UTF-8 bytes for byte-limited fields (Apple
+    keywords), where a multi-byte locale can fit fewer characters. Only a trailing NEWLINE is
+    stripped (the file terminator) — trailing spaces DO count toward the store limit, so we keep them
+    to stay on the strict side of the limit."""
     # _safe_under validates the path stays under the repo root (realpath + containment), and callers
     # only ever pass a pathspec-restricted git diff or translate.py's own manifest — so this read
     # cannot traverse. Sonar's taint engine doesn't recognise the commonpath guard as a sanitiser
     # (pythonsecurity:S8707 false positive), so it's suppressed on the line below with the guard kept.
     with open(_safe_under(root, path), encoding="utf-8") as f:  # NOSONAR pythonsecurity:S8707 - path validated in _safe_under
-        s = f.read().rstrip()
+        s = f.read().rstrip("\n")
     return len(s.encode("utf-8")) if unit == "bytes" else len(s)
 
 
@@ -95,18 +97,19 @@ def main():
         p if os.path.isabs(p) else os.path.join(root, p) for p in args.files]
 
     # Path-traversal guard: the file list comes from CLI args (a diff / a generated manifest), so
-    # resolve each one and keep only those that stay INSIDE the repo root before anything opens them.
+    # confirm each resolves to INSIDE the repo root — but keep the ORIGINAL path, so the rule lookup
+    # sees the file's own name (a changelog that is a symlink to a non-matching file still gets the
+    # changelog rule, since Fastlane reads it under its own path). field_len resolves + opens safely.
     paths = []
     for p in raw:
-        real = os.path.realpath(p)
-        if os.path.commonpath([root, real]) == root:
-            paths.append(real)
+        if os.path.commonpath([root, os.path.realpath(p)]) == root:
+            paths.append(p)
         else:
             print(f"::warning::ignoring path outside the repo root: {p}")
 
     checked = failed = 0
     for path in paths:
-        rel = os.path.relpath(path, root)
+        rel = os.path.relpath(os.path.abspath(path), root)
         rule = rule_for(rel)
         if rule is None:
             continue  # not a length-limited field — ignore (e.g. video.txt, URLs)
