@@ -48,14 +48,7 @@ const NM_SETTINGS_CONNECTION_INTERFACE: &str = "org.freedesktop.NetworkManager.S
 const NM_SETTINGS_PATH: &str = "/org/freedesktop/NetworkManager/Settings";
 const NM_CONNECTION_ACTIVE: &str = "org.freedesktop.NetworkManager.Connection.Active";
 
-const NM_ADD_CONNECTION_VOLATILE: u32 = 0x2;
-
 const RPC_TIMEOUT: std::time::Duration = Duration::from_secs(3);
-
-const DBUS_UNKNOWN_METHOD: &str = "org.freedesktop.DBus.Error.UnknownMethod";
-
-const MINIMUM_SUPPORTED_MAJOR_VERSION: u32 = 1;
-const MINIMUM_SUPPORTED_MINOR_VERSION: u32 = 16;
 
 const MAXIMUM_SUPPORTED_MAJOR_VERSION: u32 = 1;
 const MAXIMUM_SUPPORTED_MINOR_VERSION: u32 = 26;
@@ -77,12 +70,6 @@ pub enum Error {
         "NM is configured to manage DNS via systemd-resolved but systemd-resolved is not managing /etc/resolv.conf: {0}"
     )]
     SystemdResolvedNotManagingResolvconf(systemd_resolved::Error),
-
-    #[error("configuration has no device associated to it")]
-    NoDevice,
-
-    #[error("NetworkManager is too old: {0}.{1}")]
-    NMTooOld(u32, u32),
 
     #[error("NetworkManager is too new to manage DNS: {0}.{1}")]
     NMTooNewFroDns(u32, u32),
@@ -117,6 +104,14 @@ pub type VariantMap = HashMap<String, VariantRefArg>;
 // settings are a{sa{sv}}
 pub type DeviceConfig = HashMap<String, VariantMap>;
 
+/// A VPN profile in NetworkManager.
+struct VpnProfile {
+    path: dbus::Path<'static>,
+    uuid: String,
+    /// When the profile was last activated, in seconds since the epoch; 0 if never.
+    last_used: u64,
+}
+
 /// Implements functionality to control NetworkManager over DBus.
 pub struct NetworkManager {
     connection: Arc<SyncConnection>,
@@ -129,80 +124,10 @@ impl NetworkManager {
         })
     }
 
-    pub fn create_wg_tunnel(&self, config: &DeviceConfig) -> Result<WireguardTunnel> {
-        self.nm_supports_wireguard()?;
-        let tunnel = self.create_wg_tunnel_inner(config)?;
-        if let Err(err) = self.wait_until_device_is_ready(&tunnel.device_path) {
-            if let Err(removal_error) = self.remove_tunnel(tunnel) {
-                tracing::error!(
-                    "Failed to remove WireGuard tunnel after it not becoming ready fast enough: {}",
-                    removal_error
-                );
-            }
-            return Err(err);
-        }
-
-        Ok(tunnel)
-    }
-
-    pub fn get_interface_name(&self, tunnel: &WireguardTunnel) -> Result<String> {
-        tunnel
-            .device_proxy(&self.connection)
-            .get(NM_DEVICE, "Interface")
-            .map_err(Error::Dbus)
-    }
-
     pub fn get_device_state(&self, device: &dbus::Path<'_>) -> Result<u32> {
         self.as_path(device)
             .get(NM_DEVICE, "State")
             .map_err(Error::Dbus)
-    }
-
-    fn create_wg_tunnel_inner(&self, config: &DeviceConfig) -> Result<WireguardTunnel> {
-        let config_path: dbus::Path<'static> = match self.add_connection_2(config) {
-            Ok((path, _result)) => path,
-            Err(Error::Dbus(dbus_error)) if dbus_error.name() == Some(DBUS_UNKNOWN_METHOD) => {
-                self.add_connection_unsaved(config)?.0
-            }
-            Err(err) => {
-                tracing::error!(
-                    "Failed to create a new interface via AddConnection2: {}",
-                    err
-                );
-                return Err(err);
-            }
-        };
-
-        let manager = self.nm_manager();
-        let (connection_path,): (dbus::Path<'static>,) = manager
-            .method_call(
-                NM_MANAGER,
-                "ActivateConnection",
-                (
-                    &config_path,
-                    &dbus::Path::new("/").unwrap(),
-                    &dbus::Path::new("/").unwrap(),
-                ),
-            )
-            .map_err(Error::Dbus)?;
-
-        let connection = Proxy::new(NM_BUS, &connection_path, RPC_TIMEOUT, &*self.connection);
-        let device_paths: Vec<dbus::Path<'static>> = connection
-            .get(NM_CONNECTION_ACTIVE, "Devices")
-            .map_err(Error::Dbus)?;
-        let device_path = device_paths.into_iter().next().ok_or(Error::NoDevice)?;
-
-        Ok(WireguardTunnel {
-            config_path,
-            connection_path,
-            device_path,
-        })
-    }
-
-    pub fn nm_supports_wireguard(&self) -> Result<()> {
-        let (major, minor) = self.version()?;
-        Self::ensure_nm_is_new_enough_for_wireguard(major, minor)?;
-        Self::ensure_nm_is_old_enough_for_dns(major, minor)
     }
 
     pub fn nm_version_dns_works(&self) -> Result<()> {
@@ -213,16 +138,6 @@ impl NetworkManager {
     pub fn version_string(&self) -> Result<String> {
         let manager = self.nm_manager();
         manager.get(NM_MANAGER, "Version").map_err(Error::Dbus)
-    }
-
-    fn ensure_nm_is_new_enough_for_wireguard(major: u32, minor: u32) -> Result<()> {
-        if major < MINIMUM_SUPPORTED_MAJOR_VERSION
-            || (minor < MINIMUM_SUPPORTED_MINOR_VERSION && major == MINIMUM_SUPPORTED_MAJOR_VERSION)
-        {
-            Err(Error::NMTooOld(major, minor))
-        } else {
-            Ok(())
-        }
     }
 
     fn ensure_nm_is_old_enough_for_dns(major_version: u32, minor_version: u32) -> Result<()> {
@@ -247,34 +162,6 @@ impl NetworkManager {
         let major_version: u32 = parts.next()??;
         let minor_version: u32 = parts.next()??;
         Some((major_version, minor_version))
-    }
-
-    fn add_connection_2(
-        &self,
-        settings_map: &DeviceConfig,
-    ) -> Result<(dbus::Path<'static>, DeviceConfig)> {
-        let args: VariantMap = HashMap::new();
-
-        Proxy::new(NM_BUS, NM_SETTINGS_PATH, RPC_TIMEOUT, &*self.connection)
-            .method_call(
-                NM_SETTINGS_INTERFACE,
-                "AddConnection2",
-                (settings_map, NM_ADD_CONNECTION_VOLATILE, args),
-            )
-            .map_err(Error::Dbus)
-    }
-
-    fn add_connection_unsaved(
-        &self,
-        settings_map: &DeviceConfig,
-    ) -> Result<(dbus::Path<'static>,)> {
-        Proxy::new(NM_BUS, NM_SETTINGS_PATH, RPC_TIMEOUT, &*self.connection)
-            .method_call(
-                NM_SETTINGS_INTERFACE,
-                "AddConnectionUnsaved",
-                (settings_map,),
-            )
-            .map_err(Error::Dbus)
     }
 
     fn wait_until_device_is_ready(&self, device: &dbus::Path<'_>) -> Result<()> {
@@ -326,25 +213,6 @@ impl NetworkManager {
         Ok(())
     }
 
-    pub fn remove_tunnel(&self, tunnel: WireguardTunnel) -> Result<()> {
-        let deactivation_result: Result<()> = self
-            .nm_manager()
-            .method_call(
-                NM_MANAGER,
-                "DeactivateConnection",
-                (&tunnel.connection_path,),
-            )
-            .map_err(Error::Dbus);
-
-        let config_result: Result<()> = tunnel
-            .config_proxy(&self.connection)
-            .method_call(NM_SETTINGS_CONNECTION_INTERFACE, "Delete", ())
-            .map_err(Error::Dbus);
-        deactivation_result?;
-        config_result?;
-        Ok(())
-    }
-
     /// Ensures NetworkManager's connectivity check is disabled and returns the connectivity check
     /// previous state. Returns true only if the connectivity check was enabled and is now
     /// disabled. Disabling the connectivity check should be done before a firewall is applied
@@ -377,6 +245,73 @@ impl NetworkManager {
         {
             tracing::error!("Failed to reset NetworkManager connectivity check: {}", err);
         }
+    }
+
+    /// Activate the most recently used profile of the VPN `service_type` on top of the primary
+    /// connection, unless a profile of that VPN is already active. Returns the UUID of the
+    /// activated profile.
+    pub fn activate_vpn_connection(&self, service_type: &str) -> Result<Option<String>> {
+        let profiles = self.vpn_profiles(service_type)?;
+        let Some(profile) = profiles.iter().max_by_key(|profile| profile.last_used) else {
+            return Ok(None);
+        };
+
+        let active: Vec<dbus::Path<'static>> =
+            self.nm_manager().get(NM_MANAGER, "ActiveConnections")?;
+        for path in active {
+            let Ok(uuid) = self
+                .as_path(&path)
+                .get::<String>(NM_CONNECTION_ACTIVE, "Uuid")
+            else {
+                continue;
+            };
+            if profiles.iter().any(|profile| profile.uuid == uuid) {
+                return Ok(None);
+            }
+        }
+
+        let any = dbus::Path::from("/");
+        let (_active,): (dbus::Path<'static>,) = self.nm_manager().method_call(
+            NM_MANAGER,
+            "ActivateConnection",
+            (&profile.path, &any, &any),
+        )?;
+        Ok(Some(profile.uuid.clone()))
+    }
+
+    /// Deactivate any active connection belonging to the specified VPN `service_type`.
+    /// Returns `Ok(true)` if a connection was deactivated, or `Ok(false)` if none were active.
+    pub fn deactivate_vpn_connection(&self, service_type: &str) -> Result<Option<String>> {
+        // 1. Get the list of known profiles for this VPN type to match against
+        let profiles = self.vpn_profiles(service_type)?;
+        if profiles.is_empty() {
+            return Ok(None);
+        }
+
+        // 2. Fetch all currently active connections from NetworkManager
+        let active: Vec<dbus::Path<'static>> =
+            self.nm_manager().get(NM_MANAGER, "ActiveConnections")?;
+
+        for path in active {
+            let active_conn_proxy = self.as_path(&path);
+
+            // 3. Get the UUID of this specific active instance
+            let Ok(uuid) = active_conn_proxy.get::<String>(NM_CONNECTION_ACTIVE, "Uuid") else {
+                continue;
+            };
+
+            // 4. If this active connection matches one of our VPN profiles, deactivate it
+            if profiles.iter().any(|profile| profile.uuid == uuid) {
+                self.nm_manager().method_call::<(), _, _, _>(
+                    NM_MANAGER,
+                    "DeactivateConnection",
+                    (&path,), // Passes the D-Bus path of the ActiveConnection instance
+                )?;
+                return Ok(Some(uuid));
+            }
+        }
+
+        Ok(None)
     }
 
     fn nm_manager(&self) -> Proxy<'_, &SyncConnection> {
@@ -451,6 +386,42 @@ impl NetworkManager {
 
     fn as_path<'a>(&'a self, device: &'a dbus::Path<'a>) -> Proxy<'a, &'a SyncConnection> {
         Proxy::new(NM_BUS, device, RPC_TIMEOUT, &*self.connection)
+    }
+
+    fn vpn_profiles(&self, service_type: &str) -> Result<Vec<VpnProfile>> {
+        let (paths,): (Vec<dbus::Path<'static>>,) =
+            Proxy::new(NM_BUS, NM_SETTINGS_PATH, RPC_TIMEOUT, &*self.connection).method_call(
+                NM_SETTINGS_INTERFACE,
+                "ListConnections",
+                (),
+            )?;
+        let mut profiles = Vec::new();
+        for path in paths {
+            let Ok((settings,)) = self.as_path(&path).method_call::<(DeviceConfig,), _, _, _>(
+                NM_SETTINGS_CONNECTION_INTERFACE,
+                "GetSettings",
+                (),
+            ) else {
+                continue;
+            };
+            let value = |section: &str, key: &str| settings.get(section)?.get(key);
+            if value("vpn", "service-type").and_then(|value| value.0.as_str()) != Some(service_type)
+            {
+                continue;
+            }
+            let Some(uuid) = value("connection", "uuid").and_then(|value| value.0.as_str()) else {
+                continue;
+            };
+            let last_used = value("connection", "timestamp")
+                .and_then(|value| value.0.as_u64())
+                .unwrap_or(0);
+            profiles.push(VpnProfile {
+                uuid: uuid.to_owned(),
+                path,
+                last_used,
+            });
+        }
+        Ok(profiles)
     }
 
     pub fn set_dns(&mut self, interface_name: &str, servers: &[IpAddr]) -> Result<DeviceConfig> {
@@ -684,23 +655,6 @@ impl dbus::message::SignalArgs for DeviceStateChange {
     const INTERFACE: &'static str = NM_DEVICE;
 }
 
-#[derive(Debug)]
-pub struct WireguardTunnel {
-    config_path: dbus::Path<'static>,
-    connection_path: dbus::Path<'static>,
-    device_path: dbus::Path<'static>,
-}
-
-impl WireguardTunnel {
-    fn device_proxy<'a>(&'a self, connection: &'a SyncConnection) -> Proxy<'a, &'a SyncConnection> {
-        Proxy::new(NM_BUS, &self.device_path, RPC_TIMEOUT, connection)
-    }
-
-    fn config_proxy<'a>(&'a self, connection: &'a SyncConnection) -> Proxy<'a, &'a SyncConnection> {
-        Proxy::new(NM_BUS, &self.config_path, RPC_TIMEOUT, connection)
-    }
-}
-
 pub fn device_is_ready(device_state: u32) -> bool {
     /// Any state above `NM_DEVICE_STATE_IP_CONFIG` is considered to be an OK state to change the
     /// DNS config. For the enums, see https://developer.gnome.org/NetworkManager/stable/nm-dbus-types.html#NMDeviceState
@@ -750,9 +704,7 @@ mod test {
 
     #[test]
     fn test_valid_versions() {
-        NetworkManager::ensure_nm_is_new_enough_for_wireguard(1, 16).unwrap();
         NetworkManager::ensure_nm_is_old_enough_for_dns(1, 26).unwrap();
-        assert!(NetworkManager::ensure_nm_is_new_enough_for_wireguard(1, 14).is_err());
         assert!(NetworkManager::ensure_nm_is_old_enough_for_dns(1, 28).is_err());
     }
 }

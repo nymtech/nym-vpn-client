@@ -1,0 +1,10 @@
+#!/bin/sh
+# NetworkManager VPN auth dialog for NymVPN. The account lives in nym-vpnd, so there are never
+# secrets to ask for: reply with none, then wait for the caller's QUIT.
+#
+# Without an auth dialog, GNOME Shell's secret agent fails on VPN secret requests and never
+# answers, which stalls GNOME Settings until the request times out.
+printf '\n\n'
+while IFS= read -r line; do
+    [ "$line" = QUIT ] && break
+done
