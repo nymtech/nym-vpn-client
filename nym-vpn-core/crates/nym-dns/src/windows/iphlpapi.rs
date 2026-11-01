@@ -163,12 +163,6 @@ impl DnsMonitorT for DnsMonitor {
         }
         Ok(())
     }
-
-    async fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
-        // do nothing since the tunnel interface goes away
-        let _ = self.current_guid.take();
-        Ok(())
-    }
 }
 
 fn set_interface_dns_servers_v4(guid: &GUID, servers: &[&Ipv4Addr]) -> Result<(), Error> {
