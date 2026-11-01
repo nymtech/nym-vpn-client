@@ -45,6 +45,9 @@ const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
 
 const INITIAL_BEST_ROUTES_TIMEOUT: Duration = Duration::from_millis(200);
 
+/// Number of times a failed route refresh is retried before waiting for the next route event.
+const REFRESH_ROUTES_MAX_RETRIES: u32 = 3;
+
 /// Errors that can happen in the macOS routing integration.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -172,6 +175,9 @@ pub struct RouteManagerImpl {
     /// was changed.
     unhandled_default_route_changes: bool,
 
+    /// Consecutive retries of a failed route refresh.
+    refresh_routes_retries: u32,
+
     check_default_routes_restored: Pin<Box<dyn FusedStream<Item = ()> + Send>>,
 
     /// Channel that receives updates to the best [DefaultRoute] for IPv4.
@@ -258,6 +264,7 @@ impl RouteManagerImpl {
             update_trigger,
             check_default_routes_restored: Box::pin(futures::stream::pending()),
             unhandled_default_route_changes: false,
+            refresh_routes_retries: 0,
             interface_change_listeners: vec![],
         })
     }
@@ -350,8 +357,15 @@ impl RouteManagerImpl {
                         }
 
                         Some(RouteManagerCommand::RefreshRoutes) => {
-                            if let Err(error) = self.refresh_routes().await {
-                                tracing::error!("Failed to refresh routes: {error}");
+                            match self.refresh_routes().await {
+                                Ok(()) => self.refresh_routes_retries = 0,
+                                Err(error) => {
+                                    tracing::error!("Failed to refresh routes: {error}");
+                                    if self.refresh_routes_retries < REFRESH_ROUTES_MAX_RETRIES {
+                                        self.refresh_routes_retries += 1;
+                                        self.update_trigger.trigger();
+                                    }
+                                }
                             }
                         },
                         None => {
