@@ -219,8 +219,9 @@ fn start_service_event_processor(
     tokio::spawn(async move {
         while let Some(service_event) = service_event_rx.recv().await {
             match service_event {
-                ServiceEvent::Stop { completion_tx } => {
-                    tracing::info!("Received stop.");
+                ServiceEvent::Stop { completion_tx }
+                | ServiceEvent::PreShutdown { completion_tx } => {
+                    tracing::info!("Received stop or shutdown.");
 
                     if !shutdown_token.is_cancelled() {
                         tracing::info!("Service is stopping");
@@ -231,11 +232,6 @@ fn start_service_event_processor(
                         shutdown_token.cancel();
                     }
 
-                    _ = completion_tx.send(());
-                }
-                ServiceEvent::PreShutdown { completion_tx } => {
-                    tracing::info!("Received shutdown.");
-                    // todo: lock firewall and initiate shutdown
                     _ = completion_tx.send(());
                 }
             }
