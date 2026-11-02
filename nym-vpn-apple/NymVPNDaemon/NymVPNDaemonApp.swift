@@ -133,6 +133,9 @@ struct NymVPNDaemonApp: App {
             CommandGroup(replacing: .appTermination) {
                 Button("quit.NymVPN".localizedString) {
                     isQuitModalDisplayed = true
+                    if !appDelegate.hasVisibleAppWindow {
+                        appDelegate.bringWindowToFront()
+                    }
                 }
                 .keyboardShortcut("q", modifiers: .command)
             }
@@ -236,8 +239,7 @@ private extension NymVPNDaemonApp {
     }
 
     func quitApp() {
-        appDelegate.shouldTerminate = true
-        NSApplication.shared.terminate(self)
+        appDelegate.quitApp()
     }
 
     @ViewBuilder
