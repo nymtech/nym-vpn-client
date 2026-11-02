@@ -2,8 +2,8 @@ import ConnectionTypes
 import NymVPNLib
 
 extension GRPCManager {
-    public func getDefaultDns() async throws -> [IpAddr] {
-        try await rpcClient?.getDefaultDns().map(\.address) ?? []
+    public func getDefaultDns() async throws -> [CustomDnsConfig.Server] {
+        try await rpcClient?.getDefaultDns().map { dns in CustomDnsConfig.Server(from: dns) } ?? []
     }
 
     public func setEnableCustomDns(enable: Bool) async throws {

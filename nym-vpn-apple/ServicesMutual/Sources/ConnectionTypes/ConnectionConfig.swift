@@ -4,7 +4,7 @@ import NymVPNLib
 public struct ConnectionConfig: Codable {
     public var entry: EntryGateway
     public var exit: ExitRouter
-    public var dns: [String]?
+    public var customDns: CustomDnsConfig
     public var allowLan: Bool
     public var disableIpv6: Bool
     public var enableTwoHop: Bool
@@ -29,7 +29,6 @@ public struct ConnectionConfig: Codable {
     public init(
         entry: EntryGateway,
         exit: ExitRouter,
-        dns: [String]?,
         allowLan: Bool,
         disableIpv6: Bool,
         enableTwoHop: Bool,
@@ -41,11 +40,12 @@ public struct ConnectionConfig: Codable {
         splitTunnelConfig: SplitTunnelConfig,
         geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true),
-        stealthMode: Bool = false
+        stealthMode: Bool = false,
+        customDns: CustomDnsConfig = CustomDnsConfig()
     ) {
         self.entry = entry
         self.exit = exit
-        self.dns = dns
+        self.customDns = customDns
         self.allowLan = allowLan
         self.disableIpv6 = disableIpv6
         self.enableTwoHop = enableTwoHop
@@ -63,9 +63,7 @@ public struct ConnectionConfig: Codable {
     public init(from config: VpnServiceConfig) {
         self.entry = ConnectionConfig.entryGateway(from: config.entryPoint)
         self.exit = ConnectionConfig.exitRouter(from: config.exitPoint)
-        self.dns = config.customDns.dnsServers.map { dnsServer in
-            dnsServer.address
-        }
+        self.customDns = CustomDnsConfig(from: config.customDns)
         self.allowLan = config.allowLan
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
@@ -157,7 +155,7 @@ extension ConnectionConfig: Equatable {
     public static func == (lhs: ConnectionConfig, rhs: ConnectionConfig) -> Bool {
         lhs.entry == rhs.entry &&
         lhs.exit == rhs.exit &&
-        lhs.dns == rhs.dns &&
+        lhs.customDns == rhs.customDns &&
         lhs.allowLan == rhs.allowLan &&
         lhs.disableIpv6 == rhs.disableIpv6 &&
         lhs.enableTwoHop == rhs.enableTwoHop &&
@@ -199,10 +197,10 @@ public enum BridgeModeSetting: String, Codable, CaseIterable {
 }
 
 extension ConnectionConfig {
-    private enum LegacyCodingKeys: String, CodingKey { case enableBridges }
+    private enum LegacyCodingKeys: String, CodingKey { case enableBridges, dns }
 
     private enum CodingKeys: String, CodingKey {
-        case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
+        case entry, exit, customDns, allowLan, disableIpv6, enableTwoHop
         case bridgeMode, enableAdBlocking, stealthMode, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
         case geoExclusionConfig
@@ -213,11 +211,19 @@ extension ConnectionConfig {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.entry = try container.decode(EntryGateway.self, forKey: .entry)
         self.exit = try container.decode(ExitRouter.self, forKey: .exit)
-        self.dns = try container.decodeIfPresent([String].self, forKey: .dns)
         self.allowLan = try container.decode(Bool.self, forKey: .allowLan)
         self.disableIpv6 = try container.decode(Bool.self, forKey: .disableIpv6)
         self.enableTwoHop = try container.decode(Bool.self, forKey: .enableTwoHop)
         let legacy = try decoder.container(keyedBy: LegacyCodingKeys.self)
+        if let customDns = try container.decodeIfPresent(CustomDnsConfig.self, forKey: .customDns) {
+            self.customDns = customDns
+        } else {
+            let addresses = try legacy.decodeIfPresent([String].self, forKey: .dns) ?? []
+            self.customDns = CustomDnsConfig(
+                isEnabled: !addresses.isEmpty,
+                dnsServers: addresses.map { .plain(address: $0, port: nil, ipProto: .udpAndTcp) }
+            )
+        }
         self.bridgeMode = try container.decodeIfPresent(BridgeModeSetting.self, forKey: .bridgeMode)
             ?? (try legacy.decodeIfPresent(Bool.self, forKey: .enableBridges) == true ? .on : .off)
         self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
