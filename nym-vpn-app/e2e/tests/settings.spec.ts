@@ -17,7 +17,7 @@ test.describe('Settings', () => {
   test('renders all settings correctly', async () => {
     await expect(settingsPage.row('Account')).toBeVisible();
     await expect(settingsPage.row('Support &')).toBeVisible();
-    await expect(settingsPage.row('Killswitch')).toBeVisible();
+    await expect(settingsPage.row('Kill switch')).toBeVisible();
     await expect(settingsPage.row('Block ads')).toBeVisible();
     await expect(settingsPage.row('Support IPv6')).toBeVisible();
     await expect(settingsPage.row('Bypass LAN')).toBeVisible();
