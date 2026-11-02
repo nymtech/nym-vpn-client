@@ -13,7 +13,7 @@ use std::{
     time::Duration,
 };
 
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{Event, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient;
 use tokio::{
     sync::mpsc,
@@ -35,7 +35,7 @@ pub const DISCONNECT_WAIT: Duration = Duration::from_secs(15);
 /// Upper bound on any single daemon RPC; NetworkManager gives our method handlers 10 s in total.
 pub const RPC_TIMEOUT: Duration = Duration::from_secs(5);
 
-pub type EventStream = Pin<Box<dyn Stream<Item = TunnelEvent> + Send>>;
+pub type EventStream = Pin<Box<dyn Stream<Item = Event> + Send>>;
 
 /// The daemon as the service sees it. Implemented for the gRPC client and by test fakes.
 pub trait Daemon: Send {
@@ -211,14 +211,17 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
         }
     }
 
-    async fn handle_event(&mut self, event: Option<TunnelEvent>) {
+    async fn handle_event(&mut self, event: Option<Event>) {
         match event {
-            Some(TunnelEvent::NewState(state)) => {
-                tracing::info!("daemon state: {state}");
-                let effects = self.machine.on_daemon_state(&state);
-                self.last_daemon_state = Some(state);
-                self.apply(effects).await;
-            }
+            Some(Event::Tunnel(event)) => match *event {
+                TunnelEvent::NewState(state) => {
+                    tracing::info!("daemon state: {state}");
+                    let effects = self.machine.on_daemon_state(&state);
+                    self.last_daemon_state = Some(state);
+                    self.apply(effects).await;
+                }
+                _ => {}
+            },
             Some(_) => {}
             None => {
                 tracing::warn!("daemon event stream closed");
@@ -274,7 +277,7 @@ async fn rpc<T>(what: &str, fut: impl Future<Output = Result<T, String>>) -> Res
     }
 }
 
-async fn next_event(events: &mut Option<EventStream>) -> Option<TunnelEvent> {
+async fn next_event(events: &mut Option<EventStream>) -> Option<Event> {
     match events {
         Some(stream) => stream.next().await,
         None => std::future::pending().await,
@@ -383,7 +386,7 @@ mod tests {
         reachable: bool,
         hang: bool,
         state: Arc<Mutex<TunnelState>>,
-        events: Arc<Mutex<Option<mpsc::Receiver<TunnelEvent>>>>,
+        events: Arc<Mutex<Option<mpsc::Receiver<Event>>>>,
         connect_calls: Arc<AtomicUsize>,
         disconnect_calls: Arc<AtomicUsize>,
     }
@@ -442,7 +445,7 @@ mod tests {
 
     struct Harness {
         tx: mpsc::Sender<Command>,
-        events: Option<mpsc::Sender<TunnelEvent>>,
+        events: Option<mpsc::Sender<Event>>,
         sink: FakeSink,
         daemon: FakeDaemon,
         state: Arc<AtomicU32>,
@@ -500,7 +503,7 @@ mod tests {
             self.events
                 .as_ref()
                 .unwrap()
-                .send(TunnelEvent::NewState(state))
+                .send(Event::Tunnel(Box::new(TunnelEvent::NewState(state))))
                 .await
                 .unwrap();
         }
