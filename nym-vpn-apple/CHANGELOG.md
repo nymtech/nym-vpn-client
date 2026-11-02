@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Show app window with quit prompt when attempting to quit from app menu with no visible windows (https://github.com/nymtech/nym-vpn-client/pull/6899)
+
+
 ## [2026.15.0] - TBD
+
 
 ## [2026.14.0] - 2026-10-22
 
