@@ -9,11 +9,9 @@ import TunnelMixnet
 import Tunnels
 import AppVersionProvider
 
-final class PacketTunnelProvider: NEPacketTunnelProvider {
+final class PacketTunnelProvider: NEPacketTunnelProvider, @unchecked Sendable {
     let tunnelActor: TunnelActor
     let logger: Logger
-    var vpnService: NymVpnService?
-    var commandSender: NymVpnServiceCommandSender?
 
     override init() {
         tunnelActor = TunnelActor()
@@ -53,7 +51,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             remindersEnabled: mixnetConfig.isServerFamilyRemindersEnabled
         )
 
-        _ = try await commandSender?.connectTunnel()
+        _ = try await tunnelActor.withCommandSender { try await $0.connectTunnel() }
         try await tunnelActor.waitUntilStarted()
     }
 
@@ -65,28 +63,29 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         if reason == .userInitiated {
             await tunnelActor.clearError()
         }
-        await vpnService?.shutdownAndWait()
+        await tunnelActor.shutdownVpnService()
         await tunnelActor.setTunnelProvider(nil)
-        vpnService = nil
-        commandSender = nil
     }
 }
 
 extension PacketTunnelProvider {
     func ensureGatewayIndependenceAllowsConnect(remindersEnabled: Bool) async throws {
-        guard let commandSender else { return }
+        let needsConsent = try await tunnelActor.withCommandSender { commandSender in
+            try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: true)
+            guard case .needsRelaxedIndependenceCriteria = try await commandSender.getTentativeGateways()
+            else {
+                return false
+            }
 
-        try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: true)
-        guard case .needsRelaxedIndependenceCriteria = try await commandSender.getTentativeGateways()
-        else {
-            return
-        }
+            guard remindersEnabled
+            else {
+                try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: false)
+                return false
+            }
 
-        guard remindersEnabled
-        else {
-            try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: false)
-            return
+            return true
         }
+        guard needsConsent == true else { return }
 
         await tunnelActor.reportNeedsRelaxedIndependence()
         try await tunnelActor.awaitRelaxConsent()
@@ -96,12 +95,12 @@ extension PacketTunnelProvider {
     func setup(vpnConfig: VpnConfig) async throws {
         try await ConfigurationManager.shared.setup()
 
-        vpnService = try await NymVpnService.newService(
+        let vpnService = try await NymVpnService.newService(
             config: vpnConfig,
             environment: ConfigurationManager.shared.networkEnv ?? .newWithMainnetFallback(),
             eventListener: self
         )
-        commandSender = vpnService?.getCommandSender()
+        await tunnelActor.setVpnService(vpnService)
     }
 
     func configureLogger() {
