@@ -706,7 +706,7 @@ message PairingCheckResult {
     google.protobuf.Empty timed_out = 2;
     string error = 3;
     string pin_code = 4;
-    string mnemonic = 5;
+    google.protobuf.Empty stored_mnemonic = 5;
   }
   // The session ID returned by the call that started the pairing process
   uint32 session_id = 6;

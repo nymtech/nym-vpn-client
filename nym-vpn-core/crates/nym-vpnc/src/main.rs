@@ -398,8 +398,10 @@ impl Command {
                         PairingEvent::PinCode(pin_code) => println!(
                             "Pairing process {session_id}: check that the other device shows PIN {pin_code}"
                         ),
-                        PairingEvent::Mnemonic(_) => {
-                            println!("Pairing process {session_id}: received the account mnemonic")
+                        PairingEvent::StoredMnemonic => {
+                            println!(
+                                "Pairing process {session_id}: received and stored the account mnemonic"
+                            )
                         }
                         result => println!("Pairing process {session_id}: {result}"),
                     }

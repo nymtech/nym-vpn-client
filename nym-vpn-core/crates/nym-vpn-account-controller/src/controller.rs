@@ -4,7 +4,7 @@
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
+use nym_vpn_lib_types::{AccountControllerState, StorableAccount};
 use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
 use tokio::sync::{
     broadcast,
@@ -18,6 +18,7 @@ use crate::{
     AccountStateReceiver, NyxdClient,
     commands::AccountCommand,
     error::Error,
+    event::{AccountControllerEvent, AccountControllerPairingEvent},
     event_sender::AccountControllerEventReceiver,
     shared_state::SharedAccountState,
     state_machine::{
@@ -122,12 +123,29 @@ where
         let command_channel = mpsc::unbounded_channel();
 
         let mut account_controller_event_rx = event_channel.subscribe();
+        let command_sender = AccountCommandSender::new(command_channel.0.clone());
         tokio::spawn(async move {
             loop {
                 match account_controller_event_rx.recv().await {
                     Ok(AccountControllerEvent::NewState(_)) => {}
                     Ok(AccountControllerEvent::Pairing(pairing_result)) => {
-                        let _ = event_tx.send(nym_vpn_lib_types::Event::Pairing(pairing_result));
+                        if let AccountControllerPairingEvent::Mnemonic(mnemonic) =
+                            &pairing_result.event
+                        {
+                            let _ = command_sender
+                                .store_account(StorableAccount::new(
+                                    mnemonic.clone(),
+                                    Default::default(),
+                                ))
+                                .await
+                                .inspect_err(|err| {
+                                    tracing::error!(
+                                        "Failed to store mnemonic received on pairing: {err:?}"
+                                    )
+                                });
+                        }
+                        let _ =
+                            event_tx.send(nym_vpn_lib_types::Event::Pairing(pairing_result.into()));
                     }
                     Err(broadcast::error::RecvError::Lagged(skipped)) => {
                         tracing::warn!("Skipped {skipped} account controller events");

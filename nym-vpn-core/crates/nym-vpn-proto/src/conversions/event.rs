@@ -151,9 +151,7 @@ impl From<PairingResult> for proto::PairingCheckResult {
             PairingEvent::PinCode(pin_code) => {
                 proto::pairing_check_result::Event::PinCode(pin_code)
             }
-            PairingEvent::Mnemonic(mnemonic) => {
-                proto::pairing_check_result::Event::Mnemonic(mnemonic)
-            }
+            PairingEvent::StoredMnemonic => proto::pairing_check_result::Event::StoredMnemonic(()),
         };
         Self {
             event: Some(res),
@@ -177,9 +175,7 @@ impl TryFrom<proto::PairingCheckResult> for PairingResult {
             proto::pairing_check_result::Event::PinCode(pin_code) => {
                 PairingEvent::PinCode(pin_code)
             }
-            proto::pairing_check_result::Event::Mnemonic(mnemonic) => {
-                PairingEvent::Mnemonic(mnemonic)
-            }
+            proto::pairing_check_result::Event::StoredMnemonic(_) => PairingEvent::StoredMnemonic,
         };
 
         Ok(Self {

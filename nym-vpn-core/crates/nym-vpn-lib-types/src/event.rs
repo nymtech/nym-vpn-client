@@ -155,7 +155,7 @@ pub enum PairingEvent {
     TimedOut,
     Error(String),
     PinCode(String),
-    Mnemonic(String),
+    StoredMnemonic,
 }
 
 impl fmt::Debug for PairingEvent {
@@ -165,10 +165,7 @@ impl fmt::Debug for PairingEvent {
             Self::TimedOut => f.write_str("TimedOut"),
             Self::Error(err) => f.debug_tuple("Error").field(err).finish(),
             Self::PinCode(pin_code) => f.debug_tuple("PinCode").field(pin_code).finish(),
-            Self::Mnemonic(_) => f
-                .debug_tuple("Mnemonic")
-                .field(&format_args!("<redacted>"))
-                .finish(),
+            Self::StoredMnemonic => f.write_str("StoredMnemonic"),
         }
     }
 }
@@ -186,10 +183,9 @@ impl fmt::Display for PairingEvent {
                 f,
                 "Obtained the PIN code. Show it to the user and ask for confirmation that it matches the PIN code displayed on the other device."
             ),
-            Self::Mnemonic(_) => write!(
-                f,
-                "Obtained the account mnemonic. Use it for triggering the log in flow."
-            ),
+            Self::StoredMnemonic => {
+                write!(f, "Obtained the account mnemonic and stored it locally.")
+            }
         }
     }
 }

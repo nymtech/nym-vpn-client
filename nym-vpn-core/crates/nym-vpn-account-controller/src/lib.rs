@@ -11,6 +11,7 @@ mod config;
 mod controller;
 mod deeplink;
 mod error;
+mod event;
 mod event_sender;
 mod nyxd_client;
 mod qr_pairing;
