@@ -226,7 +226,7 @@
     "desc": "Start app when device boots"
   },
   "killswitch": {
-    "title": "Killswitch",
+    "title": "Kill switch",
     "desc": "Always on to protect your data"
   },
   "app-proxy": {
@@ -255,7 +255,7 @@
     },
     "invalid-port": "Invalid port number",
     "reset-to-default": "Reset to default",
-    "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
+    "intro": "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets.",
     "error-gateway-not-supported": "Server does not support SOCKS5",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
     "snackbar-enabled": "Proxy successfully enabled",
@@ -303,7 +303,7 @@
     "report-title": "Diagnostic report"
   },
   "split-tunneling": {
-    "title": "Split tunneling (beta)",
+    "title": "Split tunneling",
     "enable": "Enable split tunneling",
     "description-windows": "Choose apps to exclude from NymVPN tunnel.",
     "description-linux": "⚡ Launch any app from here to be excluded from the NymVPN funnel and connect directly to the internet!",
@@ -381,7 +381,7 @@
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
-              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+              "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
             ]
           }
         ],
@@ -391,7 +391,7 @@
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
-              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+              "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
             ]
           }
         ],
@@ -401,7 +401,7 @@
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
-              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+              "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
             ]
           }
         ]
