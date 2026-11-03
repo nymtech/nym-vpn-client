@@ -148,19 +148,17 @@ impl RoutingSocket {
 }
 
 struct RoutingSocketInner {
-    // storing the file handle in a std::file::File automagically provides sane io::{Write,
-    // Read} and Drop implementations.
     socket: AsyncFd<File>,
 }
 
 impl RoutingSocketInner {
     fn new() -> io::Result<Self> {
         let fd = socket(AddressFamily::Route, SockType::Raw, SockFlag::empty(), None)?;
-        let _ = fcntl::fcntl(&fd, fcntl::FcntlArg::F_SETFL(fcntl::OFlag::O_NONBLOCK))?;
-        let socket = File::from(fd);
-        Ok(Self {
-            socket: AsyncFd::new(socket)?,
-        })
+        fcntl::fcntl(&fd, fcntl::FcntlArg::F_SETFL(fcntl::OFlag::O_NONBLOCK))?;
+
+        // SAFETY: `File` owns `fd`
+        let socket = unsafe { AsyncFd::register(File::from(fd)) }?;
+        Ok(Self { socket })
     }
 
     async fn read(&self, out: &mut [u8]) -> io::Result<usize> {
