@@ -213,15 +213,14 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
 
     async fn handle_event(&mut self, event: Option<Event>) {
         match event {
-            Some(Event::Tunnel(event)) => match *event {
-                TunnelEvent::NewState(state) => {
+            Some(Event::Tunnel(event)) => {
+                if let TunnelEvent::NewState(state) = *event {
                     tracing::info!("daemon state: {state}");
                     let effects = self.machine.on_daemon_state(&state);
                     self.last_daemon_state = Some(state);
                     self.apply(effects).await;
                 }
-                _ => {}
-            },
+            }
             Some(_) => {}
             None => {
                 tracing::warn!("daemon event stream closed");
