@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- iOS: when the Apple ID's subscription belongs to another NymVPN account, the plan screen now explains it and opens Apple's subscription settings instead of letting a second account pay into that subscription
+- iOS: when the Apple ID's subscription belongs to another NymVPN account, the plan screen now explains it and opens Apple's subscription settings instead of letting a second account pay into that subscription (https://github.com/nymtech/nym-vpn-client/pull/6915)
 - Show app window with quit prompt when attempting to quit from app menu with no visible windows (https://github.com/nymtech/nym-vpn-client/pull/6899)
 
 
