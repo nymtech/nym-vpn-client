@@ -617,7 +617,7 @@ impl MultiplexCodec {
             buffer.reserve(FRAME_TYPE_SIZE);
             buffer.put_u8(frame_type as u8);
         }
-        self.len_delim_codec.encode(buffer.into(), dst)
+        self.len_delim_codec.encode(buffer.as_ref(), dst)
     }
 
     fn decode_inner(&mut self, src: &mut BytesMut) -> Result<Option<Frame>, io::Error> {
