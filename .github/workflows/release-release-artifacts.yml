@@ -434,14 +434,14 @@ jobs:
           test -d "${ARCHIVE_LINUX_X86_64_DIR}" && tar cvzf "${ARCHIVE_LINUX_X86_64}" "${ARCHIVE_LINUX_X86_64_DIR}"
           test -d "${ARCHIVE_LINUX_AARCH64_DIR}" && tar cvzf "${ARCHIVE_LINUX_AARCH64}" "${ARCHIVE_LINUX_AARCH64_DIR}"
 
-          cp -v "${ARCHIVE_LINUX_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${ARCHIVE_LINUX_AARCH64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_X86_64}/${NM_PLUGIN_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${DEB_ARTIFACTS_AARCH64}/${NM_PLUGIN_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${ARCHIVE_LINUX_X86_64}" "$OUTPUT_DIR"
+          cp -v "${ARCHIVE_LINUX_AARCH64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${NM_PLUGIN_DEB_X86_64}" "$OUTPUT_DIR"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${NM_PLUGIN_DEB_AARCH64}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (Windows)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -457,8 +457,8 @@ jobs:
           test -d "${ARCHIVE_WINDOWS_X64_DIR}" && zip -r "${ARCHIVE_WINDOWS_X64}" "${ARCHIVE_WINDOWS_X64_DIR}"
           test -d "${ARCHIVE_WINDOWS_ARM64_DIR}" && zip -r "${ARCHIVE_WINDOWS_ARM64}" "${ARCHIVE_WINDOWS_ARM64_DIR}"
 
-          cp -v "${ARCHIVE_WINDOWS_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${ARCHIVE_WINDOWS_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${ARCHIVE_WINDOWS_X64}" "$OUTPUT_DIR"
+          cp -v "${ARCHIVE_WINDOWS_ARM64}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (macOS)
         if: ${{ needs.resolve.outputs.macos == 'true' }}
@@ -466,8 +466,8 @@ jobs:
           MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.macos_installer_name }}
           VPNC_MACOS_INSTALLER_NAME: ${{ needs.resolve-artifacts.outputs.vpnc_macos_installer_name }}
         run: |
-          cp -v "${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.VPNC_MACOS_ARTIFACTS }}/${VPNC_MACOS_INSTALLER_NAME}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME}" "$OUTPUT_DIR"
+          cp -v "${{ env.VPNC_MACOS_ARTIFACTS }}/${VPNC_MACOS_INSTALLER_NAME}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (Linux/App)
         if: ${{ needs.resolve.outputs.linux == 'true' }}
@@ -480,16 +480,16 @@ jobs:
           LINUX_APP_APPIMAGE_X64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
           LINUX_APP_APPIMAGE_ARM64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_arm64 }}
         run: |
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL" "$OUTPUT_DIR"
 
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN}" "$OUTPUT_DIR"
 
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64}" "$OUTPUT_DIR"
 
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_APPIMAGE_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_APPIMAGE_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_APPIMAGE_X64}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_APPIMAGE_ARM64}" "$OUTPUT_DIR"
 
       - name: Copy artifacts (Windows/App)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -499,15 +499,15 @@ jobs:
           WINDOWS_APP_INSTALLER_X64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_x64_sig }}
           WINDOWS_APP_INSTALLER_ARM64_SIG: ${{ needs.resolve-artifacts.outputs.windows_app_installer_arm64_sig }}
         run: |
-          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "${{ env.OUTPUT_DIR }}"
-          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64}" "$OUTPUT_DIR"
+          cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64}" "$OUTPUT_DIR"
           if [ -f "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ]; then
-            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "${{ env.OUTPUT_DIR }}"
+            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64_SIG}" "$OUTPUT_DIR"
           else
             echo "::notice::Skipping optional Windows x64 installer signature (absent): ${WINDOWS_APP_INSTALLER_X64_SIG:-<empty>}"
           fi
           if [ -f "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ]; then
-            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "${{ env.OUTPUT_DIR }}"
+            cp -v "${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" "$OUTPUT_DIR"
           else
             echo "::notice::Skipping optional Windows arm64 installer signature (absent): ${WINDOWS_APP_INSTALLER_ARM64_SIG:-<empty>}"
           fi
@@ -517,7 +517,7 @@ jobs:
         env:
           ANDROID_APK: ${{ needs.resolve-artifacts.outputs.android_apk }}
         run: |
-          cp -v "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}" "$OUTPUT_DIR"
 
       - name: Generate checksums
         working-directory: ${{ env.OUTPUT_DIR }}
@@ -590,8 +590,8 @@ jobs:
               "${WINDOWS_APP_INSTALLER_X64}"
               "${WINDOWS_APP_INSTALLER_ARM64}"
             )
-            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_X64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_X64_SIG}")
-            [ -f "${{ env.OUTPUT_DIR }}/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_ARM64_SIG}")
+            [ -f "$OUTPUT_DIR/${WINDOWS_APP_INSTALLER_X64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_X64_SIG}")
+            [ -f "$OUTPUT_DIR/${WINDOWS_APP_INSTALLER_ARM64_SIG}" ] && FILES+=("${WINDOWS_APP_INSTALLER_ARM64_SIG}")
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
