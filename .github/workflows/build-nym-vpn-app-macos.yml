@@ -301,18 +301,24 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "📦 Downloading macOS provisioning profiles..."
-          app-store-connect profiles list \
-            --type MAC_APP_DIRECT \
-            --state ACTIVE \
-            --name "NymVPN macOS + Daemon" \
-            --save
+          fetch_profile() {
+            local name="$1"
+            local output
+            output=$(app-store-connect profiles list \
+              --type MAC_APP_DIRECT \
+              --state ACTIVE \
+              --name "$name" \
+              --save 2>&1)
+            echo "$output"
+            if ! grep -q "Saved Profile" <<< "$output"; then
+              echo "::error::No active MAC_APP_DIRECT provisioning profile named '$name' found in App Store Connect"
+              return 1
+            fi
+          }
 
-          app-store-connect profiles list \
-            --type MAC_APP_DIRECT \
-            --state ACTIVE \
-            --name "NymVPN daemon" \
-            --save
+          echo "📦 Downloading macOS provisioning profiles..."
+          fetch_profile "NymVPN macOS + Daemon"
+          fetch_profile "NymVPN daemon"
 
           echo "✅ Signing files successfully fetched and imported."
 
