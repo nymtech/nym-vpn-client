@@ -13,8 +13,8 @@
   },
   "login": {
     "title": "Log in",
-    "login-24-words-button": "Login with 24 words",
-    "login-social-button": "Login using linked socials*",
+    "login-24-words-button": "Log in with 24 words",
+    "login-social-button": "Log in using linked socials*",
     "login-social-button-disclaimer": "*Account must be connected before NymVPN login.",
     "can-t-login-while-tunnel-is-running": "Can't login while tunnel is running"
   },
@@ -22,7 +22,7 @@
     "title": "Welcome!",
     "description": "To the world's most private VPN",
     "signup-button": "Sign up",
-    "login-button": "Login to my account",
+    "login-button": "Log in to my account",
     "terms-of-service": "By continuing, you agree to our Terms of Service and acknowledge our Privacy "
   },
   "passphrase": {
