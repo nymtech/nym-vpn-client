@@ -1,0 +1,48 @@
+import Foundation
+
+/// One StoreKit subscription status for our group, reduced to what the gate needs. No StoreKit types.
+public struct AppleIdSubscriptionEntitlement: Equatable, Sendable {
+    public enum State: Equatable, Sendable {
+        case subscribed
+        case inGracePeriod
+        case inBillingRetryPeriod
+        case expired
+        case revoked
+    }
+
+    public let state: State
+    public let appAccountToken: UUID?
+    public let expirationDate: Date?
+    public let willAutoRenew: Bool
+
+    public init(state: State, appAccountToken: UUID?, expirationDate: Date?, willAutoRenew: Bool) {
+        self.state = state
+        self.appAccountToken = appAccountToken
+        self.expirationDate = expirationDate
+        self.willAutoRenew = willAutoRenew
+    }
+}
+
+/// Whether the signed-in Nym account may buy an Apple subscription on this Apple ID.
+public enum AppleIdSubscriptionGate: Equatable, Sendable {
+    case open
+    /// The Apple ID's live subscription was bought under another Nym account's token.
+    case attachedToOtherAccount(expirationDate: Date, willAutoRenew: Bool)
+}
+
+public enum AppleIdSubscriptionGatePolicy {
+    /// An Apple ID holds one subscription per group. If the live one carries another account's token,
+    /// a purchase from this account would only change that subscription's plan and pay into it.
+    public static func gate(
+        entitlements: [AppleIdSubscriptionEntitlement],
+        accountToken: UUID?
+    ) -> AppleIdSubscriptionGate {
+        let live = entitlements.filter { $0.expirationDate != nil && ($0.state == .subscribed || $0.state == .inGracePeriod) }
+        guard let accountToken, !live.isEmpty else { return .open }
+        if live.contains(where: { $0.appAccountToken == accountToken }) { return .open }
+        // shortcut: a token-less entitlement cannot be proven foreign, upgrade when every live subscription carries a token
+        if live.contains(where: { $0.appAccountToken == nil }) { return .open }
+        let first = live[0]
+        return .attachedToOtherAccount(expirationDate: first.expirationDate!, willAutoRenew: first.willAutoRenew)
+    }
+}
