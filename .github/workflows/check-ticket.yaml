@@ -22,16 +22,16 @@ jobs:
   check-ticket:
     name: Check ticket in PR description
     runs-on: arc-linux-latest
-    if: >
-      github.actor != 'dependabot[bot]' &&
-      github.actor != 'github-actions[bot]' &&
-      contains(github.event.pull_request.labels.*.name, 'no-ticket') == false
     env:
       PR_BODY: ${{ toJSON(github.event.pull_request.body) }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Require JIRA ticket or nymtech GitHub issue
+        if: >
+          github.actor != 'dependabot[bot]' &&
+          github.actor != 'github-actions[bot]' &&
+          contains(github.event.pull_request.labels.*.name, 'no-ticket') == false
         run: |
           python3 - <<'PY'
           import json, os, re, sys, urllib.error, urllib.request
