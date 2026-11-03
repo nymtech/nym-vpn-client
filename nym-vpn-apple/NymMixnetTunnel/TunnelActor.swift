@@ -11,7 +11,10 @@ actor TunnelActor {
 
     private let logger = Logger(label: "TunnelActor")
 
-    weak var tunnelProvider: NEPacketTunnelProvider?
+    private weak var tunnelProvider: NEPacketTunnelProvider?
+
+    private var vpnService: NymVpnService?
+    private var commandSender: NymVpnServiceCommandSender?
 
     /// Flag used to determine if `reasserting` property of tunnel provider can be used.
     /// Note that we shouldn't reassert unless we returned from `startTunnel()`
@@ -45,6 +48,28 @@ actor TunnelActor {
 
     func setTunnelProvider(_ tunnelProvider: NEPacketTunnelProvider?) {
         self.tunnelProvider = tunnelProvider
+    }
+
+    func setVpnService(_ vpnService: NymVpnService) {
+        self.vpnService = vpnService
+        commandSender = vpnService.getCommandSender()
+    }
+
+    /// Runs `body` with the current command sender. Returns `nil` if the VPN service isn't set up.
+    func withCommandSender<T: Sendable>(
+        _ body: @Sendable (NymVpnServiceCommandSender) async throws -> T
+    ) async rethrows -> T? {
+        if let commandSender {
+            try await body(commandSender)
+        } else {
+            nil
+        }
+    }
+
+    func shutdownVpnService() async {
+        await vpnService?.shutdownAndWait()
+        vpnService = nil
+        commandSender = nil
     }
 
     private func setCurrentState(_ state: TunnelState) async {
