@@ -266,7 +266,9 @@ impl BpfStream {
 
     fn from_file(file: File) -> Result<Self, Error> {
         Ok(BpfStream {
-            inner: AsyncFd::with_interest(file, Interest::READABLE).map_err(Error::AsyncFd)?,
+            // SAFETY: `BpfStream` owns `file`
+            inner: unsafe { AsyncFd::register_with_interest(file, Interest::READABLE) }
+                .map_err(|err| Error::AsyncFd(io::Error::from(err)))?,
         })
     }
 }
