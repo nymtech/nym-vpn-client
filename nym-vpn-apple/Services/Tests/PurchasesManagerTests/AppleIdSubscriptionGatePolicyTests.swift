@@ -11,13 +11,15 @@ struct AppleIdSubscriptionGatePolicyTests {
         state: AppleIdSubscriptionEntitlement.State = .subscribed,
         token: UUID? = other,
         expiry: Date? = expiry,
-        willAutoRenew: Bool = true
+        willAutoRenew: Bool = true,
+        grace: Date? = nil
     ) -> AppleIdSubscriptionEntitlement {
         AppleIdSubscriptionEntitlement(
             state: state,
             appAccountToken: token,
             expirationDate: expiry,
-            willAutoRenew: willAutoRenew
+            willAutoRenew: willAutoRenew,
+            gracePeriodExpirationDate: grace
         )
     }
 
@@ -41,6 +43,23 @@ struct AppleIdSubscriptionGatePolicyTests {
     @Test func foreignInGracePeriod_isAttached() {
         let gate = AppleIdSubscriptionGatePolicy.gate(
             entitlements: [Self.entitlement(state: .inGracePeriod)],
+            accountToken: Self.own
+        )
+        #expect(gate == .attachedToOtherAccount(expirationDate: Self.expiry, willAutoRenew: true))
+    }
+
+    @Test func foreignInGracePeriod_showsGraceEndNotLapsedExpiry() {
+        let graceEnd = Self.expiry.addingTimeInterval(16 * 24 * 60 * 60)
+        let gate = AppleIdSubscriptionGatePolicy.gate(
+            entitlements: [Self.entitlement(state: .inGracePeriod, grace: graceEnd)],
+            accountToken: Self.own
+        )
+        #expect(gate == .attachedToOtherAccount(expirationDate: graceEnd, willAutoRenew: true))
+    }
+
+    @Test func foreignInGracePeriodWithoutGraceDate_fallsBackToExpiry() {
+        let gate = AppleIdSubscriptionGatePolicy.gate(
+            entitlements: [Self.entitlement(state: .inGracePeriod, grace: nil)],
             accountToken: Self.own
         )
         #expect(gate == .attachedToOtherAccount(expirationDate: Self.expiry, willAutoRenew: true))

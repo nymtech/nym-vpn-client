@@ -14,12 +14,20 @@ public struct AppleIdSubscriptionEntitlement: Equatable, Sendable {
     public let appAccountToken: UUID?
     public let expirationDate: Date?
     public let willAutoRenew: Bool
+    public let gracePeriodExpirationDate: Date?
 
-    public init(state: State, appAccountToken: UUID?, expirationDate: Date?, willAutoRenew: Bool) {
+    public init(
+        state: State,
+        appAccountToken: UUID?,
+        expirationDate: Date?,
+        willAutoRenew: Bool,
+        gracePeriodExpirationDate: Date? = nil
+    ) {
         self.state = state
         self.appAccountToken = appAccountToken
         self.expirationDate = expirationDate
         self.willAutoRenew = willAutoRenew
+        self.gracePeriodExpirationDate = gracePeriodExpirationDate
     }
 }
 
@@ -43,6 +51,10 @@ public enum AppleIdSubscriptionGatePolicy {
         // shortcut: a token-less entitlement cannot be proven foreign, upgrade when every live subscription carries a token
         if live.contains(where: { $0.appAccountToken == nil }) { return .open }
         let first = live[0]
-        return .attachedToOtherAccount(expirationDate: first.expirationDate!, willAutoRenew: first.willAutoRenew)
+        // In grace the transaction's expiry is the lapsed period's end; access runs to the grace date.
+        let end = first.state == .inGracePeriod
+            ? first.gracePeriodExpirationDate ?? first.expirationDate!
+            : first.expirationDate!
+        return .attachedToOtherAccount(expirationDate: end, willAutoRenew: first.willAutoRenew)
     }
 }

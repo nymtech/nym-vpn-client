@@ -303,7 +303,8 @@ private extension PurchasesManager {
             state: state,
             appAccountToken: transaction.appAccountToken,
             expirationDate: transaction.expirationDate,
-            willAutoRenew: renewalInfo.willAutoRenew
+            willAutoRenew: renewalInfo.willAutoRenew,
+            gracePeriodExpirationDate: renewalInfo.gracePeriodExpirationDate
         )
     }
 
