@@ -10,7 +10,6 @@ use std::{
     os::windows::io::{AsRawHandle, FromRawHandle, OwnedHandle, RawHandle},
 };
 use tokio::net::windows::named_pipe::NamedPipeServer;
-use verifysign::CodeSignVerifier;
 use windows_sys::Win32::{
     Foundation::{ERROR_NO_MORE_FILES, INVALID_HANDLE_VALUE},
     System::{
@@ -208,8 +207,7 @@ impl ProcessCertVerifier {
         &self,
         nym_certificate_serial_number: &str,
     ) -> Result<(), Error> {
-        let verifier = CodeSignVerifier::for_pid(self.pid).map_err(Error::PidVerifier)?;
-        let context = verifier.verify().map_err(Error::Verification)?;
+        let context = verifysign::verify_pid(self.pid).map_err(Error::Verification)?;
         let signer_serial = context.serial().ok_or(Error::NoSerialNumber)?;
         if signer_serial != nym_certificate_serial_number {
             Err(Error::SerialNumberMismatch)
@@ -259,10 +257,6 @@ pub enum Error {
     /// Error returned from `GetNamedPipeClientProcessIdFailed`
     #[error("failed to get client PID")]
     GetNamedPipeClientProcessId(#[source] windows::core::Error),
-
-    /// Could not get verification data for the given PID
-    #[error("failed to get the verifier for the client PID: {0:?}")]
-    PidVerifier(verifysign::Error),
 
     /// Certificate signature verification failure
     #[error("failed to verify the certificate signatures {0:?}")]

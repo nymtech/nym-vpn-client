@@ -10242,7 +10242,7 @@ dependencies = [
  "salsa20",
  "scrypt",
  "sec1 0.8.1",
- "sha1 0.11.0",
+ "sha1",
  "sha2 0.11.1",
  "sha3 0.12.0",
  "signature 3.0.0",
@@ -11035,17 +11035,6 @@ dependencies = [
 
 [[package]]
 name = "sha1"
-version = "0.10.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a978451301f4db1d02937a4ab3ccce137717b81826e79b7d49ffe3244a13c3b8"
-dependencies = [
- "cfg-if",
- "cpufeatures 0.2.17",
- "digest 0.10.7",
-]
-
-[[package]]
-name = "sha1"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aacc4cc499359472b4abe1bf11d0b12e688af9a805fa5e3016f9a386dc2d0214"
@@ -11486,7 +11475,7 @@ dependencies = [
  "log",
  "percent-encoding",
  "serde",
- "sha1 0.11.0",
+ "sha1",
  "sha2 0.11.1",
  "sqlx-core",
  "thiserror 2.0.21",
@@ -11606,7 +11595,7 @@ dependencies = [
  "rand_core 0.10.1",
  "rsa 0.10.0-rc.18",
  "sec1 0.8.1",
- "sha1 0.11.0",
+ "sha1",
  "sha2 0.11.1",
  "signature 3.0.0",
  "ssh-cipher",
@@ -12923,7 +12912,7 @@ dependencies = [
  "rand 0.10.3",
  "rustls 0.23.46",
  "rustls-pki-types",
- "sha1 0.11.0",
+ "sha1",
  "thiserror 2.0.21",
  "webpki-roots 0.26.11",
 ]
@@ -13396,13 +13385,11 @@ dependencies = [
 
 [[package]]
 name = "verifysign"
-version = "0.2.5"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1d4a9437894dce7caa04abe55234810088ca41696c4446b6e46de7e31530731"
+checksum = "6acfcc42a8d44f340d001193d97ef56bf33210b51ad760ae8308c97d5241ca51"
 dependencies = [
  "core-foundation 0.10.1",
- "sha1 0.10.7",
- "sha2 0.10.9",
  "windows-sys 0.61.2",
 ]
 
