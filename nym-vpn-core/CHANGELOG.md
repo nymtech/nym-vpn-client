@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- [Linux] The install script now installs `nym-vpnd` and `nym-socks5-proxy` as root-owned. Previously, raw installs (the default on distros other than Debian, Ubuntu and Mint) left them owned by the installing user, who could replace them and get code run as root. Existing raw installs stay affected until the install script is run again, or until fixed manually with `sudo chown root:root /usr/bin/nym-vpnd /usr/bin/nym-socks5-proxy /usr/bin/NymVPN.AppImage` (https://github.com/nymtech/nym-vpn-client/pull/6914)
+- [Linux] The install script now installs `nym-vpnd`, `nym-socks5-proxy` and `NymVPN.AppImage` as root-owned. Previously, raw installs (the default on distros other than Debian, Ubuntu and Mint) left them owned by the installing user, who could replace them and get code run as root. Existing raw installs stay affected until fixed with `sudo chown root:root /usr/bin/nym-vpnd /usr/bin/nym-socks5-proxy /usr/bin/NymVPN.AppImage`, or until reinstalled with `./install uninstall` followed by `./install` (uninstalling removes `/etc/nym/nym-vpnd.toml`) (https://github.com/nymtech/nym-vpn-client/pull/6914)
 
 
 ## [2026.14.0] - 2026-10-22
