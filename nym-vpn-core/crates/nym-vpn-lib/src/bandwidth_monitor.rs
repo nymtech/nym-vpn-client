@@ -951,20 +951,30 @@ impl BandwidthMonitor {
         } else {
             &mut self.wg_exit_gateway_client
         };
+        let shutdown_token = self.shutdown_token.clone();
+        let query_res = match shutdown_token
+            .run_until_cancelled(async {
+                bw_client
+                    .query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES)
+                    .await
+            })
+            .await
+        {
+            Some(Ok(query_res)) => query_res,
+            Some(Err(err)) => {
+                self.handle_bandwidth_query_error(entry, err).await;
+                return;
+            }
+            None => {
+                tracing::trace!("BandwidthMonitor: Received shutdown");
+                return;
+            }
+        };
         tokio::select! {
-            _ = self.shutdown_token.cancelled() => {
+            _ = shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthMonitor: Received shutdown");
             }
-            ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
-                match ret {
-                    Ok(query_res) => {
-                        self
-                            .handle_bandwidth_query(entry, system_bandwidth_monitor, query_res)
-                            .await
-                    }
-                    Err(err) => self.handle_bandwidth_query_error(entry, err).await,
-                }
-            }
+            _ = self.handle_bandwidth_query(entry, system_bandwidth_monitor, query_res) => {}
         }
     }
 
