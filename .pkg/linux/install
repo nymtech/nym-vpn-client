@@ -573,7 +573,7 @@ check_system_deps() {
 
 install_app_appimage() {
   log "  ${B_GRN}Installing$RS NymVPN.AppImage"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
+  sudo install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
 
   log "  ${B_GRN}Installing$RS desktop entry"
   _pushd "$temp_dir"
@@ -598,8 +598,8 @@ install_app_deb() {
 
 install_vpnd_raw() {
   log "  ${B_GRN}Installing$RS nym-vpnd"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$socks5_proxy_bin" "$install_dir/$socks5_proxy_bin"
+  sudo install -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
+  sudo install -Dm755 "$temp_dir/$socks5_proxy_bin" "$install_dir/$socks5_proxy_bin"
 
   log "  ${B_GRN}Installing$RS systemd service"
   sudo install -Dm644 "$temp_dir/$vpnd_service" "$units_dir/$vpnd_service"
