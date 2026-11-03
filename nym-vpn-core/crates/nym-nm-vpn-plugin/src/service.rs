@@ -5,11 +5,14 @@
 //! into the signals decided by [`crate::state::Machine`].
 
 use std::{
+    collections::HashMap,
+    net::IpAddr,
     pin::Pin,
     sync::{
         Arc,
         atomic::{AtomicU32, Ordering},
     },
+    task::{Context, Poll, Waker},
     time::Duration,
 };
 
@@ -20,12 +23,17 @@ use tokio::{
     time::{Instant, sleep_until},
 };
 use tokio_stream::{Stream, StreamExt};
-use zbus::object_server::InterfaceRef;
+use zbus::{
+    object_server::InterfaceRef,
+    zvariant::{OwnedValue, Value},
+};
 
 use crate::{
-    nm::{NetworkManagerProxy, failure},
+    nm::{
+        ACTIVE_CONNECTION_STATE_DEACTIVATING, ActiveConnectionProxy, NetworkManagerProxy, failure,
+    },
     plugin::{Command, VpnPlugin, VpnPluginSignals},
-    state::{DisconnectDecision, Effect, Machine, Phase, config_dict, disconnect_decision},
+    state::{Effect, Machine, Phase},
 };
 
 /// How long the plugin stays alive once idle before letting NetworkManager respawn it later.
@@ -36,6 +44,7 @@ pub const DISCONNECT_WAIT: Duration = Duration::from_secs(15);
 pub const RPC_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub type EventStream = Pin<Box<dyn Stream<Item = TunnelEvent> + Send>>;
+pub type DeactivationStream = Pin<Box<dyn Stream<Item = ()> + Send>>;
 
 /// The daemon as the service sees it. Implemented for the gRPC client and by test fakes.
 pub trait Daemon: Send {
@@ -53,9 +62,14 @@ pub trait Sink: Send {
     fn emit(&self, effect: &Effect) -> impl Future<Output = ()> + Send;
 }
 
-/// NetworkManager's overall state, used to tell a user disconnect from a network-loss one.
-pub trait NmState: Send {
-    fn state(&self) -> impl Future<Output = Option<u32>> + Send;
+/// NetworkManager as the service sees it. Implemented over D-Bus and by test fakes.
+pub trait Nm: Send {
+    /// Watch the active connection of the profile `uuid`. The stream yields when NetworkManager
+    /// starts deactivating it, which only happens when the user disconnects it.
+    fn watch_deactivation(
+        &mut self,
+        uuid: &str,
+    ) -> impl Future<Output = Result<DeactivationStream, String>> + Send;
 }
 
 pub struct Service<D, S, N> {
@@ -64,13 +78,15 @@ pub struct Service<D, S, N> {
     daemon: D,
     sink: S,
     nm: N,
-    events: Option<EventStream>,
+    events: EventStream,
+    deactivation: DeactivationStream,
+    user_disconnect: bool,
     last_daemon_state: Option<TunnelState>,
     disconnect_deadline: Option<Instant>,
     idle_since: Instant,
 }
 
-impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
+impl<D: Daemon, S: Sink, N: Nm> Service<D, S, N> {
     pub fn new(daemon: D, sink: S, nm: N, state: Arc<AtomicU32>) -> Self {
         Self {
             machine: Machine::new(),
@@ -78,7 +94,9 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
             daemon,
             sink,
             nm,
-            events: None,
+            events: no_stream(),
+            deactivation: no_stream(),
+            user_disconnect: false,
             last_daemon_state: None,
             disconnect_deadline: None,
             idle_since: Instant::now(),
@@ -98,7 +116,9 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
             self.sink.emit(&effect).await;
         }
         if self.is_idle() {
-            self.events = None;
+            self.events = no_stream();
+            self.deactivation = no_stream();
+            self.user_disconnect = false;
             self.disconnect_deadline = None;
             self.idle_since = Instant::now();
         }
@@ -113,9 +133,53 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
         Err(reason)
     }
 
-    async fn handle_connect(&mut self) -> Result<(), String> {
+    async fn watch_deactivation(&mut self, uuid: Option<String>) {
+        self.user_disconnect = false;
+        self.deactivation = match uuid {
+            Some(uuid) => match rpc(
+                "watch NetworkManager connection",
+                self.nm.watch_deactivation(&uuid),
+            )
+            .await
+            {
+                Ok(stream) => stream,
+                Err(err) => {
+                    tracing::warn!(
+                        "Cannot watch NetworkManager connection {uuid}, Disconnect will leave the daemon running: {err}"
+                    );
+                    no_stream()
+                }
+            },
+            None => {
+                tracing::warn!(
+                    "Connect without a connection UUID, Disconnect will leave the daemon running"
+                );
+                no_stream()
+            }
+        };
+    }
+
+    /// Pick up a deactivation NetworkManager signalled before its `Disconnect` call. zbus queues
+    /// the signal before it dispatches the later method call, so it is ready to be polled here.
+    fn drain_deactivation(&mut self) {
+        let mut cx = Context::from_waker(Waker::noop());
+        loop {
+            match self.deactivation.as_mut().poll_next(&mut cx) {
+                Poll::Ready(Some(())) => self.user_disconnect = true,
+                Poll::Ready(None) => {
+                    self.deactivation = no_stream();
+                    break;
+                }
+                Poll::Pending => break,
+            }
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn handle_connect(&mut self, uuid: Option<String>) -> Result<(), String> {
         let effects = self.machine.begin_connect();
         self.apply(effects).await;
+        self.watch_deactivation(uuid).await;
 
         if let Err(err) = rpc("open", self.daemon.open()).await {
             return self
@@ -123,7 +187,7 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
                 .await;
         }
         match rpc("ListenToEvents", self.daemon.subscribe()).await {
-            Ok(events) => self.events = Some(events),
+            Ok(events) => self.events = events,
             Err(err) => {
                 return self
                     .fail_connect(format!("cannot subscribe to events: {err}"))
@@ -138,11 +202,9 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
                     .await;
             }
         };
-        tracing::info!("daemon state at connect: {state}");
-        // The current state is a snapshot from before our request, so only `Connected` means
-        // anything to the machine; a terminal state here is the normal starting point.
+        tracing::info!("Tunnel state at connect: {state}");
         match &state {
-            TunnelState::Connected { .. } => {
+            TunnelState::Connected { .. } | TunnelState::Offline { reconnect: true } => {
                 let effects = self.machine.on_daemon_state(&state);
                 self.apply(effects).await;
             }
@@ -158,10 +220,11 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
 
         match self.machine.phase() {
             Phase::Starting | Phase::Started => Ok(()),
-            _ => Err(format!("daemon cannot connect right now: {state}")),
+            _ => Err(format!("Daemon cannot connect right now: {state}")),
         }
     }
 
+    #[tracing::instrument(skip(self))]
     async fn handle_disconnect(&mut self) {
         if self.is_idle() {
             // NetworkManager calls Disconnect on every transition to FAILED/DISCONNECTED, including
@@ -169,6 +232,7 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
             tracing::debug!("Disconnect while {:?}: nothing to do", self.machine.phase());
             return;
         }
+
         let daemon_state = match rpc("GetTunnelState", self.daemon.tunnel_state()).await {
             Ok(state) => Some(state),
             Err(err) => {
@@ -176,53 +240,46 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
                 self.last_daemon_state.clone()
             }
         };
+
         let Some(daemon_state) = daemon_state else {
             let effects = self.machine.finish_stop();
             self.apply(effects).await;
             return;
         };
-        let nm_state = self.nm.state().await;
-        match disconnect_decision(&daemon_state, nm_state) {
-            DisconnectDecision::AlreadyStopped => {
-                tracing::info!("daemon already {daemon_state}; reporting stopped");
-                let effects = self.machine.finish_stop();
-                self.apply(effects).await;
-            }
-            DisconnectDecision::LeaveDaemon => {
-                tracing::info!(
-                    "NetworkManager state {} < 50: network loss or sleep, leaving the daemon connected",
-                    nm_state.unwrap_or_default()
-                );
-                let effects = self.machine.finish_stop();
-                self.apply(effects).await;
-            }
-            DisconnectDecision::DisconnectDaemon => {
-                let effects = self.machine.begin_disconnect();
-                self.apply(effects).await;
-                match rpc("DisconnectTunnel", self.daemon.disconnect()).await {
-                    Ok(()) => self.disconnect_deadline = Some(Instant::now() + DISCONNECT_WAIT),
-                    Err(err) => {
-                        tracing::warn!("DisconnectTunnel failed: {err}");
-                        let effects = self.machine.finish_stop();
-                        self.apply(effects).await;
-                    }
+        self.drain_deactivation();
+
+        if self.user_disconnect {
+            let effects = self.machine.begin_disconnect();
+            self.apply(effects).await;
+            match rpc("DisconnectTunnel", self.daemon.disconnect()).await {
+                Ok(()) => self.disconnect_deadline = Some(Instant::now() + DISCONNECT_WAIT),
+                Err(err) => {
+                    tracing::warn!("DisconnectTunnel failed: {err}");
+                    let effects = self.machine.finish_stop();
+                    self.apply(effects).await;
                 }
             }
+        } else {
+            tracing::info!(
+                "NetworkManager stopped the VPN without a user request, leaving the daemon {daemon_state}"
+            );
+            let effects = self.machine.finish_stop();
+            self.apply(effects).await;
         }
     }
 
     async fn handle_event(&mut self, event: Option<TunnelEvent>) {
         match event {
             Some(TunnelEvent::NewState(state)) => {
-                tracing::info!("daemon state: {state}");
+                tracing::info!("New tunnel state: {state}");
                 let effects = self.machine.on_daemon_state(&state);
                 self.last_daemon_state = Some(state);
                 self.apply(effects).await;
             }
             Some(_) => {}
             None => {
-                tracing::warn!("daemon event stream closed");
-                self.events = None;
+                tracing::warn!("Tunnel event stream closed");
+                self.events = no_stream();
                 let effects = self.machine.on_stream_closed();
                 self.apply(effects).await;
             }
@@ -237,8 +294,8 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
             let deadline = self.disconnect_deadline;
             tokio::select! {
                 cmd = rx.recv() => match cmd {
-                    Some(Command::Connect(reply)) => {
-                        let result = self.handle_connect().await;
+                    Some(Command::Connect { uuid, reply }) => {
+                        let result = self.handle_connect(uuid).await;
                         let _ = reply.send(result);
                     }
                     Some(Command::Disconnect(reply)) => {
@@ -247,11 +304,16 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
                     }
                     None => return Ok(()),
                 },
-                event = next_event(&mut self.events), if self.events.is_some() => {
+                event = self.events.next() => {
                     self.handle_event(event).await;
                 }
+                deactivated = self.deactivation.next() => match deactivated {
+                    Some(()) => self.user_disconnect = true,
+                    None => self.deactivation = no_stream(),
+                },
+
                 _ = sleep_until(deadline.unwrap_or_else(Instant::now)), if deadline.is_some() => {
-                    tracing::warn!("daemon did not reach a terminal state within {DISCONNECT_WAIT:?}");
+                    tracing::warn!("Daemon did not reach a terminal state within {DISCONNECT_WAIT:?}");
                     self.disconnect_deadline = None;
                     let effects = self.machine.finish_stop();
                     self.apply(effects).await;
@@ -262,22 +324,6 @@ impl<D: Daemon, S: Sink, N: NmState> Service<D, S, N> {
                 }
             }
         }
-    }
-}
-
-/// Bound a daemon RPC so a wedged daemon cannot pin the plugin (and NetworkManager's 10 s method
-/// timeout) in STARTING forever.
-async fn rpc<T>(what: &str, fut: impl Future<Output = Result<T, String>>) -> Result<T, String> {
-    match tokio::time::timeout(RPC_TIMEOUT, fut).await {
-        Ok(result) => result,
-        Err(_) => Err(format!("{what} timed out after {RPC_TIMEOUT:?}")),
-    }
-}
-
-async fn next_event(events: &mut Option<EventStream>) -> Option<TunnelEvent> {
-    match events {
-        Some(stream) => stream.next().await,
-        None => std::future::pending().await,
     }
 }
 
@@ -352,367 +398,92 @@ impl Sink for InterfaceRef<VpnPlugin> {
     }
 }
 
-impl NmState for Option<NetworkManagerProxy<'static>> {
-    async fn state(&self) -> Option<u32> {
-        match self {
-            Some(proxy) => proxy.state().await.ok(),
-            None => None,
+/// `Nm` over the system bus.
+pub struct DbusNm {
+    connection: zbus::Connection,
+}
+
+impl DbusNm {
+    pub fn new(connection: zbus::Connection) -> Self {
+        Self { connection }
+    }
+
+    async fn find_active_connection(
+        &self,
+        uuid: &str,
+    ) -> zbus::Result<Option<ActiveConnectionProxy<'static>>> {
+        let network_manager = NetworkManagerProxy::builder(&self.connection)
+            .cache_properties(zbus::proxy::CacheProperties::No)
+            .build()
+            .await?;
+        for path in network_manager.active_connections().await? {
+            let active = ActiveConnectionProxy::builder(&self.connection)
+                .path(path)?
+                .cache_properties(zbus::proxy::CacheProperties::No)
+                .build()
+                .await?;
+            if active.uuid().await.is_ok_and(|candidate| candidate == uuid) {
+                return Ok(Some(active));
+            }
         }
+        Ok(None)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::sync::{
-        Arc, Mutex,
-        atomic::{AtomicU32, AtomicUsize, Ordering},
-    };
-
-    use nym_vpn_lib_types::{TunnelEvent, TunnelState};
-    use tokio::sync::{mpsc, oneshot};
-
-    use super::*;
-    use crate::{
-        nm::{failure, service_state},
-        plugin::Command,
-        state::{Effect, fixtures::*},
-    };
-
-    #[derive(Clone)]
-    struct FakeDaemon {
-        reachable: bool,
-        hang: bool,
-        state: Arc<Mutex<TunnelState>>,
-        events: Arc<Mutex<Option<mpsc::Receiver<TunnelEvent>>>>,
-        connect_calls: Arc<AtomicUsize>,
-        disconnect_calls: Arc<AtomicUsize>,
+impl Nm for DbusNm {
+    async fn watch_deactivation(&mut self, uuid: &str) -> Result<DeactivationStream, String> {
+        let active = self
+            .find_active_connection(uuid)
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("no active connection with UUID {uuid}"))?;
+        let changes = active
+            .receive_state_changed()
+            .await
+            .map_err(|e| e.to_string())?;
+        Ok(Box::pin(changes.filter_map(|signal| {
+            let args = signal.args().ok()?;
+            (args.state == ACTIVE_CONNECTION_STATE_DEACTIVATING).then(|| {
+                tracing::info!(
+                    "NetworkManager is deactivating the VPN on request (reason {})",
+                    args.reason
+                );
+            })
+        })))
     }
+}
 
-    impl Daemon for FakeDaemon {
-        async fn open(&mut self) -> Result<(), String> {
-            if self.reachable {
-                Ok(())
-            } else {
-                Err("socket missing".into())
-            }
-        }
-
-        async fn subscribe(&mut self) -> Result<EventStream, String> {
-            let rx = self
-                .events
-                .lock()
-                .unwrap()
-                .take()
-                .expect("subscribed twice");
-            Ok(Box::pin(tokio_stream::wrappers::ReceiverStream::new(rx)))
-        }
-
-        async fn tunnel_state(&mut self) -> Result<TunnelState, String> {
-            if self.hang {
-                std::future::pending::<()>().await;
-            }
-            Ok(self.state.lock().unwrap().clone())
-        }
-
-        async fn connect(&mut self) -> Result<(), String> {
-            self.connect_calls.fetch_add(1, Ordering::SeqCst);
-            Ok(())
-        }
-
-        async fn disconnect(&mut self) -> Result<(), String> {
-            self.disconnect_calls.fetch_add(1, Ordering::SeqCst);
-            Ok(())
-        }
+/// `Config["gateway"]` as NetworkManager reads it: IPv4 as a `u32` whose in-memory bytes are the
+/// address in network order (`in_addr` read as a host `u32`), IPv6 as the 16 address bytes (`ay`).
+fn nm_gateway(addr: IpAddr) -> OwnedValue {
+    match addr {
+        IpAddr::V4(v4) => OwnedValue::from(u32::from_ne_bytes(v4.octets())),
+        IpAddr::V6(v6) => OwnedValue::try_from(Value::from(v6.octets().to_vec()))
+            .expect("byte arrays never contain file descriptors"),
     }
+}
 
-    #[derive(Clone, Default)]
-    struct FakeSink(Arc<Mutex<Vec<Effect>>>);
+/// The `Config` signal payload: gateway only, no tun device, no IP families.
+fn config_dict(gateway: IpAddr) -> HashMap<String, OwnedValue> {
+    HashMap::from([
+        ("gateway".to_string(), nm_gateway(gateway)),
+        ("has-ip4".to_string(), OwnedValue::from(false)),
+        ("has-ip6".to_string(), OwnedValue::from(false)),
+        ("can-persist".to_string(), OwnedValue::from(false)),
+    ])
+}
 
-    impl Sink for FakeSink {
-        async fn emit(&self, effect: &Effect) {
-            self.0.lock().unwrap().push(effect.clone());
-        }
-    }
+/// A stream that never yields: stands in for a subscription we don't have. Replacing a real
+/// stream with it drops that stream, which ends the subscription.
+fn no_stream<T: Send + 'static>() -> Pin<Box<dyn Stream<Item = T> + Send>> {
+    Box::pin(tokio_stream::pending())
+}
 
-    impl NmState for Option<u32> {
-        async fn state(&self) -> Option<u32> {
-            *self
-        }
-    }
-
-    struct Harness {
-        tx: mpsc::Sender<Command>,
-        events: Option<mpsc::Sender<TunnelEvent>>,
-        sink: FakeSink,
-        daemon: FakeDaemon,
-        state: Arc<AtomicU32>,
-        task: tokio::task::JoinHandle<anyhow::Result<()>>,
-    }
-
-    impl Harness {
-        fn start(reachable: bool, initial: TunnelState, nm_state: Option<u32>) -> Self {
-            Self::start_with(reachable, false, initial, nm_state)
-        }
-
-        fn start_with(
-            reachable: bool,
-            hang: bool,
-            initial: TunnelState,
-            nm_state: Option<u32>,
-        ) -> Self {
-            let (events, events_rx) = mpsc::channel(8);
-            let daemon = FakeDaemon {
-                reachable,
-                hang,
-                state: Arc::new(Mutex::new(initial)),
-                events: Arc::new(Mutex::new(Some(events_rx))),
-                connect_calls: Default::default(),
-                disconnect_calls: Default::default(),
-            };
-            let sink = FakeSink::default();
-            let state = Arc::new(AtomicU32::new(service_state::INIT));
-            let (tx, rx) = mpsc::channel(4);
-            let service = Service::new(daemon.clone(), sink.clone(), nm_state, state.clone());
-            let task = tokio::spawn(service.run(rx));
-            Self {
-                tx,
-                events: Some(events),
-                sink,
-                daemon,
-                state,
-                task,
-            }
-        }
-
-        async fn connect(&self) -> Result<(), String> {
-            let (reply, result) = oneshot::channel();
-            self.tx.send(Command::Connect(reply)).await.unwrap();
-            result.await.unwrap()
-        }
-
-        async fn disconnect(&self) {
-            let (reply, ack) = oneshot::channel();
-            self.tx.send(Command::Disconnect(reply)).await.unwrap();
-            ack.await.unwrap();
-        }
-
-        async fn send(&self, state: TunnelState) {
-            self.events
-                .as_ref()
-                .unwrap()
-                .send(TunnelEvent::NewState(state))
-                .await
-                .unwrap();
-        }
-
-        fn close_events(&mut self) {
-            self.events.take();
-        }
-
-        async fn settle(&self) {
-            for _ in 0..20 {
-                tokio::task::yield_now().await;
-            }
-        }
-
-        fn effects(&self) -> Vec<Effect> {
-            self.sink.0.lock().unwrap().clone()
-        }
-    }
-
-    #[tokio::test]
-    async fn connect_failure_when_daemon_unreachable() {
-        let h = Harness::start(false, TunnelState::Disconnected, Some(70));
-        assert!(h.connect().await.is_err());
-        assert_eq!(
-            h.effects(),
-            vec![
-                Effect::StateChanged(service_state::STARTING),
-                Effect::Failure(failure::CONNECT_FAILED),
-                Effect::StateChanged(service_state::STOPPED),
-            ]
-        );
-        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STOPPED);
-    }
-
-    #[tokio::test]
-    async fn connect_skips_connect_tunnel_when_already_connected() {
-        let h = Harness::start(true, connected(V4, None), Some(70));
-        assert!(h.connect().await.is_ok());
-        assert_eq!(
-            h.effects(),
-            vec![
-                Effect::StateChanged(service_state::STARTING),
-                Effect::Config(GW),
-                Effect::StateChanged(service_state::STARTED),
-            ]
-        );
-        assert_eq!(h.daemon.connect_calls.load(Ordering::SeqCst), 0);
-    }
-
-    #[tokio::test]
-    async fn connect_then_connected_event_reaches_started() {
-        let h = Harness::start(true, TunnelState::Disconnected, Some(70));
-        assert!(h.connect().await.is_ok());
-        assert_eq!(h.daemon.connect_calls.load(Ordering::SeqCst), 1);
-        assert_eq!(
-            h.effects(),
-            vec![Effect::StateChanged(service_state::STARTING)]
-        );
-        h.send(connecting()).await;
-        h.send(connected(V4, None)).await;
-        h.settle().await;
-        assert_eq!(
-            h.effects(),
-            vec![
-                Effect::StateChanged(service_state::STARTING),
-                Effect::Config(GW),
-                Effect::StateChanged(service_state::STARTED),
-            ]
-        );
-        assert_eq!(h.state.load(Ordering::SeqCst), service_state::STARTED);
-    }
-
-    #[tokio::test]
-    async fn stream_closed_while_started_emits_stopped() {
-        let mut h = Harness::start(true, connected(V4, None), Some(70));
-        h.connect().await.unwrap();
-        h.close_events();
-        h.settle().await;
-        assert_eq!(
-            h.effects().last(),
-            Some(&Effect::StateChanged(service_state::STOPPED))
-        );
-    }
-
-    #[tokio::test]
-    async fn disconnect_leaves_daemon_when_nm_not_connected() {
-        let h = Harness::start(true, connected(V4, None), Some(10));
-        h.connect().await.unwrap();
-        h.disconnect().await;
-        h.settle().await;
-        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
-        assert_eq!(
-            h.effects()[3..],
-            [Effect::StateChanged(service_state::STOPPED)]
-        );
-    }
-
-    #[tokio::test]
-    async fn disconnect_waits_for_terminal_event() {
-        let h = Harness::start(true, connected(V4, None), Some(70));
-        h.connect().await.unwrap();
-        h.disconnect().await;
-        h.settle().await;
-        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 1);
-        assert_eq!(
-            h.effects()[3..],
-            [Effect::StateChanged(service_state::STOPPING)]
-        );
-        h.send(TunnelState::Disconnected).await;
-        h.settle().await;
-        assert_eq!(
-            h.effects()[3..],
-            [
-                Effect::StateChanged(service_state::STOPPING),
-                Effect::StateChanged(service_state::STOPPED)
-            ]
-        );
-    }
-
-    #[tokio::test]
-    async fn disconnect_when_daemon_already_down_reports_stopped_without_rpc() {
-        let h = Harness::start(true, connected(V4, None), Some(70));
-        h.connect().await.unwrap();
-        *h.daemon.state.lock().unwrap() = TunnelState::Disconnected;
-        h.disconnect().await;
-        h.settle().await;
-        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
-        assert_eq!(
-            h.effects()[3..],
-            [Effect::StateChanged(service_state::STOPPED)]
-        );
-    }
-
-    #[tokio::test]
-    async fn disconnect_after_bad_ip_config_leaves_daemon() {
-        let h = Harness::start(
-            true,
-            connected("[2001:db8::1]:51820".parse().unwrap(), None),
-            Some(70),
-        );
-        assert!(h.connect().await.is_err());
-        assert_eq!(
-            h.effects(),
-            vec![
-                Effect::StateChanged(service_state::STARTING),
-                Effect::Failure(failure::BAD_IP_CONFIG),
-                Effect::StateChanged(service_state::STOPPED),
-            ]
-        );
-        // NetworkManager calls Disconnect on every transition to FAILED; the tunnel must stay up.
-        h.disconnect().await;
-        h.settle().await;
-        assert_eq!(h.daemon.disconnect_calls.load(Ordering::SeqCst), 0);
-        assert_eq!(h.effects().len(), 3);
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn connect_times_out_when_daemon_hangs() {
-        let h = Harness::start_with(true, true, TunnelState::Disconnected, Some(70));
-        let (reply, result) = oneshot::channel();
-        h.tx.send(Command::Connect(reply)).await.unwrap();
-        h.settle().await;
-        tokio::time::advance(RPC_TIMEOUT + std::time::Duration::from_secs(1)).await;
-        h.settle().await;
-        assert!(result.await.unwrap().is_err());
-        assert_eq!(
-            h.effects(),
-            vec![
-                Effect::StateChanged(service_state::STARTING),
-                Effect::Failure(failure::CONNECT_FAILED),
-                Effect::StateChanged(service_state::STOPPED),
-            ]
-        );
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn disconnect_times_out_to_stopped() {
-        let h = Harness::start(true, connected(V4, None), Some(70));
-        h.connect().await.unwrap();
-        h.disconnect().await;
-        h.settle().await;
-        tokio::time::advance(DISCONNECT_WAIT - std::time::Duration::from_secs(1)).await;
-        h.settle().await;
-        assert_eq!(
-            h.effects().last(),
-            Some(&Effect::StateChanged(service_state::STOPPING))
-        );
-        tokio::time::advance(std::time::Duration::from_secs(2)).await;
-        h.settle().await;
-        assert_eq!(
-            h.effects().last(),
-            Some(&Effect::StateChanged(service_state::STOPPED))
-        );
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn idle_exit_after_stopped() {
-        let h = Harness::start(true, connected(V4, None), Some(70));
-        h.connect().await.unwrap();
-        h.send(TunnelState::Disconnected).await;
-        h.settle().await;
-        assert!(!h.task.is_finished());
-        tokio::time::advance(IDLE_EXIT + std::time::Duration::from_secs(1)).await;
-        h.settle().await;
-        assert!(h.task.is_finished());
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn idle_exit_when_never_connected() {
-        let h = Harness::start(true, TunnelState::Disconnected, Some(70));
-        tokio::time::advance(IDLE_EXIT + std::time::Duration::from_secs(1)).await;
-        h.settle().await;
-        assert!(h.task.is_finished());
+/// Bound a daemon RPC so a wedged daemon cannot pin the plugin (and NetworkManager's 10 s method
+/// timeout) in STARTING forever.
+async fn rpc<T>(what: &str, fut: impl Future<Output = Result<T, String>>) -> Result<T, String> {
+    match tokio::time::timeout(RPC_TIMEOUT, fut).await {
+        Ok(result) => result,
+        Err(_) => Err(format!("{what} timed out after {RPC_TIMEOUT:?}")),
     }
 }

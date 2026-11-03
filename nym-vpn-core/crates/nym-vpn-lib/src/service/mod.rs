@@ -3,6 +3,8 @@
 
 mod config;
 mod error;
+#[cfg(target_os = "linux")]
+mod network_manager;
 mod socks5;
 mod vpn_service;
 

@@ -79,26 +79,10 @@ async fn main() -> anyhow::Result<()> {
         .object_server()
         .interface::<_, plugin::VpnPlugin>(nm::OBJECT_PATH)
         .await?;
-    // No property cache: the Disconnect decision must see NetworkManager's state as it is now, not
-    // as it was when a PropertiesChanged signal was last processed.
-    let network_manager = match nm::NetworkManagerProxy::builder(&connection)
-        .cache_properties(zbus::proxy::CacheProperties::No)
-        .build()
-        .await
-    {
-        Ok(proxy) => Some(proxy),
-        Err(err) => {
-            tracing::warn!(
-                "NetworkManager proxy unavailable, treating every Disconnect as a user request: {err}"
-            );
-            None
-        }
-    };
-
     let service = service::Service::new(
         service::GrpcDaemon::default(),
         iface,
-        network_manager,
+        service::DbusNm::new(connection.clone()),
         state,
     );
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
