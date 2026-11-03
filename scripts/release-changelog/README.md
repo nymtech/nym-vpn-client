@@ -53,12 +53,16 @@ Latin via protect-and-restore; informal register; Android auto-fit ≤500), runs
 guard (below), and opens **one** `needs-proofread` PR with the fastlane metadata. DeepL is round-1 —
 **never auto-merge.**
 
-### 3. Beta TestFlight notes — `publish-nym-vpn-ios.yml`
-TestFlight is a **beta** asset, so (Apple only) at each beta the TestFlight "what's new" is authored
-from the release's `[Unreleased]` (`author_store.py`, English) and passed to `--whats-new`. Auto —
-no PR — so betas stay smooth; it falls back to the build-metadata note when no API key is present.
-**Android does not** publish store copy at betas, so this is Apple-only; full translated store copy
-for both stores still comes from lane 2 at final.
+### 3. Beta TestFlight notes — `release-testflight-notes.yml` → `publish-nym-vpn-ios.yml`
+TestFlight is a **beta (public test)** asset, so its "what's new" is **human-reviewed before Beta 1**.
+When a release branch is cut, `release-testflight-notes.yml` drafts the Apple consumer note from the
+release's already-PR-reviewed `[Unreleased]` (`author_store.py`, English) and opens one
+`needs-proofread` PR writing `nym-vpn-apple/fastlane/TestFlight/whats-new.txt` — **never auto-merged**.
+A person proofreads + approves it; only then does `publish-nym-vpn-ios.yml` ship that **approved file**
+to testers (`--whats-new`). The LLM never runs in the publish path, and with no approved note present
+it falls back to the build-metadata stub (never an unreviewed AI note). **Android does not** publish
+store copy at betas, so this is Apple-only; full translated store copy for both stores still comes
+from lane 2 at final.
 
 ### Guard — `check-fastlane-metadata.yaml` → `check_fastlane_limits.py`
 One check for the **whole** store-metadata surface, not just changelogs: every length-limited
@@ -71,19 +75,19 @@ before it opens its PR. Replaces the old changelog-only, develop-only `check-cha
 
 1. **Cut** → branch created; `[Unreleased]` already holds the PR-authored entries.
 2. **Beta 1** (public) → ships the accumulated changelog (GitHub notes via the existing CI); the
-   TestFlight "what's new" is authored from `[Unreleased]` (lane 3).
-3. **Beta 2, 3, …** → new cherry-picked PRs bring their own entries; TestFlight notes re-author each
-   beta; nothing else to run.
+   TestFlight "what's new" is drafted at cut and **proofread + approved before Beta 1 is pushed** (lane 3).
+3. **Beta 2, 3, …** → new cherry-picked PRs bring their own entries; refresh/re-approve the TestFlight
+   note if it changed; nothing else to run.
 4. **Final** → `release-store-notes.yml` produces the translated store copy; human QA at PR approval.
    After the final stamp, the release-close gate rejects any PR still milestoned to it.
 
 ## Secrets
 
 `ANTHROPIC_API_KEY` (a **workspace-scoped** key needs no header; an org-scoped key also needs
-`ANTHROPIC_WORKSPACE_ID`) — used by lane 1, lane 2, and the beta TestFlight notes (lane 3) — and
-`DEEPL_AUTH_KEY` (lane 2). The iOS workflow receives `ANTHROPIC_API_KEY` via `secrets: inherit`;
-absent, TestFlight falls back to the build-metadata note. Apple App Store note *upload* (`deliver`)
-is Stage 2, still deferred.
+`ANTHROPIC_WORKSPACE_ID`) — used by lane 1, lane 2, and lane 3's *draft* step
+(`release-testflight-notes.yml`) — and `DEEPL_AUTH_KEY` (lane 2). The iOS **publish** workflow no
+longer calls the LLM: it reads the human-approved `whats-new.txt`, and with none present falls back
+to the build-metadata note. Apple App Store note *upload* (`deliver`) is Stage 2, still deferred.
 
 ## Run locally
 
