@@ -18,4 +18,13 @@ struct AppleIdSubscriptionGateLocalizationCatalogTests {
             #expect(value.components(separatedBy: "%@").count == 2)
         }
     }
+
+    /// iOS never offers the web checkout on the subscription page (WebPurchasePresentationPolicy), so the gate copy
+    /// must not promise it either.
+    @Test func bodyKeysDoNotSteerToTheWeb() throws {
+        for key in [AppleIdSubscriptionGateUI.bodyAutoRenewOnKey, AppleIdSubscriptionGateUI.bodyAutoRenewOffKey] {
+            let value = try NymVPNXCStringsReader.englishValue(for: key)
+            #expect(!value.localizedCaseInsensitiveContains("web"))
+        }
+    }
 }

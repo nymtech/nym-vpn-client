@@ -23169,7 +23169,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. It is cancelled and ends on %@. Log in to that account to use it until then, or come back after that date to subscribe with this account. You can also subscribe on the web with this account."
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. It is cancelled and ends on %@. Log in to that account to use it until then, or come back after that date to subscribe with this account."
           }
         }
       }
@@ -23180,7 +23180,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. Log in to that account to use it. To subscribe with this account instead, cancel it in Settings and come back after %@. You can also subscribe on the web with this account."
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. Log in to that account to use it. To subscribe with this account instead, cancel it in Settings and come back after %@."
           }
         }
       }

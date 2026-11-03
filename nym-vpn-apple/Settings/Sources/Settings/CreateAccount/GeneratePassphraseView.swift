@@ -114,8 +114,9 @@ public struct GeneratePassphraseView: View {
         .task(id: didRegisterAccount) {
             // Read once the account exists, so the verdict is about this account.
             guard didRegisterAccount else { return }
-            await purchasesManager.refreshTrialEligibility()
+            // Local StoreKit read first, so the gate never waits behind the Nym API round-trip below.
             await purchasesManager.refreshAppleIdSubscriptionGate(accountToken: credentialsManager.accountToken)
+            await purchasesManager.refreshTrialEligibility()
         }
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
         .onChange(of: isPresentedManageSubscription) { _, presented in
