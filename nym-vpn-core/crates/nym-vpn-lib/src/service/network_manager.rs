@@ -14,11 +14,7 @@ use nym_common::ErrorExt;
 use nym_vpn_lib_types::TunnelState;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
-use zbus::{
-    Connection,
-    proxy::CacheProperties,
-    zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value},
-};
+use zbus::{Connection, ObjectPath, OwnedObjectPath, OwnedVariant, Variant, proxy::CacheProperties};
 
 const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
 
@@ -171,22 +167,22 @@ async fn disable_gateway_route(connection: &Connection, profile: &VpnProfile) ->
         return Ok(());
     }
 
-    let mut settings = HashMap::<&str, HashMap<&str, Value<'_>>>::new();
+    let mut settings = HashMap::<&str, HashMap<&str, Variant<'_>>>::new();
     for (section, properties) in &profile.settings {
         let section = settings.entry(section.as_str()).or_default();
         for (key, value) in properties {
-            section.insert(key.as_str(), Value::from(value.try_clone()?));
+            section.insert(key.as_str(), Variant::from(value.try_clone()?));
         }
     }
     for section in ["ipv4", "ipv6"] {
         settings
             .entry(section)
             .or_default()
-            .insert("auto-route-ext-gw", Value::from(TERNARY_FALSE));
+            .insert("auto-route-ext-gw", Variant::from(TERNARY_FALSE));
     }
 
     SettingsConnectionProxy::builder(connection)
-        .path(&profile.path)?
+        .path(&profile.path)
         .cache_properties(CacheProperties::No)
         .build()
         .await?
@@ -209,7 +205,7 @@ struct VpnProfile {
 }
 
 /// Profile settings as `GetSettings` returns them: properties by section.
-type ProfileSettings = HashMap<String, HashMap<String, OwnedValue>>;
+type ProfileSettings = HashMap<String, HashMap<String, OwnedVariant>>;
 
 /// All saved profiles of the VPN `service_type`.
 async fn vpn_profiles(
@@ -224,7 +220,7 @@ async fn vpn_profiles(
     let mut profiles = Vec::new();
     for path in settings.list_connections().await? {
         let profile = SettingsConnectionProxy::builder(connection)
-            .path(&path)?
+            .path(&path)
             .cache_properties(CacheProperties::No)
             .build()
             .await?;
@@ -272,7 +268,7 @@ async fn has_active_profile(
         .await?
     {
         let active = ActiveConnectionProxy::builder(connection)
-            .path(&path)?
+            .path(&path)
             .cache_properties(CacheProperties::No)
             .build()
             .await?;
@@ -335,10 +331,10 @@ trait SettingsConnection {
 
     fn update2(
         &self,
-        settings: HashMap<&str, HashMap<&str, Value<'_>>>,
+        settings: HashMap<&str, HashMap<&str, Variant<'_>>>,
         flags: u32,
-        args: HashMap<&str, Value<'_>>,
-    ) -> zbus::Result<HashMap<String, OwnedValue>>;
+        args: HashMap<&str, Variant<'_>>,
+    ) -> zbus::Result<HashMap<String, OwnedVariant>>;
 }
 
 #[zbus::proxy(
