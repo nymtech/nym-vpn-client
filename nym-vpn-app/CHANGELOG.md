@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Home screen: hide the server quality bar until a gateway is selected (https://github.com/nymtech/nym-vpn-client/issues/6557)
-- [Linux] The install script now installs `NymVPN.AppImage` as root-owned instead of owned by the installing user. Existing installs can be fixed by running the install script again or with `sudo chown root:root /usr/bin/NymVPN.AppImage` (https://github.com/nymtech/nym-vpn-client/pull/6914)
 
 ## [2026.14.0] - 2026-10-21
 
