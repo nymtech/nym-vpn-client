@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stop the internal SOCKS5 mixnet client and its listener on `127.0.0.1:1081` when SOCKS5 is disabled, so the next enable starts a new mixnet client instead of reusing the first session's (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
+
+### Security
+
 - [Linux] The install script now installs `nym-vpnd` and `nym-socks5-proxy` as root-owned. Previously, raw installs (the default on distros other than Debian, Ubuntu and Mint) left them owned by the installing user, who could replace them and get code run as root. Existing raw installs stay affected until the install script is run again, or until fixed manually with `sudo chown root:root /usr/bin/nym-vpnd /usr/bin/nym-socks5-proxy /usr/bin/NymVPN.AppImage` (https://github.com/nymtech/nym-vpn-client/pull/6914)
 
 
