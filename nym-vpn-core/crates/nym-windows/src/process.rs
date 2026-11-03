@@ -217,6 +217,26 @@ impl ProcessCertVerifier {
     }
 }
 
+/// Errors returned by some functions in this module.
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    /// Error returned from `GetNamedPipeClientProcessIdFailed`
+    #[error("failed to get client PID")]
+    GetNamedPipeClientProcessId(#[source] windows::core::Error),
+
+    /// Certificate signature verification failure
+    #[error("failed to verify the certificate signatures {0:?}")]
+    Verification(verifysign::Error),
+
+    /// No serial number found in signature
+    #[error("no serial number found in signature")]
+    NoSerialNumber,
+
+    /// Serial number mismatch
+    #[error("serial number of certificate signature is not from Nym")]
+    SerialNumberMismatch,
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -249,24 +269,4 @@ mod tests {
             Error::Verification(verifysign::Error::Unsigned)
         ))
     }
-}
-
-/// Errors returned by some functions in this module.
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    /// Error returned from `GetNamedPipeClientProcessIdFailed`
-    #[error("failed to get client PID")]
-    GetNamedPipeClientProcessId(#[source] windows::core::Error),
-
-    /// Certificate signature verification failure
-    #[error("failed to verify the certificate signatures {0:?}")]
-    Verification(verifysign::Error),
-
-    /// No serial number found in signature
-    #[error("no serial number found in signature")]
-    NoSerialNumber,
-
-    /// Serial number mismatch
-    #[error("serial number of certificate signature is not from Nym")]
-    SerialNumberMismatch,
 }
