@@ -38,3 +38,62 @@ platform :android do
 	end
 end
 
+# --- Apple version bumps (global lanes) ---
+# These set MARKETING_VERSION / CURRENT_PROJECT_VERSION on the shared Apple
+# shipping targets (iOS app, extension, macOS daemon). They are not platform
+# specific, so they are global lanes rather than a platform block. Moved here
+# from nym-vpn-apple/fastlane when the Apple and Android fastlanes were combined
+# into this single repo-root fastlane. The project path is repo-root-relative
+# (fastlane runs from the fastlane-root = repo root), mirroring the Android
+# `project_dir: "nym-vpn-android/"` convention above.
+
+require 'xcodeproj' # ships with fastlane; required explicitly since this file is loaded in the Android context too
+
+APPLE_PROJECT_PATH = 'nym-vpn-apple/NymVPN.xcodeproj'
+APPLE_BUMP_TARGETS = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon", "NymVPND"]
+
+desc "Bump Apple marketing version (MARKETING_VERSION) on the shipping targets"
+lane :bump_version do
+	app_version = ARGV[2]
+
+	puts "App version to set: #{app_version}"
+
+	if app_version.nil? || app_version.strip.empty?
+		UI.user_error!("App version is missing. Please provide an app version, e.g., 'fastlane bump_version 1.3'")
+	end
+
+	project = Xcodeproj::Project.open(APPLE_PROJECT_PATH)
+
+	project.targets.each do |projectTarget|
+		if APPLE_BUMP_TARGETS.include?(projectTarget.name)
+			projectTarget.build_configurations.each do |configuration|
+				configuration.build_settings["MARKETING_VERSION"] = app_version
+			end
+		end
+	end
+
+	project.save
+end
+
+desc "Bump Apple build number (CURRENT_PROJECT_VERSION) on the shipping targets"
+lane :bump_build do |options|
+	# Optionally passed build number (string or int)
+	provided_build = options[:build].to_i if options[:build]
+
+	project = Xcodeproj::Project.open(APPLE_PROJECT_PATH)
+
+	project.targets.each do |projectTarget|
+		next unless APPLE_BUMP_TARGETS.include?(projectTarget.name)
+
+		projectTarget.build_configurations.each do |configuration|
+			current = configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i
+			new_build = provided_build && provided_build > 0 ? provided_build : (current + 1)
+
+			configuration.build_settings["CURRENT_PROJECT_VERSION"] = new_build.to_s
+			UI.message("✅ #{projectTarget.name}: #{current} → #{new_build}")
+		end
+	end
+
+	project.save
+end
+

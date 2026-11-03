@@ -278,8 +278,10 @@ jobs:
           grep -E "VERSION_NAME|VERSION_CODE" "$CONSTANTS"
 
       # --- apple (fastlane) ---
+      # Runs from the repo root: the fastlane config and Gemfile now live at the
+      # root (combined Android + Apple), and set_info_plist_value paths are
+      # repo-root-relative.
       - name: Update nym-vpn-apple via fastlane
-        working-directory: nym-vpn-apple
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"
           APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
@@ -287,9 +289,9 @@ jobs:
           LC_ALL: "C.utf8"
           LANG: "C.utf8"
         run: |
-          bundle exec fastlane mac bump_version "$APPLE_VERSION"
-          bundle exec fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
-          bundle exec fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
+          bundle exec fastlane bump_version "$APPLE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"nym-vpn-apple/NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"nym-vpn-apple/NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
 
       # --- Linux installer ---
       - name: Update Linux install script

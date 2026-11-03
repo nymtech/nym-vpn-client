@@ -339,7 +339,7 @@ jobs:
           TARGET=$((LATEST + 1))
 
           echo "🚜 Set build number: $TARGET (TestFlight latest: $LATEST)"
-          fastlane mac bump_build build:"$TARGET"
+          fastlane bump_build build:"$TARGET"
 
           # Export for downstream steps (build, Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
