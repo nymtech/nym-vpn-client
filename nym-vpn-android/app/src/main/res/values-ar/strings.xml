@@ -3,10 +3,10 @@
 	<string name="settings">إعدادات</string>
 	<string name="disconnecting">جاري فصل الاتصال</string>
 	<string name="connecting">جارٍ الاتصال</string>
-	<string name="five_hop_mixnet">مجهول (mixnet)</string>
+	<string name="five_hop_mixnet">Mixnet</string>
 	<string name="connect">اتصل</string>
 	<string name="disconnect">إلغاء الاتصال</string>
-	<string name="init_client">جارِ تهيئة العميل…</string>
+	<string name="init_client">Initializing client...</string>
 	<string name="establishing_connection">جارِ إنشاء الاتصال</string>
 	<string name="display_theme">سِمة العرض</string>
 	<string name="light_theme">سِّمة فاتحة</string>
@@ -32,6 +32,7 @@
 	<string name="okay">حسنًا</string>
 	<string name="two_hop">مسار بقفزتين</string>
 	<string name="country_load_failure">تعذّر تحميل الدول الخاصة بالقفزات</string>
+	<string name="server_list_update_failed">Couldn\'t update the server list. Showing saved servers.</string>
 	<string name="permission_required">الإذن مطلوب</string>
 	<string name="permission_message">للتأكد من أن التطبيق يعمل بشكل صحيح على جهازك، يرجى السماح بالأذويات</string>
 	<string name="notification_permission_required">الرجاء تمكين إذن الإشعار لوظيفة التطبيق الصحيح</string>
@@ -58,20 +59,20 @@
 	<string name="always_on_message">تواجه مشكلة؟ تأكّد من تعطيل وضع الـVPN الدائم للتطبيقات الأخرى في</string>
 	<string name="vpn_settings">إعدادات نظام VPN</string>
 	<string name="try_again">ثم حاول إعادة الاتصال</string>
-	<string name="network_error">حدثت مشكلة في اتصال الشبكة. يُرجى التحقق من اتصالك بالشبكة والمحاولة مرة أخرى.</string>
+	<string name="network_error">تعذر الوصول إلى الخادم. تحقق من اتصالك وحاول مرة أخرى.</string>
 	<string name="vpn_alerts_channel_id">قناة تنبيهات NymVPN</string>
 	<string name="vpn_alerts_channel_description">قناة مخصّصة للتنبيهات المرتبطة بالتطبيق.</string>
 	<string name="connection_failed">فشل الاتصال</string>
 	<string name="vpn_permission_missing">لم يتم قبول إذن الـVPN أو أنه قيد الاستخدام من قِبل تطبيق آخر.</string>
 	<string name="action_requires_tunnel_down">الإجراء يتطلّب إيقاف النفق</string>
 	<string name="device_added_success">تمت إضافة الجهاز الى حسابك بنجاح</string>
-	<string name="invalid_recovery_phrase">عبارة مرور الاسترداد غير صالحة</string>
+	<string name="invalid_recovery_phrase">عبارة مرور الاسترداد هذه غير صالحة. تحقق من الكلمات الـ 24 وحاول مرة أخرى.</string>
 	<string name="log_out">تسجيل الخروج</string>
 	<string name="account">حساب</string>
 	<string name="mnemonic_example">مثال: smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">ديناميكية</string>
 	<string name="system_wallpaper">خلفية النظام (السمة)</string>
-	<string name="initializing">يتم الآن التهيئة</string>
+	<string name="initializing">Starting NymVPN</string>
 	<string name="stop">توقف</string>
 	<string name="app_restart_required">مطلوب إعادة تشغيل التطبيق</string>
 	<string name="max_devices_reached_title">لقد بلغت الحد الأقصى لعدد الأجهزة المسموح بها لحسابك</string>
@@ -82,22 +83,25 @@
 	<string name="loading">جاري التحميل</string>
 	<string name="offline">لا يوجد إنترنت</string>
 	<string name="two_hop_explanation">تصفّح عالي السرعة (250+ ميجابت/ثانية) مع توجيه عبر قفزتين. يستخدم AmneziaWG، وهو إصدار مقاوم للرقابة من WireGuard، ومثالي للبث والتصفّح السريع والتنزيلات.</string>
-	<string name="two_hop_title">الوضع السريع (WireGuard)</string>
+	<string name="two_hop_title">dVPN</string>
 	<string name="disabled_while_connecting">مُعطَّل أثناء الاتصال بشبكة VPN</string>
 	<string name="exit_location">الخروج من الخادم</string>
 	<string name="entry_location">خادم الإدخال</string>
 	<string name="no_results_found">لم يتم العثور على نتائج.</string>
-	<string name="how_to_run_gateway">كيفية تشغيل خادم. </string>
+	<string name="how_to_run_gateway">كيفية تشغيل خادم</string>
 	<string name="or_learn">أو تعرّف</string>
 	<string name="contact_for_help">تواصل معنا للمساعدة</string>
 	<string name="try_another_server_name">جرّب موقعًا آخر أو تحقق من اسم الخادم.</string>
 	<string name="servers">الخوادم</string>
 	<string name="local_logs">السجلات (مخزّنة محليًا)</string>
-	<string name="logging_out">جارٍ تسجيل الخروج..</string>
+	<string name="logging_out">تسجيل الخروج</string>
 	<string name="app_update_required">لم يعد تطبيقك مدعومًا. يرجى التحديث إلى أحدث إصدار لمواصلة
         استخدام NymVPN.
     </string>
 	<string name="update_required">التحديث مطلوب!</string>
+	<string name="app_update_available_title">التحديث متاح</string>
+	<string name="app_update_available_body">يتوفر إصدار أحدث من NymVPN. يمكنك الاستمرار في استخدام هذا الإصدار، أو التحديث الآن.</string>
+	<string name="app_update_not_now">ليس الآن</string>
 	<string name="update">تحديث</string>
 	<string name="log_out_title">هل تريد تسجيل الخروج من هذا الجهاز؟</string>
 	<string name="log_out_body">يؤدي هذا إلى قطع اتصال VPN وإزالة حسابك من هذا الجهاز. وبدون عبارة المرور الخاصة بك، لن تتمكن من تسجيل الدخول مرة أخرى.</string>
@@ -109,7 +113,7 @@
 	<string name="collapse">طيّ</string>
 	<string name="expand">توسيع</string>
 	<string name="country_flag">علم %1$s</string>
-	<string name="anonymous">إخفاء الهوية</string>
+	<string name="anonymous">Mixnet</string>
 	<string name="back">رجوع</string>
 	<string name="rotate">تدوير</string>
 	<string name="refresh">تحديث</string>
@@ -137,35 +141,36 @@
 	<!-- Status pill -->
 	<string name="pill_error">خطأ</string>
 	<!-- Error State -->
-	<string name="error_same_entry_exit">لا يمكن الاتصال باستخدام نفس خادم الدخول والخروج. غيّر خادم الدخول أو الخروج وأعد الاتصال.</string>
+	<string name="error_same_entry_exit">لا يمكن أن يكون الخادم نفسه نقطة الدخول والخروج. اختر نقطة دخول أو خروج مختلفة، ثم أعد الاتصال.</string>
 	<string name="unexpected_error">حدث خطأ غير متوقع:</string>
-	<string name="error_invalid_entry_gateway_country">بلد غير صالح لخادم الدخول. اختر بلدًا آخر وأعد الاتصال.</string>
-	<string name="error_invalid_exit_gateway_country">بلد غير صالح لخادم الخروج. اختر بلدًا آخر وأعد الاتصال.</string>
-	<string name="bandwidth_error">تم الوصول إلى الحد اليومي للبيانات. اتصل بالدعم للحصول على زيادة سريعة في البيانات.</string>
-	<string name="error_credential_fetching_failed">تعذر الحصول على بيانات الاعتماد اللازمة للاتصال. يرجى المحاولة مرة أخرى.</string>
-	<string name="error_no_credential_available">لا توجد بيانات اعتماد متاحة للاتصال. يرجى المحاولة مرة أخرى.</string>
-	<string name="max_devices_error">تم تجاوز الحد الأقصى لعدد أجهزة الحساب. يرجى إزالة جهاز من حسابك قبل الاتصال.</string>
-	<string name="error_ipv6_unavailable">IPv6 غير متاح</string>
-	<string name="error_device_logged_out">الجهاز مسجَّل خروجه.</string>
-	<string name="error_inactive_account">حالة الحساب ليست \"نشطة\".</string>
+	<string name="error_invalid_entry_gateway_country">لا توجد خوادم متاحة في هذا الموقع. اختر موقعًا آخر، ثم أعد الاتصال.</string>
+	<string name="error_invalid_exit_gateway_country">لا توجد خوادم خروج متاحة في هذا الموقع. اختر موقعًا آخر، ثم أعد الاتصال.</string>
+	<string name="bandwidth_error">لقد وصلت إلى الحد المسموح به لليوم. حاول مرة أخرى لاحقًا.</string>
+	<string name="error_credential_fetching_failed">تعذر الحصول على بيانات اعتماد الاتصال. حاول مرة أخرى بعد قليل. إذا استمرت المشكلة، أعد تشغيل التطبيق أو اتصل بالدعم الفني.</string>
+	<string name="error_no_credential_available">لا توجد بيانات اعتماد اتصال متاحة. أعد تشغيل NymVPN وحاول مرة أخرى. إذا استمرت المشكلة، فاتصل بالدعم الفني.</string>
+	<string name="max_devices_error">لقد وصلت إلى الحد الأقصى لعدد الأجهزة. قم بإزالة جهاز من nym.com أو قم بتسجيل الخروج من أي مكان آخر، ثم أعد الاتصال.</string>
+	<string name="error_ipv6_unavailable">IPv6 معطل على هذا النظام، لكن NymVPN مضبوط على استخدامه. قم بإيقاف تشغيل IPv6 في إعدادات NymVPN، ثم أعد الاتصال.</string>
+	<string name="error_device_logged_out">تم تسجيل الخروج من هذا الجهاز. قم بتسجيل الدخول مرة أخرى لإعادة الاتصال.</string>
+	<string name="error_inactive_account">حسابك غير نشط. افتح «الحساب» وقم بالتحديث، أو اتصل بالدعم الفني.</string>
 	<string name="error_inactive_account_subtitle">اضغط على «ابدأ»</string>
-	<string name="error_set_dns">فشل ضبط إعدادات DNS.</string>
-	<string name="error_set_firewall_policy">فشل ضبط سياسة جدار الحماية.</string>
-	<string name="error_set_routing">فشل ضبط التوجيه.</string>
-	<string name="error_tun_device">فشل ضبط جهاز النفق.</string>
-	<string name="error_tunnel_provider">فشل ضبط مزوّد نفق الحزم.</string>
-	<string name="error_active_plan">ليس لديك خطة نشطة. اضغط على \"البدء\" لبدء التصفح بإخفاء الهوية.</string>
-	<string name="error_bandwidth_entry">خادم الدخول لا يستجيب أو يستجيب بشكل سيئ لزيادة النطاق الترددي.</string>
-	<string name="error_bandwidth_exit">خادم الخروج لا يستجيب أو يستجيب بشكل سيئ لزيادة النطاق الترددي.</string>
-	<string name="error_gateway_unavailable_entry">تعذّر الوصول إلى خادم الدخول. جرّب آخر!</string>
-	<string name="error_gateway_unavailable_exit">تعذّر الوصول إلى خادم الخروج. جرّب آخر!</string>
-	<string name="error_invalid_entry_gateway_identity">خادم الدخول غير متصل. اختر آخر وأعد الاتصال.</string>
-	<string name="error_invalid_exit_gateway_identity">خادم الخروج غير متصل. اختر آخر وأعد الاتصال.</string>
+	<string name="error_set_dns">تعذر تطبيق إعدادات DNS. أعد الاتصال. إذا استمرت المشكلة، فقم بتشغيل التشخيص في «الإعدادات» أو اتصل بالدعم الفني.</string>
+	<string name="error_set_firewall_policy">تعذر إعداد قواعد جدار الحماية لـ NymVPN. أعد الاتصال. إذا استمرت المشكلة، أغلق تطبيقات VPN /firewall الأخرى أو اتصل بالدعم الفني.</string>
+	<string name="error_set_routing">تعذر إعداد توجيه الشبكة. أعد الاتصال. إذا استمرت المشكلة، أغلق تطبيقات VPN الأخرى أو اتصل بالدعم الفني.</string>
+	<string name="error_tun_device">تعذر إعداد واجهة شبكة VPN. أعد الاتصال. إذا استمرت المشكلة، أعد تشغيل التطبيق أو جهازك، أو اتصل بالدعم الفني.</string>
+	<string name="error_tunnel_provider">تعذر تشغيل VPN على هذا الجهاز. أعد الاتصال، واسمح باتصال VPN إذا طُلب منك ذلك. إذا استمرت المشكلة، فاتصل بالدعم الفني.</string>
+	<string name="error_active_plan">ليس لديك اشتراك نشط. احصل على خطة أو جددها، ثم قم بتحديث حسابك وأعد الاتصال.</string>
+	<string name="error_bandwidth_entry">لم يكمل خادم الدخول اتصالك. حاول مرة أخرى، أو قم بتشغيل QUIC في إعدادات مكافحة الرقابة.</string>
+	<string name="error_bandwidth_exit">لم يكمل خادم الخروج اتصالك. اختر موقع خروج مختلف وحاول مرة أخرى.</string>
+	<string name="error_gateway_unavailable_entry">لا يوجد خادم متاح للاختيار. اختر موقعًا آخر، أو حاول مرة أخرى بعد بضع دقائق.</string>
+	<string name="error_gateway_unavailable_exit">لا يوجد خادم خروج متاح للاختيار. اختر موقعًا مختلفًا، أو حاول مرة أخرى بعد بضع دقائق.</string>
+	<string name="error_invalid_entry_gateway_identity">خادم الدخول الذي اخترته غير متاح. اختر خادم دخول آخر، ثم أعد الاتصال.</string>
+	<string name="error_invalid_exit_gateway_identity">خادم الخروج الذي اخترته غير متاح مع إعداداتك الحالية. اختر خادم خروج أو دخول مختلفًا، ثم أعد الاتصال.</string>
 	<string name="error_needs_device_location">التوجيه التلقائي غير متاح في الوقت الحالي. حاول مرة أخرى لاحقًا أو اختر الخوادم الخاصة بك.</string>
-	<string name="error_connection_attempts_exceeded">تعذر إنشاء الاتصال بعد عدة محاولات. يرجى المحاولة مرة أخرى.</string>
+	<string name="error_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
 	<string name="error_expired_subscription_title">انتهت صلاحية اشتراكك</string>
 	<string name="error_expired_subscription_description">تم رفض طريقة الدفع المتكررة</string>
-	<string name="error_expired_subscription_button">جدّد الآن</string>
+	<string name="error_expired_subscription_button">تجديد الآن</string>
+	<string name="renewal_reminder_description">Renew now to stay protected without interruption.</string>
 	<string name="error_no_subscription_title">لا يوجد اشتراك نشط</string>
 	<string name="error_no_subscription_description">اختر خطة لتبدأ في استخدام NymVPN</string>
 	<string name="error_no_subscription_button">اختر الباقة</string>
@@ -186,8 +191,10 @@
 	<string name="one_click_nym_entry_node">خادم الإدخال</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">غير محمي</string>
-	<string name="connection_status_fast_mode">حماية الوضع السريع</string>
+	<string name="connection_status_fast_mode">dVPN protection</string>
 	<string name="connection_status_anonymous">حماية Mixnet</string>
+	<string name="connection_status_bridge">Connected via %1$s bridge</string>
+	<string name="connection_status_direct">Connected directly</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">تلقائي</string>
 	<string name="gateway_random">خادم عشوائي</string>
@@ -220,15 +227,15 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">مرحباً!</string>
 	<string name="auth_welcome_description">نحو شبكة VPN الأكثر خصوصية في العالم</string>
-	<string name="auth_welcome_login_button">تسجيل الدخول إلى حسابي</string>
+	<string name="auth_welcome_login_button">Log in to my account</string>
 	<string name="auth_sign_up_title">تسجيل الدخول</string>
 	<string name="auth_sign_up_account_button">حساب مجهول</string>
 	<string name="auth_sign_up_social_button">سجّل الدخول عبر الحسابات الاجتماعية *</string>
-	<string name="auth_sign_up_info">* التسجيل بحساب اجتماعي موجود \nيقلّل من إخفاء هويتك.</string>
+	<string name="auth_sign_up_info">*May not be anonymous.</string>
 	<string name="auth_log_in_title">تسجيل الدخول</string>
 	<string name="auth_log_in_passphrase_button">سجّل الدخول بـ24 كلمة</string>
 	<string name="auth_log_in_social_button">سجّل الدخول عبر الحسابات الاجتماعية *</string>
-	<string name="auth_log_in_info">* يجب عليك ربط حساباتك الاجتماعية بحساب موجود \nأولًا قبل أن تتمكن من استخدامها لتسجيل الدخول. </string>
+	<string name="auth_log_in_info">*Account must be connected before NymVPN login.</string>
 	<string name="auth_passphrase_login_button">تسجيل الدخول</string>
 	<string name="auth_passphrase_input_placeholder">عبارة مرور مكوّنة من 24 كلمة</string>
 	<!-- Settings Screen -->
@@ -247,7 +254,7 @@
 	<string name="settings_ad_blocking_title">أشرطة الإعلانات</string>
 	<string name="settings_kill_switch_title">مفتاح الإيقاف الفوري</string>
 	<string name="settings_kill_switch_description">يستخدم ميزة **Always-on VPN** في نظام أندرويد لمنع تسرب البيانات</string>
-	<string name="settings_bypass_lan_title">LAN bypass</string>
+	<string name="settings_bypass_lan_title">Bypass LAN</string>
 	<string name="settings_bypass_lan_description">السماح بالوصول المباشر إلى الشبكة المحلية</string>
 	<string name="settings_split_tunneling_title">تقسيم النفق</string>
 	<string name="settings_startup_title">التشغيل عند بدء التشغيل</string>
@@ -256,7 +263,7 @@
 	<string name="settings_shortcuts_title">اختصارات التطبيق</string>
 	<string name="settings_logs_title">السجلّات &amp; والبيانات</string>
 	<string name="settings_legal_title">قانوني</string>
-	<string name="settings_geo_exclusion_title">الاستبعاد الجغرافي</string>
+	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">تتصل نطاقات IP محددة مباشرةً</string>
 	<string name="settings_profiles_title">ملفات تعريف الاتصال</string>
 	<string name="settings_profiles_description">دعنا نساعدك على الاتصال</string>
@@ -264,7 +271,7 @@
 	<string name="shortcut_title">تأكيد الإجراء</string>
 	<string name="shortcut_subtitle_stop">افتح القفل لقطع اتصال VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">افتح القفل لبدء تشغيل Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">افتح القفل لبدء تشغيل الوضع السريع</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start dVPN</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">لأفضل اتصال</string>
 	<string name="battery_opt_descr">عطّل تحسينات البطارية الخاصة بـNymVPN للحصول على اتصال VPN أكثر استقرارًا.</string>
@@ -272,11 +279,11 @@
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">البيانات والخصوصية &amp; والسجلّات</string>
 	<string name="privacy_anonymous_stats_title">إحصائيات الشبكة المجهولة</string>
-	<string name="privacy_anonymous_stats_description">ساعدنا في بناء شبكة أسرع من خلال مشاركة بيانات أداء مجهولة من منطقتك. نستخدم هذه البيانات لتحسين السرعات، وتقليل الانقطاعات، وتوجيه تغطية الخوادم إلى حيث تشتد الحاجة إليها. \n\nتُشارَك بيانات أداء الشبكة فقط – ولا تُشارَك أبدًا نشاطات التصفح أو بياناتك الشخصية.</string>
+	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
 	<string name="privacy_anonymous_stats_link_text">تعلم بالضبط ما هو مشترك</string>
 	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
 	<string name="privacy_error_reports_title">تقارير الأخطاء &amp; والأعطال</string>
-	<string name="privacy_error_reports_description">إرسال معلومات الأعطال لمساعدتنا على إصلاح الأخطاء أسرع. التقارير تمر عبر نظام Sentry\'s الآمن وتشمل بيانات تصحيح الأخطاء التقنية فقط.</string>
+	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
 	<string name="privacy_error_reports_link_text">عرض سياسة خصوصية الحراسة</string>
 	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">ستُطبَّق التغييرات بعد إعادة تشغيل التطبيق.</string>
@@ -291,7 +298,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">المتابعة</string>
 	<string name="welcome_title">ساعدنا على تحسين NymVPN</string>
-	<string name="welcome_description">اختر البيانات المجهولة التي تريد مشاركتها. \nيتم حذف جميع المعلومات التي تسمح بتحديد الهوية من البيانات قبل إرسالها.</string>
+	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
 	<string name="welcome_error_reports_title">مشاركة تقارير الأخطاء</string>
 	<string name="welcome_error_reports_description_start">يساعدنا على إصلاح الأخطاء بشكل أسرع، لا توجد بيانات شخصية تم جمعها (من خلال </string>
 	<string name="welcome_error_reports_link_text">الحراسة</string>
@@ -303,7 +310,7 @@
 	<string name="onboarding_welcome_description">وصولك الخاص إلى \nan **الإنترنت بلا حدود.**</string>
 	<string name="onboarding_modes_title_dvpn">شبكة dVPN الخاصة بك</string>
 	<string name="onboarding_modes_description_dvpn">الخصوصية لجميع أنشطتك على الويب \nشبكة **لامركزية** ذات خطوتين \n**AmneziaWG**، نسخة معدلة من WireGuard</string>
-	<string name="onboarding_modes_title_mixnet">شبكة mixnet الخاصة بك</string>
+	<string name="onboarding_modes_title_mixnet">Your Mixnet</string>
 	<string name="onboarding_modes_description_mixnet">الطريقة **الأكثر إخفاءً للهوية** للاتصال بالإنترنت \nشبكة **mixnet** ذات 5 قفزات مع **ضوضاء** \nقم بتخصيص أنماط حركة المرور الخاصة بك.</string>
 	<string name="onboarding_modes_tagline_dvpn">لا يمكن الوشاية - لن نوشي بتصميم الشبكة.</string>
 	<string name="onboarding_modes_tagline_mixnet">حماية بصمات البيانات الوصفية.</string>
@@ -320,12 +327,30 @@
 	<string name="onboarding_plan_one_month">1 شهر</string>
 	<string name="onboarding_plan_try_suffix">، بدون التزام.</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">اختر مستوى الحماية \nالخاص بك 🛡️</string>
+	<string name="select_plan_title">Choose your plan</string>
 	<string name="select_plan_line_1">جميع الميزات متضمنة</string>
 	<string name="select_plan_line_2">لا توجد إعلانات</string>
 	<string name="select_plan_line_3">إلغاء في أي وقت</string>
-	<string name="select_plan_button">اختر خطة NymVPN الخاصة بي</string>
+	<string name="select_plan_button">اختر خطتك في NymVPN</string>
+	<string name="select_plan_billing_unavailable">Google Play billing is unavailable. Make sure you are signed in to the Play Store and try again.</string>
+	<string name="account_info_manage_play_unavailable">This subscription wasn\'t purchased through Google Play. Manage it where you bought it.</string>
 	<string name="select_plan_modal_title">اختر خطة NymVPN الخاصة بك</string>
+	<plurals name="select_plan_free_trial_days">
+		<item quantity="zero">%1$d يوم تجربة مجانية</item>
+		<item quantity="one">%1$d يوم تجربة مجانية</item>
+		<item quantity="two">%1$d يوم تجربة مجانية</item>
+		<item quantity="few">%1$d يوم تجربة مجانية</item>
+		<item quantity="many">%1$d يوم تجربة مجانية</item>
+		<item quantity="other">%1$d يوم تجربة مجانية</item>
+	</plurals>
+	<plurals name="select_plan_modal_free_trial_days">
+		<item quantity="zero">تبدأ اليوم الفترة التجريبية المجانية التي تستمر %1$d يومًا</item>
+		<item quantity="one">تبدأ اليوم الفترة التجريبية المجانية التي تستمر %1$d يومًا</item>
+		<item quantity="two">تبدأ اليوم الفترة التجريبية المجانية التي تستمر %1$d يومًا</item>
+		<item quantity="few">تبدأ اليوم الفترة التجريبية المجانية التي تستمر %1$d يومًا</item>
+		<item quantity="many">تبدأ اليوم الفترة التجريبية المجانية التي تستمر %1$d يومًا</item>
+		<item quantity="other">تبدأ اليوم الفترة التجريبية المجانية التي تستمر %1$d يومًا</item>
+	</plurals>
 	<!-- Server Details screen -->
 	<string name="details_title">تفاصيل الخادم</string>
 	<string name="details_features_title">ميزات العقدة</string>
@@ -336,8 +361,8 @@
 	<string name="details_advanced_privacy">الخصوصية المتقدمة</string>
 	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">البث المباشر وIP</string>
-	<string name="details_residental_ip">عنوان IP للسكن</string>
-	<string name="details_datacenter_ip">عنوان IP لمركز البيانات</string>
+	<string name="details_residental_ip">السكن</string>
+	<string name="details_datacenter_ip">مركز البيانات</string>
 	<string name="details_post_quantum_secure_keys">مفاتيح تأمين ما بعد الكم</string>
 	<string name="details_lewes_protocol">Lewes protocol</string>
 	<string name="details_standard_key_exchange">تبادل المفاتيح القياسي</string>
@@ -367,13 +392,21 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">ميزات متقدمة لتحسين الاتصال في الشبكات التقييدية أو عند تجربة حظر NymVPN.</string>
-	<string name="censorship_learn_more_link_text">اعرف المزيد</string>
-	<string name="censorship_quic_title">تحسين الاتصال (QUIC)</string>
+	<string name="censorship_learn_more_link_text">Learn more</string>
+	<string name="censorship_quic_title">Enhanced connection</string>
+	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_bridge_off_title">إيقاف</string>
+	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_auto_title">تلقائي</string>
+	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_on_title">تشغيل</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
+	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">توصيل API الثري</string>
 	<string name="censorship_stealth_description">يحمي من حظر VPN باستخدام نطاقات التغطية. تبديل للاستخدام دائما، أو إيقاف الاستخدام عند فشل الاتصالات العادية.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
 	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
 	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
@@ -385,13 +418,13 @@
 	<string name="account_subscription_description">وجدنا اشتراك نشط مرتبط بحساب Google Play الخاص بك. تخطي التسجيل والقفز مباشرة إلى استخدام NymVPN. فقط جهز عبارة المرور 24 كلمة.</string>
 	<string name="account_subscription_button">تسجيل الدخول باستخدام كلمة مرور Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">توليد أزواج مفاتيح التشفير…</string>
-	<string name="account_generating_title_2">إنشاء هويتك المجهولة…</string>
-	<string name="account_generating_title_3">تأمين بيانات الاعتماد الخاصة بك محليا…</string>
+	<string name="account_generating_title_1">توليد أزواج مفاتيح التشفير...</string>
+	<string name="account_generating_title_2">إنشاء هويتك المجهولة...</string>
+	<string name="account_generating_title_3">تأمين بيانات الاعتماد الخاصة بك محلياً...</string>
 	<string name="account_generating_description_1">إنشاء مفاتيح لا تترك جهازك أبداً</string>
 	<string name="account_generating_description_2">إنشاء بيانات اعتماد الشبكة المجهولة</string>
-	<string name="account_generating_description_3">تشفير بيانات الاعتماد باستخدام مفتاح جهازك؛ فقط يمكنك فتحها</string>
-	<string name="account_generating_error">فشل في تسجيل الحساب. الرجاء المحاولة مرة أخرى لاحقاً</string>
+	<string name="account_generating_description_3">تشفير بيانات الاعتماد باستخدام مفتاح جهازك. فقط يمكنك فتحها</string>
+	<string name="account_generating_error">تعذر إتمام إعداد حسابك. حاول مرة أخرى. إذا استمرت المشكلة، فاتصل بالدعم الفني.</string>
 	<string name="account_generating_deeplink_title">جاري تسجيل الدخول...</string>
 	<string name="account_generating_deeplink_description">الرجاء الانتظار بينما نقوم بالتحقق من حسابك</string>
 	<string name="account_login_processing_setting_up">جارٍ إعداد حسابك الخاص بإخفاء الهوية</string>
@@ -420,19 +453,21 @@
 	<string name="screen_lock_setup_button">تعيين قفل الشاشة</string>
 	<string name="screen_lock_setup_not_now">ليس الآن</string>
 	<string name="device_auth_error">تعذر التأكد من هويتك. حاول مرة أخرى.</string>
+	<string name="device_auth_use_screen_lock">استخدام قفل الشاشة</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">كلمة مرور حسابك</string>
-	<string name="passphrase_description">🔒عبارة مرور حسابك الرئيسي: 24 كلمة تسمح لك بالوصول إلى حسابك من أي جهاز.</string>
-	<string name="passphrase_description_first">🔒كلمة مرور حسابك الرئيسية:</string>
+	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Your account passphrase:</string>
 	<string name="passphrase_description_last">24 كلمة تسمح لك بالوصول إلى حسابك من أي جهاز.</string>
 	<string name="passphrase_show">إظهار كلمة المرور الخاصة بي</string>
+	<string name="passphrase_hide">إخفاء عبارة المرور الخاصة بي</string>
 	<string name="passphrase_copy">نسخ عبارة المرور</string>
 	<string name="passphrase_save">حفظ إلى مدير كلمة المرور</string>
 	<string name="passphrase_lose">⚠️ خسر هذه الكلمات = خسر حسابك للأبد.</string>
 	<string name="passphrase_never">لا تشاركهم أبدا مع أي شخص، بما في ذلك دعم نيم.</string>
 	<string name="passphrase_saved">لقد حفظت هذه الكلمات الـ 24 بشكل آمن ولن أشاركها أبدا</string>
 	<string name="passphrase_info_title">ما هي عبارة المرور</string>
-	<string name="passphrase_info_description">إنها مجموعة فريدة من 24 كلمة، تم إنشاؤها على جهازك، تعمل كتسجيل دخول آمن. فقط لديك حق الوصول إليها - لا يوجد نسخ احتياطي، أو إعادة تعيين، أو الاستعادة.\n\n ⚠️ حافظ على سلامة: عبارة المرور هذه هي الطريقة الوحيدة للوصول إلى حسابك.</string>
+	<string name="passphrase_info_description">It\'s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it – there\'s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
 	<string name="passphrase_info_privacy_removed">من أجل خصوصيتك، قمنا بإزالتها:</string>
 	<string name="passphrase_info_stored_accounts">الحسابات المخزنة مركزيا</string>
 	<string name="passphrase_info_personal_logins">تسجيلات الدخول المستندة إلى البيانات الشخصية</string>
@@ -455,11 +490,11 @@
 	<string name="account_info_bandwidth_title">الحصة اليومية</string>
 	<string name="account_info_limit_text">الحد</string>
 	<string name="account_info_reset_text">تتم إعادة الضبط يوميًا في</string>
-	<string name="account_info_data_unavailable">بيانات الاستخدام غير متوفرة</string>
+	<string name="account_info_data_unavailable">بيانات الاستخدام غير متوفرة مؤقتًا</string>
 	<string name="account_info_valid_text">خطة صالحة حتى %s</string>
 	<string name="account_info_expires_text">الخطة تنتهي في %s</string>
 	<string name="account_info_renew_text">التجديد الآن للبقاء محمي</string>
-	<string name="account_info_auto_renew_text">* التجديدات التلقائية</string>
+	<string name="account_info_auto_renew_text">التجديدات التلقائية</string>
 	<string name="account_info_no_plan">لا يوجد اشتراك نشط</string>
 	<string name="account_info_contact_support_action">تواصل مع دعم العملاء</string>
 	<string name="account_info_contact_support_suffix"> إذا وصلت إلى الحد الأقصى.</string>
@@ -469,6 +504,7 @@
 	<string name="account_info_add_social_action">إضافة تسجيل دخول اجتماعي</string>
 	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
 	<string name="account_info_backup">طريقة تسجيل الدخول للنسخ الاحتياطي المرتبطة عبر Privy.</string>
+	<string name="account_info_delete_button">Delete account</string>
 	<string name="pin_code_title">رمز Pin</string>
 	<string name="pin_code_subtitle">أدخل هذا الرمز على الويب</string>
 	<string name="pin_code_copy_and_open">نسخ التعليمات البرمجية وفتح الويب</string>
@@ -477,7 +513,7 @@
 	<!-- Logs screen -->
 	<string name="logs_enable_title">تمكين تسجيل الدخول</string>
 	<string name="logs_enable_description">تشغيل لاستكشاف الأخطاء وإصلاحها. تعطيل للخصوصية. السجلات تبقى على جهازك. لا يوجد أي شيء لديه حق الوصول أبدا.</string>
-	<string name="logs_debug_enable_title">تمكين التسجيل المفصّل</string>
+	<string name="logs_debug_enable_title">تمكين تسجيل التصحيح</string>
 	<string name="logs_debug_enable_description">تشغيل سجلات DEBUG المفصلة لتصحيح الأخطاء الذاتية أو الدعم. زيادة استهلاك البطارية. قد يكبر حجم السجل حتى 10x.</string>
 	<string name="logs_tab_app">التطبيق</string>
 	<string name="logs_tab_tunnel">نفق</string>
@@ -551,7 +587,7 @@
 	<string name="mixnet_tuning_traffic_off_high">عالي\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">متوازن\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ تم إيقاف حماية التوقيت حاليا. هذا يمكن أن يعرض خصوصيتك للخطر.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off and could affect your privacy.</string>
 	<string name="mixnet_tuning_delays_title">مزج الحزم</string>
 	<string name="mixnet_tuning_delays_description">ضبط تأخير التوقيت لتغيير مدى خلط الحزم الخاصة بك.</string>
 	<string name="mixnet_tuning_delays_low">منخفض\n0 مللي ثانية</string>
@@ -585,13 +621,13 @@
 	<!-- Node Families -->
 	<string name="node_families_title">الخوادم المحددة تنتمي إلى نفس عائلة المشغل!</string>
 	<string name="node_families_description_text">تعطيل التذكيرات في </string>
-	<string name="node_families_description_link">إعدادات الإشعارات.</string>
+	<string name="node_families_description_link">إعدادات الإشعارات</string>
 	<string name="node_families_connect_button">الاتصال على أي حال</string>
-	<string name="node_families_error_message">تشترك الخوادم المحددة في نفس العائلة. اختر زوجًا مختلفًا أو تابع الاتصال على أي حال.</string>
+	<string name="node_families_error_message">خوادم الدخول والخروج هذه ليست مستقلة تمامًا. اختر خوادم مختلفة، أو اتصل على أي حال.</string>
 	<!-- Geo Exclusion -->
-	<string name="geo_exclusion_enable_title">تمكين الاستبعاد الجغرافي</string>
+	<string name="geo_exclusion_enable_title">Enable Geo-exclusion</string>
 	<string name="geo_exclusion_description">يوجه حركة المرور الخاصة بالمناطق المحددة خارج نفق الشبكة الافتراضية الخاصة (VPN)، بحيث تعمل التطبيقات المحلية بأقصى سرعة. ويظل كل شيء آخر محميًا.</string>
-	<string name="geo_exclusion_beta_text">الإصدار التجريبي: متاح في الصين فقط في الوقت الحالي. سيتم توفيره في مناطق أخرى قريبًا.</string>
+	<string name="geo_exclusion_beta_text">China only. More regions coming.</string>
 	<string name="geo_exclusion_traffic_bypass_text">تتجاوز حركة المرور المتجهة إلى المناطق المستبعدة شبكة VPN.</string>
 	<string name="geo_exclusion_server_title">الخادم</string>
 	<string name="geo_exclusion_sock55_title">منفذ SOCKS5</string>
@@ -612,7 +648,7 @@
 	<string name="setup_instructions_step_socks_host">مضيف SOCKS</string>
 	<string name="setup_instructions_step_socks_port">، المنفذ</string>
 	<string name="setup_instructions_step_socks_suffix">، حدد SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">حدد خيار «Proxy DNS» عند استخدام SOCKS v5 (لمنع تسرب DNS).</string>
+	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
 	<string name="setup_instructions_description">على Firefox أو المتصفحات التي تسمح بتكوينات SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">رمز التطبيق</string>
@@ -636,4 +672,47 @@
 	<string name="profiles_description">الملفات الشخصية هي قوالب اتصال يمكنك استخدامها للاتصال بسرعة باستخدام أفضل نوع من تكوين الخادم بالنسبة لك.</string>
 	<string name="profiles_learn_more_text">تعرف على المزيد حول ملفات التعريف هنا</string>
 	<string name="profiles_learn_more_link">https://nym.com/features/profiles</string>
+	<string name="node_location_excluding_country">Excluding your country</string>
+	<string name="node_location_including_country">Including your country</string>
+	<string name="node_location_random">Global Nym network</string>
+	<!-- Delete Account -->
+	<string name="delete_account_title">Delete your account</string>
+	<string name="delete_account_headline">This closes your NymVPN account. You can\'t undo it.</string>
+	<string name="delete_account_deleted_title">Deleted from this phone</string>
+	<string name="delete_account_deleted_1">Your passphrase</string>
+	<string name="delete_account_deleted_2">Your account and device keys</string>
+	<string name="delete_account_deleted_3">Your VPN keys and stored credentials</string>
+	<string name="delete_account_deleted_4">Your account settings</string>
+	<string name="delete_account_at_nym_title">At Nym</string>
+	<string name="delete_account_at_nym_1">Your account is closed. It can\'t log in again on any device.</string>
+	<string name="delete_account_kept_title">Kept, and why</string>
+	<string name="delete_account_kept_1_headline">Payment and accounting records.</string>
+	<string name="delete_account_kept_1_descr">Swiss law requires Nym to keep accounting records for 10 years. Stripe keeps card payment records for at least 5 years.</string>
+	<string name="delete_account_kept_2_headline">Google Play purchase records.</string>
+	<string name="delete_account_kept_2_descr">They stay with Google, and Nym can\'t delete them.</string>
+	<string name="delete_account_kept_3_headline">Anonymous usage statistics and crash reports.</string>
+	<string name="delete_account_kept_3_descr">They were never linked to your account. Crash reports are kept for about 90 days.</string>
+	<string name="delete_account_kept_4_headline">Support tickets.</string>
+	<string name="delete_account_kept_4_descr">To have them deleted, write to legal@nym.com.</string>
+	<string name="delete_account_kept_5_headline">Copies of your passphrase you saved yourself,</string>
+	<string name="delete_account_kept_5_descr">in a password manager or on paper. They\'re yours to delete.</string>
+	<string name="delete_account_kept_6_headline">Tokens held on-chain stay there.</string>
+	<string name="delete_account_kept_6_descr">Deleting your NymVPN account doesn\'t touch a blockchain. If this passphrase also holds NYM or other tokens, keep a copy of it.</string>
+	<string name="delete_account_keep_button">Keep my account</string>
+	<string name="delete_account_auth_subtitle">You confirm once more before anything is deleted.</string>
+	<string name="delete_account_play_title">Cancel your Google Play subscription first</string>
+	<string name="delete_account_play_descr_1">Deleting your account doesn\'t cancel it, and after you delete you can\'t log in to cancel it here. Google keeps charging you until you cancel it in Google Play.</string>
+	<string name="delete_account_play_descr_2">Once it\'s cancelled, come back to delete your account.</string>
+	<string name="delete_account_play_button">Open Google Play subscriptions</string>
+	<string name="delete_account_dialog_title">Delete your account now?</string>
+	<string name="delete_account_dialog_description">Your account closes on every device, and your passphrase and keys are removed from this phone. You can\'t undo this.</string>
+	<string name="delete_account_dialog_progress_title">Deleting your account…</string>
+	<string name="delete_account_dialog_progress_descr">This disconnects the VPN.</string>
+	<string name="delete_account_confirm_title">Your account is deleted</string>
+	<string name="delete_account_confirm_descr_1">Your account is closed, and your passphrase and keys are gone from this phone.</string>
+	<string name="delete_account_confirm_descr_2">To have your support tickets deleted too, write to legal@nym.com.</string>
+	<string name="delete_account_error_title">Couldn\'t delete your account</string>
+	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
+	<string name="delete_account_time_title">You lose the time you have left</string>
+	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
 </resources>
