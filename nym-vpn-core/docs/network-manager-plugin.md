@@ -55,12 +55,12 @@ cargo test -p nym-nm-vpn-plugin
 ## Build the editor libraries
 
 ```sh
-make -C crates/nym-nm-vpn-plugin/editor all test
+make -C crates/nym-nm-vpn-plugin/editor test
 ```
 
-`all` builds the three libraries into `crates/nym-nm-vpn-plugin/editor/build/`. `test` loads them
-the way libnm and the GTK editors do and checks the `.name` file. The GTK tests print
-`editor skipped: no display` when no display is available.
+`test` builds the three libraries into `crates/nym-nm-vpn-plugin/editor/build/`, then loads them
+the way libnm and the GTK editors do and checks the `.name` file. Plain `make` only builds them.
+The GTK tests print `editor skipped: no display` when no display is available.
 
 `make -C crates/nym-nm-vpn-plugin/editor clean` removes the build directory.
 
@@ -72,7 +72,7 @@ profile for a faster unoptimized build (see the deploy script below).
 
 ```sh
 cargo build --release -p nym-nm-vpn-plugin
-make -C crates/nym-nm-vpn-plugin/editor all test
+make -C crates/nym-nm-vpn-plugin/editor
 cargo deb --no-build -p nym-nm-vpn-plugin
 ```
 
