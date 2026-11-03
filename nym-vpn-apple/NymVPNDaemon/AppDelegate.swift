@@ -6,7 +6,7 @@ import Logging
 @MainActor class AppDelegate: NSObject, NSApplicationDelegate {
     private let appSettings = AppSettings.shared
 
-    var shouldTerminate = false
+    private var shouldTerminate = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(appSettings.appMode.activationPolicy)
@@ -56,6 +56,15 @@ import Logging
 }
 
 extension AppDelegate {
+    var hasVisibleAppWindow: Bool {
+        NSApp.windows.contains { $0.isVisible && $0.canBecomeKey }
+    }
+
+    func quitApp() {
+        shouldTerminate = true
+        NSApplication.shared.terminate(self)
+    }
+
     func bringWindowToFront() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.unhide(self)
