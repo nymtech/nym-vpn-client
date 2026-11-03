@@ -14,7 +14,9 @@ use nym_common::ErrorExt;
 use nym_vpn_lib_types::TunnelState;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
-use zbus::{Connection, ObjectPath, OwnedObjectPath, OwnedVariant, Variant, proxy::CacheProperties};
+use zbus::{
+    Connection, ObjectPath, OwnedObjectPath, OwnedVariant, Variant, proxy::CacheProperties,
+};
 
 const SERVICE_TYPE: &str = "org.freedesktop.NetworkManager.nymvpn";
 
