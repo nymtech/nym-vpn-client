@@ -268,11 +268,17 @@ jobs:
 
       - name: Install sentry-cli
         if: ${{ !cancelled() && (steps.download-core.outcome == 'success' || steps.download-apple.outcome == 'success') }}
+        env:
+          SENTRY_CLI_VERSION: "3.8.2"
+          SENTRY_CLI_SHA256: c958865f9d4000183509ea21b1f04925d5390de6d8d87386b9e69f2b305070c3
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/bin"
-          curl -sSfL https://sentry.io/get-cli/ | INSTALL_DIR="$RUNNER_TEMP/bin" sh
-          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          bin="$RUNNER_TEMP/bin/sentry-cli"
+          mkdir -p "$(dirname "$bin")"
+          curl -sSfL -o "$bin" "https://github.com/getsentry/sentry-cli/releases/download/${SENTRY_CLI_VERSION}/sentry-cli-Linux-x86_64"
+          echo "$SENTRY_CLI_SHA256  $bin" | sha256sum --check
+          chmod +x "$bin"
+          echo "$(dirname "$bin")" >> "$GITHUB_PATH"
 
       - name: Upload core debug symbols to Sentry
         if: ${{ !cancelled() && steps.download-core.outcome == 'success' }}
