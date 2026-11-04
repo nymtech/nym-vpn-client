@@ -11,7 +11,7 @@ public struct AppleIdSubscriptionEntitlement: Equatable, Sendable {
     }
 
     public let state: State
-    /// The owner's token: the original purchase's when the history has it, else the live transaction's.
+    /// The owner's token per `AppleIdSubscriptionGatePolicy.ownerToken`, else the live transaction's.
     public let appAccountToken: UUID?
     public let expirationDate: Date?
     public let willAutoRenew: Bool
@@ -56,29 +56,51 @@ public enum AppleIdSubscriptionGate: Equatable, Sendable {
     }
 }
 
-/// An original purchase from the Apple ID's transaction history (`id == originalID`).
-public struct AppleIdOriginalPurchase: Equatable, Sendable {
-    public let id: UInt64
+/// One verified transaction from the Apple ID's history, reduced to what the owner rule needs.
+public struct AppleIdSubscriptionTransaction: Equatable, Sendable {
+    public let originalID: UInt64
     public let appAccountToken: UUID?
+    public let purchaseDate: Date
+    /// When the paid period ended: the revocation date after a refund, else the expiry.
+    public let periodEnd: Date?
+    /// A purchase the customer started, as opposed to a renewal the system started.
+    public let isCustomerPurchase: Bool
 
-    public init(id: UInt64, appAccountToken: UUID?) {
-        self.id = id
+    public init(
+        originalID: UInt64,
+        appAccountToken: UUID?,
+        purchaseDate: Date,
+        periodEnd: Date?,
+        isCustomerPurchase: Bool
+    ) {
+        self.originalID = originalID
         self.appAccountToken = appAccountToken
+        self.purchaseDate = purchaseDate
+        self.periodEnd = periodEnd
+        self.isCustomerPurchase = isCustomerPurchase
     }
 }
 
 public enum AppleIdSubscriptionGatePolicy {
-    /// The backend credits the account on the original purchase (it finds the row by original transaction id), so a
-    /// later plan change from another account must not move ownership: after UPGRADE(B) the live transaction
-    /// carries B's token while A still holds the subscription. Falls back to the live token when the history
-    /// lacks the original.
+    /// Mirrors the webhook's row owner. Renewals and plan changes credit the row found by original transaction id,
+    /// so ownership starts with the original purchase's token: after UPGRADE(B) the live transaction carries B's
+    /// token while A still holds the subscription. A customer purchase after the previous period ended is a
+    /// RESUBSCRIBE, which re-homes the row to its token. Falls back to the live token when the history lacks the chain.
     public static func ownerToken(
         originalID: UInt64,
         latestToken: UUID?,
-        originalPurchases: [AppleIdOriginalPurchase]
+        history: [AppleIdSubscriptionTransaction]
     ) -> UUID? {
-        guard let original = originalPurchases.first(where: { $0.id == originalID }) else { return latestToken }
-        return original.appAccountToken
+        let chain = history.filter { $0.originalID == originalID }.sorted { $0.purchaseDate < $1.purchaseDate }
+        guard var previous = chain.first else { return latestToken }
+        var owner = previous.appAccountToken
+        for transaction in chain.dropFirst() {
+            if transaction.isCustomerPurchase, let end = previous.periodEnd, transaction.purchaseDate > end {
+                owner = transaction.appAccountToken
+            }
+            previous = transaction
+        }
+        return owner
     }
 
     /// An Apple ID holds one subscription per group. If the live one carries another account's token,

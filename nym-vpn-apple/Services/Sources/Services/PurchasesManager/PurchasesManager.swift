@@ -162,8 +162,8 @@ public enum PurchaseOutcome: Equatable, Sendable {
         guard let subscription = products.first?.subscription else { return .unknown }
         do {
             let statuses = try await subscription.status
-            let originalPurchases = await Self.originalPurchases()
-            let entitlements = statuses.map { Self.entitlement(from: $0, originalPurchases: originalPurchases) }
+            let history = await Self.subscriptionHistory()
+            let entitlements = statuses.map { Self.entitlement(from: $0, history: history) }
             // A live status that does not fully verify cannot be proven ours or foreign; refuse rather than drop it.
             let unverifiedLive = zip(statuses, entitlements).contains { status, entitlement in
                 entitlement == nil && (status.state == .subscribed || status.state == .inGracePeriod)
@@ -316,7 +316,7 @@ private extension PurchasesManager {
 
     static func entitlement(
         from status: Product.SubscriptionInfo.Status,
-        originalPurchases: [AppleIdOriginalPurchase]
+        history: [AppleIdSubscriptionTransaction]
     ) -> AppleIdSubscriptionEntitlement? {
         guard case let .verified(transaction) = status.transaction,
               case let .verified(renewalInfo) = status.renewalInfo
@@ -337,7 +337,7 @@ private extension PurchasesManager {
             appAccountToken: AppleIdSubscriptionGatePolicy.ownerToken(
                 originalID: transaction.originalID,
                 latestToken: transaction.appAccountToken,
-                originalPurchases: originalPurchases
+                history: history
             ),
             expirationDate: transaction.expirationDate,
             willAutoRenew: renewalInfo.willAutoRenew,
@@ -345,14 +345,20 @@ private extension PurchasesManager {
         )
     }
 
-    /// Original purchases only (`id == originalID`); renewals and plan changes share their original's id.
-    nonisolated static func originalPurchases() async -> [AppleIdOriginalPurchase] {
-        var purchases: [AppleIdOriginalPurchase] = []
+    /// Every verified transaction, for the owner rule; renewals and plan changes share their original's id.
+    nonisolated static func subscriptionHistory() async -> [AppleIdSubscriptionTransaction] {
+        var history: [AppleIdSubscriptionTransaction] = []
         for await result in Transaction.all {
-            guard case let .verified(transaction) = result, transaction.id == transaction.originalID else { continue }
-            purchases.append(AppleIdOriginalPurchase(id: transaction.id, appAccountToken: transaction.appAccountToken))
+            guard case let .verified(transaction) = result else { continue }
+            history.append(AppleIdSubscriptionTransaction(
+                originalID: transaction.originalID,
+                appAccountToken: transaction.appAccountToken,
+                purchaseDate: transaction.purchaseDate,
+                periodEnd: transaction.revocationDate ?? transaction.expirationDate,
+                isCustomerPurchase: transaction.reason == .purchase
+            ))
         }
-        return purchases
+        return history
     }
 
     nonisolated static func verifiedAppTransactionID() async throws -> String? {

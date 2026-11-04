@@ -138,13 +138,32 @@ struct AppleIdSubscriptionGatePolicyTests {
         #expect(AppleIdSubscriptionGate.unknown.purchaseError == .statusUnavailable)
     }
 
-    // The backend credits the account on the original purchase (it finds the row by original transaction id), so a
-    // later plan change from another account must not move ownership. Sandbox 2026-10-15: UPGRADE(B) → DID_RENEW(B).
+    // MARK: - Owner token -
+
+    // The webhook credits the row found by original transaction id on renewals and plan changes, and re-homes that
+    // row to the paying account on a RESUBSCRIBE. So ownership starts with the original purchase's token and moves
+    // only when a customer purchase starts after the previous period ended. Sandbox 2026-10-15: UPGRADE(B) → DID_RENEW(B).
+    static func transaction(
+        originalID: UInt64 = 1,
+        token: UUID?,
+        purchaseDay: Double,
+        endDay: Double?,
+        isCustomerPurchase: Bool = true
+    ) -> AppleIdSubscriptionTransaction {
+        AppleIdSubscriptionTransaction(
+            originalID: originalID,
+            appAccountToken: token,
+            purchaseDate: Self.expiry.addingTimeInterval(purchaseDay * 86_400),
+            periodEnd: endDay.map { Self.expiry.addingTimeInterval($0 * 86_400) },
+            isCustomerPurchase: isCustomerPurchase
+        )
+    }
+
     @Test func originalPurchaseInHistory_ownsTheSubscription() {
         let owner = AppleIdSubscriptionGatePolicy.ownerToken(
             originalID: 1,
             latestToken: Self.other,
-            originalPurchases: [AppleIdOriginalPurchase(id: 1, appAccountToken: Self.own)]
+            history: [Self.transaction(token: Self.own, purchaseDay: 0, endDay: 30)]
         )
         #expect(owner == Self.own)
     }
@@ -153,7 +172,7 @@ struct AppleIdSubscriptionGatePolicyTests {
         let owner = AppleIdSubscriptionGatePolicy.ownerToken(
             originalID: 1,
             latestToken: Self.other,
-            originalPurchases: [AppleIdOriginalPurchase(id: 2, appAccountToken: Self.own)]
+            history: [Self.transaction(originalID: 2, token: Self.own, purchaseDay: 0, endDay: 30)]
         )
         #expect(owner == Self.other)
     }
@@ -162,8 +181,77 @@ struct AppleIdSubscriptionGatePolicyTests {
         let owner = AppleIdSubscriptionGatePolicy.ownerToken(
             originalID: 1,
             latestToken: Self.other,
-            originalPurchases: [AppleIdOriginalPurchase(id: 1, appAccountToken: nil)]
+            history: [Self.transaction(token: nil, purchaseDay: 0, endDay: 30)]
         )
         #expect(owner == nil)
+    }
+
+    /// UPGRADE(B) while A is live, then DID_RENEW(B): the webhook keeps extending A's row.
+    @Test func upgradeWhileLive_keepsTheOriginalOwner() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            history: [
+                Self.transaction(token: Self.own, purchaseDay: 0, endDay: 30),
+                Self.transaction(token: Self.other, purchaseDay: 10, endDay: 40),
+                Self.transaction(token: Self.other, purchaseDay: 40, endDay: 70, isCustomerPurchase: false)
+            ]
+        )
+        #expect(owner == Self.own)
+    }
+
+    /// RESUBSCRIBE(B) after A's period ended: the webhook re-homes the row to B, renewals then extend B.
+    /// Input order must not matter: `Transaction.all` does not promise one.
+    @Test(arguments: [true, false])
+    func resubscribeAfterLapse_movesOwnershipToThatToken(reversed: Bool) {
+        let history = [
+            Self.transaction(token: Self.own, purchaseDay: 0, endDay: 30),
+            Self.transaction(token: Self.other, purchaseDay: 45, endDay: 75),
+            Self.transaction(token: Self.other, purchaseDay: 75, endDay: 105, isCustomerPurchase: false)
+        ]
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            history: reversed ? Array(history.reversed()) : history
+        )
+        #expect(owner == Self.other)
+    }
+
+    /// Billing recovery: a renewal after the lapse is not a customer purchase, so the webhook extends the row as is.
+    @Test func renewalAfterLapse_keepsTheOriginalOwner() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            history: [
+                Self.transaction(token: Self.own, purchaseDay: 0, endDay: 30),
+                Self.transaction(token: Self.other, purchaseDay: 45, endDay: 75, isCustomerPurchase: false)
+            ]
+        )
+        #expect(owner == Self.own)
+    }
+
+    /// A refund ends the period early (`periodEnd` is the revocation date), so a purchase after it is a resubscribe.
+    @Test func purchaseAfterRefund_movesOwnership() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            history: [
+                Self.transaction(token: Self.own, purchaseDay: 0, endDay: 5),
+                Self.transaction(token: Self.other, purchaseDay: 10, endDay: 40)
+            ]
+        )
+        #expect(owner == Self.other)
+    }
+
+    @Test func otherSubscriptionChain_isIgnored() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            history: [
+                Self.transaction(token: Self.own, purchaseDay: 0, endDay: 30),
+                Self.transaction(originalID: 2, token: Self.other, purchaseDay: 45, endDay: 75)
+            ]
+        )
+        #expect(owner == Self.own)
     }
 }
