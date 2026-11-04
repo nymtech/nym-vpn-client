@@ -145,8 +145,9 @@ public enum PurchaseOutcome: Equatable, Sendable {
         }
         do {
             let statuses = try await subscription.status
+            let originalPurchases = await Self.originalPurchases()
             appleIdSubscriptionGate = AppleIdSubscriptionGatePolicy.gate(
-                entitlements: statuses.compactMap { Self.entitlement(from: $0) },
+                entitlements: statuses.compactMap { Self.entitlement(from: $0, originalPurchases: originalPurchases) },
                 accountToken: accountToken.flatMap(UUID.init(uuidString:))
             )
         } catch {
@@ -285,7 +286,10 @@ private extension PurchasesManager {
         }
     }
 
-    static func entitlement(from status: Product.SubscriptionInfo.Status) -> AppleIdSubscriptionEntitlement? {
+    static func entitlement(
+        from status: Product.SubscriptionInfo.Status,
+        originalPurchases: [AppleIdOriginalPurchase]
+    ) -> AppleIdSubscriptionEntitlement? {
         guard case let .verified(transaction) = status.transaction,
               case let .verified(renewalInfo) = status.renewalInfo
         else {
@@ -302,11 +306,25 @@ private extension PurchasesManager {
         }
         return AppleIdSubscriptionEntitlement(
             state: state,
-            appAccountToken: transaction.appAccountToken,
+            appAccountToken: AppleIdSubscriptionGatePolicy.ownerToken(
+                originalID: transaction.originalID,
+                latestToken: transaction.appAccountToken,
+                originalPurchases: originalPurchases
+            ),
             expirationDate: transaction.expirationDate,
             willAutoRenew: renewalInfo.willAutoRenew,
             gracePeriodExpirationDate: renewalInfo.gracePeriodExpirationDate
         )
+    }
+
+    /// Original purchases only (`id == originalID`); renewals and plan changes share their original's id.
+    nonisolated static func originalPurchases() async -> [AppleIdOriginalPurchase] {
+        var purchases: [AppleIdOriginalPurchase] = []
+        for await result in Transaction.all {
+            guard case let .verified(transaction) = result, transaction.id == transaction.originalID else { continue }
+            purchases.append(AppleIdOriginalPurchase(id: transaction.id, appAccountToken: transaction.appAccountToken))
+        }
+        return purchases
     }
 
     nonisolated static func verifiedAppTransactionID() async throws -> String? {

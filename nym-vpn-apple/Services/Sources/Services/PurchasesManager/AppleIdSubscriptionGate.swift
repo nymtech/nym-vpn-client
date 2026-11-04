@@ -11,6 +11,7 @@ public struct AppleIdSubscriptionEntitlement: Equatable, Sendable {
     }
 
     public let state: State
+    /// The owner's token: the original purchase's when the history has it, else the live transaction's.
     public let appAccountToken: UUID?
     public let expirationDate: Date?
     public let willAutoRenew: Bool
@@ -55,7 +56,31 @@ public enum AppleIdSubscriptionGate: Equatable, Sendable {
     }
 }
 
+/// An original purchase from the Apple ID's transaction history (`id == originalID`).
+public struct AppleIdOriginalPurchase: Equatable, Sendable {
+    public let id: UInt64
+    public let appAccountToken: UUID?
+
+    public init(id: UInt64, appAccountToken: UUID?) {
+        self.id = id
+        self.appAccountToken = appAccountToken
+    }
+}
+
 public enum AppleIdSubscriptionGatePolicy {
+    /// The backend credits the account on the original purchase (it finds the row by original transaction id), so a
+    /// later plan change from another account must not move ownership: after UPGRADE(B) the live transaction
+    /// carries B's token while A still holds the subscription. Falls back to the live token when the history
+    /// lacks the original.
+    public static func ownerToken(
+        originalID: UInt64,
+        latestToken: UUID?,
+        originalPurchases: [AppleIdOriginalPurchase]
+    ) -> UUID? {
+        guard let original = originalPurchases.first(where: { $0.id == originalID }) else { return latestToken }
+        return original.appAccountToken
+    }
+
     /// An Apple ID holds one subscription per group. If the live one carries another account's token,
     /// a purchase from this account would only change that subscription's plan and pay into it.
     public static func gate(

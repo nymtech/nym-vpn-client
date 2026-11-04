@@ -112,4 +112,33 @@ struct AppleIdSubscriptionGatePolicyTests {
     @Test func unknownGate_blocksPurchaseAsStatusUnavailable() {
         #expect(AppleIdSubscriptionGate.unknown.purchaseError == .statusUnavailable)
     }
+
+    // The backend credits the account on the original purchase (it finds the row by original transaction id), so a
+    // later plan change from another account must not move ownership. Sandbox 2026-10-15: UPGRADE(B) → DID_RENEW(B).
+    @Test func originalPurchaseInHistory_ownsTheSubscription() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            originalPurchases: [AppleIdOriginalPurchase(id: 1, appAccountToken: Self.own)]
+        )
+        #expect(owner == Self.own)
+    }
+
+    @Test func originalPurchaseMissingFromHistory_fallsBackToLatestToken() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            originalPurchases: [AppleIdOriginalPurchase(id: 2, appAccountToken: Self.own)]
+        )
+        #expect(owner == Self.other)
+    }
+
+    @Test func originalPurchaseWithoutToken_isTokenless() {
+        let owner = AppleIdSubscriptionGatePolicy.ownerToken(
+            originalID: 1,
+            latestToken: Self.other,
+            originalPurchases: [AppleIdOriginalPurchase(id: 1, appAccountToken: nil)]
+        )
+        #expect(owner == nil)
+    }
 }
