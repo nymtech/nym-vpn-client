@@ -556,6 +556,11 @@ jobs:
           echo "ios_ipa_name=$IOS_IPA_NAME" >> $GITHUB_OUTPUT
           echo "ios_build=$IOS_BUILD" >> $GITHUB_OUTPUT
 
+  upload-debug-symbols:
+    needs: [build]
+    uses: ./.github/workflows/upload-debug-symbols.yml
+    secrets: inherit
+
   release:
     needs: [resolve, build-outputs]
     if: |
