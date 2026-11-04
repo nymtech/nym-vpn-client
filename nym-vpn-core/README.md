@@ -43,13 +43,7 @@ After installing Rust, install the following Rust targets and dependencies to en
     # /Library/Developer/CommandLineTools
     ```
 
-2. Install `cargo-swift` compatible with uniffi `0.31.1`:
-
-    ```sh
-    cargo install cargo-swift@0.11.1
-    ```
-
-3. Install iOS targets:
+2. Install iOS targets:
 
     ```sh
     rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
@@ -251,8 +245,16 @@ cargo build --release --target aarch64-pc-windows-msvc
 
 ### iOS (macOS host)
 
+Build for aarch64 device and simulator targets:
+
 ```sh
 make -C nym-vpn-core -f iOS.mk
+```
+
+Build for aarch64 device only:
+
+```sh
+make -C nym-vpn-core -f iOS.mk RUST_TRIPLET=aarch64-apple-ios
 ```
 
 ### Android

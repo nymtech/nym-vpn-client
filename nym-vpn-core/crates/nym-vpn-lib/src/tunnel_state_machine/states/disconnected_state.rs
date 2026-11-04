@@ -100,7 +100,7 @@ impl TunnelStateHandler for DisconnectedState {
                             return NextTunnelState::SameState(self);
                         }
 
-                        shared_state.set_tunnel_settings(tunnel_settings).await;
+                        shared_state.set_tunnel_settings(tunnel_settings, false).await;
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {

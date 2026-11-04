@@ -1,5 +1,6 @@
 import Foundation
 import ConnectionTypes
+import ErrorReason
 import NymVPNLib
 import TunnelMixnet
 import Tunnels
@@ -17,50 +18,52 @@ extension PacketTunnelProvider {
             return await handleStatusMessage()
 
         case let .setProfile(profile):
-            await runCommand { try await self.commandSender?.setProfile(profile: profile.toCoreProfile()) }
+            await runCommand { try await $0.setProfile(profile: profile.toCoreProfile()) }
             return nil
 
         case let .setCustomDns(addrs):
-            await runCommand { try await self.commandSender?.setCustomDns(addrs: addrs) }
+            await runCommand {
+                try await $0.setCustomDns(dnsServers: [DnsServer](plainDnsAddresses: addrs))
+            }
             return nil
 
         case let .setEnableCustomDns(enabled):
-            await runCommand { try await self.commandSender?.setEnableCustomDns(enableCustomDns: enabled) }
+            await runCommand { try await $0.setEnableCustomDns(enableCustomDns: enabled) }
             return nil
 
         case let .setEnableTwoHop(enabled):
-            await runCommand { try await self.commandSender?.setEnableTwoHop(enableTwoHop: enabled) }
+            await runCommand { try await $0.setEnableTwoHop(enableTwoHop: enabled) }
             return nil
 
         case let .setEnableAdBlocking(enabled):
-            await runCommand { try await self.commandSender?.setEnableAdBlocking(enableAdBlocking: enabled) }
+            await runCommand { try await $0.setEnableAdBlocking(enableAdBlocking: enabled) }
             return nil
 
-        case let .setEnableBridges(enabled):
-            await runCommand { try await self.commandSender?.setEnableBridges(enableBridges: enabled) }
+        case let .setBridgeMode(mode):
+            await runCommand { try await $0.setBridgeMode(bridgeMode: mode.bridgeMode) }
             return nil
 
         case let .setEntryPoint(entry):
-            await runCommand { try await self.commandSender?.setEntryPoint(entryPoint: entry.entryPoint) }
+            await runCommand { try await $0.setEntryPoint(entryPoint: entry.entryPoint) }
             return nil
 
         case let .setExitPoint(exit):
-            await runCommand { try await self.commandSender?.setExitPoint(exitPoint: exit.exitPoint) }
+            await runCommand { try await $0.setExitPoint(exitPoint: exit.exitPoint) }
             return nil
 
         case let .setFrontingModeEnabled(enabled):
             await runCommand {
-                try await self.commandSender?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
+                try await $0.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
             }
             return nil
 
         case let .setDisableIpv6(disabled):
-            await runCommand { try await self.commandSender?.setDisableIpv6(disableIpv6: disabled) }
+            await runCommand { try await $0.setDisableIpv6(disableIpv6: disabled) }
             return nil
 
         case let .setMixnetTrafficConfig(config):
             await runCommand {
-                try await self.commandSender?.setMixnetTrafficConfig(
+                try await $0.setMixnetTrafficConfig(
                     mixnetTrafficConfig: config.mixnetTrafficConfig()
                 )
             }
@@ -68,7 +71,7 @@ extension PacketTunnelProvider {
 
         case let .setGatewayIndependence(isEnabled):
             await runCommand {
-                try await self.commandSender?.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
+                try await $0.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
             }
             if !isEnabled {
                 // handle_set_enable_gateway_independence in vpn service
@@ -82,7 +85,7 @@ extension PacketTunnelProvider {
                 if !resumedPreflight {
                     await tunnelActor.clearError()
                     await runCommand {
-                        _ = try await self.commandSender?.connectTunnel()
+                        _ = try await $0.connectTunnel()
                     }
                 }
             }
@@ -90,7 +93,7 @@ extension PacketTunnelProvider {
 
         case let .setGatewayIndependenceNotifications(enabled):
             await runCommand {
-                try await self.commandSender?.setGatewayIndependenceNotifications(enableNotifications: enabled)
+                try await $0.setGatewayIndependenceNotifications(enableNotifications: enabled)
             }
             return nil
         }
@@ -98,72 +101,65 @@ extension PacketTunnelProvider {
 }
 
 private extension PacketTunnelProvider {
-    func runCommand(_ block: @escaping () async throws -> Void) async {
+    func runCommand(_ block: @Sendable (NymVpnServiceCommandSender) async throws -> Void) async {
         do {
-            try await block()
+            _ = try await tunnelActor.withCommandSender(block)
         } catch {
             logger.error("Tunnel command failed: \(error.localizedDescription)")
         }
     }
 
-    // swiftlint:disable:next function_body_length
     func handleStatusMessage() async -> Data? {
         guard let tunnelState = await tunnelActor.tunnelState else { return nil }
         do {
-            var retryAttempt: Int?
-            var afterDisconnectAction: AfterDisconnectAction?
-            var tunnelConnectingState: TunnelConnectingState?
-            var connectionInfoData: ConnectionInfoData?
-            var connectedAt: Date?
-
-            switch tunnelState {
-            case let .connecting(
-                retryAttempt: attempt,
-                state: establishConnectionState,
-                selectorFallbackState: _, // todo: must be used
-                tunnelType: tunnelType,
-                connectionData: connectionData
-            ):
-                retryAttempt = Int(attempt)
-                tunnelConnectingState = TunnelConnectingState(with: establishConnectionState)
-                connectionInfoData = ConnectionInfoData(
-                    entryGatewayId: connectionData?.entryGateway.id,
-                    exitGatewayId: connectionData?.exitGateway.id,
-                    tunnelType: ConnectionTunnelType(tunnelType)
-                )
-            case let .connected(connectionData: connectionData):
-                connectionInfoData = ConnectionInfoData(
-                    entryGatewayId: connectionData.entryGateway.id,
-                    exitGatewayId: connectionData.exitGateway.id,
-                    tunnelType: ConnectionTunnelType(connectionData.tunnel)
-                )
-                connectedAt = Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
-            case let .disconnecting(afterDisconnect: action):
-                afterDisconnectAction = AfterDisconnectAction.convert(from: action)
-                connectionInfoData = nil
-            default:
-                retryAttempt = nil
-                afterDisconnectAction = nil
-                tunnelConnectingState = nil
-                connectionInfoData = nil
-            }
-
-            let statusResponse = await TunnelStatusResponse(
-                status: TunnelStatus(from: tunnelState),
-                retryAttempt: retryAttempt,
-                afterDisconnectAction: afterDisconnectAction,
-                lastError: tunnelActor.lastError,
-                tunnelConnectingState: tunnelConnectingState,
-                connectionInfoData: connectionInfoData,
-                connectedAt: connectedAt
-            )
-
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
-            return try encoder.encode(statusResponse)
+            return try encoder.encode(TunnelStateResponse(tunnelState))
         } catch {
             logger.error("AppMessage: \(error.localizedDescription)")
             return nil
+        }
+    }
+}
+
+private extension TunnelStateResponse {
+    init(_ tunnelState: TunnelState) {
+        switch tunnelState {
+        case .disconnected:
+            self = .disconnected
+        case let .connecting(
+            retryAttempt: attempt,
+            state: establishConnectionState,
+            selectorFallbackState: _, // todo: must be used
+            tunnelType: tunnelType,
+            connectionData: connectionData
+        ):
+            self = .connecting(
+                retryAttempt: Int(attempt),
+                state: TunnelConnectingState(with: establishConnectionState),
+                connectionInfo: ConnectionInfoData(
+                    entryGatewayId: connectionData?.entryGateway.id,
+                    exitGatewayId: connectionData?.exitGateway.id,
+                    tunnelType: ConnectionTunnelType(tunnelType),
+                    bridgeTransport: connectionData?.tunnel?.bridgeTransportName
+                )
+            )
+        case let .connected(connectionData: connectionData):
+            self = .connected(
+                connectionInfo: ConnectionInfoData(
+                    entryGatewayId: connectionData.entryGateway.id,
+                    exitGatewayId: connectionData.exitGateway.id,
+                    tunnelType: ConnectionTunnelType(connectionData.tunnel),
+                    bridgeTransport: connectionData.tunnel.bridgeTransportName
+                ),
+                connectedAt: Date(timeIntervalSince1970: TimeInterval(connectionData.connectedAt))
+            )
+        case let .disconnecting(afterDisconnect: action):
+            self = .disconnecting(afterDisconnect: AfterDisconnectAction.convert(from: action))
+        case let .error(reason):
+            self = .error(ErrorReason(with: reason))
+        case let .offline(reconnect):
+            self = .offline(reconnect: reconnect)
         }
     }
 }

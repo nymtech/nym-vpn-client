@@ -1,0 +1,1 @@
+WireGuard,Mixnet,Tor,proxy,şifreleme,killswitch,engelleme,sansür,gazeteci,aktivist,wifi,şifreli

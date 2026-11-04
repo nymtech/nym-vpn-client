@@ -10,6 +10,8 @@ pub(crate) use nym_bridges::{
 /// First WG datagram wait: five handshake attempts at RekeyTimeout (5s).
 pub(crate) const INITIAL_FWD_CONNECTION_TIMEOUT: Duration = Duration::from_secs(21);
 pub(crate) const BRIDGE_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+/// How long QUIC gets before TLS and SSH bridges are tried.
+pub(crate) const QUIC_FALLBACK_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub(crate) fn filter_bridge_params_ipv4_only(mut params: ClientConfig) -> ClientConfig {
     let addresses = match &mut params {

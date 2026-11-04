@@ -34,8 +34,8 @@ extension GRPCManager {
         try await rpcClient?.setEnableTwoHop(enableTwoHop: enabled)
     }
 
-    public func setEnableBridges(_ enabled: Bool) async throws {
-        try await rpcClient?.setEnableBridges(enableBridges: enabled)
+    public func setBridgeMode(_ mode: BridgeModeSetting) async throws {
+        try await rpcClient?.setBridgeMode(bridgeMode: mode.bridgeMode)
     }
 
     public func setMixnetTrafficConfig(_ config: MixnetTuningConfig) async throws {

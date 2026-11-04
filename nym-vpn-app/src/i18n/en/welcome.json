@@ -1,6 +1,6 @@
 {
   "title": "Help us improve NymVPN",
-  "description": "Choose what anonymous data to share. All data is stripped of identifying information before being sent.",
+  "description": "Choose what anonymous data to share. \nNo personal information included.",
   "anonymous-network-stats-toggle-desc": "View Sentry Privacy Policy",
   "continue-button": "Continue",
   "anonymous-network-stats": "Anonymous network stats",

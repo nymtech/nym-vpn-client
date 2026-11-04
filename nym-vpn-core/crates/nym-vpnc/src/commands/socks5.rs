@@ -15,7 +15,7 @@ pub enum Command {
     /// nym-vpnc socks5 enable --socks5-address=127.0.0.1:1080 --rpc-address=127.0.0.1:8545 --exit-country=GB
     Enable(Box<EnableArgs>),
 
-    /// Disable Custom DNS
+    /// Disable custom DNS
     Disable,
 
     /// Get SOCKS5 proxy status

@@ -320,13 +320,37 @@ impl Gateway {
     pub fn get_bridge_params(&self) -> Option<BridgeParameters> {
         if let Some(all_params) = &self.bridge_params {
             all_params
-                .transports
+                .advertised()
                 .iter()
                 .find(|t| matches!(t, BridgeParameters::QuicPlain(_)))
                 .cloned()
         } else {
             None
         }
+    }
+
+    /// QUIC bridges, and the TLS and SSH bridges to fall back to when allowed. Other advertised
+    /// types (e.g. AmneziaWG, used with bridges off) are never bridges.
+    pub fn bridge_candidates(
+        &self,
+        allow_fallback: bool,
+    ) -> (Vec<BridgeParameters>, Vec<BridgeParameters>) {
+        let (mut quic, mut fallback) = (Vec::new(), Vec::new());
+        for t in self
+            .bridge_params
+            .iter()
+            .flat_map(|p| p.usable_transports())
+        {
+            match t {
+                BridgeParameters::QuicPlain(_) => quic.push(t.clone()),
+                BridgeParameters::TlsPlain(_) | BridgeParameters::SshPlain(_) => {
+                    if allow_fallback {
+                        fallback.push(t.clone());
+                    }
+                }
+            }
+        }
+        (quic, fallback)
     }
 }
 

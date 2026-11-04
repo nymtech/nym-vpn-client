@@ -42,7 +42,7 @@ impl TryFrom<proto::Performance> for nym_vpn_lib_types::Performance {
             score: proto::Score::try_from(value.score)
                 .map_err(|err| ConversionError::Decode("Performance.score", err))?
                 .into(),
-            mixnet_score: proto::Score::try_from(value.score)
+            mixnet_score: proto::Score::try_from(value.mixnet_score)
                 .map_err(|err| ConversionError::Decode("Performance.mixnet_score", err))?
                 .into(),
             load: proto::Score::try_from(value.load)
@@ -464,8 +464,9 @@ impl TryFrom<proto::RecentGateways> for nym_vpn_lib_types::RecentGateways {
 impl From<BridgeInformation> for proto::BridgeInformation {
     fn from(value: BridgeInformation) -> Self {
         let transports = value
-            .transports
-            .into_iter()
+            .advertised()
+            .iter()
+            .cloned()
             .map(proto::BridgeParameters::from)
             .collect::<Vec<_>>();
 
@@ -486,9 +487,11 @@ impl TryFrom<proto::BridgeInformation> for BridgeInformation {
             .map(BridgeParameters::try_from)
             .collect::<Result<Vec<BridgeParameters>, ConversionError>>()?;
 
+        // The proto carries one list; `advertised()` falls back to `transports`.
         Ok(Self {
             version: value.version,
             transports,
+            transports_v2: Vec::new(),
         })
     }
 }

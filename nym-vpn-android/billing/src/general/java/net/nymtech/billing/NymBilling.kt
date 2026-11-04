@@ -60,6 +60,7 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 
 	private val billingClient = BillingClient.newBuilder(context.applicationContext)
 		.setListener(purchasesUpdatedListener)
+		.enableAutoServiceReconnection()
 		.enablePendingPurchases(
 			PendingPurchasesParams.newBuilder()
 				.enablePrepaidPlans()
@@ -234,7 +235,7 @@ class NymBilling(context: Context, private val applicationScope: CoroutineScope,
 
 	override fun isReady(): Boolean = billingClient.isReady
 
-	override suspend fun hasActiveSubscription(): Boolean = queryActiveSubscriptions("HasActiveSubscriptionNonOk")?.isNotEmpty() ?: false
+	override suspend fun hasActiveSubscription(): Boolean? = queryActiveSubscriptions("HasActiveSubscriptionNonOk")?.isNotEmpty()
 
 	override suspend fun hasRenewingSubscription(): Boolean? = queryActiveSubscriptions("HasRenewingSubscriptionNonOk")?.any { it.isAutoRenewing }
 

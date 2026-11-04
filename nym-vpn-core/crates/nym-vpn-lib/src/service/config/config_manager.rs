@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    net::IpAddr,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -10,9 +9,9 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
+use nym_vpn_lib_types::{DnsServer, MixnetTrafficConfigValidationError};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -151,9 +150,9 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
-        if self.config.enable_bridges != enable_bridges {
-            self.config.enable_bridges = enable_bridges;
+    pub async fn set_bridge_mode(&mut self, bridge_mode: nym_vpn_lib_types::BridgeMode) {
+        if self.config.bridge_mode != bridge_mode {
+            self.config.bridge_mode = bridge_mode;
             self.save_config_and_send_event().await;
         }
     }
@@ -195,20 +194,20 @@ impl VpnServiceConfigManager {
     }
 
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
-        if self.config.enable_custom_dns == enable_custom_dns {
+        if self.config.custom_dns.enabled == enable_custom_dns {
             false
         } else {
-            self.config.enable_custom_dns = enable_custom_dns;
+            self.config.custom_dns.enabled = enable_custom_dns;
             self.save_config_and_send_event().await;
             true
         }
     }
 
-    pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) -> bool {
-        if self.config.custom_dns == custom_dns {
+    pub async fn set_custom_dns(&mut self, dns_servers: Vec<DnsServer>) -> bool {
+        if self.config.custom_dns.dns_servers == dns_servers {
             false
         } else {
-            self.config.custom_dns = custom_dns;
+            self.config.custom_dns.dns_servers = dns_servers;
             self.save_config_and_send_event().await;
             true
         }
@@ -539,8 +538,9 @@ impl VpnServiceConfigManager {
             nym_vpn_lib_types::TunnelType::Mixnet
         };
 
-        let dns = if self.config.enable_custom_dns && !self.config.custom_dns.is_empty() {
-            DnsOptions::Custom(self.config.custom_dns.clone())
+        let custom_dns = &self.config.custom_dns;
+        let dns = if custom_dns.enabled && !custom_dns.dns_servers.is_empty() {
+            DnsOptions::Custom(custom_dns.dns_servers.clone())
         } else {
             DnsOptions::default()
         };
@@ -578,7 +578,7 @@ impl VpnServiceConfigManager {
                 },
                 #[cfg(any(target_os = "android", target_os = "ios"))]
                 multihop_mode: WireguardMultihopMode::Netstack,
-                enable_bridges: self.config.enable_bridges,
+                bridge_mode: self.config.bridge_mode,
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),

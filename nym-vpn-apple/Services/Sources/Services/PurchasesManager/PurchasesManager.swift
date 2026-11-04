@@ -248,7 +248,7 @@ private extension PurchasesManager {
                     await IntroOfferEligibilityResolver.decide(
                         productId: productId,
                         lookups: lookups,
-                        appTransactionID: PurchasesManager.verifiedAppTransactionID
+                        appTransactionID: { try await PurchasesManager.verifiedAppTransactionID() }
                     )
                 }
             } catch {

@@ -1,8 +1,6 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(not(target_os = "android"))]
-use std::net::IpAddr;
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     path::PathBuf,
@@ -12,13 +10,13 @@ use std::{
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
-use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
 #[cfg(not(target_os = "android"))]
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, FrontingMode, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, MixnetTrafficConfig, NetworkStatisticsConfig, Profile,
-    SplitTunnelSettings, VpnServiceConfig,
+    BridgeMode, CustomDnsSettings, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
+    NetworkStatisticsConfig, Profile, SplitTunnelSettings, VpnServiceConfig,
 };
+use nym_vpn_lib_types::{DiagnosticRunParams, PrivyDerivationMessage, UserAgent};
 
 #[cfg(target_os = "android")]
 pub use crate::android_connectivity_monitor::AndroidConnectivityMonitor;
@@ -103,7 +101,7 @@ pub struct VPNConfig {
     #[cfg(not(target_os = "android"))]
     pub enable_two_hop: bool,
     #[cfg(not(target_os = "android"))]
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
     #[cfg(not(target_os = "android"))]
     pub residential_exit: bool,
     #[cfg(not(target_os = "android"))]
@@ -112,10 +110,9 @@ pub struct VPNConfig {
     #[cfg(not(target_os = "android"))]
     pub fronting_mode: FrontingMode,
 
-    /// Custom DNS used when set.
-    /// Leave empty to use default DNS servers.
+    /// Custom DNS used when enabled and not empty.
     #[cfg(not(target_os = "android"))]
-    pub custom_dns: Vec<IpAddr>,
+    pub custom_dns: CustomDnsSettings,
 
     #[cfg(not(target_os = "android"))]
     pub mixnet_traffic: Option<MixnetTrafficConfig>,
@@ -146,7 +143,7 @@ impl VPNConfig {
 
             disable_ipv6: false,
             enable_two_hop: self.enable_two_hop,
-            enable_bridges: self.enable_bridges,
+            bridge_mode: self.bridge_mode,
 
             enable_ad_blocking: self.enable_ad_blocking,
             enable_conflict_detection: false,
@@ -156,7 +153,6 @@ impl VPNConfig {
             netstack: true,
 
             residential_exit: self.residential_exit,
-            enable_custom_dns: !self.custom_dns.is_empty(),
             custom_dns: self.custom_dns.clone(),
             min_gateway_vpn_performance: None,
             mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),

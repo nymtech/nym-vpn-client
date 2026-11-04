@@ -51,7 +51,7 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
             return Ok(true);
         }
         Command::Connect { wait } => Command::connect(rpc_client, wait).await?,
-        Command::Reconnect => Command::reconnect(rpc_client).await?,
+        Command::Reconnect { wait } => Command::reconnect(rpc_client, wait).await?,
         Command::Disconnect { wait } => Command::disconnect(rpc_client, wait).await?,
         Command::Status { listen } => Command::status(rpc_client, listen).await?,
         Command::Info => Command::info(rpc_client).await?,

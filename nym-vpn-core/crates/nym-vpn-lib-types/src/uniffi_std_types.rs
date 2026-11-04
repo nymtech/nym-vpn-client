@@ -45,7 +45,7 @@ uniffi::custom_type!(IpAddr, String, {
 // `SocketAddr` bindings are already declared (as `remote`) by `nym-bridges-types`, whose types
 // this crate re-exports (see `gateway::BridgeInformation`/`BridgeParameters`). Declaring our own
 // `custom_type!` here as well would emit a second, colliding `SocketAddr`/`FfiConverterTypeSocketAddr`
-// in the generated Swift bindings, since cargo-swift bundles all UniFFI components into one module.
+// in the generated Swift bindings, since all UniFFI components are bundled into one Swift module.
 uniffi::use_remote_type!(nym_bridges_types::SocketAddr);
 
 uniffi::custom_type!(OffsetDateTime, i64, {

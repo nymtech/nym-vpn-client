@@ -412,6 +412,7 @@ pub async fn select_gateways(
     gateway_cache: impl GatewayCache,
     blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
+    use_bridges: bool,
     gateway_provider_event_sender: Option<GatewayProviderEventSender>,
     device_location: Option<Location>,
     wg_keys_db: &WireguardKeysDb,
@@ -443,7 +444,7 @@ pub async fn select_gateways(
                 .await
                 .map_err(GatewayProviderError::LookupGateways)?;
 
-            let entry_gateways = if tunnel_settings.bridges_enabled() {
+            let entry_gateways = if use_bridges {
                 GatewayList::new(
                     all_gateways.gw_type(),
                     all_gateways
@@ -611,6 +612,7 @@ mod tests {
             gateway_cache,
             &BlacklistedGateways::new(),
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -657,6 +659,7 @@ mod tests {
             gateway_cache,
             &BlacklistedGateways::new(),
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -702,6 +705,7 @@ mod tests {
             gateway_cache,
             &BlacklistedGateways::new(),
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -742,6 +746,7 @@ mod tests {
             MockGatewayCache::new(gateways.clone()),
             &blacklisted_gateways,
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),
@@ -757,6 +762,7 @@ mod tests {
             MockGatewayCache::new(gateways),
             &blacklisted_gateways,
             &settings,
+            false,
             None,
             None,
             &WireguardKeysDb::Ephemeral(Default::default()),

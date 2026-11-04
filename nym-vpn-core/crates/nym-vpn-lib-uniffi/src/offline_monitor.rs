@@ -20,7 +20,7 @@ pub struct NymOfflineMonitor {
 #[uniffi::export(async_runtime = "tokio")]
 impl NymOfflineMonitor {
     #[uniffi::constructor]
-    pub async fn new(connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>) -> Self {
+    pub async fn spawn(connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>) -> Self {
         let connectivity_receiver = register_connectivity_observer(connectivity_monitor);
         let connectivity_handle = nym_offline_monitor::spawn_monitor(connectivity_receiver).await;
 

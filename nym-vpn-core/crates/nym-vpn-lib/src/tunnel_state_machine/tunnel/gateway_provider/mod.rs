@@ -55,7 +55,7 @@ pub enum GatewayProviderEvent {
 #[derive(Clone)]
 pub struct GatewayProvider<C: GatewayCache> {
     gateway_cache: C,
-    latest_tunnel_settings: Arc<Mutex<TunnelSettings>>,
+    latest_tunnel_settings: Arc<Mutex<(TunnelSettings, bool)>>,
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
     tunnel_monitor_event_sender_tx: mpsc::Sender<GatewayProviderEventSender>,
     selected_gateways_stream: SelectedGatewaysStream,
@@ -88,7 +88,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> (Self, JoinHandle<()>) {
-        let latest_tunnel_settings = Arc::new(Mutex::new(tunnel_settings.clone()));
+        let latest_tunnel_settings = Arc::new(Mutex::new((tunnel_settings.clone(), false)));
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_gateways = BlacklistedGateways::new();
         let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
@@ -136,6 +136,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
             .run(
                 SelectAndSend {
                     tunnel_settings,
+                    use_bridges: false,
                     selection_tx,
                 },
                 latest_location,
@@ -198,6 +199,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
     async fn inner_set_tunnel_settings(
         tunnel_settings_tx: &mpsc::Sender<SelectAndSend>,
         tunnel_settings: TunnelSettings,
+        use_bridges: bool,
     ) -> Result<
         Peekable<ReceiverStream<Result<SelectedGateways, GatewayProviderError>>>,
         crate::tunnel_state_machine::Error,
@@ -207,6 +209,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         tunnel_settings_tx
             .send(SelectAndSend {
                 tunnel_settings,
+                use_bridges,
                 selection_tx,
             })
             .await
@@ -271,6 +274,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
     pub async fn set_tunnel_settings(
         &self,
         tunnel_settings: TunnelSettings,
+        use_bridges: bool,
     ) -> Result<(), crate::tunnel_state_machine::Error> {
         self.set_enabled_geo_location(
             tunnel_settings
@@ -283,9 +287,10 @@ impl<C: GatewayCache> GatewayProvider<C> {
             self.latest_tunnel_settings.lock().await,
             self.selected_gateways_stream.lock().await,
         );
-        *latest_tunnel_settings = tunnel_settings.clone();
+        *latest_tunnel_settings = (tunnel_settings.clone(), use_bridges);
         *selected_gateways_stream =
-            Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings).await?;
+            Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings, use_bridges)
+                .await?;
         Ok(())
     }
 
@@ -321,8 +326,9 @@ impl<C: GatewayCache> GatewayProvider<C> {
         } else {
             tracing::warn!("Blacklisted gateway {gateway_identifier} ({reason})");
             // Re-create gateway selection stream to reflect the addition to the blacklist.
-            let latest_tunnel_settings = self.latest_tunnel_settings.lock().await.clone();
-            let _ = self.set_tunnel_settings(latest_tunnel_settings)
+            let (latest_tunnel_settings, use_bridges) =
+                self.latest_tunnel_settings.lock().await.clone();
+            let _ = self.set_tunnel_settings(latest_tunnel_settings, use_bridges)
                 .await
                 .inspect_err(|err| {
                     tracing::warn!(

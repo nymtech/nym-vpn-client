@@ -16,17 +16,19 @@ anyhow.workspace = true
 celes.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 clap_complete.workspace = true
+url.workspace = true
 dirs.workspace = true
 serde_json.workspace = true
 shlex.workspace = true
 tabled.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true
+enum-iterator.workspace = true
 
 nym-diagnostic.workspace = true
 nym-favorites.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
-nym-vpn-lib-types = { workspace = true, features = ["serde"] }
+nym-vpn-lib-types = { workspace = true, features = ["clap", "serde"] }
 
 # Debian
 [package.metadata.deb]

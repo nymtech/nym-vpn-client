@@ -61,7 +61,7 @@
 //! )
 //! let offlineMonitor = await NymOfflineMonitor()
 //!
-//! let gatewayCache = try await NymGatewayCache(
+//! let gatewayCache = try await NymGatewayCache.spawn(
 //!     userAgent: userAgent,
 //!     environment: environment,
 //!     offlineMonitor: offlineMonitor

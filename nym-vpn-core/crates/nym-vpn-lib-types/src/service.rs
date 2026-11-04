@@ -42,15 +42,14 @@ pub struct VpnServiceConfig {
     pub allow_lan: bool,
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
     pub enable_ad_blocking: bool,
     pub enable_conflict_detection: bool,
     pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
-    pub enable_custom_dns: bool,
-    pub custom_dns: Vec<IpAddr>,
+    pub custom_dns: CustomDnsSettings,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
@@ -85,13 +84,8 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
         writeln!(
             f,
-            "enable_custom_dns: {}, custom_dns: {}",
-            self.enable_custom_dns,
-            self.custom_dns
-                .iter()
-                .map(|ip| ip.to_string())
-                .collect::<Vec<_>>()
-                .join(", ")
+            "custom_dns: enabled: {}, servers: {:?}",
+            self.custom_dns.enabled, self.custom_dns.dns_servers
         )?;
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
@@ -121,15 +115,14 @@ impl Default for VpnServiceConfig {
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: true,
-            enable_bridges: false,
+            bridge_mode: BridgeMode::default(),
             enable_ad_blocking: false,
             enable_conflict_detection: true,
             fronting_mode: FrontingMode::default(),
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
-            enable_custom_dns: false,
-            custom_dns: vec![],
+            custom_dns: CustomDnsSettings::default(),
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
@@ -145,15 +138,6 @@ impl Default for VpnServiceConfig {
 pub fn default_vpn_service_config() -> VpnServiceConfig {
     VpnServiceConfig::default()
 }
-
-#[cfg(feature = "uniffi-bindings")]
-pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
-#[cfg(feature = "uniffi-bindings")]
-uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
-    remote,
-    try_lift: |val| Ok(Box::new(val)),
-    lower: |val| *val
-});
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[cfg_attr(
@@ -425,6 +409,34 @@ impl ContinuousTrafficSendingRate {
     }
 }
 
+/// How the WireGuard tunnel uses bridges (QUIC).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+pub enum BridgeMode {
+    /// Plain WireGuard first, then bridges when an attempt fails.
+    Auto,
+    /// Bridges only.
+    On,
+    /// Plain WireGuard only.
+    #[default]
+    Off,
+}
+
+impl From<bool> for BridgeMode {
+    fn from(enable_bridges: bool) -> Self {
+        if enable_bridges { Self::On } else { Self::Off }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
@@ -571,6 +583,217 @@ impl Default for GeoExclusionSettings {
     }
 }
 
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct CustomDnsSettings {
+    /// Use `dns_servers` instead of the default DNS servers when there is at least one.
+    pub enabled: bool,
+    pub dns_servers: Vec<DnsServer>,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum PlainDnsProtocol {
+    Udp,
+    Tcp,
+    UdpAndTcp,
+}
+
+impl std::fmt::Display for PlainDnsProtocol {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Udp => "udp",
+            Self::Tcp => "tcp",
+            Self::UdpAndTcp => "udp/tcp",
+        })
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum DnsServer {
+    Plain {
+        address: IpAddr,
+        port: Option<u16>,
+        ip_proto: PlainDnsProtocol,
+    },
+    Tls {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+    },
+    Https {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+        /// Defaults to '/dns-query' when unspecified
+        query_path: Option<String>,
+    },
+    Quic {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+    },
+    Http3 {
+        address: IpAddr,
+        port: Option<u16>,
+        server_name: String,
+        /// Defaults to '/dns-query' when unspecified
+        query_path: Option<String>,
+    },
+}
+
+impl DnsServer {
+    pub fn address(&self) -> IpAddr {
+        match self {
+            Self::Plain { address, .. } => *address,
+            Self::Tls { address, .. } => *address,
+            Self::Https { address, .. } => *address,
+            Self::Quic { address, .. } => *address,
+            Self::Http3 { address, .. } => *address,
+        }
+    }
+
+    /// Returns server name in the given DNS configuration if present, otherwise `None`
+    pub fn server_name(&self) -> Option<&String> {
+        match self {
+            Self::Plain { .. } => None,
+            Self::Tls { server_name, .. } => Some(server_name),
+            Self::Https { server_name, .. } => Some(server_name),
+            Self::Quic { server_name, .. } => Some(server_name),
+            Self::Http3 { server_name, .. } => Some(server_name),
+        }
+    }
+
+    /// Returns `true` if server name is set to empty string
+    pub fn is_empty_server_name(&self) -> bool {
+        self.server_name().is_some_and(|v| v.is_empty())
+    }
+
+    /// Replaces port 0 with `None` so that the default port is used
+    pub fn normalize_port(&mut self) {
+        let port = match self {
+            Self::Plain { port, .. }
+            | Self::Tls { port, .. }
+            | Self::Https { port, .. }
+            | Self::Quic { port, .. }
+            | Self::Http3 { port, .. } => port,
+        };
+        if *port == Some(0) {
+            *port = None;
+        }
+    }
+
+    /// Prepends `/` to the query path if it's missing
+    pub fn normalize_query_path(&mut self) {
+        let query_path = match self {
+            Self::Https { query_path, .. } | Self::Http3 { query_path, .. } => query_path.as_mut(),
+            Self::Plain { .. } | Self::Tls { .. } | Self::Quic { .. } => None,
+        };
+        if let Some(path) = query_path
+            && !path.starts_with('/')
+        {
+            path.insert(0, '/');
+        }
+    }
+}
+
+impl std::fmt::Display for DnsServer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Plain {
+                address,
+                port,
+                ip_proto,
+            } => {
+                write!(f, "plain: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, " {}", ip_proto)
+            }
+            Self::Tls {
+                address,
+                port,
+                server_name,
+            } => {
+                write!(f, "tls: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)
+            }
+            Self::Https {
+                address,
+                port,
+                server_name,
+                query_path,
+            } => {
+                write!(f, "https: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)?;
+                if let Some(query_path) = query_path {
+                    write!(f, ", query-path: {}", query_path)?;
+                }
+                Ok(())
+            }
+            Self::Quic {
+                address,
+                port,
+                server_name,
+            } => {
+                write!(f, "quic: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)
+            }
+            Self::Http3 {
+                address,
+                port,
+                server_name,
+                query_path,
+            } => {
+                write!(f, "h3: {}", address)?;
+                if let Some(port) = port {
+                    write!(f, ", port = {}", port)?;
+                }
+                write!(f, ", server-name: {}", server_name)?;
+                if let Some(query_path) = query_path {
+                    write!(f, ", query-path: {}", query_path)?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
 /// The target tunnel state.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
@@ -620,4 +843,89 @@ pub struct VpnServiceInfo {
     pub git_commit: String,
     pub nym_network: NymNetworkDetails,
     pub nym_vpn_network: NymVpnNetwork,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::Ipv4Addr;
+
+    use super::*;
+
+    fn https(query_path: Option<&str>) -> DnsServer {
+        DnsServer::Https {
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port: None,
+            server_name: "dns.example".to_owned(),
+            query_path: query_path.map(str::to_owned),
+        }
+    }
+
+    fn http3(query_path: Option<&str>) -> DnsServer {
+        DnsServer::Http3 {
+            address: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            port: None,
+            server_name: "dns.example".to_owned(),
+            query_path: query_path.map(str::to_owned),
+        }
+    }
+
+    #[test]
+    fn normalize_port() {
+        let address = IpAddr::V4(Ipv4Addr::LOCALHOST);
+        let server_name = "dns.example".to_owned();
+        let make_all = |port: Option<u16>| {
+            [
+                DnsServer::Plain {
+                    address,
+                    port,
+                    ip_proto: PlainDnsProtocol::UdpAndTcp,
+                },
+                DnsServer::Tls {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                },
+                DnsServer::Https {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                    query_path: None,
+                },
+                DnsServer::Quic {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                },
+                DnsServer::Http3 {
+                    address,
+                    port,
+                    server_name: server_name.clone(),
+                    query_path: None,
+                },
+            ]
+        };
+
+        for (input, expected) in [(None, None), (Some(0), None), (Some(5353), Some(5353))] {
+            for (mut server, expected) in make_all(input).into_iter().zip(make_all(expected)) {
+                server.normalize_port();
+                assert_eq!(server, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn normalize_query_path() {
+        for make in [https, http3] {
+            for (input, expected) in [
+                (None, None),
+                (Some(""), Some("/")),
+                (Some("dns-query"), Some("/dns-query")),
+                (Some("/dns-query"), Some("/dns-query")),
+            ] {
+                let mut server = make(input);
+                server.normalize_query_path();
+                assert_eq!(server, make(expected));
+            }
+        }
+    }
 }

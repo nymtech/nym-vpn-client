@@ -121,7 +121,7 @@ actor GatewayWorker {
                 logger.info("Setup gateway cache with \(String(describing: networkName))")
 
                 let offlineMonitor = await NymOfflineMonitor()
-                let gatewayCache = try await NymGatewayCache(
+                let gatewayCache = try await NymGatewayCache.spawn(
                     userAgent: .appUserAgent,
                     environment: configurationManager.networkEnv ?? .newWithMainnetFallback(),
                     offlineMonitor: offlineMonitor,

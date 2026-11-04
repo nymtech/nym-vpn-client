@@ -1,5 +1,6 @@
 import Foundation
 import NymVPNLib
+import ConnectionTypes
 import Constants
 import ErrorReason
 import TunnelStatus
@@ -13,7 +14,8 @@ extension GRPCManager {
             connectionInfoData = ConnectionInfoData(
                 entryGatewayId: details.entryGateway.id,
                 exitGatewayId: details.exitGateway.id,
-                tunnelType: ConnectionTunnelType(details.tunnel)
+                tunnelType: ConnectionTunnelType(details.tunnel),
+                bridgeTransport: details.tunnel.bridgeTransportName
             )
         case let .connecting(
             retryAttempt: retryAttempt,
@@ -28,7 +30,8 @@ extension GRPCManager {
             connectionInfoData = ConnectionInfoData(
                 entryGatewayId: connectionData?.entryGateway.id,
                 exitGatewayId: connectionData?.exitGateway.id,
-                tunnelType: ConnectionTunnelType(tunnelType)
+                tunnelType: ConnectionTunnelType(tunnelType),
+                bridgeTransport: connectionData?.tunnel?.bridgeTransportName
             )
         case .disconnected:
             tunnelStatus = .disconnected

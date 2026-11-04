@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui
 
+import androidx.annotation.StringRes
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.domain.Gateways
@@ -15,6 +16,7 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewayLightInfo
 
 data class AppUiState(
 	val settings: Settings = Settings(),
@@ -26,13 +28,45 @@ data class AppUiState(
 	val hasSubscriptionHistory: Boolean = false,
 ) {
 
+	// Derived from the live entry/exit/hop-mode combination only
+	val currentProfile: Profile? = run {
+		val entry = vpnConfig.entryPoint
+		val exit = vpnConfig.exitPoint
+		when {
+			entry is EntryPoint.Auto &&
+				exit is ExitPoint.Auto &&
+				entry.excludeUserCountry &&
+				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.SAFEST
+			entry is EntryPoint.Auto &&
+				exit is ExitPoint.Auto &&
+				entry.excludeUserCountry &&
+				vpnConfig.mode == Tunnel.Mode.FIVE_HOP_MIXNET -> Profile.MOST_PRIVATE
+			entry is EntryPoint.Auto &&
+				exit is ExitPoint.Auto &&
+				!entry.excludeUserCountry &&
+				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.FASTEST
+			entry is EntryPoint.Random &&
+				exit is ExitPoint.Random &&
+				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.RANDOM
+			else -> null
+		}
+	}
+
+	@StringRes
+	private val autoTitleRes: Int = currentProfile?.titleRes ?: R.string.profiles_safest_title
+
+	// Carries the country even when the gateway list is not cached yet
+	private val connectedEntryGateway: GatewayLightInfo?
+		get() = managerState.connectionData?.entryGateway?.takeIf { managerState.tunnelState != Tunnel.State.Down }
+
+	private val connectedExitGateway: GatewayLightInfo?
+		get() = managerState.connectionData?.exitGateway?.takeIf { managerState.tunnelState != Tunnel.State.Down }
+
 	private val effectiveEntryPoint: EntryPoint
 		get() {
 			if (vpnConfig.entryPoint is EntryPoint.Random || vpnConfig.entryPoint is EntryPoint.Auto) {
-				if (managerState.tunnelState != Tunnel.State.Down) {
-					managerState.connectionData?.entryGateway?.id?.let { id ->
-						return EntryPoint.Gateway(identity = id)
-					}
+				connectedEntryGateway?.id?.let { id ->
+					return EntryPoint.Gateway(identity = id)
 				}
 			}
 			return vpnConfig.entryPoint
@@ -41,17 +75,20 @@ data class AppUiState(
 	private val effectiveExitPoint: ExitPoint
 		get() {
 			if (vpnConfig.exitPoint is ExitPoint.Random || vpnConfig.exitPoint is ExitPoint.Auto) {
-				if (managerState.tunnelState != Tunnel.State.Down) {
-					managerState.connectionData?.exitGateway?.id?.let { id ->
-						return ExitPoint.Gateway(identity = id)
-					}
+				connectedExitGateway?.id?.let { id ->
+					return ExitPoint.Gateway(identity = id)
 				}
 			}
 			return vpnConfig.exitPoint
 		}
 
+	private fun connectedEntryCountry(identity: String): String? = connectedEntryGateway?.takeIf { it.id == identity }?.countryCode?.lowercase()
+
+	private fun connectedExitCountry(identity: String): String? = connectedExitGateway?.takeIf { it.id == identity }?.countryCode?.lowercase()
+
 	val entryPointCountry = when (val entry = effectiveEntryPoint) {
 		is EntryPoint.Gateway -> entryGateways().firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
+			?: connectedEntryCountry(entry.identity)
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode
 		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.twoLetterCountryISO
 		else -> null
@@ -60,6 +97,7 @@ data class AppUiState(
 	val exitPointCountry = when (val exit = effectiveExitPoint) {
 		is ExitPoint.Address -> null
 		is ExitPoint.Gateway -> exitGateways().firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
+			?: connectedExitCountry(exit.identity)
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode
 		is ExitPoint.Region -> exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.twoLetterCountryISO
 		else -> null
@@ -94,49 +132,53 @@ data class AppUiState(
 	}
 
 	val entryPointName: StringValue = when (val entry = effectiveEntryPoint) {
-		is EntryPoint.Gateway -> {
-			StringValue.DynamicString(entryGateways().firstOrNull { it.identity == entry.identity }?.name ?: entry.identity)
-		}
+		is EntryPoint.Gateway -> StringValue.DynamicString(
+			entryGateways().firstOrNull { it.identity == entry.identity }?.name
+				?: connectedEntryCountry(entry.identity)?.let(::toDisplayCountry)
+				?: entry.identity,
+		)
 		is EntryPoint.Country -> StringValue.DynamicString(entry.toDisplayCountry())
 		is EntryPoint.Region -> StringValue.DynamicString(
 			entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region,
 		)
-		is EntryPoint.Auto -> StringValue.StringResource(R.string.profiles_safest_title)
+		is EntryPoint.Auto -> StringValue.StringResource(autoTitleRes)
 		is EntryPoint.Random -> StringValue.StringResource(R.string.profiles_random_title)
 	}
 
 	val exitPointName: StringValue = when (val exit = effectiveExitPoint) {
 		is ExitPoint.Address -> StringValue.DynamicString(exit.address)
-		is ExitPoint.Gateway -> {
-			StringValue.DynamicString(exitGateways().firstOrNull { it.identity == exit.identity }?.name ?: exit.identity)
-		}
+		is ExitPoint.Gateway -> StringValue.DynamicString(
+			exitGateways().firstOrNull { it.identity == exit.identity }?.name
+				?: connectedExitCountry(exit.identity)?.let(::toDisplayCountry)
+				?: exit.identity,
+		)
 		is ExitPoint.Country -> StringValue.DynamicString(exit.toDisplayCountry())
 		is ExitPoint.Region -> StringValue.DynamicString(
 			exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region,
 		)
-		is ExitPoint.Auto -> StringValue.StringResource(R.string.profiles_safest_title)
+		is ExitPoint.Auto -> StringValue.StringResource(autoTitleRes)
 		is ExitPoint.Random -> StringValue.StringResource(R.string.profiles_random_title)
 	}
 
-	val entryPointLocation: String? = when (val entry = effectiveEntryPoint) {
-		is EntryPoint.Country -> entryPointGateway.serverLocationOnCountrySelection(entry.twoLetterIsoCountryCode)
+	val entryPointLocation: StringValue? = when (val entry = effectiveEntryPoint) {
+		is EntryPoint.Country -> entryPointGateway.serverLocationOnCountrySelection(entry.twoLetterIsoCountryCode)?.let(StringValue::DynamicString)
 		is EntryPoint.Gateway -> entryGateways().firstOrNull {
 			it.identity == entry.identity
-		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
-		is EntryPoint.Region -> entryPointGateway?.serverLocationOnRegionSelection()
-		is EntryPoint.Auto -> if (entry.excludeUserCountry) "Excluding your country" else "Including your country"
-		is EntryPoint.Random -> "Global Nym network"
+		}?.let { StringValue.DynamicString(it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty())) }
+		is EntryPoint.Region -> entryPointGateway?.serverLocationOnRegionSelection()?.let(StringValue::DynamicString)
+		is EntryPoint.Auto -> autoLocation(entry.excludeUserCountry)
+		is EntryPoint.Random -> StringValue.StringResource(R.string.node_location_random)
 		else -> null
 	}
 
-	val exitPointLocation: String? = when (val exit = effectiveExitPoint) {
-		is ExitPoint.Country -> exitPointGateway.serverLocationOnCountrySelection(exit.twoLetterIsoCountryCode)
+	val exitPointLocation: StringValue? = when (val exit = effectiveExitPoint) {
+		is ExitPoint.Country -> exitPointGateway.serverLocationOnCountrySelection(exit.twoLetterIsoCountryCode)?.let(StringValue::DynamicString)
 		is ExitPoint.Gateway -> exitGateways().firstOrNull {
 			it.identity == exit.identity
-		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
-		is ExitPoint.Region -> exitPointGateway?.serverLocationOnRegionSelection()
-		is ExitPoint.Auto -> if (exit.excludeUserCountry) "Excluding your country" else "Including your country"
-		is ExitPoint.Random -> "Global Nym network"
+		}?.let { StringValue.DynamicString(it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty())) }
+		is ExitPoint.Region -> exitPointGateway?.serverLocationOnRegionSelection()?.let(StringValue::DynamicString)
+		is ExitPoint.Auto -> autoLocation(exit.excludeUserCountry)
+		is ExitPoint.Random -> StringValue.StringResource(R.string.node_location_random)
 		else -> null
 	}
 
@@ -155,29 +197,9 @@ data class AppUiState(
 		else -> null
 	}
 
-	// Derived from the live entry/exit/hop-mode combination only
-	val currentProfile: Profile? = run {
-		val entry = vpnConfig.entryPoint
-		val exit = vpnConfig.exitPoint
-		when {
-			entry is EntryPoint.Auto &&
-				exit is ExitPoint.Auto &&
-				entry.excludeUserCountry &&
-				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.SAFEST
-			entry is EntryPoint.Auto &&
-				exit is ExitPoint.Auto &&
-				entry.excludeUserCountry &&
-				vpnConfig.mode == Tunnel.Mode.FIVE_HOP_MIXNET -> Profile.MOST_PRIVATE
-			entry is EntryPoint.Auto &&
-				exit is ExitPoint.Auto &&
-				!entry.excludeUserCountry &&
-				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.FASTEST
-			entry is EntryPoint.Random &&
-				exit is ExitPoint.Random &&
-				vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET -> Profile.RANDOM
-			else -> null
-		}
-	}
+	private fun autoLocation(excludeUserCountry: Boolean): StringValue = StringValue.StringResource(
+		if (excludeUserCountry) R.string.node_location_excluding_country else R.string.node_location_including_country,
+	)
 
 	private fun entryGateways(): List<NymGateway> = when (vpnConfig.mode) {
 		Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways

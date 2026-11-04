@@ -29,7 +29,7 @@ public struct GatewayCell: View {
     private var shouldShowQuic: Bool {
         hopType == .entry
         && connectionManager.connectionType == .wireguard
-        && appSettings.isQuicEnabled
+        && appSettings.bridgeMode == .on
     }
 
     private var shouldShowStreaming: Bool {

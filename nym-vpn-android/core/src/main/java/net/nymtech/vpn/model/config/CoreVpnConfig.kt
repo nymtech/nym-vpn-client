@@ -1,6 +1,7 @@
 package net.nymtech.vpn.model.config
 
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
@@ -28,7 +29,7 @@ data class CoreVpnConfig(
 	val exitPoint: ExitPoint = ExitPoint.Auto(excludeEntryPointCountry = true, excludeUserCountry = true),
 	val mode: Tunnel.Mode = Tunnel.Mode.TWO_HOP_MIXNET,
 	val bypassLan: Boolean = false,
-	val enableBridges: Boolean = false,
+	val bridgeMode: BridgeMode = BridgeMode.OFF,
 	val customDnsEnabled: Boolean = false,
 	val customDns: List<String> = emptyList(),
 	val restrictedApps: List<String> = emptyList(),

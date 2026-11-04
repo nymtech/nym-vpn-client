@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2640"
+   LastUpgradeVersion = "2700"
    wasCreatedForAppExtension = "YES"
    version = "1.7">
    <BuildAction
@@ -44,17 +44,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D9EACBC22BBFFE340094CDDF"
-               BuildableName = "NymVPNTests.xctest"
-               BlueprintName = "NymVPNTests"
-               ReferencedContainer = "container:NymVPN.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
          <TestableReference
             skipped = "NO"
             parallelizable = "YES">

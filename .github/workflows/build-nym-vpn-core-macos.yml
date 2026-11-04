@@ -170,12 +170,6 @@ jobs:
         with:
           crate: toml-cli
 
-      - name: Install cargo-swift
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-swift
-          version: ${{ env.CARGO_SWIFT_VERSION }}
-
       - name: Apply orchestrated version
         uses: ./.github/actions/apply-version
         with:

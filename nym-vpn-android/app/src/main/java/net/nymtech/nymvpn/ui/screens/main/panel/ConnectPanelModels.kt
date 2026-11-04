@@ -24,4 +24,5 @@ data class ConnectPanelState(
 	val initialPanelState: PanelState,
 	val isSubscriptionExpired: Boolean = false,
 	val hasSubscriptionHistory: Boolean = false,
+	val bridgeText: String? = null,
 )

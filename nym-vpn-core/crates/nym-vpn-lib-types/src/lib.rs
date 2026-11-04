@@ -68,9 +68,9 @@ pub use account::{
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
-    BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
-    GatewayLightInfo, MixnetConnectionData, NymAddress, SelectorFallbackState,
-    TunnelConnectionData, WireguardConnectionData, WireguardNode,
+    BridgeAddress, BridgeTransport, ConnectionData, EstablishConnectionData,
+    EstablishConnectionState, GatewayId, GatewayLightInfo, MixnetConnectionData, NymAddress,
+    SelectorFallbackState, TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use diagnostic::{
@@ -104,9 +104,10 @@ pub use rpc_requests::{
 #[cfg(feature = "uniffi-bindings")]
 pub use service::default_vpn_service_config;
 pub use service::{
-    BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, FrontingMode, GeoExclusionSettings,
-    MixingDelay, MixnetTrafficConfig, MixnetTrafficConfigValidationError, MixnetTrafficDefaults,
-    SplitApp, SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
+    BackgroundCoverTrafficRate, BridgeMode, ContinuousTrafficSendingRate, CustomDnsSettings,
+    DnsServer, FrontingMode, GeoExclusionSettings, MixingDelay, MixnetTrafficConfig,
+    MixnetTrafficConfigValidationError, MixnetTrafficDefaults, PlainDnsProtocol, SplitApp,
+    SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
 };
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};

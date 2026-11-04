@@ -65,14 +65,14 @@ extension ConnectionManager {
         }
     }
 
-    public func setBridges(_ enabled: Bool) {
-        appSettings.isQuicEnabled = enabled
-        connectionConfig.enableBridges = enabled
+    public func setBridgeMode(_ mode: BridgeModeSetting) {
+        appSettings.bridgeMode = mode
+        connectionConfig.bridgeMode = mode
         Task {
 #if os(iOS)
-            try? await sendAfterPersistingConfig(.setEnableBridges(enabled))
+            try? await sendAfterPersistingConfig(.setBridgeMode(mode))
 #elseif os(macOS)
-            try? await grpcManager.setEnableBridges(enabled)
+            try? await grpcManager.setBridgeMode(mode)
 #endif
         }
     }

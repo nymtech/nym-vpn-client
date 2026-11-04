@@ -1,6 +1,7 @@
 package net.nymtech.vpn.config
 
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
@@ -148,7 +149,7 @@ class CoreVpnConfigStore(private val context: Context) {
 			exitPoint = exit,
 			mode = mode,
 			bypassLan = localPrefs.bypassLan,
-			enableBridges = this[KEY_BRIDGES] ?: false,
+			bridgeMode = if (this[KEY_BRIDGES] == true) BridgeMode.ON else BridgeMode.OFF,
 			customDnsEnabled = this[KEY_CUSTOM_DNS_ENABLED] ?: false,
 			customDns = decodeList(this[KEY_CUSTOM_DNS_LIST]).take(MAX_DNS),
 			restrictedApps = localPrefs.restrictedApps,

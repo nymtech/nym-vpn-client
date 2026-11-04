@@ -154,6 +154,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 			override fun isPrivyEnabled(): Boolean? = true
 			override fun isDomainFrontingEnabled(): Boolean? = true
 			override fun isQuicEnabled(): Boolean? = true
+			override fun isBridgeTransportsEnabled(): Boolean? = true
 			override fun getGroupFlag(groupName: String, flagName: String): Boolean? = null
 		}
 

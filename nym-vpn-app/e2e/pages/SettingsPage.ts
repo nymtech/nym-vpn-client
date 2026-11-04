@@ -13,7 +13,7 @@ class SettingsPage {
   readonly accountId: Locator;
   readonly deviceId: Locator;
   readonly getStartedButton: Locator;
-  readonly quicToggle: Locator;
+  readonly bridgeModeGroup: Locator;
   readonly amneziaToggle: Locator;
   readonly stealthApiToggle: Locator;
   readonly viewDefaultDnsButton: Locator;
@@ -47,9 +47,7 @@ class SettingsPage {
     this.deviceId = page.getByText('Device ID', { exact: true });
     this.getStartedButton = page.getByRole('button', { name: 'Get started' });
 
-    this.quicToggle = page.getByRole('button', {
-      name: /Enhanced connection \(QUIC\)/,
-    });
+    this.bridgeModeGroup = page.getByTestId('bridge-mode-radio-group');
     this.amneziaToggle = page.getByRole('button', {
       name: /Minimal obfuscation \(AmneziaWG\)/,
     });
@@ -101,6 +99,12 @@ class SettingsPage {
 
   async openRow(label: string | RegExp) {
     await this.row(label).click();
+  }
+
+  bridgeModeOption(mode: 'off' | 'auto' | 'on'): Locator {
+    return this.bridgeModeGroup.getByTestId(
+      `bridge-mode-radio-group-option-${mode}`,
+    );
   }
 }
 

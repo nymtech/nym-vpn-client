@@ -4,6 +4,7 @@
 mod account;
 #[cfg(any(target_os = "android", target_os = "ios", test))]
 mod blocking_tun;
+mod custom_dns;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
 mod entry_blame;
@@ -55,6 +56,8 @@ use crate::{
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
+use custom_dns::DnsServerExt;
+pub(crate) use custom_dns::dns_servers_from_hickory_config;
 
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
@@ -83,11 +86,11 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle, NodeIdentity};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConflictDetected, ConnectionData,
-    DiagnosticsSuggestionReason, EntryPoint, ErrorStateReason, EstablishConnectionData,
-    EstablishConnectionState, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, SelectorFallbackState, SplitTunnelSettings, TunnelEvent, TunnelState,
-    TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, BridgeMode, ConflictDetected,
+    ConnectionData, DiagnosticsSuggestionReason, DnsServer, EntryPoint, ErrorStateReason,
+    EstablishConnectionData, EstablishConnectionState, ExitPoint, GatewayIndependence,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, SelectorFallbackState,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -265,14 +268,13 @@ impl TunnelSettings {
 
         let mut config = match self.dns {
             DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref addrs) => {
-                if addrs.is_empty() {
+            DnsOptions::Custom(ref dns_servers) => {
+                if dns_servers.is_empty() {
                     defaults()
                 } else {
-                    addrs
+                    dns_servers
                         .iter()
-                        .cloned()
-                        .map(NameServerConfig::udp_and_tcp)
+                        .map(|ns| ns.to_name_server_config())
                         .collect()
                 }
             }
@@ -281,7 +283,7 @@ impl TunnelSettings {
         ResolverConfig(config)
     }
 
-    /// Returns IP addresses of the DNS servers suitable for Android DNS configuraiton.
+    /// Returns IP addresses of the DNS servers suitable for Android DNS configuration.
     ///
     /// If Private DNS is enabled, these IPs will be probed for DoT before falling back to UDP/TCP.
     #[cfg(target_os = "android")]
@@ -304,13 +306,22 @@ impl TunnelSettings {
                 .collect()
         };
 
-        let mut addrs = match self.dns {
+        let mut addrs: Vec<IpAddr> = match self.dns {
             DnsOptions::Default => defaults(),
-            DnsOptions::Custom(ref addrs) => {
-                if addrs.is_empty() {
+            DnsOptions::Custom(ref dns_servers) => {
+                if dns_servers.is_empty() {
                     defaults()
                 } else {
-                    addrs.clone()
+                    let mut seen = HashSet::new();
+                    dns_servers
+                        .iter()
+                        .filter(|dns_server| {
+                            // Android only supports TCP/UDP 53 and TLS (853)
+                            matches!(dns_server, DnsServer::Tls { .. } | DnsServer::Plain { .. })
+                        })
+                        .map(|dns_server| dns_server.address())
+                        .filter(|ip| seen.insert(*ip))
+                        .collect()
                 }
             }
         };
@@ -321,29 +332,17 @@ impl TunnelSettings {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub fn allowed_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
         match self.dns {
-            DnsOptions::Custom(ref addrs) => {
-                if addrs.is_empty() {
+            DnsOptions::Custom(ref dns_servers) => {
+                if dns_servers.is_empty() {
                     self.allowed_default_dns_endpoints()
                 } else {
-                    addrs
+                    dns_servers
                         .iter()
-                        .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-                        .copied()
-                        .flat_map(|ip| {
-                            // todo: add support for DoH/DoT in custom DNS options
-                            [
-                                nym_firewall::Endpoint::new(
-                                    ip,
-                                    53,
-                                    nym_firewall::TransportProtocol::Udp,
-                                ),
-                                nym_firewall::Endpoint::new(
-                                    ip,
-                                    53,
-                                    nym_firewall::TransportProtocol::Tcp,
-                                ),
-                            ]
+                        .filter(|dns_server| {
+                            let ip = dns_server.address();
+                            ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6)
                         })
+                        .flat_map(|dns_server| dns_server.firewall_endpoints())
                         .collect()
                 }
             }
@@ -370,11 +369,6 @@ impl TunnelSettings {
                 })
             })
             .collect::<Vec<_>>()
-    }
-
-    pub fn bridges_enabled(&self) -> bool {
-        matches!(self.tunnel_type_used(), TunnelType::Wireguard)
-            && self.wireguard_tunnel_options.enable_bridges
     }
 
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
@@ -404,8 +398,8 @@ impl TunnelSettings {
         if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
             diff.add(TunnelSettingsDiffFields::WireguardTunnelOptions);
             // We care about just the QUIC setting changing.
-            if self.wireguard_tunnel_options.enable_bridges
-                != other.wireguard_tunnel_options.enable_bridges
+            if self.wireguard_tunnel_options.bridge_mode
+                != other.wireguard_tunnel_options.bridge_mode
             {
                 diff.add(TunnelSettingsDiffFields::QUIC);
             }
@@ -503,8 +497,9 @@ impl TunnelSettingsDiffFields {
             | Self::GatewaySelectionAlgorithmConfig
             | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
-                // On android reconnect is necessary due to packet filtering used for adblocking.
-                cfg!(target_os = "android")
+                // On Android reconnect is necessary due to packet filtering used for adblocking.
+                // On iOS reconnect is necessary because there is no other way to flush DNS cache.
+                cfg!(any(target_os = "android", target_os = "ios"))
             }
             Self::AllowLan
             | Self::EnableConflictDetection
@@ -617,14 +612,14 @@ pub enum WireguardMultihopMode {
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
-    pub enable_bridges: bool,
+    pub bridge_mode: BridgeMode,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub enum DnsOptions {
     #[default]
     Default,
-    Custom(Vec<IpAddr>),
+    Custom(Vec<DnsServer>),
 }
 
 #[derive(Debug)]
@@ -1061,11 +1056,11 @@ impl SharedState {
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 
-    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings) {
+    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings, use_bridges: bool) {
         self.tunnel_settings = tunnel_settings.clone();
         if let Err(err) = self
             .gateway_provider
-            .set_tunnel_settings(tunnel_settings)
+            .set_tunnel_settings(tunnel_settings, use_bridges)
             .await
         {
             tracing::error!("Could not update gateway provider with new tunnel settings: {err:?}");
@@ -1537,19 +1532,21 @@ impl TunnelStateMachine {
                     self.current_state_handler = new_state_handler;
 
                     let state = TunnelState::from(new_state);
-                    tracing::info!("New tunnel state: {}", state);
-                    self.shared_state
-                        .statistics_event_sender
-                        .report_tunnel_state(state.clone());
-                    let diagnostics_suggestion =
-                        self.diagnostics_suggestion_tracker.observe(&state);
-                    self.current_state = state.clone();
-                    let _ = self.event_sender.send(TunnelEvent::NewState(state));
-                    if let Some(reason) = diagnostics_suggestion {
-                        tracing::info!("Suggesting diagnostics: {reason}");
-                        let _ = self
-                            .event_sender
-                            .send(TunnelEvent::DiagnosticsSuggested(reason));
+                    if state != self.current_state {
+                        tracing::info!("New tunnel state: {}", state);
+                        self.shared_state
+                            .statistics_event_sender
+                            .report_tunnel_state(state.clone());
+                        let diagnostics_suggestion =
+                            self.diagnostics_suggestion_tracker.observe(&state);
+                        self.current_state = state.clone();
+                        let _ = self.event_sender.send(TunnelEvent::NewState(state));
+                        if let Some(reason) = diagnostics_suggestion {
+                            tracing::info!("Suggesting diagnostics: {reason}");
+                            let _ = self
+                                .event_sender
+                                .send(TunnelEvent::DiagnosticsSuggested(reason));
+                        }
                     }
                 }
                 NextTunnelState::SameState(same_state) => {

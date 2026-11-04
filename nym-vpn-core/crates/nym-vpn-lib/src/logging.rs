@@ -20,6 +20,7 @@ use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
 use tracing_opentelemetry::get_otel_context;
 use tracing_subscriber::{
     EnvFilter, Layer,
+    filter::{LevelFilter, filter_fn},
     fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
     layer::SubscriberExt,
     registry::LookupSpan,
@@ -49,7 +50,12 @@ static INFO_TARGETS: [&str; 16] = [
     "hickory_net",
 ];
 
-static WARN_TARGETS: [&str; 3] = ["hickory_server", "quinn::connection", "zbus"];
+static WARN_TARGETS: [&str; 4] = [
+    "hickory_server",
+    "quinn::connection",
+    "zbus",
+    "nym_socks5_client_core",
+];
 
 pub struct Options {
     pub verbosity_level: Level,
@@ -464,11 +470,16 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
 
     // Sentry
     let sentry_layer = if options.sentry {
-        Some(sentry_tracing::layer().event_filter(|md| match md.level() {
-            &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
-            &Level::TRACE => sentry_tracing::EventFilter::Ignore,
-            _ => sentry_tracing::EventFilter::Breadcrumb,
-        }))
+        Some(
+            sentry_tracing::SpanLayer::new()
+                .with_filter(LevelFilter::INFO)
+                .and_then(
+                    sentry_tracing::BreadcrumbLayer::new().with_filter(filter_fn(|md| {
+                        matches!(*md.level(), Level::INFO | Level::DEBUG)
+                    })),
+                )
+                .and_then(sentry_tracing::ErrorLayer::new().with_filter(LevelFilter::WARN)),
+        )
     } else {
         None
     };

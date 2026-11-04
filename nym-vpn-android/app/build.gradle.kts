@@ -128,6 +128,15 @@ android {
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
 		}
 
+		// Debug build with the production app ID and name for Play billing
+		create(Constants.PLAYTEST) {
+			initWith(buildTypes.getByName("debug"))
+			applicationIdSuffix = null
+			resValue("string", "app_name", "NymVPN")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
+			matchingFallbacks += listOf("debug")
+		}
+
 		create(Constants.PRERELEASE) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".prerelease"
@@ -208,6 +217,9 @@ androidComponents {
 androidComponents {
 	beforeVariants(selector().withFlavor("type" to "mock")) { variant ->
 		variant.enable = variant.buildType == "debug"
+	}
+	beforeVariants(selector().withBuildType(Constants.PLAYTEST)) { variant ->
+		variant.enable = variant.flavorName == Constants.GENERAL
 	}
 }
 

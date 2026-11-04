@@ -48,9 +48,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.PLAY_SUBSCRIPTIONS_URL
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -95,6 +99,8 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 	val supportURL = stringResource(R.string.contact_url)
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+	LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.loadPlaySubscription() }
 
 	LaunchedEffect(appUiState.managerState.isMnemonicStored) {
 		loggingOut = false
@@ -158,14 +164,20 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		subscriptionState = appUiState.subscription,
 		bandwidthState = uiState.bandwidth,
 		onManageClick = {
-			if (isAccountNotActive) {
-				appViewModel.registerAccountInBackground()
-				navController.goFromRoot(Route.SelectPlan)
-			} else {
-				deviceAuth.request(DeviceAuthAction.MANAGE_SUBSCRIPTION)
+			when {
+				isAccountNotActive -> {
+					appViewModel.registerAccountInBackground()
+					navController.goFromRoot(Route.SelectPlan)
+				}
+				isPlayDistribution && uiState.hasPlaySubscription == false ->
+					SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_manage_play_unavailable))
+				isPlayDistribution -> context.openWebUrl(PLAY_SUBSCRIPTIONS_URL)
+				else -> deviceAuth.request(DeviceAuthAction.MANAGE_SUBSCRIPTION)
 			}
 		},
-		onRenewClick = { deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION) },
+		onRenewClick = {
+			if (isPlayDistribution) navController.goFromRoot(Route.SelectPlan) else deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
+		},
 		onLinkAccountClick = { deviceAuth.request(DeviceAuthAction.LINK_SOCIAL) },
 		onAccountIdClick = {
 			if (uiState.accountId.isNotEmpty()) {

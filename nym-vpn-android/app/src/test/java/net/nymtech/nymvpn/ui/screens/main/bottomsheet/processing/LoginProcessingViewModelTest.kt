@@ -19,6 +19,7 @@ import net.nymtech.vpn.model.RecentGateways
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AutologinResponse
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
@@ -204,8 +205,8 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override suspend fun setStatsDialogSkipped(skip: Boolean) = Unit
 	override suspend fun setTechnicalOptScreenCompleted() = Unit
 	override suspend fun isTechnicalOptScreenCompleted(): Boolean = technicalOptCompleted
-	override suspend fun getQUICEnabled(): Boolean = false
-	override suspend fun setQUICEnabled(enabled: Boolean) = Unit
+	override suspend fun getBridgeMode(): BridgeMode = BridgeMode.OFF
+	override suspend fun setBridgeMode(mode: BridgeMode) = Unit
 	override suspend fun getIsStreamServerBannerDisplayed(): Boolean = false
 	override suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean) = Unit
 	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean = false
@@ -221,6 +222,8 @@ private class FakeSettingsRepository(private val technicalOptCompleted: Boolean 
 	override suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig) = Unit
 	override suspend fun getPanelCollapsed(): Boolean = false
 	override suspend fun setPanelCollapsed(collapsed: Boolean) = Unit
+	override suspend fun getDismissedUpdateFloor(): String? = null
+	override suspend fun setDismissedUpdateFloor(floor: String) = Unit
 
 	private fun unsupported(): Nothing = throw UnsupportedOperationException("not used in LoginProcessingViewModelTest")
 }

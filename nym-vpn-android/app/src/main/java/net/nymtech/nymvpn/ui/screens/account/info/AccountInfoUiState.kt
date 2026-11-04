@@ -18,5 +18,6 @@ data class AccountInfoUiState(
 	val deviceId: String = "",
 	val accountLinkUrl: String? = null,
 	val manageUrl: String? = null,
+	val hasPlaySubscription: Boolean? = null,
 	val bandwidth: BandwidthUiState? = null,
 )

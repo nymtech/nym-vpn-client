@@ -45,6 +45,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.topBorder
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 
@@ -76,7 +77,7 @@ fun DetailsScreen(appUiState: AppUiState, id: String, gatewayLocation: String, v
 	}
 	DetailsScreen(
 		detailsUiState = uiState,
-		isQuicEnabledLocally = appUiState.settings.quicEnabled,
+		isQuicEnabledLocally = appUiState.settings.bridgeMode != BridgeMode.OFF,
 		gatewayType = gatewayType,
 		onSelectServerClick = {
 			viewModel.onSelected(uiState.identity, location)

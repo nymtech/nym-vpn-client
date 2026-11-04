@@ -38,6 +38,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.manager.billing.isPlayDistribution
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -75,9 +76,11 @@ import net.nymtech.nymvpn.util.extensions.toConnectMode
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.TunnelConnectionData
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, loginProcessing: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -276,7 +279,9 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		hasSubscriptionHistory = appUiState.hasSubscriptionHistory,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
-		onRenewSubscription = { deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION) },
+		onRenewSubscription = {
+			if (isPlayDistribution) navController.goFromRoot(Route.SelectPlan) else deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
+		},
 		onNavigateToSelectPlan = { navController.goFromRoot(Route.SelectPlan) },
 		isLoggedIn = appUiState.managerState.isMnemonicStored,
 		isScreenLockSet = deviceAuthViewModel::isScreenLockSet,
@@ -427,17 +432,26 @@ private fun MainScreenContent(
 ) {
 	val context = LocalContext.current
 	val connectMode = appUiState.vpnConfig.mode.toConnectMode()
-	val profileName = appUiState.currentProfile?.let { stringResource(it.titleRes) }
+	val wireguardTunnel = (appUiState.managerState.connectionData?.tunnel as? TunnelConnectionData.Wireguard)
+		.takeIf { connectionState == ConnectionState.Connected }
+	val bridgeTransport = wireguardTunnel?.v1?.entryBridgeAddr?.transport
+	val bridgeText = when {
+		bridgeTransport != null -> stringResource(R.string.connection_status_bridge, bridgeTransport.name)
+		wireguardTunnel != null && appUiState.settings.bridgeMode == BridgeMode.AUTO ->
+			stringResource(R.string.connection_status_direct)
+		else -> null
+	}
 	val panelState = ConnectPanelState(
+		bridgeText = bridgeText,
 		connectionState = connectionState,
 		accountState = appUiState.managerState.accountState,
 		isMnemonicStored = appUiState.managerState.isMnemonicStored,
 		connectMode = connectMode,
 		exitNode = ServerNode(
 			id = appUiState.exitPointGateway?.identity ?: "",
-			name = profileName.takeIf { appUiState.exitPointGateway == null } ?: appUiState.exitPointName.asString(context),
+			name = appUiState.exitPointName.asString(context),
 			countryCode = appUiState.exitPointCountry,
-			location = appUiState.exitPointLocation,
+			location = appUiState.exitPointLocation?.asString(context),
 			score = appUiState.exitPointGateway?.scoreFor(appUiState.vpnConfig.mode),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.exitPoint is ExitPoint.Auto,
@@ -447,9 +461,9 @@ private fun MainScreenContent(
 		),
 		entryNode = ServerNode(
 			id = appUiState.entryPointGateway?.identity ?: "",
-			name = profileName.takeIf { appUiState.entryPointGateway == null } ?: appUiState.entryPointName.asString(context),
+			name = appUiState.entryPointName.asString(context),
 			countryCode = appUiState.entryPointCountry,
-			location = appUiState.entryPointLocation,
+			location = appUiState.entryPointLocation?.asString(context),
 			selectionType = nodeSelectionType(
 				isAuto = appUiState.vpnConfig.entryPoint is EntryPoint.Auto,
 				isRandom = appUiState.vpnConfig.entryPoint is EntryPoint.Random,

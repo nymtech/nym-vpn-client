@@ -137,7 +137,7 @@ location = "BE"
 "#;
 
     let json_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "country": {
       "two_letter_iso_country_code": "FR"
@@ -151,15 +151,17 @@ location = "BE"
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": false,
-  "custom_dns": [],
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -217,7 +219,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
     let json_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -231,15 +233,17 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": false,
-  "custom_dns": [],
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -383,21 +387,23 @@ exit_point = "Random"
 "#;
 
     let json_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": "random",
   "exit_point": "random",
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": false,
-  "custom_dns": [],
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -456,7 +462,7 @@ async fn test_service_config_migrate_from_v1() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -470,15 +476,17 @@ async fn test_service_config_migrate_from_v1() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": false,
-  "custom_dns": [],
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -546,7 +554,7 @@ async fn test_service_config_migrate_from_v2() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -560,15 +568,25 @@ async fn test_service_config_migrate_from_v2() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": true,
-  "custom_dns": [ "192.168.50.1" ],
+  "custom_dns": {
+    "enabled": true,
+    "dns_servers": [
+      {
+        "plain": {
+          "address": "192.168.50.1",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      }
+    ]
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -639,7 +657,7 @@ async fn test_service_config_migrate_from_v3() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -653,18 +671,32 @@ async fn test_service_config_migrate_from_v3() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": true,
-  "custom_dns": [
-    "192.168.50.1",
-    "2001:db8:85a3::8a2e:370:7334"
-  ],
+  "custom_dns": {
+    "enabled": true,
+    "dns_servers": [
+      {
+        "plain": {
+          "address": "192.168.50.1",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      },
+      {
+        "plain": {
+          "address": "2001:db8:85a3::8a2e:370:7334",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      }
+    ]
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -751,7 +783,7 @@ async fn test_service_config_migrate_from_v4() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -765,18 +797,32 @@ async fn test_service_config_migrate_from_v4() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": 23,
   "residential_exit": false,
-  "enable_custom_dns": true,
-  "custom_dns": [
-    "192.168.50.1",
-    "2001:db8:85a3::8a2e:370:7334"
-  ],
+  "custom_dns": {
+    "enabled": true,
+    "dns_servers": [
+      {
+        "plain": {
+          "address": "192.168.50.1",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      },
+      {
+        "plain": {
+          "address": "2001:db8:85a3::8a2e:370:7334",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      }
+    ]
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -868,7 +914,7 @@ async fn test_service_config_migrate_from_v5() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -882,18 +928,32 @@ async fn test_service_config_migrate_from_v5() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": 23,
   "residential_exit": false,
-  "enable_custom_dns": true,
-  "custom_dns": [
-    "192.168.50.1",
-    "2001:db8:85a3::8a2e:370:7334"
-  ],
+  "custom_dns": {
+    "enabled": true,
+    "dns_servers": [
+      {
+        "plain": {
+          "address": "192.168.50.1",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      },
+      {
+        "plain": {
+          "address": "2001:db8:85a3::8a2e:370:7334",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      }
+    ]
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": 12,
     "average_packet_delay": 34,
@@ -975,7 +1035,7 @@ async fn test_service_config_migrate_from_v6() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -989,18 +1049,32 @@ async fn test_service_config_migrate_from_v6() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": 23,
   "residential_exit": false,
-  "enable_custom_dns": true,
-  "custom_dns": [
-    "192.168.50.1",
-    "2001:db8:85a3::8a2e:370:7334"
-  ],
+  "custom_dns": {
+    "enabled": true,
+    "dns_servers": [
+      {
+        "plain": {
+          "address": "192.168.50.1",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      },
+      {
+        "plain": {
+          "address": "2001:db8:85a3::8a2e:370:7334",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }
+      }
+    ]
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": 12,
     "average_packet_delay": 34,
@@ -1200,18 +1274,50 @@ async fn test_service_config_serialize_full() {
         allow_lan: true,
         disable_ipv6: true,
         enable_two_hop: true,
-        enable_bridges: false,
+        bridge_mode: nym_vpn_lib_types::BridgeMode::Off,
         enable_ad_blocking: true,
         enable_conflict_detection: true,
         netstack: true,
         min_gateway_vpn_performance: Some(1u8),
         residential_exit: true,
-        enable_custom_dns: true,
         fronting_mode: nym_vpn_lib_types::FrontingMode::OnRetry,
-        custom_dns: vec![
-            IpAddr::from_str("192.168.50.1").unwrap(),
-            IpAddr::from_str("2001:db8:85a3::8a2e:370:7334").unwrap(),
-        ],
+        custom_dns: nym_vpn_lib_types::CustomDnsSettings {
+            enabled: true,
+            dns_servers: vec![
+                nym_vpn_lib_types::DnsServer::Plain {
+                    address: IpAddr::from_str("192.168.50.1").unwrap(),
+                    port: None,
+                    ip_proto: nym_vpn_lib_types::PlainDnsProtocol::UdpAndTcp,
+                },
+                nym_vpn_lib_types::DnsServer::Plain {
+                    address: IpAddr::from_str("2001:db8:85a3::8a2e:370:7334").unwrap(),
+                    port: Some(5353),
+                    ip_proto: nym_vpn_lib_types::PlainDnsProtocol::Tcp,
+                },
+                nym_vpn_lib_types::DnsServer::Tls {
+                    address: IpAddr::from_str("1.1.1.1").unwrap(),
+                    port: Some(853),
+                    server_name: "cloudflare-dns.com".to_owned(),
+                },
+                nym_vpn_lib_types::DnsServer::Https {
+                    address: IpAddr::from_str("8.8.8.8").unwrap(),
+                    port: None,
+                    server_name: "dns.google".to_owned(),
+                    query_path: Some("/dns-query".to_owned()),
+                },
+                nym_vpn_lib_types::DnsServer::Quic {
+                    address: IpAddr::from_str("94.140.14.14").unwrap(),
+                    port: None,
+                    server_name: "dns.adguard-dns.com".to_owned(),
+                },
+                nym_vpn_lib_types::DnsServer::Http3 {
+                    address: IpAddr::from_str("1.0.0.1").unwrap(),
+                    port: Some(443),
+                    server_name: "cloudflare-dns.com".to_owned(),
+                    query_path: None,
+                },
+            ],
+        },
         mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig {
             poisson_parameter_for_loop_cover_stream: Some(10),
             average_packet_delay: Some(200),
@@ -1289,7 +1395,7 @@ async fn test_service_config_migrate_from_v7() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1303,15 +1409,17 @@ async fn test_service_config_migrate_from_v7() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": false,
-  "custom_dns": [],
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -1395,7 +1503,7 @@ async fn test_service_config_migrate_from_v8() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v13",
+  "version": "v15",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1409,15 +1517,17 @@ async fn test_service_config_migrate_from_v8() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "bridge_mode": "off",
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "enable_custom_dns": false,
-  "custom_dns": [],
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
   "mixnet_traffic": {
     "poisson_parameter_for_loop_cover_stream": null,
     "average_packet_delay": null,
@@ -1513,6 +1623,72 @@ async fn test_service_config_migrate_from_v9() {
 }"#;
 
     let json_latest_content = r#"{
+  "version": "v15",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "bridge_mode": "off",
+  "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
+  "fronting_mode": "on_retry",
+  "netstack": false,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": null,
+    "average_packet_delay": null,
+    "message_sending_average_delay": null,
+    "disable_poisson_rate": false,
+    "disable_background_cover_traffic": false,
+    "min_mixnode_performance": null,
+    "min_gateway_mixnet_performance": null
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
+  },
+  "geo_exclusion": {
+    "enabled": false,
+    "listen_port": 1081,
+    "excluded_countries": [
+      "CN"
+    ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true
+  },
+  "gateway_independence": {
+    "enable_notifications": true,
+    "different_node_family": true,
+    "different_asn": true,
+    "different_subnet": true
+  }
+}"#;
+
+    run_migrate_json_test(json_v9_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v13() {
+    let json_v13_content = r#"{
   "version": "v13",
   "entry_point": {
     "gateway": {
@@ -1527,7 +1703,7 @@ async fn test_service_config_migrate_from_v9() {
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
-  "enable_bridges": false,
+  "enable_bridges": true,
   "enable_ad_blocking": false,
   "enable_conflict_detection": true,
   "fronting_mode": "on_retry",
@@ -1571,5 +1747,156 @@ async fn test_service_config_migrate_from_v9() {
   }
 }"#;
 
-    run_migrate_json_test(json_v9_content, json_latest_content).await;
+    let json_latest_content = r#"{
+  "version": "v15",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "bridge_mode": "on",
+  "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
+  "fronting_mode": "on_retry",
+  "netstack": false,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": {
+    "enabled": false,
+    "dns_servers": []
+  },
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": null,
+    "average_packet_delay": null,
+    "message_sending_average_delay": null,
+    "disable_poisson_rate": false,
+    "disable_background_cover_traffic": false,
+    "min_mixnode_performance": null,
+    "min_gateway_mixnet_performance": null
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
+  },
+  "geo_exclusion": {
+    "enabled": false,
+    "listen_port": 1081,
+    "excluded_countries": [
+      "CN"
+    ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true
+  },
+  "gateway_independence": {
+    "enable_notifications": true,
+    "different_node_family": true,
+    "different_asn": true,
+    "different_subnet": true
+  }
+}"#;
+
+    run_migrate_json_test(json_v13_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v14() {
+    let common = r#"
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "bridge_mode": "auto",
+  "enable_ad_blocking": false,
+  "enable_conflict_detection": true,
+  "fronting_mode": "on_retry",
+  "netstack": false,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": null,
+    "average_packet_delay": null,
+    "message_sending_average_delay": null,
+    "disable_poisson_rate": false,
+    "disable_background_cover_traffic": false,
+    "min_mixnode_performance": null,
+    "min_gateway_mixnet_performance": null
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
+  },
+  "geo_exclusion": {
+    "enabled": false,
+    "listen_port": 1081,
+    "excluded_countries": [
+      "CN"
+    ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true
+  },
+  "gateway_independence": {
+    "enable_notifications": true,
+    "different_node_family": true,
+    "different_asn": true,
+    "different_subnet": true
+  }"#;
+
+    let json_v14_content = format!(
+        r#"{{
+  "version": "v14",
+  "entry_point": "random",
+  "exit_point": "random",
+  "enable_custom_dns": true,
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ],{common}
+}}"#
+    );
+
+    let json_latest_content = format!(
+        r#"{{
+  "version": "v15",
+  "entry_point": "random",
+  "exit_point": "random",
+  "custom_dns": {{
+    "enabled": true,
+    "dns_servers": [
+      {{
+        "plain": {{
+          "address": "192.168.50.1",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }}
+      }},
+      {{
+        "plain": {{
+          "address": "2001:db8:85a3::8a2e:370:7334",
+          "port": null,
+          "ip_proto": "udp_and_tcp"
+        }}
+      }}
+    ]
+  }},{common}
+}}"#
+    );
+
+    run_migrate_json_test(&json_v14_content, &json_latest_content).await;
 }

@@ -130,7 +130,7 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
 
       - name: Install Node
-        uses: actions/setup-node@v7.0.0
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
 
@@ -279,7 +279,6 @@ jobs:
 
       # --- apple (fastlane) ---
       - name: Update nym-vpn-apple via fastlane
-        working-directory: nym-vpn-apple
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"
           APPLE_VERSION: ${{ steps.version.outputs.apple_version }}
@@ -288,8 +287,8 @@ jobs:
           LANG: "C.utf8"
         run: |
           bundle exec fastlane mac bump_version "$APPLE_VERSION"
-          bundle exec fastlane run set_info_plist_value path:"NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
-          bundle exec fastlane run set_info_plist_value path:"NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"nym-vpn-apple/NymVPN/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
+          bundle exec fastlane run set_info_plist_value path:"nym-vpn-apple/NymVPNDaemon/Resources/Info.plist" key:"ApplicationVersion" value:"$CORE_VERSION"
 
       # --- Linux installer ---
       - name: Update Linux install script
