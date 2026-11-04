@@ -43,7 +43,8 @@ extension CredentialsManager {
             dataDir: dataDir,
             userAgent: .appUserAgent,
             networkEnv: env,
-            offlineMonitor: offlineMonitor
+            offlineMonitor: offlineMonitor,
+            eventListener: accountControllerEventListener
         )
         accountControllerShutdown = { await controller.shutdownAndWait() }
         defer {

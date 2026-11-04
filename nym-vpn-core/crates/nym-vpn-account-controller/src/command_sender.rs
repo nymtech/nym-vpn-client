@@ -11,8 +11,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, RegisterAccountResponse, StorableAccount,
-    StoredAccountMode, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, QrPairingConfirmation, QrUrl,
+    RegisterAccountResponse, StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 
 use tokio::sync::mpsc::UnboundedSender;
@@ -61,6 +61,45 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::LinkAccount(tx, privy_account))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn start_pairing(&self) -> Result<QrUrl, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::StartPairing(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self, pub_key))]
+    pub async fn scanned_key(
+        &self,
+        pub_key: String,
+    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ScannedKey(tx, pub_key))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn verified_pairing_pin(&self, session_id: u32) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::VerifiedPairingPin(tx, session_id))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn cancel_pairing_process(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::CancelPairingProcess(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

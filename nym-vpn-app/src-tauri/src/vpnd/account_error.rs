@@ -62,6 +62,21 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::InsufficientFunds => {
                 BackendError::new("insufficient funds", ErrorKey::InsufficientFunds)
             }
+            lib::AccountCommandError::InvalidPublicKey(e) => {
+                BackendError::internal_with_detail("invalid pairing public key", e)
+            }
+            lib::AccountCommandError::PairingNotStarted => {
+                BackendError::internal("pairing process not started", None)
+            }
+            lib::AccountCommandError::PairingSessionIdMismatch => {
+                BackendError::internal("pairing session id mismatch", None)
+            }
+            lib::AccountCommandError::NoPairingSharedSecret => {
+                BackendError::internal("pairing process has no shared secret yet", None)
+            }
+            lib::AccountCommandError::PairingDerivingSharedSecret(e) => {
+                BackendError::internal_with_detail("failed to derive pairing shared secret", e)
+            }
         }
     }
 }
