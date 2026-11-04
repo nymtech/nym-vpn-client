@@ -368,13 +368,17 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     let enable_opentelemetry = options.enable_json_log;
 
     // Setup from RUST_LOG if set and not empty. Otherwise use production configuration
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+    let env_filter = if std::env::var(EnvFilter::DEFAULT_ENV).is_ok_and(|s| !s.trim().is_empty()) {
+        EnvFilter::builder()
+            .with_default_directive(options.verbosity_level.into())
+            .from_env_lossy()
+    } else {
         let default_directives = std::iter::once(options.verbosity_level.to_string())
             .chain(INFO_TARGETS.iter().map(|c| format!("{c}=info")))
             .chain(WARN_TARGETS.iter().map(|c| format!("{c}=warn")))
             .join(",");
         EnvFilter::new(default_directives)
-    });
+    };
 
     // Platform log layers
     #[cfg(target_os = "android")]
