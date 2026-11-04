@@ -91,15 +91,8 @@ build: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_
 	$(CARGO_ENV) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	$(MAKE) -f Android.mk prune-dep-cdylibs
 
-# cargo ndk copies every `.so` cargo emits, including the cdylibs that
-# dependencies such as boringtun, nym-bridges and nym-bridges-types declare,
-# with and without cargo's metadata hash (e.g. libboringtun.so and
-# libboringtun-90e121147d2f7746.so). Nothing loads them:
-# libnym_vpn_lib_uniffi.so links those crates statically, its DT_NEEDED is only
-# libwg.so plus system libs, and all uniffi bindings load nym_vpn_lib_uniffi.
-# The hashed names also differ per ABI, which F-Droid's "APK has different libs
-# in different ABI" lint rejects. Keep only the libraries the app loads (and
-# drop stale copies from earlier builds).
+# cargo ndk copies every `.so` cargo emits, but android does not load them.
+# clear out all libs except that ones android app needs.
 JNI_LIBS_KEEP := libnym_vpn_lib_uniffi.so libwg.so
 
 prune-dep-cdylibs:
