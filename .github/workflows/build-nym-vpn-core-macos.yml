@@ -40,6 +40,7 @@ jobs:
     needs: build-wireguard-go-macos
     env:
       UPLOAD_DIR_MACOS: core_artifacts_macos_${{ matrix.cpu_arch }}
+      DEBUG_SYMBOLS_DIR_MACOS: core_debug_symbols_macos_${{ matrix.cpu_arch }}
     runs-on: custom-macos-15
     steps:
       - name: "Cleanup working directory"
@@ -115,6 +116,24 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_MACOS }}
           path: ${{ env.UPLOAD_DIR_MACOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Collect debug symbols
+        env:
+          SRC_BINARY: nym-vpn-core/target/${{ matrix.target }}/release
+        run: |
+          set -euo pipefail
+          mkdir "${{ env.DEBUG_SYMBOLS_DIR_MACOS }}"
+          for bin in nym-setup nym-vpnc nym-vpnd nym-socks5-proxy nym-diagnostic; do
+            cp -Rp "$SRC_BINARY/$bin.dSYM" "${{ env.DEBUG_SYMBOLS_DIR_MACOS }}/"
+          done
+
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR_MACOS }}
+          path: ${{ env.DEBUG_SYMBOLS_DIR_MACOS }}
           if-no-files-found: error
           retention-days: 1
 

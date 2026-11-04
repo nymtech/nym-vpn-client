@@ -37,6 +37,7 @@ jobs:
     env:
       UPLOAD_DIR_LINUX: core_artifacts_linux_${{ matrix.arch }}
       UPLOAD_DIR_DEB: deb_artifacts_${{ matrix.arch }}
+      DEBUG_SYMBOLS_DIR_LINUX: core_debug_symbols_linux_${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
@@ -107,8 +108,29 @@ jobs:
         working-directory: nym-vpn-core
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          # Keep debug info in the binaries so it can be split off with objcopy
+          # below. Sentry can't read split DWARF packages (.dwp).
+          CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO: "off"
+          CARGO_PROFILE_RELEASE_STRIP: none
         run: |
+          export RUSTFLAGS="--remap-path-prefix $HOME= --remap-path-prefix $GITHUB_WORKSPACE= --remap-path-prefix $(rustc --print sysroot)= -C link-arg=-Wl,--build-id=sha1"
           cargo build --release
+
+      - name: Split debug symbols from binaries
+        env:
+          SRC_BINARY: nym-vpn-core/target/release
+        run: |
+          set -euo pipefail
+          mkdir ${{ env.DEBUG_SYMBOLS_DIR_LINUX }}
+          for bin in nym-vpnc nym-vpnd nym-exclude nym-socks5-proxy nym-diagnostic nm-nymvpn-service; do
+            if ! readelf -n "$SRC_BINARY/$bin" | grep -q "Build ID"; then
+              echo "::error::$bin has no GNU build ID, Sentry won't be able to match debug symbols"
+              exit 1
+            fi
+            debug_file="${{ env.DEBUG_SYMBOLS_DIR_LINUX }}/$bin.debug"
+            objcopy --only-keep-debug "$SRC_BINARY/$bin" "$debug_file"
+            objcopy --strip-debug --add-gnu-debuglink="$debug_file" "$SRC_BINARY/$bin"
+          done
 
       # Must run before packaging: the nym-vpnc deb assets include these files.
       - name: Generate nym-vpnc shell completions
@@ -170,5 +192,13 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_DEB }}
           path: ${{ env.UPLOAD_DIR_DEB }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR_LINUX }}
+          path: ${{ env.DEBUG_SYMBOLS_DIR_LINUX }}
           if-no-files-found: error
           retention-days: 1

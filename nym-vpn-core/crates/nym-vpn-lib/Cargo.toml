@@ -88,6 +88,7 @@ semver = { workspace = true }
 sentry = { workspace = true, features = [
     "backtrace",
     "contexts",
+    "debug-images",
     "panic",
     "reqwest",
     "rustls",
