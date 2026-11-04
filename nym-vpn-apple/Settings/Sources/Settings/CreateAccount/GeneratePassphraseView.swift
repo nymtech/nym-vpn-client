@@ -31,6 +31,7 @@ public struct GeneratePassphraseView: View {
     @State var isPlanAlertDisplayed = false
     @State var alertOffersRegistrationRetry = false
     @State var isPresentedManageSubscription = false
+    @Environment(\.scenePhase) private var scenePhase
     @State private var didLeaveForSuccessfulPurchase = false
 #if os(iOS)
     @State private var autologinState = AutologinState()
@@ -122,6 +123,13 @@ public struct GeneratePassphraseView: View {
         .onChange(of: isPresentedManageSubscription) { _, presented in
             // The user may have cancelled in Apple's sheet; re-read so the copy follows.
             guard !presented else { return }
+            Task {
+                await purchasesManager.refreshAppleIdSubscriptionGate(accountToken: credentialsManager.accountToken)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // The user may have changed the subscription in iOS Settings; re-read when the app comes back.
+            guard phase == .active, didRegisterAccount else { return }
             Task {
                 await purchasesManager.refreshAppleIdSubscriptionGate(accountToken: credentialsManager.accountToken)
             }
