@@ -3,10 +3,17 @@
 Complete current screenshot sets for all **16 App Store localizations**, one folder per
 App Store Connect locale. Uploaded by `fastlane deliver` (`screenshots_path` in `../Deliverfile`).
 
-- **iPhone** — 6.5" display, 1242×2688: `iphone_1.png` … `iphone_9.png`
-- **iPad** — 13" display, 2752×2064 (landscape): `ipad_1.png` … `ipad_9.png`
+- **iPhone** — 6.5" display, 1242×2688: `iphone_1.jpg` … `iphone_9.jpg`
+- **iPad** — 13" display, 2752×2064 (landscape): `ipad_1.jpg` … `ipad_9.jpg`
 
 `deliver` groups images into display families by resolution and orders each family by filename.
+
+**Format: JPEG (quality 90).** App Store Connect accepts JPEG for screenshots, and at q90
+these are visually indistinguishable on-device from the lossless source (the dark gradient
+hero frame — the worst case for banding — is clean). This holds the tree at ~127 MB instead
+of ~223 MB as lossless PNG+alpha; the pixel dimensions are Apple's mandated sizes and cannot
+be reduced. The source PNGs were the Figma export — converting once from that lossless source
+to q90 is equivalent to exporting JPEG directly.
 
 ## Provenance
 
