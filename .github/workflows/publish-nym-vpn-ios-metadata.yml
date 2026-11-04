@@ -28,6 +28,7 @@ on:
 concurrency:
   group: publish-nym-vpn-ios-metadata
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
