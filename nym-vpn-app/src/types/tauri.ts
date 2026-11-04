@@ -30,7 +30,15 @@ export type AsnType = 'other' | 'residential';
 
 export type BackgroundCoverTrafficRate = { value: number; multiplier: string };
 
-export type BridgeAddress = { listenAddr: string; remoteAddr: string };
+export type BridgeAddress = {
+  listenAddr: string;
+  remoteAddr: string;
+  transport: BridgeTransport;
+};
+
+export type BridgeMode = 'off' | 'on' | 'auto';
+
+export type BridgeTransport = 'quic' | 'tls' | 'ssh';
 
 export type Cli = {
   /**
@@ -153,6 +161,7 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
+  bridgeTransports: boolean;
 };
 
 export type FrontingMode = 'off' | 'onRetry' | 'always';
@@ -206,7 +215,7 @@ export type JsEnv = {
   defaultVpnMode: 'mixnet' | 'wg';
   defaultSentry: boolean;
   defaultNetstats: boolean;
-  defaultQuic: boolean;
+  defaultBridgeMode: BridgeMode;
   startupError: StartupError | null;
 };
 
@@ -598,7 +607,7 @@ export type VpndConfig = {
   enableConflictDetection: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
-  bridges: boolean;
+  bridgeMode: BridgeMode;
   netstack: boolean;
   frontingMode: FrontingMode;
   minGatewayVpnPerformance: number | null;

@@ -7,7 +7,7 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, BridgeAddress, ConnectionData, ErrorStateReason,
+    ActionAfterDisconnect, BridgeAddress, BridgeTransport, ConnectionData, ErrorStateReason,
     EstablishConnectionData, EstablishConnectionState, GatewayId, GatewayLightInfo,
     MixnetConnectionData, NymAddress, SelectorFallbackState, TunnelConnectionData, TunnelState,
     TunnelType, WireguardConnectionData, WireguardNode,
@@ -548,9 +548,17 @@ impl TryFrom<proto::BridgeAddress> for BridgeAddress {
         let remote_addr = value
             .remote_addr
             .ok_or(ConversionError::NoValueSet("BridgeAddress.remote_addr"))?;
+        let transport = match proto::BridgeTransport::try_from(value.transport)
+            .map_err(|e| ConversionError::Decode("BridgeAddress.transport", e))?
+        {
+            proto::BridgeTransport::Quic => BridgeTransport::Quic,
+            proto::BridgeTransport::Tls => BridgeTransport::Tls,
+            proto::BridgeTransport::Ssh => BridgeTransport::Ssh,
+        };
         Ok(Self {
             listen_addr: SocketAddr::try_from(listen_addr)?,
             remote_addr: SocketAddr::try_from(remote_addr)?,
+            transport,
         })
     }
 }
@@ -560,6 +568,12 @@ impl From<BridgeAddress> for proto::BridgeAddress {
         Self {
             listen_addr: Some(proto::SocketAddr::from(value.listen_addr)),
             remote_addr: Some(proto::SocketAddr::from(value.remote_addr)),
+            transport: match value.transport {
+                BridgeTransport::Quic => proto::BridgeTransport::Quic,
+                BridgeTransport::Tls => proto::BridgeTransport::Tls,
+                BridgeTransport::Ssh => proto::BridgeTransport::Ssh,
+            }
+            .into(),
         }
     }
 }

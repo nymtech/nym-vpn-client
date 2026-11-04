@@ -38,7 +38,7 @@ import UIComponents
     var shouldShowQuic: Bool {
         type == .entry
         && connectionManager.connectionType == .wireguard
-        && appSettings.isQuicEnabled
+        && appSettings.bridgeMode == .on
     }
 
     public init(
@@ -107,7 +107,7 @@ private extension GatewaysViewModel {
     }
 
     func setupQuicToggleObserver() {
-        appSettings.$isQuicEnabledPublisher
+        appSettings.$bridgeModePublisher
             .removeDuplicates()
             .sink { [weak self] _ in
                 self?.updateGateways()

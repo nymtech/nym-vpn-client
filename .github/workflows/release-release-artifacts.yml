@@ -206,6 +206,8 @@ jobs:
       vpnc_deb_aarch64: ${{ steps.linux.outputs.vpnc_deb_aarch64 }}
       vpnd_deb_x86_64: ${{ steps.linux.outputs.vpnd_deb_x86_64 }}
       vpnd_deb_aarch64: ${{ steps.linux.outputs.vpnd_deb_aarch64 }}
+      nm_plugin_deb_x86_64: ${{ steps.linux.outputs.nm_plugin_deb_x86_64 }}
+      nm_plugin_deb_aarch64: ${{ steps.linux.outputs.nm_plugin_deb_aarch64 }}
       archive_windows_x64: ${{ steps.windows.outputs.archive_windows_x64 }}
       archive_windows_arm64: ${{ steps.windows.outputs.archive_windows_arm64 }}
       archive_windows_x64_dir: ${{ steps.windows.outputs.archive_windows_x64_dir }}
@@ -236,8 +238,9 @@ jobs:
           DEB_VERSION="${RAW_VERSION//-/\~}"
           VPNC_DEB_BASENAME="nym-vpnc_${DEB_VERSION}"
           VPND_DEB_BASENAME="nym-vpnd_${DEB_VERSION}"
+          NM_PLUGIN_DEB_BASENAME="nym-vpn-networkmanager_${DEB_VERSION}"
 
-          echo "::notice:: deb_version=${DEB_VERSION}, vpnc_base=${VPNC_DEB_BASENAME}, vpnd_base=${VPND_DEB_BASENAME}"
+          echo "::notice:: deb_version=${DEB_VERSION}, vpnc_base=${VPNC_DEB_BASENAME}, vpnd_base=${VPND_DEB_BASENAME}, nm_plugin_base=${NM_PLUGIN_DEB_BASENAME}"
 
           ARCHIVE_LINUX_X86_64=${ARCHIVE_BASENAME}_linux_x86_64
           ARCHIVE_LINUX_AARCH64=${ARCHIVE_BASENAME}_linux_aarch64
@@ -245,6 +248,8 @@ jobs:
           VPNC_DEB_AARCH64="${VPNC_DEB_BASENAME}_arm64.deb"
           VPND_DEB_X86_64="${VPND_DEB_BASENAME}_amd64.deb"
           VPND_DEB_AARCH64="${VPND_DEB_BASENAME}_arm64.deb"
+          NM_PLUGIN_DEB_X86_64="${NM_PLUGIN_DEB_BASENAME}_amd64.deb"
+          NM_PLUGIN_DEB_AARCH64="${NM_PLUGIN_DEB_BASENAME}_arm64.deb"
 
           echo "archive_linux_x86_64_dir=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_OUTPUT
           echo "archive_linux_aarch64_dir=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_OUTPUT
@@ -254,6 +259,8 @@ jobs:
           echo "vpnc_deb_aarch64=${VPNC_DEB_AARCH64}" >> $GITHUB_OUTPUT
           echo "vpnd_deb_x86_64=${VPND_DEB_X86_64}" >> $GITHUB_OUTPUT
           echo "vpnd_deb_aarch64=${VPND_DEB_AARCH64}" >> $GITHUB_OUTPUT
+          echo "nm_plugin_deb_x86_64=${NM_PLUGIN_DEB_X86_64}" >> $GITHUB_OUTPUT
+          echo "nm_plugin_deb_aarch64=${NM_PLUGIN_DEB_AARCH64}" >> $GITHUB_OUTPUT
 
       - name: Core artifacts (Windows)
         id: windows
@@ -360,6 +367,8 @@ jobs:
       vpnd_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
       vpnc_deb_x86_64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_x86_64 }}
       vpnc_deb_aarch64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
+      nm_plugin_deb_x86_64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_x86_64 }}
+      nm_plugin_deb_aarch64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_aarch64 }}
       linux_app_deb_x64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_x64 }}
       linux_app_deb_arm64: ${{ needs.resolve-artifacts.outputs.linux_app_deb_arm64 }}
       linux_app_appimage_x64: ${{ needs.resolve-artifacts.outputs.linux_app_appimage_x64 }}
@@ -414,6 +423,8 @@ jobs:
           VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
           VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
           VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+          NM_PLUGIN_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_x86_64 }}
+          NM_PLUGIN_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_aarch64 }}
         run: |
           set -euo pipefail
 
@@ -429,6 +440,8 @@ jobs:
           cp -v "${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
           cp -v "${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${DEB_ARTIFACTS_X86_64}/${NM_PLUGIN_DEB_X86_64}" "${{ env.OUTPUT_DIR }}"
+          cp -v "${DEB_ARTIFACTS_AARCH64}/${NM_PLUGIN_DEB_AARCH64}" "${{ env.OUTPUT_DIR }}"
 
       - name: Copy artifacts (Windows)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -530,6 +543,8 @@ jobs:
           VPNC_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnc_deb_aarch64 }}
           VPND_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_x86_64 }}
           VPND_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.vpnd_deb_aarch64 }}
+          NM_PLUGIN_DEB_X86_64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_x86_64 }}
+          NM_PLUGIN_DEB_AARCH64: ${{ needs.resolve-artifacts.outputs.nm_plugin_deb_aarch64 }}
           LINUX_INSTALL: ${{ needs.resolve-artifacts.outputs.linux_install }}
           LINUX_APP_X64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_x64_bin }}
           LINUX_APP_ARM64_BIN: ${{ needs.resolve-artifacts.outputs.linux_app_arm64_bin }}
@@ -563,6 +578,8 @@ jobs:
               "${VPNC_DEB_AARCH64}"
               "${VPND_DEB_X86_64}"
               "${VPND_DEB_AARCH64}"
+              "${NM_PLUGIN_DEB_X86_64}"
+              "${NM_PLUGIN_DEB_AARCH64}"
             )
           fi
 

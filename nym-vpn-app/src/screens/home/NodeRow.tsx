@@ -26,11 +26,10 @@ import {
   isSafestAuto,
 } from '../../types';
 import { countriesWithRegions } from '../../constants';
-import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
 import { ScoreIndicator } from '../node/ScoreIndicator';
-import { isBridgeMode, regionToCountryCode } from './util';
+import { regionToCountryCode } from './util';
 
 const DURATION = 0.3;
 
@@ -58,7 +57,6 @@ export type SelectedNodeDisplayProps = {
   name: string;
   location?: string;
   ip?: string;
-  showQuic?: boolean;
   disabled?: boolean;
   showStreamOptimized?: boolean;
   score?: Score;
@@ -131,17 +129,12 @@ export function NodeRow({ type }: NodeRowProps) {
     navigate(routes.nodeLocation, { state: { tab: type } });
   };
 
-  const quicTag =
-    type === 'entry' &&
-    (isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel));
-
   const gwFlags = useCallback(
     (gw: Gateway | null) => ({
-      showQuic: Boolean(quicTag && gw?.quic),
       showStreamOptimized: type === 'exit' && gw?.asn?.type === 'residential',
       score: gw?.type === 'wg' ? gw?.wgScore : gw?.mxScore,
     }),
-    [quicTag, type],
+    [type],
   );
 
   const getLocationInfo = useCallback(
@@ -393,11 +386,6 @@ export function NodeRow({ type }: NodeRowProps) {
               )}
             </div>
             <div className="flex flex-row items-center justify-center gap-3">
-              {nodeDetails.showQuic && (
-                <div>
-                  <QuicTag />
-                </div>
-              )}
               {nodeDetails.showStreamOptimized && (
                 <MsIcon icon="smart_display" className="text-status-info" />
               )}

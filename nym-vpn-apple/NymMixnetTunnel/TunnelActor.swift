@@ -11,14 +11,16 @@ actor TunnelActor {
 
     private let logger = Logger(label: "TunnelActor")
 
-    weak var tunnelProvider: NEPacketTunnelProvider?
+    private weak var tunnelProvider: NEPacketTunnelProvider?
+
+    private var vpnService: NymVpnService?
+    private var commandSender: NymVpnServiceCommandSender?
 
     /// Flag used to determine if `reasserting` property of tunnel provider can be used.
     /// Note that we shouldn't reassert unless we returned from `startTunnel()`
     var canReassert = false
 
     @Published private(set) var tunnelState: TunnelState?
-    var lastError: ErrorReason?
 
     /// Suspends `startTunnel` while the gateway-independence pre-flight waits
     /// for the user to accept relaxed criteria (resumed by the
@@ -48,6 +50,28 @@ actor TunnelActor {
         self.tunnelProvider = tunnelProvider
     }
 
+    func setVpnService(_ vpnService: NymVpnService) {
+        self.vpnService = vpnService
+        commandSender = vpnService.getCommandSender()
+    }
+
+    /// Runs `body` with the current command sender. Returns `nil` if the VPN service isn't set up.
+    func withCommandSender<T: Sendable>(
+        _ body: @Sendable (NymVpnServiceCommandSender) async throws -> T
+    ) async rethrows -> T? {
+        if let commandSender {
+            try await body(commandSender)
+        } else {
+            nil
+        }
+    }
+
+    func shutdownVpnService() async {
+        await vpnService?.shutdownAndWait()
+        vpnService = nil
+        commandSender = nil
+    }
+
     private func setCurrentState(_ state: TunnelState) async {
         switch state {
         case .connecting:
@@ -63,7 +87,6 @@ actor TunnelActor {
             if canReassert, errorStateReason != .needsRelaxedIndependenceCriteria {
                 tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
             }
-            lastError = ErrorReason(with: errorStateReason)
             tunnelState = .error(errorStateReason)
             return
         case .disconnecting(.error):
@@ -78,7 +101,6 @@ actor TunnelActor {
     // MARK: - Gateway-independence pre-flight
 
     func reportNeedsRelaxedIndependence() {
-        lastError = ErrorReason(.needsRelaxedIndependenceCriteria)
         tunnelState = .error(.needsRelaxedIndependenceCriteria)
     }
 
@@ -107,8 +129,11 @@ actor TunnelActor {
         relaxConsentContinuation = nil
     }
 
+    /// The app reads the error from `tunnelState`, so leave the error state.
     func clearError() {
-        lastError = nil
+        if case .error = tunnelState {
+            tunnelState = nil
+        }
     }
 
     /// Wait until the tunnel state shifted into either connected, disconnected or error state.
@@ -119,9 +144,7 @@ actor TunnelActor {
             switch newState {
             case .connected, .disconnected:
                 return
-            case let .error(errorStateReason):
-                lastError = ErrorReason(with: errorStateReason)
-            case .disconnecting, .none, .connecting:
+            case .error, .disconnecting, .none, .connecting:
                 break
             case let .some(.offline(reconnect: reconnect)):
                 if reconnect {

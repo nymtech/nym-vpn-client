@@ -9,6 +9,8 @@ class NymEnvironmentManager @Inject constructor(private val backendManager: Back
 
 	override suspend fun isDomainFrontingEnabled(): Boolean = getFeatureFlags()?.isDomainFrontingEnabled() ?: false
 
+	override suspend fun isBridgeTransportsEnabled(): Boolean = getFeatureFlags()?.isBridgeTransportsEnabled() ?: false
+
 	private suspend fun getFeatureFlags(): FeatureFlags? = try {
 		backendManager.getFeatureFlags()
 	} catch (e: Exception) {

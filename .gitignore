@@ -40,6 +40,8 @@ nym-vpn-core/upload/mac
 # AI tools
 .github/copilot-instructions.md
 .claude/
+# openlore analysis artifacts
+.openlore/
 
 # Fastlane reports
 fastlane/report.xml

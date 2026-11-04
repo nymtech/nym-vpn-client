@@ -3,10 +3,10 @@
 	<string name="settings">Imposta</string>
 	<string name="disconnecting">Disconnessione</string>
 	<string name="connecting">Connessione</string>
-	<string name="five_hop_mixnet">Anonimo</string>
+	<string name="five_hop_mixnet">Mixnet</string>
 	<string name="connect">Connetti</string>
 	<string name="disconnect">Disconnetti</string>
-	<string name="init_client">Inizializzazione client…</string>
+	<string name="init_client">Initializing client...</string>
 	<string name="establishing_connection">In connessione</string>
 	<string name="display_theme">Tema</string>
 	<string name="light_theme">Tema chiaro</string>
@@ -32,6 +32,7 @@
 	<string name="okay">Ok</string>
 	<string name="two_hop">2-salti</string>
 	<string name="country_load_failure">Impossibile caricare i paesi degli hop</string>
+	<string name="server_list_update_failed">Couldn\'t update the server list. Showing saved servers.</string>
 	<string name="permission_required">Permesso richiesto</string>
 	<string name="permission_message">Per garantire il corretto funzionamento dell\'applicazione sul tuo dispositivo, consenti le seguenti autorizzazioni. Queste autorizzazioni sono necessarie per il funzionamento dell\'app.</string>
 	<string name="notification_permission_required">Attiva l\'autorizzazione di notifica per il corretto funzionamento dell\'app</string>
@@ -58,20 +59,20 @@
 	<string name="always_on_message">Non funziona? Assicurati che \"VPN sempre attiva\" sia disattivato per le altre app nelle</string>
 	<string name="vpn_settings">impostazioni di sistema della VPN</string>
 	<string name="try_again">e prova a riconnetterti</string>
-	<string name="network_error">Si è verificato un problema di connessione alla rete. Controlla la connessione di rete e riprova.</string>
+	<string name="network_error">Impossibile raggiungere il server. Controlla la connessione e riprova.</string>
 	<string name="vpn_alerts_channel_id">Canale avvisi di NymVPN</string>
 	<string name="vpn_alerts_channel_description">Un canale per le notifiche di avviso relative all\'app.</string>
 	<string name="connection_failed">Connessione fallita</string>
 	<string name="vpn_permission_missing">L\'autorizzazione VPN non è stata accettata o è in uso da un\'altra app.</string>
 	<string name="action_requires_tunnel_down">L\'azione richiede che il tunnel sia attivo</string>
 	<string name="device_added_success">Dispositivo aggiunto correttamente al tuo account</string>
-	<string name="invalid_recovery_phrase">Frase di recupero non valida</string>
+	<string name="invalid_recovery_phrase">Quella passphrase di recupero non è valida. Controlla le 24 parole e riprova.</string>
 	<string name="log_out">Esci</string>
 	<string name="account">Account</string>
 	<string name="mnemonic_example">ad es. fumo, artefatto, velluto, teschio, pop, palazzo, tartaruga, danno, ruvido…</string>
 	<string name="dynamic">Dinamico</string>
 	<string name="system_wallpaper">Tema sfondo di sistema</string>
-	<string name="initializing">Inizializzazione</string>
+	<string name="initializing">Starting NymVPN</string>
 	<string name="stop">Stop</string>
 	<string name="app_restart_required">È necessario riavviare l\'app</string>
 	<string name="max_devices_reached_title">Hai raggiunto il numero massimo di dispositivi per il tuo account</string>
@@ -82,22 +83,25 @@
 	<string name="loading">Caricamento in corso</string>
 	<string name="offline">Internet assente</string>
 	<string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.</string>
-	<string name="two_hop_title">Fast (WireGuard<small>*</small>)</string>
+	<string name="two_hop_title">dVPN</string>
 	<string name="disabled_while_connecting">Disabilitato durante la connessione alla VPN</string>
 	<string name="exit_location">Esci dal server</string>
 	<string name="entry_location">Server di ingresso</string>
 	<string name="no_results_found">Nessun risultato trovato.</string>
-	<string name="how_to_run_gateway">come gestire un server.</string>
+	<string name="how_to_run_gateway">come eseguire un gateway</string>
 	<string name="or_learn">oppure scopri</string>
 	<string name="contact_for_help">Contattaci per ricevere assistenza</string>
 	<string name="try_another_server_name">Prova un\'altra posizione o verifica il nome del server.</string>
 	<string name="servers">server</string>
 	<string name="local_logs">Registri (memorizzati in locale)</string>
-	<string name="logging_out">Disconnessione in corso...</string>
+	<string name="logging_out">Disconnessione</string>
 	<string name="app_update_required">La tua app non è più supportata. Aggiorna all\'ultima versione per continuare
         a usare NymVPN.
     </string>
 	<string name="update_required">Aggiornamento richiesto!</string>
+	<string name="app_update_available_title">Aggiornamento disponibile</string>
+	<string name="app_update_available_body">È disponibile una versione più recente di NymVPN. Puoi continuare a usare questa versione oppure aggiornarla subito.</string>
+	<string name="app_update_not_now">Non ora</string>
 	<string name="update">Aggiorna</string>
 	<string name="log_out_title">Are you sure you want to log out?</string>
 	<string name="log_out_body">Questo disconnette la VPN e rimuove il tuo account da questo dispositivo. Senza la tua passphrase, non potrai effettuare nuovamente l\'accesso.</string>
@@ -109,7 +113,7 @@
 	<string name="collapse">Chiudi</string>
 	<string name="expand">Espandi</string>
 	<string name="country_flag">Bandiera %1$s</string>
-	<string name="anonymous">Anonimo</string>
+	<string name="anonymous">Mixnet</string>
 	<string name="back">Indietro</string>
 	<string name="rotate">Ruota</string>
 	<string name="refresh">Aggiorna</string>
@@ -137,35 +141,36 @@
 	<!-- Status pill -->
 	<string name="pill_error">Errore</string>
 	<!-- Error State -->
-	<string name="error_same_entry_exit">Impossibile connettersi con lo stesso server di entrata e uscita. Cambia il server di entrata o uscita e riconnetti.</string>
+	<string name="error_same_entry_exit">L’ingresso e l’uscita non possono essere sullo stesso server. Scegli un ingresso o un’uscita diversi, poi riconnettiti.</string>
 	<string name="unexpected_error">Si è verificato un errore imprevisto:</string>
-	<string name="error_invalid_entry_gateway_country">Paese non valido per il server d\'ingresso. Scegline un altro e riconnetti.</string>
-	<string name="error_invalid_exit_gateway_country">Paese non valido per il server di uscita. Scegline un altro e riconnetti.</string>
-	<string name="bandwidth_error">Limite giornaliero di dati raggiunto. Contatta l’assistenza per un rapido aumento dei dati.</string>
-	<string name="error_credential_fetching_failed">Impossibile ottenere le credenziali necessarie per la connessione. Riprova.</string>
-	<string name="error_no_credential_available">Non sono disponibili credenziali per la connessione. Riprova.</string>
-	<string name="max_devices_error">Limite del dispositivo dell\'account superato. Rimuovi un dispositivo dal tuo account prima di connetterti.</string>
-	<string name="error_ipv6_unavailable">Ipv6 non disponibile</string>
-	<string name="error_device_logged_out">Il dispositivo è disconnesso.</string>
-	<string name="error_inactive_account">Lo stato dell’account non è “Attivo”.</string>
+	<string name="error_invalid_entry_gateway_country">Non ci sono server di accesso disponibili in quella posizione. Scegli una posizione diversa, poi riconnettiti.</string>
+	<string name="error_invalid_exit_gateway_country">In quella località non sono disponibili server di uscita. Scegli una località diversa, poi riconnettiti.</string>
+	<string name="bandwidth_error">Hai raggiunto il limite giornaliero. Riprova più tardi.</string>
+	<string name="error_credential_fetching_failed">Impossibile recuperare le tue credenziali di connessione. Riprova tra poco. Se il problema persiste, riavvia l’app o contatta l’assistenza.</string>
+	<string name="error_no_credential_available">Nessuna credenziale di connessione disponibile. Riavvia NymVPN e riprova. Se il problema persiste, contatta l’assistenza.</string>
+	<string name="max_devices_error">Hai raggiunto il limite di dispositivi. Rimuovi un dispositivo su nym.com o esci da un’altra sessione, poi riconnettiti.</string>
+	<string name="error_ipv6_unavailable">IPv6 è disattivato su questo sistema, ma NymVPN è impostato per utilizzarlo. Disattiva IPv6 nelle impostazioni di NymVPN, poi riconnettiti.</string>
+	<string name="error_device_logged_out">Questo dispositivo è stato disconnesso. Accedi di nuovo per ricollegarti.</string>
+	<string name="error_inactive_account">Il tuo account non è attivo. Apri Account e aggiorna, oppure contatta l’assistenza.</string>
 	<string name="error_inactive_account_subtitle">Tocca su “Inizia”</string>
-	<string name="error_set_dns">Configurazione del dns fallita.</string>
-	<string name="error_set_firewall_policy">Impostazione della regola del firewall fallita.</string>
-	<string name="error_set_routing">Configurazione dell\'instradamento fallita.</string>
-	<string name="error_tun_device">Configurazione del dispositivo tunnel fallita.</string>
-	<string name="error_tunnel_provider">Configurazione del fornitore del tunnel di pacchetti fallita.</string>
-	<string name="error_active_plan">Non disponi di un piano attivo. Tocca “Inizia” per avviare la navigazione anonima.</string>
-	<string name="error_bandwidth_entry">Il server d\'ingresso non risponde o risponde male a un aumento della larghezza di banda.</string>
-	<string name="error_bandwidth_exit">Il server di uscita non risponde o risponde male a un aumento della larghezza di banda.</string>
-	<string name="error_gateway_unavailable_entry">Impossibile raggiungere il server d\'ingresso. Provane un altro!</string>
-	<string name="error_gateway_unavailable_exit">Impossibile raggiungere il server di uscita. Prova con un altro!</string>
-	<string name="error_invalid_entry_gateway_identity">Server d\'ingresso offline. Scegline un altro e riconnetti.</string>
-	<string name="error_invalid_exit_gateway_identity">Server di uscita offline. Scegline un altro e riconnetti.</string>
+	<string name="error_set_dns">Impossibile applicare le impostazioni DNS. Riconnettiti. Se il problema persiste, esegui la diagnostica in Impostazioni o contatta l’assistenza.</string>
+	<string name="error_set_firewall_policy">Impossibile configurare le regole del/firewall di NymVPN. Riconnettiti. Se il problema persiste, chiudi le altre app VPN/firewall o contatta l’assistenza.</string>
+	<string name="error_set_routing">Impossibile configurare il routing di rete. Riconnettiti. Se il problema persiste, chiudi le altre app VPN o contatta l’assistenza.</string>
+	<string name="error_tun_device">Impossibile configurare l’interfaccia di rete VPN. Riconnettiti. Se il problema persiste, riavvia l’app o il dispositivo, oppure contatta l’assistenza.</string>
+	<string name="error_tunnel_provider">Impossibile avviare la VPN su questo dispositivo. Riconnettiti e, se richiesto, autorizza la connessione VPN. Se il problema persiste, contatta l’assistenza.</string>
+	<string name="error_active_plan">Non hai un abbonamento attivo. Acquista o rinnova un piano, poi aggiorna il tuo account e riconnettiti.</string>
+	<string name="error_bandwidth_entry">Il server di accesso non ha completato la tua connessione. Riprova oppure attiva QUIC nelle impostazioni Anti-censura.</string>
+	<string name="error_bandwidth_exit">Il server di uscita non ha completato la tua connessione. Scegli un’altra posizione di uscita e riprova.</string>
+	<string name="error_gateway_unavailable_entry">Non ci sono server disponibili tra cui scegliere. Scegli un’altra località o riprova tra qualche minuto.</string>
+	<string name="error_gateway_unavailable_exit">Non ci sono server di uscita disponibili tra cui scegliere. Scegli una posizione diversa o riprova tra qualche minuto.</string>
+	<string name="error_invalid_entry_gateway_identity">Il server di accesso che hai scelto non è disponibile. Scegli un altro server di accesso, poi riconnettiti.</string>
+	<string name="error_invalid_exit_gateway_identity">Il server di uscita che hai scelto non è disponibile con le tue impostazioni attuali. Scegli un altro server di uscita o di ingresso, poi riconnettiti.</string>
 	<string name="error_needs_device_location">Il routing automatico non è disponibile al momento. Riprova più tardi o scegli i tuoi server.</string>
-	<string name="error_connection_attempts_exceeded">Impossibile stabilire la connessione dopo diversi tentativi. Riprova.</string>
+	<string name="error_connection_attempts_exceeded">Couldn\'t connect after several tries. Try another location, or try again in a few minutes.</string>
 	<string name="error_expired_subscription_title">Il tuo abbonamento è scaduto</string>
 	<string name="error_expired_subscription_description">Il metodo di pagamento ricorrente è stato rifiutato</string>
 	<string name="error_expired_subscription_button">Rinnova ora</string>
+	<string name="renewal_reminder_description">Renew now to stay protected without interruption.</string>
 	<string name="error_no_subscription_title">Nessun abbonamento attivo</string>
 	<string name="error_no_subscription_description">Scegli un piano per iniziare a utilizzare NymVPN</string>
 	<string name="error_no_subscription_button">Seleziona piano</string>
@@ -186,8 +191,10 @@
 	<string name="one_click_nym_entry_node">Server di ingresso</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Non protetto</string>
-	<string name="connection_status_fast_mode">Protezione in modalità veloce</string>
+	<string name="connection_status_fast_mode">dVPN protection</string>
 	<string name="connection_status_anonymous">Protezione Mixnet</string>
+	<string name="connection_status_bridge">Connected via %1$s bridge</string>
+	<string name="connection_status_direct">Connected directly</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Auto</string>
 	<string name="gateway_random">Server casuale</string>
@@ -212,16 +219,16 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Benvenuto!</string>
 	<string name="auth_welcome_description">alla VPN più riservata al mondo</string>
-	<string name="auth_welcome_login_button">Accedi al mio account</string>
+	<string name="auth_welcome_login_button">Log in to my account</string>
 	<string name="auth_sign_up_title">Registrati</string>
 	<string name="auth_sign_up_account_button">Account anonimo</string>
 	<string name="auth_sign_up_social_button">Registrati con i social *</string>
-	<string name="auth_sign_up_info">* La registrazione tramite un account social esistente \nriduce il tuo anonimato.</string>
+	<string name="auth_sign_up_info">*May not be anonymous.</string>
 	<string name="auth_log_in_title">Log in</string>
 	<string name="auth_log_in_passphrase_button">Accedi con 24 parole</string>
 	<string name="auth_log_in_social_button">Accedi tramite social *</string>
-	<string name="auth_log_in_info">* Devi prima collegare i tuoi profili social a un account esistente \nprima di poterli utilizzare per l\'accesso. </string>
-	<string name="auth_passphrase_login_button">Accesso</string>
+	<string name="auth_log_in_info">*Account must be connected before NymVPN login.</string>
+	<string name="auth_passphrase_login_button">Log in</string>
 	<string name="auth_passphrase_input_placeholder">Credenziali</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censura</string>
@@ -248,7 +255,7 @@
 	<string name="settings_shortcuts_title">Collegamenti rapidi all’app</string>
 	<string name="settings_logs_title">Log e dati</string>
 	<string name="settings_legal_title">Note legali</string>
-	<string name="settings_geo_exclusion_title">Esclusione geografica</string>
+	<string name="settings_geo_exclusion_title">Geo-exclusion</string>
 	<string name="settings_geo_exclusion_description">Alcuni intervalli di IP specifici si connettono direttamente</string>
 	<string name="settings_profiles_title">Profili di connessione</string>
 	<string name="settings_profiles_description">Lascia che ti aiutiamo a connetterti</string>
@@ -256,7 +263,7 @@
 	<string name="shortcut_title">Conferma azione</string>
 	<string name="shortcut_subtitle_stop">Sblocca per disconnetterti dalla VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Sblocca per avviare Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Sblocca per avviare la modalità veloce</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start dVPN</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Per una connessione ottimale</string>
 	<string name="battery_opt_descr">Disattiva le ottimizzazioni della batteria di NymVPN per connessioni VPN più stabili.</string>
@@ -264,11 +271,11 @@
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Dati, privacy e log</string>
 	<string name="privacy_anonymous_stats_title">Statistiche di rete anonime</string>
-	<string name="privacy_anonymous_stats_description">Aiutaci a costruire una rete più veloce condividendo dati anonimi sulle prestazioni nella tua zona. Li usiamo per ottimizzare la velocità, ridurre le disconnessioni e indirizzare la copertura del server dove è più necessaria. \n\nVengono condivisi solo i dati sulle prestazioni della rete, mai la tua attività di navigazione o i tuoi dati personali.</string>
+	<string name="privacy_anonymous_stats_description">Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.</string>
 	<string name="privacy_anonymous_stats_link_text">Impara esattamente cosa è condiviso</string>
 	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
 	<string name="privacy_error_reports_title">Segnalazioni di errori e crash</string>
-	<string name="privacy_error_reports_description">Invia informazioni sui crash per aiutarci a correggere gli errori più velocemente. Le segnalazioni passano attraverso il sistema sicuro di Sentry e includono solo dati tecnici di debug.</string>
+	<string name="privacy_error_reports_description">Send anonymous crash reports to help us fix bugs faster.</string>
 	<string name="privacy_error_reports_link_text">Visualizza Informativa Sulla Privacy Della Sentry</string>
 	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Le modifiche saranno applicate dopo il riavvio dell’app.</string>
@@ -283,7 +290,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continua</string>
 	<string name="welcome_title">Aiutaci a migliorare NymVPN</string>
-	<string name="welcome_description">Scegli quali dati anonimi condividere. \nTutti i dati vengono privati delle informazioni identificative prima di essere inviati.</string>
+	<string name="welcome_description">Choose what anonymous data to share. \nNo personal information included.</string>
 	<string name="welcome_error_reports_title">Condividi segnalazioni di errore</string>
 	<string name="welcome_error_reports_description_start">Aiutaci a correggere gli errori più velocemente, nessun dato personale raccolto (via </string>
 	<string name="welcome_error_reports_link_text">Sentinella</string>
@@ -295,7 +302,7 @@
 	<string name="onboarding_welcome_description">Il tuo accesso privato a \nan **Internet senza barriere.**</string>
 	<string name="onboarding_modes_title_dvpn">Il tuo dVPN</string>
 	<string name="onboarding_modes_description_dvpn">Privacy per tutte le tue attività sul web \nRete **decentralizzata** a 2 hop \n**AmneziaWG**, fork di WireGuard</string>
-	<string name="onboarding_modes_title_mixnet">La tua Mixnet</string>
+	<string name="onboarding_modes_title_mixnet">Your Mixnet</string>
 	<string name="onboarding_modes_description_mixnet">Il modo più **anonimo** per navigare online \n**Mixnet** a 5 hop con **rumore** \npersonalizza i tuoi schemi di traffico.</string>
 	<string name="onboarding_modes_tagline_dvpn">Can’t snitch - won’t snitch: progettazione della rete.</string>
 	<string name="onboarding_modes_tagline_mixnet">Protezione delle impronte digitali dei metadati.</string>
@@ -312,12 +319,22 @@
 	<string name="onboarding_plan_one_month">1 mese</string>
 	<string name="onboarding_plan_try_suffix">, senza impegno.</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Scegli il tuo piano \ndi abbonamento</string>
+	<string name="select_plan_title">Choose your plan</string>
 	<string name="select_plan_line_1">Tutte le funzionalità incluse</string>
 	<string name="select_plan_line_2">Nessuna pubblicità</string>
 	<string name="select_plan_line_3">Annulla in qualsiasi momento</string>
-	<string name="select_plan_button">Scegli il mio piano NymVPN</string>
+	<string name="select_plan_button">Scegli il tuo piano NymVPN</string>
+	<string name="select_plan_billing_unavailable">Google Play billing is unavailable. Make sure you are signed in to the Play Store and try again.</string>
+	<string name="account_info_manage_play_unavailable">This subscription wasn\'t purchased through Google Play. Manage it where you bought it.</string>
 	<string name="select_plan_modal_title">Scegli il tuo piano. Tutte le funzionalità, annulli quando vuoi.</string>
+	<plurals name="select_plan_free_trial_days">
+		<item quantity="one">Prova gratuita di %1$d giorni</item>
+		<item quantity="other">Prova gratuita di %1$d giorni</item>
+	</plurals>
+	<plurals name="select_plan_modal_free_trial_days">
+		<item quantity="one">La prova gratuita di %1$d giorni inizia oggi</item>
+		<item quantity="other">La prova gratuita di %1$d giorni inizia oggi</item>
+	</plurals>
 	<!-- Server Details screen -->
 	<string name="details_title">Dettagli del server</string>
 	<string name="details_features_title">Funzionalità di Node</string>
@@ -328,8 +345,8 @@
 	<string name="details_advanced_privacy">Privacy avanzata</string>
 	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">Streaming e IP</string>
-	<string name="details_residental_ip">Ip Residenziale</string>
-	<string name="details_datacenter_ip">IP Del Datacenter</string>
+	<string name="details_residental_ip">Residenziale</string>
+	<string name="details_datacenter_ip">Data center</string>
 	<string name="details_post_quantum_secure_keys">Chiavi sicure post-quantistiche</string>
 	<string name="details_lewes_protocol">Protocollo Lewes</string>
 	<string name="details_standard_key_exchange">Scambio di chiavi standard</string>
@@ -337,7 +354,7 @@
 	<string name="details_anti_censorship">Anti-censura</string>
 	<string name="details_quic_protocol">Protocollo QUIC</string>
 	<string name="details_standard_protocol">Standard protocol</string>
-	<string name="details_enable_quic_start">Abilita il “protocollo QUIC”</string>
+	<string name="details_enable_quic_start">Abilita “Protocollo QUIC”</string>
 	<string name="details_enable_quic_end">nelle impostazioni anti censura per usare questa funzione</string>
 	<string name="details_overall_performance">Prestazioni complessive</string>
 	<string name="details_server_load">Carico del server</string>
@@ -359,14 +376,21 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Funzioni avanzate per migliorare la connettività in reti restrittive o quando NymVPN viene bloccato.</string>
-	<string name="censorship_learn_more_link_text">Scopri di più</string>
-	<string name="censorship_quic_title">Connessione migliorata (QUIC)</string>
-	<string name="censorship_quic_description">Migliora le connessioni su reti soggette a restrizioni avvolgendo WireGuard in QUIC (HTTP/3).\n\nNota: limita le opzioni del server di ingresso ai soli server compatibili con QUIC.</string>
+	<string name="censorship_learn_more_link_text">Learn more</string>
+	<string name="censorship_quic_title">Enhanced connection</string>
+	<string name="censorship_bridge_changes_apply">Changes will apply after reconnect</string>
+	<string name="censorship_bridge_off_title">Disattivato</string>
+	<string name="censorship_bridge_off_description">Connect directly without a bridge.</string>
+	<string name="censorship_bridge_auto_title">Auto</string>
+	<string name="censorship_bridge_auto_description">Connect directly first, and use a bridge if that fails.</string>
+	<string name="censorship_bridge_on_title">On</string>
+	<string name="censorship_bridge_on_description">Always use a bridge. Only servers that offer one can be chosen as the entry server.</string>
+	<string name="censorship_quic_bridge_fallback">When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">Protegge dal blocco delle VPN utilizzando domini di copertura. Attiva per utilizzarlo sempre, oppure disattiva per utilizzarlo quando le connessioni normali falliscono.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">Mostra solo posizioni e server in modalità Veloce che supportano il protocollo QUIC. Per rivelare tutti i server, disattiva QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Only showing dVPN locations and servers supporting QUIC. To reveal all servers, turn off QUIC.</string>
 	<string name="censorship_amnezia_title">Opacità minima (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Maschera il traffico WireGuard con pacchetti esca per impedire il blocco della VPN. \n\nNota: implementato solo lato client.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
@@ -378,13 +402,13 @@
 	<string name="account_subscription_description">Abbiamo trovato un abbonamento attivo collegato al tuo account Google Play. Salta la registrazione e usa direttamente NymVPN. Basta che tu abbia la frase segreta di 24 parole.</string>
 	<string name="account_subscription_button">Accedi con la frase segreta di Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Generazione coppie di chiavi crittografiche…</string>
-	<string name="account_generating_title_2">Creazione della tua identità anonima…</string>
-	<string name="account_generating_title_3">Protezione delle tue credenziali in locale…</string>
+	<string name="account_generating_title_1">Generazione di coppie di chiavi crittografiche...</string>
+	<string name="account_generating_title_2">Creazione della tua identità anonima...</string>
+	<string name="account_generating_title_3">Proteggere le tue credenziali localmente...</string>
 	<string name="account_generating_description_1">Creazione di tasti che non lasciano mai il dispositivo</string>
 	<string name="account_generating_description_2">Creazione di credenziali di rete anonime</string>
-	<string name="account_generating_description_3">Crittografia delle credenziali con la chiave del dispositivo; solo tu puoi sbloccarle</string>
-	<string name="account_generating_error">Registrazione dell\'account fallita. Riprova più tardi</string>
+	<string name="account_generating_description_3">Crittografare le credenziali con la chiave del dispositivo. Solo tu puoi sbloccarle</string>
+	<string name="account_generating_error">Impossibile completare la configurazione del tuo account. Riprova. Se il problema persiste, contatta l’assistenza.</string>
 	<string name="account_generating_deeplink_title">Accesso in corso…</string>
 	<string name="account_generating_deeplink_description">Attendi mentre verifichiamo il tuo account</string>
 	<string name="account_login_processing_setting_up">Configurazione del tuo account anonimo</string>
@@ -413,19 +437,21 @@
 	<string name="screen_lock_setup_button">Imposta un blocco dello schermo</string>
 	<string name="screen_lock_setup_not_now">Non ora</string>
 	<string name="device_auth_error">Impossibile confermare che sei tu. Riprova.</string>
+	<string name="device_auth_use_screen_lock">Usa il blocco schermo</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Password del tuo account</string>
-	<string name="passphrase_description">🔒Your master account passphrase: 24 parole che ti permettono di accedere al tuo account da qualsiasi dispositivo.</string>
-	<string name="passphrase_description_first">🔒La frase segreta principale del tuo account:</string>
+	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Your account passphrase:</string>
 	<string name="passphrase_description_last">24 parole che ti consentono di accedere al tuo account da qualsiasi dispositivo.</string>
 	<string name="passphrase_show">Mostra la mia passphrase</string>
+	<string name="passphrase_hide">Nascondi la mia passphrase</string>
 	<string name="passphrase_copy">Copia frase segreta</string>
 	<string name="passphrase_save">Salva nel gestore di password</string>
 	<string name="passphrase_lose">⚠️ Perdi queste parole = perdi il tuo account per sempre.</string>
 	<string name="passphrase_never">Non condividerli mai con nessuno, incluso il supporto Nym.</string>
 	<string name="passphrase_saved">Ho salvato queste 24 parole in modo sicuro e non le condividerò mai</string>
 	<string name="passphrase_info_title">Cos\'è la frase segreta</string>
-	<string name="passphrase_info_description">Si tratta di una sequenza unica di 24 parole, generata sul tuo dispositivo, che funge da accesso sicuro. Solo tu hai accesso ad essa: non è possibile effettuare backup, reimpostazioni o recuperi.\n\n ⚠️ Conservala in un luogo sicuro: questa passphrase è l’unico modo per accedere al tuo account.</string>
+	<string name="passphrase_info_description">It\'s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it – there\'s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
 	<string name="passphrase_info_privacy_removed">Per tutelare la tua privacy, abbiamo rimosso:</string>
 	<string name="passphrase_info_stored_accounts">Account centralizzati</string>
 	<string name="passphrase_info_personal_logins">Accessi basati su dati personali</string>
@@ -448,13 +474,11 @@
 	<string name="account_info_bandwidth_title">Quota giornaliera</string>
 	<string name="account_info_limit_text">Limite</string>
 	<string name="account_info_reset_text">Si azzera ogni giorno alle</string>
-	<string name="account_info_data_unavailable">Dati di utilizzo non disponibili</string>
+	<string name="account_info_data_unavailable">Dati di utilizzo temporaneamente non disponibili</string>
 	<string name="account_info_valid_text">Piano valido fino al %s</string>
 	<string name="account_info_expires_text">Il piano scade il %s</string>
-	<string name="banner_plan_expires_text">Il piano scade il:\n%s</string>
 	<string name="account_info_renew_text">Rinnova ora per rimanere protetto</string>
-	<string name="banner_renew_text">Rinnova ora\nper rimanere protetto</string>
-	<string name="account_info_auto_renew_text">*Rinnovo automatico</string>
+	<string name="account_info_auto_renew_text">Rinnovo automatico</string>
 	<string name="account_info_no_plan">Nessun abbonamento attivo</string>
 	<string name="account_info_contact_support_action">Contatta l’assistenza clienti</string>
 	<string name="account_info_contact_support_suffix"> se raggiungi il limite.</string>
@@ -464,6 +488,7 @@
 	<string name="account_info_add_social_action">Aggiungi un accesso tramite social</string>
 	<string name="account_info_add_social_suffix"> al tuo account.</string>
 	<string name="account_info_backup">Metodo di accesso di riserva collegato tramite Privy.</string>
+	<string name="account_info_delete_button">Delete account</string>
 	<string name="pin_code_title">Codice PIN</string>
 	<string name="pin_code_subtitle">Inserisci questo codice sul web</string>
 	<string name="pin_code_copy_and_open">Copia il codice e apri il sito web</string>
@@ -472,7 +497,7 @@
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Attiva la registrazione</string>
 	<string name="logs_enable_description">Attiva per risoluzione di problemi. Disattiva per privacy. I registri rimangono sul tuo dispositivo. Nym non ne ha mai accesso.</string>
-	<string name="logs_debug_enable_title">Attiva la registrazione dettagliata</string>
+	<string name="logs_debug_enable_title">Abilita la registrazione di debug</string>
 	<string name="logs_debug_enable_description">Attiva i registri di DEBUG dettagliati per diagnosi autonoma o con supporto. Aumenta il consumo della batteria. La dimensione del registro potrebbe crescere fino a 10x.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
@@ -546,7 +571,7 @@
 	<string name="mixnet_tuning_traffic_off_high">Alto\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Bilanciata\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Medio\n10x</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ La protezione temporale è attualmente disattivata. Ciò potrebbe mettere a rischio la tua privacy.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off and could affect your privacy.</string>
 	<string name="mixnet_tuning_delays_title">Mixing dei pacchetti</string>
 	<string name="mixnet_tuning_delays_description">Regola i ritardi di tempo per modificare la qualità di miscelazione dei pacchetti.</string>
 	<string name="mixnet_tuning_delays_low">Basso\n0 ms</string>
@@ -580,13 +605,13 @@
 	<!-- Node Families -->
 	<string name="node_families_title">I server selezionati appartengono alla stessa famiglia di operatori!</string>
 	<string name="node_families_description_text">Disattiva i promemoria in </string>
-	<string name="node_families_description_link">notification settings.</string>
+	<string name="node_families_description_link">impostazioni delle notifiche</string>
 	<string name="node_families_connect_button">Connettiti comunque</string>
-	<string name="node_families_error_message">I server selezionati appartengono alla stessa famiglia. Scegli una coppia diversa o connettiti comunque.</string>
+	<string name="node_families_error_message">Questi server di entrata e di uscita non sono completamente indipendenti. Scegli server diversi oppure connettiti comunque.</string>
 	<!-- Geo Exclusion -->
-	<string name="geo_exclusion_enable_title">Abilita esclusione geografica</string>
+	<string name="geo_exclusion_enable_title">Enable Geo-exclusion</string>
 	<string name="geo_exclusion_description">Indirizza il traffico per le regioni selezionate al di fuori del tunnel VPN, in modo che le app nazionali funzionino alla massima velocità. Tutto il resto rimane protetto.</string>
-	<string name="geo_exclusion_beta_text">Versione beta:  Per ora solo in Cina. Altre regioni in arrivo.</string>
+	<string name="geo_exclusion_beta_text">China only. More regions coming.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Il traffico verso le regioni escluse bypassa la VPN.</string>
 	<string name="geo_exclusion_server_title">Server</string>
 	<string name="geo_exclusion_sock55_title">Porta SOCKS5</string>
@@ -597,7 +622,7 @@
 	<string name="geo_exclusion_error_failed_start_text">Esclusione geografica: impossibile avviare. Riconnettiti e riprova.</string>
 	<string name="geo_exclusion_error_invalid_port_text">La porta deve essere compresa tra 1024 e 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">La porta 1080 è vietata. Scegline un\'altra.</string>
-	<string name="geo_exclusion_excluded_regions_label">REGIONI ESCLUSE</string>
+	<string name="geo_exclusion_excluded_regions_label">Regioni escluse</string>
 	<string name="geo_exclusion_china">Cina</string>
 	<string name="geo_exclusion_add_region_button">Aggiungi regione</string>
 	<string name="geo_exclusion_copy_proxy_label">Copia l\'indirizzo del proxy</string>
@@ -607,7 +632,7 @@
 	<string name="setup_instructions_step_socks_host">Host SOCKS</string>
 	<string name="setup_instructions_step_socks_port">, Porta</string>
 	<string name="setup_instructions_step_socks_suffix">, seleziona SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Controlla il proxy DNS quando si utilizza SOCKS v5 (impedisce le perdite DNS).</string>
+	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
 	<string name="setup_instructions_description">Su Firefox o su browser che consentono configurazioni SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Icona dell’app</string>
@@ -631,4 +656,47 @@
 	<string name="profiles_description">I profili sono modelli di connessione che puoi usare per collegarti velocemente con la configurazione del server più adatta a te.</string>
 	<string name="profiles_learn_more_text">Scopri di più sui profili qui</string>
 	<string name="profiles_learn_more_link">https://nym.com/features/profiles</string>
+	<string name="node_location_excluding_country">Excluding your country</string>
+	<string name="node_location_including_country">Including your country</string>
+	<string name="node_location_random">Global Nym network</string>
+	<!-- Delete Account -->
+	<string name="delete_account_title">Delete your account</string>
+	<string name="delete_account_headline">This closes your NymVPN account. You can\'t undo it.</string>
+	<string name="delete_account_deleted_title">Deleted from this phone</string>
+	<string name="delete_account_deleted_1">Your passphrase</string>
+	<string name="delete_account_deleted_2">Your account and device keys</string>
+	<string name="delete_account_deleted_3">Your VPN keys and stored credentials</string>
+	<string name="delete_account_deleted_4">Your account settings</string>
+	<string name="delete_account_at_nym_title">At Nym</string>
+	<string name="delete_account_at_nym_1">Your account is closed. It can\'t log in again on any device.</string>
+	<string name="delete_account_kept_title">Kept, and why</string>
+	<string name="delete_account_kept_1_headline">Payment and accounting records.</string>
+	<string name="delete_account_kept_1_descr">Swiss law requires Nym to keep accounting records for 10 years. Stripe keeps card payment records for at least 5 years.</string>
+	<string name="delete_account_kept_2_headline">Google Play purchase records.</string>
+	<string name="delete_account_kept_2_descr">They stay with Google, and Nym can\'t delete them.</string>
+	<string name="delete_account_kept_3_headline">Anonymous usage statistics and crash reports.</string>
+	<string name="delete_account_kept_3_descr">They were never linked to your account. Crash reports are kept for about 90 days.</string>
+	<string name="delete_account_kept_4_headline">Support tickets.</string>
+	<string name="delete_account_kept_4_descr">To have them deleted, write to legal@nym.com.</string>
+	<string name="delete_account_kept_5_headline">Copies of your passphrase you saved yourself,</string>
+	<string name="delete_account_kept_5_descr">in a password manager or on paper. They\'re yours to delete.</string>
+	<string name="delete_account_kept_6_headline">Tokens held on-chain stay there.</string>
+	<string name="delete_account_kept_6_descr">Deleting your NymVPN account doesn\'t touch a blockchain. If this passphrase also holds NYM or other tokens, keep a copy of it.</string>
+	<string name="delete_account_keep_button">Keep my account</string>
+	<string name="delete_account_auth_subtitle">You confirm once more before anything is deleted.</string>
+	<string name="delete_account_play_title">Cancel your Google Play subscription first</string>
+	<string name="delete_account_play_descr_1">Deleting your account doesn\'t cancel it, and after you delete you can\'t log in to cancel it here. Google keeps charging you until you cancel it in Google Play.</string>
+	<string name="delete_account_play_descr_2">Once it\'s cancelled, come back to delete your account.</string>
+	<string name="delete_account_play_button">Open Google Play subscriptions</string>
+	<string name="delete_account_dialog_title">Delete your account now?</string>
+	<string name="delete_account_dialog_description">Your account closes on every device, and your passphrase and keys are removed from this phone. You can\'t undo this.</string>
+	<string name="delete_account_dialog_progress_title">Deleting your account…</string>
+	<string name="delete_account_dialog_progress_descr">This disconnects the VPN.</string>
+	<string name="delete_account_confirm_title">Your account is deleted</string>
+	<string name="delete_account_confirm_descr_1">Your account is closed, and your passphrase and keys are gone from this phone.</string>
+	<string name="delete_account_confirm_descr_2">To have your support tickets deleted too, write to legal@nym.com.</string>
+	<string name="delete_account_error_title">Couldn\'t delete your account</string>
+	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
+	<string name="delete_account_time_title">You lose the time you have left</string>
+	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
 </resources>

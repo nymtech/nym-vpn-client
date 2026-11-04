@@ -17,7 +17,7 @@ test.describe('Settings', () => {
   test('renders all settings correctly', async () => {
     await expect(settingsPage.row('Account')).toBeVisible();
     await expect(settingsPage.row('Support &')).toBeVisible();
-    await expect(settingsPage.row('Killswitch')).toBeVisible();
+    await expect(settingsPage.row('Kill switch')).toBeVisible();
     await expect(settingsPage.row('Block ads')).toBeVisible();
     await expect(settingsPage.row('Support IPv6')).toBeVisible();
     await expect(settingsPage.row('Bypass LAN')).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('Settings', () => {
     await settingsPage.openRow('Anti-censorship');
 
     await expect(page).toHaveURL(/\/settings\/anti-censorship/);
-    await expect(settingsPage.quicToggle).toBeVisible();
+    await expect(settingsPage.bridgeModeGroup).toBeVisible();
   });
 
   test('navigates to appearance', async ({ page }) => {
@@ -83,18 +83,21 @@ test.describe('Settings - anti censorship', () => {
   });
 
   test('renders anti censorship settings correctly', async () => {
-    await expect(settingsPage.quicToggle).toBeVisible();
+    await expect(settingsPage.bridgeModeGroup).toBeVisible();
     await expect(settingsPage.amneziaToggle).toBeVisible();
     await expect(settingsPage.stealthApiToggle).toBeVisible();
   });
 
-  test('toggles the QUIC option', async () => {
-    const quicSwitch = settingsPage.quicToggle.getByRole('switch');
-    await expect(quicSwitch).not.toBeChecked();
+  test('selects the bridge mode', async () => {
+    const off = settingsPage.bridgeModeOption('off');
+    const auto = settingsPage.bridgeModeOption('auto');
+    await expect(off).toHaveAttribute('aria-checked', 'true');
+    await expect(auto).toHaveAttribute('aria-checked', 'false');
 
-    await settingsPage.quicToggle.click();
+    await auto.click();
 
-    await expect(quicSwitch).toBeChecked();
+    await expect(auto).toHaveAttribute('aria-checked', 'true');
+    await expect(off).toHaveAttribute('aria-checked', 'false');
   });
 
   test('keeps AmneziaWG locked on', async () => {

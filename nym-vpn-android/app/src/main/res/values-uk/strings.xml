@@ -3,10 +3,10 @@
 	<string name="settings">Налаштування</string>
 	<string name="disconnecting">Від\'єднання</string>
 	<string name="connecting">Підключення</string>
-	<string name="five_hop_mixnet">Анонімний (мікснет)</string>
+	<string name="five_hop_mixnet">Mixnet</string>
 	<string name="connect">Підключитись</string>
 	<string name="disconnect">Від\'єднати</string>
-	<string name="init_client">Ініціалізація клієнта…</string>
+	<string name="init_client">Ініціалізація клієнта...</string>
 	<string name="establishing_connection">Встановлення з\'єднання</string>
 	<string name="display_theme">Тема</string>
 	<string name="light_theme">Світла</string>
@@ -32,6 +32,7 @@
 	<string name="okay">Добре</string>
 	<string name="two_hop">2-ланки</string>
 	<string name="country_load_failure">Не вдалось завантажити країну</string>
+	<string name="server_list_update_failed">Не вдалося оновити список серверів. Відображаються збережені сервери.</string>
 	<string name="permission_required">Необхідний дозвіл</string>
 	<string name="permission_message">Щоб забезпечити коректну роботу додатку на вашому пристрої, будь ласка, надайте наступні дозволи.</string>
 	<string name="notification_permission_required">Будь ласка, увімкніть дозвіл на сповіщення для правильної роботи програми</string>
@@ -58,20 +59,20 @@
 	<string name="always_on_message">Не працює? Переконайтеся, що Always-on VPN вимкнено для інших програм у</string>
 	<string name="vpn_settings">Налаштуваннях системи VPN</string>
 	<string name="try_again">і спробуйте відновити підключення</string>
-	<string name="network_error">Виникла проблема з підключенням до мережі. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
+	<string name="network_error">Не вдалося з’єднатися із сервером. Перевірте підключення та спробуйте ще раз.</string>
 	<string name="vpn_alerts_channel_id">Канал сповіщень NymVPN</string>
 	<string name="vpn_alerts_channel_description">Канал сповіщень, пов\'язаних з додатком.</string>
 	<string name="connection_failed">Не вдалося встановити з\'єднання</string>
 	<string name="vpn_permission_missing">Дозвіл на Vpn не прийнято або він використовується іншою програмою.</string>
 	<string name="action_requires_tunnel_down">Дія вимагає тунелю вниз</string>
 	<string name="device_added_success">Пристрій успішно додано до вашого облікового запису</string>
-	<string name="invalid_recovery_phrase">Неправильна фраза відновлення</string>
+	<string name="invalid_recovery_phrase">Ця фраза для відновлення недійсна. Перевірте 24 слова та спробуйте ще раз.</string>
 	<string name="log_out">Вихід з системи</string>
 	<string name="account">Обліковий запис</string>
 	<string name="mnemonic_example">наприклад, дим артефакт оксамитовий череп поп палац черепаха пошкодження грубий...</string>
 	<string name="dynamic">Динамічна</string>
 	<string name="system_wallpaper">Тема системних шпалер</string>
-	<string name="initializing">Ініціалізація</string>
+	<string name="initializing">Starting NymVPN</string>
 	<string name="stop">Стоп</string>
 	<string name="app_restart_required">Потрібен перезапуск програми</string>
 	<string name="max_devices_reached_title">Ви досягли максимальної кількості пристроїв для свого облікового запису</string>
@@ -82,20 +83,23 @@
 	<string name="loading">Завантаження</string>
 	<string name="offline">Немає інтернету</string>
 	<string name="two_hop_explanation">Високошвидкісний перегляд веб-сторінок (250+ Мбіт/с) із 2-ступеневою маршрутизацією. Використовує AmneziaWG, версію WireGuard, стійку до цензури, яка ідеально підходить для потокового передавання, швидкого перегляду веб-сторінок та завантаження файлів.</string>
-	<string name="two_hop_title">Швидкий (WireGuard<small>*</small>)</string>
+	<string name="two_hop_title">dVPN</string>
 	<string name="disabled_while_connecting">Вимкнено під час підключення до VPN</string>
 	<string name="exit_location">Сервер виходу</string>
 	<string name="entry_location">Вхідний сервер</string>
 	<string name="no_results_found">Результатів не знайдено.</string>
-	<string name="how_to_run_gateway">як запустити шлюз.</string>
+	<string name="how_to_run_gateway">як запустити шлюз</string>
 	<string name="or_learn">або навчитися</string>
 	<string name="contact_for_help">Зверніться до нас за допомогою</string>
 	<string name="try_another_server_name">Спробуйте іншу локацію або перевірте ім\'я сервера.</string>
 	<string name="servers">сервери</string>
 	<string name="local_logs">Журнали (зберігаються локально)</string>
-	<string name="logging_out">Виходжу з системи.</string>
+	<string name="logging_out">Вихід із системи</string>
 	<string name="app_update_required">Ваш додаток більше не підтримується. Будь ласка, оновіть його до останньої версії, щоб продовжити використання NymVPN.</string>
 	<string name="update_required">Потрібне оновлення!</string>
+	<string name="app_update_available_title">Доступне оновлення</string>
+	<string name="app_update_available_body">Доступна новіша версія NymVPN. Ви можете продовжувати користуватися цією версією або оновитися зараз.</string>
+	<string name="app_update_not_now">Не зараз</string>
 	<string name="update">Оновлення</string>
 	<string name="log_out_title">Вийти з цього пристрою?</string>
 	<string name="log_out_body">Це розриває з’єднання з VPN і видаляє ваш обліковий запис із цього пристрою. Без кодової фрази ви не зможете увійти знову.</string>
@@ -107,7 +111,7 @@
 	<string name="collapse">Згортання</string>
 	<string name="expand">Розгорнути</string>
 	<string name="country_flag">Прапор %1$s</string>
-	<string name="anonymous">Анонімний</string>
+	<string name="anonymous">Mixnet</string>
 	<string name="back">Назад</string>
 	<string name="rotate">Поворот</string>
 	<string name="refresh">Оновити</string>
@@ -135,35 +139,36 @@
 	<!-- Status pill -->
 	<string name="pill_error">Помилка</string>
 	<!-- Error State -->
-	<string name="error_same_entry_exit">Неможливо підключитися до одного і того ж сервера входу та виходу. Змініть сервер входу або виходу та підключіться знову.</string>
+	<string name="error_same_entry_exit">Вхідний і вихідний сервери не можуть бути одними й тими самими. Виберіть інший вхідний або вихідний сервер, а потім підключіться знову.</string>
 	<string name="unexpected_error">Виникла непередбачувана помилка:</string>
-	<string name="error_invalid_entry_gateway_country">Неправильна країна для вхідного сервера. Виберіть іншу і підключіться знову.</string>
-	<string name="error_invalid_exit_gateway_country">Неправильна країна для вихідного сервера. Виберіть іншу і підключіться знову.</string>
-	<string name="bandwidth_error">Досягнуто щоденний ліміт трафіку. Зверніться до служби підтримки, щоб швидко збільшити обсяг трафіку.</string>
-	<string name="error_credential_fetching_failed">Не вдалося отримати облікові дані, необхідні для підключення. Спробуйте ще раз.</string>
-	<string name="error_no_credential_available">Немає облікових даних для підключення. Спробуйте ще раз.</string>
-	<string name="max_devices_error">Перевищено ліміт пристроїв в акаунті. Будь ласка, видаліть пристрій з акаунта перед підключенням.</string>
-	<string name="error_ipv6_unavailable">Ipv6 недоступний</string>
-	<string name="error_device_logged_out">Пристрій вимкнено.</string>
-	<string name="error_inactive_account">Статус облікового запису не є «Активним».</string>
+	<string name="error_invalid_entry_gateway_country">У цьому місці немає доступних вхідних серверів. Виберіть інше місце, а потім підключіться знову.</string>
+	<string name="error_invalid_exit_gateway_country">У цьому місці немає доступних вихідних серверів. Виберіть інше місце, а потім підключіться знову.</string>
+	<string name="bandwidth_error">Ви вичерпали сьогоднішній ліміт. Спробуйте ще раз пізніше.</string>
+	<string name="error_credential_fetching_failed">Не вдалося отримати ваші облікові дані для підключення. Спробуйте ще раз через деякий час. Якщо проблема не зникне, перезапустіть програму або зверніться до служби підтримки.</string>
+	<string name="error_no_credential_available">Дані для підключення відсутні. Перезапустіть NymVPN і спробуйте ще раз. Якщо проблема не зникне, зверніться до служби підтримки.</string>
+	<string name="max_devices_error">Ви досягли ліміту пристроїв. Видаліть пристрій на сайті nym.com або вийдіть із системи в іншому місці, а потім підключіться знову.</string>
+	<string name="error_ipv6_unavailable">У цій системі IPv6 вимкнено, проте NymVPN налаштовано на його використання. Вимкніть IPv6 у налаштуваннях NymVPN, а потім підключіться знову.</string>
+	<string name="error_device_logged_out">З цього пристрою було здійснено вихід. Увійдіть знову, щоб відновити підключення.</string>
+	<string name="error_inactive_account">Ваш обліковий запис неактивний. Відкрийте обліковий запис і оновіть сторінку або зверніться до служби підтримки.</string>
 	<string name="error_inactive_account_subtitle">Натисніть «Почати»</string>
-	<string name="error_set_dns">Не вдалося налаштувати DNS.</string>
-	<string name="error_set_firewall_policy">Не вдалося встановити політику брандмауера.</string>
-	<string name="error_set_routing">Не вдалося налаштувати маршрутизацію.</string>
-	<string name="error_tun_device">Не вдалося налаштувати тунельне обладнання.</string>
-	<string name="error_tunnel_provider">Не вдалося налаштувати постачальника тунелю пакетів.</string>
-	<string name="error_active_plan">У вас немає активного тарифного плану. Натисніть «Почати», щоб розпочати анонімний перегляд.</string>
-	<string name="error_bandwidth_entry">Сервер входу не відповідає або погано реагує на збільшення пропускної здатності.</string>
-	<string name="error_bandwidth_exit">Вихідний шлюз не реагує або погано реагує на збільшення пропускної здатності.</string>
-	<string name="error_gateway_unavailable_entry">Не вдається підключитися до сервера входу. Спробуйте інший!</string>
-	<string name="error_gateway_unavailable_exit">Не вдається підключитися до сервера виходу. Спробуйте інший!</string>
-	<string name="error_invalid_entry_gateway_identity">Сервер входу не працює. Виберіть інший і підключіться знову.</string>
-	<string name="error_invalid_exit_gateway_identity">Сервер виходу не працює. Виберіть інший і підключіться знову.</string>
+	<string name="error_set_dns">Не вдалося застосувати налаштування DNS. Підключіться знову. Якщо проблема не зникне, запустіть діагностику в налаштуваннях або зверніться до служби підтримки.</string>
+	<string name="error_set_firewall_policy">Не вдалося налаштувати правила брандмауера для NymVPN. Спробуйте підключитися знову. Якщо проблема не зникне, закрийте інші VPN-програми або застосунки-брандмауери, або зверніться до служби підтримки.</string>
+	<string name="error_set_routing">Не вдалося налаштувати мережеву маршрутизацію. Спробуйте підключитися знову. Якщо проблема не зникне, закрийте інші VPN-програми або зверніться до служби підтримки.</string>
+	<string name="error_tun_device">Не вдалося налаштувати мережевий інтерфейс VPN. Спробуйте підключитися знову. Якщо проблема не зникне, перезапустіть програму або пристрій чи зверніться до служби підтримки.</string>
+	<string name="error_tunnel_provider">Не вдалося запустити VPN на цьому пристрої. Спробуйте підключитися знову; якщо з’явиться запит, дозвольте VPN-з’єднання. Якщо проблема не зникне, зверніться до служби підтримки.</string>
+	<string name="error_active_plan">У вас немає активної підписки. Оформіть або поновіть тарифний план, після чого оновіть дані свого облікового запису та підключіться знову.</string>
+	<string name="error_bandwidth_entry">Вхідний сервер не завершив встановлення з’єднання. Спробуйте ще раз або увімкніть QUIC у налаштуваннях захисту від цензури.</string>
+	<string name="error_bandwidth_exit">Вихідний сервер не завершив встановлення вашого з’єднання. Виберіть інше місце виходу та спробуйте ще раз.</string>
+	<string name="error_gateway_unavailable_entry">Для вашого вибору немає доступного сервера для входу. Оберіть інше розташування або спробуйте ще раз через кілька хвилин.</string>
+	<string name="error_gateway_unavailable_exit">Для вибору немає доступного вихідного сервера. Оберіть інше розташування або спробуйте ще раз через кілька хвилин.</string>
+	<string name="error_invalid_entry_gateway_identity">Вибраний вами вхідний сервер недоступний. Виберіть інший вхідний сервер, а потім підключіться знову.</string>
+	<string name="error_invalid_exit_gateway_identity">Вибраний вами вихідний сервер недоступний за поточних налаштувань. Виберіть інший вихідний або вхідний сервер, а потім підключіться знову.</string>
 	<string name="error_needs_device_location">Автоматична маршрутизація наразі недоступна. Спробуйте пізніше або виберіть власні сервери.</string>
-	<string name="error_connection_attempts_exceeded">Не вдалося встановити з\'єднання після кількох спроб. Спробуйте ще раз.</string>
+	<string name="error_connection_attempts_exceeded">Не вдалося підключитися після кількох спроб. Спробуйте інше розташування або повторіть спробу через кілька хвилин.</string>
 	<string name="error_expired_subscription_title">Термін дії вашої передплати скінчився</string>
 	<string name="error_expired_subscription_description">Спосіб оплати з регулярними платежами було відхилено</string>
 	<string name="error_expired_subscription_button">Поновити зараз</string>
+	<string name="renewal_reminder_description">Поновіть зараз, щоб залишатися під захистом без перерв.</string>
 	<string name="error_no_subscription_title">Активної підписки не виявлено</string>
 	<string name="error_no_subscription_description">Оберіть тарифний план, щоб почати користуватися NymVPN</string>
 	<string name="error_no_subscription_button">Виберіть план</string>
@@ -184,8 +189,10 @@
 	<string name="one_click_nym_entry_node">Вхідний сервер</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Не захищено</string>
-	<string name="connection_status_fast_mode">Захист у швидкому режимі</string>
+	<string name="connection_status_fast_mode">Захист dVPN</string>
 	<string name="connection_status_anonymous">Захист Mixnet</string>
+	<string name="connection_status_bridge">Підключено через міст %1$s</string>
+	<string name="connection_status_direct">Підключено безпосередньо</string>
 	<!-- Server Screen -->
 	<string name="gateway_safest">Автоматично</string>
 	<string name="gateway_random">Випадковий сервер</string>
@@ -214,16 +221,16 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Ласкаво просимо!</string>
 	<string name="auth_welcome_description">До найбезпечнішого VPN у світі</string>
-	<string name="auth_welcome_login_button">Увійти в мій обліковий запис</string>
+	<string name="auth_welcome_login_button">Log in to my account</string>
 	<string name="auth_sign_up_title">Зареєструватися</string>
 	<string name="auth_sign_up_account_button">Анонімний акаунт</string>
 	<string name="auth_sign_up_social_button">Зареєструватися через соцмережі *</string>
-	<string name="auth_sign_up_info">* Реєстрація за допомогою наявного профілю в соціальній мережі \n зменшує вашу анонімність.</string>
+	<string name="auth_sign_up_info">*Може бути не анонімним.</string>
 	<string name="auth_log_in_title">Увійти</string>
 	<string name="auth_log_in_passphrase_button">Увійти за допомогою 24 слів</string>
 	<string name="auth_log_in_social_button">Увійти через соціальні мережі *</string>
-	<string name="auth_log_in_info">* Щоб використовувати соціальні мережі для входу, \n спочатку потрібно прив’язати їх до наявного облікового запису. </string>
-	<string name="auth_passphrase_login_button">Логін</string>
+	<string name="auth_log_in_info">*Перед входом у NymVPN необхідно підключити обліковий запис.</string>
+	<string name="auth_passphrase_login_button">Увійти</string>
 	<string name="auth_passphrase_input_placeholder">24 фраза-пароль</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Проти цензури</string>
@@ -241,7 +248,7 @@
 	<string name="settings_ad_blocking_title">Блокування реклами</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
 	<string name="settings_kill_switch_description">Використовує функцію Android **Always-on VPN** для запобігання витоку даних.</string>
-	<string name="settings_bypass_lan_title">Обхід локальної мережі</string>
+	<string name="settings_bypass_lan_title">Обхід LAN</string>
 	<string name="settings_bypass_lan_description">Дозволить прямий доступ до локальної мережі</string>
 	<string name="settings_split_tunneling_title">Роздільне тунелювання</string>
 	<string name="settings_startup_title">Запускати при завантаженні</string>
@@ -250,7 +257,7 @@
 	<string name="settings_shortcuts_title">Ярлик додатку</string>
 	<string name="settings_logs_title">Журнали &amp; та дані</string>
 	<string name="settings_legal_title">Правові</string>
-	<string name="settings_geo_exclusion_title">Географічні винятки</string>
+	<string name="settings_geo_exclusion_title">Геообмеження</string>
 	<string name="settings_geo_exclusion_description">Конкретні діапазони IP-адрес підключаються безпосередньо.</string>
 	<string name="settings_profiles_title">Профілі підключення</string>
 	<string name="settings_profiles_description">Дозвольте нам допомогти вам налагодити зв’язок</string>
@@ -258,7 +265,7 @@
 	<string name="shortcut_title">Підтвердити дію</string>
 	<string name="shortcut_subtitle_stop">Розблокувати, щоб відключити VPN</string>
 	<string name="shortcut_subtitle_start_mixnet">Розблокуйте, щоб запустити Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Розблокуйте, щоб запустити швидкий режим</string>
+	<string name="shortcut_subtitle_start_wg">Розблокуйте, щоб запустити dVPN</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для кращого з\'єднання</string>
 	<string name="battery_opt_descr">Вимкніть оптимізацію заряду батареї NymVPN для більш стабільних VPN-з\'єднань.</string>
@@ -266,11 +273,11 @@
 	<!-- Data & Privacy screen -->
 	<string name="privacy_title">Дані, конфіденційність &amp; та журнали</string>
 	<string name="privacy_anonymous_stats_title">Анонімна статистика мережі</string>
-	<string name="privacy_anonymous_stats_description">Допоможіть нам створити швидшу мережу, поділившись анонімними даними про продуктивність у вашому регіоні. Ми використовуємо ці дані для оптимізації швидкості, зменшення кількості розривів з\'єднання та спрямування покриття сервера туди, де це найбільш потрібно. \n\nМи ділимося лише даними про продуктивність мережі – ніколи вашою активністю в Інтернеті чи особистими даними.</string>
+	<string name="privacy_anonymous_stats_description">Допоможіть нам покращити NymVPN, надаючи анонімні дані про те, як програма працює у вас. Ці телеметричні дані не міститимуть особистої інформації чи відомостей про вашу активність.</string>
 	<string name="privacy_anonymous_stats_link_text">Дізнайтеся, що саме публікується</string>
 	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
 	<string name="privacy_error_reports_title">Звіти про помилки та збої</string>
-	<string name="privacy_error_reports_description">Надсилайте інформацію про збої, щоб допомогти нам швидше виправляти помилки. Звіти проходять через захищену систему Sentry та містять лише технічні дані для налагодження.</string>
+	<string name="privacy_error_reports_description">Надсилайте анонімні звіти про збої, щоб допомогти нам швидше виправляти помилки.</string>
 	<string name="privacy_error_reports_link_text">Переглянути політику конфіденційності Sentry</string>
 	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Зміни набудуть чинності після перезавантаження програми.</string>
@@ -285,7 +292,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Продовжити</string>
 	<string name="welcome_title">Допоможіть нам покращити NymVPN</string>
-	<string name="welcome_description">Виберіть, якими анонімними даними ви хочете поділитися. \nПеред надсиланням з усіх даних видаляється інформація, що дозволяє ідентифікувати особу.</string>
+	<string name="welcome_description">Виберіть, якими анонімними даними ділитися. \nОсобиста інформація не включається.</string>
 	<string name="welcome_error_reports_title">Поділитися звітами про помилки</string>
 	<string name="welcome_error_reports_description_start">Допомагає нам швидше виправляти помилки, не збирати персональні дані (через </string>
 	<string name="welcome_error_reports_link_text">Sentry</string>
@@ -297,7 +304,7 @@
 	<string name="onboarding_welcome_description">Ваш особистий доступ до \n **Інтернету без обмежень.**</string>
 	<string name="onboarding_modes_title_dvpn">Ваш dVPN</string>
 	<string name="onboarding_modes_description_dvpn">Захист конфіденційності під час усіх ваших дій у мережі \n**Децентралізована** мережа з двома проміжними вузлами \n**AmneziaWG** — форк WireGuard</string>
-	<string name="onboarding_modes_title_mixnet">Ваша мережа Mixnet</string>
+	<string name="onboarding_modes_title_mixnet">Ваша мікснет-мережа</string>
 	<string name="onboarding_modes_description_mixnet">Найбільш **анонімний** спосіб перебування в мережі \n**Mixnet** з 5 переходами та **шумом** \nналаштуйте свої схеми трафіку.</string>
 	<string name="onboarding_modes_tagline_dvpn">«Не можу зрадити — не зраджу»: концепція мережі.</string>
 	<string name="onboarding_modes_tagline_mixnet">Захист відбитків метаданих.</string>
@@ -314,12 +321,26 @@
 	<string name="onboarding_plan_one_month">1 місяць</string>
 	<string name="onboarding_plan_try_suffix">, без жодних зобов’язань.</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Виберіть свій \nплан підписки</string>
+	<string name="select_plan_title">Виберіть свій тарифний план</string>
 	<string name="select_plan_line_1">Всі функції включені</string>
 	<string name="select_plan_line_2">Без реклами</string>
 	<string name="select_plan_line_3">Скасування будь-коли</string>
-	<string name="select_plan_button">Виберіть мій план NymVPN</string>
+	<string name="select_plan_button">Виберіть Ваш тарифний план NymVPN</string>
+	<string name="select_plan_billing_unavailable">Система оплати Google Play недоступна. Переконайтеся, що ви ввійшли в Play Store, і спробуйте ще раз.</string>
+	<string name="account_info_manage_play_unavailable">Цю підписку було придбано не через Google Play. Керуйте нею там, де ви її оформили.</string>
 	<string name="select_plan_modal_title">Виберіть свій план. Всі функції, скасувати в будь-який час.</string>
+	<plurals name="select_plan_free_trial_days">
+		<item quantity="one">Безкоштовна пробна версія на %1$d днів</item>
+		<item quantity="few">%1$d-денна безкоштовна пробна версія</item>
+		<item quantity="many">%1$d-денна безкоштовна пробна версія</item>
+		<item quantity="other">Безкоштовна пробна версія на %1$d днів</item>
+	</plurals>
+	<plurals name="select_plan_modal_free_trial_days">
+		<item quantity="one">%1$d-денна безкоштовна пробна версія починається сьогодні</item>
+		<item quantity="few">Безкоштовний пробний період тривалістю %1$d днів починається сьогодні</item>
+		<item quantity="many">Безкоштовний пробний період тривалістю %1$d днів починається сьогодні</item>
+		<item quantity="other">%1$d-денна безкоштовна пробна версія починається сьогодні</item>
+	</plurals>
 	<!-- Server Details screen -->
 	<string name="details_title">Деталі сервера</string>
 	<string name="details_features_title">Функції вузла</string>
@@ -330,8 +351,8 @@
 	<string name="details_advanced_privacy">Розширена конфіденційність</string>
 	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">Стрімінг &amp; IP</string>
-	<string name="details_residental_ip">Домашня IP</string>
-	<string name="details_datacenter_ip">IP-адреса центру обробки даних</string>
+	<string name="details_residental_ip">Житлові будинки</string>
+	<string name="details_datacenter_ip">Дата-центр</string>
 	<string name="details_post_quantum_secure_keys">Ключі з постквантовою безпекою</string>
 	<string name="details_lewes_protocol">Lewes протокол</string>
 	<string name="details_standard_key_exchange">Стандартний обмін ключами</string>
@@ -362,13 +383,20 @@
 	<!-- Censorship screen -->
 	<string name="censorship_description">Розширені функції для поліпшення зв\'язку в обмежених мережах або при блокуванні NymVPN.</string>
 	<string name="censorship_learn_more_link_text">Дізнатися більше</string>
-	<string name="censorship_quic_title">Покращене з\'єднання (QUIC)</string>
-	<string name="censorship_quic_description">Покращує з\'єднання в мережах з обмеженим доступом завдяки використанню протоколу QUIC (HTTP/3) для WireGuard.\n\nПримітка: Обмежує вибір серверів входу лише тими, що підтримують QUIC.</string>
+	<string name="censorship_quic_title">Покращене з’єднання</string>
+	<string name="censorship_bridge_changes_apply">Зміни набудуть чинності після повторного підключення</string>
+	<string name="censorship_bridge_off_title">Вимкнено</string>
+	<string name="censorship_bridge_off_description">Підключайтеся безпосередньо, без шлюзу.</string>
+	<string name="censorship_bridge_auto_title">Автоматично</string>
+	<string name="censorship_bridge_auto_description">Спершу спробуйте підключитися напряму, а якщо це не вдасться — скористайтеся мостом.</string>
+	<string name="censorship_bridge_on_title">Увімкнено</string>
+	<string name="censorship_bridge_on_description">Завжди використовуйте міст. Як вхідний сервер можна обрати лише той, що пропонує таку можливість.</string>
+	<string name="censorship_quic_bridge_fallback">Коли використовується міст, він спершу намагається застосувати QUIC. Якщо QUIC заблоковано, він перемикається на TLS або SSH, що може працювати повільніше.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Приховане підключення API</string>
 	<string name="censorship_stealth_description">Захищає від блокування VPN за допомогою прикривальних доменів. Увімкніть цю функцію, щоб використовувати її завжди, або вимкніть, щоб використовувати її лише у разі, якщо звичайні з’єднання не працюють.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic_gateway_filter_info_msg">Відображаються лише локації в швидкому режимі та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC.</string>
+	<string name="quic_gateway_filter_info_msg">Відображаються лише локації dVPN і сервери, що підтримують QUIC. Щоб побачити всі сервери, вимкніть QUIC.</string>
 	<string name="censorship_amnezia_title">Мінімальне заплутування (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Маскує трафік WireGuard за допомогою пакетів-приманок, щоб запобігти блокуванню VPN. \n\n Примітка: реалізовано лише на стороні клієнта.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
@@ -380,13 +408,13 @@
 	<string name="account_subscription_description">Ми знайшли активну підписку, пов\'язану з вашим обліковим записом Google Play. Пропустіть реєстрацію та відразу перейдіть до використання NymVPN. Просто підготуйте свою 24-слівну парольну фразу.</string>
 	<string name="account_subscription_button">Увійдіть за допомогою парольної фрази Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Генерація криптографічних ключів…</string>
+	<string name="account_generating_title_1">Створення криптографічних клавіатур...</string>
 	<string name="account_generating_title_2">Створення вашої анонімної ідентифікації...</string>
 	<string name="account_generating_title_3">Захист ваших облікових даних локально...</string>
 	<string name="account_generating_description_1">Створення клавіш, які ніколи не залишають ваш пристрій</string>
 	<string name="account_generating_description_2">Додавання анонімних облікових даних мережі</string>
-	<string name="account_generating_description_3">Шифрування облікових даних за допомогою ключа вашого пристрою. тільки ви можете розблокувати їх</string>
-	<string name="account_generating_error">Не вдалося зареєструвати обліковий запис. Спробуйте пізніше.</string>
+	<string name="account_generating_description_3">Шифрування облікових даних за допомогою ключа вашого пристрою. Тільки ви можете розблокувати їх</string>
+	<string name="account_generating_error">Не вдалося завершити налаштування вашого облікового запису. Спробуйте ще раз. Якщо проблема не зникне, зверніться до служби підтримки.</string>
 	<string name="account_generating_deeplink_title">Авторизація...</string>
 	<string name="account_generating_deeplink_description">Будь ласка, зачекайте, поки ми перевіряємо ваш обліковий запис</string>
 	<string name="account_login_processing_setting_up">Створення анонімного облікового запису</string>
@@ -415,19 +443,21 @@
 	<string name="screen_lock_setup_button">Встановити блокування екрана</string>
 	<string name="screen_lock_setup_not_now">Не зараз</string>
 	<string name="device_auth_error">Не вдалося підтвердити, що це ви. Спробуйте ще раз.</string>
+	<string name="device_auth_use_screen_lock">Увімкнути блокування екрана</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Фраза-ключ вашого акаунта</string>
-	<string name="passphrase_description">🔒Ваш головний пароль фразу: 24 слова, що дозволяють отримати доступ до вашого облікового запису з будь-якого пристрою.</string>
-	<string name="passphrase_description_first">🔒Фраза-пароль вашого облікового запису:</string>
+	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Your account passphrase:</string>
 	<string name="passphrase_description_last">24 слова, які дозволяють отримати доступ до вашого облікового запису з будь-якого пристрою.</string>
 	<string name="passphrase_show">Показати мою фразу-пароль</string>
+	<string name="passphrase_hide">Приховати мій пароль</string>
 	<string name="passphrase_copy">Скопіювати фразу-пароль</string>
 	<string name="passphrase_save">Зберегти до менеджера паролів</string>
 	<string name="passphrase_lose">⚠️ Втрата цих слів = втрата свого обліковий запис назавжди.</string>
 	<string name="passphrase_never">Ніколи не повідомляйте їх нікому, включаючи службу підтримки Nym.</string>
 	<string name="passphrase_saved">Я надійно зберіг ці 24 слова і ніколи нікому їх не розкажу.</string>
 	<string name="passphrase_info_title">Що таке фраза-пароль</string>
-	<string name="passphrase_info_description">Це унікальний набір із 24 слів, згенерований на вашому пристрої, який слугує вашим безпечним логіном. Доступ до нього маєте лише ви — резервного копіювання, скидання або відновлення немає. \n\n ⚠️ Зберігайте його в безпеці: цей пароль — єдиний спосіб отримати доступ до вашого облікового запису.</string>
+	<string name="passphrase_info_description">Це унікальний набір із 24 слів, згенерований на вашому пристрої, який слугує вашим безпечним засобом для входу. Доступ до нього маєте лише ви — можливості створити резервну копію, скинути або відновити його не існує. \n\n ⚠️ Зберігайте його в надійному місці: ця кодова фраза — єдиний спосіб отримати доступ до вашого облікового запису.</string>
 	<string name="passphrase_info_privacy_removed">Для забезпечення вашої конфіденційності ми видалили:</string>
 	<string name="passphrase_info_stored_accounts">Централізовано зберігаються рахунки</string>
 	<string name="passphrase_info_personal_logins">Логіни на основі особистих даних</string>
@@ -450,13 +480,11 @@
 	<string name="account_info_bandwidth_title">Добові</string>
 	<string name="account_info_limit_text">Ліміт</string>
 	<string name="account_info_reset_text">Скидається щодня о</string>
-	<string name="account_info_data_unavailable">Дані про використання відсутні</string>
+	<string name="account_info_data_unavailable">Дані про використання тимчасово недоступні</string>
 	<string name="account_info_valid_text">План дійсний до %s</string>
 	<string name="account_info_expires_text">Термін дії плану закінчується %s</string>
-	<string name="banner_plan_expires_text">Термін дії плану закінчується:\n%s</string>
 	<string name="account_info_renew_text">Поновіть зараз, щоб залишатися захищеним</string>
-	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
-	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
+	<string name="account_info_auto_renew_text">Автоматичне поновлення</string>
 	<string name="account_info_no_plan">Активної підписки не виявлено</string>
 	<string name="account_info_contact_support_action">Звернутися до служби підтримки</string>
 	<string name="account_info_contact_support_suffix"> якщо ви досягнете свого ліміту.</string>
@@ -466,6 +494,7 @@
 	<string name="account_info_add_social_action">Додати вхід через соціальні мережі</string>
 	<string name="account_info_add_social_suffix">\u0020 Спосіб до вашого облікового запису.</string>
 	<string name="account_info_backup">Резервний спосіб входу, підключений через Privy.</string>
+	<string name="account_info_delete_button">Видалити обліковий запис</string>
 	<string name="pin_code_title">PIN-код</string>
 	<string name="pin_code_subtitle">Введіть цей код на веб-сайті</string>
 	<string name="pin_code_copy_and_open">Скопіюйте код і відкрийте веб-сторінку</string>
@@ -474,7 +503,7 @@
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Увімкнути журнал</string>
 	<string name="logs_enable_description">Увімкніть для усунення несправностей. Вимкніть для збереження конфіденційності. Журнали залишаються на вашому пристрої. Nym ніколи не має до них доступу.</string>
-	<string name="logs_debug_enable_title">Увімкнути детальне ведення журналу</string>
+	<string name="logs_debug_enable_title">Увімкнути журнал налагодження</string>
 	<string name="logs_debug_enable_description">Увімкніть для детальних журналів DEBUG для самодіагностики або підтримки. Збільшує споживання батареї. Розмір журналу може збільшитися до 10 разів.</string>
 	<string name="logs_tab_app">Додаток</string>
 	<string name="logs_tab_tunnel">Тунель</string>
@@ -548,7 +577,7 @@
 	<string name="mixnet_tuning_traffic_off_high">Високий\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Збалансований\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Середній\n10х</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Захист від синхронізації наразі вимкнено. Це може становити загрозу для вашої конфіденційності.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Захист на основі часових характеристик наразі вимкнено; це може вплинути на вашу конфіденційність.</string>
 	<string name="mixnet_tuning_delays_title">Змішування пакетів</string>
 	<string name="mixnet_tuning_delays_description">Налаштуйте затримки синхронізації, щоб змінити якість змішування пакетів.</string>
 	<string name="mixnet_tuning_delays_low">Низький\n0 ms</string>
@@ -582,13 +611,13 @@
 	<!-- Node Families -->
 	<string name="node_families_title">Вибрані сервери належать до однієї групи операторів!</string>
 	<string name="node_families_description_text">Вимкнути нагадування в</string>
-	<string name="node_families_description_link">параметри сповіщень.</string>
+	<string name="node_families_description_link">параметри сповіщень</string>
 	<string name="node_families_connect_button">Під\'єднатися все одно</string>
-	<string name="node_families_error_message">Вибрані сервери належать до одного сімейства. Виберіть іншу пару або підключіться все одно.</string>
+	<string name="node_families_error_message">Ці вхідні та вихідні сервери не є повністю незалежними. Виберіть інші сервери або підключіться попри це.</string>
 	<!-- Geo Exclusion -->
-	<string name="geo_exclusion_enable_title">Увімкнути Географічні винятки</string>
+	<string name="geo_exclusion_enable_title">Увімкнути геообмеження</string>
 	<string name="geo_exclusion_description">Перенаправляє трафік для вибраних регіонів поза межами VPN-тунелю, завдяки чому місцеві додатки працюють на повній швидкості. Усе інше залишається захищеним.</string>
-	<string name="geo_exclusion_beta_text">Бета-версія: поки що доступна лише в Китаї. Незабаром з’являться й інші регіони.</string>
+	<string name="geo_exclusion_beta_text">Тільки Китай. Незабаром — інші регіони.</string>
 	<string name="geo_exclusion_traffic_bypass_text">Трафік до регіонів, що знаходяться у списку виключень, обходить VPN.</string>
 	<string name="geo_exclusion_server_title">Сервер</string>
 	<string name="geo_exclusion_sock55_title">Порт SOCKS5</string>
@@ -599,7 +628,7 @@
 	<string name="geo_exclusion_error_failed_start_text">Не вдалося запустити функцію «Географічні винятки». Під\'єднайтеся знову та спробуйте ще раз.</string>
 	<string name="geo_exclusion_error_invalid_port_text">Номер порту повинен бути в діапазоні від 1024 до 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Порт 1080 заборонено. Оберіть інший.</string>
-	<string name="geo_exclusion_excluded_regions_label">РЕГІОНИ, ЩО НЕ ВХОДЯТЬ ДО СКЛАДУ</string>
+	<string name="geo_exclusion_excluded_regions_label">Регіони, що не входять до переліку</string>
 	<string name="geo_exclusion_china">Китай</string>
 	<string name="geo_exclusion_add_region_button">Додати регіон</string>
 	<string name="geo_exclusion_copy_proxy_label">Скопіювати адресу проксі-сервера</string>
@@ -609,7 +638,7 @@
 	<string name="setup_instructions_step_socks_host">Вузол SOCKS</string>
 	<string name="setup_instructions_step_socks_port">, Порт</string>
 	<string name="setup_instructions_step_socks_suffix">, виберіть SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Увімкніть опцію «Proxy DNS» під час використання SOCKS v5 (це запобігає витоку DNS-адреси).</string>
+	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
 	<string name="setup_instructions_description">У Firefox або в браузерах, що підтримують налаштування SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Значок застосунку</string>
@@ -633,4 +662,47 @@
 	<string name="profiles_description">Профілі — це шаблони підключення, які можна використовувати для швидкого підключення з оптимальною для вас конфігурацією сервера.</string>
 	<string name="profiles_learn_more_text">Дізнайтеся більше про профілі тут</string>
 	<string name="profiles_learn_more_link">https://nym.com/features/profiles</string>
+	<string name="node_location_excluding_country">За винятком вашої країни</string>
+	<string name="node_location_including_country">Включно з вашою країною</string>
+	<string name="node_location_random">Глобальна мережа Nym</string>
+	<!-- Delete Account -->
+	<string name="delete_account_title">Видалити обліковий запис</string>
+	<string name="delete_account_headline">Це призведе до закриття вашого облікового запису NymVPN. Скасувати цю дію неможливо.</string>
+	<string name="delete_account_deleted_title">Видалено з цього телефону</string>
+	<string name="delete_account_deleted_1">Ваша кодова фраза</string>
+	<string name="delete_account_deleted_2">Ключі вашого облікового запису та пристрою</string>
+	<string name="delete_account_deleted_3">Ваші VPN-ключі та збережені облікові дані</string>
+	<string name="delete_account_deleted_4">Налаштування вашого облікового запису</string>
+	<string name="delete_account_at_nym_title">У Nym</string>
+	<string name="delete_account_at_nym_1">Ваш обліковий запис закрито. Увійти в нього знову на будь-якому пристрої неможливо.</string>
+	<string name="delete_account_kept_title">Збережено — і чому</string>
+	<string name="delete_account_kept_1_headline">Платіжні та бухгалтерські документи.</string>
+	<string name="delete_account_kept_1_descr">Швейцарське законодавство вимагає, щоб Nym зберігала бухгалтерські записи протягом 10 років. Stripe зберігає записи про карткові платежі щонайменше 5 років.</string>
+	<string name="delete_account_kept_2_headline">Записи про покупки в Google Play.</string>
+	<string name="delete_account_kept_2_descr">Вони залишаються в Google, і Nym не може їх видалити.</string>
+	<string name="delete_account_kept_3_headline">Анонімна статистика використання та звіти про збої.</string>
+	<string name="delete_account_kept_3_descr">Вони ніколи не були прив’язані до вашого облікового запису. Звіти про збої зберігаються приблизно 90 днів.</string>
+	<string name="delete_account_kept_4_headline">Запити до служби підтримки.</string>
+	<string name="delete_account_kept_4_descr">Щоб їх видалити, напишіть на адресу legal@nym.com.</string>
+	<string name="delete_account_kept_5_headline">Копії вашої парольної фрази, яку ви самі зберегли,</string>
+	<string name="delete_account_kept_5_descr">у менеджері паролів або на папері. Ви можете їх видалити.</string>
+	<string name="delete_account_kept_6_headline">Токени, що зберігаються в блокчейні, залишаються там.</string>
+	<string name="delete_account_kept_6_descr">Видалення облікового запису NymVPN жодним чином не впливає на блокчейн. Якщо ця кодова фраза також використовується для зберігання токенів NYM або інших токенів, збережіть її копію.</string>
+	<string name="delete_account_keep_button">Зберегти мій обліковий запис</string>
+	<string name="delete_account_auth_subtitle">Ви ще раз підтверджуєте дію, перш ніж що-небудь буде видалено.</string>
+	<string name="delete_account_play_title">Спочатку скасуйте підписку в Google Play</string>
+	<string name="delete_account_play_descr_1">Видалення облікового запису не означає його скасування; після видалення ви вже не зможете увійти в систему, щоб скасувати його тут. Google продовжуватиме стягувати з вас плату, доки ви не скасуєте підписку в Google Play.</string>
+	<string name="delete_account_play_descr_2">Після скасування поверніться, щоб видалити свій обліковий запис.</string>
+	<string name="delete_account_play_button">Відкрити підписки в Google Play</string>
+	<string name="delete_account_dialog_title">Видалити обліковий запис зараз?</string>
+	<string name="delete_account_dialog_description">Ваш обліковий запис буде закрито на всіх пристроях, а ваша кодова фраза та ключі — видалені з цього телефону. Скасувати цю дію неможливо.</string>
+	<string name="delete_account_dialog_progress_title">Видалення вашого облікового запису…</string>
+	<string name="delete_account_dialog_progress_descr">Це відключає VPN.</string>
+	<string name="delete_account_confirm_title">Ваш обліковий запис видалено</string>
+	<string name="delete_account_confirm_descr_1">Ваш обліковий запис закрито, а ваша кодова фраза й ключі видалені з цього телефону.</string>
+	<string name="delete_account_confirm_descr_2">Щоб ваші запити до служби підтримки також були видалені, напишіть на адресу legal@nym.com.</string>
+	<string name="delete_account_error_title">Не вдалося видалити ваш обліковий запис</string>
+	<string name="delete_account_error_descr">Нічого не було видалено. Перевірте з’єднання та спробуйте ще раз.</string>
+	<string name="delete_account_time_title">Ви втрачаєте час, який у вас залишився</string>
+	<string name="delete_account_time_descr">Ваш доступ до NymVPN діє до %1$s і не продовжується автоматично. Видалення облікового запису призведе до його припинення вже сьогодні.</string>
 </resources>

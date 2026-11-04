@@ -20,6 +20,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
+import net.nymtech.nymvpn.ui.screens.main.modal.ExpiryReminderModal
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import nym_vpn_lib_types.AccountControllerState
@@ -51,48 +52,40 @@ fun MainAlerts(
 		}
 	}
 
-	val expiryWarningTitle = stringResource(R.string.banner_plan_expires_text, validUntilDate)
-	val expiryRenewLabel = stringResource(R.string.banner_renew_text)
+	val expiryWarningTitle = stringResource(R.string.account_info_expires_text, validUntilDate)
+	val expiryWarningBody = stringResource(R.string.renewal_reminder_description)
+	val renewLabel = stringResource(R.string.error_expired_subscription_button)
 	val expiredTitle = stringResource(R.string.error_expired_subscription_title)
 	val expiredBody = stringResource(R.string.error_expired_subscription_description)
-	val expiredAction = stringResource(R.string.error_expired_subscription_button)
 	val noSubscriptionTitle = stringResource(R.string.error_no_subscription_title)
 	val noSubscriptionBody = stringResource(R.string.error_no_subscription_description)
 	val noSubscriptionAction = stringResource(R.string.error_no_subscription_button)
-	LaunchedEffect(expiryState, expiryBannerDismissed, hasSubscriptionHistory) {
-		when {
-			!expiryBannerDismissed && expiryState == ExpiryState.WARNING -> AlertController.show(
-				AlertMessage(
-					type = AlertType.Warning,
-					title = expiryWarningTitle,
-					action = AlertAction(expiryRenewLabel) {
-						onDismissExpiryBanner()
-						onRenewSubscription()
-					},
-					duration = Long.MAX_VALUE,
-					onDismiss = { onDismissExpiryBanner() },
-					id = AlertId.ExpiryWarning,
-				),
-			)
-			expiryState == ExpiryState.EXPIRED && !expiredAlertShown -> {
-				expiredAlertShown = true
-				AlertController.show(
-					AlertMessage(
-						type = AlertType.Error,
-						title = if (hasSubscriptionHistory) expiredTitle else noSubscriptionTitle,
-						body = if (hasSubscriptionHistory) expiredBody else noSubscriptionBody,
-						action = AlertAction(if (hasSubscriptionHistory) expiredAction else noSubscriptionAction) { onNavigateToSelectPlan() },
-						duration = Long.MAX_VALUE,
-						id = AlertId.Expired,
-					),
-				)
-			}
-			else -> {
-				AlertController.dismiss(id = AlertId.ExpiryWarning)
-				AlertController.dismiss(id = AlertId.Expired)
-			}
-		}
-	}
+
+	// Upcoming-expiry reminder, surfaced as a dialog (previously an AlertController
+	// snackbar). The warning's dismissal persists via the view model's banner flag;
+	// the expired reminder is shown once per session.
+	ExpiryReminderModal(
+		show = !expiryBannerDismissed && expiryState == ExpiryState.WARNING,
+		title = expiryWarningTitle,
+		body = expiryWarningBody,
+		actionLabel = renewLabel,
+		onDismiss = { onDismissExpiryBanner() },
+		onConfirmClick = {
+			onDismissExpiryBanner()
+			onRenewSubscription()
+		},
+	)
+	ExpiryReminderModal(
+		show = expiryState == ExpiryState.EXPIRED && !expiredAlertShown,
+		title = if (hasSubscriptionHistory) expiredTitle else noSubscriptionTitle,
+		body = if (hasSubscriptionHistory) expiredBody else noSubscriptionBody,
+		actionLabel = if (hasSubscriptionHistory) renewLabel else noSubscriptionAction,
+		onDismiss = { expiredAlertShown = true },
+		onConfirmClick = {
+			expiredAlertShown = true
+			onNavigateToSelectPlan()
+		},
+	)
 
 	val pendingSubscriptionTitle = stringResource(R.string.account_subscription_pending_title)
 	val pendingSubscriptionBody = stringResource(R.string.account_subscription_pending_description)

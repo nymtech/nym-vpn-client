@@ -68,7 +68,7 @@
       "input-placeholder": "IPv4 or IPv6 address",
       "apply": "Save changes",
       "link": "Learn more about DNS",
-      "applied": "Custom DNS saved."
+      "applied": "Custom DNS saved"
     },
     "error": {
       "duplicate": "Duplicate DNS address",
@@ -165,7 +165,7 @@
     "mixing-delay": {
       "title": "Packet mixing",
       "description": "Adjust timing delays to change how well your packets are mixed.",
-      "warning": "⚠️ Timing protection is currently turned off. This could put your privacy at risk.",
+      "warning": "⚠️ Timing protection is currently turned off and could affect your privacy.",
       "ms-value": "{{value}} ms",
       "low": {
         "label": "Low"
@@ -178,12 +178,28 @@
   "anti-censorship": {
     "title": "Anti-censorship",
     "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",
-    "quic": {
-      "label": "Enhanced connection (QUIC)",
+    "bridge-mode": {
+      "label": "Enhanced connection",
       "warning": "Changes will apply after reconnect",
       "content": "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).",
+      "content-transports": "Improves connections on restricted networks by wrapping WireGuard in a bridge. When a bridge is used, it tries QUIC first. If QUIC is blocked, it falls back to TLS or SSH, which can be slower.",
+      "options": {
+        "off": {
+          "label": "Off",
+          "desc": "Connect directly without a bridge."
+        },
+        "auto": {
+          "label": "Auto",
+          "desc": "Connect directly first, and use a bridge if that fails."
+        },
+        "on": {
+          "label": "On",
+          "desc": "Always use a bridge. Only servers that offer one can be chosen as the entry server."
+        }
+      },
       "link": "Learn more",
-      "error": "Failed to enable QUIC"
+      "error": "Failed to change the enhanced connection setting",
+      "snackbar": "The enhanced connection setting will apply when you reconnect."
     },
     "stealth-api": {
       "label": "Stealth API connect",
@@ -195,9 +211,7 @@
       "label": "Minimal obfuscation (AmneziaWG)",
       "content": "Disguises WireGuard traffic with decoy packets to prevent VPN blocking.",
       "link": "Learn more"
-    },
-    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
-    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
+    }
   },
   "display-theme": "Display mode",
   "language-system": "System language",
@@ -212,7 +226,7 @@
     "desc": "Start app when device boots"
   },
   "killswitch": {
-    "title": "Killswitch",
+    "title": "Kill switch",
     "desc": "Always on to protect your data"
   },
   "app-proxy": {
@@ -241,7 +255,7 @@
     },
     "invalid-port": "Invalid port number",
     "reset-to-default": "Reset to default",
-    "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
+    "intro": "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets.",
     "error-gateway-not-supported": "Server does not support SOCKS5",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
     "snackbar-enabled": "Proxy successfully enabled",
@@ -252,13 +266,13 @@
     "error-monitoring": {
       "label": "Error & crash reports",
       "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "desc": "Send anonymous crash reports to help us fix bugs faster.",
       "link": "View Sentry Privacy Policy"
     },
     "network-stats": {
       "label": "Anonymous network stats",
       "sublabel": "Changes will apply after daemon restart.",
-      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "desc": "Help us improve NymVPN by sharing anonymous data about how the app is working for you. This telemetry will not contain personal information or your activity.",
       "link": "Learn exactly what's shared"
     }
   },
@@ -280,7 +294,7 @@
     "bandwidth-exceeded": "Daily allowance reached",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
-    "requesting-zknyms": "Requesting ZkNyms"
+    "requesting-zknyms": "Requesting zk-nyms"
   },
   "diagnostic": {
     "title": "Diagnostic tool",
@@ -289,7 +303,7 @@
     "report-title": "Diagnostic report"
   },
   "split-tunneling": {
-    "title": "Split tunneling (beta)",
+    "title": "Split tunneling",
     "enable": "Enable split tunneling",
     "description-windows": "Choose apps to exclude from NymVPN tunnel.",
     "description-linux": "⚡ Launch any app from here to be excluded from the NymVPN funnel and connect directly to the internet!",
@@ -336,9 +350,9 @@
     }
   },
   "geo-exclusion": {
-    "title": "Geo Exclusion",
+    "title": "Geo-exclusion",
     "beta": "Beta",
-    "enable": "Enable Geo Exclusion",
+    "enable": "Enable Geo-exclusion",
     "description": "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.",
     "beta-note": "Beta version: China and Russia only for now. More regions coming.",
     "warning": "Traffic to excluded regions bypasses the VPN.",
@@ -367,7 +381,7 @@
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
-              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+              "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
             ]
           }
         ],
@@ -377,7 +391,7 @@
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
-              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+              "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
             ]
           }
         ],
@@ -387,7 +401,7 @@
             "steps": [
               "Settings → Network Settings → Manual proxy.",
               "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
-              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+              "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
             ]
           }
         ]

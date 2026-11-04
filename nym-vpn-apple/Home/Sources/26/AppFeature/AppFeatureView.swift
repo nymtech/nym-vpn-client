@@ -165,6 +165,21 @@ private extension AppFeatureView {
                 }
             }
             .animation(.easeInOut, value: onboardingDidDisplay)
+            .alert(
+                viewModel.presentedExpiryReminder?.title ?? "",
+                isPresented: Binding(
+                    get: { viewModel.presentedExpiryReminder != nil },
+                    set: { if !$0 { viewModel.presentedExpiryReminder = nil } }
+                ),
+                presenting: viewModel.presentedExpiryReminder
+            ) { reminder in
+                Button(reminder.actionTitle) { viewModel.expiryReminderActionTapped() }
+                Button("renewalReminder.action.notNow".localizedString, role: .cancel) {
+                    viewModel.expiryReminderDismissed(reminder)
+                }
+            } message: { reminder in
+                Text(reminder.message)
+            }
             .preferredColorScheme(appearance.colorScheme)
             .onAppear { wireMacOSDaemonNavigation() }
 #if os(macOS)

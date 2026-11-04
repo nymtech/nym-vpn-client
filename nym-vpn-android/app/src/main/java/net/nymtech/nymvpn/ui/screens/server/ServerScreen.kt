@@ -98,6 +98,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib_types.BridgeMode
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayType
@@ -154,7 +155,7 @@ fun ServerScreen(
 	)
 
 	val tunnelMode = appUiState.vpnConfig.mode
-	val isQuicEnabled = appUiState.settings.quicEnabled
+	val isQuicEnabled = appUiState.settings.bridgeMode == BridgeMode.ON
 
 	val gatewayType = remember(selectedLocation, tunnelMode) {
 		when (tunnelMode) {

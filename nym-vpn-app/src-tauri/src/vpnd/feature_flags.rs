@@ -6,6 +6,7 @@ use ts_rs::TS;
 const KEY_QUIC: &str = "quic";
 const KEY_DOMAIN_FRONTING: &str = "domain_fronting";
 const KEY_ZKNYMS: &str = "zkNyms";
+const KEY_BRIDGE_TRANSPORTS: &str = "bridge_transports";
 
 #[derive(Clone, Serialize, TS)]
 #[ts(export, export_to = "tauri.ts")]
@@ -14,6 +15,7 @@ pub struct FeatureFlags {
     pub quic: bool,
     pub domain_fronting: bool,
     pub zknym_credential: bool,
+    pub bridge_transports: bool,
 }
 
 impl From<lib::FeatureFlags> for FeatureFlags {
@@ -23,6 +25,8 @@ impl From<lib::FeatureFlags> for FeatureFlags {
             domain_fronting: get_group_flag(&fflags, KEY_DOMAIN_FRONTING, "enabled")
                 .unwrap_or(false),
             zknym_credential: get_group_flag(&fflags, KEY_ZKNYMS, "credentialMode")
+                .unwrap_or(false),
+            bridge_transports: get_group_flag(&fflags, KEY_BRIDGE_TRANSPORTS, "enabled")
                 .unwrap_or(false),
         }
     }

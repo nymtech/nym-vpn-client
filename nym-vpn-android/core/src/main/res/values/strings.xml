@@ -6,9 +6,9 @@
 	<string name="disconnect">Disconnect</string>
 	<string name="state_connected">Connected</string>
 	<string name="state_disconnected">Disconnected</string>
-	<string name="state_initializing">Initializing client…</string>
-	<string name="state_establishing">Establishing connection…</string>
-	<string name="state_disconnecting">Disconnecting…</string>
+	<string name="state_initializing">Initializing your app</string>
+	<string name="state_establishing">Establishing connection</string>
+	<string name="state_disconnecting">Disconnecting</string>
 	<string name="state_reconnecting">Reconnecting…</string>
 	<string name="state_offline">Waiting for network…</string>
 	<string name="state_error">Connection error</string>

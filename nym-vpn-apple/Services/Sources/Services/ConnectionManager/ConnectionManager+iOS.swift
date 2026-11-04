@@ -121,7 +121,7 @@ extension ConnectionManager {
             mixnetTuning: connectionConfig.mixnetTuningConfig,
             isErrorReportingEnabled: isErrorReportingEnabled,
             isStatisticsEnabled: appSettings.isStatisticsEnabled,
-            isQuicEnabled: appSettings.isQuicEnabled,
+            bridgeMode: appSettings.bridgeMode,
             isStealthApiEnabled: appSettings.isStealthApiEnabled,
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,

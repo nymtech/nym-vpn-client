@@ -11,7 +11,7 @@ type JsEnv = {
   defaultVpnMode: 'mixnet' | 'wg';
   defaultSentry: boolean;
   defaultNetstats: boolean;
-  defaultQuic: boolean;
+  defaultBridgeMode: 'off' | 'on' | 'auto';
   startupError: StartupError | null;
 };
 

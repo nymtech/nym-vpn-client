@@ -48,30 +48,30 @@ test.describe('Login', () => {
     await expect(page.getByRole('heading', { name: 'Welcome!' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Login to my account' }).click();
+    await page.getByRole('button', { name: 'Log in to my account' }).click();
     await expect(page.getByRole('heading', { name: 'Log in' })).toBeVisible();
     await expect(
-      page.getByRole('button', { name: 'Login with 24 words' }),
+      page.getByRole('button', { name: 'Log in with 24 words' }),
     ).toBeVisible();
 
-    await page.getByRole('button', { name: 'Login with 24 words' }).click();
+    await page.getByRole('button', { name: 'Log in with 24 words' }).click();
     await expect(
       page.getByRole('textbox', { name: /24-word passphrase/ }),
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
   });
 
   test('logs in correctly', async ({ page }) => {
     await settingsPage.logoutButton.click();
     await settingsPage.getStartedButton.click();
     await page.getByRole('button', { name: 'Get Started' }).click();
-    await page.getByRole('button', { name: 'Login to my account' }).click();
-    await page.getByRole('button', { name: 'Login with 24 words' }).click();
+    await page.getByRole('button', { name: 'Log in to my account' }).click();
+    await page.getByRole('button', { name: 'Log in with 24 words' }).click();
 
     await page
       .getByRole('textbox', { name: /24-word passphrase/ })
       .fill(MNEMONIC);
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('button', { name: 'Log in' }).click();
     await mainPage.settingsButton.click();
     await settingsPage.accountRow.click();
     await expect(settingsPage.accountId).toBeVisible();

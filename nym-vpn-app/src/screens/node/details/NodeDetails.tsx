@@ -44,17 +44,12 @@ type RouteState = {
 };
 
 function NodeDetails() {
-  const {
-    backendFlags,
-    entryNode,
-    exitNode,
-    quic: quicSetting,
-  } = useAppStore(
+  const { backendFlags, entryNode, exitNode, bridgeMode } = useAppStore(
     useShallow((s) => ({
       backendFlags: s.backendFlags,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
-      quic: s.quic,
+      bridgeMode: s.bridgeMode,
     })),
   );
   const location = useLocation() as H.Location<RouteState>;
@@ -251,7 +246,7 @@ function NodeDetails() {
                 </>
               )}
             </CardNewBody>
-            {backendFlags.quic && !quicSetting && (
+            {backendFlags.quic && bridgeMode === 'off' && (
               <CardNewFooter>
                 <p className="text-text-secondary text-xs">
                   <Trans
@@ -262,7 +257,7 @@ function NodeDetails() {
                       className="text-status-info! underline"
                       to={routes.antiCensorship}
                     >
-                      Enable &quot;QUIC protocol&quot;
+                      Set &quot;Enhanced connection&quot; to Auto or On
                     </Link>
                     in Anti-censorship Settings to use this feature
                   </Trans>

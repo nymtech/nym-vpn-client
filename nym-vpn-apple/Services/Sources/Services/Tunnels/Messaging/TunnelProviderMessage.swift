@@ -8,7 +8,7 @@ public enum TunnelProviderMessage: Codable {
     case setEnableCustomDns(Bool)
     case setEnableTwoHop(Bool)
     case setEnableAdBlocking(Bool)
-    case setEnableBridges(Bool)
+    case setBridgeMode(BridgeModeSetting)
     case setEntryPoint(EntryGateway)
     case setExitPoint(ExitRouter)
     case setFrontingModeEnabled(Bool)
