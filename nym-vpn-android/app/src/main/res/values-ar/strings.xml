@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">مثال: smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">ديناميكية</string>
 	<string name="system_wallpaper">خلفية النظام (السمة)</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">جارٍ بدء تشغيل NymVPN</string>
 	<string name="stop">توقف</string>
 	<string name="app_restart_required">مطلوب إعادة تشغيل التطبيق</string>
 	<string name="max_devices_reached_title">لقد بلغت الحد الأقصى لعدد الأجهزة المسموح بها لحسابك</string>
@@ -227,7 +227,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">مرحباً!</string>
 	<string name="auth_welcome_description">نحو شبكة VPN الأكثر خصوصية في العالم</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">تسجيل الدخول إلى حسابي</string>
 	<string name="auth_sign_up_title">تسجيل الدخول</string>
 	<string name="auth_sign_up_account_button">حساب مجهول</string>
 	<string name="auth_sign_up_social_button">سجّل الدخول عبر الحسابات الاجتماعية *</string>
@@ -456,8 +456,8 @@
 	<string name="device_auth_use_screen_lock">استخدام قفل الشاشة</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">كلمة مرور حسابك</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒عبارة مرور حسابك: 24 كلمة تتيح لك الوصول إلى حسابك من أي جهاز.</string>
+	<string name="passphrase_description_first">🔒عبارة مرور حسابك:</string>
 	<string name="passphrase_description_last">24 كلمة تسمح لك بالوصول إلى حسابك من أي جهاز.</string>
 	<string name="passphrase_show">إظهار كلمة المرور الخاصة بي</string>
 	<string name="passphrase_hide">إخفاء عبارة المرور الخاصة بي</string>
@@ -648,7 +648,7 @@
 	<string name="setup_instructions_step_socks_host">مضيف SOCKS</string>
 	<string name="setup_instructions_step_socks_port">، المنفذ</string>
 	<string name="setup_instructions_step_socks_suffix">، حدد SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">حدد \"Proxy DNS when using SOCKS v5\" (يمنع تسرب DNS).</string>
 	<string name="setup_instructions_description">على Firefox أو المتصفحات التي تسمح بتكوينات SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">رمز التطبيق</string>

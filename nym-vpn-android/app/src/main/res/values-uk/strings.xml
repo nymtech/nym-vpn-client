@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">наприклад, дим артефакт оксамитовий череп поп палац черепаха пошкодження грубий...</string>
 	<string name="dynamic">Динамічна</string>
 	<string name="system_wallpaper">Тема системних шпалер</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">Запуск NymVPN</string>
 	<string name="stop">Стоп</string>
 	<string name="app_restart_required">Потрібен перезапуск програми</string>
 	<string name="max_devices_reached_title">Ви досягли максимальної кількості пристроїв для свого облікового запису</string>
@@ -221,7 +221,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Ласкаво просимо!</string>
 	<string name="auth_welcome_description">До найбезпечнішого VPN у світі</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Увійти в мій акаунт</string>
 	<string name="auth_sign_up_title">Зареєструватися</string>
 	<string name="auth_sign_up_account_button">Анонімний акаунт</string>
 	<string name="auth_sign_up_social_button">Зареєструватися через соцмережі *</string>
@@ -446,8 +446,8 @@
 	<string name="device_auth_use_screen_lock">Увімкнути блокування екрана</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Фраза-ключ вашого акаунта</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Парольна фраза вашого акаунта: 24 слова, які дають змогу отримати доступ до акаунта з будь-якого пристрою.</string>
+	<string name="passphrase_description_first">🔒Парольна фраза вашого акаунта:</string>
 	<string name="passphrase_description_last">24 слова, які дозволяють отримати доступ до вашого облікового запису з будь-якого пристрою.</string>
 	<string name="passphrase_show">Показати мою фразу-пароль</string>
 	<string name="passphrase_hide">Приховати мій пароль</string>
@@ -638,7 +638,7 @@
 	<string name="setup_instructions_step_socks_host">Вузол SOCKS</string>
 	<string name="setup_instructions_step_socks_port">, Порт</string>
 	<string name="setup_instructions_step_socks_suffix">, виберіть SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">Виберіть «Proxy DNS when using SOCKS v5» (запобігає витокам DNS).</string>
 	<string name="setup_instructions_description">У Firefox або в браузерах, що підтримують налаштування SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Значок застосунку</string>

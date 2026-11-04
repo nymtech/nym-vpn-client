@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">z.B. smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">Dynamisch</string>
 	<string name="system_wallpaper">System-Hintergrund-Design</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">NymVPN wird gestartet</string>
 	<string name="stop">Stoppen</string>
 	<string name="app_restart_required">Neustart der App erforderlich</string>
 	<string name="max_devices_reached_title">Du hast die maximale Anzahl an Geräten für dein Konto erreicht</string>
@@ -219,7 +219,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Willkommen!</string>
 	<string name="auth_welcome_description">Zum privatsten VPN der Welt</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Bei meinem Konto anmelden</string>
 	<string name="auth_sign_up_title">Registrieren</string>
 	<string name="auth_sign_up_account_button">Anonymes Konto</string>
 	<string name="auth_sign_up_social_button">Mit Social-Account registrieren *</string>
@@ -440,8 +440,8 @@
 	<string name="device_auth_use_screen_lock">Bildschirmsperre verwenden</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Deine Konto-Passphrase</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Deine Konto-Passphrase: 24 Wörter, mit denen du von jedem Gerät auf dein Konto zugreifen kannst.</string>
+	<string name="passphrase_description_first">🔒Deine Konto-Passphrase:</string>
 	<string name="passphrase_description_last">24 Wörter, mit denen du von jedem Gerät aus auf dein Konto zugreifen kannst.</string>
 	<string name="passphrase_show">Meine Passphrase anzeigen</string>
 	<string name="passphrase_hide">Meine Passphrase ausblenden</string>
@@ -633,7 +633,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS-Host</string>
 	<string name="setup_instructions_step_socks_port">, Port</string>
 	<string name="setup_instructions_step_socks_suffix">, wähle „SOCKS v5“ aus.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">„Proxy DNS when using SOCKS v5\" auswählen (verhindert DNS-Lecks).</string>
 	<string name="setup_instructions_description">In Firefox oder Browsern, die SOCKS5-Konfigurationen zulassen.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">App-Symbol</string>

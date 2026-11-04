@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">misalnya: asap, artefak, beludru, tengkorak, pop, istana, kura-kura, kerusakan, kasar…</string>
 	<string name="dynamic">Dinamis</string>
 	<string name="system_wallpaper">Tema wallpaper sistem</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">Memulai NymVPN</string>
 	<string name="stop">Berhenti</string>
 	<string name="app_restart_required">Aplikasi perlu dijalankan ulang</string>
 	<string name="max_devices_reached_title">Anda telah mencapai batas maksimal jumlah perangkat untuk akun Anda</string>
@@ -216,7 +216,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Selamat datang!</string>
 	<string name="auth_welcome_description">Untuk VPN paling privat di dunia</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Masuk ke akun saya</string>
 	<string name="auth_sign_up_title">Daftar</string>
 	<string name="auth_sign_up_account_button">Akun anonim</string>
 	<string name="auth_sign_up_social_button">Daftar melalui akun media sosial *</string>
@@ -435,8 +435,8 @@
 	<string name="device_auth_use_screen_lock">Gunakan kunci layar</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Kata sandi akun Anda</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Frasa sandi akun Anda: 24 kata yang memungkinkan Anda mengakses akun dari perangkat mana pun.</string>
+	<string name="passphrase_description_first">🔒Frasa sandi akun Anda:</string>
 	<string name="passphrase_description_last">24 kata sandi yang memungkinkan Anda mengakses akun Anda dari perangkat apa pun.</string>
 	<string name="passphrase_show">Tampilkan frasa sandi saya</string>
 	<string name="passphrase_hide">Sembunyikan frasa sandi saya</string>
@@ -627,7 +627,7 @@
 	<string name="setup_instructions_step_socks_host">Host SOCKS</string>
 	<string name="setup_instructions_step_socks_port">, Pelabuhan</string>
 	<string name="setup_instructions_step_socks_suffix">, pilih SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">Pilih \"Proxy DNS when using SOCKS v5\" (mencegah kebocoran DNS).</string>
 	<string name="setup_instructions_description">Di Firefox atau peramban yang mendukung konfigurasi SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Ikon aplikasi</string>
