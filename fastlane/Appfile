@@ -1,9 +1,2 @@
-# Android (supply) values stay global: the Android workflows invoke `fastlane supply`
-# directly (no platform lane), so these must resolve without a platform context.
 json_key_file "nym-vpn-android/service_account.json"
 package_name "net.nymtech.nymvpn"
-
-# iOS (deliver) is scoped so its app_identifier never applies to the Android tools.
-for_platform :ios do
-  app_identifier "net.nymtech.vpn"
-end

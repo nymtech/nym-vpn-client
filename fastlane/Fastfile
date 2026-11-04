@@ -91,8 +91,6 @@ end
 
 
 platform :ios do
-	app_identifier = 'net.nymtech.vpn'
-
 	desc "Upload iOS App Store metadata to App Store Connect (listing text only — no binary, no screenshots, no auto-submit)"
 	lane :upload_metadata do |options|
 		# Default off: a human submits the version for review. Pass submit:true to override.
@@ -107,11 +105,10 @@ platform :ios do
 			in_house: false
 		)
 
-		# Static options (metadata_path, skip_binary_upload, skip_screenshots, force, …)
-		# live in fastlane/Deliverfile. Only the runtime bits are passed here.
+		# Static options (app_identifier, metadata_path, skip_binary_upload, skip_screenshots,
+		# force, …) live in fastlane/Deliverfile. Only the runtime bits are passed here.
 		deliver(
 			api_key: api_key,
-			app_identifier: app_identifier,
 			submit_for_review: submit
 		)
 	end
