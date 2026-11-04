@@ -260,14 +260,14 @@ jobs:
 
       - name: Download Apple debug symbols
         id: download-apple
-        if: ${{ needs.apple.result == 'success' }}
+        if: ${{ !cancelled() && needs.apple.result == 'success' }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: apple_debug_symbols_*
           path: apple_debug_symbols
 
       - name: Install sentry-cli
-        if: ${{ steps.download-core.outcome == 'success' || steps.download-apple.outcome == 'success' }}
+        if: ${{ !cancelled() && (steps.download-core.outcome == 'success' || steps.download-apple.outcome == 'success') }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/bin"
@@ -275,7 +275,7 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
       - name: Upload core debug symbols to Sentry
-        if: ${{ steps.download-core.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.download-core.outcome == 'success' }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.VPND_SENTRY_CLI_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.VPND_SENTRY_CLI_ORG }}
