@@ -161,16 +161,10 @@ impl ConnectedTunnel {
             wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
         }
 
-        let allowed_ips = allowed_ips(&tunnel_constants);
-        tracing::trace!(
-            "Set exit allowed_ips: {} ({})",
-            allowed_ips.iter().map(|s| s.to_string()).join(", "),
-            allowed_ips.len()
-        );
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             wg_exit_data,
             self.exit_wg_keypair,
-            AllowedIps::Specific(allowed_ips),
+            AllowedIps::Specific(allowed_ips(&tunnel_constants)),
             options.dns,
             exit_mtu,
             #[cfg(target_os = "linux")]
@@ -312,16 +306,10 @@ impl ConnectedTunnel {
             wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
         }
 
-        let allowed_ips = allowed_ips(&tunnel_constants);
-        tracing::trace!(
-            "Set exit allowed_ips: {} ({})",
-            allowed_ips.iter().map(|s| s.to_string()).join(", "),
-            allowed_ips.len()
-        );
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             wg_exit_data,
             self.exit_wg_keypair,
-            AllowedIps::Specific(allowed_ips),
+            AllowedIps::Specific(allowed_ips(&tunnel_constants)),
             options.dns,
             exit_mtu,
             #[cfg(target_os = "linux")]
