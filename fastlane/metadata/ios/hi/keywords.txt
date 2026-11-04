@@ -1,0 +1,1 @@
+WireGuard,Mixnet,Tor,proxy,encryption,killswitch,wifi,सेंसर,पत्रकार,कार्यकर्ता,गोपनीयता,टनल,डेटा

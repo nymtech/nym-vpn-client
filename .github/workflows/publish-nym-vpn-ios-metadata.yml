@@ -1,0 +1,66 @@
+name: publish-nym-vpn-ios-metadata
+
+# Metadata-only: App Store listing text (name, subtitle, keywords, promotional text,
+# description) from fastlane/metadata/ios/. No binary, no screenshots, no auto-submit.
+# The iOS parallel of publish-nym-vpn-android-metadata.yml. Runs after a release, or manually.
+on:
+  workflow_dispatch:
+    inputs:
+      submit_for_review:
+        description: "Submit the version for App Store review after upload (default: a human submits)"
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      submit_for_review:
+        description: "Submit the version for App Store review after upload"
+        type: boolean
+        default: false
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+
+# Serialize publishes so two dispatches can't interleave listing writes on App Store Connect.
+concurrency:
+  group: publish-nym-vpn-ios-metadata
+  cancel-in-progress: false
+  queue: max
+
+permissions:
+  contents: read
+
+jobs:
+  publish-metadata:
+    runs-on: arc-linux-latest
+    timeout-minutes: 15
+    env:
+      RUBYOPT: "-rresolv-replace"
+      BUNDLE_TIMEOUT: "120"
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Setup ruby
+        uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Set locale (for Fastlane)
+        run: |
+          echo "LC_ALL=C.utf8" >> $GITHUB_ENV
+          echo "LANG=C.utf8" >> $GITHUB_ENV
+
+      - name: Update App Store metadata 🚀
+        env:
+          FASTLANE_OPT_OUT_USAGE: "YES"
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
+        run: |
+          echo "🚀 Uploading App Store metadata (submit_for_review=$SUBMIT_FOR_REVIEW)..."
+          bundle exec fastlane ios upload_metadata submit:"$SUBMIT_FOR_REVIEW"
