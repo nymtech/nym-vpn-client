@@ -83,6 +83,18 @@ struct AppleIdSubscriptionGatePolicyTests {
         #expect(gate == .open)
     }
 
+    // Pins the order of the checks: the own token wins over a live foreign entry, whichever comes first.
+    @Test(arguments: [true, false])
+    func ownToken_isOpenNextToLiveForeignEntry(ownFirst: Bool) {
+        let own = Self.entitlement(token: Self.own)
+        let foreign = Self.entitlement()
+        let gate = AppleIdSubscriptionGatePolicy.gate(
+            entitlements: ownFirst ? [own, foreign] : [foreign, own],
+            accountToken: Self.own
+        )
+        #expect(gate == .open)
+    }
+
     @Test func tokenlessEntitlement_isOpen() {
         #expect(
             AppleIdSubscriptionGatePolicy.gate(entitlements: [Self.entitlement(token: nil)], accountToken: Self.own) == .open
