@@ -8,7 +8,7 @@ use crate::tunnel_state_machine::TunnelConstants;
 
 // Well optimized list of public networks
 // https://www.procustodibus.com/blog/2021/03/wireguard-allowedips-calculator/
-const ALLOWED_IP_NETWORKS: [IpNetwork; 56] = [
+const ALLOWED_IP_NETWORKS: [IpNetwork; 55] = [
     net!("1.0.0.0/8"),
     net!("2.0.0.0/7"),
     net!("4.0.0.0/6"),
@@ -63,7 +63,6 @@ const ALLOWED_IP_NETWORKS: [IpNetwork; 56] = [
     net!("f000::/5"),
     net!("f800::/6"),
     net!("fe00::/9"),
-    net!("fec0::/10"),
     net!("ff00::/8"),
 ];
 
