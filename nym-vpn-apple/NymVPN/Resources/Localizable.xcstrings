@@ -23196,6 +23196,17 @@
         }
       }
     },
+    "purchasePlan.appleIdGate.statusUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't check this Apple ID's subscription status. Check your connection and try again."
+          }
+        }
+      }
+    },
     "purchasePlan.appleIdGate.switchAccount" : {
       "extractionState" : "manual",
       "localizations" : {

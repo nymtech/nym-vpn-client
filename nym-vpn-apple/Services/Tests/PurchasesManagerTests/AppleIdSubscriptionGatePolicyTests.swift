@@ -98,4 +98,18 @@ struct AppleIdSubscriptionGatePolicyTests {
             AppleIdSubscriptionGatePolicy.gate(entitlements: [Self.entitlement(expiry: nil)], accountToken: Self.own) == .open
         )
     }
+
+    @Test func openGate_doesNotBlockPurchase() {
+        #expect(AppleIdSubscriptionGate.open.purchaseError == nil)
+    }
+
+    @Test func attachedGate_blocksPurchaseAsOtherAccount() {
+        let gate = AppleIdSubscriptionGate.attachedToOtherAccount(expirationDate: Self.expiry, willAutoRenew: true)
+        #expect(gate.purchaseError == .subscriptionAttachedToOtherAccount)
+    }
+
+    /// A status read that threw proves nothing; the purchase is refused until a read succeeds.
+    @Test func unknownGate_blocksPurchaseAsStatusUnavailable() {
+        #expect(AppleIdSubscriptionGate.unknown.purchaseError == .statusUnavailable)
+    }
 }

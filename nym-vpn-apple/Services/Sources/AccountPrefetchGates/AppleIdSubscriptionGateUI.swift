@@ -10,6 +10,10 @@ public enum AppleIdSubscriptionGateUI: Sendable {
     public static let bodyAutoRenewOffKey = "purchasePlan.appleIdGate.body.autoRenewOff"
     public static let manageButtonKey = "purchasePlan.appleIdGate.manage"
     public static let switchAccountButtonKey = "purchasePlan.appleIdGate.switchAccount"
-    /// The five keys above, in that order.
-    public static let allKeys = [titleKey, bodyAutoRenewOnKey, bodyAutoRenewOffKey, manageButtonKey, switchAccountButtonKey]
+    /// Alert shown when the purchase was refused because StoreKit's status read failed.
+    public static let statusUnavailableAlertKey = "purchasePlan.appleIdGate.statusUnavailable"
+    /// The six keys above, in that order.
+    public static let allKeys = [
+        titleKey, bodyAutoRenewOnKey, bodyAutoRenewOffKey, manageButtonKey, switchAccountButtonKey, statusUnavailableAlertKey
+    ]
 }

@@ -13,10 +13,6 @@ public enum PurchaseOutcome: Equatable, Sendable {
     case failed
 }
 
-public enum PurchaseGateError: Error, Equatable, Sendable {
-    case subscriptionAttachedToOtherAccount
-}
-
 @MainActor public final class PurchasesManager: ObservableObject {
     private enum ProductId {
         static let monthly = "1_month_may_2025"
@@ -142,24 +138,29 @@ public enum PurchaseGateError: Error, Equatable, Sendable {
     /// Call when a plan screen appears: the verdict follows the Apple ID and the signed-in account's token.
     public func refreshAppleIdSubscriptionGate(accountToken: String?) async {
         try? await loadProducts()
-        var entitlements: [AppleIdSubscriptionEntitlement] = []
         // All plans share one subscription group, so one product's statuses describe the whole Apple ID.
-        if let subscription = products.first?.subscription,
-           let statuses = try? await subscription.status {
-            entitlements = statuses.compactMap { Self.entitlement(from: $0) }
+        guard let subscription = products.first?.subscription else {
+            appleIdSubscriptionGate = .unknown
+            return
         }
-        appleIdSubscriptionGate = AppleIdSubscriptionGatePolicy.gate(
-            entitlements: entitlements,
-            accountToken: accountToken.flatMap(UUID.init(uuidString:))
-        )
+        do {
+            let statuses = try await subscription.status
+            appleIdSubscriptionGate = AppleIdSubscriptionGatePolicy.gate(
+                entitlements: statuses.compactMap { Self.entitlement(from: $0) },
+                accountToken: accountToken.flatMap(UUID.init(uuidString:))
+            )
+        } catch {
+            logger.warning("Apple ID subscription status read failed: \(error)")
+            appleIdSubscriptionGate = .unknown
+        }
     }
 
     public func purchase(with product: Product, token: String) async throws -> PurchaseOutcome {
         guard let accountToken = UUID(uuidString: token) else { return .failed }
         // Re-read, not trusted from the screen: a foreign subscription must never reach StoreKit's purchase sheet.
         await refreshAppleIdSubscriptionGate(accountToken: token)
-        guard appleIdSubscriptionGate == .open else {
-            throw PurchaseGateError.subscriptionAttachedToOtherAccount
+        if let gateError = appleIdSubscriptionGate.purchaseError {
+            throw gateError
         }
         // Asked right before the purchase and never cached: the token has no `exp`, Apple checks its age from `iat`.
         let decision = await introOfferEligibilityDecision(for: product)

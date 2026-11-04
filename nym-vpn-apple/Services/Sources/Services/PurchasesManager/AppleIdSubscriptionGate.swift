@@ -31,11 +31,28 @@ public struct AppleIdSubscriptionEntitlement: Equatable, Sendable {
     }
 }
 
+public enum PurchaseGateError: Error, Equatable, Sendable {
+    case subscriptionAttachedToOtherAccount
+    /// StoreKit's status read failed, so the Apple ID's subscription could not be checked.
+    case statusUnavailable
+}
+
 /// Whether the signed-in Nym account may buy an Apple subscription on this Apple ID.
 public enum AppleIdSubscriptionGate: Equatable, Sendable {
     case open
     /// The Apple ID's live subscription was bought under another Nym account's token.
     case attachedToOtherAccount(expirationDate: Date, willAutoRenew: Bool)
+    /// The status read failed. The plan picker stays visible, but a purchase is refused until a read succeeds:
+    /// a purchase made blind could be a plan change of another account's subscription.
+    case unknown
+
+    public var purchaseError: PurchaseGateError? {
+        switch self {
+        case .open: nil
+        case .attachedToOtherAccount: .subscriptionAttachedToOtherAccount
+        case .unknown: .statusUnavailable
+        }
+    }
 }
 
 public enum AppleIdSubscriptionGatePolicy {
