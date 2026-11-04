@@ -156,8 +156,17 @@ public enum PurchaseOutcome: Equatable, Sendable {
         do {
             let statuses = try await subscription.status
             let originalPurchases = await Self.originalPurchases()
+            let entitlements = statuses.map { Self.entitlement(from: $0, originalPurchases: originalPurchases) }
+            // A live status that does not fully verify cannot be proven ours or foreign; refuse rather than drop it.
+            let unverifiedLive = zip(statuses, entitlements).contains { status, entitlement in
+                entitlement == nil && (status.state == .subscribed || status.state == .inGracePeriod)
+            }
+            if unverifiedLive {
+                logger.warning("Apple ID subscription status has a live entry that did not verify")
+                return .unknown
+            }
             return AppleIdSubscriptionGatePolicy.gate(
-                entitlements: statuses.compactMap { Self.entitlement(from: $0, originalPurchases: originalPurchases) },
+                entitlements: entitlements.compactMap { $0 },
                 accountToken: accountToken.flatMap(UUID.init(uuidString:))
             )
         } catch {
