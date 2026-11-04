@@ -24,6 +24,11 @@ on:
       APP_STORE_CONNECT_API_PRIVATE_KEY:
         required: true
 
+# Serialize publishes so two dispatches can't interleave listing writes on App Store Connect.
+concurrency:
+  group: publish-nym-vpn-ios-metadata
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

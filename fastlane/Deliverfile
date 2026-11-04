@@ -19,7 +19,9 @@ skip_metadata false
 skip_screenshots true
 overwrite_screenshots false
 
-# A human submits the version for review; CI never does.
+# Default: no submission. The upload_metadata lane overrides this with its submit
+# option, which the workflow's submit_for_review input (default false) sets — so a
+# dispatch with that input true will submit the version for review.
 submit_for_review false
 automatic_release false
 
