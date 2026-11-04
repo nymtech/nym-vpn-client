@@ -37,8 +37,10 @@ public enum PurchaseOutcome: Equatable, Sendable {
     /// The Nym account's verdict, read when the plan screen appears. Never persisted.
     @Published public private(set) var nymTrialEligibility: NymTrialEligibility = .unknown
     /// Whether this Apple ID's live subscription belongs to another Nym account. Read when the plan screen appears.
+    /// The verdict is cleared to `.open` when the account token changes, so a new account never inherits it.
     @Published public private(set) var appleIdSubscriptionGate: AppleIdSubscriptionGate = .open
     private var appleIdSubscriptionGateGeneration = 0
+    private var appleIdSubscriptionGateToken: String?
 
     /// Yearly plan price divided by 12. Currency comes from the App Store storefront — it is what Apple
     /// charges and cannot be swapped — while number formatting follows the device locale.
@@ -140,6 +142,11 @@ public enum PurchaseOutcome: Equatable, Sendable {
     /// Returns this read's verdict; it is published only if no newer read or environment reset superseded it.
     @discardableResult
     public func refreshAppleIdSubscriptionGate(accountToken: String?) async -> AppleIdSubscriptionGate {
+        // A verdict belongs to one account token; the next account starts open instead of inheriting it.
+        if accountToken != appleIdSubscriptionGateToken {
+            appleIdSubscriptionGateToken = accountToken
+            appleIdSubscriptionGate = .open
+        }
         appleIdSubscriptionGateGeneration += 1
         let generation = appleIdSubscriptionGateGeneration
         let gate = await readAppleIdSubscriptionGate(accountToken: accountToken)
@@ -229,6 +236,7 @@ public enum PurchaseOutcome: Equatable, Sendable {
         isRefreshingIntroOfferEligibility = false
         nymTrialEligibility = .unknown
         appleIdSubscriptionGate = .open
+        appleIdSubscriptionGateToken = nil
         appleIdSubscriptionGateGeneration += 1
 #if SANTA
         try? await AppStore.sync()
