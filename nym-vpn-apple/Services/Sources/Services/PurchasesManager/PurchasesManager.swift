@@ -162,7 +162,9 @@ public enum PurchaseOutcome: Equatable, Sendable {
         guard let subscription = products.first?.subscription else { return .unknown }
         do {
             let statuses = try await subscription.status
-            let history = await Self.subscriptionHistory()
+            // The owner rule only matters for a live status; skip the full history walk otherwise.
+            let hasLive = statuses.contains { $0.state == .subscribed || $0.state == .inGracePeriod }
+            let history = hasLive ? await Self.subscriptionHistory() : []
             let entitlements = statuses.map { Self.entitlement(from: $0, history: history) }
             // A live status that does not fully verify cannot be proven ours or foreign; refuse rather than drop it.
             let unverifiedLive = zip(statuses, entitlements).contains { status, entitlement in
