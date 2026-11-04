@@ -89,6 +89,19 @@ struct AppleIdSubscriptionGatePolicyTests {
         )
     }
 
+    // Apple returns more than one live status only with Family Sharing. A token-less entry cannot be proven
+    // foreign, but it must not hide a foreign-token entry next to it; the verdict reports the foreign entry's dates.
+    @Test(arguments: [true, false])
+    func tokenlessNextToForeign_isAttachedToTheForeignEntry(foreignFirst: Bool) {
+        let foreign = Self.entitlement(willAutoRenew: false)
+        let tokenless = Self.entitlement(token: nil, expiry: Self.expiry.addingTimeInterval(86_400))
+        let gate = AppleIdSubscriptionGatePolicy.gate(
+            entitlements: foreignFirst ? [foreign, tokenless] : [tokenless, foreign],
+            accountToken: Self.own
+        )
+        #expect(gate == .attachedToOtherAccount(expirationDate: Self.expiry, willAutoRenew: false))
+    }
+
     @Test func missingAccountToken_isOpen() {
         #expect(AppleIdSubscriptionGatePolicy.gate(entitlements: [Self.entitlement()], accountToken: nil) == .open)
     }

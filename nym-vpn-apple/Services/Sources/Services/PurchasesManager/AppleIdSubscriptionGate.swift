@@ -90,13 +90,12 @@ public enum AppleIdSubscriptionGatePolicy {
         let live = entitlements.filter { $0.expirationDate != nil && ($0.state == .subscribed || $0.state == .inGracePeriod) }
         guard let accountToken, !live.isEmpty else { return .open }
         if live.contains(where: { $0.appAccountToken == accountToken }) { return .open }
-        // shortcut: a token-less entitlement cannot be proven foreign, upgrade when every live subscription carries a token
-        if live.contains(where: { $0.appAccountToken == nil }) { return .open }
-        let first = live[0]
+        // A token-less entry cannot be proven foreign (old builds passed no token); only another account's token blocks.
+        guard let foreign = live.first(where: { $0.appAccountToken != nil }) else { return .open }
         // In grace the transaction's expiry is the lapsed period's end; access runs to the grace date.
-        let end = first.state == .inGracePeriod
-            ? first.gracePeriodExpirationDate ?? first.expirationDate!
-            : first.expirationDate!
-        return .attachedToOtherAccount(expirationDate: end, willAutoRenew: first.willAutoRenew)
+        let end = foreign.state == .inGracePeriod
+            ? foreign.gracePeriodExpirationDate ?? foreign.expirationDate!
+            : foreign.expirationDate!
+        return .attachedToOtherAccount(expirationDate: end, willAutoRenew: foreign.willAutoRenew)
     }
 }
