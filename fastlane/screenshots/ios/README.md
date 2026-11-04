@@ -1,7 +1,7 @@
 # iOS App Store screenshots (fastlane deliver)
 
 Complete current screenshot sets for all **16 App Store localizations**, one folder per
-App Store Connect locale. Uploaded by `fastlane deliver` (`screenshots_path` in `../Deliverfile`).
+App Store Connect locale. Uploaded by `fastlane deliver` (`screenshots_path` in `../../Deliverfile`).
 
 - **iPhone** — 6.5" display, 1242×2688: `iphone_1.jpg` … `iphone_9.jpg`
 - **iPad** — 13" display, 2752×2064 (landscape): `ipad_1.jpg` … `ipad_9.jpg`
