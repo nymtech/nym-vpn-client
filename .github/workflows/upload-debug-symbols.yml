@@ -1,0 +1,92 @@
+name: upload-debug-symbols
+
+on:
+  workflow_call:
+    secrets:
+      VPND_SENTRY_CLI_AUTH_TOKEN:
+        required: false
+      VPND_SENTRY_CLI_ORG:
+        required: false
+      VPND_SENTRY_CLI_PROJECT:
+        required: false
+      APPLE_SENTRY_CLI_AUTH_TOKEN:
+        required: false
+      APPLE_SENTRY_CLI_ORG:
+        required: false
+      APPLE_SENTRY_CLI_PROJECT:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    # Missing symbols only degrade crash reports, so don't block the release.
+    continue-on-error: true
+    runs-on: arc-linux-latest
+    steps:
+      - name: Download core debug symbols
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: core_debug_symbols_*
+          path: core_debug_symbols
+
+      - name: Download Apple debug symbols
+        if: ${{ !cancelled() }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: apple_debug_symbols_*
+          path: apple_debug_symbols
+
+      - name: Install sentry-cli
+        if: ${{ !cancelled() }}
+        env:
+          SENTRY_CLI_VERSION: "3.8.2"
+          SENTRY_CLI_SHA256: c958865f9d4000183509ea21b1f04925d5390de6d8d87386b9e69f2b305070c3
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/bin/sentry-cli"
+          mkdir -p "$(dirname "$bin")"
+          curl -sSfL -o "$bin" "https://github.com/getsentry/sentry-cli/releases/download/${SENTRY_CLI_VERSION}/sentry-cli-Linux-x86_64"
+          echo "$SENTRY_CLI_SHA256  $bin" | sha256sum --check
+          chmod +x "$bin"
+          echo "$(dirname "$bin")" >> "$GITHUB_PATH"
+
+      - name: Upload core debug symbols to Sentry
+        if: ${{ !cancelled() }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.VPND_SENTRY_CLI_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.VPND_SENTRY_CLI_ORG }}
+          SENTRY_PROJECT: ${{ secrets.VPND_SENTRY_CLI_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! -d core_debug_symbols ]]; then
+            echo "No core debug symbols, skip uploading"
+            exit 0
+          fi
+
+          if [[ -z "$SENTRY_AUTH_TOKEN" || -z "$SENTRY_ORG" || -z "$SENTRY_PROJECT" ]]; then
+            echo "::warning::Sentry CLI credentials for core are not set, skip uploading"
+            exit 0
+          fi
+
+          find core_debug_symbols -maxdepth 3
+          sentry-cli debug-files upload core_debug_symbols
+
+      - name: Upload Apple debug symbols to Sentry
+        if: ${{ !cancelled() }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
+          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! -d apple_debug_symbols ]]; then
+            echo "No Apple debug symbols, skip uploading"
+            exit 0
+          fi
+
+          find apple_debug_symbols -maxdepth 2
+          sentry-cli debug-files upload apple_debug_symbols
