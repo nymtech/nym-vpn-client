@@ -109,19 +109,19 @@ strip: build
 		cd $$dir ; \
 		if [ -n "$(DEBUG_SYMBOLS_ABS_DIR)" ]; then \
 			lib=libnym_vpn_lib_uniffi.so ; \
-			if ! $(READELF_TOOL) -n "$$lib" | grep -q "Build ID" ; then \
+			if ! "$(READELF_TOOL)" -n "$$lib" | grep -q "Build ID" ; then \
 				echo "$$lib in $$dir has no GNU build ID" ; \
 				exit 1 ; \
 			fi ; \
 			out_dir="$(DEBUG_SYMBOLS_ABS_DIR)/$$(basename $$dir)" ; \
 			mkdir -p "$$out_dir" || exit 1 ; \
 			echo "Extracting debug symbols of $$lib into $$out_dir" ; \
-			$(OBJCOPY_TOOL) --only-keep-debug "$$lib" "$$out_dir/$$lib.debug" || exit 1 ; \
+			"$(OBJCOPY_TOOL)" --only-keep-debug "$$lib" "$$out_dir/$$lib.debug" || exit 1 ; \
 		fi ; \
 		for file in *.so; do \
 			if [ -f "$$file" ]; then \
 				echo "Stripping $$file in $$dir" ; \
-				$(STRIP_TOOL) --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$$file" "$$file" ; \
+				"$(STRIP_TOOL)" --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$$file" "$$file" ; \
 				mv "stripped_$$file" "$$file" ; \
 			fi ; \
 		done ; \
