@@ -90,7 +90,7 @@ build-dev:
 # Build workspace and run codesigned nym-vpnd
 # Usage: make -f macOS.mk run -- -v
 run: build-dev
-	sudo "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
+	sudo -E "$(CURDIR)/target/debug/NymVPND.app/Contents/MacOS/nym-vpnd" $(RUN_ARGS)
 
 build-all: binaries swift-package
 

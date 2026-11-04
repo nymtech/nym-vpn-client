@@ -8,6 +8,7 @@ use tokio::sync::oneshot;
 
 use nym_vpn_lib_types::BridgeAddress;
 
+pub mod allowed_ips;
 pub mod connected_tunnel;
 
 #[cfg(target_os = "ios")]
