@@ -1,2 +1,8 @@
-json_key_file "nym-vpn-android/service_account.json"
-package_name "net.nymtech.nymvpn"
+for_platform :android do
+  json_key_file "nym-vpn-android/service_account.json"
+  package_name "net.nymtech.nymvpn"
+end
+
+for_platform :ios do
+  app_identifier "net.nymtech.vpn"
+end
