@@ -2890,7 +2890,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Initializing Nym"
+            "value" : "Starting NymVPN"
           }
         },
         "es" : {
@@ -4659,7 +4659,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Killswitch is active and blocking network traffic."
+            "value" : "Kill switch is active and blocking network traffic."
           }
         }
       }
@@ -10379,7 +10379,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datacenter IP"
+            "value" : "Datacenter"
           }
         },
         "es" : {
@@ -11635,7 +11635,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Residential IP"
+            "value" : "Residential"
           }
         },
         "es" : {
@@ -12451,7 +12451,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "No recently used servers yet"
+            "value" : "No recent servers yet"
           }
         }
       }
@@ -14197,7 +14197,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tick \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
+            "value" : "Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks)."
           }
         }
       }
@@ -21047,7 +21047,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+            "value" : "🔒Your account passphrase: 24 words that let you access your account from any device."
           }
         },
         "es" : {
@@ -27499,7 +27499,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Killswitch"
+            "value" : "Kill switch"
           }
         },
         "es" : {
@@ -28304,7 +28304,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enable debug logs"
+            "value" : "Enable debug logging"
           }
         }
       }
@@ -28526,7 +28526,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Login using linked socials*"
+            "value" : "Log in using linked socials*"
           }
         }
       }
@@ -28537,7 +28537,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Login with 24 words"
+            "value" : "Log in with 24 words"
           }
         }
       }
@@ -29002,7 +29002,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Subscription expired"
+            "value" : "Your subscription has expired"
           }
         },
         "es" : {
@@ -30750,7 +30750,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Login to my account"
+            "value" : "Log in to my account"
           }
         },
         "es" : {

@@ -83,7 +83,7 @@
 	<string name="mnemonic_example">e.g. smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Dynamic</string>
 	<string name="system_wallpaper">System wallpaper theme</string>
-	<string name="initializing">Initializing</string>
+	<string name="initializing">Starting NymVPN</string>
 	<string name="stop">Stop</string>
 	<string name="app_restart_required">App restart required</string>
 	<string name="max_devices_reached_title">You\'ve reached the maximum number of devices for your account</string>
@@ -234,7 +234,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world\'s most private VPN</string>
-	<string name="auth_welcome_login_button">Login to my account</string>
+	<string name="auth_welcome_login_button">Log in to my account</string>
 	<string name="auth_sign_up_title">Sign up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
 	<string name="auth_sign_up_social_button">Sign up with socials *</string>
@@ -362,8 +362,8 @@
 	<string name="details_advanced_privacy">Advanced privacy</string>
 	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">Streaming &amp; IP</string>
-	<string name="details_residental_ip">Residential IP</string>
-	<string name="details_datacenter_ip">Datacenter IP</string>
+	<string name="details_residental_ip">Residential</string>
+	<string name="details_datacenter_ip">Datacenter</string>
 	<string name="details_post_quantum_secure_keys">Post-quantum secure keys</string>
 	<string name="details_lewes_protocol">Lewes protocol</string>
 	<string name="details_standard_key_exchange">Standard key exchange</string>
@@ -457,8 +457,8 @@
 	<string name="device_auth_use_screen_lock">Use screen lock</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Your account passphrase</string>
-	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Your account passphrase:</string>
 	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Show my passphrase</string>
 	<string name="passphrase_hide">Hide my passphrase</string>
@@ -515,7 +515,7 @@
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Enable logging</string>
 	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
-	<string name="logs_debug_enable_title">Enable verbose logging</string>
+	<string name="logs_debug_enable_title">Enable debug logging</string>
 	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
 	<string name="logs_tab_app">App</string>
 	<string name="logs_tab_tunnel">Tunnel</string>
@@ -652,7 +652,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS Host</string>
 	<string name="setup_instructions_step_socks_port">, Port</string>
 	<string name="setup_instructions_step_socks_suffix">, select SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Check Proxy DNS when using SOCKS v5 (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
 	<string name="setup_instructions_description">On Firefox or browsers that permit SOCKS5 configurations.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">App icon</string>
