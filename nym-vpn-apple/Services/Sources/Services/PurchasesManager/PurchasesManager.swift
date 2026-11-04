@@ -38,6 +38,7 @@ public enum PurchaseOutcome: Equatable, Sendable {
     @Published public private(set) var nymTrialEligibility: NymTrialEligibility = .unknown
     /// Whether this Apple ID's live subscription belongs to another Nym account. Read when the plan screen appears.
     @Published public private(set) var appleIdSubscriptionGate: AppleIdSubscriptionGate = .open
+    private var appleIdSubscriptionGateGeneration = 0
 
     /// Yearly plan price divided by 12. Currency comes from the App Store storefront — it is what Apple
     /// charges and cannot be swapped — while number formatting follows the device locale.
@@ -136,31 +137,40 @@ public enum PurchaseOutcome: Equatable, Sendable {
     }
 
     /// Call when a plan screen appears: the verdict follows the Apple ID and the signed-in account's token.
-    public func refreshAppleIdSubscriptionGate(accountToken: String?) async {
+    /// Returns this read's verdict; it is published only if no newer read or environment reset superseded it.
+    @discardableResult
+    public func refreshAppleIdSubscriptionGate(accountToken: String?) async -> AppleIdSubscriptionGate {
+        appleIdSubscriptionGateGeneration += 1
+        let generation = appleIdSubscriptionGateGeneration
+        let gate = await readAppleIdSubscriptionGate(accountToken: accountToken)
+        if generation == appleIdSubscriptionGateGeneration {
+            appleIdSubscriptionGate = gate
+        }
+        return gate
+    }
+
+    private func readAppleIdSubscriptionGate(accountToken: String?) async -> AppleIdSubscriptionGate {
         try? await loadProducts()
         // All plans share one subscription group, so one product's statuses describe the whole Apple ID.
-        guard let subscription = products.first?.subscription else {
-            appleIdSubscriptionGate = .unknown
-            return
-        }
+        guard let subscription = products.first?.subscription else { return .unknown }
         do {
             let statuses = try await subscription.status
             let originalPurchases = await Self.originalPurchases()
-            appleIdSubscriptionGate = AppleIdSubscriptionGatePolicy.gate(
+            return AppleIdSubscriptionGatePolicy.gate(
                 entitlements: statuses.compactMap { Self.entitlement(from: $0, originalPurchases: originalPurchases) },
                 accountToken: accountToken.flatMap(UUID.init(uuidString:))
             )
         } catch {
             logger.warning("Apple ID subscription status read failed: \(error)")
-            appleIdSubscriptionGate = .unknown
+            return .unknown
         }
     }
 
     public func purchase(with product: Product, token: String) async throws -> PurchaseOutcome {
         guard let accountToken = UUID(uuidString: token) else { return .failed }
         // Re-read, not trusted from the screen: a foreign subscription must never reach StoreKit's purchase sheet.
-        await refreshAppleIdSubscriptionGate(accountToken: token)
-        if let gateError = appleIdSubscriptionGate.purchaseError {
+        let gate = await refreshAppleIdSubscriptionGate(accountToken: token)
+        if let gateError = gate.purchaseError {
             throw gateError
         }
         // Asked right before the purchase and never cached: the token has no `exp`, Apple checks its age from `iat`.
@@ -210,6 +220,7 @@ public enum PurchaseOutcome: Equatable, Sendable {
         isRefreshingIntroOfferEligibility = false
         nymTrialEligibility = .unknown
         appleIdSubscriptionGate = .open
+        appleIdSubscriptionGateGeneration += 1
 #if SANTA
         try? await AppStore.sync()
 #endif
