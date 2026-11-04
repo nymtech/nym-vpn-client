@@ -46,7 +46,8 @@ nym-vpn-core/upload/mac
 # Fastlane reports
 fastlane/report.xml
 fastlane/Preview.html
-fastlane/screenshots
+fastlane/screenshots/*
+!fastlane/screenshots/ios
 fastlane/test_output
 fastlane/readme.md
 

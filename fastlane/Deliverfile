@@ -15,9 +15,12 @@ screenshots_path "./fastlane/screenshots/ios"
 skip_binary_upload true
 skip_metadata false
 
-# Screenshots deferred — do not touch the live App Store screenshots.
-skip_screenshots true
-overwrite_screenshots false
+# Screenshots: complete current sets for all 16 locales under fastlane/screenshots/ios
+# (iPhone 6.5" 1242x2688 + iPad 13" 2752x2064, 9 each). Overwrite replaces the stale
+# live screenshots. NOTE: overwrite_screenshots clears existing shots before upload —
+# verify the first run (dry run / preview) before trusting it against prod.
+skip_screenshots false
+overwrite_screenshots true
 
 # Default: no submission. The upload_metadata lane overrides this with its submit
 # option, which the workflow's submit_for_review input (default false) sets — so a

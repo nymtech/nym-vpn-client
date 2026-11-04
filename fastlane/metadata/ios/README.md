@@ -24,7 +24,7 @@ so the purchase sheet shows the real regional price (decided 2026-11-04).
 
 ## Not managed here (by design)
 
-- **Screenshots** — follow in a separate commit under `fastlane/screenshots/ios/<locale>/`.
+- **Screenshots** — now present under `fastlane/screenshots/ios/<locale>/` (added 2026-11-04, re-exported from Figma; see that folder's README).
 - **`release_notes` (What's New)** — version-specific; sourced at release time from the changelog flow.
 - **support/marketing/privacy URLs, copyright, categories, review info (demo account)** — stable,
   left App-Store-Connect-managed; deliver only touches fields whose files exist here.
