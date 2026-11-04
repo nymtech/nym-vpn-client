@@ -7957,7 +7957,6 @@ dependencies = [
  "http-body-util",
  "hyper 1.12.0",
  "hyper-util",
- "ipnet",
  "ipnetwork",
  "itertools 0.15.0",
  "libc",

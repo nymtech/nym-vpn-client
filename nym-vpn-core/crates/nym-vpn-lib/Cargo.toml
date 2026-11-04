@@ -33,7 +33,6 @@ hickory-resolver = { workspace = true, features = [
 hyper = { workspace = true, features = ["server", "http1"] }
 hyper-util = { workspace = true, features = ["tokio"] }
 http-body-util = { workspace = true }
-ipnet.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 log-panics.workspace = true

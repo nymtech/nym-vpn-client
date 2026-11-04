@@ -13,7 +13,6 @@ use std::{
 #[cfg(target_os = "ios")]
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
 use ipnetwork::IpNetwork;
-use itertools::Itertools;
 #[cfg(target_os = "ios")]
 use nym_apple_network::PathMonitor;
 use nym_crypto::asymmetric::x25519;
