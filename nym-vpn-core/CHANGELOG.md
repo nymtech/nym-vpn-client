@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.15.0] - TBD
+### Added
 
+- [Linux] Add NetworkManager VPN plugin that can be used to manage VPN connection from system menu. Note that removing VPN from system network settings also disconnects VPN. In all other cases VPN is only managed via UI interaction by user. (https://github.com/nymtech/nym-vpn-client/pull/6873, https://github.com/nymtech/nym-vpn-client/pull/6861)
+
+
+## [2026.15.0] - TBD
 
 ### Added
 
@@ -28,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [iOS] Flush DNS when changing ad-block setting by reconnecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6866)
 - `nym-vpnc dns set` no longer removes all custom DNS. Use `nym-vpnc dns clear` instead (https://github.com/nymtech/nym-vpn-client/pull/6876)
 - `nym-vpnc dns set` no longer accepts positional argument to configure plain DNS. Use one of the following arguments instead: `--plain`, `--tcp` or `--udp` (https://github.com/nymtech/nym-vpn-client/pull/6876)
+- Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
 
 ### Fixed
 
@@ -37,16 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SOCKS5 proxy no longer misses tunnel state updates and reacts to them immediately instead of polling every 2 seconds. Fixed the SOCKS5 proxy sometimes staying on after the VPN disconnected, or turning off right after being enabled (https://github.com/nymtech/nym-vpn-client/pull/6850)
 - Stop the internal SOCKS5 mixnet client and its listener on `127.0.0.1:1081` when SOCKS5 is disabled, so the next enable starts a new mixnet client instead of reusing the first session's (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
+- Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
 - Top-up blocking the shutdown (https://github.com/nymtech/nym-vpn-client/pull/6912)
 
+### Security
 
-### Changed
-
-- Count bandwidth usage locally and fetch remote gateway quota less frequently to improve mobile battery usage (https://github.com/nymtech/nym-vpn-client/pull/6803)
-
-### Fixed
-
-- Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
+- [Linux] The install script now installs `nym-vpnd`, `nym-socks5-proxy` and `NymVPN.AppImage` as root-owned. Previously, raw installs (the default on distros other than Debian, Ubuntu and Mint) left them owned by the installing user, who could replace them and get code run as root. Existing raw installs stay affected until fixed with `sudo chown root:root /usr/bin/nym-vpnd /usr/bin/nym-socks5-proxy /usr/bin/NymVPN.AppImage`, or until reinstalled with `./install uninstall` followed by `./install` (uninstalling removes `/etc/nym/nym-vpnd.toml`) (https://github.com/nymtech/nym-vpn-client/pull/6914)
 
 
 ## [2026.14.0] - 2026-10-22

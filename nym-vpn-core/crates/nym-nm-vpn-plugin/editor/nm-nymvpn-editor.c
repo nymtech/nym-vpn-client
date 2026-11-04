@@ -4,9 +4,9 @@
  * NetworkManager editor page for NymVPN. Compiled once against GTK 3 (nm-connection-editor,
  * nm-applet) and once against GTK 4 (GNOME Settings).
  *
- * All NymVPN settings live in the NymVPN desktop app, so the page only says so and opens the
- * app: once when the page is created, and again on every button press. The app is
- * single-instance, so a second launch just raises its window.
+ * All NymVPN settings live in the NymVPN desktop app, so the page only says so and offers a
+ * button that opens the app. The app is single-instance, so a second launch just raises its
+ * window.
  */
 #include <gio/gdesktopappinfo.h>
 #include <gmodule.h>
@@ -138,6 +138,5 @@ nm_vpn_editor_factory_nymvpn(NMVpnEditorPlugin *plugin, NMConnection *connection
     (void) connection;
     g_return_val_if_fail(!error || !*error, NULL);
 
-    launch_app();
     return NM_VPN_EDITOR(g_object_new(NYMVPN_TYPE_EDITOR, NULL));
 }

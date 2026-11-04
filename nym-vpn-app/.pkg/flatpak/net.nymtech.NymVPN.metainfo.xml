@@ -6,46 +6,40 @@
     <developer id="net.nymtech">
         <name>Nym Technologies SA</name>
     </developer>
-    <summary>Decentralized, mixnet, and zero-knowledge VPN</summary>
+    <summary>Decentralized, no-logs Swiss dVPN</summary>
     <metadata_license>MIT</metadata_license>
     <project_license>GPL-3.0-only</project_license>
     <description>
-        <p>Desktop application for NymVPN.</p>
         <p>
-            NymVPN is a decentralized, mixnet and zero-knowledge VPN.
-            Features:
+            NymVPN is a decentralized VPN powered by the Noise Generating Mixnet.
+            It protects not just your traffic but your metadata: the patterns of who
+            you talk to, when, and from where. No single server sees who you are and
+            what you do, so there are no meaningful traffic logs to keep or hand over.
         </p>
+        <p>Two modes, one app:</p>
         <ul>
-            <li>5-hop <em>Anonymous</em> mode (using the Nym Mixnet)</li>
-            <li>2-hop <em>Fast</em> mode (using WireGuard)</li>
-            <li>No centralized logs</li>
-            <li>Hide your public IP</li>
-            <li>Entry and exit hop location</li>
+            <li><em>dVPN mode</em>: 2-hop WireGuard (AmneziaWG) for fast streaming and browsing on a decentralized network.</li>
+            <li><em>Mixnet mode</em>: 5-hop routing through the Noise Generating Mixnet, a more private successor to Tor, with cover traffic to defeat traffic analysis. Ideal for crypto, email, and messaging.</li>
+        </ul>
+        <p>What you get:</p>
+        <ul>
+            <li>Anonymous accounts: no email, no name</li>
+            <li>Pay with crypto or cash; zero-knowledge credentials delink your payment from your VPN use</li>
+            <li>Anti-censorship technology: beat VPN blocking with QUIC, AmneziaWG, and more</li>
+            <li>Swiss jurisdiction, outside the 14 Eyes</li>
+            <li>Fully open source, independently audited</li>
+            <li>70+ countries, with entry and exit server selection</li>
+            <li>Kill switch, custom DNS, split tunneling, and an ad and tracker blocker powered by Brave</li>
         </ul>
         <p>
-            NOTE: This package only provides the <em>client</em> application.
-            For the VPN to work, the daemon aka <code>nym-vpnd</code>,
-            must be installed and running.
-            You can install it from these separate packages:
+            NOTE: This package provides the <em>client</em> application only.
+            The VPN also needs the daemon, <code>nym-vpnd</code>, installed and running:
         </p>
         <ul>
-            <li>deb package (requires to setup the Nym deb repository): <code>nym-vpnd</code></li>
+            <li>deb package (set up the Nym deb repository first): <code>nym-vpnd</code></li>
             <li>AUR packages: <code>nym-vpnd</code> and <code>nym-vpnd-bin</code></li>
         </ul>
-        <p>For more details, please check https://nym.com/en/download/linux</p>
-        <p>
-            Alternatively you can get the binary directly from the GitHub releases:
-        </p>
-        <ol>
-            <li>Go to https://github.com/nymtech/nym-vpn-client/releases</li>
-            <li>Find the latest release with tag <code>nym-vpn-core-v1.2.3</code></li>
-            <li>Download the linux archive <code>nym-vpn-core-v1.2.3_linux_x86_64.tar.gz</code>
-                and extract the binary (make it executable)</li>
-            <li>From a terminal, run <code>sudo nym-vpnd</code></li>
-        </ol>
-        <p>
-            NOTE: The daemon requires root privileges to work.
-        </p>
+        <p>For more details, see https://nym.com/en/download/linux</p>
     </description>
     <releases>
         <release version="2026.14.0" date="2026-10-21">
@@ -214,40 +208,39 @@
     <screenshots>
         <screenshot type="default">
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-light.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/home-connected.png
             </image>
-            <caption>NymVPN app screenshot, home screen</caption>
+            <caption>Connect in dVPN or Mixnet mode and choose your entry and exit servers</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-connected-light.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/profiles.png
             </image>
-            <caption>NymVPN app screenshot, home screen connected</caption>
+            <caption>Connect quickly with a profile tuned for speed, anonymity, or variety</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-countries-light.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/settings.png
             </image>
-            <caption>NymVPN app screenshot, countries selection screen</caption>
+            <caption>Manage privacy settings including the kill switch and ad blocker</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-dark.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/anti-censorship.png
             </image>
-            <caption>NymVPN app screenshot, home screen (Dark mode)</caption>
+            <caption>Get past VPN blocking with anti-censorship bridges and traffic obfuscation</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-connected-dark.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/mixnet-tuning.png
             </image>
-            <caption>NymVPN app screenshot, home screen connected (Dark mode)
-            </caption>
+            <caption>Tune Mixnet cover traffic and packet mixing to balance speed and anonymity</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/nymtech/nym-vpn-client/74112d6/nym-vpn-app/.pkg/screenshots/home-countries-dark.png
+                https://raw.githubusercontent.com/nymtech/nym-vpn-client/casey/flathub-store-listing/nym-vpn-app/.pkg/screenshots/dns.png
             </image>
-            <caption>NymVPN app screenshot, countries selection screen (Dark mode)</caption>
+            <caption>Add custom DNS servers for ad-blocking, filtering, or a preferred provider</caption>
         </screenshot>
     </screenshots>
     <content_rating type="oars-1.1"/>

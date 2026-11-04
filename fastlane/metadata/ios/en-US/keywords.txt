@@ -1,0 +1,1 @@
+wireguard,mixnet,tor,proxy,crypto,killswitch,decentralized,wifi,encrypt,censor,activist,journalist

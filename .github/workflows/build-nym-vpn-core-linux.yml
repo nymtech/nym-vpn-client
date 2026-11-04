@@ -121,7 +121,7 @@ jobs:
           target/release/nym-vpnc completions fish > "$COMPLETIONS_DIR/nym-vpnc.fish"
 
       - name: Build NetworkManager editor plugin libraries
-        run: make -C nym-vpn-core/crates/nym-nm-vpn-plugin/editor all test
+        run: make -C nym-vpn-core/crates/nym-nm-vpn-plugin/editor
 
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.

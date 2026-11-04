@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip jq
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make pkg-config unzip jq libnm-dev libgtk-3-dev libgtk-4-dev
 
       - name: Checkout repo
         uses: actions/checkout@v7.0.1
@@ -85,3 +85,6 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo test --profile ci --workspace --locked --exclude nym-ifconfig
+
+      - name: Test NetworkManager editor plugin
+        run: make -C nym-vpn-core/crates/nym-nm-vpn-plugin/editor test
