@@ -116,8 +116,9 @@ extension GeneratePassphraseView {
                 )
             }
         } catch PurchaseGateError.subscriptionAttachedToOtherAccount {
-            // The published verdict already flipped; the screen re-renders to the gate, no alert.
-            return
+            // The purchase's own read normally flipped the screen to the gate; a newer read may have overwritten it.
+            if case .attachedToOtherAccount = purchasesManager.appleIdSubscriptionGate { return }
+            presentPurchaseAlert(message: AppleIdSubscriptionGateUI.statusUnavailableAlertKey.localizedString)
         } catch PurchaseGateError.statusUnavailable {
             presentPurchaseAlert(message: AppleIdSubscriptionGateUI.statusUnavailableAlertKey.localizedString)
         } catch {
