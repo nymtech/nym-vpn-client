@@ -24,15 +24,16 @@ use nym_vpn_account_controller::{
 use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
-    AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    QrPairingConfirmation, QrUrl, RegisterAccountRequest, RegisterAccountResponse, StorableAccount,
-    StoreAccountRequest, StoredAccountMode, UserAgent, VpnAccountSummary,
+    AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, Event,
+    GetDeeplinkParams, QrPairingConfirmation, QrUrl, RegisterAccountRequest,
+    RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode, UserAgent,
+    VpnAccountSummary,
 };
 
 struct State {
     account_join_handle: JoinHandle<()>,
     bandwidth_join_handle: JoinHandle<()>,
-    event_handler: JoinHandle<()>,
+    pairing_event_handler: JoinHandle<()>,
     shutdown_drop_guard: DropGuard,
 }
 
@@ -96,13 +97,13 @@ impl NymAccountController {
 
         let connectivity_handle = offline_monitor.inner();
 
-        let (event_tx, mut event_rx) = broadcast::channel(10);
-        let event_handler = tokio::spawn(async move {
+        let (pairing_event_tx, mut pairing_event_rx) = broadcast::channel(10);
+        let pairing_event_handler = tokio::spawn(async move {
             loop {
-                match event_rx.recv().await {
-                    Ok(event) => event_listener.on_event(event),
+                match pairing_event_rx.recv().await {
+                    Ok(pairing_event) => event_listener.on_event(Event::Pairing(pairing_event)),
                     Err(broadcast::error::RecvError::Lagged(skipped)) => {
-                        tracing::warn!("Skipped {skipped} events");
+                        tracing::warn!("Skipped pairing {skipped} events");
                     }
                     Err(broadcast::error::RecvError::Closed) => break,
                 }
@@ -114,7 +115,7 @@ impl NymAccountController {
             account_controller_config,
             storage,
             connectivity_handle,
-            AccountControllerChannels::new(bandwidth_command_sender.clone(), event_tx),
+            AccountControllerChannels::new(bandwidth_command_sender.clone(), pairing_event_tx),
             shutdown_token.child_token(),
         )
         .await
@@ -135,7 +136,7 @@ impl NymAccountController {
             state: Arc::new(Mutex::new(Some(State {
                 account_join_handle,
                 bandwidth_join_handle,
-                event_handler,
+                pairing_event_handler,
                 shutdown_drop_guard,
             }))),
         })
@@ -156,7 +157,7 @@ impl NymAccountController {
             tracing::error!("Failed to wait on bandwidth controller join handle: {err}");
         }
 
-        if let Err(err) = state.event_handler.await {
+        if let Err(err) = state.pairing_event_handler.await {
             tracing::error!("Failed to wait on tunnel event join handle: {err}");
         }
     }

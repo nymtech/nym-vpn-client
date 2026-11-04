@@ -4,7 +4,7 @@
 use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_lib_types::{AccountControllerState, StorableAccount};
+use nym_vpn_lib_types::{AccountControllerState, PairingResult, StorableAccount};
 use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
 use tokio::sync::{
     broadcast,
@@ -77,17 +77,17 @@ impl AccountControllerClients {
 
 pub struct AccountControllerChannels {
     bandwidth_control_command_tx: BandwidthControllerRequestSender,
-    event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+    pairing_event_tx: broadcast::Sender<PairingResult>,
 }
 
 impl AccountControllerChannels {
     pub fn new(
         bandwidth_control_command_tx: BandwidthControllerRequestSender,
-        event_tx: broadcast::Sender<nym_vpn_lib_types::Event>,
+        pairing_event_tx: broadcast::Sender<PairingResult>,
     ) -> Self {
         Self {
             bandwidth_control_command_tx,
-            event_tx,
+            pairing_event_tx,
         }
     }
 }
@@ -112,7 +112,7 @@ where
 
         let AccountControllerChannels {
             bandwidth_control_command_tx,
-            event_tx,
+            pairing_event_tx,
         } = channels;
 
         // Channels for the account storage
@@ -144,8 +144,7 @@ where
                                     )
                                 });
                         }
-                        let _ =
-                            event_tx.send(nym_vpn_lib_types::Event::Pairing(pairing_result.into()));
+                        let _ = pairing_event_tx.send(pairing_result.into());
                     }
                     Err(broadcast::error::RecvError::Lagged(skipped)) => {
                         tracing::warn!("Skipped {skipped} account controller events");

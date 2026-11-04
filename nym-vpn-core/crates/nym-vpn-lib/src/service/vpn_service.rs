@@ -374,6 +374,9 @@ pub struct NymVpnService {
     // Discovery refresher join handle
     discovery_refresher_join_handle: JoinHandle<()>,
 
+    // Pairing event forwarder
+    pairing_event_handler: JoinHandle<()>,
+
     // VPN service shutdown token.
     shutdown_token: CancellationToken,
 
@@ -565,12 +568,30 @@ impl NymVpnService {
 
         let nyxd_client = NyxdClient::new(&network_env);
 
+        let (pairing_event_tx, mut pairing_event_rx) = broadcast::channel(10);
+        let event_tx_clone = event_tx.clone();
+        let pairing_event_handler = tokio::spawn(async move {
+            loop {
+                match pairing_event_rx.recv().await {
+                    Ok(pairing_event) => {
+                        if let Err(err) = event_tx_clone.send(Event::Pairing(pairing_event)) {
+                            tracing::warn!("Failed to propagate pairing event: {err}");
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(skipped)) => {
+                        tracing::warn!("Skipped pairing {skipped} events");
+                    }
+                    Err(broadcast::error::RecvError::Closed) => break,
+                }
+            }
+        });
+
         let account_controller = AccountController::new(
             AccountControllerClients::new(nym_vpn_api_client.clone(), nyxd_client),
             account_controller_config,
             storage,
             connectivity_handle.clone(),
-            AccountControllerChannels::new(bandwidth_command_tx.clone(), event_tx.clone()),
+            AccountControllerChannels::new(bandwidth_command_tx.clone(), pairing_event_tx),
             services_shutdown_token.child_token(),
         )
         .await
@@ -802,6 +823,7 @@ impl NymVpnService {
             gateway_cache_join_handle,
             discovery_refresher_event_rx,
             discovery_refresher_join_handle,
+            pairing_event_handler,
             sentry_enabled: parameters.sentry_enabled,
             statistics_event_sender,
             stats_control_commands_sender,
@@ -897,6 +919,10 @@ impl NymVpnService {
 
         if let Err(e) = self.discovery_refresher_join_handle.await {
             tracing::error!("Failed to join on discovery refresher handle: {e}");
+        }
+
+        if let Err(e) = self.pairing_event_handler.await {
+            tracing::error!("Failed to join on pairing event handle: {e}");
         }
 
         if let Err(e) = self.topology_service_join_handle.await {
