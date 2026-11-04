@@ -88,3 +88,28 @@ platform :mac do
 		project.save
 	end
 end
+
+
+platform :ios do
+	desc "Upload iOS App Store metadata to App Store Connect (listing text only — no binary, no screenshots, no auto-submit)"
+	lane :upload_metadata do |options|
+		# Default off: a human submits the version for review. Pass submit:true to override.
+		submit = options[:submit].to_s == 'true'
+
+		# App Store Connect API key auth, from CI secrets (raw .p8 content, not base64).
+		api_key = app_store_connect_api_key(
+			key_id: ENV.fetch('APP_STORE_CONNECT_API_KEY'),
+			issuer_id: ENV.fetch('APP_STORE_CONNECT_API_ISSUER_ID'),
+			key_content: ENV.fetch('APP_STORE_CONNECT_API_PRIVATE_KEY'),
+			is_key_content_base64: false,
+			in_house: false
+		)
+
+		# Static options (app_identifier, metadata_path, skip_binary_upload, skip_screenshots,
+		# force, …) live in fastlane/Deliverfile. Only the runtime bits are passed here.
+		deliver(
+			api_key: api_key,
+			submit_for_review: submit
+		)
+	end
+end

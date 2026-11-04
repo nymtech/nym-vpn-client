@@ -1,0 +1,1 @@
+WireGuard,Mixnet,Tor,proxy,encryption,killswitch,wifi,تشفير,رقابة,حجب,صحفي,ناشط,حماية,أمان
