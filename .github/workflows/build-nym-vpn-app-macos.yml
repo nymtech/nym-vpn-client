@@ -372,7 +372,6 @@ jobs:
           mv core_artifacts_macos/NymVPNLib nym-vpn-apple/NymVPNLib
 
       - name: Set build number
-        working-directory: nym-vpn-apple
         run: |
           BUILD_NUMBER=$(date -u '+%Y%m%d%H%M')
           fastlane mac bump_build build:$BUILD_NUMBER
