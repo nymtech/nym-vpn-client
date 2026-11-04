@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">например, smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Динамическая тема</string>
 	<string name="system_wallpaper">Тема системных обоев</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">Запуск NymVPN</string>
 	<string name="stop">Остановить</string>
 	<string name="app_restart_required">Необходимо перезагрузить приложение</string>
 	<string name="max_devices_reached_title">Вы добавили максимальное количество устройств для вашей учетной записи</string>
@@ -223,7 +223,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Добро пожаловать!</string>
 	<string name="auth_welcome_description">К самому приватному VPN в мире</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Войти в мой аккаунт</string>
 	<string name="auth_sign_up_title">Регистрация</string>
 	<string name="auth_sign_up_account_button">Анонимный аккаунт</string>
 	<string name="auth_sign_up_social_button">Зарегистрироваться через соцсети *</string>
@@ -448,8 +448,8 @@
 	<string name="device_auth_use_screen_lock">Использовать блокировку экрана</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Кодовая фраза вашего аккаунта</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Парольная фраза вашего аккаунта: 24 слова, которые позволяют получить доступ к аккаунту с любого устройства.</string>
+	<string name="passphrase_description_first">🔒Парольная фраза вашего аккаунта:</string>
 	<string name="passphrase_description_last">24 слова, которые позволяют вам заходить в свою учетную запись с любого устройства.</string>
 	<string name="passphrase_show">Показать мою кодовую фразу</string>
 	<string name="passphrase_hide">Скрыть кодовую фразу</string>
@@ -640,7 +640,7 @@
 	<string name="setup_instructions_step_socks_host">Хост SOCKS</string>
 	<string name="setup_instructions_step_socks_port">, Порт</string>
 	<string name="setup_instructions_step_socks_suffix">, выберите SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">Выберите «Proxy DNS when using SOCKS v5» (предотвращает утечки DNS).</string>
 	<string name="setup_instructions_description">На Firefox или браузерах, которые допускают настройки SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Иконка приложения</string>

@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">ví dụ: smoke artefact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Động</string>
 	<string name="system_wallpaper">Giao diện hình nền hệ thống</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">Đang khởi động NymVPN</string>
 	<string name="stop">Dừng</string>
 	<string name="app_restart_required">Yêu cầu khởi động lại ứng dụng</string>
 	<string name="max_devices_reached_title">Bạn đã đạt đến số lượng thiết bị tối đa cho tài khoản của mình</string>
@@ -215,7 +215,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Chào mừng!</string>
 	<string name="auth_welcome_description">Vào VPN riêng tư nhất thế giới</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Đăng nhập vào tài khoản của tôi</string>
 	<string name="auth_sign_up_title">Đăng ký</string>
 	<string name="auth_sign_up_account_button">Tài khoản ẩn danh</string>
 	<string name="auth_sign_up_social_button">Đăng ký bằng tài khoản mạng xã hội *</string>
@@ -434,8 +434,8 @@
 	<string name="device_auth_use_screen_lock">Sử dụng khóa màn hình</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Cụm mật khẩu tài khoản của bạn</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Cụm mật khẩu tài khoản của bạn: 24 từ cho phép bạn truy cập tài khoản từ bất kỳ thiết bị nào.</string>
+	<string name="passphrase_description_first">🔒Cụm mật khẩu tài khoản của bạn:</string>
 	<string name="passphrase_description_last">24 từ cho phép bạn truy cập tài khoản của mình từ bất kỳ thiết bị nào.</string>
 	<string name="passphrase_show">Hiển thị cụm từ mật khẩu của tôi</string>
 	<string name="passphrase_hide">Ẩn mật khẩu của tôi</string>
@@ -626,7 +626,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS Host</string>
 	<string name="setup_instructions_step_socks_port">, Cổng</string>
 	<string name="setup_instructions_step_socks_suffix">, chọn SOCKS v5.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">Chọn \"Proxy DNS when using SOCKS v5\" (ngăn rò rỉ DNS).</string>
 	<string name="setup_instructions_description">Trên Firefox hoặc các trình duyệt cho phép cấu hình SOCKS5.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Biểu tượng ứng dụng</string>

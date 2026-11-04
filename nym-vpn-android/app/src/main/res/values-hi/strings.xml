@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">उदाहरण के लिए धुआँ प्राचीन वस्तु मखमल खोपड़ी पॉप महल कछुआ नुकसान क्षति</string>
 	<string name="dynamic">गतिमान</string>
 	<string name="system_wallpaper">सिस्टम वॉलपेपर थीम</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">NymVPN शुरू हो रहा है</string>
 	<string name="stop">रुकें</string>
 	<string name="app_restart_required">ऐप को पुनः आरंभ करना आवश्यक है।</string>
 	<string name="max_devices_reached_title">आप अपने अकाउंट के लिए अधिकतम उपकरणों की संख्या तक पहुँच चुके हैं।</string>
@@ -217,7 +217,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">स्वागत है!</string>
 	<string name="auth_welcome_description">To the world’s most private VPN</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">मेरे खाते में लॉग इन करें</string>
 	<string name="auth_sign_up_title">साइन अप करें</string>
 	<string name="auth_sign_up_account_button">अनाम अकाउंट</string>
 	<string name="auth_sign_up_social_button">सोशल मीडिया से साइन अप करें *</string>
@@ -439,8 +439,8 @@
 	<string name="device_auth_use_screen_lock">स्क्रीन लॉक का उपयोग करें</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">आपके अकाउंट का पासफ़्रेज़</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒आपके खाते का पासफ़्रेज़: 24 शब्द जो आपको किसी भी डिवाइस से अपने खाते तक पहुँचने देते हैं।</string>
+	<string name="passphrase_description_first">🔒आपके खाते का पासफ़्रेज़:</string>
 	<string name="passphrase_description_last">24 शब्द जो आपको किसी भी डिवाइस से अपने अकाउंट तक पहुंचने देते हैं</string>
 	<string name="passphrase_show">मेरा पासफ़्रेज़ दिखाएं</string>
 	<string name="passphrase_hide">मेरा पासफ़्रेज़ छिपाएँ</string>
@@ -631,7 +631,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS होस्ट</string>
 	<string name="setup_instructions_step_socks_port">, पोर्ट</string>
 	<string name="setup_instructions_step_socks_suffix">, SOCKS v5 चुनें।</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">\"Proxy DNS when using SOCKS v5\" चुनें (DNS लीक को रोकता है)।</string>
 	<string name="setup_instructions_description">Firefox या उन ब्राउज़रों पर जो SOCKS5 कॉन्फ़िगरेशन की अनुमति देते हैं।</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">ऐप आइकन</string>

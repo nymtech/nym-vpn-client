@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">örneğin: smoke, artifact, velvet, skull, pop, palace, tortoise, damage, rough…</string>
 	<string name="dynamic">Dinamik</string>
 	<string name="system_wallpaper">Sistem duvar kağıdı teması</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">NymVPN başlatılıyor</string>
 	<string name="stop">Durdur</string>
 	<string name="app_restart_required">Uygulamayı yeniden başlatmak gereklidir</string>
 	<string name="max_devices_reached_title">Hesabınız için izin verilen maksimum cihaz sayısına ulaştınız</string>
@@ -217,7 +217,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Hoş geldiniz!</string>
 	<string name="auth_welcome_description">Dünyanın en gizli VPN\'i</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">Hesabıma giriş yap</string>
 	<string name="auth_sign_up_title">Kaydolun</string>
 	<string name="auth_sign_up_account_button">Anonim hesap</string>
 	<string name="auth_sign_up_social_button">Sosyal medya hesabı ile kaydolun *</string>
@@ -439,8 +439,8 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="device_auth_use_screen_lock">Ekran kilidi kullan</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Hesap kurtarma ifadeniz</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒Hesap parolası ifadeniz: Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
+	<string name="passphrase_description_first">🔒Hesap parolası ifadeniz:</string>
 	<string name="passphrase_description_last">Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
 	<string name="passphrase_show">Kurtarma ifademi göster</string>
 	<string name="passphrase_hide">Şifremi gizle</string>
@@ -632,7 +632,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="setup_instructions_step_socks_host">SOCKS Sunucusu</string>
 	<string name="setup_instructions_step_socks_port">, Bağlantı Noktası</string>
 	<string name="setup_instructions_step_socks_suffix">, SOCKS v5\'i seçin.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">\"Proxy DNS when using SOCKS v5\" seçeneğini seçin (DNS sızıntılarını önler).</string>
 	<string name="setup_instructions_description">Firefox veya SOCKS5 yapılandırmalarına izin veren tarayıcılarda.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">Uygulama simgesi</string>

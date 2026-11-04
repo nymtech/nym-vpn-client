@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">例如 smoke artefact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">动态</string>
 	<string name="system_wallpaper">系统壁纸主题</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">正在启动 NymVPN</string>
 	<string name="stop">停止</string>
 	<string name="app_restart_required">需要重新启动应用程序</string>
 	<string name="max_devices_reached_title">您的设备数量已达到上限</string>
@@ -217,7 +217,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">欢迎！</string>
 	<string name="auth_welcome_description">世界上最私密的 VPN</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">登录我的账户</string>
 	<string name="auth_sign_up_title">注册</string>
 	<string name="auth_sign_up_account_button">匿名账号</string>
 	<string name="auth_sign_up_social_button">使用社交账号注册*</string>
@@ -436,8 +436,8 @@
 	<string name="device_auth_use_screen_lock">使用屏幕锁定</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">您的账户助记词</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒您的账户密码短语：24 个助记词，让您可以从任何设备访问您的账户。</string>
+	<string name="passphrase_description_first">🔒您的账户密码短语：</string>
 	<string name="passphrase_description_last">您的助记词允许您从任何设备上访问您的账号。</string>
 	<string name="passphrase_show">显示我的助记词</string>
 	<string name="passphrase_hide">隐藏我的助记词</string>
@@ -628,7 +628,7 @@
 	<string name="setup_instructions_step_socks_host">SOCKS 主机</string>
 	<string name="setup_instructions_step_socks_port">，端口</string>
 	<string name="setup_instructions_step_socks_suffix">，选择 SOCKS v5。</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">选择\"Proxy DNS when using SOCKS v5\"（防止 DNS 泄露）。</string>
 	<string name="setup_instructions_description">在 Firefox 或允许 SOCKS5 配置的浏览器上。</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">应用程序图标</string>

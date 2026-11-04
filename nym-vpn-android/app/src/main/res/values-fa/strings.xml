@@ -72,7 +72,7 @@
 	<string name="mnemonic_example">برای مثال: smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">پویا</string>
 	<string name="system_wallpaper">تم تصویر زمینه دستگاه</string>
-	<string name="initializing">Starting NymVPN</string>
+	<string name="initializing">در حال راه‌اندازی NymVPN</string>
 	<string name="stop">توقف</string>
 	<string name="app_restart_required">باید برنامه دوباره راه‌اندازی شود</string>
 	<string name="max_devices_reached_title">شما به حداکثر تعداد مجاز دستگاه‌های متصل به حساب کاربری‌تان رسیدید</string>
@@ -219,7 +219,7 @@
 	<!-- Auth component -->
 	<string name="auth_welcome_title">خوش آمدید!</string>
 	<string name="auth_welcome_description">خصوصی‌ترین VPN حال حاضر جهان</string>
-	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_login_button">ورود به حساب من</string>
 	<string name="auth_sign_up_title">ثبت‌نام</string>
 	<string name="auth_sign_up_account_button">حساب ناشناس</string>
 	<string name="auth_sign_up_social_button">ثبت‌نام با حساب‌های اجتماعی*</string>
@@ -440,8 +440,8 @@
 	<string name="device_auth_use_screen_lock">از قفل صفحه نمایش استفاده کنید</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">عبارت عبور حساب کاربری شما</string>
-	<string name="passphrase_description">🔒Your account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_description_first">🔒Your account passphrase:</string>
+	<string name="passphrase_description">🔒عبارت عبور حساب شما: ۲۴ کلمه که به شما امکان می‌دهد از هر دستگاهی به حساب خود دسترسی داشته باشید.</string>
+	<string name="passphrase_description_first">🔒عبارت عبور حساب شما:</string>
 	<string name="passphrase_description_last">۲۴ کلمه که به شما امکان دسترسی به حساب کاربری‌تان را از هر دستگاهی می‌دهد.</string>
 	<string name="passphrase_show">نمایش عبارت عبور من</string>
 	<string name="passphrase_hide"> عبارت عبورم را پنهان کن</string>
@@ -632,7 +632,7 @@
 	<string name="setup_instructions_step_socks_host">میزبان ساکس</string>
 	<string name="setup_instructions_step_socks_port">پورت</string>
 	<string name="setup_instructions_step_socks_suffix">، SOCKS نسخهٔ ۵ را انتخاب کنید.</string>
-	<string name="setup_instructions_step_dns">Select \"Proxy DNS when using SOCKS v5\" (prevents DNS leaks).</string>
+	<string name="setup_instructions_step_dns">«Proxy DNS when using SOCKS v5» را انتخاب کنید (از نشت DNS جلوگیری می‌کند).</string>
 	<string name="setup_instructions_description">در فایرفاکس یا مرورگرهایی که پیکربندی SOCKS5 را مجاز می‌کنند.</string>
 	<!-- Icons appearance -->
 	<string name="app_icon_title">آیکون برنامه</string>
