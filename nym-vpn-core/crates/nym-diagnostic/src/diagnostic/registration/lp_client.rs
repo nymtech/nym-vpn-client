@@ -125,10 +125,13 @@ async fn setup_registration(
         .ok_or(anyhow::anyhow!("Gateway requested not found"))?
         .clone();
 
+    let rng: &mut StdRng =
+        &mut StdRng::try_from_rng(&mut SysRng).context("Failed to seed RNG from OS")?;
     let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rng()));
-    let local_dh_keypair = Arc::new(x25519::DHKeyPair::new(
-        &mut StdRng::try_from_rng(&mut SysRng).context("Failed to seed RNG from OS")?,
-    ));
+    let local_dh_keypair = Arc::new(
+        x25519::DHKeyPair::new(rng)
+            .map_err(|err| anyhow::format_err!("failed to generate key pair: {err:?}"))?,
+    );
 
     let gateway_ip = *gateway
         .description
