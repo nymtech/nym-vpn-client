@@ -96,12 +96,23 @@ jobs:
 
           echo "🚀 Uploading to TestFlight (beta group: $BETA_GROUP)..."
 
-          DATE=$(date -u '+%F %T')
-          cat << EOF > "$WHATS_NEW_FILE"
+          # The TestFlight note is the HUMAN-APPROVED file produced by the before-Beta-1 proofread PR
+          # (release-testflight-notes.yml). No AI runs in this publish path — testers only ever see
+          # copy a person signed off. If no approved note is present, fall back to the build-metadata
+          # stub (never an unreviewed AI note).
+          TESTFLIGHT_NOTE="${{ github.workspace }}/nym-vpn-apple/fastlane/TestFlight/whats-new.txt"
+          if [ -s "$TESTFLIGHT_NOTE" ]; then
+            echo "Using the human-approved TestFlight note."
+            cp "$TESTFLIGHT_NOTE" "$WHATS_NEW_FILE"
+          else
+            echo "No approved TestFlight note — using build-metadata fallback."
+            DATE=$(date -u '+%F %T')
+            cat << EOF > "$WHATS_NEW_FILE"
           Date: $DATE
           Branch: $BRANCH_NAME
           Git commit: $COMMIT_SHA
           EOF
+          fi
 
           app-store-connect publish --beta-group="$BETA_GROUP" --testflight --path="$IPA_FILE" --whats-new="@file:${WHATS_NEW_FILE}"
 

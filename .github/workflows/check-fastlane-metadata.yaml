@@ -1,0 +1,54 @@
+name: check-fastlane-metadata
+
+# One guard for the whole store-metadata surface: every length-limited fastlane field (Play + App
+# Store), not just changelogs. Runs on develop AND release/** (the store-notes PR targets a release
+# branch), so the limit is enforced wherever the files land. Replaces the old changelog-only,
+# develop-only check-changelog.yaml. The same check runs in-generator in release-store-notes.yml.
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - "release/**"
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+    paths:
+      - "fastlane/metadata/**"
+      - "nym-vpn-apple/fastlane/metadata/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check-fastlane-metadata:
+    name: Check fastlane metadata limits
+    # an `edited` event also fires on title/base/label changes; only re-run when the base changed
+    if: github.event.action != 'edited' || github.event.changes.base != null
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check changed fastlane metadata fields against store limits
+        run: |
+          set -euo pipefail
+          FILES=$(git diff --diff-filter=AM --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            -- fastlane/metadata nym-vpn-apple/fastlane/metadata)
+          if [ -z "$FILES" ]; then
+            echo "No fastlane metadata added or modified, skipping check."
+            exit 0
+          fi
+          echo "Checking:"; echo "$FILES"
+          # shellcheck disable=SC2086
+          python scripts/release-changelog/check_fastlane_limits.py $FILES

@@ -1,0 +1,94 @@
+name: author-pr-changelog
+
+# Author this PR's changelog entry from its `## Description` (the base), backed by the diff, and
+# commit it onto the PR branch. The PR's own review is the proofread gate — no separate PR.
+#
+# Only runs for a PR carrying a release milestone (the team's reliable release-scope signal). For an
+# empty/template description it first authors the description from the diff and writes it back to the
+# PR, then authors the entry. Everything downstream (add-changelog-release stamp, prepare-release-notes
+# assemble) is unchanged — this just fills `[Unreleased]` instead of a human hand-writing it.
+#
+# Triggers: opened (first author), edited (re-author only when the *description* changed),
+# milestoned (PR milestoned after opening), demilestoned (milestone removed/changed -> REMOVE the
+# entry the PR no longer qualifies for), ready_for_review (draft marked ready -> re-author from the
+# now-complete description, since we skip synchronize). NOT synchronize: code pushes don't re-author,
+# so a reviewer's edits to the entry survive. The bot's own commit (synchronize) and its own
+# description edit (edited by the Actions bot) are therefore ignored / filtered, avoiding a loop.
+#
+# `edited` also fires on title/base/label changes, so it is gated on changes.body below — a title
+# tweak must not re-author and clobber a reviewer's hand-edited entry.
+
+on:
+  pull_request:
+    types: [opened, edited, milestoned, demilestoned, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: author-changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  author:
+    # same-repo PRs only (can't push to a fork head); skip the bot's own description edits; on an
+    # `edited` event only run when the description (body) actually changed, not on title/base/label edits
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.sender.login != 'github-actions[bot]' &&
+      (github.event.action != 'edited' || github.event.changes.body != null)
+    runs-on: arc-linux-latest
+    steps:
+      - name: Checkout the PR branch
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      # Security (B4): run the authoring script from the TRUSTED base ref, never from the
+      # PR-controlled checkout. The script reads the PR entirely via the `gh` API (not the working
+      # tree); it needs the PR-head tree (checked out above) only to write + commit the CHANGELOG.
+      # So a malicious PR cannot run its own code with ANTHROPIC_API_KEY / the write token.
+      - name: Check out the trusted authoring scripts (base ref)
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: _trusted
+          sparse-checkout: scripts/release-changelog
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Author the changelog entry (and backfill the description if empty)
+        id: author
+        # Skip until the authoring scripts exist on the base branch (bootstrap: the PR that first
+        # adds them has nothing trusted to run against — they land on develop when it merges).
+        if: ${{ hashFiles('_trusted/scripts/release-changelog/author_changelog.py') != '' }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}  # only for org-scoped keys
+          ANTHROPIC_MODEL: claude-opus-4-8
+          GH_TOKEN: ${{ github.token }}
+        # ROOT (GITHUB_WORKSPACE) stays the PR-head checkout, so it reads/writes the PR's CHANGELOGs;
+        # only the executed code comes from _trusted/.
+        run: python _trusted/scripts/release-changelog/author_changelog.py
+
+      - name: Commit the entry onto the PR branch
+        if: steps.author.outputs.changed != ''
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git config user.name "nym-bot"
+          git config user.email "noreply@nymte.ch"
+          git add '*/CHANGELOG.md'
+          if git diff --cached --quiet; then
+            echo "::notice::no changelog change to commit"; exit 0
+          fi
+          git commit -m "changelog: entry for #${PR_NUMBER} (auto-authored from PR description)"
+          git push origin "HEAD:${HEAD_REF}"

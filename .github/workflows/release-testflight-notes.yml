@@ -1,0 +1,93 @@
+name: release-testflight-notes
+
+# HUMAN GATE before Beta 1. When a release branch is cut, draft the Apple TestFlight "what's new"
+# from the release's (already PR-reviewed) [Unreleased] changelog and open ONE `needs-proofread` PR
+# carrying nym-vpn-apple/fastlane/TestFlight/whats-new.txt. A person proofreads + approves that PR;
+# only then does publish-nym-vpn-ios.yml ship the note to testers. The LLM only DRAFTS — nothing
+# AI-authored reaches testers unreviewed, and this PR is NEVER auto-merged.
+#
+# The note's content is itself derived from human-written PR descriptions/diffs (via the per-PR
+# changelog), so the draft is a consumer-voice re-wording of already-reviewed copy; this gate is the
+# second human check, on the composed public note, before the first public beta.
+
+on:
+  # A release branch is cut -> draft the beta note so it can be proofread before Beta 1 is built.
+  create:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: "Release branch to draft TestFlight notes for (blank = current)."
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write   # creating the needs-proofread label uses the labels (issues) API
+
+jobs:
+  testflight-notes:
+    # only for release/* branch creations (create also fires for tags/other branches) or manual runs
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'create' && github.event.ref_type == 'branch' &&
+       startsWith(github.event.ref, 'release/'))
+    runs-on: arc-linux-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.release_branch || github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Draft the Apple TestFlight note from the release changelog
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}  # only for org-scoped keys
+          ANTHROPIC_MODEL: claude-opus-4-8
+        # No --final: betas read [Unreleased] directly (the accumulated, PR-reviewed entries).
+        run: python scripts/release-changelog/author_store.py
+
+      - name: Stage the TestFlight note for review
+        id: stage
+        run: |
+          set -euo pipefail
+          src=scripts/release-changelog/out/apple.en.txt
+          dest=nym-vpn-apple/fastlane/TestFlight/whats-new.txt
+          if [ ! -s "$src" ]; then
+            echo "::notice::no Apple [Unreleased] copy to draft — skipping TestFlight-notes PR"
+            echo "have_note=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          mkdir -p "$(dirname "$dest")"
+          cp "$src" "$dest"
+          echo "have_note=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open the needs-proofread TestFlight-notes PR
+        if: steps.stage.outputs.have_note == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ inputs.release_branch || github.ref_name }}
+        run: |
+          set -euo pipefail
+          HEAD="l10n/testflight-notes-${BASE//\//-}"
+          git config user.name "nym-bot"
+          git config user.email "noreply@nymte.ch"
+          git switch -c "$HEAD"
+          git add nym-vpn-apple/fastlane/TestFlight/whats-new.txt
+          if git diff --cached --quiet; then
+            echo "::notice::no TestFlight-notes change to propose"; exit 0
+          fi
+          git commit -m "testflight notes: ${BASE} (draft, needs proofread before Beta 1)"
+          git push -f origin "$HEAD"
+          gh label create needs-proofread --color BFD4F2 --force \
+            --description "Auto-generated copy; human proofread required before merge"
+          if gh pr view "$HEAD" --json number >/dev/null 2>&1; then
+            echo "::notice::TestFlight-notes PR already exists for $HEAD"
+          else
+            gh pr create --base "$BASE" --head "$HEAD" \
+              --title "TestFlight notes — ${BASE} (needs proofread before Beta 1)" \
+              --label "needs-proofread" \
+              --body "Draft Apple TestFlight \"what's new\" for \`${BASE}\`, written from the release's already-reviewed \`[Unreleased]\` changelog (consumer voice). **Proofread and approve before Beta 1 is pushed — the TestFlight upload uses this file, and it is never auto-merged.** Edit \`nym-vpn-apple/fastlane/TestFlight/whats-new.txt\` as needed."
+          fi

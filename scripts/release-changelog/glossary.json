@@ -1,0 +1,16 @@
+{
+  "_source": "nym-crowdin-translate skill — references/nym-localization-kb.md §A (do-not-translate, corpus-proven keep-Latin across all locales) + nym-voice-and-terminology.md §17 rule 2. The Crowdin glossary objects themselves are empty; THIS is the term authority. translate.py masks these before the DeepL call and restores them verbatim after, so brands/protocols stay Latin in every language (prevents the measured defects: Tor→洋葱网络, NYM→New York, mixnet→混合网络, WireGuard→Wirex).",
+  "_scope": "Store-copy subset — the consumer-facing terms that appear in app-store release notes. The technical changelog is not translated, so networking acronyms (DNS/API/DPI/SURB) are omitted here.",
+  "keep_latin": [
+    "Noise Generating Mixnet",
+    "NymVPN", "NymConnect", "WireGuard", "AmneziaWG", "mixFetch",
+    "zk-nyms", "zk-nym", "dVPN", "Mixnet", "mixnet",
+    "Monero", "Zcash", "Bitcoin", "Ethereum", "Tor", "Web3",
+    "$NYM", "NYX", "NYM", "Nyx", "Nym",
+    "SOCKS5", "QUIC", "VPN", "USDT"
+  ],
+  "locale_notes": {
+    "zh-CN": "App Store China: avoid 翻墙 / 科学上网 / 审查 / 激进; prefer legitimate-use framing (加速器 / 网游 / 出国 / 跨境). Flag zh-CN store copy for proofread.",
+    "transliterating_cluster": "fa, ru, uk, hi, bn, zh-CN — where brand do-not-translate breaks in practice; masking enforces keep-Latin for them."
+  }
+}

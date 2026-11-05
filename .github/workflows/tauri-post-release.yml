@@ -62,12 +62,11 @@ jobs:
           echo "release date: $date"
           echo "RELEASE_DATE=$date" >> $GITHUB_ENV
 
-      - name: Update CHANGELOG.md
-        working-directory: nym-vpn-app
-        run: |
-          new_entry="## [${{ inputs.version }}] - ${{ env.RELEASE_DATE }}"
-          sed -i "s|^## \[Unreleased\]|## [Unreleased]\n\n$new_entry|" CHANGELOG.md
-          cat CHANGELOG.md
+      # NOTE: the app CHANGELOG is stamped by the unified `add-changelog-release`
+      # (via bump-all-platforms) at release cut and final, like the other three
+      # components — so this workflow no longer touches the changelog. (It used to,
+      # from when the tauri app shipped on its own cadence; #5992 made the unified
+      # stamp cover the app changelog, leaving this a redundant second stamper.)
 
       - name: Bump installer script
         if: ${{ inputs.linux }}
@@ -90,20 +89,22 @@ jobs:
           ./update_metainfo.sh
 
       - name: Create PR
+        # Only the installer + flatpak steps stage anything, and both are gated on inputs.linux; a
+        # Windows-only release stages nothing, so without this guard `git commit` would fail on an
+        # empty index. (This step no longer touches the changelog — that moved to the unified stamp.)
+        if: ${{ inputs.linux }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           GIT_BRANCH: "tauri_postrel_${{ inputs.version }}"
           COMMIT_MSG: "tauri: post release v${{ inputs.version }}"
           PR_BODY: |
-            - update CHANGELOG.md
             - bump Linux installer script
             - update flatpak package metainfo.xml
         run: |
           git config --global user.name "NYM_bot"
           git config --global user.email "_@_"
           git switch -C ${{ env.GIT_BRANCH }}
-          git add nym-vpn-app/CHANGELOG.md
           git add .pkg/linux
           git add nym-vpn-app/.pkg/flatpak
           git commit -m "${{ env.COMMIT_MSG }}"
