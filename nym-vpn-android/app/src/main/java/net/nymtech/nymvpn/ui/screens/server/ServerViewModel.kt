@@ -114,6 +114,9 @@ class ServerViewModel @Inject constructor(
 		_uiState.update {
 			it.copy(
 				rows = emptyList(),
+				countryCount = 0,
+				nodeCount = 0,
+				isEmpty = true,
 				query = "",
 				filter = defaultFilterFor(isExitScreen),
 				isLoading = true,
