@@ -182,7 +182,9 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
     }
 
     async fn is_mnemonic_stored(&self) -> Result<bool> {
-        self.load_mnemonic().await.map(|v| v.is_some())
+        tokio::fs::try_exists(&self.path)
+            .await
+            .map_err(|err| self.io_error("check if file exists", err))
     }
 }
 
