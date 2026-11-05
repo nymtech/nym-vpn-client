@@ -17,6 +17,8 @@ import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.QrPairingConfirmation
+import nym_vpn_lib_types.QrUrl
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TentativeGateways
@@ -78,4 +80,10 @@ interface VpnServiceApi {
 	suspend fun runDiagnostic(): String?
 	suspend fun getTentativeGateways(): TentativeGateways?
 	suspend fun setGatewayIndependenceEnabled(enabled: Boolean)
+
+	// QR pairing: calls throw PairingException, progress arrives as VpnServiceEvent.Pairing.
+	suspend fun startPairing(): QrUrl
+	suspend fun scannedPairingKey(publicKey: String): QrPairingConfirmation
+	suspend fun verifiedPairingPin(sessionId: UInt)
+	suspend fun cancelPairing()
 }

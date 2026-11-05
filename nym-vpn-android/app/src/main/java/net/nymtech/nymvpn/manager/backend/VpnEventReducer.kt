@@ -126,6 +126,9 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 				context.requestTileServiceStateUpdate()
 			}
 
+			// Handled by PairingManager.
+			is VpnServiceEvent.Pairing -> Unit
+
 			is VpnServiceEvent.Log -> Timber.d("ServiceLog: %s", event.message)
 		}
 	}
