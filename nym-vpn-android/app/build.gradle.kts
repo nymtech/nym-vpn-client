@@ -228,6 +228,7 @@ dependencies {
 	implementation(project(":connectivity"))
 	implementation(project(":logcatter"))
 	implementation(project(":billing"))
+	implementation(project(":qrscanner"))
 	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
