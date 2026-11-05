@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="qr_scanner_close">Close scanner</string>
+	<string name="qr_scanner_torch_on">Turn on flashlight</string>
+	<string name="qr_scanner_torch_off">Turn off flashlight</string>
+	<string name="qr_scanner_hint_pairing">Point your camera at the QR code shown on your other device</string>
+	<string name="qr_scanner_invalid_pairing">This isn\'t a NymVPN pairing code</string>
+	<string name="qr_scanner_fallback_pairing">Use your recovery phrase instead</string>
+	<string name="qr_scanner_permission_title">Allow camera access</string>
+	<string name="qr_scanner_permission_body">The camera is only used to scan a QR code. Images are processed on this device and are never saved or sent anywhere.</string>
+	<string name="qr_scanner_permission_allow">Allow camera</string>
+	<string name="qr_scanner_permission_denied_title">Camera access is off</string>
+	<string name="qr_scanner_permission_denied_body">To scan a QR code, turn on camera access for this app in system settings.</string>
+	<string name="qr_scanner_open_settings">Open settings</string>
+	<string name="qr_scanner_camera_error_title">Camera unavailable</string>
+	<string name="qr_scanner_camera_error_body">The camera couldn\'t be started. Close any other app that may be using it and try again.</string>
+</resources>
