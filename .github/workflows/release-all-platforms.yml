@@ -310,7 +310,7 @@ jobs:
 
   reuse-build:
     name: Reuse build from run ${{ inputs.build_run_id }}
-    needs: [check-release-exists]
+    needs: [resolve, check-release-exists]
     if: ${{ !cancelled() && needs.check-release-exists.result == 'success' && inputs.build_run_id }}
     runs-on: arc-linux-latest
     permissions:
@@ -329,9 +329,17 @@ jobs:
 
       - name: Read build outputs
         id: list
+        env:
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          EXPECTED_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
           jq . build_outputs/build-outputs.json build_outputs/artifacts.json
+          REUSED_VERSION="$(jq -r '.version // empty' build_outputs/build-outputs.json)"
+          if [ "$REUSED_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "::error:: run ${BUILD_RUN_ID} has version '${REUSED_VERSION}', expected '${EXPECTED_VERSION}'"
+            exit 1
+          fi
           echo "artifacts=$(jq -c . build_outputs/artifacts.json)" >> "$GITHUB_OUTPUT"
           echo "build_outputs=$(jq -c . build_outputs/build-outputs.json)" >> "$GITHUB_OUTPUT"
 
@@ -380,7 +388,7 @@ jobs:
 
   build-outputs:
     runs-on: arc-linux-latest
-    needs: [build, reuse-build, reuse-build-artifacts]
+    needs: [resolve, build, reuse-build, reuse-build-artifacts]
     permissions:
       actions: read
     if: |
@@ -400,6 +408,7 @@ jobs:
         id: set-outputs
         env:
           REUSED_BUILD_OUTPUTS: ${{ needs.reuse-build.outputs.build_outputs }}
+          VERSION: ${{ needs.resolve.outputs.version }}
           PKG_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
           VPNC_PKG_INSTALLER_NAME: ${{ needs.build.outputs.vpnc_pkg_installer_name }}
           FDROID_ARTIFACT_NAME: ${{ needs.build.outputs.fdroid_artifact_name }}
@@ -412,6 +421,7 @@ jobs:
             echo "$REUSED_BUILD_OUTPUTS" > build-outputs.json
           else
             jq -n \
+              --arg version "$VERSION" \
               --arg pkg_installer_name "$PKG_INSTALLER_NAME" \
               --arg vpnc_pkg_installer_name "$VPNC_PKG_INSTALLER_NAME" \
               --arg fdroid_artifact_name "$FDROID_ARTIFACT_NAME" \
