@@ -9,8 +9,8 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+const-addrs = { workspace = true, features = ["ipnet"] }
 ipnetwork.workspace = true
-nym-network-defaults.workspace = true
 
 [lints]
 workspace = true

@@ -1613,6 +1613,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "const-addrs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "041f2b0232c2e6fa506799be90ce7143b44f831bb3e22eef6c3fcb9d46750757"
+dependencies = [
+ "cfg-if",
+ "ipnetwork",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6482,8 +6496,8 @@ dependencies = [
 name = "nym-firewall-config"
 version = "2026.16.0-beta.1"
 dependencies = [
+ "const-addrs",
  "ipnetwork",
- "nym-network-defaults",
 ]
 
 [[package]]
@@ -7931,6 +7945,7 @@ dependencies = [
  "async-trait",
  "bincode",
  "bytes",
+ "const-addrs",
  "debounced",
  "dispatch2",
  "futures",
@@ -8087,6 +8102,7 @@ dependencies = [
  "nym-firewall-config",
  "nym-gateway-directory",
  "nym-http-api-client",
+ "nym-network-defaults",
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-sdk",
@@ -9456,6 +9472,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
 dependencies = [
  "toml_edit 0.25.17+spec-1.1.0",
+]
+
+[[package]]
+name = "proc-macro-error"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da25490ff9892aab3fcf7c36f08cfb902dd3e71ca0f9f9517bea02a73a5ce38c"
+dependencies = [
+ "proc-macro-error-attr",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+ "version_check",
+]
+
+[[package]]
+name = "proc-macro-error-attr"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1be40180e52ecc98ad80b184934baf3d0d29f979574e439af5a55274b35f869"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "version_check",
 ]
 
 [[package]]
