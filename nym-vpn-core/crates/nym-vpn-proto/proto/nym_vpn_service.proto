@@ -776,7 +776,7 @@ message GetLogPathResponse {
   optional LogPath log_path = 1;
 }
 
-message AccountCommandError {
+message AccountControllerError {
   oneof error_detail {
     string internal = 1;
     string storage_error = 2;
@@ -802,6 +802,7 @@ message AccountCommandError {
     bool no_pairing_shared_secret = 22;
     string pairing_deriving_shared_secret = 23;
     string create_ecash_key_pair = 24;
+    AccountControllerState.Error error_state = 25;
   }
 }
 
@@ -911,7 +912,7 @@ message RefreshAccountStateRequest {
 }
 
 message AccountCommandResponse {
-  optional AccountCommandError error = 1;
+  optional AccountControllerError error = 1;
 }
 
 message BalanceList {
@@ -920,7 +921,7 @@ message BalanceList {
 
 message AccountBalanceResponse {
   oneof account_balance {
-    AccountCommandError error = 1;
+    AccountControllerError error = 1;
     BalanceList balance = 2;
   }
 }

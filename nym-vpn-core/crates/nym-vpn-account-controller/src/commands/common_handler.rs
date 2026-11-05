@@ -1,11 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{Error, Result};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode,
-    VpnAccountSummary,
+    AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode, VpnAccountSummary,
 };
 
 use crate::{
@@ -72,13 +72,13 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_get_stored_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Option<StorableAccount>, AccountCommandError> {
+) -> Result<Option<StorableAccount>> {
     shared_state.load_stored_account().await
 }
 
 pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
     shared_state: &SharedAccountState<C>,
-) -> Result<Option<String>, AccountCommandError> {
+) -> Result<Option<String>> {
     Ok(shared_state
         .device_state
         .account()
@@ -87,9 +87,9 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Option<String>, AccountCommandError> {
+) -> Result<Option<String>> {
     let Some(account) = shared_state.device_state.account() else {
-        return Err(AccountCommandError::NoAccountStored);
+        return Err(Error::NoAccountStored);
     };
 
     match account.mode {
@@ -108,7 +108,7 @@ pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor
 
 pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+) -> Result<Option<StoredAccountMode>> {
     Ok(shared_state
         .device_state
         .account()
@@ -117,7 +117,7 @@ pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
 
 async fn handle_get_usage<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
+) -> Result<Vec<NymVpnUsage>> {
     let vpn_account = shared_state.load_vpn_api_account().await?;
     let usage = shared_state.vpn_api_client.get_usage(&vpn_account).await?;
 
@@ -127,7 +127,7 @@ async fn handle_get_usage<C: ConnectivityMonitor>(
 
 pub(crate) fn handle_get_device_identity<C: ConnectivityMonitor>(
     shared_state: &SharedAccountState<C>,
-) -> Result<Option<String>, AccountCommandError> {
+) -> Result<Option<String>> {
     let device = shared_state
         .device
         .as_ref()
@@ -139,7 +139,7 @@ pub(crate) fn handle_get_device_identity<C: ConnectivityMonitor>(
 
 async fn handle_get_devices<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+) -> Result<Vec<NymVpnDevice>> {
     tracing::debug!("Getting devices from API");
 
     let vpn_account = shared_state.load_vpn_api_account().await?;
@@ -159,7 +159,7 @@ async fn handle_get_devices<C: ConnectivityMonitor>(
 
 async fn handle_get_active_devices<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+) -> Result<Vec<NymVpnDevice>> {
     tracing::debug!("Getting active devices from API");
 
     let vpn_account = shared_state.load_vpn_api_account().await?;
@@ -179,13 +179,13 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+) -> Result<Option<VpnAccountSummary>> {
     Ok(shared_state.device_state.account_summary().clone())
 }
 
 async fn handle_is_trial_eligible<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<bool, AccountCommandError> {
+) -> Result<bool> {
     let vpn_account = shared_state.load_vpn_api_account().await?;
 
     let eligible = shared_state
@@ -217,7 +217,7 @@ async fn handle_check_apple_intro_offer_eligibility<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     product_id: String,
     transaction_id: String,
-) -> Result<Option<String>, AccountCommandError> {
+) -> Result<Option<String>> {
     let vpn_account = shared_state.load_vpn_api_account().await?;
 
     let compact_jws = shared_state
@@ -250,11 +250,9 @@ async fn handle_check_apple_intro_offer_eligibility<C: ConnectivityMonitor>(
 pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     params: CreateDeeplinkParams,
-) -> Result<String, AccountCommandError> {
+) -> Result<String> {
     if params.kind != DeeplinkKind::PrivyLink {
-        return Err(AccountCommandError::DeeplinkError(
-            "Unexpected deep link kind".to_owned(),
-        ));
+        return Err(Error::DeeplinkError("Unexpected deep link kind".into()));
     }
 
     // For `DeeplinkKind::PrivyLink`, the user must be logged-in via an API account
@@ -269,7 +267,7 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
         let deeplink = shared_state
             .deeplinks
             .create_deeplink(&params)
-            .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+            .map_err(|e| Error::DeeplinkError(e.into()))?;
 
         // Create the deeplink URL
         let url = deeplink.create_url(&params.base_url);
@@ -279,8 +277,8 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
 
         Ok(url.to_string())
     } else {
-        Err(AccountCommandError::DeeplinkError(
-            "You can only link a Privy account if you are logged in with an API account".to_owned(),
+        Err(Error::DeeplinkError(
+            "You can only link a Privy account if you are logged in with an API account".into(),
         ))
     }
 }
@@ -288,21 +286,21 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
 pub(crate) async fn handle_get_autologin_deeplink<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     params: CreateDeeplinkParams,
-) -> Result<AutologinResponse, AccountCommandError> {
+) -> Result<AutologinResponse> {
     let mnemonic = shared_state
         .load_stored_account()
         .await?
-        .ok_or(AccountCommandError::NoAccountStored)?
+        .ok_or(Error::NoAccountStored)?
         .mnemonic;
 
     let deeplink = shared_state
         .deeplinks
         .create_deeplink(&params)
-        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+        .map_err(|e| Error::DeeplinkError(e.into()))?;
 
     let autologin = deeplink
         .create_autologin_url(&params.base_url, mnemonic.to_string())
-        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+        .map_err(|e| Error::DeeplinkError(e.into()))?;
 
     shared_state.deeplinks.remove_expired();
 
@@ -312,12 +310,12 @@ pub(crate) async fn handle_get_autologin_deeplink<C: ConnectivityMonitor>(
 pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     deeplink_callback_url: String,
-) -> Result<DeeplinkMnemonic, AccountCommandError> {
+) -> Result<DeeplinkMnemonic> {
     // Derive the mnemonic from the provided deeplink URL
     let deeplink_mnemonic = shared_state
         .deeplinks
         .derive_mnemonic(&deeplink_callback_url)
-        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+        .map_err(|e| Error::DeeplinkError(e.into()))?;
 
     // Housekeeping
     shared_state.deeplinks.remove_expired();

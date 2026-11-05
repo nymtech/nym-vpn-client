@@ -7,8 +7,8 @@ pub enum Error {
     Cancelled,
 
     #[error(transparent)]
-    Command(#[from] nym_vpn_lib_types::AccountCommandError),
+    Command(nym_vpn_lib_types::AccountControllerError),
 
     #[error(transparent)]
-    ControllerState(#[from] nym_vpn_lib_types::AccountControllerError),
+    ControllerState(nym_vpn_lib_types::AccountControllerError),
 }

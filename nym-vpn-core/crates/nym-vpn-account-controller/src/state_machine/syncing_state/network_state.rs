@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{Error, error::display_chain};
 use std::{sync::Arc, time::Duration};
 
 use crate::{
@@ -19,12 +20,10 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
-    response::NymErrorResponse,
+    response::{NymErrorResponse, extract_error_response},
     types::{Device, VpnAccount, VpnAccountMode},
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary,
-};
+use nym_vpn_lib_types::{AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary};
 use nym_vpn_store::device_state::StoredDeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
@@ -211,20 +210,11 @@ impl SyncingNetworkState {
 
         let vpn_api_account = request_vpn_api_account(storage_op_sender)
             .await
-            .map_err(|err| SyncError::RegisterDevice {
-                details: err.to_string(),
-            })?;
+            .map_err(SyncError::RegisterDevice)?;
         vpn_api_client
             .register_device(&vpn_api_account, device)
             .await
-            .map_err(|err| SyncError::RegisterDevice {
-                details: match NymErrorResponse::try_from(err) {
-                    Ok(error_response) => error_response
-                        .code_reference_id
-                        .unwrap_or(error_response.message),
-                    Err(err) => err.to_string(),
-                },
-            })?;
+            .map_err(|err| SyncError::RegisterDevice(err.into()))?;
 
         Self::fetch_summary(vpn_api_client, account_id, account_mode, device).await
     }
@@ -267,7 +257,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                     }
                     Ok(Err(err)) => {
                         // A mandatory sync failed
-                        tracing::error!("Mandatory sync failed ({err})");
+                        trace_err_chain!(err, "Mandatory sync failed");
                         NextAccountControllerState::NewState(ErrorState::enter(shared_state, err.into_error_reason()).await)
                     }
                     Err(e) => {
@@ -278,8 +268,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
             }
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(Error::ExistingAccount)),
+                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(Error::ExistingAccount)),
                     AccountCommand::RegisterAccount(return_sender, account, platform) => {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
@@ -312,7 +302,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         let res = handler::handle_qr_pair_account(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(Error::ExistingAccount)),
                     AccountCommand::VerifiedPairingPin(return_sender, session_id) => {
                         let res = handler::handle_qr_verified_pairing_pin(shared_state, session_id).await;
                         return_sender.send(res);
@@ -324,8 +314,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {
@@ -389,7 +379,7 @@ enum SyncError {
     DeviceNotFound,
 
     #[error("failed to register device")]
-    RegisterDevice(#[source] AccountCommandError),
+    RegisterDevice(#[source] Error),
 }
 
 impl SyncError {
@@ -412,10 +402,19 @@ impl SyncError {
                 context: SYNCING_NETWORK_STATE_CONTEXT.into(),
                 details: "API returned an error: Device not found".into(),
             },
-            RegisterDevice { details } => AccountControllerErrorStateReason::ApiFailure {
-                context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                details: format!("Error registering device : {details}"),
-            },
+            RegisterDevice(err) => {
+                let details = match &err {
+                    Error::VpnApi(api_error) => extract_error_response(api_error)
+                        .map(|response| response.code_reference_id.unwrap_or(response.message)),
+                    _ => None,
+                }
+                .unwrap_or_else(|| display_chain(&err));
+
+                AccountControllerErrorStateReason::ApiFailure {
+                    context: SYNCING_NETWORK_STATE_CONTEXT.into(),
+                    details: format!("Error registering device : {details}"),
+                }
+            }
         }
     }
 }

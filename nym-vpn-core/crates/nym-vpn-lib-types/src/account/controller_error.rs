@@ -94,19 +94,3 @@ impl std::fmt::Display for AccountControllerErrorStateReason {
         }
     }
 }
-
-#[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
-pub enum AccountControllerError {
-    #[error("Account controller is offline")]
-    Offline,
-
-    #[error("Account controller has no account stored")]
-    NoAccountStored,
-
-    #[error("Internal error : {0}")]
-    Internal(String),
-
-    #[error("Account controller is in error state. Reason : {0}")]
-    ErrorState(AccountControllerErrorStateReason),
-}

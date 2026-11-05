@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    SharedAccountState,
+    Error, SharedAccountState,
     commands::{AccountCommand, CommonCommand, ReturnSender, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
@@ -10,7 +10,6 @@ use crate::{
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -135,9 +134,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
     }
 }
 
-fn return_no_account<S>(result_tx: ReturnSender<S, AccountCommandError>)
+fn return_no_account<S>(result_tx: ReturnSender<S, Error>)
 where
     S: std::fmt::Debug + std::marker::Send,
 {
-    result_tx.send(Err(AccountCommandError::NoAccountStored))
+    result_tx.send(Err(Error::NoAccountStored))
 }

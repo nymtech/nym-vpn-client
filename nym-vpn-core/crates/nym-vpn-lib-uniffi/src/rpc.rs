@@ -11,8 +11,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
+    AccountControllerError, AccountControllerState, AppCompatibility, AutologinResponse,
+    BridgeMode, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewayType,
     GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig, NymVpnDevice, NymVpnUsage,
     ParsedAccountLinks, PrivyDerivationMessage, Profile, RecentGateways, Socks5Settings,
     Socks5Status, SplitApp, SplitTunnelExcludedProcessList, StoreAccountRequest, StoredAccountMode,
@@ -502,7 +502,7 @@ impl RpcClient {
 #[derive(Debug)]
 pub enum InnerRpcError {
     RpcError(DaemonRpcError),
-    AccountCommand(Arc<AccountCommandError>),
+    AccountCommand(Arc<AccountControllerError>),
 }
 
 impl std::fmt::Display for InnerRpcError {
@@ -529,7 +529,7 @@ impl RpcError {
 #[uniffi::export]
 impl RpcError {
     /// Returns the account error if the underlying error is an account error.
-    pub fn account_error(&self) -> Option<AccountCommandError> {
+    pub fn account_error(&self) -> Option<AccountControllerError> {
         match &self.inner {
             InnerRpcError::AccountCommand(err) => Some(err.as_ref().clone()),
             _ => None,
@@ -559,8 +559,8 @@ impl From<DaemonRpcError> for RpcError {
     }
 }
 
-impl From<Arc<AccountCommandError>> for RpcError {
-    fn from(err: Arc<AccountCommandError>) -> Self {
+impl From<Arc<AccountControllerError>> for RpcError {
+    fn from(err: Arc<AccountControllerError>) -> Self {
         RpcError {
             inner: InnerRpcError::AccountCommand(err),
         }

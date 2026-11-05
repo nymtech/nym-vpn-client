@@ -11,19 +11,20 @@ use nym_vpn_lib::service::{
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, AppCompatibility, AutologinResponse, BridgeMode,
-    DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks, Profile,
-    QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
-    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
-    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    AccountControllerError, AccountControllerState, AppCompatibility, AutologinResponse,
+    BridgeMode, DiagnosticRunParams, DnsServer, EntryPoint, ExitPoint, FeatureFlags, FrontingMode,
+    Gateway, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, ParsedAccountLinks,
+    Profile, QrPairingConfirmation, QrUrl, RecentGateways, RegisterAccountRequest,
+    RegisterAccountResponse, StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState,
+    TentativeGateways, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
 enum NymVpnServiceCommandInnerError {
     Internal(&'static str),
     ListGateway(#[source] ListGatewaysError),
-    Account(#[source] AccountCommandError),
+    Account(#[source] AccountControllerError),
     AccountLinks(#[source] AccountLinksError),
     GeoExclusionConfig(#[source] GeoExclusionConfigError),
     SetCustomDns(#[source] SetCustomDnsError),

@@ -1,9 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{commands::ReturnSender, error::Error};
+use crate::{Error, Result, commands::ReturnSender};
 use nym_vpn_api_client::types::{Device, VpnAccount, VpnAccountMode};
-use nym_vpn_lib_types::{AccountCommandError, StorableAccount};
+use nym_vpn_lib_types::StorableAccount;
 use nym_vpn_store::{
     VpnStorage,
     device_state::{StoredAccountIdentity, StoredDeviceState},
@@ -27,26 +27,22 @@ where
         Self { storage }
     }
 
-    pub async fn store_account(&self, account: StorableAccount) -> Result<(), Error> {
-        let vpn_account = VpnAccount::try_from(account.clone())
-            .map_err(|e| Error::InvalidMnemonic(e.to_string()))?;
+    pub async fn store_account(&self, account: StorableAccount) -> Result<()> {
+        let vpn_account =
+            VpnAccount::try_from(account.clone()).map_err(|e| Error::InvalidMnemonic(e.into()))?;
         let ecash_keypair = vpn_account
             .create_ecash_keypair()
-            .map_err(|err| Error::CreateEcashKeyPair(err.to_string()))?;
+            .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
 
         let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
-            .map_err(|err| Error::AccountStore {
-            source: Box::new(err),
-        })?;
+            .map_err(|err| Error::AccountStore(Box::new(err)))?;
 
         self.storage
             .store_mnemonic(StoredMnemonic {
                 mnemonic: account.mnemonic,
             })
             .await
-            .map_err(|err| Error::AccountStore {
-                source: Box::new(err),
-            })?;
+            .map_err(|err| Error::AccountStore(Box::new(err)))?;
 
         self.storage
             .store_device_state(StoredDeviceState::LoggedIn {
@@ -55,30 +51,24 @@ where
                 summary: None,
             })
             .await
-            .map_err(|err| Error::AccountStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn load_mnemonic(&self) -> Result<Option<StoredMnemonic>, Error> {
+    pub async fn load_mnemonic(&self) -> Result<Option<StoredMnemonic>> {
         self.storage
             .load_mnemonic()
             .await
-            .map_err(|err| Error::AccountStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn load_device_state(&self) -> Result<StoredDeviceState, Error> {
+    pub async fn load_device_state(&self) -> Result<StoredDeviceState> {
         self.storage
             .load_device_state()
             .await
-            .map_err(|err| Error::AccountStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn load_vpn_account(&self) -> Result<Option<VpnAccount>, Error> {
+    pub async fn load_vpn_account(&self) -> Result<Option<VpnAccount>> {
         let device_state = self.load_device_state().await?;
 
         Ok(match device_state {
@@ -101,41 +91,33 @@ where
         })
     }
 
-    pub async fn remove_account(&self) -> Result<(), Error> {
+    pub async fn remove_account(&self) -> Result<()> {
         self.storage
             .remove_mnemonic()
             .await
-            .map_err(|err| Error::AccountStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn init_keys(&self) -> Result<(), Error> {
+    pub async fn init_keys(&self) -> Result<()> {
         self.storage
             .init_keys(None)
             .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::KeyStore(Box::new(err)))
     }
 
-    pub async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Error> {
+    pub async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<()> {
         self.storage
             .reset_keys(seed)
             .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::KeyStore(Box::new(err)))
     }
 
-    pub async fn load_device_keys(&self) -> Result<Option<Device>, Error> {
+    pub async fn load_device_keys(&self) -> Result<Option<Device>> {
         let maybe_keys = self
             .storage
             .load_keys()
             .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })?;
+            .map_err(|err| Error::KeyStore(Box::new(err)))?;
         Ok(maybe_keys
             .map(|keys| Device::from(keys.device_keypair()))
             .inspect(|device| {
@@ -143,25 +125,21 @@ where
             }))
     }
 
-    pub async fn remove_device_keys(&self) -> Result<(), Error> {
+    pub async fn remove_device_keys(&self) -> Result<()> {
         self.storage
             .remove_keys()
             .await
-            .map_err(|err| Error::KeyStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::KeyStore(Box::new(err)))
     }
 
-    pub async fn store_device_state(&self, device_state: StoredDeviceState) -> Result<(), Error> {
+    pub async fn store_device_state(&self, device_state: StoredDeviceState) -> Result<()> {
         self.storage
             .store_device_state(device_state)
             .await
-            .map_err(|err| Error::AccountSummaryStore {
-                source: Box::new(err),
-            })
+            .map_err(|err| Error::AccountSummaryStore(Box::new(err)))
     }
 
-    async fn init_account(&self, account: StorableAccount) -> Result<Device, Error> {
+    async fn init_account(&self, account: StorableAccount) -> Result<Device> {
         self.init_keys().await?;
         let device = self
             .load_device_keys()
@@ -172,26 +150,24 @@ where
         Ok(device)
     }
 
-    async fn reset_and_load_keys(&self, seed: Option<[u8; 32]>) -> Result<Device, Error> {
+    async fn reset_and_load_keys(&self, seed: Option<[u8; 32]>) -> Result<Device> {
         self.reset_keys(seed).await?;
         self.load_device_keys()
             .await?
             .ok_or(Error::internal("No keys loaded right after resetting them"))
     }
 
-    async fn forget_account(&self) -> Result<(), Error> {
+    async fn forget_account(&self) -> Result<()> {
         self.remove_account().await?;
         self.remove_device_keys().await?;
         self.storage
             .remove_device_state()
             .await
-            .map_err(|err| Error::AccountSummaryStore {
-                source: Box::new(err),
-            })?;
+            .map_err(|err| Error::AccountSummaryStore(Box::new(err)))?;
         Ok(())
     }
 
-    async fn load_stored_account(&self) -> Result<Option<StorableAccount>, Error> {
+    async fn load_stored_account(&self) -> Result<Option<StorableAccount>> {
         let device_state = self.load_device_state().await?;
 
         match device_state {
@@ -242,22 +218,20 @@ pub(crate) enum AccountStorageOp {
 /// storage is used.
 pub(crate) async fn request_stored_account(
     storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
-) -> Result<Option<StorableAccount>, AccountCommandError> {
+) -> Result<Option<StorableAccount>> {
     let (tx, rx) = ReturnSender::new();
     storage_op_sender
         .send(AccountStorageOp::GetStoredAccount(tx))
-        .map_err(AccountCommandError::internal)?;
-    rx.await
-        .map_err(AccountCommandError::internal)?
-        .map_err(AccountCommandError::storage)
+        .map_err(Error::internal)?;
+    rx.await.map_err(Error::internal)?
 }
 
 /// Materializes the stored account as [`VpnAccount`], which requires step-up authentication.
 pub(crate) async fn request_vpn_api_account(
     storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
-) -> Result<VpnAccount, AccountCommandError> {
+) -> Result<VpnAccount> {
     request_stored_account(storage_op_sender)
         .await?
-        .ok_or(AccountCommandError::NoAccountStored)
-        .and_then(|account| VpnAccount::try_from(account).map_err(AccountCommandError::internal))
+        .ok_or(Error::NoAccountStored)
+        .and_then(|account| VpnAccount::try_from(account).map_err(Error::internal))
 }

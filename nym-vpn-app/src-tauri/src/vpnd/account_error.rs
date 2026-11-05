@@ -1,85 +1,86 @@
 use crate::error::{BackendError, ErrorKey};
 use nym_vpn_lib_types as lib;
 
-impl From<lib::AccountCommandError> for BackendError {
-    fn from(error: lib::AccountCommandError) -> Self {
+impl From<lib::AccountControllerError> for BackendError {
+    fn from(error: lib::AccountControllerError) -> Self {
         match error {
-            lib::AccountCommandError::Internal(e) => {
+            lib::AccountControllerError::Internal(e) => {
                 BackendError::internal_with_detail("AC internal error", e)
             }
-            lib::AccountCommandError::Storage(e) => BackendError::internal_with_detail(
+            lib::AccountControllerError::Storage(e) => BackendError::internal_with_detail(
                 "AC storage error",
                 format!("AC storage error: {e}"),
             ),
-            lib::AccountCommandError::VpnApi(error) => error.into(),
-            lib::AccountCommandError::UnexpectedVpnApiResponse(e) => {
+            lib::AccountControllerError::VpnApi(error) => error.into(),
+            lib::AccountControllerError::UnexpectedVpnApiResponse(e) => {
                 BackendError::internal_with_detail(
                     "AC unexpected response",
                     format!("AC unexpected response: {e}"),
                 )
             }
-            lib::AccountCommandError::NoAccountStored => {
+            lib::AccountControllerError::NoAccountStored => {
                 BackendError::new("AC no account stored", ErrorKey::NoAccountStored)
             }
-            lib::AccountCommandError::NoDeviceStored => {
+            lib::AccountControllerError::NoDeviceStored => {
                 BackendError::new("AC no device stored", ErrorKey::NoDeviceStored)
             }
-            lib::AccountCommandError::ExistingAccount => {
+            lib::AccountControllerError::ExistingAccount => {
                 BackendError::new("AC account already exists", ErrorKey::ExistingAccount)
             }
-            lib::AccountCommandError::Offline => BackendError::internal("AC is offline", None),
-            lib::AccountCommandError::InvalidMnemonic(e) => BackendError::with_detail(
+            lib::AccountControllerError::Offline => BackendError::internal("AC is offline", None),
+            lib::AccountControllerError::InvalidMnemonic(e) => BackendError::with_detail(
                 "invalid passphrase",
                 ErrorKey::AccountInvalidMnemonic,
                 format!("invalid passphrase: {e}"),
             ),
-            lib::AccountCommandError::InvalidSecret(e) => BackendError::with_detail(
+            lib::AccountControllerError::InvalidSecret(e) => BackendError::with_detail(
                 "invalid secret",
                 ErrorKey::AccountInvalidSecret,
                 format!("invalid secret: {e}"),
             ),
-            lib::AccountCommandError::NyxdConnectionFailure(e) => {
+            lib::AccountControllerError::NyxdConnectionFailure(e) => {
                 BackendError::internal_with_detail("failed to connect to nyxd", e)
             }
-            lib::AccountCommandError::NyxdQueryFailure(e) => {
+            lib::AccountControllerError::NyxdQueryFailure(e) => {
                 BackendError::internal_with_detail("failed to resolve query to a nyxd instance", e)
             }
-            lib::AccountCommandError::AccountDoesntExistOnChain => {
+            lib::AccountControllerError::AccountDoesntExistOnChain => {
                 BackendError::internal("account doesn't exist on chain", None)
             }
-            lib::AccountCommandError::AccountDecentralised => {
+            lib::AccountControllerError::AccountDecentralised => {
                 BackendError::internal("account is set in decentralised mode", None)
             }
-            lib::AccountCommandError::AccountNotDecentralised => {
+            lib::AccountControllerError::AccountNotDecentralised => {
                 BackendError::internal("account is not set in decentralised mode", None)
             }
-            lib::AccountCommandError::ZkNymAcquisitionFailure(e) => {
+            lib::AccountControllerError::ZkNymAcquisitionFailure(e) => {
                 BackendError::internal_with_detail("failed to obtain zk-nym", e)
             }
-            lib::AccountCommandError::DeeplinkError(message) => {
+            lib::AccountControllerError::DeeplinkError(message) => {
                 BackendError::internal_with_detail("deeplink error", message)
             }
-            lib::AccountCommandError::InsufficientFunds => {
+            lib::AccountControllerError::InsufficientFunds => {
                 BackendError::new("insufficient funds", ErrorKey::InsufficientFunds)
             }
-            lib::AccountCommandError::InvalidPublicKey(e) => {
+            lib::AccountControllerError::InvalidPublicKey(e) => {
                 BackendError::internal_with_detail("invalid pairing public key", e)
             }
-            lib::AccountCommandError::PairingNotStarted => {
+            lib::AccountControllerError::PairingNotStarted => {
                 BackendError::internal("pairing process not started", None)
             }
-            lib::AccountCommandError::PairingSessionIdMismatch => {
+            lib::AccountControllerError::PairingSessionIdMismatch => {
                 BackendError::internal("pairing session id mismatch", None)
             }
-            lib::AccountCommandError::NoPairingSharedSecret => {
+            lib::AccountControllerError::NoPairingSharedSecret => {
                 BackendError::internal("pairing process has no shared secret yet", None)
             }
-            lib::AccountCommandError::PairingDerivingSharedSecret(e) => {
+            lib::AccountControllerError::PairingDerivingSharedSecret(e) => {
                 BackendError::internal_with_detail("failed to derive pairing shared secret", e)
             }
-            lib::AccountCommandError::CreateEcashKeyPair(e) => {
+            lib::AccountControllerError::CreateEcashKeyPair(e) => {
                 BackendError::internal_with_detail("failed to create ecash keypair", e)
             }
+            lib::AccountControllerError::ErrorState(reason) => reason.into(),
         }
     }
 }

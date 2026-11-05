@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{Error, Result};
 use std::sync::Arc;
 
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
@@ -8,12 +9,11 @@ use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
-    response::NymErrorResponse,
+    response::extract_error_response,
     types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount,
-    StoredAccountMode, VpnApiError,
+    QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
 };
 use nym_vpn_store::{
     device_state::{StoredAccountIdentity, StoredDeviceState},
@@ -25,7 +25,7 @@ use nym_vpn_store::{
 async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: &VpnAccount,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     // if we're attempting to store a decentralised account, it MUST exist on chain,
     // i.e. it must have proper number and sequence
     let Some(account_response) = shared_state
@@ -33,11 +33,11 @@ async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
         .get_account_details(&account.get_mnemonic())
         .await?
     else {
-        return Err(AccountCommandError::AccountDoesntExistOnChain);
+        return Err(Error::AccountDoesntExistOnChain);
     };
 
     let Ok(base_account) = account_response.try_get_base_account() else {
-        return Err(AccountCommandError::AccountDoesntExistOnChain);
+        return Err(Error::AccountDoesntExistOnChain);
     };
     tracing::info!(
         "importing decentralised account '{}' with account number: {} and sequence: {}",
@@ -52,14 +52,14 @@ async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
 pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
-        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
-    let vpn_account = VpnAccount::try_from(account.clone())
-        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+        .map_err(|e| Error::InvalidMnemonic(e.into()))?;
+    let vpn_account =
+        VpnAccount::try_from(account.clone()).map_err(|e| Error::InvalidMnemonic(e.into()))?;
     let ecash_keypair = vpn_account
         .create_ecash_keypair()
-        .map_err(|err| AccountCommandError::CreateEcashKeyPair(err.to_string()))?;
+        .map_err(|err| Error::CreateEcashKeyPair(err.into()))?;
 
     // if the account is decentralised, it must exist on the chain
     if vpn_account.mode().is_decentralised() {
@@ -73,11 +73,8 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::StoreAccount(tx, account))
-        .map_err(AccountCommandError::internal)?;
-    let device = rx
-        .await
-        .map_err(AccountCommandError::internal)? // Channel error
-        .map_err(AccountCommandError::storage)?; // Storage error
+        .map_err(Error::internal)?;
+    let device = rx.await.map_err(Error::internal)??;
 
     shared_state.device_state = StoredDeviceState::LoggedIn {
         account_identity,
@@ -92,17 +89,16 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
-    let (vpn_account, mnemonic) =
-        VpnAccount::generate_new().map_err(AccountCommandError::internal)?;
+) -> Result<()> {
+    let (vpn_account, mnemonic) = VpnAccount::generate_new().map_err(Error::internal)?;
     let ecash_keypair = vpn_account
         .create_ecash_keypair()
-        .map_err(AccountCommandError::internal)?;
+        .map_err(Error::internal)?;
     let account_identity = StoredAccountIdentity::new(
         mnemonic.clone(),
         StoredAccountMode::from(vpn_account.mode()),
     )
-    .map_err(AccountCommandError::internal)?;
+    .map_err(Error::internal)?;
 
     let (tx, rx) = ReturnSender::new();
     shared_state
@@ -111,11 +107,8 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
             tx,
             StorableAccount::new(mnemonic.clone(), vpn_account.mode().into()),
         ))
-        .map_err(AccountCommandError::internal)?;
-    let device = rx
-        .await
-        .map_err(AccountCommandError::internal)? // Channel error
-        .map_err(AccountCommandError::storage)?; // Storage error
+        .map_err(Error::internal)?;
+    let device = rx.await.map_err(Error::internal)??;
 
     shared_state.device_state = StoredDeviceState::LoggedIn {
         account_identity,
@@ -132,9 +125,9 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
     platform: Platform,
-) -> Result<RegisterAccountResponse, AccountCommandError> {
-    let vpn_account = VpnAccount::try_from(account.clone())
-        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+) -> Result<RegisterAccountResponse> {
+    let vpn_account =
+        VpnAccount::try_from(account.clone()).map_err(|e| Error::InvalidMnemonic(e.into()))?;
     let account_token = shared_state
         .vpn_api_client
         .register_account(&vpn_account, platform)
@@ -148,7 +141,7 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
@@ -164,7 +157,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     tracing::info!("DELETING ACCOUNT AND ALL ASSOCIATED DATA");
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
@@ -197,14 +190,14 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
 
 async fn clear_local_account_data<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     shared_state
         .wireguard_keys_storage
         .clear_keys()
         .await
         .map_err(|source| {
             tracing::error!("Failed to clear wireguard keys storage: {source:?}");
-            AccountCommandError::Storage(source.to_string())
+            Error::Storage(source.into())
         })?;
 
     // Purge all files in the data directory that we are not explicitly deleting through it's
@@ -221,20 +214,20 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
         .bandwidth_control_command_tx
         .reset()
         .await
-        .map_err(AccountCommandError::storage)?;
+        .map_err(Error::storage)?;
 
     // Removing mnemonic and keys in storage
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::ForgetAccount(tx))
-        .map_err(AccountCommandError::internal)?;
+        .map_err(Error::internal)?;
 
     rx.await
-        .map_err(AccountCommandError::internal)? // Handling channel error
+        .map_err(Error::internal)? // Handling channel error
         .map_err(|source| {
             tracing::error!("Failed to remove account: {source:?}");
-            AccountCommandError::Storage(source.to_string())
+            Error::Storage(source.into())
         })?; // Handling account removal error
 
     // Once we have removed or reset all storage, we need to reset the account state
@@ -243,9 +236,9 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
     shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {
-        return Err(AccountCommandError::Storage(format!(
-            "Failed to remove files for account: {err}"
-        )));
+        return Err(Error::Storage(
+            format!("Failed to remove files for account: {err}").into(),
+        ));
     }
 
     Ok(())
@@ -254,9 +247,9 @@ async fn clear_local_account_data<C: ConnectivityMonitor>(
 pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     privy_account: StorableAccount,
-) -> Result<(), AccountCommandError> {
-    let privy_vpn_account = VpnAccount::try_from(privy_account)
-        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+) -> Result<()> {
+    let privy_vpn_account =
+        VpnAccount::try_from(privy_account).map_err(|e| Error::InvalidMnemonic(e.into()))?;
 
     // We can only link the Privy account if we're currently logged-in with an API account
     if privy_vpn_account.mode().is_privy()
@@ -280,13 +273,13 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
         Ok(())
     } else {
         tracing::error!("Cannot link Privy account when not logged-in with an API account");
-        Err(AccountCommandError::NoAccountStored)
+        Err(Error::NoAccountStored)
     }
 }
 
 pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<QrUrl, AccountCommandError> {
+) -> Result<QrUrl> {
     // We can only pair a new device to the account if we're currently logged-in with an API account
     if is_logged_in_with_api_account(shared_state) {
         let account = Arc::new(shared_state.load_vpn_api_account().await?);
@@ -300,14 +293,14 @@ pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
             .await
     } else {
         tracing::error!("Cannot pair another device when not logged-in with an API account");
-        Err(AccountCommandError::NoAccountStored)
+        Err(Error::NoAccountStored)
     }
 }
 
 pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     remote_qr_pub_key_str: &str,
-) -> Result<QrPairingConfirmation, AccountCommandError> {
+) -> Result<QrPairingConfirmation> {
     // We can only pair a new device to the account if we're currently logged-out
     if shared_state.device_state.account().is_none() {
         shared_state
@@ -322,14 +315,14 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
         tracing::error!(
             "Cannot pair to another account when already logged-in with an API account"
         );
-        Err(AccountCommandError::ExistingAccount)
+        Err(Error::ExistingAccount)
     }
 }
 
 pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     session_id: u32,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     // We can only verify PIN if we're currently logged-in with an API account
     if is_logged_in_with_api_account(shared_state) {
         let account = Arc::new(shared_state.load_vpn_api_account().await?);
@@ -339,13 +332,13 @@ pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
             .await
     } else {
         tracing::error!("Cannot verify a pairing PIN when not logged-in with an API account");
-        Err(AccountCommandError::NoAccountStored)
+        Err(Error::NoAccountStored)
     }
 }
 
 pub(crate) fn handle_qr_cancel_pairing_process<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     // Cancelling is local and always allowed, so the UI can close the pairing window at any time
     shared_state.qr_pairing_handler.cancel_pairing_process();
     Ok(())
@@ -353,54 +346,52 @@ pub(crate) fn handle_qr_cancel_pairing_process<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     shared_state
         .wireguard_keys_storage
         .clear_keys()
         .await
         .map_err(|source| {
             tracing::error!("Failed to clear wireguard keys storage: {source:?}");
-            AccountCommandError::Storage(source.to_string())
+            Error::Storage(source.into())
         })
 }
 
 // TODO: With the erorr rework we are now losing information about the original error cause, this needs to be addressed, but errors rework is a pretty gnarly thing to do, so we need to plan it a bit more carefully
 pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     tracing::info!("Unregistering device from API");
 
-    let device = shared_state
-        .device
-        .as_ref()
-        .ok_or(AccountCommandError::NoDeviceStored)?;
+    let device = shared_state.device.as_ref().ok_or(Error::NoDeviceStored)?;
 
     let account = shared_state
         .device_state
         .account()
-        .ok_or(AccountCommandError::NoAccountStored)?;
+        .ok_or(Error::NoAccountStored)?;
 
-    if let Err(e) = shared_state
+    shared_state
         .vpn_api_client
         .update_device(&account.id, device, DeviceStatus::DeleteMe)
         .await
-    {
-        let nym_error = NymErrorResponse::try_from(e)?;
-        if nym_error.code_reference_id == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string()) {
-            // Device didn't exist in the first place so we're good
-            Ok(())
-        } else {
-            Err(VpnApiError::Response(nym_error.into()))?
-        }
-    } else {
-        Ok(())
-    }
+        .map(|_| ())
+        .or_else(|err| {
+            let device_never_existed = extract_error_response(&err)
+                .and_then(|response| response.code_reference_id)
+                .is_some_and(|code| code == UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID);
+
+            if device_never_existed {
+                Ok(())
+            } else {
+                Err(err.into())
+            }
+        })
 }
 
 pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     seed: Option<[u8; 32]>,
-) -> Result<(), AccountCommandError> {
+) -> Result<()> {
     tracing::info!("Resetting device key");
 
     // Reset keys in storage
@@ -408,11 +399,8 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::ResetKeys(tx, seed))
-        .map_err(AccountCommandError::internal)?;
-    let device = rx
-        .await
-        .map_err(AccountCommandError::internal)? // Channel error
-        .map_err(AccountCommandError::storage)?; // Storage error
+        .map_err(Error::internal)?;
+    let device = rx.await.map_err(Error::internal)??;
 
     // summary is now stale
     if let Err(err) = shared_state.mark_summary_as_stale().await {

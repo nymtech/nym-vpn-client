@@ -1,6 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{Error, Result};
 use std::{
     str::FromStr,
     sync::{
@@ -24,7 +25,7 @@ use nym_vpn_api_client::{
     },
     types::{PairingParams, VpnAccount},
 };
-use nym_vpn_lib_types::{AccountCommandError, QrPairingConfirmation, QrUrl};
+use nym_vpn_lib_types::{QrPairingConfirmation, QrUrl};
 use rand::Rng;
 use tokio::sync::Mutex;
 use tokio_util::sync::{CancellationToken, DropGuard};
@@ -145,10 +146,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
         self.qr_keypair.public_key().to_string()
     }
 
-    fn derive_shared_key(
-        &self,
-        remote_public: &PublicKey,
-    ) -> Result<SharedSymmetricKey, AccountCommandError> {
+    fn derive_shared_key(&self, remote_public: &PublicKey) -> Result<SharedSymmetricKey> {
         let dh_result = self.qr_keypair.private_key().diffie_hellman(remote_public);
         let key_size = SharedKeySizeUser::key_size();
 
@@ -157,7 +155,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingProcess<C> {
 
         AeadKey::<Aes256GcmSiv>::try_from(&okm)
             .map(SharedSymmetricKey)
-            .map_err(|err| AccountCommandError::PairingDerivingSharedSecret(err.to_string()))
+            .map_err(|err| Error::PairingDerivingSharedSecret(err.into()))
     }
 
     fn spawn_pairing_check_task(
@@ -451,7 +449,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         account: &Arc<VpnAccount>,
         event_sender: AccountControllerEventSender,
         cancel_token: CancellationToken,
-    ) -> Result<QrUrl, AccountCommandError> {
+    ) -> Result<QrUrl> {
         let qr_pairing_process = self.new_pairing_process(event_sender, cancel_token);
 
         let response = self
@@ -478,14 +476,14 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         remote_qr_pub_key_str: &str,
         event_sender: AccountControllerEventSender,
         cancel_token: CancellationToken,
-    ) -> Result<QrPairingConfirmation, AccountCommandError> {
+    ) -> Result<QrPairingConfirmation> {
         let qr_pairing_process = self.new_pairing_process(event_sender, cancel_token);
         let session_id = qr_pairing_process.session_id;
 
         let pin_code = random_pin();
         let token = random_token();
         let remote_qr_pub_key = PublicKey::from_str(remote_qr_pub_key_str)
-            .map_err(|err| AccountCommandError::InvalidPublicKey(err.to_string()))?;
+            .map_err(|err| Error::InvalidPublicKey(err.into()))?;
 
         let response = self
             .vpn_api_client
@@ -514,7 +512,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         &self,
         account: &Arc<VpnAccount>,
         verified_session_id: u32,
-    ) -> Result<(), AccountCommandError> {
+    ) -> Result<()> {
         let QrPairingProcessHandle::PairingCheck {
             ref shared_key,
             session_id,
@@ -522,11 +520,11 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         } = self.process_handle
         else {
             tracing::warn!("Pairing needs to be started first");
-            return Err(AccountCommandError::PairingNotStarted);
+            return Err(Error::PairingNotStarted);
         };
         if verified_session_id != session_id {
             tracing::error!("Started a new session with a different PIN");
-            return Err(AccountCommandError::PairingSessionIdMismatch);
+            return Err(Error::PairingSessionIdMismatch);
         }
         let (enc_mnemonic, nonce) = {
             let shared_key_lock = shared_key.lock().await;
@@ -534,15 +532,13 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
                 tracing::error!(
                     "Function was called without actually awaiting for the PIN, aborting pairing"
                 );
-                return Err(AccountCommandError::NoPairingSharedSecret);
+                return Err(Error::NoPairingSharedSecret);
             };
 
             let nonce = shared_key.random_nonce();
             let enc_mnemonic = shared_key
                 .encrypt(account.get_mnemonic().as_bytes(), &nonce)
-                .ok_or(AccountCommandError::Internal(String::from(
-                    "encrypt mnemonic",
-                )))?;
+                .ok_or(Error::Internal("encrypt mnemonic".into()))?;
             (enc_mnemonic, nonce)
         };
 
@@ -557,7 +553,7 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
         &mut self,
         account: &Arc<VpnAccount>,
         session_id: u32,
-    ) -> Result<(), AccountCommandError> {
+    ) -> Result<()> {
         let ret = self
             .verified_pairing_pin_can_fail(account, session_id)
             .await;
@@ -582,6 +578,8 @@ impl<C: PairingApiClient + Send + Sync + 'static> QrPairingHandler<C> {
 #[cfg(test)]
 #[allow(deprecated)]
 mod tests {
+    use std::assert_matches;
+
     use std::collections::HashMap;
 
     use nym_http_api_client::HttpClientError;
@@ -978,14 +976,14 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+        assert_matches!(err, Error::NoPairingSharedSecret);
 
         // the failed verification also discards the timed out process
         let err = logged_in_handler
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
     }
 
     #[tokio::test(start_paused = true)]
@@ -1076,7 +1074,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
     }
 
     #[tokio::test(start_paused = true)]
@@ -1148,7 +1146,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
     }
 
     #[tokio::test(start_paused = true)]
@@ -1354,7 +1352,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
         assert!(api_db.lock().await.pairing_secret_data.is_empty());
     }
 
@@ -1418,7 +1416,7 @@ mod tests {
             .verified_pairing_pin(&account, 0)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
         assert!(api_db.lock().await.pairing_secret_data.is_empty());
     }
 
@@ -1438,7 +1436,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+        assert_matches!(err, Error::NoPairingSharedSecret);
         assert!(api_db.lock().await.pairing_secret_data.is_empty());
 
         // verifying too early aborts the pairing
@@ -1451,7 +1449,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
     }
 
     #[tokio::test]
@@ -1489,7 +1487,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
     }
 
     #[tokio::test(start_paused = true)]
@@ -1518,7 +1516,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::PairingNotStarted);
+        assert_matches!(err, Error::PairingNotStarted);
 
         // and the secret query is aborted
         let event = next_pairing_event(&mut logged_out_event_rx, confirmation.session_id).await;
@@ -1542,10 +1540,7 @@ mod tests {
             )
             .await
             .unwrap_err();
-        assert!(
-            matches!(err, AccountCommandError::InvalidPublicKey(_)),
-            "{err:?}"
-        );
+        assert!(matches!(err, Error::InvalidPublicKey(_)), "{err:?}");
     }
 
     #[tokio::test]
@@ -1560,7 +1555,10 @@ mod tests {
             .scanned_key(&unknown_key, logged_out_event_tx, CancellationToken::new())
             .await
             .unwrap_err();
-        assert!(matches!(err, AccountCommandError::Internal(_)), "{err:?}");
+        assert_matches!(
+            nym_vpn_lib_types::AccountControllerError::from(err),
+            nym_vpn_lib_types::AccountControllerError::Internal(_)
+        );
     }
 
     #[tokio::test(start_paused = true)]
@@ -1594,7 +1592,10 @@ mod tests {
             )
             .await
             .unwrap_err();
-        assert!(matches!(err, AccountCommandError::Internal(_)), "{err:?}");
+        assert_matches!(
+            nym_vpn_lib_types::AccountControllerError::from(err),
+            nym_vpn_lib_types::AccountControllerError::Internal(_)
+        );
 
         // the first device to scan still completes the pairing
         let event = next_pairing_event(&mut logged_in_event_rx, url.session_id).await;
@@ -1776,7 +1777,7 @@ mod tests {
             .verified_pairing_pin(&account, url.session_id)
             .await
             .unwrap_err();
-        assert_eq!(err, AccountCommandError::NoPairingSharedSecret);
+        assert_matches!(err, Error::NoPairingSharedSecret);
     }
 
     #[tokio::test(start_paused = true)]

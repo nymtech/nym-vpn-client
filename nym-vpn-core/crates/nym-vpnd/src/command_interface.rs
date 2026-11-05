@@ -623,7 +623,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
+            error: result.err().map(proto::AccountControllerError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -651,7 +651,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
+            error: result.err().map(proto::AccountControllerError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -688,7 +688,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
+            error: result.err().map(proto::AccountControllerError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -703,7 +703,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
+            error: result.err().map(proto::AccountControllerError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -986,7 +986,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
+            error: result.err().map(proto::AccountControllerError::from),
         };
 
         Ok(tonic::Response::new(response))

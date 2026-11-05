@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::Error;
 use std::pin::Pin;
 
 use crate::{
@@ -14,7 +15,7 @@ use crate::{
 };
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+use nym_vpn_lib_types::AccountControllerErrorStateReason;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
@@ -78,8 +79,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
             },
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(Error::ExistingAccount)),
+                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(Error::ExistingAccount)),
                     AccountCommand::RegisterAccount(return_sender, account, platform) => {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
@@ -112,7 +113,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         let res = handler::handle_qr_pair_account(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::ScannedKey(return_sender, _) => return_sender.send(Err(Error::ExistingAccount)),
                     AccountCommand::VerifiedPairingPin(return_sender, session_id) => {
                         let res = handler::handle_qr_verified_pairing_pin(shared_state, session_id).await;
                         return_sender.send(res);
@@ -124,8 +125,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);
                     },
-                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         let res = handler::handle_reset_device_identity(shared_state, seed).await;
                         let error = res.is_err();

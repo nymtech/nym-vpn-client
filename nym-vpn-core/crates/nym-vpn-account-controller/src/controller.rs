@@ -17,7 +17,7 @@ use crate::{
     AccountCommandSender, AccountControllerConfig, AccountControllerEventSender,
     AccountStateReceiver, NyxdClient,
     commands::AccountCommand,
-    error::Error,
+    error::Result,
     event::{AccountControllerEvent, AccountControllerPairingResult},
     event_sender::AccountControllerEventReceiver,
     shared_state::SharedAccountState,
@@ -106,7 +106,7 @@ where
         connectivity_handle: C,
         channels: AccountControllerChannels,
         cancel_token: CancellationToken,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         tracing::info!(
             "Initializing account controller: data_dir: {}",
             config.data_dir.display(),

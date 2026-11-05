@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    Error,
     commands::{
         AccountCommand, CommonCommand, ReturnSender, common_handler, decentralised_zknym_handler,
         handler,
@@ -13,7 +14,6 @@ use crate::{
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio_util::sync::CancellationToken;
 
@@ -107,7 +107,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                         return_sender.send(handler::handle_qr_cancel_pairing_process(shared_state));
                     },
                     other => {
-                        other.return_error(AccountCommandError::AccountDecentralised);
+                        other.return_error(Error::AccountDecentralised);
                     }
                 }
                 NextAccountControllerState::SameState(self)
@@ -116,9 +116,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
     }
 }
 
-fn return_decentralised<S>(result_tx: ReturnSender<S, AccountCommandError>)
+fn return_decentralised<S>(result_tx: ReturnSender<S, Error>)
 where
     S: std::fmt::Debug + std::marker::Send,
 {
-    result_tx.send(Err(AccountCommandError::AccountDecentralised))
+    result_tx.send(Err(Error::AccountDecentralised))
 }

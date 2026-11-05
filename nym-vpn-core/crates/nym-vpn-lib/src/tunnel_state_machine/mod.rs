@@ -1929,6 +1929,7 @@ impl account::Error {
                 }) => Some(ErrorStateReason::Internal(format!(
                     "Account API failure: {context} {details}"
                 ))),
+                e => Some(ErrorStateReason::Internal(e.to_string())),
             },
         }
     }
