@@ -48,6 +48,9 @@ objc2-core-foundation = { workspace = true, default-features = false, features =
 ] }
 objc2-security = { workspace = true, default-features = false, features = [
     "std",
+    "Authorization",
+    "AuthorizationDB",
+    "AuthorizationTags",
     "SecAccessControl",
     "SecBase",
     "SecItem",

@@ -8256,6 +8256,7 @@ dependencies = [
  "enum-iterator",
  "nym-diagnostic",
  "nym-favorites",
+ "nym-secure-enclave",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "serde_json",

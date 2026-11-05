@@ -74,7 +74,7 @@ impl SecureEnclaveProvider for AndroidKeyStoreProvider {
             .map_err(|_| SecureEnclaveError::Other("thread panic".to_owned()))?
     }
 
-    async fn get_key(&self, alias: &str) -> Result<Self::Key> {
+    async fn get_key(&self, alias: &str, _user_presence: bool) -> Result<Self::Key> {
         let inner = self.inner.clone();
         let alias = alias.to_owned();
         tokio::task::spawn_blocking(move || {

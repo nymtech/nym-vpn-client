@@ -1317,6 +1317,8 @@ message DnsServer {
 message UnlockKeychainRequest {
   // Shown to the user in the authentication prompt
   string reason = 1;
+  // Authorization obtained in the user's session (macOS)
+  bytes authorization = 2;
 }
 
 service NymVpnService {

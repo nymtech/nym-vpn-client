@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 
+use nym_secure_enclave::UnlockAuthorization;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 #[derive(Debug, Clone, clap::Subcommand)]
@@ -22,7 +23,9 @@ impl Command {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             Command::Unlock { reason } => {
-                rpc_client.unlock_keychain(reason).await?;
+                // Kept alive until the daemon has verified the token.
+                let authorization = UnlockAuthorization::request(&reason)?;
+                rpc_client.unlock_keychain(authorization.token()?).await?;
                 println!("Keychain unlocked");
                 Ok(())
             }

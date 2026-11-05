@@ -30,6 +30,9 @@ nym-favorites.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["clap", "serde"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+nym-secure-enclave.workspace = true
+
 # Debian
 [package.metadata.deb]
 name = "nym-vpnc"

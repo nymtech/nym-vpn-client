@@ -251,10 +251,16 @@ pub enum VpnServiceCommand {
         DiagnosticRegisterParams,
     ),
     GetTentativeGateways(oneshot::Sender<TentativeGateways>, ()),
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     UnlockKeychain(
         oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
         String,
+    ),
+    /// Unlock with the authorization token obtained in the user's session
+    #[cfg(target_os = "macos")]
+    UnlockKeychain(
+        oneshot::Sender<Result<(), nym_secure_enclave::SecureEnclaveError>>,
+        Vec<u8>,
     ),
     #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
     LockKeychain(
@@ -517,6 +523,11 @@ impl NymVpnService {
             #[cfg(target_os = "android")]
             parameters.secure_enclave_provider,
         ));
+
+        #[cfg(target_os = "macos")]
+        if let Err(err) = nym_secure_enclave::register_unlock_right() {
+            tracing::error!("Failed to register keychain unlock right: {err}");
+        }
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(
             paths.network_data_dir.clone(),
@@ -1374,9 +1385,13 @@ impl NymVpnService {
             VpnServiceCommand::GetTentativeGateways(tx, _) => {
                 let _ = tx.send(self.handle_get_tentative_gateways().await);
             }
-            #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+            #[cfg(any(target_os = "ios", target_os = "android"))]
             VpnServiceCommand::UnlockKeychain(tx, reason) => {
                 self.handle_unlock_keychain(reason, tx);
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::UnlockKeychain(tx, token) => {
+                let _ = tx.send(self.secure_enclave.unlock_with_token(token).await);
             }
             #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
             VpnServiceCommand::LockKeychain(tx, ()) => {
@@ -2502,7 +2517,7 @@ impl NymVpnService {
         self.stats_control_commands_sender.get_seed().await
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
     fn handle_unlock_keychain(
         &self,
         reason: String,

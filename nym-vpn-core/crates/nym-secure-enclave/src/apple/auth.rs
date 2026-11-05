@@ -72,6 +72,7 @@ pub fn non_interactive_context() -> Retained<LAContext> {
 ///
 /// Keychain operations performed with the returned context do not prompt the user again until
 /// the context is invalidated.
+#[cfg_attr(target_os = "macos", allow(dead_code))]
 pub async fn authenticate(reason: &str) -> SecResult<Retained<LAContext>> {
     let context = unsafe { LAContext::new() };
     let reason = NSString::from_str(reason);

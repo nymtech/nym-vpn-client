@@ -14,6 +14,8 @@ use android::AndroidKeyStoreProvider;
 pub use android::{AndroidSecureEnclaveKey, AndroidSecureEnclaveProvider};
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 use apple::AppleSecureEnclaveProvider;
+#[cfg(target_os = "macos")]
+pub use apple::{UnlockAuthorization, register_unlock_right};
 #[cfg(any(target_os = "android", target_os = "macos", target_os = "ios"))]
 pub use secure_enclave::{PlatformSecureEnclaveKey, SecureEnclave};
 
@@ -65,7 +67,7 @@ pub trait SecureEnclaveProvider {
     async fn delete_key(&self, alias: &str) -> Result<()>;
 
     /// Get object standing in-place of key that can be used to perform encryption or decryption.
-    async fn get_key(&self, alias: &str) -> Result<Self::Key>;
+    async fn get_key(&self, alias: &str, user_presence: bool) -> Result<Self::Key>;
 
     /// Authenticate the user once, so that keys requiring user presence can be used without
     /// prompting until [`Self::lock`] is called. `reason` is shown to the user.

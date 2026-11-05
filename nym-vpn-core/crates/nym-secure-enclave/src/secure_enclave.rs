@@ -49,8 +49,12 @@ impl SecureEnclave {
         self.inner.delete_key(alias).await
     }
 
-    pub async fn get_key(&self, alias: &str) -> Result<PlatformSecureEnclaveKey> {
-        self.inner.get_key(alias).await
+    pub async fn get_key(
+        &self,
+        alias: &str,
+        user_presence: bool,
+    ) -> Result<PlatformSecureEnclaveKey> {
+        self.inner.get_key(alias, user_presence).await
     }
 
     /// Authenticate the user once, so that keys requiring user presence can be used without
@@ -58,6 +62,14 @@ impl SecureEnclave {
     #[tracing::instrument(skip(self))]
     pub async fn unlock(&self, reason: &str) -> Result<()> {
         self.inner.unlock(reason).await
+    }
+
+    /// Allow keys requiring user presence to be used, once the token obtained in the user's session
+    /// with [`crate::UnlockAuthorization`] is verified.
+    #[cfg(target_os = "macos")]
+    #[tracing::instrument(skip_all)]
+    pub async fn unlock_with_token(&self, token: Vec<u8>) -> Result<()> {
+        self.inner.unlock_with_token(token).await
     }
 
     /// Revoke the authentication obtained with [`Self::unlock`].
@@ -71,7 +83,7 @@ impl SecureEnclave {
         alias: &str,
         user_presence: bool,
     ) -> Result<PlatformSecureEnclaveKey> {
-        self.get_key(alias)
+        self.get_key(alias, user_presence)
             .or_else(|err| async {
                 if err == SecureEnclaveError::KeyNotFound {
                     self.create_key(alias, user_presence).await
