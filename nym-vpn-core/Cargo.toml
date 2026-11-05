@@ -189,7 +189,7 @@ tabled = "0.22"
 tempfile = "3.27"
 thiserror = "2.0"
 time = "0.3.55"
-tokio = "1.53.1"
+tokio = "1.54.1"
 tokio-rustls = { version = "0.26", default-features = false }
 tokio-stream = "0.1.19"
 tokio-tungstenite = { version = "0.30.0" }
