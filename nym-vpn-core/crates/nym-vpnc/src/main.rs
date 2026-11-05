@@ -123,6 +123,13 @@ pub enum Command {
         subcommand: commands::network::Command,
     },
 
+    /// Keychain access (macOS)
+    #[cfg(target_os = "macos")]
+    Keychain {
+        #[command(subcommand)]
+        subcommand: commands::keychain::Command,
+    },
+
     /// Sentry integration
     Sentry {
         #[command(subcommand)]
@@ -205,6 +212,8 @@ impl Command {
             Command::Network { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Account { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Device(args) => args.execute(rpc_client.await?).await,
+            #[cfg(target_os = "macos")]
+            Command::Keychain { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Sentry { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Socks5 { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client.await?).await,

@@ -9,6 +9,8 @@ pub mod dns;
 pub mod favorites;
 pub mod gateway;
 pub mod geo_exclusion;
+#[cfg(target_os = "macos")]
+pub mod keychain;
 pub mod lan;
 pub mod network;
 pub mod network_stats;

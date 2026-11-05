@@ -64,6 +64,8 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
         Command::Network { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Account { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Device(args) => args.execute(rpc_client).await?,
+        #[cfg(target_os = "macos")]
+        Command::Keychain { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Sentry { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Socks5 { subcommand } => subcommand.execute(rpc_client).await?,
         Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client).await?,
