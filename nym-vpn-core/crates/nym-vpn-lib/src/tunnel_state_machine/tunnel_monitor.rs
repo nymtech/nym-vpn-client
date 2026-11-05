@@ -578,7 +578,14 @@ impl TunnelMonitor {
             tracing::info!(
                 "Gateway rejected registration due to a timestamp mismatch; refreshing VPN API clock-skew estimate"
             );
-            if let Err(resync_err) = self.skew_manager.force_resync().await {
+
+            let res = self
+                .shutdown_token
+                .run_until_cancelled(self.skew_manager.force_resync())
+                .await
+                .ok_or(tunnel::Error::Cancelled)?;
+
+            if let Err(resync_err) = res {
                 tracing::warn!(
                     "Failed to refresh clock skew after a timestamp-related registration rejection: {resync_err}"
                 );
