@@ -70,7 +70,7 @@ impl Args {
             Command::Register => {
                 let response = rpc_client.register_device().await?;
                 if let Some(err) = response.error {
-                    println!("Failed to register device: {err}");
+                    println!("Failed to register device: {err:#?}");
                     Err(err.into())
                 } else {
                     println!("Device is registered");

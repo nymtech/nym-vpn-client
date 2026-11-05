@@ -402,7 +402,9 @@ pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
         .account()
         .ok_or(Error::NoAccountStored)?;
 
-    if is_device_registered(&shared_state.vpn_api_client, &account.id, device).await? {
+    // TEMP: always register to observe the API response for an already registered device
+    let _ = &account;
+    if false {
         tracing::debug!("Device is already registered");
     } else {
         tracing::info!("Registering device with the account");
@@ -413,6 +415,11 @@ pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "failed to register device");
+                tracing::error!(
+                    "TEMP register device API response: {:#?}",
+                    extract_error_response(err)
+                );
+                tracing::error!("TEMP register device error: {err:#?}");
             })?;
     }
     Ok(())
