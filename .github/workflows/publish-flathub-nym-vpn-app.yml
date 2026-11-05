@@ -1,7 +1,7 @@
 # Open a release PR on https://github.com/flathub/net.nymtech.NymVPN
 #
-# The Flathub manifest pins the Linux release binary and the metainfo.xml at a
-# commit on develop. The `tauri: post release vX` PR (opened by
+# The Flathub manifest pins the Linux release binary, and the metainfo.xml,
+# app.desktop and icon.svg at a commit on develop. The `tauri: post release vX` PR (opened by
 # tauri-post-release.yml) is what updates the metainfo on develop, so this runs
 # on the push that changes it, ie. when that PR is merged.
 
@@ -47,6 +47,12 @@ jobs:
           meta_url="https://raw.githubusercontent.com/${GH_REPO}/${sha}/nym-vpn-app/.pkg/flatpak/net.nymtech.NymVPN.metainfo.xml"
           curl -fsS --proto '=https' -o metainfo.xml "$meta_url"
           meta_sha=$(sha256sum metainfo.xml | cut -d' ' -f1)
+          desktop_url="https://raw.githubusercontent.com/${GH_REPO}/${sha}/nym-vpn-app/.pkg/app.desktop"
+          curl -fsS --proto '=https' -o app.desktop "$desktop_url"
+          desktop_sha=$(sha256sum app.desktop | cut -d' ' -f1)
+          icon_url="https://raw.githubusercontent.com/${GH_REPO}/${sha}/nym-vpn-app/.pkg/icon.svg"
+          curl -fsS --proto '=https' -o icon.svg "$icon_url"
+          icon_sha=$(sha256sum icon.svg | cut -d' ' -f1)
           if [[ -z "$version" ]]; then
             # update_metainfo.sh inserts the newest release first
             version=$(sed -nE 's/.*<release version="([^"]+)".*/\1/p' metainfo.xml | head -1)
@@ -63,6 +69,10 @@ jobs:
             echo "bin_sha=${bin_sha}"
             echo "meta_url=${meta_url}"
             echo "meta_sha=${meta_sha}"
+            echo "desktop_url=${desktop_url}"
+            echo "desktop_sha=${desktop_sha}"
+            echo "icon_url=${icon_url}"
+            echo "icon_sha=${icon_sha}"
           } | tee -a "$GITHUB_OUTPUT"
 
       - name: Checkout Flathub repo
@@ -78,15 +88,23 @@ jobs:
           BIN_SHA: ${{ steps.rel.outputs.bin_sha }}
           META_URL: ${{ steps.rel.outputs.meta_url }}
           META_SHA: ${{ steps.rel.outputs.meta_sha }}
+          DESKTOP_URL: ${{ steps.rel.outputs.desktop_url }}
+          DESKTOP_SHA: ${{ steps.rel.outputs.desktop_sha }}
+          ICON_URL: ${{ steps.rel.outputs.icon_url }}
+          ICON_SHA: ${{ steps.rel.outputs.icon_sha }}
         run: |
           set -euo pipefail
           # each pinned source is a `url:` line directly followed by its `sha256:` line
           sed -i -E \
             -e "\|/releases/download/.*_linux_x64\$|{s|url: .*|url: ${BIN_URL}|;n;s|sha256: .*|sha256: ${BIN_SHA}|;}" \
             -e "\|/net\.nymtech\.NymVPN\.metainfo\.xml\$|{s|url: .*|url: ${META_URL}|;n;s|sha256: .*|sha256: ${META_SHA}|;}" \
+            -e "\|/\.pkg/app\.desktop\$|{s|url: .*|url: ${DESKTOP_URL}|;n;s|sha256: .*|sha256: ${DESKTOP_SHA}|;}" \
+            -e "\|/\.pkg/icon\.svg\$|{s|url: .*|url: ${ICON_URL}|;n;s|sha256: .*|sha256: ${ICON_SHA}|;}" \
             net.nymtech.NymVPN.yml
           grep -q "sha256: ${BIN_SHA}" net.nymtech.NymVPN.yml
           grep -q "sha256: ${META_SHA}" net.nymtech.NymVPN.yml
+          grep -q "url: ${DESKTOP_URL}" net.nymtech.NymVPN.yml
+          grep -q "url: ${ICON_URL}" net.nymtech.NymVPN.yml
           git diff
 
       - name: Create PR
