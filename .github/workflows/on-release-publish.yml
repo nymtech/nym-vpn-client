@@ -146,6 +146,7 @@ jobs:
       contents: write
       pull-requests: write
     with:
+      branch: develop
       version: ${{ needs.setup.outputs.version }}
 
   post-release:

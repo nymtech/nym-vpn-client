@@ -1,17 +1,25 @@
 name: set-changelog-release-date
 
-# Opens a PR against develop replacing `## [<version>] - TBD` with
+# Opens a PR against the given branch replacing `## [<version>] - TBD` with
 # `## [<version>] - <YYYY-MM-DD>` in every platform changelog.
 
 on:
   workflow_call:
     inputs:
+      branch:
+        description: "Branch to update and open the PR against"
+        type: string
+        required: true
       version:
         description: "Released version (X.Y.Z)"
         type: string
         required: true
   workflow_dispatch:
     inputs:
+      branch:
+        description: "Branch to update and open the PR against"
+        type: string
+        default: develop
       version:
         description: "Released version (X.Y.Z)"
         type: string
@@ -35,11 +43,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout develop
+      - name: Checkout ${{ inputs.branch }}
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
-          ref: develop
+          ref: ${{ inputs.branch }}
 
       - name: Resolve release date
         id: date
@@ -97,6 +105,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.version }}
           RELEASE_DATE: ${{ steps.date.outputs.release_date }}
+          BASE_BRANCH: ${{ inputs.branch }}
           BRANCH_NAME: automation/changelog-release-date-v${{ inputs.version }}
         run: |
           set -euo pipefail
@@ -113,7 +122,7 @@ jobs:
           fi
 
           gh pr create \
-            --base develop \
+            --base "$BASE_BRANCH" \
             --head "$BRANCH_NAME" \
             --title "Set ${VERSION} release date in changelogs" \
             --milestone "no-milestone" \
