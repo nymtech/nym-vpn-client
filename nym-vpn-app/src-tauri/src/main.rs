@@ -238,6 +238,8 @@ async fn main() -> Result<()> {
                 .ok();
             app.manage(db.clone());
 
+            #[cfg(target_os = "linux")]
+            AppWindow::fix_zero_cursor_size();
             let app_window = AppWindow::create_main_window(app.handle(), &cli)?;
             app_window.set_bg_color(&db).ok();
             #[cfg(target_os = "linux")]

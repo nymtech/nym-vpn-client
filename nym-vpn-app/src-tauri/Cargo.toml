@@ -111,6 +111,8 @@ notify = "8.2"
 # tauri-plugin-single-instance uses `zbus::blocking` and the tokio-flavored blocking shim
 # calls `Runtime::block_on()`, which panics during Tauri's plugin init.
 ksni = { version = "0.3", default-features = false, features = ["async-io"] }
+# Only used by `window::fix_zero_cursor_size`; same version tauri already pulls in.
+gtk = "0.18"
 
 [profile.release]
 codegen-units = 1
