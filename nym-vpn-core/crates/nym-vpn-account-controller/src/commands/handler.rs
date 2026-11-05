@@ -402,9 +402,7 @@ pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
         .account()
         .ok_or(Error::NoAccountStored)?;
 
-    // TEMP: always register to observe the API response for an already registered device
-    let _ = &account;
-    if false {
+    if is_device_registered(&shared_state.vpn_api_client, &account.id, device).await? {
         tracing::debug!("Device is already registered");
     } else {
         tracing::info!("Registering device with the account");
@@ -415,11 +413,6 @@ pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "failed to register device");
-                tracing::error!(
-                    "TEMP register device API response: {:#?}",
-                    extract_error_response(err)
-                );
-                tracing::error!("TEMP register device error: {err:#?}");
             })?;
     }
     Ok(())
@@ -440,19 +433,13 @@ pub(crate) async fn handle_register_device_on_login<C: ConnectivityMonitor>(
         return;
     };
 
-    let result = async {
-        if !is_device_registered(&shared_state.vpn_api_client, &vpn_account.id(), device).await? {
-            tracing::info!("Registering device with the account");
-            shared_state
-                .vpn_api_client
-                .register_device(vpn_account, device)
-                .await?;
-        }
-        Ok::<_, Error>(())
-    }
-    .await;
-
-    if let Err(err) = result {
+    // Registering an already registered device succeeds, so there is no need to check first.
+    tracing::info!("Registering device with the account");
+    if let Err(err) = shared_state
+        .vpn_api_client
+        .register_device(vpn_account, device)
+        .await
+    {
         trace_err_chain!(err, "failed to register device during log-in");
     }
 }

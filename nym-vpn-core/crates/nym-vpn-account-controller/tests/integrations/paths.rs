@@ -486,7 +486,8 @@ async fn device_not_found_does_not_register_device_test() -> anyhow::Result<()> 
     let mocks = vec![
         endpoints::synced_health(),
         endpoints::account_summary_with_device_403(device_not_found()),
-        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(0),
+        // Only the log-in registers, syncing doesn't
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
     ];
     test_bench.register_vpn_api_mocks(mocks).await;
 
@@ -510,7 +511,7 @@ async fn register_device_exits_error_state_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_403(device_not_found()).up_to_n_times(1),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
-        endpoints::get_device_403(device_not_found()).expect(2),
+        endpoints::get_device_403(device_not_found()).expect(1),
         endpoints::register_device_403(unrelated_error()).up_to_n_times(1),
         endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
         endpoints::zknym_available_200(credential_proxy.clone()),
@@ -546,8 +547,8 @@ async fn register_device_skips_registered_device_test() -> anyhow::Result<()> {
     let mocks = vec![
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
-        endpoints::get_device_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(2),
-        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(0),
+        endpoints::get_device_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
         endpoints::zknym_available_200(credential_proxy.clone()),
         endpoints::zknym_post(credential_proxy.clone()),
         endpoints::zknym_id(credential_proxy.clone()),
@@ -578,7 +579,7 @@ async fn login_registers_device_test() -> anyhow::Result<()> {
 
     let mocks = vec![
         endpoints::synced_health(),
-        endpoints::get_device_403(device_not_found()).expect(1),
+        endpoints::get_device_403(device_not_found()).expect(0),
         endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)).expect(1),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
         endpoints::zknym_available_200(credential_proxy.clone()),
