@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabling SOCKS5 now fails when the SOCKS5 address is already in use, instead of reporting success while nothing listens on it (https://github.com/nymtech/nym-vpn-client/pull/6854)
 - Stop emitting the same tunnel state twice while connecting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/6852)
 - Top-up blocking the shutdown (https://github.com/nymtech/nym-vpn-client/pull/6912)
+- Respect cancellation during skew resync after registration failure (https://github.com/nymtech/nym-vpn-client/pull/6953)
 
 ### Security
 
