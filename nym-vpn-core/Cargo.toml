@@ -227,8 +227,8 @@ windows-sys = "0.61.2"
 winreg = "0.56.0"
 wiremock = "0.6.5"
 wmi = "0.18.4"
-zbus = "5.19.0"
-zbus_polkit = "5.1.0"
+zbus = "6.2.1"
+zbus_polkit = "6.0.0"
 zeroize = "1.9.1"
 
 nym-apple-network = { path = "crates/nym-apple-network" }
