@@ -3,12 +3,13 @@
 
 use crate::{commands::ReturnSender, error::Error};
 use nym_vpn_api_client::types::{Device, VpnAccount, VpnAccountMode};
-use nym_vpn_lib_types::StorableAccount;
+use nym_vpn_lib_types::{AccountCommandError, StorableAccount};
 use nym_vpn_store::{
     VpnStorage,
     device_state::{StoredAccountIdentity, StoredDeviceState},
     mnemonic::StoredMnemonic,
 };
+use tokio::sync::mpsc;
 
 #[derive(Debug)]
 pub(crate) struct AccountStorage<S>
@@ -27,10 +28,16 @@ where
     }
 
     pub async fn store_account(&self, account: StorableAccount) -> Result<(), Error> {
-        let device_account = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
+        let vpn_account = VpnAccount::try_from(account.clone())
+            .map_err(|e| Error::InvalidMnemonic(e.to_string()))?;
+        let ecash_keypair = vpn_account
+            .create_ecash_keypair()
+            .map_err(|err| Error::CreateEcashKeyPair(err.to_string()))?;
+
+        let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
             .map_err(|err| Error::AccountStore {
-                source: Box::new(err),
-            })?;
+            source: Box::new(err),
+        })?;
 
         self.storage
             .store_mnemonic(StoredMnemonic {
@@ -43,7 +50,8 @@ where
 
         self.storage
             .store_device_state(StoredDeviceState::LoggedIn {
-                account_identity: device_account,
+                account_identity,
+                ecash_keypair,
                 summary: None,
             })
             .await
@@ -76,6 +84,7 @@ where
         Ok(match device_state {
             StoredDeviceState::LoggedIn {
                 account_identity: account,
+                ecash_keypair: _,
                 summary: _,
             } => self.load_mnemonic().await.and_then(|mnemonic| {
                 mnemonic
@@ -189,6 +198,7 @@ where
             StoredDeviceState::LoggedIn {
                 account_identity: account,
                 summary: _,
+                ecash_keypair: _,
             } => self.load_mnemonic().await.map(|stored_mnemonic| {
                 stored_mnemonic.map(|v| StorableAccount::new(v.mnemonic, account.mode))
             }),
@@ -224,4 +234,30 @@ pub(crate) enum AccountStorageOp {
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
     StoreDeviceState(ReturnSender<(), Error>, StoredDeviceState),
+}
+
+/// Retrieves the stored account through the storage task.
+///
+/// This goes into storage each time to trigger the platform's step-up authentication when secure
+/// storage is used.
+pub(crate) async fn request_stored_account(
+    storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
+) -> Result<Option<StorableAccount>, AccountCommandError> {
+    let (tx, rx) = ReturnSender::new();
+    storage_op_sender
+        .send(AccountStorageOp::GetStoredAccount(tx))
+        .map_err(AccountCommandError::internal)?;
+    rx.await
+        .map_err(AccountCommandError::internal)?
+        .map_err(AccountCommandError::storage)
+}
+
+/// Materializes the stored account as [`VpnAccount`], which requires step-up authentication.
+pub(crate) async fn request_vpn_api_account(
+    storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
+) -> Result<VpnAccount, AccountCommandError> {
+    request_stored_account(storage_op_sender)
+        .await?
+        .ok_or(AccountCommandError::NoAccountStored)
+        .and_then(|account| VpnAccount::try_from(account).map_err(AccountCommandError::internal))
 }

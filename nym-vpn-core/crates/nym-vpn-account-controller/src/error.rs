@@ -32,6 +32,12 @@ pub enum Error {
 
     #[error("failed to parse ticket type: {0}")]
     ParseTicketType(String),
+
+    #[error("invalid mnemonic: {0}")]
+    InvalidMnemonic(String),
+
+    #[error("failed to create ecash keypair: {0}")]
+    CreateEcashKeyPair(String),
 }
 
 impl Error {

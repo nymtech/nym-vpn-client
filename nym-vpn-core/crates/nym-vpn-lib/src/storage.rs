@@ -15,7 +15,7 @@ use nym_vpn_store::store_ciphers::secure_enclave_cipher::{
 };
 use nym_vpn_store::{
     device_state::{
-        StoredDeviceState, DeviceStateStorage,
+        DeviceStateStorage, StoredDeviceState,
         on_disk::{OnDiskDeviceStateStorage, OnDiskDeviceStateStorageError},
     },
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError},

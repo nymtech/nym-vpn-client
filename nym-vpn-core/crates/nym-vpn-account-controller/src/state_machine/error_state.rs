@@ -12,6 +12,7 @@ use crate::{
         SyncingNetworkState,
     },
 };
+use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, time::Sleep};
@@ -141,7 +142,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                             return NextAccountControllerState::SameState(self);
                         } else {
                             if force {
-                                shared_state.mark_summary_as_stale();
+                                if let Err(err) = shared_state.mark_summary_as_stale().await {
+                                    trace_err_chain!(err, "failed to mark account summary as stale");
+                                }
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);

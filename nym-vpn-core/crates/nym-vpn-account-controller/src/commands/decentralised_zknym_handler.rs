@@ -33,11 +33,10 @@ pub(crate) async fn handle_account_balance<C: ConnectivityMonitor>(
 ) -> Result<Vec<Coin>, AccountCommandError> {
     info!("retrieving account balance");
 
-    let Some(account) = shared_state.device_state.account() else {
-        return Err(AccountCommandError::NoAccountStored);
-    };
+    let account = shared_state.load_vpn_api_account().await?;
 
-    let mnemonic = todo!();
-
-    shared_state.nyxd_client.account_balance(mnemonic).await
+    shared_state
+        .nyxd_client
+        .account_balance(&account.get_mnemonic())
+        .await
 }

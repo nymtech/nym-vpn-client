@@ -69,6 +69,9 @@ pub enum VpnError {
     #[error("shared secret could not be derived for pairing process: {details}")]
     PairingDerivingSharedSecret { details: String },
 
+    #[error("failed to create ecash keypair: {details}")]
+    CreateEcashKeyPair { details: String },
+
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
@@ -159,6 +162,9 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::NoPairingSharedSecret => Self::NoPairingSharedSecret,
             AccountCommandError::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret { details: err }
+            }
+            AccountCommandError::CreateEcashKeyPair(details) => {
+                Self::CreateEcashKeyPair { details }
             }
         }
     }

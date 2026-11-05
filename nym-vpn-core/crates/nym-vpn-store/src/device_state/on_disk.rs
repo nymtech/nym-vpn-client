@@ -169,6 +169,7 @@ impl DeviceStateStorage for OnDiskDeviceStateStorage {
 
 #[cfg(test)]
 mod tests {
+    use nym_credentials_interface::KeyPairUser;
     use nym_vpn_lib_types::StoredAccountMode;
 
     use super::*;

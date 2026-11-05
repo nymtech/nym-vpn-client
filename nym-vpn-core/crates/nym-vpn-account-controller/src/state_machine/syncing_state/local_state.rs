@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use crate::{
     SharedAccountState,
@@ -12,14 +12,12 @@ use crate::{
         PrivateAccountControllerState, ReadyState,
         syncing_state::{SyncMode, SyncingNetworkState},
     },
+    storage::{AccountStorageOp, request_vpn_api_account},
 };
 use futures::{FutureExt, future::Fuse};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{Device, VpnAccount},
-};
+use nym_vpn_api_client::{VpnApiClient, types::Device};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary,
 };
@@ -106,6 +104,7 @@ impl SyncingLocalState {
         }
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
+        let storage_op_sender = shared_state.storage_op_sender.clone();
 
         let (result_tx, result_rx) = oneshot::channel();
         let sync_cancel_token = CancellationToken::new();
@@ -115,7 +114,7 @@ impl SyncingLocalState {
                 SyncingLocalState::check_account(
                     result_tx,
                     vpn_api_client,
-                    vpn_api_account,
+                    storage_op_sender,
                     device,
                     summary,
                 ),
@@ -133,7 +132,7 @@ impl SyncingLocalState {
     async fn check_account(
         result_tx: oneshot::Sender<Result<bool, SyncError>>,
         vpn_api_client: VpnApiClient,
-        vpn_api_account: Arc<VpnAccount>,
+        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         device: Device,
         summary: VpnAccountSummary,
     ) {
@@ -155,7 +154,7 @@ impl SyncingLocalState {
             } else if !summary.fair_usage_left() {
                 Err(SyncError::FairUsageDepleted)
             } else {
-                Self::register_device(&vpn_api_client, &vpn_api_account, &device).await
+                Self::register_device(&vpn_api_client, &storage_op_sender, &device).await
             }
         } else {
             Ok(false)
@@ -166,11 +165,16 @@ impl SyncingLocalState {
 
     async fn register_device(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnAccount,
+        storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
         device: &Device,
     ) -> Result<bool, SyncError> {
+        let vpn_api_account = request_vpn_api_account(storage_op_sender)
+            .await
+            .map_err(|err| SyncError::UnregisteredDevice {
+                details: err.to_string(),
+            })?;
         vpn_api_client
-            .register_device(vpn_api_account, device)
+            .register_device(&vpn_api_account, device)
             .await
             .map_err(|err| SyncError::UnregisteredDevice {
                 details: err.to_string(),
@@ -291,7 +295,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                             NextAccountControllerState::SameState(self)
                         } else {
                             if force {
-                                shared_state.mark_summary_as_stale();
+                                if let Err(err) = shared_state.mark_summary_as_stale().await {
+                                    trace_err_chain!(err, "failed to mark account summary as stale");
+                                }
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);

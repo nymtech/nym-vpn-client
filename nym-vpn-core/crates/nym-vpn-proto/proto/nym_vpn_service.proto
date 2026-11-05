@@ -801,6 +801,7 @@ message AccountCommandError {
     bool pairing_session_id_mismatch = 21;
     bool no_pairing_shared_secret = 22;
     string pairing_deriving_shared_secret = 23;
+    string create_ecash_key_pair = 24;
   }
 }
 

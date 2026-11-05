@@ -4,22 +4,25 @@
 use nym_bandwidth_controller::{AvailableTicketbooks, requests::BandwidthControllerRequestSender};
 use nym_bandwidth_fetcher::NyxdCredentialFetcher;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::{VpnApiClient, types::Device};
-use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
+use nym_vpn_api_client::{
+    VpnApiClient,
+    types::{Device, VpnAccount},
+};
+use nym_vpn_lib_types::{AccountCommandError, StorableAccount, VpnAccountSummary};
 use std::sync::Arc;
 
 use nym_vpn_credential_fetcher::VpnApiCredentialFetcher;
-use nym_vpn_store::{
-    device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb,
-    secure_store_migration::SecureStoreMigrationError::StoreDeviceState,
-};
+use nym_vpn_store::{device_state::StoredDeviceState, keys::wireguard::WireguardKeysDb};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountControllerConfig, AccountControllerEventSender, commands::ReturnSender,
-    deeplink::Deeplinks, nyxd_client::NyxdClient, qr_pairing::QrPairingHandler,
-    storage::AccountStorageOp,
+    AccountControllerConfig, AccountControllerEventSender,
+    commands::ReturnSender,
+    deeplink::Deeplinks,
+    nyxd_client::NyxdClient,
+    qr_pairing::QrPairingHandler,
+    storage::{AccountStorageOp, request_stored_account, request_vpn_api_account},
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -109,6 +112,18 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         }
     }
 
+    /// Retrieves the stored account, which requires step-up authentication.
+    pub(crate) async fn load_stored_account(
+        &self,
+    ) -> Result<Option<StorableAccount>, AccountCommandError> {
+        request_stored_account(&self.storage_op_sender).await
+    }
+
+    /// Materializes the stored account, which requires step-up authentication.
+    pub(crate) async fn load_vpn_api_account(&self) -> Result<VpnAccount, AccountCommandError> {
+        request_vpn_api_account(&self.storage_op_sender).await
+    }
+
     // Set the firewall_active flag to `active`. Returns wethere the status had to be updated or not
     pub(crate) fn set_firewall_state(&mut self, active: bool) -> bool {
         if self.firewall_active != active {
@@ -134,7 +149,12 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             return Ok(());
         }
 
-        let Some(account) = self.vpn_api_account.clone() else {
+        let StoredDeviceState::LoggedIn {
+            account_identity,
+            ecash_keypair,
+            ..
+        } = &self.device_state
+        else {
             return Err(AccountCommandError::NoAccountStored);
         };
 
@@ -142,13 +162,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             return Err(AccountCommandError::NoDeviceStored);
         };
 
-        let StoredDeviceState::LoggedIn { ecash_keypair, .. } = &self.device_state else {
-            return Err(AccountCommandError::NoAccountStored);
-        };
-
         let fetcher = match VpnApiCredentialFetcher::new(
             self.vpn_api_client.clone(),
-            account,
+            account_identity.id.clone(),
             ecash_keypair.clone(),
             device,
             self.config.data_dir.clone(),
@@ -194,10 +210,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         }
 
         // No check to ensure decentralised account, that is up to the caller
-        let Some(account) = self.vpn_api_account.as_ref() else {
-            tracing::warn!("cannot install Nyxd credential fetcher: missing stored account");
-            return Err(AccountCommandError::NoAccountStored);
-        };
+        let account = self.load_vpn_api_account().await.inspect_err(|err| {
+            tracing::warn!("cannot install Nyxd credential fetcher: {err}");
+        })?;
 
         let ecash_seed = account.ecash_keypair_seed().map_err(|err| {
             AccountCommandError::internal(format!("ecash seed derivation failure: {err}"))
@@ -266,63 +281,46 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         Ok(())
     }
 
-    // Mark the summary as stale and best effort to propagate to disk
+    /// Marks the cached summary as stale and persists it. No-op when no summary is cached.
     pub(crate) async fn mark_summary_as_stale(&mut self) -> Result<(), AccountCommandError> {
-        match &mut self.device_state {
-            StoredDeviceState::LoggedIn {
-                summary: account_summary,
-                ..
-            } => {
-                if let Some(account_summary) = account_summary {
-                    account_summary.stale = true;
-
-                    let (tx, rx) = ReturnSender::new();
-                    self.storage_op_sender
-                        .send(AccountStorageOp::StoreDeviceState(
-                            tx,
-                            self.device_state.clone(),
-                        ))
-                        .map_err(AccountCommandError::internal)?;
-
-                    let res = rx.await.map_err(AccountCommandError::internal)?;
-                    Ok(res.unwrap()) // FIXME
-                } else {
-                    Err(AccountCommandError::internal("Device is logged out"))
-                }
-            }
-            StoredDeviceState::LoggedOut => {
-                Err(AccountCommandError::internal("Device is logged out"))
-            }
-        }
+        let StoredDeviceState::LoggedIn {
+            summary: Some(account_summary),
+            ..
+        } = &mut self.device_state
+        else {
+            return Ok(());
+        };
+        account_summary.stale = true;
+        self.persist_device_state().await
     }
 
-    // Store the account summary in memory and best effort to propagate to disk
+    /// Stores the account summary in memory and persists it.
     pub(crate) async fn store_summary(
         &mut self,
         new_account_summary: VpnAccountSummary,
     ) -> Result<(), AccountCommandError> {
-        match &mut self.device_state {
-            StoredDeviceState::LoggedIn {
-                summary: account_summary,
-                ..
-            } => {
-                account_summary.replace(new_account_summary);
+        let StoredDeviceState::LoggedIn {
+            summary: account_summary,
+            ..
+        } = &mut self.device_state
+        else {
+            return Err(AccountCommandError::NoAccountStored);
+        };
+        account_summary.replace(new_account_summary);
+        self.persist_device_state().await
+    }
 
-                let (tx, rx) = ReturnSender::new();
-                self.storage_op_sender
-                    .send(AccountStorageOp::StoreDeviceState(
-                        tx,
-                        self.device_state.clone(),
-                    ))
-                    .map_err(AccountCommandError::internal)?;
-
-                let res = rx.await.map_err(AccountCommandError::internal)?;
-                Ok(res.unwrap()) // FIXME
-            }
-            StoredDeviceState::LoggedOut => {
-                Err(AccountCommandError::internal("Device is logged out"))
-            }
-        }
+    async fn persist_device_state(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.storage_op_sender
+            .send(AccountStorageOp::StoreDeviceState(
+                tx,
+                self.device_state.clone(),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await
+            .map_err(AccountCommandError::internal)?
+            .map_err(AccountCommandError::storage)
     }
 }
 

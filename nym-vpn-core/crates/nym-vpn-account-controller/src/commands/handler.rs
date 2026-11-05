@@ -4,11 +4,12 @@
 use std::sync::Arc;
 
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
+use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
-    types::{DeviceStatus, Platform, VpnAccount, VpnAccountMode},
+    types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{
     AccountCommandError, QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount,
@@ -168,12 +169,9 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
 
-    let account = shared_state
-        .vpn_api_account
-        .as_ref()
-        .ok_or(AccountCommandError::NoAccountStored)?;
+    let account = shared_state.load_vpn_api_account().await?;
 
-    match shared_state.vpn_api_client.delete_account(account).await {
+    match shared_state.vpn_api_client.delete_account(&account).await {
         Ok(_account_response) => tracing::info!("Account has been deleted"),
         // An account that was never registered only exists on this device
         Err(err) if err.is_account_not_found() => {
@@ -188,7 +186,7 @@ pub(crate) async fn handle_delete_account<C: ConnectivityMonitor>(
     // A deleted account can't unregister its device, so only local data is removed
     clear_local_account_data(shared_state).await.or_else(|err| {
         // Once the stored account is cleared, only leftover files remain: the deletion itself succeeded
-        if shared_state.vpn_api_account.is_none() {
+        if shared_state.device_state.account().is_none() {
             tracing::warn!("Account deleted, but local cleanup is incomplete: {err}");
             Ok(())
         } else {
@@ -267,9 +265,7 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
     {
         tracing::info!("Linking Privy account with API account");
 
-        let mnemonic = todo!();
-        let current_account = VpnAccount::new(mnemonic, VpnAccountMode::from(current_account.mode))
-            .map_err(AccountCommandError::internal)?;
+        let current_account = shared_state.load_vpn_api_account().await?;
 
         let _status_ok = shared_state
             .vpn_api_client
@@ -292,13 +288,12 @@ pub(crate) async fn handle_qr_pair_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<QrUrl, AccountCommandError> {
     // We can only pair a new device to the account if we're currently logged-in with an API account
-    if let Some(ref account) = shared_state.vpn_api_account
-        && account.mode().is_api()
-    {
+    if is_logged_in_with_api_account(shared_state) {
+        let account = Arc::new(shared_state.load_vpn_api_account().await?);
         shared_state
             .qr_pairing_handler
             .pair_account(
-                account,
+                &account,
                 shared_state.event_sender.clone(),
                 shared_state.cancel_token.child_token(),
             )
@@ -314,7 +309,7 @@ pub(crate) async fn handle_qr_scanned_key<C: ConnectivityMonitor>(
     remote_qr_pub_key_str: &str,
 ) -> Result<QrPairingConfirmation, AccountCommandError> {
     // We can only pair a new device to the account if we're currently logged-out
-    if shared_state.vpn_api_account.is_none() {
+    if shared_state.device_state.account().is_none() {
         shared_state
             .qr_pairing_handler
             .scanned_key(
@@ -336,12 +331,11 @@ pub(crate) async fn handle_qr_verified_pairing_pin<C: ConnectivityMonitor>(
     session_id: u32,
 ) -> Result<(), AccountCommandError> {
     // We can only verify PIN if we're currently logged-in with an API account
-    if let Some(ref account) = shared_state.vpn_api_account
-        && account.mode().is_api()
-    {
+    if is_logged_in_with_api_account(shared_state) {
+        let account = Arc::new(shared_state.load_vpn_api_account().await?);
         shared_state
             .qr_pairing_handler
-            .verified_pairing_pin(account, session_id)
+            .verified_pairing_pin(&account, session_id)
             .await
     } else {
         tracing::error!("Cannot verify a pairing PIN when not logged-in with an API account");
@@ -421,7 +415,9 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::storage)?; // Storage error
 
     // summary is now stale
-    shared_state.mark_summary_as_stale();
+    if let Err(err) = shared_state.mark_summary_as_stale().await {
+        trace_err_chain!(err, "failed to mark account summary as stale");
+    }
 
     shared_state.device = Some(device);
 
@@ -431,4 +427,13 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state.qr_pairing_handler.cancel_pairing_check();
 
     Ok(())
+}
+
+fn is_logged_in_with_api_account<C: ConnectivityMonitor>(
+    shared_state: &SharedAccountState<C>,
+) -> bool {
+    shared_state
+        .device_state
+        .account()
+        .is_some_and(|account| account.mode == StoredAccountMode::Api)
 }

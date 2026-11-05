@@ -83,6 +83,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret(err)
             }
+            proto::account_command_error::ErrorDetail::CreateEcashKeyPair(err) => {
+                Self::CreateEcashKeyPair(err)
+            }
         })
     }
 }
@@ -194,6 +197,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::PairingDerivingSharedSecret(err) => proto::AccountCommandError {
                 error_detail: Some(
                     proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err),
+                ),
+            },
+            AccountCommandError::CreateEcashKeyPair(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::CreateEcashKeyPair(err),
                 ),
             },
             AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {

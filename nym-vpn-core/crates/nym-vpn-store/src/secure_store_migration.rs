@@ -284,6 +284,19 @@ mod tests {
         },
         store_ciphers::noop_cipher::NoopStoreCipher,
     };
+    use nym_credentials_interface::KeyPairUser;
+
+    fn expected_account_keys(
+        mnemonic: &Mnemonic,
+        mode: StoredAccountMode,
+    ) -> (StoredAccountIdentity, KeyPairUser) {
+        let account_identity = StoredAccountIdentity::new(mnemonic.clone(), mode).unwrap();
+        let ecash_keypair = VpnAccount::new(mnemonic.clone(), VpnAccountMode::from(mode))
+            .unwrap()
+            .create_ecash_keypair()
+            .unwrap();
+        (account_identity, ecash_keypair)
+    }
 
     #[tokio::test]
     async fn test_migration_without_summary() {
@@ -317,18 +330,17 @@ mod tests {
         assert_matches!(storage.migrate().await, Ok(()));
 
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
-        assert_matches!(
-            device_state_store.load_device_state().await,
-            Ok(StoredDeviceState::LoggedIn {
-                account_identity: StoredAccountIdentity {
-                    id: todo!("tbd"),
-                    pub_key: todo!("tbd"),
-                    mode: StoredAccountMode::Decentralised,
-                    signature_base64: todo!("tbd")
-                },
-                summary: None
-            })
-        )
+
+        let (account_identity, ecash_keypair) =
+            expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Decentralised);
+        assert_eq!(
+            device_state_store.load_device_state().await.unwrap(),
+            StoredDeviceState::LoggedIn {
+                account_identity,
+                ecash_keypair,
+                summary: None,
+            }
+        );
     }
 
     #[tokio::test]
@@ -383,12 +395,18 @@ mod tests {
         assert_matches!(storage.migrate().await, Ok(()));
 
         assert_matches!(mnemonic_store.load_mnemonic().await, Ok(Some(v)) if v == stored_mnemonic);
+
+        let (expected_identity, expected_ecash_keypair) =
+            expected_account_keys(&stored_mnemonic.mnemonic, StoredAccountMode::Api);
         assert_matches!(
             device_state_store.load_device_state().await,
             Ok(StoredDeviceState::LoggedIn {
-                account_identity: StoredAccountIdentity { id: todo!(), pub_key: todo!(), mode: StoredAccountMode::Api, signature_base64: todo!() },
+                account_identity,
+                ecash_keypair,
                 summary: Some(summary),
-            }) if summary.account_addr == "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
+            }) if account_identity == expected_identity
+                && ecash_keypair == expected_ecash_keypair
+                && summary.account_addr == "n1qypqxpq9qcrsszg2pvxq6rs0zqg3yyc5lzv7xu"
                 && summary.traffic_used_gb == 12
                 && summary.remaining_devices == 4
         )

@@ -77,6 +77,9 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::PairingDerivingSharedSecret(e) => {
                 BackendError::internal_with_detail("failed to derive pairing shared secret", e)
             }
+            lib::AccountCommandError::CreateEcashKeyPair(e) => {
+                BackendError::internal_with_detail("failed to create ecash keypair", e)
+            }
         }
     }
 }

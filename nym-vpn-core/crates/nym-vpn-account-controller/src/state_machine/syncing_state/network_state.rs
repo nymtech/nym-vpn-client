@@ -286,7 +286,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                             NextAccountControllerState::SameState(self)
                         } else {
                             if force {
-                                shared_state.mark_summary_as_stale();
+                                if let Err(err) = shared_state.mark_summary_as_stale().await {
+                                    trace_err_chain!(err, "failed to mark account summary as stale");
+                                }
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);

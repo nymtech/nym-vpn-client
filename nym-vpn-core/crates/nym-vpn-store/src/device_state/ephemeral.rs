@@ -67,9 +67,10 @@ mod tests {
     #[tokio::test]
     async fn store_and_load() {
         let storage = InMemoryDeviceStateStorage::default();
-        storage.store_device_state(logged_in()).await.unwrap();
+        let state = logged_in();
+        storage.store_device_state(state.clone()).await.unwrap();
 
-        assert_eq!(storage.load_device_state().await.unwrap(), logged_in());
+        assert_eq!(storage.load_device_state().await.unwrap(), state);
     }
 
     #[tokio::test]
