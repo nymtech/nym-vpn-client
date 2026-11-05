@@ -28,6 +28,11 @@ ARCH_ARMEABI_V7 := armeabi-v7a
 ARCH_X86_64 := x86_64
 STRIP_TOOL_BIN := llvm-strip
 
+# Harden C/C++ dependencies compiled through the cc crate (e.g. bundled SQLite).
+# NDK clang does not enable stack protection by default. cc merges TARGET_*
+# flags with the per-target flags set by cargo ndk and leaves host builds alone.
+HARDENING_FLAGS := TARGET_CFLAGS="-fstack-protector-strong" TARGET_CXXFLAGS="-fstack-protector-strong"
+
 ifneq ($(strip $(NDK_TOOLCHAIN_DIR)),)
 # NDK_TOOLCHAIN_DIR may be a Windows-style path (e.g. C:\path\to\bin) when set
 # by the Android Gradle plugin on Windows. Use Make's $(subst) to convert
@@ -64,7 +69,7 @@ build: $(ARM64_V8_BUILD_DIR)/libwg.so $(ARMEABI_V7_BUILD_DIR)/libwg.so $(X86_64_
 	else \
 		echo "Sentry DSN is set!" ; \
 	fi
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) $(HARDENING_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	$(MAKE) -f Android.mk prune-dep-cdylibs
 
 # cargo ndk copies every `.so` cargo emits, including the hashed cdylibs that
@@ -88,7 +93,7 @@ prune-dep-cdylibs:
 	done
 
 clippy:
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) $(HARDENING_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_ARMEABI_V7) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 
 strip: build
 	for dir in $(ARM64_V8_BUILD_DIR) $(ARMEABI_V7_BUILD_DIR) $(X86_64_BUILD_DIR); do \
