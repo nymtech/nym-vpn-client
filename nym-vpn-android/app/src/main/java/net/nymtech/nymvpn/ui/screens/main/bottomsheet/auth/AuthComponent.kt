@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.TechOptVie
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeView
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
+import net.nymtech.qrscanner.isQrCameraAvailable
 
 @Composable
 fun AuthComponent(
@@ -77,6 +79,8 @@ fun AuthComponent(
 
 	val signUpLockGate = rememberScreenLockGate(setupBody = R.string.screen_lock_setup_body)
 
+	val cameraAvailable = remember(context) { isQrCameraAvailable(context) }
+
 	AppNavHost(
 		navController = localNavController,
 		startDestination = initialRoute,
@@ -98,6 +102,14 @@ fun AuthComponent(
 				onBackClick = { localNavController.popBackStack() },
 				onSocialClick = { uiState.socialLink?.let { context.openWebUrl(it) } },
 				onPassphraseClick = { localNavController.navigate(AuthRoute.Passphrase) },
+				onScanCodeClick = if (cameraAvailable) {
+					{
+						onAuthSuccess()
+						rootNavController.navigate(Route.PairingScan)
+					}
+				} else {
+					null
+				},
 			)
 		}
 

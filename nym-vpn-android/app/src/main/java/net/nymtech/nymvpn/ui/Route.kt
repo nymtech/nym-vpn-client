@@ -83,6 +83,15 @@ sealed class Route {
 	data object DeletedAccount : Route()
 
 	@Serializable
+	data object PairDevice : Route()
+
+	@Serializable
+	data object PairingScan : Route()
+
+	@Serializable
+	data object PairingSignIn : Route()
+
+	@Serializable
 	data class ServerDetails(val id: String, val location: String) : Route()
 
 	@Serializable

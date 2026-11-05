@@ -53,6 +53,9 @@ import net.nymtech.nymvpn.ui.screens.account.delete.DeleteScreen
 import net.nymtech.nymvpn.ui.screens.account.delete.DeletedScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
+import net.nymtech.nymvpn.ui.screens.account.pairing.PairDeviceScreen
+import net.nymtech.nymvpn.ui.screens.account.pairing.PairingScanScreen
+import net.nymtech.nymvpn.ui.screens.account.pairing.PairingSignInScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
@@ -346,6 +349,12 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.DeleteAccount> { DeleteScreen() }
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
+
+								composable<Route.PairDevice> { PairDeviceScreen() }
+
+								composable<Route.PairingScan> { PairingScanScreen() }
+
+								composable<Route.PairingSignIn> { PairingSignInScreen() }
 
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(

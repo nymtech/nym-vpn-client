@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.QrCode2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -150,7 +151,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			DeviceAuthAction.MANAGE_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW, cryptoObject)
 			DeviceAuthAction.RENEW_SUBSCRIPTION -> appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW, cryptoObject)
 			DeviceAuthAction.LINK_SOCIAL -> uiState.accountLinkUrl?.let { context.openWebUrl(it) }
-			DeviceAuthAction.REVEAL_PASSPHRASE, DeviceAuthAction.DELETE_ACCOUNT -> Unit
+			DeviceAuthAction.REVEAL_PASSPHRASE, DeviceAuthAction.DELETE_ACCOUNT, DeviceAuthAction.PAIR_DEVICE -> Unit
 		}
 	}
 
@@ -179,6 +180,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			if (isPlayDistribution) navController.goFromRoot(Route.SelectPlan) else deviceAuth.request(DeviceAuthAction.RENEW_SUBSCRIPTION)
 		},
 		onLinkAccountClick = { deviceAuth.request(DeviceAuthAction.LINK_SOCIAL) },
+		onPairDeviceClick = { navController.navigate(Route.PairDevice) },
 		onAccountIdClick = {
 			if (uiState.accountId.isNotEmpty()) {
 				scope.launch {
@@ -220,6 +222,7 @@ fun AccountInfoScreenContent(
 	onManageClick: () -> Unit,
 	onRenewClick: () -> Unit,
 	onLinkAccountClick: () -> Unit,
+	onPairDeviceClick: () -> Unit,
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
 	onLogoutClick: () -> Unit,
@@ -255,6 +258,22 @@ fun AccountInfoScreenContent(
 			icon = Icons.Outlined.Person,
 			onClick = onManageClick,
 		)
+
+		if (isMnemonicStored) {
+			Spacer(Modifier.height(16.dp))
+			AccountActionCard(
+				title = stringResource(R.string.pair_device_title),
+				subtitle = {
+					Text(
+						text = stringResource(R.string.pair_device_entry_subtitle),
+						color = MaterialTheme.colorScheme.outline,
+						style = MaterialTheme.typography.bodySmall,
+					)
+				},
+				icon = Icons.Outlined.QrCode2,
+				onClick = onPairDeviceClick,
+			)
+		}
 
 		Spacer(Modifier.height(16.dp))
 
@@ -386,6 +405,7 @@ internal fun PreviewAccountInfoScreen() {
 				onManageClick = {},
 				onRenewClick = {},
 				onLinkAccountClick = {},
+				onPairDeviceClick = {},
 				onAccountIdClick = {},
 				onDeviceIdClick = {},
 				onLogoutClick = {},
