@@ -7890,6 +7890,7 @@ dependencies = [
  "freedesktop-desktop-entry",
  "freedesktop-icons",
  "futures",
+ "gtk",
  "image",
  "itertools 0.15.0",
  "ksni",

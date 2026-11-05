@@ -194,6 +194,10 @@ async fn main() -> Result<()> {
         .setup(move |app| {
             info!("app setup");
 
+            // before anything that could open a window, including the startup error one
+            #[cfg(target_os = "linux")]
+            AppWindow::fix_zero_cursor_size();
+
             #[cfg(any(windows, target_os = "linux"))]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
