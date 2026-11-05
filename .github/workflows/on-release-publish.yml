@@ -139,9 +139,18 @@ jobs:
       publish_aur: true
       commit_msg: "v${{ needs.setup.outputs.version }}"
 
+  changelog-release-date:
+    needs: setup
+    uses: ./.github/workflows/set-changelog-release-date.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      version: ${{ needs.setup.outputs.version }}
+
   post-release:
     needs: setup
-    if: ${{ inputs.linux || inputs.windows }}
+    if: ${{ inputs.linux }}
     uses: ./.github/workflows/tauri-post-release.yml
     permissions:
       contents: write
