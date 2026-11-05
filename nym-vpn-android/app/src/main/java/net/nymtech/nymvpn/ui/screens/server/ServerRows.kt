@@ -1,6 +1,7 @@
 // Builds the flat list of rows rendered by the server screen from grouped gateways.
 package net.nymtech.nymvpn.ui.screens.server
 
+import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.vpn.model.NymGateway
 
 internal fun buildServerRows(
@@ -86,7 +87,7 @@ private fun ItemType.CountryItem.isExpandedByDefault(query: String, selectedKey:
 		it.identity == selectedKey ||
 			it.region.equals(selectedKey, true) ||
 			(
-				countryCode == "us" &&
+				countryCode in countryCodesForRegionSupport &&
 					query.takeIf { q -> q.isNotBlank() }?.let { q ->
 						it.region?.contains(q, true)
 					} ?: false
