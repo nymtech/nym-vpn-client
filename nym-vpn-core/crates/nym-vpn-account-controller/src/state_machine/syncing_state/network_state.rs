@@ -1,8 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Error, error::display_chain};
-use std::{sync::Arc, time::Duration};
+use crate::Error;
+use std::time::Duration;
 
 use crate::{
     SharedAccountState,
@@ -12,7 +12,6 @@ use crate::{
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
         syncing_state::{SyncMode, local_state::SyncingLocalState},
     },
-    storage::{AccountStorageOp, request_vpn_api_account},
 };
 use futures::{FutureExt, future::Fuse};
 use nym_common::trace_err_chain;
@@ -20,11 +19,10 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
-    response::{NymErrorResponse, extract_error_response},
-    types::{Device, VpnAccount, VpnAccountMode},
+    response::NymErrorResponse,
+    types::{Device, VpnAccountMode},
 };
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, StoredAccountMode, VpnAccountSummary};
-use nym_vpn_store::device_state::StoredDeviceState;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -92,7 +90,6 @@ impl SyncingNetworkState {
         };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
-        let storage_op_sender = shared_state.storage_op_sender.clone();
 
         // Use the provided sync mode unless there is no cache
         let sync_mode = if shared_state.device_state.account_summary().is_none() {
@@ -114,7 +111,6 @@ impl SyncingNetworkState {
                 .run_until_cancelled_owned(SyncingNetworkState::sync_network(
                     result_tx,
                     vpn_api_client,
-                    storage_op_sender,
                     &account_id,
                     account_mode,
                     device,
@@ -135,7 +131,6 @@ impl SyncingNetworkState {
     async fn sync_network(
         result_tx: oneshot::Sender<SyncResult>,
         vpn_api_client: VpnApiClient,
-        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         account_id: &str,
         account_mode: StoredAccountMode,
         device: Device,
@@ -161,18 +156,7 @@ impl SyncingNetworkState {
                     }
                 }
             }
-            SyncMode::Mandatory => match fetch.await {
-                Err(SyncError::DeviceNotFound) => Self::register_device_and_fetch_summary(
-                    &vpn_api_client,
-                    &storage_op_sender,
-                    account_id,
-                    account_mode,
-                    &device,
-                )
-                .await
-                .map(Some),
-                result => result.map(Some),
-            },
+            SyncMode::Mandatory => fetch.await.map(Some),
         };
         result_tx.send(sync_result).ok();
     }
@@ -195,28 +179,6 @@ impl SyncingNetworkState {
         })?;
 
         Ok(summary)
-    }
-
-    /// Registers the device, which requires step-up authentication to materialize the account,
-    /// then fetches the summary again.
-    async fn register_device_and_fetch_summary(
-        vpn_api_client: &VpnApiClient,
-        storage_op_sender: &mpsc::UnboundedSender<AccountStorageOp>,
-        account_id: &str,
-        account_mode: StoredAccountMode,
-        device: &Device,
-    ) -> Result<VpnAccountSummary, SyncError> {
-        tracing::info!("Device is not registered with the account, registering");
-
-        let vpn_api_account = request_vpn_api_account(storage_op_sender)
-            .await
-            .map_err(SyncError::RegisterDevice)?;
-        vpn_api_client
-            .register_device(&vpn_api_account, device)
-            .await
-            .map_err(|err| SyncError::RegisterDevice(err.into()))?;
-
-        Self::fetch_summary(vpn_api_client, account_id, account_mode, device).await
     }
 }
 
@@ -375,11 +337,8 @@ enum SyncError {
     #[error("failed to unregister account")]
     UnregisteredAccount,
 
-    #[error("device not found")]
-    DeviceNotFound,
-
-    #[error("failed to register device")]
-    RegisterDevice(#[source] Error),
+    #[error("device is not registered")]
+    DeviceNotRegistered,
 }
 
 impl SyncError {
@@ -398,23 +357,7 @@ impl SyncError {
             UnregisteredAccount => AccountControllerErrorStateReason::AccountStatusNotActive {
                 status: "unregistered".into(),
             },
-            DeviceNotFound => AccountControllerErrorStateReason::ApiFailure {
-                context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                details: "API returned an error: Device not found".into(),
-            },
-            RegisterDevice(err) => {
-                let details = match &err {
-                    Error::VpnApi(api_error) => extract_error_response(api_error)
-                        .map(|response| response.code_reference_id.unwrap_or(response.message)),
-                    _ => None,
-                }
-                .unwrap_or_else(|| display_chain(&err));
-
-                AccountControllerErrorStateReason::ApiFailure {
-                    context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                    details: format!("Error registering device : {details}"),
-                }
-            }
+            DeviceNotRegistered => AccountControllerErrorStateReason::DeviceNotRegistered,
         }
     }
 }
@@ -428,7 +371,7 @@ impl From<VpnApiClientError> for SyncError {
                     // Later down the line we can maybe register it here
                     SyncError::UnregisteredAccount
                 } else if error_response.is_device_not_found() {
-                    SyncError::DeviceNotFound
+                    SyncError::DeviceNotRegistered
                 } else {
                     SyncError::ApiResponseError {
                         details: error_response

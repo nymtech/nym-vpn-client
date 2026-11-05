@@ -42,6 +42,9 @@ pub enum AccountControllerErrorStateReason {
 
     /// Max device numbers reached
     MaxDeviceReached,
+
+    /// Device is not registered with the account
+    DeviceNotRegistered,
 }
 
 impl AccountControllerErrorStateReason {
@@ -90,6 +93,9 @@ impl std::fmt::Display for AccountControllerErrorStateReason {
             }
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 write!(f, "Max device numbers reached")
+            }
+            AccountControllerErrorStateReason::DeviceNotRegistered => {
+                write!(f, "Device is not registered")
             }
         }
     }

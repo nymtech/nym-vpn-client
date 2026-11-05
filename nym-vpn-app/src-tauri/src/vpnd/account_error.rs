@@ -126,6 +126,9 @@ impl From<lib::AccountControllerErrorStateReason> for BackendError {
             lib::AccountControllerErrorStateReason::MaxDeviceReached => {
                 BackendError::new("AC max devices reached", ErrorKey::MaxDeviceReached)
             }
+            lib::AccountControllerErrorStateReason::DeviceNotRegistered => {
+                BackendError::internal("AC device not registered", None)
+            }
         }
     }
 }

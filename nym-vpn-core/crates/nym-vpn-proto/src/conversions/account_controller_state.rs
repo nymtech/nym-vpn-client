@@ -42,6 +42,9 @@ impl From<proto::account_controller_state::Error> for AccountControllerErrorStat
             proto::account_controller_state::ErrorStateReason::MaxDeviceReached => {
                 AccountControllerErrorStateReason::MaxDeviceReached
             }
+            proto::account_controller_state::ErrorStateReason::DeviceNotRegistered => {
+                AccountControllerErrorStateReason::DeviceNotRegistered
+            }
         }
     }
 }
@@ -98,6 +101,14 @@ impl From<AccountControllerErrorStateReason> for proto::account_controller_state
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 proto::account_controller_state::Error {
                     reason: proto::account_controller_state::ErrorStateReason::MaxDeviceReached
+                        .into(),
+                    context: None,
+                    details: None,
+                }
+            }
+            AccountControllerErrorStateReason::DeviceNotRegistered => {
+                proto::account_controller_state::Error {
+                    reason: proto::account_controller_state::ErrorStateReason::DeviceNotRegistered
                         .into(),
                     context: None,
                     details: None,

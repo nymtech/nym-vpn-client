@@ -189,6 +189,8 @@ extension CredentialsManager {
             return .bandwidthExceeded(context: context)
         case .maxDeviceReached:
             return .maxDeviceReached
+        case .deviceNotRegistered:
+            return .deviceNotRegistered
         }
     }
 

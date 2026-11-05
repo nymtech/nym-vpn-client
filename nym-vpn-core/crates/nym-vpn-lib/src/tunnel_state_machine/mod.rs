@@ -1911,6 +1911,11 @@ impl account::Error {
                 AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
                     Some(ErrorStateReason::MaxDevicesReached)
                 }
+                AcError::ErrorState(AccountControllerErrorStateReason::DeviceNotRegistered) => {
+                    Some(ErrorStateReason::Internal(
+                        "Device is not registered with the account".to_owned(),
+                    ))
+                }
                 AcError::ErrorState(AccountControllerErrorStateReason::Internal {
                     context,
                     details,

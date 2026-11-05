@@ -142,21 +142,6 @@ impl AccountControllerError {
     pub fn internal(message: impl ToString) -> Self {
         AccountControllerError::Internal(message.to_string())
     }
-
-    pub fn storage(message: impl ToString) -> Self {
-        AccountControllerError::Storage(message.to_string())
-    }
-
-    pub fn unexpected_response(message: impl std::fmt::Debug) -> Self {
-        AccountControllerError::UnexpectedVpnApiResponse(format!("{message:?}"))
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::nyxd::error::NyxdError> for AccountControllerError {
-    fn from(e: nym_validator_client::nyxd::error::NyxdError) -> Self {
-        AccountControllerError::NyxdQueryFailure(e.to_string())
-    }
 }
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]

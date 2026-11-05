@@ -837,6 +837,7 @@ message AccountControllerState {
     ACCOUNT_STATUS_NOT_ACTIVE = 4;
     INACTIVE_SUBSCRIPTION = 5;
     MAX_DEVICE_REACHED = 6;
+    DEVICE_NOT_REGISTERED = 7;
   }
 
   message LoggedOut {}
