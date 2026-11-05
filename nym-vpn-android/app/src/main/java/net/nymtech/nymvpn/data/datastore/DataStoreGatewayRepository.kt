@@ -73,9 +73,9 @@ class DataStoreGatewayRepository(context: Context, private val legacyDataStoreMa
 		.distinctUntilChanged()
 		.map { (entry, exit, wg) ->
 			Gateways(
-				entryGateways = decode(entry),
-				exitGateways = decode(exit),
-				wgGateways = decode(wg),
+				entryGateways = decodeCached(ENTRY_GATEWAYS, entry),
+				exitGateways = decodeCached(EXIT_GATEWAYS, exit),
+				wgGateways = decodeCached(WG_GATEWAYS, wg),
 			)
 		}
 		.flowOn(ioDispatcher)
@@ -87,6 +87,13 @@ class DataStoreGatewayRepository(context: Context, private val legacyDataStoreMa
 
 	override suspend fun clear() {
 		dataStore.edit { it.clear() }
+	}
+
+	private val decodeCache = HashMap<Preferences.Key<String>, Pair<String?, List<NymGateway>>>()
+
+	private fun decodeCached(key: Preferences.Key<String>, raw: String?): List<NymGateway> {
+		decodeCache[key]?.let { (cachedRaw, gateways) -> if (cachedRaw == raw) return gateways }
+		return decode(raw).also { decodeCache[key] = raw to it }
 	}
 
 	private fun decode(raw: String?): List<NymGateway> = runCatching { NymGateway.fromCollectionString(raw) }
