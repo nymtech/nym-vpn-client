@@ -20,6 +20,7 @@ import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 private const val BASELINE_HEIGHT = 2201
 private const val BASELINE_WIDTH = 1080
@@ -45,8 +46,12 @@ fun Context.launchVpnSettings(): Result<Unit> = kotlin.runCatching {
 	startActivity(intent)
 }
 
+private val flagResourceIds = ConcurrentHashMap<String, Int>()
+
+fun Context.getFlagImageVectorByName(name: String): Int = flagResourceIds.getOrPut(name.lowercase()) { resolveFlagResourceId(name) }
+
 @SuppressLint("DiscouragedApi")
-fun Context.getFlagImageVectorByName(name: String): Int {
+private fun Context.resolveFlagResourceId(name: String): Int {
 	val flagAssetName = "flag_%S".format(name).lowercase()
 	val resourceId =
 		resources.getIdentifier(flagAssetName, "drawable", packageName)
