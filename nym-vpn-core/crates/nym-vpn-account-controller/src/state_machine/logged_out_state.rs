@@ -61,13 +61,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
-                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
-                            return_sender.send(Err(e));
-                            NextAccountControllerState::SameState(self)
-                        } else {
-                            return_sender.send(Ok(()));
-                            shared_state.qr_pairing_handler.cancel_get_pairing_secret();
-                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
+                        return match handler::handle_store_account(shared_state, storable_account).await {
+                            Err(e) => {
+                                return_sender.send(Err(e));
+                                NextAccountControllerState::SameState(self)
+                            }
+                            Ok(vpn_account) => {
+                                return_sender.send(Ok(()));
+                                shared_state.qr_pairing_handler.cancel_get_pairing_secret();
+                                handler::handle_register_device_on_login(shared_state, &vpn_account).await;
+                                NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await)
+                            }
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),

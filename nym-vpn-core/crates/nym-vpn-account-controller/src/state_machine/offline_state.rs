@@ -51,7 +51,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                         return_sender.send(handler::handle_create_account(shared_state).await)
                     },
                     AccountCommand::StoreAccount(return_sender, account) => {
-                        return_sender.send(handler::handle_store_account(shared_state, account).await)
+                        return_sender.send(handler::handle_store_account(shared_state, account).await.map(|_| ()))
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
                     // Before that command gets sent to the AC, the tunnel must be in Disconnected state, so we shouldn't ever end up here

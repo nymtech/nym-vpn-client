@@ -8,9 +8,10 @@ use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageO
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
+    VpnApiClient,
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::extract_error_response,
-    types::{DeviceStatus, Platform, VpnAccount},
+    types::{Device, DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{
     QrPairingConfirmation, QrUrl, RegisterAccountResponse, StorableAccount, StoredAccountMode,
@@ -52,7 +53,7 @@ async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
 pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
-) -> Result<()> {
+) -> Result<VpnAccount> {
     let account_identity = StoredAccountIdentity::new(account.mnemonic.clone(), account.mode)
         .map_err(|e| Error::InvalidMnemonic(e.into()))?;
     let vpn_account =
@@ -84,7 +85,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
-    Ok(())
+    Ok(vpn_account)
 }
 
 pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
@@ -401,26 +402,63 @@ pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
         .account()
         .ok_or(Error::NoAccountStored)?;
 
-    match shared_state
-        .vpn_api_client
-        .get_device_by_id(&account.id, device)
-        .await
-    {
-        Ok(_) => {
-            tracing::debug!("Device is already registered");
-            Ok(())
-        }
-        Err(err) if extract_error_response(&err).is_some_and(|r| r.is_device_not_found()) => {
+    if is_device_registered(&shared_state.vpn_api_client, &account.id, device).await? {
+        tracing::debug!("Device is already registered");
+    } else {
+        tracing::info!("Registering device with the account");
+        let vpn_account = shared_state.load_vpn_api_account().await?;
+        shared_state
+            .vpn_api_client
+            .register_device(&vpn_account, device)
+            .await
+            .inspect_err(|err| {
+                trace_err_chain!(err, "failed to register device");
+            })?;
+    }
+    Ok(())
+}
+
+/// Registers the device right after log-in, while the account is still in memory.
+///
+/// Failures are only logged, so that log-in succeeds regardless.
+pub(crate) async fn handle_register_device_on_login<C: ConnectivityMonitor>(
+    shared_state: &SharedAccountState<C>,
+    vpn_account: &VpnAccount,
+) {
+    let Some(device) = shared_state
+        .device
+        .as_ref()
+        .filter(|_| !vpn_account.mode().is_decentralised() && !shared_state.firewall_active)
+    else {
+        return;
+    };
+
+    let result = async {
+        if !is_device_registered(&shared_state.vpn_api_client, &vpn_account.id(), device).await? {
             tracing::info!("Registering device with the account");
-            let vpn_account = shared_state.load_vpn_api_account().await?;
             shared_state
                 .vpn_api_client
-                .register_device(&vpn_account, device)
-                .await
-                .inspect_err(|err| {
-                    trace_err_chain!(err, "failed to register device");
-                })?;
-            Ok(())
+                .register_device(vpn_account, device)
+                .await?;
+        }
+        Ok::<_, Error>(())
+    }
+    .await;
+
+    if let Err(err) = result {
+        trace_err_chain!(err, "failed to register device during log-in");
+    }
+}
+
+async fn is_device_registered(
+    vpn_api_client: &VpnApiClient,
+    account_id: &str,
+    device: &Device,
+) -> Result<bool> {
+    match vpn_api_client.get_device_by_id(account_id, device).await {
+        Ok(_) => Ok(true),
+        Err(err) if extract_error_response(&err).is_some_and(|r| r.is_device_not_found()) => {
+            Ok(false)
         }
         Err(err) => Err(err.into()),
     }
