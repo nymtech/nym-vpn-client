@@ -64,6 +64,8 @@ class DataStoreGatewayRepository(context: Context, private val legacyDataStoreMa
 		produceFile = { context.preferencesDataStoreFile(FILE_NAME) },
 	)
 
+	private val decodeCache = HashMap<Preferences.Key<String>, Pair<String?, List<NymGateway>>>()
+
 	override val gatewayFlow: StateFlow<Gateways> = dataStore.data
 		.catch { e ->
 			Timber.tag(TAG).e(e, "GatewayCacheReadFailed")
@@ -88,8 +90,6 @@ class DataStoreGatewayRepository(context: Context, private val legacyDataStoreMa
 	override suspend fun clear() {
 		dataStore.edit { it.clear() }
 	}
-
-	private val decodeCache = HashMap<Preferences.Key<String>, Pair<String?, List<NymGateway>>>()
 
 	private fun decodeCached(key: Preferences.Key<String>, raw: String?): List<NymGateway> {
 		decodeCache[key]?.let { (cachedRaw, gateways) -> if (cachedRaw == raw) return gateways }

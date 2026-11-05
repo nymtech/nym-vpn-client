@@ -29,6 +29,7 @@ internal class GatewayIndex private constructor(
 	private val source: List<NymGateway>,
 	private val isQuicOnly: Boolean,
 	private val tunnelMode: Tunnel.Mode,
+	private val locale: Locale,
 	val eligible: List<NymGateway>,
 	val countries: List<Country>,
 	val countriesByCode: Map<String, Country>,
@@ -45,7 +46,7 @@ internal class GatewayIndex private constructor(
 			regions.any { it.contains(lowercaseQuery) }
 	}
 
-	fun isFor(input: ServerListInput): Boolean = source === input.gateways && isQuicOnly == input.isQuicOnly && tunnelMode == input.tunnelMode
+	fun isFor(input: ServerListInput): Boolean = source === input.gateways && isQuicOnly == input.isQuicOnly && tunnelMode == input.tunnelMode && locale == Locale.getDefault()
 
 	companion object {
 		fun build(input: ServerListInput): GatewayIndex {
@@ -66,6 +67,7 @@ internal class GatewayIndex private constructor(
 				source = input.gateways,
 				isQuicOnly = input.isQuicOnly,
 				tunnelMode = input.tunnelMode,
+				locale = Locale.getDefault(),
 				eligible = eligible,
 				countries = countries,
 				countriesByCode = countriesByCode,
@@ -148,7 +150,7 @@ private fun buildFavorites(input: ServerListInput, index: GatewayIndex): ServerL
 		index.eligible
 			.filter { it.identity in allNodeIds && it.matchesGatewayQuery(lowercaseQuery) }
 			.distinctBy { it.identity }
-			.mapTo(items) { ItemType.GatewayItem(it, true) }
+			.mapTo(items) { ItemType.GatewayItem(it, it.identity in favoriteGatewayIds) }
 	}
 
 	return ServerListResult(
@@ -217,7 +219,7 @@ private fun pruneToFavorites(item: ItemType.CountryItem, isCountryFavorite: Bool
 	val gateways = if (isCountryFavorite) {
 		item.gateways
 	} else {
-		item.gateways.filter { it.identity in favoriteGatewayIds }
+		item.gateways.filter { it.identity in favoriteGatewayIds || it.region?.lowercase() in favoriteRegions }
 	}
 
 	return item.copy(gateways = gateways, regions = regions, isFavorite = isCountryFavorite)

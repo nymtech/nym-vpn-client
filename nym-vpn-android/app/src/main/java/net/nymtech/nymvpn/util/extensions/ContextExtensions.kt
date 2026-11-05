@@ -52,7 +52,7 @@ fun Context.getFlagImageVectorByName(name: String): Int = flagResourceIds.getOrP
 
 @SuppressLint("DiscouragedApi")
 private fun Context.resolveFlagResourceId(name: String): Int {
-	val flagAssetName = "flag_%S".format(name).lowercase()
+	val flagAssetName = "flag_${name.lowercase()}"
 	val resourceId =
 		resources.getIdentifier(flagAssetName, "drawable", packageName)
 	return if (resourceId == 0) {

@@ -49,7 +49,7 @@ private fun MutableList<ServerRow>.addCountry(
 	val ungrouped = (if (item.regions != null) item.gateways.filter { it.region == null } else item.gateways).uniqueRows()
 
 	regions.forEachIndexed { index, region ->
-		val regionStateKey = "${expandStatePrefix}_region_${region.region}"
+		val regionStateKey = "${expandStatePrefix}_region_${item.locale.country}_${region.region}"
 		val regionExpanded = expandedOverrides[regionStateKey]
 			?: region.gateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey }
 		val isLastRegion = ungrouped.isEmpty() && index == regions.lastIndex

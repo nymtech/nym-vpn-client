@@ -110,8 +110,10 @@ class ServerViewModel @Inject constructor(
 		userSelectedFilter = false
 		favorites = favoritesManager.favoritesFlow.value
 		allGateways = gatewayRepository.gatewayFlow.value.forType(type)
+		items = emptyList()
 		_uiState.update {
 			it.copy(
+				rows = emptyList(),
 				query = "",
 				filter = defaultFilterFor(isExitScreen),
 				isLoading = true,
