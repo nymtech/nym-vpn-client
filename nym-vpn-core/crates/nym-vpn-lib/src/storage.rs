@@ -58,7 +58,7 @@ impl VpnClientOnDiskStorage {
             secure_enclave.clone(),
             SecureEnclaveCipherOptions {
                 key_alias: MNEMONIC_SE_KEY.to_owned(),
-                user_presence: true,
+                user_presence: false,
             },
         );
         #[cfg(not(any(target_os = "ios", target_os = "macos", target_os = "android")))]

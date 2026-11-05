@@ -11,7 +11,7 @@ pub enum Command {
     /// Authenticate to unlock access to the account stored in the keychain
     Unlock {
         /// Reason shown in the authentication prompt
-        #[arg(long, default_value = "access your NymVPN account")]
+        #[arg(long, default_value = "Access your NymVPN account via nym-vpnc")]
         reason: String,
     },
 

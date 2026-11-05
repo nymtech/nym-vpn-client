@@ -121,7 +121,7 @@ pub fn register_unlock_right() -> Result<()> {
     ];
     let keys: Vec<&CFString> = keys.iter().map(|key| &**key).collect();
     let definition = CFDictionary::<CFString, CFType>::from_slices(&keys, &values);
-    let description = CFString::from_static_str("access your NymVPN account");
+    let description = CFString::from_static_str("Access your Nym VPN account");
 
     let status = unsafe {
         AuthorizationRightSet(
