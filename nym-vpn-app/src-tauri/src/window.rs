@@ -103,9 +103,20 @@ impl AppWindow {
     /// (GTK issue #5700, fixed upstream in 3.24.38). XFCE is known to write 0 into
     /// `org.gnome.desktop.interface cursor-size`. Setting a non-zero size makes
     /// GTK reload the theme before any cursor is used.
+    ///
+    /// Known limit: the value set here is an application override, so if the
+    /// desktop cursor size changes later in this session GTK keeps 24 until the
+    /// app restarts. Only affects setups that had 0, where the size was broken anyway.
     #[cfg(target_os = "linux")]
     pub fn fix_zero_cursor_size() {
-        use gtk::prelude::GtkSettingsExt;
+        use gtk::prelude::{DisplayExtManual, GtkSettingsExt};
+        // X11 treats 0 as "use the Xcursor default", only Wayland aborts on it.
+        let Some(display) = gtk::gdk::Display::default() else {
+            return;
+        };
+        if !display.backend().is_wayland() {
+            return;
+        }
         let Some(settings) = gtk::Settings::default() else {
             return;
         };
