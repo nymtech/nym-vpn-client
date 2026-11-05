@@ -53,7 +53,7 @@ internal class QrScannerViewModel(
 				QrScanValidation.Valid -> {
 					hideInvalidCodeJob?.cancel()
 					lastRejection = null
-					_uiState.update { it.copy(result = mode.toResult(contents), showInvalidCode = false) }
+					_uiState.update { it.copy(result = QrScanResult.Code(contents), showInvalidCode = false) }
 				}
 				is QrScanValidation.Invalid -> {
 					lastRejection = Rejection(contents, validation.retryAfter?.let { timeSource.markNow() + it })

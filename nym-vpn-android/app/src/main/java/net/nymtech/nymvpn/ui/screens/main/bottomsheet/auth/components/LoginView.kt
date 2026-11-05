@@ -34,7 +34,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier, onScanCodeClick: (() -> Unit)? = null) {
+fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialClick: () -> Unit, modifier: Modifier = Modifier) {
 	SecureOverlayProtection()
 
 	Column(
@@ -93,21 +93,6 @@ fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialCl
 			modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
 			shape = RoundedCornerShape(12.dp),
 		)
-
-		if (onScanCodeClick != null) {
-			OutlineStyledButton(
-				onClick = onScanCodeClick,
-				content = {
-					Text(
-						stringResource(R.string.auth_log_in_scan_button),
-						style = MaterialTheme.typography.titleMedium,
-						color = MaterialTheme.colorScheme.onPrimaryContainer,
-					)
-				},
-				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
-				shape = RoundedCornerShape(12.dp),
-			)
-		}
 
 		Text(
 			text = stringResource(R.string.auth_log_in_info),

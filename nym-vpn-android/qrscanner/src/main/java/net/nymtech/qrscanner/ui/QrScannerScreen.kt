@@ -93,7 +93,7 @@ internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCode
 				icon = Icons.Outlined.Warning,
 				title = stringResource(R.string.qr_scanner_camera_error_title),
 				body = stringResource(R.string.qr_scanner_camera_error_body),
-				secondaryActionLabel = stringResource(mode.fallbackRes),
+				secondaryActionLabel = mode.fallbackRes?.let { stringResource(it) },
 				onSecondaryAction = onFallback,
 			)
 			cameraActive -> {

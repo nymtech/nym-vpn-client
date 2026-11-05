@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.manager.pairing
 
-import androidx.biometric.BiometricPrompt
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
@@ -22,7 +21,7 @@ class PairingQrValidatorTest {
 		val scannedKeys = mutableListOf<String>()
 		override val state: StateFlow<PairingState> = MutableStateFlow(PairingState.Idle)
 		override suspend fun startShowingCode() = Unit
-		override suspend fun confirmCode(cryptoObject: BiometricPrompt.CryptoObject?) = true
+		override suspend fun confirmCode() = Unit
 		override suspend fun onScannedKey(publicKey: String): PairingFailure? {
 			scannedKeys += publicKey
 			return failure

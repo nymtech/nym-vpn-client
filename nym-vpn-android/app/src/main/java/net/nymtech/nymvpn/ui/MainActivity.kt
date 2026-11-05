@@ -53,14 +53,13 @@ import net.nymtech.nymvpn.ui.screens.account.delete.DeleteScreen
 import net.nymtech.nymvpn.ui.screens.account.delete.DeletedScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
-import net.nymtech.nymvpn.ui.screens.account.pairing.PairDeviceScreen
-import net.nymtech.nymvpn.ui.screens.account.pairing.PairingScanScreen
 import net.nymtech.nymvpn.ui.screens.account.pairing.PairingSignInScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
+import net.nymtech.nymvpn.ui.screens.scan.QrScanScreen
 import net.nymtech.nymvpn.ui.screens.server.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.server.ServerScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -94,6 +93,7 @@ import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
+import net.nymtech.qrscanner.model.QrScanMode
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -350,9 +350,13 @@ class MainActivity : AppCompatActivity() {
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
 
-								composable<Route.PairDevice> { PairDeviceScreen() }
-
-								composable<Route.PairingScan> { PairingScanScreen() }
+								composable<Route.QrScan> {
+									val args = it.toRoute<Route.QrScan>()
+									QrScanScreen(
+										mode = QrScanMode.entries.firstOrNull { mode -> mode.name == args.mode } ?: QrScanMode.ANY,
+										returnTo = AuthRoute.fromName(args.authRoute) ?: AuthRoute.Welcome,
+									)
+								}
 
 								composable<Route.PairingSignIn> { PairingSignInScreen() }
 

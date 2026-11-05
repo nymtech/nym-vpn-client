@@ -3,6 +3,8 @@
 	<string name="qr_scanner_close">Close scanner</string>
 	<string name="qr_scanner_torch_on">Turn on flashlight</string>
 	<string name="qr_scanner_torch_off">Turn off flashlight</string>
+	<string name="qr_scanner_hint_any">Point your camera at a NymVPN QR code</string>
+	<string name="qr_scanner_invalid_any">This isn\'t a NymVPN QR code</string>
 	<string name="qr_scanner_hint_pairing">Point your camera at the QR code shown on your other device</string>
 	<string name="qr_scanner_invalid_pairing">This isn\'t a NymVPN pairing code</string>
 	<string name="qr_scanner_fallback_pairing">Use your recovery phrase instead</string>

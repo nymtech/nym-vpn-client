@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.manager.pairing
 
-import androidx.biometric.BiometricPrompt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,7 +18,6 @@ import kotlinx.coroutines.withTimeout
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.backend.VpnServiceConnectionManager
-import net.nymtech.nymvpn.manager.deviceauth.DeviceAuthGate
 import net.nymtech.nymvpn.manager.pairing.model.PairingState
 import net.nymtech.nymvpn.manager.pairing.model.activeSessionId
 import net.nymtech.vpn.backend.api.VpnServiceApi
@@ -35,12 +33,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 @Singleton
-class NymPairingManager @Inject constructor(
-	private val connectionManager: VpnServiceConnectionManager,
-	private val backendManager: BackendManager,
-	private val deviceAuthGate: DeviceAuthGate,
-	@ApplicationScope appScope: CoroutineScope,
-) : PairingManager {
+class NymPairingManager @Inject constructor(private val connectionManager: VpnServiceConnectionManager, private val backendManager: BackendManager, @ApplicationScope appScope: CoroutineScope) :
+	PairingManager {
 
 	private val _state = MutableStateFlow<PairingState>(PairingState.Idle)
 	override val state: StateFlow<PairingState> = _state.asStateFlow()
@@ -65,9 +59,8 @@ class NymPairingManager @Inject constructor(
 		}
 	}
 
-	override suspend fun confirmCode(cryptoObject: BiometricPrompt.CryptoObject?): Boolean = mutex.withLock {
-		val confirm = _state.value as? PairingState.ConfirmCode ?: return@withLock true
-		if (!deviceAuthGate.verify(cryptoObject)) return@withLock false
+	override suspend fun confirmCode() = mutex.withLock {
+		val confirm = _state.value as? PairingState.ConfirmCode ?: return@withLock
 		_state.value = PairingState.SharingAccount
 		_state.value = try {
 			call { it.verifiedPairingPin(confirm.sessionId) }
@@ -76,7 +69,6 @@ class NymPairingManager @Inject constructor(
 		} catch (e: PairingException) {
 			PairingState.Failed(e.failure)
 		}
-		true
 	}
 
 	override suspend fun onScannedKey(publicKey: String): PairingFailure? = mutex.withLock {

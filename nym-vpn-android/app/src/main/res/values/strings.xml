@@ -235,6 +235,7 @@
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world\'s most private VPN</string>
 	<string name="auth_welcome_login_button">Log in to my account</string>
+	<string name="auth_welcome_scan_button">Scan QR code</string>
 	<string name="auth_sign_up_title">Sign up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
 	<string name="auth_sign_up_social_button">Sign up with socials *</string>
@@ -721,12 +722,11 @@
 	<string name="delete_account_error_descr">Nothing was deleted. Check your connection and try again.</string>
 	<string name="delete_account_time_title">You lose the time you have left</string>
 	<string name="delete_account_time_descr">Your NymVPN access runs until %1$s and doesn\'t renew. Deleting your account ends it today.</string>
-	<string name="auth_log_in_scan_button">Scan QR code from another device</string>
 	<string name="pair_device_title">Pair a device</string>
-	<string name="pair_device_entry_subtitle">Sign in on another device by scanning a QR code</string>
+	<string name="pair_device_button">Pair new device</string>
 	<string name="pair_device_auth_subtitle">Confirm it\'s you to sign in another device with your account</string>
 	<string name="pair_device_starting">Creating a pairing code…</string>
-	<string name="pair_device_instructions">On your other device, open NymVPN, choose Log in, then Scan QR code, and point it at this code.</string>
+	<string name="pair_device_instructions">On your other device, open NymVPN, tap Scan QR code and point the camera at this code.</string>
 	<string name="pair_device_qr_description">Pairing QR code</string>
 	<string name="pair_device_expires_in">Code expires in %1$s</string>
 	<string name="pair_device_new_code">Get a new code</string>

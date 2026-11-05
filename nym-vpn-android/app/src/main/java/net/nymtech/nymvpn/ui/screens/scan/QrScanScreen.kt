@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.pairing
+package net.nymtech.nymvpn.ui.screens.scan
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -15,23 +15,27 @@ import net.nymtech.qrscanner.model.QrScanMode
 import net.nymtech.qrscanner.model.QrScanResult
 
 @Composable
-fun PairingScanScreen(viewModel: PairingScanViewModel = hiltViewModel()) {
+fun QrScanScreen(mode: QrScanMode, returnTo: AuthRoute, viewModel: QrScanViewModel = hiltViewModel()) {
 	SecureScreen()
 	SecureOverlayProtection()
 
 	val navController = LocalNavController.current
 
 	QrScanner(
-		mode = QrScanMode.PAIRING,
-		validator = viewModel.validator,
+		mode = mode,
+		validator = viewModel,
 		onResult = { result ->
 			when (result) {
-				// The validator has already started pairing with the scanned code.
-				is QrScanResult.Pairing -> navController.replaceCurrentWith(Route.PairingSignIn)
+				is QrScanResult.Code -> when (ScannedQrCode.parse(result.contents)) {
+					// The validator has already started pairing with this code.
+					is ScannedQrCode.Pairing -> navController.replaceCurrentWith(Route.PairingSignIn)
+					// Not reachable: the validator rejects unknown codes.
+					null -> Unit
+				}
 				QrScanResult.Fallback -> navController.navigateAndForgetToMain(Route.Main(authRoute = AuthRoute.Passphrase.routeName))
 			}
 		},
-		// The login sheet doesn't survive leaving Main, so reopen it where the user was.
-		onClose = { navController.navigateAndForgetToMain(Route.Main(authRoute = AuthRoute.Login.routeName)) },
+		// The auth sheet doesn't survive leaving Main, so reopen it where the user was.
+		onClose = { navController.navigateAndForgetToMain(Route.Main(authRoute = returnTo.routeName)) },
 	)
 }

@@ -56,7 +56,7 @@ class QrScannerViewModelTest {
 		viewModel.onCodeScan(validUrl)
 		runCurrent()
 
-		assertEquals(QrScanResult.Pairing(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
 		assertFalse(viewModel.uiState.value.showInvalidCode)
 	}
 
@@ -73,7 +73,7 @@ class QrScannerViewModelTest {
 
 		viewModel.onCodeScan(validUrl)
 		runCurrent()
-		assertEquals(QrScanResult.Pairing(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -114,7 +114,7 @@ class QrScannerViewModelTest {
 		runCurrent()
 
 		assertEquals(listOf(validUrl), validated)
-		assertEquals(QrScanResult.Pairing(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -126,7 +126,7 @@ class QrScannerViewModelTest {
 		runCurrent()
 
 		assertEquals(listOf(validUrl), validated)
-		assertEquals(QrScanResult.Pairing(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -176,7 +176,7 @@ class QrScannerViewModelTest {
 		viewModel.onCodeScan(validUrl)
 		runCurrent()
 		assertEquals(listOf(validUrl, validUrl), validated)
-		assertEquals(QrScanResult.Pairing(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -197,7 +197,7 @@ class QrScannerViewModelTest {
 		runCurrent()
 		viewModel.onFallback()
 
-		assertEquals(QrScanResult.Pairing(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
 	}
 
 	private companion object {

@@ -214,12 +214,7 @@ fun NavBar(
 				onBack = { navController.safePopBackStack() },
 			)
 
-			route.startsWith(Route.PairDevice::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.pair_device_title,
-				onBack = { navController.safePopBackStack() },
-			)
-
-			route.startsWith(Route.PairingScan::class.qualifiedName!!) -> NavBarState.Hidden
+			route.startsWith(Route.QrScan::class.qualifiedName!!) -> NavBarState.Hidden
 
 			route.startsWith(Route.PairingSignIn::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.pairing_sign_in_nav_title,

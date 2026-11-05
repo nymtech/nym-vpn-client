@@ -23,6 +23,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.AppNavHost
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.LoginView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.PassphraseView
@@ -32,6 +33,7 @@ import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeVie
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.qrscanner.isQrCameraAvailable
+import net.nymtech.qrscanner.model.QrScanMode
 
 @Composable
 fun AuthComponent(
@@ -94,6 +96,15 @@ fun AuthComponent(
 			WelcomeView(
 				onLoginClick = { localNavController.navigate(AuthRoute.Login) },
 				onSignUpClick = { localNavController.navigate(AuthRoute.SignUp) },
+				onScanCodeClick = if (cameraAvailable) {
+					{
+						// The sheet hides while the scanner is open and reopens on Welcome when it closes.
+						onAuthSuccess()
+						rootNavController.navigate(Route.QrScan(mode = QrScanMode.ANY.name, authRoute = AuthRoute.Welcome.routeName))
+					}
+				} else {
+					null
+				},
 			)
 		}
 
@@ -102,14 +113,6 @@ fun AuthComponent(
 				onBackClick = { localNavController.popBackStack() },
 				onSocialClick = { uiState.socialLink?.let { context.openWebUrl(it) } },
 				onPassphraseClick = { localNavController.navigate(AuthRoute.Passphrase) },
-				onScanCodeClick = if (cameraAvailable) {
-					{
-						onAuthSuccess()
-						rootNavController.navigate(Route.PairingScan)
-					}
-				} else {
-					null
-				},
 			)
 		}
 

@@ -15,7 +15,7 @@ internal fun QrPermissionContent(
 	status: CameraPermissionStatus,
 	onRequestPermission: () -> Unit,
 	onOpenSettings: () -> Unit,
-	@StringRes fallbackRes: Int,
+	@StringRes fallbackRes: Int?,
 	onFallback: () -> Unit,
 	modifier: Modifier = Modifier,
 ) {
@@ -26,7 +26,7 @@ internal fun QrPermissionContent(
 			body = stringResource(R.string.qr_scanner_permission_denied_body),
 			actionLabel = stringResource(R.string.qr_scanner_open_settings),
 			onAction = onOpenSettings,
-			secondaryActionLabel = stringResource(fallbackRes),
+			secondaryActionLabel = fallbackRes?.let { stringResource(it) },
 			onSecondaryAction = onFallback,
 			modifier = modifier,
 		)
@@ -37,7 +37,7 @@ internal fun QrPermissionContent(
 			body = stringResource(R.string.qr_scanner_permission_body),
 			actionLabel = stringResource(R.string.qr_scanner_permission_allow),
 			onAction = onRequestPermission,
-			secondaryActionLabel = stringResource(fallbackRes),
+			secondaryActionLabel = fallbackRes?.let { stringResource(it) },
 			onSecondaryAction = onFallback,
 			modifier = modifier,
 		)
