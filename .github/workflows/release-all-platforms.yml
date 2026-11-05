@@ -455,6 +455,11 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  upload-debug-symbols:
+    needs: [build]
+    uses: ./.github/workflows/upload-debug-symbols.yml
+    secrets: inherit
+
   release:
     needs: [resolve, build-outputs]
     if: |

@@ -52,12 +52,6 @@ on:
         required: true
       CROWDIN_PERSONAL_TOKEN:
         required: true
-      APPLE_SENTRY_CLI_AUTH_TOKEN:
-        required: true
-      APPLE_SENTRY_CLI_ORG:
-        required: true
-      APPLE_SENTRY_CLI_PROJECT:
-        required: true
 
 env:
   HOMEBREW_NO_ANALYTICS: 1
@@ -65,6 +59,7 @@ env:
   UPLOAD_DIR_IOS: ios_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
   IPA_DIR: ${{ github.workspace }}/nym-vpn-apple/build/ios/ipa
+  DEBUG_SYMBOLS_DIR: apple_debug_symbols_ios
 
 jobs:
   build-nym-vpn-app-ios:
@@ -413,13 +408,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Upload iOS dSYMs to Sentry (nightly)
-        if: ${{ env.RELEASE_TYPE == 'qa' }}
+      - name: Collect debug symbols
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
         working-directory: nym-vpn-apple
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
-          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
         run: |
           set -euo pipefail
 
@@ -435,22 +426,26 @@ jobs:
           fi
 
           DSYMS_DIR="$IOS_XCARCHIVE/dSYMs"
-          if [[ ! -d "$DSYMS_DIR" ]]; then
-            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
-            exit 0
+          if ! find "$DSYMS_DIR" -maxdepth 1 -name "*.dSYM" -print -quit 2>/dev/null | grep -q .; then
+            echo "::error::No .dSYM bundles found in $DSYMS_DIR"
+            exit 1
           fi
 
-          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
-            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
-            exit 0
-          fi
+          DEBUG_SYMBOLS_DIR="${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR }}"
+          mkdir -p "$DEBUG_SYMBOLS_DIR"
+          cp -R "$DSYMS_DIR"/*.dSYM "$DEBUG_SYMBOLS_DIR/"
 
-          echo "📤 Uploading iOS debug files from: $DSYMS_DIR"
-          sentry-cli debug-files upload  \
-            --auth-token "$SENTRY_AUTH_TOKEN" \
-            --org "$SENTRY_ORG" \
-            --project "$SENTRY_PROJECT" \
-            --include-sources "$DSYMS_DIR"
+          # Sources are bundled here because they're only available on this machine.
+          sentry-cli debug-files bundle-sources -o "$DEBUG_SYMBOLS_DIR" "$DSYMS_DIR"/*.dSYM
+
+      - name: Upload debug symbols
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR }}
+          path: ${{ env.DEBUG_SYMBOLS_DIR }}
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Cleanup Keychain
         if: always()

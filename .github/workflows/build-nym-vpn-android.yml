@@ -97,6 +97,7 @@ on:
         required: true
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
+  DEBUG_SYMBOLS_DIR_ANDROID: core_debug_symbols_android
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
   SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
   SCCACHE_REDIS_EXPIRATION: 86400
@@ -265,6 +266,7 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          VPNLIB_DEBUG_SYMBOLS_DIR: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
 
       - name: Build Google Play Prerelease Bundle
         if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
@@ -274,6 +276,7 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          VPNLIB_DEBUG_SYMBOLS_DIR: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
 
       - name: Build Google Play Nightly Bundle
         if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
@@ -283,6 +286,7 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          VPNLIB_DEBUG_SYMBOLS_DIR: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
 
       - name: Build Fdroid Release Apk
         # F-Droid rebuilds without VPNLIB_SENTRY_DSN; baking it changes libnym_vpn_lib.so.
@@ -386,5 +390,14 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ steps.output-path.outputs.artifact_path }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload debug symbols
+        if: ${{ inputs.build_flavor == 'play' }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
+          path: ${{ github.workspace }}/${{ env.DEBUG_SYMBOLS_DIR_ANDROID }}
           if-no-files-found: error
           retention-days: 1
