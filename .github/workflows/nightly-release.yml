@@ -10,6 +10,7 @@ jobs:
     name: Publish nightly release
     uses: ./.github/workflows/release-all-platforms.yml
     permissions:
+      actions: read
       contents: write
       pull-requests: write
     with:
