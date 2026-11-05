@@ -702,6 +702,11 @@ impl NymErrorResponse {
     pub fn is_account_not_found(&self) -> bool {
         self.status == "access_denied" && self.message == "Account not found"
     }
+
+    /// The device is not registered with the account.
+    pub fn is_device_not_found(&self) -> bool {
+        self.message_id.as_deref() == Some("nym-vpn-website.public-api.device.not-found")
+    }
 }
 
 impl fmt::Display for NymErrorResponse {
@@ -980,6 +985,26 @@ mod tests {
         assert!(
             !parse(r#"{"status":"access_denied","message":"Account is not active"}"#)
                 .is_account_not_found()
+        );
+    }
+
+    #[test]
+    fn nym_error_response_device_not_found() {
+        let parse = |raw: &str| serde_json::from_str::<NymErrorResponse>(raw).unwrap();
+
+        assert!(
+            parse(
+                r#"{"status":"access_denied","message":"Device not found","messageId":"nym-vpn-website.public-api.device.not-found"}"#
+            )
+            .is_device_not_found()
+        );
+        assert!(
+            !parse(r#"{"status":"access_denied","message":"Device not found"}"#)
+                .is_device_not_found()
+        );
+        assert!(
+            !parse(r#"{"status":"access_denied","message":"Account not found"}"#)
+                .is_device_not_found()
         );
     }
 
