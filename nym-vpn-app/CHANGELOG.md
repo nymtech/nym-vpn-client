@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.15.0] - 2026-11-05
+
 ### Fixed
 
 - Home screen: hide the server quality bar until a gateway is selected (https://github.com/nymtech/nym-vpn-client/issues/6557)
