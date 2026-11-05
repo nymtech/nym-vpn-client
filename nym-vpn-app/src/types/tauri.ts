@@ -567,6 +567,7 @@ export type TunnelError =
   | 'bandwidth-exceeded'
   | 'inactive-subscription'
   | 'device-logged-out'
+  | 'device-not-registered'
   | 'ipv6-unavailable'
   | 'tun-device'
   | 'tunnel-provider'

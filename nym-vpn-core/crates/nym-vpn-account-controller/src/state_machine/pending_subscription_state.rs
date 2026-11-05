@@ -122,6 +122,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                             return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                         }
                     },
+                    AccountCommand::RegisterDevice(return_sender) => {
+                        let res = handler::handle_register_device(shared_state).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {

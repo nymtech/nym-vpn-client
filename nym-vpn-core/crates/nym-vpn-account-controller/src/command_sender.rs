@@ -245,6 +245,17 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn register_device(&self) -> Result<(), AccountControllerError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RegisterDevice(tx))
+            .map_err(AccountControllerError::internal)?;
+        rx.await
+            .map_err(AccountControllerError::internal)?
+            .map_err(AccountControllerError::from)
+    }
+
+    #[instrument(skip(self))]
     pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountControllerError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

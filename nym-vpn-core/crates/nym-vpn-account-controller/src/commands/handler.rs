@@ -388,6 +388,44 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         })
 }
 
+/// Registers the device with the account unless the API already knows it.
+///
+/// The lookup is signed by the device, so step-up authentication is only triggered when the
+/// device actually needs to be registered.
+pub(crate) async fn handle_register_device<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<()> {
+    let device = shared_state.device.as_ref().ok_or(Error::NoDeviceStored)?;
+    let account = shared_state
+        .device_state
+        .account()
+        .ok_or(Error::NoAccountStored)?;
+
+    match shared_state
+        .vpn_api_client
+        .get_device_by_id(&account.id, device)
+        .await
+    {
+        Ok(_) => {
+            tracing::debug!("Device is already registered");
+            Ok(())
+        }
+        Err(err) if extract_error_response(&err).is_some_and(|r| r.is_device_not_found()) => {
+            tracing::info!("Registering device with the account");
+            let vpn_account = shared_state.load_vpn_api_account().await?;
+            shared_state
+                .vpn_api_client
+                .register_device(&vpn_account, device)
+                .await
+                .inspect_err(|err| {
+                    trace_err_chain!(err, "failed to register device");
+                })?;
+            Ok(())
+        }
+        Err(err) => Err(err.into()),
+    }
+}
+
 pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     seed: Option<[u8; 32]>,

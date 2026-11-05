@@ -191,6 +191,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), AccountControllerError>>,
         Option<Seed>,
     ),
+    RegisterDevice(oneshot::Sender<Result<(), AccountControllerError>>, ()),
     GetDeviceIdentity(
         oneshot::Sender<Result<Option<String>, AccountControllerError>>,
         (),
@@ -1268,6 +1269,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::ResetDeviceIdentity(tx, seed) => {
                 let _ = tx.send(self.handle_reset_device_identity(seed).await);
+            }
+            VpnServiceCommand::RegisterDevice(tx, ()) => {
+                let _ = tx.send(self.account_command_tx.register_device().await);
             }
             VpnServiceCommand::GetDeviceIdentity(tx, ()) => {
                 let _ = tx.send(self.handle_get_device_identity().await);

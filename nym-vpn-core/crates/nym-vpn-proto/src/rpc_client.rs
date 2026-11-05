@@ -585,6 +585,17 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn register_device(&mut self) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .register_device(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
     pub async fn get_device_identity(&mut self) -> Result<Option<String>> {
         let response = self
             .0

@@ -73,6 +73,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     // Same comment as above
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender),
 
+                    AccountCommand::RegisterDevice(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::RefreshAccountState(return_sender, _) => return_no_connectivity(return_sender),
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {

@@ -617,6 +617,7 @@ message TunnelState {
     NO_CREDENTIAL_AVAILABLE = 26;
     NEEDS_DEVICE_LOCATION = 27;
     CONNECTION_ATTEMPTS_EXCEEDED = 28;
+    DEVICE_NOT_REGISTERED = 30;
     INTERNAL = 17;
   }
 
@@ -1427,6 +1428,9 @@ service NymVpnService {
 
   // Reset the device identity
   rpc ResetDeviceIdentity(ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
+
+  // Register the device with the account if it is not registered yet
+  rpc RegisterDevice(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Get the device identity
   rpc GetDeviceIdentity(google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}

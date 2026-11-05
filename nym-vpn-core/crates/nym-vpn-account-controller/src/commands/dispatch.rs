@@ -64,6 +64,9 @@ pub enum AccountCommand {
     /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), Error>, Option<[u8; 32]>),
 
+    /// Register the device with the account if it is not registered yet
+    RegisterDevice(ReturnSender<(), Error>),
+
     /// Re-evaluates the account state
     RefreshAccountState(ReturnSender<(), Error>, bool),
 
@@ -94,6 +97,7 @@ impl AccountCommand {
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::RegisterDevice(return_sender) => return_sender.send(Err(error)),
             AccountCommand::RefreshAccountState(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),

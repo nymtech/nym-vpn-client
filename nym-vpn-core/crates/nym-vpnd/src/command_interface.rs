@@ -825,6 +825,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn register_device(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let result = self
+            .send_and_wait(VpnServiceCommand::RegisterDevice, ())
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountControllerError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_device_identity(
         &self,
         _request: tonic::Request<()>,

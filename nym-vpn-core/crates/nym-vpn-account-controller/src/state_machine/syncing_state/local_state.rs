@@ -288,6 +288,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                     },
                     AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
                     AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(Error::AccountNotDecentralised)),
+                    AccountCommand::RegisterDevice(return_sender) => {
+                        let res = handler::handle_register_device(shared_state).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {

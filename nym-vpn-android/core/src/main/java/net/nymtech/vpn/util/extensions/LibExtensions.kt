@@ -89,6 +89,7 @@ private val ERROR_STATE_REASON_STRING_RES: Map<ErrorStateReason, Int> = mapOf(
 	ErrorStateReason.InactiveSubscription to R.string.error_reason_inactive_subscription,
 	ErrorStateReason.MaxDevicesReached to R.string.error_reason_max_devices_reached,
 	ErrorStateReason.DeviceLoggedOut to R.string.error_reason_device_logged_out,
+	ErrorStateReason.DeviceNotRegistered to R.string.error_reason_device_not_registered,
 	ErrorStateReason.CredentialFetchingFailed to R.string.error_reason_credential_fetching_failed,
 	ErrorStateReason.NoCredentialAvailable to R.string.error_reason_no_credential_available,
 	ErrorStateReason.NeedsDeviceLocation to R.string.error_reason_needs_device_location,

@@ -137,6 +137,14 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                             return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                         }
                     },
+                    AccountCommand::RegisterDevice(return_sender) => {
+                        let res = handler::handle_register_device(shared_state).await;
+                        let registered = res.is_ok();
+                        return_sender.send(res);
+                        if registered {
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
+                        }
+                    },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {

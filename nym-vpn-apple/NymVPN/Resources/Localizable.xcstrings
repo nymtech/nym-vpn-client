@@ -7335,6 +7335,17 @@
         }
       }
     },
+    "errorReason.deviceNotRegistered" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device is not registered with your account. Please authorize registration."
+          }
+        }
+      }
+    },
     "errorReason.dns" : {
       "extractionState" : "manual",
       "localizations" : {
