@@ -126,7 +126,7 @@ jobs:
           set -euo pipefail
           mkdir "${{ env.DEBUG_SYMBOLS_DIR_MACOS }}"
           for bin in nym-setup nym-vpnc nym-vpnd nym-socks5-proxy nym-diagnostic; do
-            cp -Rp "$SRC_BINARY/$bin.dSYM" "${{ env.DEBUG_SYMBOLS_DIR_MACOS }}/"
+            cp -RLp "$SRC_BINARY/$bin.dSYM" "${{ env.DEBUG_SYMBOLS_DIR_MACOS }}/"
           done
 
       - name: Upload debug symbols
