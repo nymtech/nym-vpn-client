@@ -427,7 +427,6 @@ jobs:
       # artifacts that exist at this point are copied, not ones uploaded by
       # the release jobs.
       - name: List build artifacts
-        if: ${{ needs.build.result == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -437,7 +436,6 @@ jobs:
           jq . artifacts.json
 
       - name: Upload build outputs
-        if: ${{ needs.build.result == 'success' }}
         uses: actions/upload-artifact@v7.0.1
         with:
           name: build_outputs
