@@ -5639,6 +5639,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-authorization-service"
+version = "2026.16.0-beta.1"
+dependencies = [
+ "libc",
+ "objc2-core-foundation",
+ "objc2-security",
+ "thiserror 2.0.21",
+ "tracing",
+]
+
+[[package]]
 name = "nym-bandwidth-controller"
 version = "1.22.3"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
@@ -7838,6 +7849,7 @@ dependencies = [
  "nix 0.31.3",
  "nym-apple-network",
  "nym-authenticator-client",
+ "nym-authorization-service",
  "nym-bandwidth-controller",
  "nym-bin-common",
  "nym-bridges",
@@ -7969,6 +7981,7 @@ dependencies = [
  "jni",
  "log",
  "ndk-context",
+ "nym-authorization-service",
  "nym-bandwidth-controller",
  "nym-common 2026.16.0-beta.1",
  "nym-diagnostic",
@@ -8078,6 +8091,7 @@ dependencies = [
  "clap_complete",
  "dirs 7.0.0",
  "enum-iterator",
+ "nym-authorization-service",
  "nym-diagnostic",
  "nym-favorites",
  "nym-vpn-lib-types",
@@ -8098,6 +8112,7 @@ dependencies = [
  "clap",
  "eventlog",
  "futures",
+ "nym-authorization-service",
  "nym-bin-common",
  "nym-ipc",
  "nym-platform-metadata",

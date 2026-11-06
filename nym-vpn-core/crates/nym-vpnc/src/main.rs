@@ -123,6 +123,14 @@ pub enum Command {
         subcommand: commands::network::Command,
     },
 
+    /// Authenticate to authorize account operations (macOS)
+    #[cfg(target_os = "macos")]
+    Authorize(commands::authorization::AuthorizeArgs),
+
+    /// Revoke the authorization obtained with authorize (macOS)
+    #[cfg(target_os = "macos")]
+    Deauthorize,
+
     /// Sentry integration
     Sentry {
         #[command(subcommand)]
@@ -205,6 +213,12 @@ impl Command {
             Command::Network { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Account { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Device(args) => args.execute(rpc_client.await?).await,
+            #[cfg(target_os = "macos")]
+            Command::Authorize(args) => {
+                commands::authorization::authorize(rpc_client.await?, args).await
+            }
+            #[cfg(target_os = "macos")]
+            Command::Deauthorize => commands::authorization::deauthorize(rpc_client.await?).await,
             Command::Sentry { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::Socks5 { subcommand } => subcommand.execute(rpc_client.await?).await,
             Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client.await?).await,

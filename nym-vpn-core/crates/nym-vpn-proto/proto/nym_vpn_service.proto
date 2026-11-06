@@ -1310,6 +1310,11 @@ message DnsServer {
     }
 }
 
+message AuthorizeRequest {
+  // Authorization obtained in the user's session (macOS)
+  bytes authorization = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1510,6 +1515,12 @@ service NymVpnService {
 
   // Get the most probable gateway pair that is going to be used with the set tunnel settings
   rpc GetTentativeGateways(google.protobuf.Empty) returns (TentativeGateways) {}
+
+  // Authorization (macOS)
+  // Authorize account operations with the token obtained in the user's session
+  rpc Authorize(AuthorizeRequest) returns (google.protobuf.Empty) {}
+  // Revoke the authorization obtained with Authorize
+  rpc Deauthorize(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Split-tunnel (all platforms)
   rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
