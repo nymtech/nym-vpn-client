@@ -68,29 +68,6 @@ where
             .map_err(|err| Error::AccountStore(Box::new(err)))
     }
 
-    pub async fn load_vpn_account(&self) -> Result<Option<VpnAccount>> {
-        let device_state = self.load_device_state().await?;
-
-        Ok(match device_state {
-            StoredDeviceState::LoggedIn {
-                account_identity: account,
-                ecash_keypair: _,
-                summary: _,
-            } => self.load_mnemonic().await.and_then(|mnemonic| {
-                mnemonic
-                    .map(|stored_mnemonic| {
-                        VpnAccount::new(
-                            stored_mnemonic.mnemonic,
-                            VpnAccountMode::from(account.mode),
-                        )
-                        .map_err(Error::internal)
-                    })
-                    .transpose()
-            })?,
-            StoredDeviceState::LoggedOut => None,
-        })
-    }
-
     pub async fn remove_account(&self) -> Result<()> {
         self.storage
             .remove_mnemonic()
