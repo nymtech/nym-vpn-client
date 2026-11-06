@@ -5639,6 +5639,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-authorization-service"
+version = "2026.16.0-beta.1"
+dependencies = [
+ "libc",
+ "objc2-core-foundation",
+ "objc2-security",
+ "thiserror 2.0.21",
+ "tracing",
+]
+
+[[package]]
 name = "nym-bandwidth-controller"
 version = "1.22.3"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.21-hanoi#bc859f8d0c686d4484d476cd3d7e34a722e598f5"
