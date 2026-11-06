@@ -48,7 +48,7 @@ class QrScannerViewModelTest {
 
 	private val timeSource = TestTimeSource()
 
-	private fun viewModel(validator: QrScanValidator = this.validator) = QrScannerViewModel(QrScanMode.PAIRING, validator, MESSAGE_DURATION, timeSource)
+	private fun viewModel(validator: QrScanValidator = this.validator) = QrScannerViewModel(QrScanMode.ANY, validator, MESSAGE_DURATION, timeSource)
 
 	@Test
 	fun acceptedCodeBecomesTheResult() = runTest(dispatcher) {
@@ -56,7 +56,7 @@ class QrScannerViewModelTest {
 		viewModel.onCodeScan(validUrl)
 		runCurrent()
 
-		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult(validUrl), viewModel.uiState.value.result)
 		assertFalse(viewModel.uiState.value.showInvalidCode)
 	}
 
@@ -69,11 +69,11 @@ class QrScannerViewModelTest {
 		val state = viewModel.uiState.value
 		assertNull(state.result)
 		assertTrue(state.showInvalidCode)
-		assertEquals(QrScanMode.PAIRING.invalidCodeRes, state.invalidCodeRes)
+		assertEquals(QrScanMode.ANY.invalidCodeRes, state.invalidCodeRes)
 
 		viewModel.onCodeScan(validUrl)
 		runCurrent()
-		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -114,7 +114,7 @@ class QrScannerViewModelTest {
 		runCurrent()
 
 		assertEquals(listOf(validUrl), validated)
-		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -126,7 +126,7 @@ class QrScannerViewModelTest {
 		runCurrent()
 
 		assertEquals(listOf(validUrl), validated)
-		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult(validUrl), viewModel.uiState.value.result)
 	}
 
 	@Test
@@ -176,28 +176,7 @@ class QrScannerViewModelTest {
 		viewModel.onCodeScan(validUrl)
 		runCurrent()
 		assertEquals(listOf(validUrl, validUrl), validated)
-		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
-	}
-
-	@Test
-	fun fallbackBecomesTheResult() = runTest(dispatcher) {
-		val viewModel = viewModel()
-		viewModel.onFallback()
-		viewModel.onCodeScan(validUrl)
-		runCurrent()
-
-		assertEquals(QrScanResult.Fallback, viewModel.uiState.value.result)
-		assertTrue(validated.isEmpty())
-	}
-
-	@Test
-	fun fallbackAfterTheResultIsIgnored() = runTest(dispatcher) {
-		val viewModel = viewModel()
-		viewModel.onCodeScan(validUrl)
-		runCurrent()
-		viewModel.onFallback()
-
-		assertEquals(QrScanResult.Code(validUrl), viewModel.uiState.value.result)
+		assertEquals(QrScanResult(validUrl), viewModel.uiState.value.result)
 	}
 
 	private companion object {

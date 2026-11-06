@@ -60,7 +60,7 @@ internal fun QrScannerScreen(
 
 	LaunchedEffect(uiState.result) {
 		val result = uiState.result ?: return@LaunchedEffect
-		if (result !is QrScanResult.Fallback) haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+		haptics.performHapticFeedback(HapticFeedbackType.Confirm)
 		onResult(result)
 	}
 
@@ -68,14 +68,13 @@ internal fun QrScannerScreen(
 		mode = mode,
 		uiState = uiState,
 		onCodeScan = viewModel::onCodeScan,
-		onFallback = viewModel::onFallback,
 		onClose = onClose,
 		modifier = modifier,
 	)
 }
 
 @Composable
-internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCodeScan: (String) -> Unit, onFallback: () -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCodeScan: (String) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val permission = rememberCameraPermissionState()
 	var cameraError by remember { mutableStateOf(false) }
@@ -93,8 +92,6 @@ internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCode
 				icon = Icons.Outlined.Warning,
 				title = stringResource(R.string.qr_scanner_camera_error_title),
 				body = stringResource(R.string.qr_scanner_camera_error_body),
-				secondaryActionLabel = mode.fallbackRes?.let { stringResource(it) },
-				onSecondaryAction = onFallback,
 			)
 			cameraActive -> {
 				QrCameraPreview(
@@ -109,16 +106,12 @@ internal fun QrScannerScreen(mode: QrScanMode, uiState: QrScannerUiState, onCode
 					hintRes = mode.hintRes,
 					invalidCodeRes = uiState.invalidCodeRes,
 					showInvalidCode = uiState.showInvalidCode,
-					fallbackRes = mode.fallbackRes,
-					onFallback = onFallback,
 				)
 			}
 			else -> QrPermissionContent(
 				status = permission.status,
 				onRequestPermission = permission.request,
 				onOpenSettings = { context.openAppSettings() },
-				fallbackRes = mode.fallbackRes,
-				onFallback = onFallback,
 			)
 		}
 		QrScannerTopBar(

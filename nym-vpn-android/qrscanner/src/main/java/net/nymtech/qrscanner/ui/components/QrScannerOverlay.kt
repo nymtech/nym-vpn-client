@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +48,7 @@ private val BracketLength = 40.dp
 private val BracketStrokeWidth = 4.dp
 
 @Composable
-internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes: Int, showInvalidCode: Boolean, @StringRes fallbackRes: Int?, onFallback: () -> Unit, modifier: Modifier = Modifier) {
+internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes: Int, showInvalidCode: Boolean, modifier: Modifier = Modifier) {
 	val bracketColor = MaterialTheme.colorScheme.primary
 	BoxWithConstraints(modifier = modifier.fillMaxSize()) {
 		val windowSize = min(maxWidth, maxHeight) * ScanArea.WINDOW_FRACTION
@@ -118,16 +117,6 @@ internal fun QrScannerOverlay(@StringRes hintRes: Int, @StringRes invalidCodeRes
 							.background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(8.dp))
 							.padding(horizontal = 12.dp, vertical = 6.dp),
 					)
-				}
-				Spacer(modifier = Modifier.weight(1f))
-				if (fallbackRes != null) {
-					TextButton(onClick = onFallback) {
-						Text(
-							text = stringResource(fallbackRes),
-							style = MaterialTheme.typography.labelLarge,
-							color = QrScannerColors.onOverlay,
-						)
-					}
 				}
 			}
 		}

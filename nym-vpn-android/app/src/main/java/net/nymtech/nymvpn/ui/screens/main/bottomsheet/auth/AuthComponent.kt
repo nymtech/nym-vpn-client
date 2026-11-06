@@ -23,7 +23,6 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.deviceauth.rememberScreenLockGate
 import net.nymtech.nymvpn.ui.common.navigation.AppNavHost
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.LoginView
 import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.PassphraseView
@@ -33,7 +32,6 @@ import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeVie
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.qrscanner.isQrCameraAvailable
-import net.nymtech.qrscanner.model.QrScanMode
 
 @Composable
 fun AuthComponent(
@@ -100,7 +98,7 @@ fun AuthComponent(
 					{
 						// The sheet hides while the scanner is open and reopens on Welcome when it closes.
 						onAuthSuccess()
-						rootNavController.navigate(Route.QrScan(mode = QrScanMode.ANY.name, authRoute = AuthRoute.Welcome.routeName))
+						rootNavController.navigate(Route.QrScan)
 					}
 				} else {
 					null

@@ -93,7 +93,6 @@ import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.navigateAndForgetToMain
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
-import net.nymtech.qrscanner.model.QrScanMode
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -350,13 +349,7 @@ class MainActivity : AppCompatActivity() {
 
 								composable<Route.DeletedAccount> { DeletedScreen() }
 
-								composable<Route.QrScan> {
-									val args = it.toRoute<Route.QrScan>()
-									QrScanScreen(
-										mode = QrScanMode.entries.firstOrNull { mode -> mode.name == args.mode } ?: QrScanMode.ANY,
-										returnTo = AuthRoute.fromName(args.authRoute) ?: AuthRoute.Welcome,
-									)
-								}
+								composable<Route.QrScan> { QrScanScreen() }
 
 								composable<Route.PairingSignIn> { PairingSignInScreen() }
 

@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,16 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun QrScannerMessage(
-	icon: ImageVector,
-	title: String,
-	body: String,
-	modifier: Modifier = Modifier,
-	actionLabel: String? = null,
-	onAction: () -> Unit = {},
-	secondaryActionLabel: String? = null,
-	onSecondaryAction: () -> Unit = {},
-) {
+internal fun QrScannerMessage(icon: ImageVector, title: String, body: String, modifier: Modifier = Modifier, actionLabel: String? = null, onAction: () -> Unit = {}) {
 	Column(
 		modifier = modifier
 			.fillMaxSize()
@@ -76,12 +66,6 @@ internal fun QrScannerMessage(
 					.height(56.dp),
 			) {
 				Text(text = actionLabel, style = MaterialTheme.typography.labelLarge)
-			}
-		}
-		if (secondaryActionLabel != null) {
-			Spacer(modifier = Modifier.height(8.dp))
-			TextButton(onClick = onSecondaryAction, modifier = Modifier.fillMaxWidth()) {
-				Text(text = secondaryActionLabel, style = MaterialTheme.typography.labelLarge)
 			}
 		}
 	}

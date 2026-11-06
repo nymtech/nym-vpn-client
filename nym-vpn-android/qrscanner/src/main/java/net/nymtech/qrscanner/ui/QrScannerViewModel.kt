@@ -53,7 +53,7 @@ internal class QrScannerViewModel(
 				QrScanValidation.Valid -> {
 					hideInvalidCodeJob?.cancel()
 					lastRejection = null
-					_uiState.update { it.copy(result = QrScanResult.Code(contents), showInvalidCode = false) }
+					_uiState.update { it.copy(result = QrScanResult(contents), showInvalidCode = false) }
 				}
 				is QrScanValidation.Invalid -> {
 					lastRejection = Rejection(contents, validation.retryAfter?.let { timeSource.markNow() + it })
@@ -61,11 +61,6 @@ internal class QrScannerViewModel(
 				}
 			}
 		}
-	}
-
-	fun onFallback() {
-		if (_uiState.value.result != null) return
-		_uiState.update { it.copy(result = QrScanResult.Fallback) }
 	}
 
 	private suspend fun validate(contents: String): QrScanValidation = try {
