@@ -2066,7 +2066,7 @@ impl NymVpnService {
             if self.authorization_service.is_authorized() {
                 Ok(())
             } else {
-                Err(AccountCommandError::AuthorizationRequired)
+                Err(AccountCommandError::UserPresenceRequired)
             }
         }
 

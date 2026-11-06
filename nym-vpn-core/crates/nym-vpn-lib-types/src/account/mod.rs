@@ -131,8 +131,8 @@ pub enum AccountCommandError {
     #[error("deeplink error: {0}")]
     DeeplinkError(String),
 
-    #[error("authorization required")]
-    AuthorizationRequired,
+    #[error("user presence required")]
+    UserPresenceRequired,
 }
 
 impl AccountCommandError {

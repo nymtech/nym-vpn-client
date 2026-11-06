@@ -7981,6 +7981,7 @@ dependencies = [
  "jni",
  "log",
  "ndk-context",
+ "nym-authorization-service",
  "nym-bandwidth-controller",
  "nym-common 2026.16.0-beta.1",
  "nym-diagnostic",

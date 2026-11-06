@@ -1141,4 +1141,14 @@ pub enum Error {
     AuthenticationRequired,
 }
 
+impl Error {
+    /// Whether the daemon requires the user to be present before performing the request.
+    ///
+    /// Not to be confused with [`Error::AuthenticationRequired`], which is returned when the
+    /// client is not allowed to connect to the daemon.
+    pub fn is_user_presence_required(&self) -> bool {
+        matches!(self, Error::Rpc(status) if status.code() == tonic::Code::Unauthenticated)
+    }
+}
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;

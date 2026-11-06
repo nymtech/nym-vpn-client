@@ -154,7 +154,7 @@ impl From<AccountCommandError> for VpnError {
             }
             AccountCommandError::DeeplinkError(message) => Self::DeeplinkError { details: message },
             AccountCommandError::InvalidPublicKey(err) => Self::InvalidPublicKey { details: err },
-            error @ AccountCommandError::AuthorizationRequired => Self::InternalError {
+            error @ AccountCommandError::UserPresenceRequired => Self::InternalError {
                 details: error.to_string(),
             },
             AccountCommandError::PairingNotStarted => Self::PairingNotStarted,

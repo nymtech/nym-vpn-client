@@ -83,9 +83,6 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::PairingDerivingSharedSecret(err) => {
                 Self::PairingDerivingSharedSecret(err)
             }
-            proto::account_command_error::ErrorDetail::AuthorizationRequired(_) => {
-                Self::AuthorizationRequired
-            }
         })
     }
 }
@@ -234,10 +231,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                     message,
                 )),
             },
-            AccountCommandError::AuthorizationRequired => proto::AccountCommandError {
-                error_detail: Some(
-                    proto::account_command_error::ErrorDetail::AuthorizationRequired(true),
-                ),
+            // Reported as an `Unauthenticated` status instead.
+            error @ AccountCommandError::UserPresenceRequired => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::Internal(
+                    error.to_string(),
+                )),
             },
         }
     }
