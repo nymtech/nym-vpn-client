@@ -23163,6 +23163,72 @@
         }
       }
     },
+    "purchasePlan.appleIdGate.body.autoRenewOff" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. It is cancelled and ends on %@. Log in to that account to use it until then, or come back after that date to subscribe with this account."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.body.autoRenewOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Apple ID already has a NymVPN subscription, and it belongs to a different NymVPN account. Log in to that account to use it. To subscribe with this account instead, cancel it in Settings and come back after %@."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.manage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage subscription"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.statusUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We couldn't check this Apple ID's subscription status. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.switchAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch account"
+          }
+        }
+      }
+    },
+    "purchasePlan.appleIdGate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription on another account"
+          }
+        }
+      }
+    },
     "purchasePlan.cancelAnytime" : {
       "extractionState" : "manual",
       "localizations" : {
