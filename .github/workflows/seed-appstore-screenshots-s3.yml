@@ -1,0 +1,74 @@
+name: seed-appstore-screenshots-s3
+
+# One-shot seed: uploads the two app-store screenshot ZIPs to the
+# nym-vpn-client-screenshots bucket, rebuilt from the (closed) screenshot PRs so
+# nothing large has to land in git history. Each ZIP is a single object fetched
+# by URL later, so no S3 listing is needed on the read side.
+#
+# Future screenshot updates are re-exported from Figma, not pulled from PR refs —
+# this workflow is only to seed the bucket now, and is safe to delete afterwards.
+on:
+  workflow_dispatch:
+    inputs:
+      ios_pr:
+        description: "PR number whose head carries fastlane/screenshots/ios"
+        type: string
+        default: "6941"
+      android_pr:
+        description: "PR number whose head carries the Android *Screenshots dirs"
+        type: string
+        default: "6950"
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    runs-on: arc-linux-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Build screenshot ZIPs from the closed PR commits
+        env:
+          IOS_PR: ${{ inputs.ios_pr }}
+          ANDROID_PR: ${{ inputs.android_pr }}
+        run: |
+          set -euo pipefail
+          # checkout persists the token, so these pull refs are fetchable.
+          git fetch origin \
+            "refs/pull/${IOS_PR}/head:ios-src" \
+            "refs/pull/${ANDROID_PR}/head:android-src"
+
+          # iOS: the whole screenshots/ios tree. Paths are repo-relative, so a
+          # later `unzip` at the repo root drops them exactly where deliver expects.
+          git archive --format=zip ios-src fastlane/screenshots/ios -o ios-screenshots.zip
+
+          # Android: only the *Screenshots dirs — not the text metadata, not
+          # icon.png / featureGraphic.png (those stay PNG in git).
+          dirs=$(git ls-tree -r -d --name-only android-src -- fastlane/metadata/android | grep 'Screenshots$')
+          git archive --format=zip android-src $dirs -o android-screenshots.zip
+
+          ios_n=$(git ls-tree -r --name-only ios-src -- fastlane/screenshots/ios | grep -c '\.jpg$')
+          and_n=$(git ls-tree -r --name-only android-src -- fastlane/metadata/android | grep -E 'Screenshots/.*\.jpg$' | grep -c . || true)
+          echo "iOS zip: ${ios_n} jpgs ($(du -h ios-screenshots.zip | cut -f1))"
+          echo "Android zip: ${and_n} jpgs ($(du -h android-screenshots.zip | cut -f1))"
+          test "$ios_n" -gt 0 && test "$and_n" -gt 0
+
+      - name: Upload iOS ZIP
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: ios-screenshots.zip
+          bucket: nym-vpn-client-screenshots
+          endpoint: https://s3.nymte.ch
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
+
+      - name: Upload Android ZIP
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: android-screenshots.zip
+          bucket: nym-vpn-client-screenshots
+          endpoint: https://s3.nymte.ch
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
