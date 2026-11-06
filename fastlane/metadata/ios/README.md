@@ -29,7 +29,7 @@ so the purchase sheet shows the real regional price (decided 2026-11-04).
 What's New to the **single editable App Store Version** (there is no per-build changelog like
 Google Play's `supply`), so this file is **overwritten each release** and `deliver` pushes it
 to the version being prepared. First set for **v2026.15 "Yari"** (2026-11-06) across 17 locales
-— the 16 listing locales plus **`bn`** (release_notes only; Bengali has no listing fields here yet).
+— the 16 listing locales plus **`bn-BD`** (release_notes only; Bengali has no listing fields here yet).
 
 ## Not managed here (by design)
 
