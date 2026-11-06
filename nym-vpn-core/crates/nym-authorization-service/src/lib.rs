@@ -14,6 +14,9 @@
 //! user for their password or Touch ID, and hands the resulting token over to the daemon.
 //! [`AuthorizationService`] then asks `authd` to confirm the right was granted, failing instead of
 //! prompting if it was not. The token only refers to state held by `authd`, so it cannot be forged.
+//!
+//! The daemon is shared by all users on the system, so the authorization is bound to the [`Client`]
+//! that handed over the token and does not apply to other users or sessions.
 
 #[cfg(target_os = "macos")]
 mod authorization;
@@ -24,6 +27,14 @@ mod service;
 pub use authorization::Authorization;
 #[cfg(target_os = "macos")]
 pub use service::AuthorizationService;
+
+/// Client connected to the daemon. An authorization only applies to the client that obtained it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Client {
+    pub user_id: u32,
+    /// Audit session of the client, if known.
+    pub audit_session_id: Option<i32>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum Error {

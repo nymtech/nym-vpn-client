@@ -50,6 +50,7 @@ nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 nym-apple-network.workspace = true
 nym-authenticator-client.workspace = true
+nym-authorization-service.workspace = true
 nym-common.workspace = true
 nym-conflict.workspace = true
 nym-diagnostic.workspace = true
@@ -159,7 +160,6 @@ nym-firewall.workspace = true
 
 # Apple-specific dependencies
 [target.'cfg(target_os = "macos")'.dependencies]
-nym-authorization-service.workspace = true
 nym-macos.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]

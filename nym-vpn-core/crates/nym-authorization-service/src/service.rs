@@ -16,7 +16,7 @@ use objc2_security::{
     errAuthorizationSuccess,
 };
 
-use crate::{Error, Result};
+use crate::{Client, Error, Result};
 
 const UNLOCK_RIGHT: &CStr = c"net.nymtech.vpn.unlock-account";
 
@@ -30,10 +30,16 @@ pub const AUTHORIZATION_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 /// Software lock unlocked with the token obtained with [`crate::Authorization`]. Callers check
 /// [`Self::is_authorized`] before performing operations that require user presence.
 ///
-/// The authorization expires after [`AUTHORIZATION_TIMEOUT`], including time spent asleep.
+/// Only the client that unlocked it is authorized, and only one client at a time. The
+/// authorization expires after [`AUTHORIZATION_TIMEOUT`], including time spent asleep.
 #[derive(Default)]
 pub struct AuthorizationService {
-    authorized_until: Option<Duration>,
+    grant: Option<Grant>,
+}
+
+struct Grant {
+    client: Client,
+    expires_at: Duration,
 }
 
 impl AuthorizationService {
@@ -100,20 +106,32 @@ impl AuthorizationService {
         check(status)
     }
 
-    /// Verify the token and mark as authorized. The token cannot be used again afterwards.
-    pub fn authorize(&mut self, token: &[u8]) -> Result<()> {
+    /// Verify the token and authorize `client`, replacing any other client's authorization. The
+    /// token cannot be used again afterwards.
+    pub fn authorize(&mut self, token: &[u8], client: Client) -> Result<()> {
         verify_unlock_token(token)?;
-        self.authorized_until = Some(continuous_time()? + AUTHORIZATION_TIMEOUT);
+        self.grant = Some(Grant {
+            client,
+            expires_at: continuous_time()? + AUTHORIZATION_TIMEOUT,
+        });
         Ok(())
     }
 
-    pub fn deauthorize(&mut self) {
-        self.authorized_until = None;
+    /// Revoke the authorization if it belongs to `client`.
+    pub fn deauthorize(&mut self, client: &Client) {
+        if self
+            .grant
+            .as_ref()
+            .is_some_and(|grant| grant.client == *client)
+        {
+            self.grant = None;
+        }
     }
 
-    pub fn is_authorized(&self) -> bool {
-        self.authorized_until
-            .is_some_and(|deadline| continuous_time().is_ok_and(|now| now < deadline))
+    pub fn is_authorized(&self, client: &Client) -> bool {
+        self.grant.as_ref().is_some_and(|grant| {
+            grant.client == *client && continuous_time().is_ok_and(|now| now < grant.expires_at)
+        })
     }
 }
 
@@ -201,34 +219,79 @@ pub fn check(status: i32) -> Result<()> {
 mod tests {
     use super::*;
 
-    fn service_authorized_until(deadline: Duration) -> AuthorizationService {
+    const CLIENT: Client = Client {
+        user_id: 501,
+        audit_session_id: Some(100_001),
+    };
+
+    fn service_authorized_until(client: Client, expires_at: Duration) -> AuthorizationService {
         AuthorizationService {
-            authorized_until: Some(deadline),
+            grant: Some(Grant { client, expires_at }),
         }
+    }
+
+    fn deadline() -> Duration {
+        continuous_time().unwrap() + AUTHORIZATION_TIMEOUT
     }
 
     #[test]
     fn not_authorized_by_default() {
-        assert!(!AuthorizationService::default().is_authorized());
+        assert!(!AuthorizationService::default().is_authorized(&CLIENT));
     }
 
     #[test]
     fn authorized_before_deadline() {
-        let now = continuous_time().unwrap();
-        assert!(service_authorized_until(now + AUTHORIZATION_TIMEOUT).is_authorized());
+        assert!(service_authorized_until(CLIENT, deadline()).is_authorized(&CLIENT));
     }
 
     #[test]
     fn expires_after_deadline() {
-        let now = continuous_time().unwrap();
-        assert!(!service_authorized_until(now - Duration::from_secs(1)).is_authorized());
+        let expired = continuous_time().unwrap() - Duration::from_secs(1);
+        assert!(!service_authorized_until(CLIENT, expired).is_authorized(&CLIENT));
     }
 
     #[test]
-    fn invalidate_revokes_authorization() {
-        let now = continuous_time().unwrap();
-        let mut service = service_authorized_until(now + AUTHORIZATION_TIMEOUT);
-        service.deauthorize();
-        assert!(!service.is_authorized());
+    fn other_user_is_not_authorized() {
+        let other = Client {
+            user_id: 502,
+            ..CLIENT
+        };
+        assert!(!service_authorized_until(CLIENT, deadline()).is_authorized(&other));
+    }
+
+    #[test]
+    fn other_session_is_not_authorized() {
+        let other = Client {
+            audit_session_id: Some(100_002),
+            ..CLIENT
+        };
+        assert!(!service_authorized_until(CLIENT, deadline()).is_authorized(&other));
+    }
+
+    #[test]
+    fn unknown_session_does_not_match_known_session() {
+        let other = Client {
+            audit_session_id: None,
+            ..CLIENT
+        };
+        assert!(!service_authorized_until(CLIENT, deadline()).is_authorized(&other));
+    }
+
+    #[test]
+    fn deauthorize_revokes_authorization() {
+        let mut service = service_authorized_until(CLIENT, deadline());
+        service.deauthorize(&CLIENT);
+        assert!(!service.is_authorized(&CLIENT));
+    }
+
+    #[test]
+    fn deauthorize_by_other_client_is_ignored() {
+        let other = Client {
+            user_id: 502,
+            ..CLIENT
+        };
+        let mut service = service_authorized_until(CLIENT, deadline());
+        service.deauthorize(&other);
+        assert!(service.is_authorized(&CLIENT));
     }
 }

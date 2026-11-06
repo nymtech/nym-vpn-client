@@ -26,7 +26,8 @@ use nym_vpn_proto::proto::{
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
-use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
+use nym_authorization_service::Client;
+use nym_vpn_lib::service::{ClientRequest, SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -615,11 +616,15 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let client = client(&request);
         let store_request = nym_vpn_lib_types::StoreAccountRequest::try_from(request.into_inner())
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
         let result = self
-            .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
+            .send_and_wait(
+                VpnServiceCommand::StoreAccount,
+                ClientRequest::new(client, store_request),
+            )
             .await?;
 
         account_command_response(result)
@@ -673,10 +678,13 @@ impl NymVpnService for CommandInterface {
 
     async fn forget_account(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let result = self
-            .send_and_wait(VpnServiceCommand::ForgetAccount, ())
+            .send_and_wait(
+                VpnServiceCommand::ForgetAccount,
+                client_request(&request, ()),
+            )
             .await?;
 
         account_command_response(result)
@@ -790,6 +798,7 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::ResetDeviceIdentityRequest>,
     ) -> Result<tonic::Response<()>> {
+        let client = client(&request);
         let seed: Option<[u8; 32]> = request
             .into_inner()
             .seed
@@ -800,9 +809,12 @@ impl NymVpnService for CommandInterface {
             })
             .transpose()?;
 
-        self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
-            .await?
-            .map_err(|err| account_command_status("Failed to reset device identity", err))?;
+        self.send_and_wait(
+            VpnServiceCommand::ResetDeviceIdentity,
+            ClientRequest::new(client, seed),
+        )
+        .await?
+        .map_err(|err| account_command_status("Failed to reset device identity", err))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -825,10 +837,10 @@ impl NymVpnService for CommandInterface {
 
     async fn get_devices(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::GetDevicesResponse>> {
         let devices = self
-            .send_and_wait(VpnServiceCommand::GetDevices, ())
+            .send_and_wait(VpnServiceCommand::GetDevices, client_request(&request, ()))
             .await?
             .map_err(|err| account_command_status("Failed to get devices", err))?;
 
@@ -839,10 +851,13 @@ impl NymVpnService for CommandInterface {
 
     async fn get_active_devices(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::GetDevicesResponse>> {
         let devices = self
-            .send_and_wait(VpnServiceCommand::GetActiveDevices, ())
+            .send_and_wait(
+                VpnServiceCommand::GetActiveDevices,
+                client_request(&request, ()),
+            )
             .await?
             .map_err(|err| account_command_status("Failed to get active devices", err))?;
 
@@ -934,6 +949,7 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::GetDeeplinkParams>,
     ) -> Result<tonic::Response<proto::AutologinResponse>> {
+        let client = client(&request);
         let req = request.into_inner();
 
         let params: GetDeeplinkParams = req.try_into().map_err(|err| {
@@ -943,7 +959,10 @@ impl NymVpnService for CommandInterface {
         })?;
 
         let url = self
-            .send_and_wait(VpnServiceCommand::GetAutologinDeeplink, params)
+            .send_and_wait(
+                VpnServiceCommand::GetAutologinDeeplink,
+                ClientRequest::new(client, params),
+            )
             .await?
             .map_err(|err| account_command_status("Failed to get autologin deeplink", err))?;
 
@@ -954,12 +973,13 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<String>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let client = client(&request);
         let deeplink_callback_url = request.into_inner();
 
         let result = self
             .send_and_wait(
                 VpnServiceCommand::DeeplinkStoreAccount,
-                deeplink_callback_url,
+                ClientRequest::new(client, deeplink_callback_url),
             )
             .await?;
 
@@ -968,10 +988,13 @@ impl NymVpnService for CommandInterface {
 
     async fn start_pairing(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::QrUrlResponse>> {
         let qr_url = self
-            .send_and_wait(VpnServiceCommand::StartPairing, ())
+            .send_and_wait(
+                VpnServiceCommand::StartPairing,
+                client_request(&request, ()),
+            )
             .await?
             .map_err(|err| account_command_status("Failed to start pairing", err))?;
 
@@ -1000,11 +1023,15 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<u32>,
     ) -> Result<tonic::Response<()>> {
+        let client = client(&request);
         let session_id = request.into_inner();
 
-        self.send_and_wait(VpnServiceCommand::VerifiedPairingPin, session_id)
-            .await?
-            .map_err(|err| account_command_status("Failed to verify pairing PIN", err))?;
+        self.send_and_wait(
+            VpnServiceCommand::VerifiedPairingPin,
+            ClientRequest::new(client, session_id),
+        )
+        .await?
+        .map_err(|err| account_command_status("Failed to verify pairing PIN", err))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -1253,13 +1280,14 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
+            let client = client(&_request).ok_or_else(unknown_client)?;
             let authorization = _request.into_inner().authorization;
             if authorization.is_empty() {
                 Err(tonic::Status::invalid_argument(
                     "Authorization token is required",
                 ))
             } else {
-                self.send_and_wait(VpnServiceCommand::Authorize, authorization)
+                self.send_and_wait(VpnServiceCommand::Authorize, (authorization, client))
                     .await?
                     .map_err(|err| tonic::Status::internal(err.to_string()))?;
                 Ok(tonic::Response::new(()))
@@ -1273,7 +1301,8 @@ impl NymVpnService for CommandInterface {
     async fn deauthorize(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
-            self.send_and_wait(VpnServiceCommand::Deauthorize, ())
+            let client = client(&_request).ok_or_else(unknown_client)?;
+            self.send_and_wait(VpnServiceCommand::Deauthorize, client)
                 .await?;
             Ok(tonic::Response::new(()))
         }
@@ -1527,6 +1556,33 @@ pub async fn start_command_interface(
     });
 
     Ok((server_handle, vpn_command_rx))
+}
+
+/// Client that sent the request, used to bind authorization to the user and session that obtained
+/// it. Only known on macOS, where account operations require authorization.
+fn client<T>(_request: &Request<T>) -> Option<Client> {
+    #[cfg(target_os = "macos")]
+    {
+        nym_ipc::server::peer_credentials(_request.extensions()).map(|credentials| Client {
+            user_id: credentials.user_id,
+            audit_session_id: credentials.audit_session_id,
+        })
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        None
+    }
+}
+
+/// Command parameters sent on behalf of the client that sent the request.
+fn client_request<T, P>(request: &Request<T>, params: P) -> ClientRequest<P> {
+    ClientRequest::new(client(request), params)
+}
+
+#[cfg(target_os = "macos")]
+fn unknown_client() -> Status {
+    Status::unauthenticated("Unable to identify the client")
 }
 
 /// Missing user presence is reported as an `Unauthenticated` status, so clients can prompt the

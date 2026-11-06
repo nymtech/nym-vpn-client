@@ -17,6 +17,8 @@ use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::{CancellationToken, DropGuard};
 use tonic::transport::server::Connected;
 
+use crate::PeerCredentials;
+
 pub(crate) const DAEMON_BUNDLE_IDENTIFIER: &str = "net.nymtech.vpn.daemon";
 
 pub(crate) fn connection_interface() -> Retained<NSXPCInterface> {
@@ -88,6 +90,7 @@ pub struct XpcConnection {
 
     data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
     to_be_copied: Option<Vec<u8>>,
+    peer_credentials: Option<PeerCredentials>,
 }
 
 impl XpcConnection {
@@ -102,11 +105,17 @@ impl XpcConnection {
             shutdown_token,
             data_stream_rx,
             to_be_copied: None,
+            peer_credentials: None,
         }
     }
 
     pub(crate) fn with_drop_guard(mut self, drop_guard: DropGuard) -> Self {
         self.drop_guard = Some(drop_guard);
+        self
+    }
+
+    pub(crate) fn with_peer_credentials(mut self, peer_credentials: PeerCredentials) -> Self {
+        self.peer_credentials = Some(peer_credentials);
         self
     }
 
@@ -198,9 +207,11 @@ impl AsyncWrite for XpcConnection {
 }
 
 impl Connected for XpcConnection {
-    type ConnectInfo = ();
+    type ConnectInfo = Option<PeerCredentials>;
 
-    fn connect_info(&self) -> Self::ConnectInfo {}
+    fn connect_info(&self) -> Self::ConnectInfo {
+        self.peer_credentials
+    }
 }
 
 #[cfg(test)]
