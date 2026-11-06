@@ -31,7 +31,7 @@ nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["clap", "serde"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-nym-authorization.workspace = true
+nym-authorization-service.workspace = true
 
 # Debian
 [package.metadata.deb]

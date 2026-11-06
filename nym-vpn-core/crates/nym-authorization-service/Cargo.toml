@@ -1,5 +1,5 @@
 [package]
-name = "nym-authorization"
+name = "nym-authorization-service"
 description = "Unlocking with Authorization Services on macOS"
 version.workspace = true
 authors.workspace = true

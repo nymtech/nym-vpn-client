@@ -3,7 +3,7 @@
 
 use anyhow::Result;
 
-use nym_authorization::UnlockAuthorization;
+use nym_authorization_service::Authorization;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 #[derive(Debug, Clone, clap::Args)]
@@ -15,7 +15,7 @@ pub struct AuthorizeArgs {
 
 pub async fn authorize(mut rpc_client: RpcClient, args: AuthorizeArgs) -> Result<()> {
     // Kept alive until the daemon has verified the token.
-    let authorization = UnlockAuthorization::request(&args.reason)?;
+    let authorization = Authorization::new(&args.reason)?;
     rpc_client.authorize(authorization.token()?).await?;
     println!("Authorized");
     Ok(())

@@ -160,7 +160,7 @@ nym-firewall.workspace = true
 
 # Apple-specific dependencies
 [target.'cfg(target_os = "macos")'.dependencies]
-nym-authorization.workspace = true
+nym-authorization-service.workspace = true
 nym-macos.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]

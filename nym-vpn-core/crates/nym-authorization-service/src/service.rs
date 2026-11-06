@@ -1,13 +1,6 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Unlocking with Authorization Services.
-//!
-//! The process using the keys may run outside of the user's session, where it cannot
-//! authenticate the user itself. Instead, a process in the user's session obtains the unlock
-//! right and hands the externalized authorization over to it, which then verifies that the right
-//! was granted without prompting.
-
 use std::{
     ffi::{CStr, c_char},
     ptr::{self, NonNull},
@@ -32,9 +25,9 @@ const UNLOCK_RIGHT: &CStr = c"net.nymtech.vpn.unlock-account";
 const UNLOCK_RIGHT_TIMEOUT_SECS: i32 = 30;
 
 /// How long the service stays authorized after verifying a token.
-const AUTHORIZATION_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+pub const AUTHORIZATION_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 
-/// Software lock unlocked with the token obtained with [`crate::UnlockAuthorization`]. Callers check
+/// Software lock unlocked with the token obtained with [`crate::Authorization`]. Callers check
 /// [`Self::is_authorized`] before performing operations that require user presence.
 ///
 /// The authorization expires after [`AUTHORIZATION_TIMEOUT`], including time spent asleep.
@@ -147,7 +140,7 @@ fn continuous_time() -> Result<Duration> {
 fn verify_unlock_token(token: &[u8]) -> Result<()> {
     let bytes: [u8; 32] = token.try_into().map_err(|_| Error::AuthenticationFailed)?;
     let form = AuthorizationExternalForm {
-        bytes: bytes.map(|byte| byte as c_char),
+        bytes: bytes.map(|byte| byte.cast_signed()),
     };
 
     let mut auth_ref: AuthorizationRef = ptr::null();

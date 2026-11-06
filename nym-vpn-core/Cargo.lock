@@ -5766,7 +5766,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-authorization"
+name = "nym-authorization-service"
 version = "2026.16.0-beta.1"
 dependencies = [
  "libc",
@@ -8012,7 +8012,7 @@ dependencies = [
  "nix 0.31.3",
  "nym-apple-network",
  "nym-authenticator-client",
- "nym-authorization",
+ "nym-authorization-service",
  "nym-bandwidth-controller",
  "nym-bin-common",
  "nym-bridges",
@@ -8266,7 +8266,7 @@ dependencies = [
  "clap_complete",
  "dirs 7.0.0",
  "enum-iterator",
- "nym-authorization",
+ "nym-authorization-service",
  "nym-diagnostic",
  "nym-favorites",
  "nym-vpn-lib-types",

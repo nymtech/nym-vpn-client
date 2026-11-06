@@ -29,7 +29,7 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "macos")]
-use nym_authorization::AuthorizationService;
+use nym_authorization_service::AuthorizationService;
 use nym_common::trace_err_chain;
 use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters, GatewayList};
@@ -266,7 +266,7 @@ pub enum VpnServiceCommand {
     /// Authorize with the token obtained in the user's session
     #[cfg(target_os = "macos")]
     Authorize(
-        oneshot::Sender<Result<(), nym_authorization::Error>>,
+        oneshot::Sender<Result<(), nym_authorization_service::Error>>,
         Vec<u8>,
     ),
     #[cfg(target_os = "macos")]
