@@ -70,6 +70,43 @@ jobs:
           echo "LC_ALL=C.utf8" >> $GITHUB_ENV
           echo "LANG=C.utf8" >> $GITHUB_ENV
 
+      # Screenshots live in the nym-vpn-client-screenshots bucket, never in git. Validate
+      # the ZIP's entry list BEFORE extracting — reject symlinks, absolute paths, ".."
+      # traversal, and any entry that isn't a screenshot image under a recognized locale/
+      # family path — so a tampered archive can't overwrite Appfile/Fastfile/workflows or
+      # the listing text (which supply would then run/upload with Play credentials).
+      # Validation uses bash reads, not `find | grep -q` (which can pass silently when
+      # grep's early exit SIGPIPEs find under pipefail). icon.png / featureGraphic.png stay in git.
+      - name: Fetch Play Store screenshots from CDN
+        run: |
+          set -euo pipefail
+          url="https://nym-vpn-client-screenshots.cdn.nymte.ch/android-screenshots.zip"
+          tmp="$(mktemp -d)"
+          curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o "$tmp/shots.zip" "$url"
+          if grep -qE '^l' <<<"$(unzip -Z "$tmp/shots.zip")"; then
+            echo "::error::archive contains a symlink entry"; exit 1
+          fi
+          # Case-sensitive: supply's Dir.glob uses lowercase extensions (Ruby 3.3 does not
+          # casefold it), so an uppercase-extension file would be counted but upload nothing.
+          # Abs-path/traversal are checked before skipping directory entries.
+          count=0
+          while IFS= read -r entry; do
+            [ -z "$entry" ] && continue
+            if [[ "$entry" == /* ]]; then echo "::error::absolute path: $entry"; exit 1; fi
+            if [[ "/$entry/" == */../* ]]; then echo "::error::path traversal: $entry"; exit 1; fi
+            [ "${entry%/}" != "$entry" ] && continue              # directory entry (already checked)
+            if [[ "$entry" =~ ^fastlane/metadata/android/[^/]+/images/(phone|sevenInch|tenInch|tv|wear)Screenshots/[^/]+\.(jpg|jpeg|png)$ ]]; then
+              count=$((count+1))
+            else
+              echo "::error::unexpected entry: $entry"; exit 1
+            fi
+          done < <(unzip -Z1 "$tmp/shots.zip")
+          echo "Validated $count Android screenshots"
+          test "$count" -gt 0
+          unzip -q "$tmp/shots.zip" -d "$tmp/x"
+          # Merge screenshot dirs into the checkout (icon.png / featureGraphic.png already there).
+          cp -R "$tmp/x/fastlane/metadata/android/." fastlane/metadata/android/
+
       - name: Get Android version code
         id: version_code
         run: |
