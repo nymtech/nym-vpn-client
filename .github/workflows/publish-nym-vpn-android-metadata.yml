@@ -70,17 +70,30 @@ jobs:
           echo "LC_ALL=C.utf8" >> $GITHUB_ENV
           echo "LANG=C.utf8" >> $GITHUB_ENV
 
-      # Screenshots are stored in the nym-vpn-client-screenshots bucket, not git.
-      # Fetch + unzip into fastlane/metadata/android/*/images/*Screenshots before supply.
+      # Screenshots live in the nym-vpn-client-screenshots bucket, never in git.
+      # Extract to a scratch dir and copy only screenshot files into the checkout, so a
+      # tampered archive can't overwrite Appfile/Fastfile/workflows (which supply would
+      # then run with Play publishing credentials). icon.png / featureGraphic.png stay in git.
       - name: Fetch Play Store screenshots from CDN
         run: |
           set -euo pipefail
           url="https://nym-vpn-client-screenshots.cdn.nymte.ch/android-screenshots.zip"
-          curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o /tmp/android-screenshots.zip "$url"
-          unzip -q -o /tmp/android-screenshots.zip -d .
-          n=$(find fastlane/metadata/android -path '*Screenshots*' -name '*.jpg' | wc -l | tr -d ' ')
+          tmp="$(mktemp -d)"
+          curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o "$tmp/shots.zip" "$url"
+          unzip -q "$tmp/shots.zip" -d "$tmp/x"
+          if find "$tmp/x" -type l | grep -q .; then
+            echo "::error::archive contains a symlink"; exit 1
+          fi
+          # Every entry must be an image in a recognized Play screenshot dir for a locale.
+          if find "$tmp/x" -type f -regextype egrep \
+               ! -iregex '.*/images/(phone|sevenInch|tenInch|tv|wear)Screenshots/[^/]+\.(jpg|jpeg|png)' | grep -q .; then
+            echo "::error::archive contains unexpected files"; find "$tmp/x" -type f | head; exit 1
+          fi
+          n=$(find "$tmp/x/fastlane/metadata/android" -type f | wc -l | tr -d ' ')
           echo "Fetched $n Android screenshots"
           test "$n" -gt 0
+          # Merge screenshot dirs into the checkout (icon.png / featureGraphic.png already there).
+          cp -R "$tmp/x/fastlane/metadata/android/." fastlane/metadata/android/
 
       - name: Get Android version code
         id: version_code

@@ -54,17 +54,31 @@ jobs:
           echo "LC_ALL=C.utf8" >> $GITHUB_ENV
           echo "LANG=C.utf8" >> $GITHUB_ENV
 
-      # Screenshots are stored in the nym-vpn-client-screenshots bucket, not git.
-      # Fetch + unzip into fastlane/screenshots/ios (git-ignored) before deliver.
+      # Screenshots live in the nym-vpn-client-screenshots bucket, never in git.
+      # Extract to a scratch dir and copy only screenshot files into the checkout, so a
+      # tampered archive can't overwrite Fastfile/Deliverfile/workflows (which deliver
+      # would then run with App Store Connect credentials).
       - name: Fetch App Store screenshots from CDN
         run: |
           set -euo pipefail
           url="https://nym-vpn-client-screenshots.cdn.nymte.ch/ios-screenshots.zip"
-          curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o /tmp/ios-screenshots.zip "$url"
-          unzip -q -o /tmp/ios-screenshots.zip -d .
-          n=$(find fastlane/screenshots/ios -type f -name '*.jpg' | wc -l | tr -d ' ')
+          tmp="$(mktemp -d)"
+          curl -fSL --proto '=https' --retry 3 --retry-delay 5 -o "$tmp/shots.zip" "$url"
+          unzip -q "$tmp/shots.zip" -d "$tmp/x"
+          if find "$tmp/x" -type l | grep -q .; then
+            echo "::error::archive contains a symlink"; exit 1
+          fi
+          # Every entry must be an image under fastlane/screenshots/ios/<locale>/.
+          if find "$tmp/x" -type f -regextype egrep \
+               ! -iregex '.*/fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)' | grep -q .; then
+            echo "::error::archive contains unexpected files"; find "$tmp/x" -type f | head; exit 1
+          fi
+          n=$(find "$tmp/x/fastlane/screenshots/ios" -type f | wc -l | tr -d ' ')
           echo "Fetched $n iOS screenshots"
           test "$n" -gt 0
+          mkdir -p fastlane/screenshots
+          rm -rf fastlane/screenshots/ios
+          cp -R "$tmp/x/fastlane/screenshots/ios" fastlane/screenshots/ios
 
       - name: Update App Store metadata 🚀
         env:
@@ -73,6 +87,9 @@ jobs:
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
           SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
+          # Enables screenshot upload in the Deliverfile — set only here, after the
+          # fetch step populated fastlane/screenshots/ios from the bucket.
+          UPLOAD_SCREENSHOTS: "true"
         run: |
           echo "🚀 Uploading App Store metadata (submit_for_review=$SUBMIT_FOR_REVIEW)..."
           bundle exec fastlane ios upload_metadata submit:"$SUBMIT_FOR_REVIEW"

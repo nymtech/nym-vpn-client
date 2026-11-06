@@ -17,8 +17,10 @@ skip_binary_upload true
 skip_metadata false
 
 # Screenshots are fetched from the bucket into fastlane/screenshots/ios by the
-# workflow before this runs; upload them, replacing the live set per locale.
-skip_screenshots false
+# workflow, which sets UPLOAD_SCREENSHOTS=true. A direct local run leaves it unset
+# and skips screenshots, so it can't replace the live App Store set with stale or
+# partial local files. overwrite_screenshots replaces the live set per locale.
+skip_screenshots ENV['UPLOAD_SCREENSHOTS'] != 'true'
 overwrite_screenshots true
 
 # Default: no submission. The upload_metadata lane overrides this with its submit
