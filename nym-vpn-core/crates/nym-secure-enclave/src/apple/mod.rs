@@ -51,6 +51,20 @@ struct KeyEntry {
     user_presence: bool,
 }
 
+/// Authentication state
+///
+/// Access to the underlying key storage is protected in two ways:
+///
+/// 1. Keys created with user presence requirement will not be accessible without local authentication.
+///    Local authentication context is tied to the process/user and cannot be shared across processes.
+///
+///    On macOS, the process using the keys may not be able to authenticate the user itself, for
+///    example when it runs outside of the user's session. Authorization Services can be used
+///    instead to verify user presence in another process and create a shareable authorization
+///    token.
+///
+/// 2. Software lock, which prevents unattended access to keys stored in Keychain/Secure Enclave unless user presence is proved
+///    with authorization token. This leverages Authorization Services on macOS.
 struct AuthState {
     /// Context that keys are obtained with unless unlocked with local authentication. It does not
     /// allow user interaction, so that keys requiring user presence fail instead of prompting.
@@ -93,8 +107,8 @@ impl AuthState {
         }
     }
 
-    /// Whether keys requiring user presence can be used. The daemon cannot satisfy the hardware
-    /// user presence check as root, so on macOS the check is enforced in software instead.
+    /// Whether keys requiring user presence can be used. On macOS the check is enforced in
+    /// software, so that keys can also be unlocked with an authorization token.
     #[cfg(target_os = "macos")]
     fn is_unlocked(&self) -> bool {
         !matches!(self.unlock_state, UnlockState::Locked)
@@ -214,7 +228,7 @@ impl SecureEnclaveProvider for AppleSecureEnclaveProvider {
             {
                 Ok(_) => Err(SecureEnclaveError::KeyAlreadyExists),
                 Err(SecureEnclaveError::KeyNotFound) => {
-                    // Root cannot satisfy the hardware check on macOS, see `is_unlocked()`.
+                    // User presence is enforced in software on macOS, see `is_unlocked()`.
                     let hardware_presence = user_presence && cfg!(not(target_os = "macos"));
                     let key =
                         create_sec_key(&alias_bytes, hardware_presence, state.auth.context())?;

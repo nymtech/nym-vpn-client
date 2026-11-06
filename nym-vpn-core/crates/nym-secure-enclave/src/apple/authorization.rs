@@ -3,9 +3,10 @@
 
 //! Unlocking with Authorization Services.
 //!
-//! The daemon runs as root, so it cannot authenticate the logged-in user itself. Instead the
-//! client obtains the unlock right in the user's session and hands the externalized authorization
-//! to the daemon, which verifies that the right was granted without prompting.
+//! The process using the keys may run outside of the user's session, where it cannot
+//! authenticate the user itself. Instead, a process in the user's session obtains the unlock
+//! right and hands the externalized authorization over to it, which then verifies that the right
+//! was granted without prompting.
 
 use std::{
     ffi::{CStr, CString, c_char, c_void},
@@ -26,7 +27,8 @@ use crate::{Result, SecureEnclaveError};
 
 const UNLOCK_RIGHT: &CStr = c"net.nymtech.vpn.unlock-account";
 
-/// How long the right granted to the client stays valid, enough to hand it over to the daemon.
+/// How long the right granted to the client stays valid, enough to hand it over to the process
+/// verifying it.
 const UNLOCK_RIGHT_TIMEOUT_SECS: i32 = 30;
 
 /// Authorization holding the unlock right, obtained in the user's session.
@@ -71,7 +73,7 @@ impl UnlockAuthorization {
         Ok(authorization)
     }
 
-    /// Externalized authorization to send to the daemon.
+    /// Externalized authorization to hand over to the process verifying it.
     pub fn token(&self) -> Result<Vec<u8>> {
         let mut form = AuthorizationExternalForm { bytes: [0; 32] };
         check(unsafe { AuthorizationMakeExternalForm(self.0, NonNull::from(&mut form)) })?;
