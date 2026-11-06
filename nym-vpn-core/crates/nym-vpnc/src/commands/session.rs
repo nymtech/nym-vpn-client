@@ -65,7 +65,9 @@ async fn respond(line: &str, rpc_client: RpcClient) -> Result<bool> {
         Command::Account { subcommand } => subcommand.execute(rpc_client).await?,
         Command::Device(args) => args.execute(rpc_client).await?,
         #[cfg(target_os = "macos")]
-        Command::Authorize(args) => args.execute(rpc_client).await?,
+        Command::Authorize(args) => {
+            crate::commands::authorization::authorize(rpc_client, args).await?
+        }
         #[cfg(target_os = "macos")]
         Command::Deauthorize => crate::commands::authorization::deauthorize(rpc_client).await?,
         Command::Sentry { subcommand } => subcommand.execute(rpc_client).await?,
