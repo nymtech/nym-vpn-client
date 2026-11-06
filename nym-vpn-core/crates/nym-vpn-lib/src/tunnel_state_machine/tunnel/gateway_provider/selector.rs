@@ -333,15 +333,19 @@ fn select_entry(
         entry_ordering_criteria.clone(),
         &entry_filters,
     );
-    // Auto falls back to a direct connection, so only On makes a missing bridge fatal.
-    if entry_gateway.is_err()
-        && use_bridges
-        && tunnel_settings.wireguard_tunnel_options.bridge_mode == nym_vpn_lib_types::BridgeMode::On
-    {
+    if entry_gateway.is_err() && use_bridges {
         entry_filters.remove(&GatewayFilter::QuicEnabled);
-        if find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters).is_ok()
-        {
-            return Err(GatewayProviderError::EntryGatewayHasNoBridge);
+        let direct =
+            find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters);
+        if direct.is_ok() {
+            // Auto connects directly; only On makes a missing bridge fatal.
+            return if tunnel_settings.wireguard_tunnel_options.bridge_mode
+                == nym_vpn_lib_types::BridgeMode::On
+            {
+                Err(GatewayProviderError::EntryGatewayHasNoBridge)
+            } else {
+                direct.map_err(GatewayProviderError::EntryGatewayUnavailable)
+            };
         }
     }
     entry_gateway.map_err(GatewayProviderError::EntryGatewayUnavailable)

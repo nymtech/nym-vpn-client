@@ -633,6 +633,8 @@ impl ConnectingState {
     ) -> Result<()> {
         let entry_gateway = gateways.entry_gateway();
         let exit_gateway = gateways.exit_gateway();
+        // Auto keeps an entry without a bridge, which can only connect directly.
+        self.use_bridges &= entry_gateway.is_quic_enabled();
         tracing::debug!(
             "Using entry public key: {}",
             gateways.entry_keypair().public_key()
