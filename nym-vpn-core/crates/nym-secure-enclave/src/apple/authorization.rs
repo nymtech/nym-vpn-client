@@ -81,7 +81,7 @@ impl UnlockAuthorization {
 
 impl Drop for UnlockAuthorization {
     fn drop(&mut self) {
-        unsafe { AuthorizationFree(self.0, AuthorizationFlags::Defaults) };
+        free_authorization(self.0, AuthorizationFlags::Defaults);
     }
 }
 
@@ -133,7 +133,7 @@ pub fn register_unlock_right() -> Result<()> {
             None,
         )
     };
-    unsafe { AuthorizationFree(auth_ref, AuthorizationFlags::Defaults) };
+    free_authorization(auth_ref, AuthorizationFlags::Defaults);
     check(status)
 }
 
@@ -154,7 +154,7 @@ pub fn verify_unlock_token(token: &[u8]) -> Result<()> {
     })?;
 
     let result = copy_unlock_right(auth_ref, ptr::null(), AuthorizationFlags::ExtendRights);
-    unsafe { AuthorizationFree(auth_ref, AuthorizationFlags::DestroyRights) };
+    free_authorization(auth_ref, AuthorizationFlags::DestroyRights);
     result
 }
 
@@ -182,6 +182,13 @@ fn copy_unlock_right(
             ptr::null_mut(),
         )
     })
+}
+
+fn free_authorization(auth_ref: AuthorizationRef, flags: AuthorizationFlags) {
+    let status = unsafe { AuthorizationFree(auth_ref, flags) };
+    if status != errAuthorizationSuccess {
+        tracing::error!("Failed to free authorization ({flags:?}): {status}");
+    }
 }
 
 fn check(status: i32) -> Result<()> {
