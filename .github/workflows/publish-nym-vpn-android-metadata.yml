@@ -88,12 +88,13 @@ jobs:
           fi
           # Case-sensitive: supply's Dir.glob uses lowercase extensions (Ruby 3.3 does not
           # casefold it), so an uppercase-extension file would be counted but upload nothing.
+          # Abs-path/traversal are checked before skipping directory entries.
           count=0
           while IFS= read -r entry; do
             [ -z "$entry" ] && continue
-            [ "${entry%/}" != "$entry" ] && continue              # directory entry
-            case "$entry" in /*) echo "::error::absolute path: $entry"; exit 1 ;; esac
-            case "/$entry/" in */../*) echo "::error::path traversal: $entry"; exit 1 ;; esac
+            if [[ "$entry" == /* ]]; then echo "::error::absolute path: $entry"; exit 1; fi
+            if [[ "/$entry/" == */../* ]]; then echo "::error::path traversal: $entry"; exit 1; fi
+            [ "${entry%/}" != "$entry" ] && continue              # directory entry (already checked)
             if [[ "$entry" =~ ^fastlane/metadata/android/[^/]+/images/(phone|sevenInch|tenInch|tv|wear)Screenshots/[^/]+\.(jpg|jpeg|png)$ ]]; then
               count=$((count+1))
             else

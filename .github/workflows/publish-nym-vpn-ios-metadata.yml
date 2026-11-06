@@ -71,14 +71,16 @@ jobs:
           fi
           # Case-sensitive: deliver's Dir.glob uses lowercase extensions (Ruby 3.3 does
           # not casefold it), so an uppercase-extension file would be counted here but
-          # upload nothing. README.md is the one tracked non-image allowed in this dir.
+          # upload nothing. Abs-path/traversal are checked before skipping directory
+          # entries (so a traversal dir entry is rejected too). README.md is the one
+          # tracked non-image allowed in this dir.
           count=0
           while IFS= read -r entry; do
             [ -z "$entry" ] && continue
-            [ "${entry%/}" != "$entry" ] && continue              # directory entry
-            case "$entry" in /*) echo "::error::absolute path: $entry"; exit 1 ;; esac
-            case "/$entry/" in */../*) echo "::error::path traversal: $entry"; exit 1 ;; esac
-            case "$entry" in fastlane/screenshots/ios/README.md) continue ;; esac
+            if [[ "$entry" == /* ]]; then echo "::error::absolute path: $entry"; exit 1; fi
+            if [[ "/$entry/" == */../* ]]; then echo "::error::path traversal: $entry"; exit 1; fi
+            [ "${entry%/}" != "$entry" ] && continue              # directory entry (already checked)
+            if [[ "$entry" == fastlane/screenshots/ios/README.md ]]; then continue; fi
             if [[ "$entry" =~ ^fastlane/screenshots/ios/[^/]+/[^/]+\.(jpg|jpeg|png)$ ]]; then
               count=$((count+1))
             else
