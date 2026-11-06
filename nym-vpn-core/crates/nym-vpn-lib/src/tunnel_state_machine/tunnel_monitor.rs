@@ -450,6 +450,9 @@ impl TunnelMonitor {
                 new_gateways
             };
 
+        // Auto keeps an entry without a bridge, which can only connect directly.
+        self.tunnel_parameters.use_bridges &= selected_gateways.entry_gateway().is_quic_enabled();
+
         self.send_event(TunnelMonitorEvent::RegisteringWithGateways);
 
         #[cfg(target_os = "android")]
