@@ -54,6 +54,18 @@ jobs:
           echo "LC_ALL=C.utf8" >> $GITHUB_ENV
           echo "LANG=C.utf8" >> $GITHUB_ENV
 
+      # Screenshots are stored in the nym-vpn-client-screenshots bucket, not git.
+      # Fetch + unzip into fastlane/screenshots/ios (git-ignored) before deliver.
+      - name: Fetch App Store screenshots from CDN
+        run: |
+          set -euo pipefail
+          url="https://nym-vpn-client-screenshots.cdn.nymte.ch/ios-screenshots.zip"
+          curl -fSL --retry 3 --retry-delay 5 -o /tmp/ios-screenshots.zip "$url"
+          unzip -q -o /tmp/ios-screenshots.zip -d .
+          n=$(find fastlane/screenshots/ios -type f -name '*.jpg' | wc -l | tr -d ' ')
+          echo "Fetched $n iOS screenshots"
+          test "$n" -gt 0
+
       - name: Update App Store metadata 🚀
         env:
           FASTLANE_OPT_OUT_USAGE: "YES"

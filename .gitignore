@@ -50,6 +50,12 @@ fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
 
+# Store screenshots are fetched from the bucket at release time, never committed.
+# (iOS lives under fastlane/screenshots, already ignored above.) Keep icon.png and
+# featureGraphic.png, which stay in git and are uploaded by supply.
+fastlane/metadata/android/*/images/phoneScreenshots/
+fastlane/metadata/android/*/images/tenInchScreenshots/
+
 # Maestro test output
 maestro-report.xml
 maestro-debug/
