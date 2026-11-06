@@ -1162,8 +1162,9 @@ enum BridgeModes {
 }
 
 enum AmneziaModes {
-  AMNEZIA_MODES_OFF = 0;
-  AMNEZIA_MODES_AUTO = 1;
+  AMNEZIA_MODES_JUNK = 0;
+  AMNEZIA_MODES_OFF = 1;
+  AMNEZIA_MODES_AUTO = 2;
 }
 
 enum FrontingModes {

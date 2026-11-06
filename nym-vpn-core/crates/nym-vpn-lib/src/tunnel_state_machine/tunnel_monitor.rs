@@ -279,6 +279,7 @@ pub struct TunnelParameters {
     /// Fall back from QUIC to TLS and SSH bridges.
     pub bridge_fallback: bool,
     pub amnezia_translator: bool,
+    pub amnezia_obfuscation: bool,
     pub user_agent: UserAgent,
     #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
@@ -732,8 +733,8 @@ impl TunnelMonitor {
                             via_translator: true,
                         });
                         via_amnezia = true;
-                    } else {
-                        // Base mode straight to the node: junk packets only, no wire format change.
+                    } else if self.tunnel_parameters.amnezia_obfuscation {
+                        // Junk packets straight to the node: no wire format change.
                         connection_data.amnezia = Some(AmneziaConnection {
                             protocol: AmneziaProtocol::Awg10,
                             via_translator: false,
@@ -1485,7 +1486,7 @@ impl TunnelMonitor {
             .run(
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_bridges,
+                !use_bridges && self.tunnel_parameters.amnezia_obfuscation,
             )
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
@@ -1557,7 +1558,7 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_bridges,
+                !use_bridges && self.tunnel_parameters.amnezia_obfuscation,
             )
             .await?;
 
@@ -1702,7 +1703,7 @@ impl TunnelMonitor {
             .run(
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_bridges,
+                !use_bridges && self.tunnel_parameters.amnezia_obfuscation,
             )
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
@@ -1788,7 +1789,7 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_bridges,
+                !use_bridges && self.tunnel_parameters.amnezia_obfuscation,
             )
             .await?;
 
@@ -1935,7 +1936,7 @@ impl TunnelMonitor {
                 self.tun_provider.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_bridges,
+                !use_bridges && self.tunnel_parameters.amnezia_obfuscation,
             )
             .await?;
 

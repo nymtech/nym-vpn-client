@@ -76,6 +76,8 @@ pub struct ConnectingState {
     bridge_fallback: bool,
     /// Entry AmneziaWG translator allowed: mode auto and the `amnezia.enabled` flag.
     amnezia_translator: bool,
+    /// AmneziaWG junk packets on the plain WireGuard path: any mode but off.
+    amnezia_obfuscation: bool,
     last_connection_state: Option<EstablishConnectionState>,
     tunnel_monitor_handle: Option<TunnelMonitorHandle>,
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
@@ -121,6 +123,11 @@ impl ConnectingState {
             .borrow()
             .bridge_transports_enabled()
             .unwrap_or(false);
+        let amnezia_obfuscation = shared_state
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .amnezia_mode
+            != AmneziaMode::Off;
         let amnezia_translator = shared_state
             .tunnel_settings
             .wireguard_tunnel_options
@@ -260,6 +267,7 @@ impl ConnectingState {
             use_bridges,
             bridge_fallback,
             amnezia_translator,
+            amnezia_obfuscation,
             selector_fallback_state: Default::default(),
             selected_gateways,
             connection_data: initial_connection_data.clone(),
@@ -514,6 +522,7 @@ impl ConnectingState {
             use_bridges: self.use_bridges,
             bridge_fallback: self.bridge_fallback,
             amnezia_translator: self.amnezia_translator,
+            amnezia_obfuscation: self.amnezia_obfuscation,
             user_agent: shared_state.user_agent.clone(),
             #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),

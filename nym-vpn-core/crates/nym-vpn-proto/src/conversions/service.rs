@@ -211,6 +211,7 @@ impl From<nym_vpn_lib_types::AmneziaMode> for proto::AmneziaModes {
     fn from(value: nym_vpn_lib_types::AmneziaMode) -> Self {
         match value {
             nym_vpn_lib_types::AmneziaMode::Off => proto::AmneziaModes::Off,
+            nym_vpn_lib_types::AmneziaMode::Junk => proto::AmneziaModes::Junk,
             nym_vpn_lib_types::AmneziaMode::Auto => proto::AmneziaModes::Auto,
         }
     }
@@ -220,6 +221,7 @@ impl From<proto::AmneziaModes> for nym_vpn_lib_types::AmneziaMode {
     fn from(val: proto::AmneziaModes) -> Self {
         match val {
             proto::AmneziaModes::Off => nym_vpn_lib_types::AmneziaMode::Off,
+            proto::AmneziaModes::Junk => nym_vpn_lib_types::AmneziaMode::Junk,
             proto::AmneziaModes::Auto => nym_vpn_lib_types::AmneziaMode::Auto,
         }
     }

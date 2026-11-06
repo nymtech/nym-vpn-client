@@ -39,8 +39,9 @@ pub struct SetParams {
     #[arg(long, value_enum)]
     bridge_mode: Option<BridgeMode>,
 
-    /// Set the AmneziaWG translator mode: auto uses the entry gateway's AmneziaWG bridge when it
-    /// advertises one this client speaks (needs the amnezia feature flag), off never does.
+    /// Set the AmneziaWG obfuscation: off is plain WireGuard, junk sends junk packets before the
+    /// handshake (default), auto also uses the entry gateway's AmneziaWG bridge when it advertises
+    /// one this client speaks (needs the amnezia feature flag).
     #[arg(long, value_enum)]
     amnezia_mode: Option<AmneziaMode>,
 

@@ -22,16 +22,18 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AmneziaMode {
-    Auto,
-    #[default]
     Off,
+    #[default]
+    Junk,
+    Auto,
 }
 
 impl From<AmneziaMode> for nym_vpn_lib_types::AmneziaMode {
     fn from(value: AmneziaMode) -> Self {
         match value {
-            AmneziaMode::Auto => Self::Auto,
             AmneziaMode::Off => Self::Off,
+            AmneziaMode::Junk => Self::Junk,
+            AmneziaMode::Auto => Self::Auto,
         }
     }
 }
@@ -39,8 +41,9 @@ impl From<AmneziaMode> for nym_vpn_lib_types::AmneziaMode {
 impl From<nym_vpn_lib_types::AmneziaMode> for AmneziaMode {
     fn from(value: nym_vpn_lib_types::AmneziaMode) -> Self {
         match value {
-            nym_vpn_lib_types::AmneziaMode::Auto => Self::Auto,
             nym_vpn_lib_types::AmneziaMode::Off => Self::Off,
+            nym_vpn_lib_types::AmneziaMode::Junk => Self::Junk,
+            nym_vpn_lib_types::AmneziaMode::Auto => Self::Auto,
         }
     }
 }

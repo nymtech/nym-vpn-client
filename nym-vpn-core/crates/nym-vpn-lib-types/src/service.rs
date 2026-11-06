@@ -433,8 +433,8 @@ pub enum BridgeMode {
     Off,
 }
 
-/// Whether the plain WireGuard path may use the AmneziaWG translator the entry gateway advertises.
-/// Independent of [`BridgeMode`]: the translator is only used when bridges are not.
+/// How much AmneziaWG obfuscation the plain WireGuard path uses. Independent of [`BridgeMode`]:
+/// the translator is only used when bridges are not.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
@@ -447,11 +447,14 @@ pub enum BridgeMode {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum AmneziaMode {
-    /// Use the translator when the entry gateway advertises a profile this client speaks.
-    Auto,
-    /// Never use the translator; the base AmneziaWG settings stay as they are.
-    #[default]
+    /// Plain WireGuard, no obfuscation.
     Off,
+    /// Junk packets before the handshake, to a plain WireGuard port. The translator is not used.
+    #[default]
+    Junk,
+    /// Use the translator when the entry gateway advertises a profile this client speaks,
+    /// otherwise junk packets.
+    Auto,
 }
 
 impl From<bool> for BridgeMode {
